@@ -21,6 +21,15 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 
 	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
 
+	_query.AddHandler(this, &CocoSandboxApplication::QueryHandler);
+	_event.AddHandler(this, &CocoSandboxApplication::EventHandler);
+
+	int i = 0;
+	_query.Invoke(&i, 9);
+	_event.InvokeEvent(1);
+
+	LogInfo(Logger, FormattedString("Query value is {}", i));
+
 	LogInfo(Logger, "Sandbox application created");
 }
 
@@ -36,4 +45,16 @@ void CocoSandboxApplication::Start()
 	_window->Show();
 
 	LogInfo(Logger, "Sandbox application started");
+}
+
+int CocoSandboxApplication::QueryHandler(int param)
+{
+	LogInfo(Logger, FormattedString("Query with param {}!", param));
+	return param + 1;
+}
+
+bool CocoSandboxApplication::EventHandler(int param)
+{
+	LogInfo(Logger, FormattedString("Event with param {}!", param));
+	return false;
 }
