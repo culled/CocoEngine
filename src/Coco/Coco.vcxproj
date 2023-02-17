@@ -94,8 +94,8 @@
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Core\Engine.h" />
     <ClInclude Include="Core\Events\Event.h" />
-    <ClInclude Include="Core\Events\EventArgs.h" />
-    <ClInclude Include="Core\Events\EventHandler.h" />
+    <ClInclude Include="Core\Events\QueryHandler.h" />
+    <ClInclude Include="Core\Events\Query.h" />
     <ClInclude Include="Core\Logging\LogLevel.h" />
     <ClInclude Include="Core\Logging\LogSink.h" />
     <ClInclude Include="Core\Logging\Logger.h" />

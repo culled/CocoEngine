@@ -123,9 +123,9 @@
     <ClInclude Include="Windowing\WindowingService.h">
       <Filter>Windowing</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Events\EventArgs.h" />
     <ClInclude Include="Core\Events\Event.h" />
-    <ClInclude Include="Core\Events\EventHandler.h" />
+    <ClInclude Include="Core\Events\QueryHandler.h" />
+    <ClInclude Include="Core\Events\Query.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
