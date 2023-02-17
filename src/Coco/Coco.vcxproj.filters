@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Logging">
+      <UniqueIdentifier>{C4E22202-B045-B2A6-59CB-EA5C450D7E29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Logging\Sinks">
+      <UniqueIdentifier>{1BC396E0-07A7-5736-7007-52895C0A42B8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\MainLoop">
+      <UniqueIdentifier>{1CD92A02-8899-A638-51D4-EFB5BD53EB14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Platform">
+      <UniqueIdentifier>{42848203-AE44-FE39-777F-47B7E3FE4216}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Services">
+      <UniqueIdentifier>{C1AD3DD5-2D6E-B90B-F6A8-02896228FEE7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Types">
+      <UniqueIdentifier>{526248CE-3E1A-8A1B-A721-637793F8240C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms">
+      <UniqueIdentifier>{DDACA145-4917-56BC-9255-0762FEFE3311}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Windows">
+      <UniqueIdentifier>{17E40808-83FA-069E-CC71-92BF38C7D725}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Windowing">
+      <UniqueIdentifier>{5BEA4C74-C754-01EB-1093-B2907C3CDF3F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\Application.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Asserts.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Core.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Engine.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Logging\LogLevel.h">
+      <Filter>Core\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Logging\LogSink.h">
+      <Filter>Core\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Logging\Logger.h">
+      <Filter>Core\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Logging\Sinks\ConsoleLogSink.h">
+      <Filter>Core\Logging\Sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MainLoop\MainLoop.h">
+      <Filter>Core\MainLoop</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platform\EnginePlatform.h">
+      <Filter>Core\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platform\EnginePlatformTypes.h">
+      <Filter>Core\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Services\EngineService.h">
+      <Filter>Core\Services</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Services\EngineServiceManager.h">
+      <Filter>Core\Services</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\DateTime.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\Exceptions.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\ExitCodes.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\List.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\Optional.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\Ref.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\Size.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\String.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\TimeSpan.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\Vector.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Windows\CoreWindows.h">
+      <Filter>Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Windows\EnginePlatformWindows.h">
+      <Filter>Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Windows\WindowsIncludes.h">
+      <Filter>Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Windows\WindowsWindow.h">
+      <Filter>Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Windowing\Window.h">
+      <Filter>Windowing</Filter>
+    </ClInclude>
+    <ClInclude Include="Windowing\WindowingPlatform.h">
+      <Filter>Windowing</Filter>
+    </ClInclude>
+    <ClInclude Include="Windowing\WindowingService.h">
+      <Filter>Windowing</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core\Application.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Engine.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Logging\LogSink.cpp">
+      <Filter>Core\Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Logging\Logger.cpp">
+      <Filter>Core\Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Logging\Sinks\ConsoleLogSink.cpp">
+      <Filter>Core\Logging\Sinks</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\MainLoop\MainLoop.cpp">
+      <Filter>Core\MainLoop</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Services\EngineServiceManager.cpp">
+      <Filter>Core\Services</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Types\DateTime.cpp">
+      <Filter>Core\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Types\TimeSpan.cpp">
+      <Filter>Core\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Windows\EnginePlatformWindows.cpp">
+      <Filter>Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Windows\EntryWindows.cpp">
+      <Filter>Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Windows\WindowsWindow.cpp">
+      <Filter>Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Windowing\Window.cpp">
+      <Filter>Windowing</Filter>
+    </ClCompile>
+    <ClCompile Include="Windowing\WindowingService.cpp">
+      <Filter>Windowing</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

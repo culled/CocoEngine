@@ -1,46 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.2.32616.157
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Coco.Core", "src\Coco.Core\Coco.Core.vcxproj", "{F0C7F1C8-4438-4C3B-A1D3-1C089A97C30C}"
+# Visual Studio Version 16
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CocoSandbox", "examples\CocoSandbox\CocoSandbox.vcxproj", "{B84A52EF-2400-CBE4-ADF4-C4BB19A9C1E8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Engine", "Engine", "{4EFE75AB-4D1D-4159-AC67-43C378F3992F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Engine", "Engine", "{8249BEE1-6EAC-4D86-1732-863C03741909}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CocoSandbox", "examples\CocoSandbox\CocoSandbox.vcxproj", "{E9EA7049-F0FF-4ECC-931E-1F8E989D6316}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Coco", "src\Coco\Coco.vcxproj", "{49B2837C-35E9-840D-DED5-6A10CAEB000F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
+		Debug|Win64 = Debug|Win64
+		Release|Win64 = Release|Win64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F0C7F1C8-4438-4C3B-A1D3-1C089A97C30C}.Debug|x64.ActiveCfg = Debug|x64
-		{F0C7F1C8-4438-4C3B-A1D3-1C089A97C30C}.Debug|x64.Build.0 = Debug|x64
-		{F0C7F1C8-4438-4C3B-A1D3-1C089A97C30C}.Debug|x86.ActiveCfg = Debug|Win32
-		{F0C7F1C8-4438-4C3B-A1D3-1C089A97C30C}.Debug|x86.Build.0 = Debug|Win32
-		{F0C7F1C8-4438-4C3B-A1D3-1C089A97C30C}.Release|x64.ActiveCfg = Release|x64
-		{F0C7F1C8-4438-4C3B-A1D3-1C089A97C30C}.Release|x64.Build.0 = Release|x64
-		{F0C7F1C8-4438-4C3B-A1D3-1C089A97C30C}.Release|x86.ActiveCfg = Release|Win32
-		{F0C7F1C8-4438-4C3B-A1D3-1C089A97C30C}.Release|x86.Build.0 = Release|Win32
-		{E9EA7049-F0FF-4ECC-931E-1F8E989D6316}.Debug|x64.ActiveCfg = Debug|x64
-		{E9EA7049-F0FF-4ECC-931E-1F8E989D6316}.Debug|x64.Build.0 = Debug|x64
-		{E9EA7049-F0FF-4ECC-931E-1F8E989D6316}.Debug|x86.ActiveCfg = Debug|Win32
-		{E9EA7049-F0FF-4ECC-931E-1F8E989D6316}.Debug|x86.Build.0 = Debug|Win32
-		{E9EA7049-F0FF-4ECC-931E-1F8E989D6316}.Release|x64.ActiveCfg = Release|x64
-		{E9EA7049-F0FF-4ECC-931E-1F8E989D6316}.Release|x64.Build.0 = Release|x64
-		{E9EA7049-F0FF-4ECC-931E-1F8E989D6316}.Release|x86.ActiveCfg = Release|Win32
-		{E9EA7049-F0FF-4ECC-931E-1F8E989D6316}.Release|x86.Build.0 = Release|Win32
+		{B84A52EF-2400-CBE4-ADF4-C4BB19A9C1E8}.Debug|Win64.ActiveCfg = Debug Win64|x64
+		{B84A52EF-2400-CBE4-ADF4-C4BB19A9C1E8}.Debug|Win64.Build.0 = Debug Win64|x64
+		{B84A52EF-2400-CBE4-ADF4-C4BB19A9C1E8}.Release|Win64.ActiveCfg = Release Win64|x64
+		{B84A52EF-2400-CBE4-ADF4-C4BB19A9C1E8}.Release|Win64.Build.0 = Release Win64|x64
+		{49B2837C-35E9-840D-DED5-6A10CAEB000F}.Debug|Win64.ActiveCfg = Debug Win64|x64
+		{49B2837C-35E9-840D-DED5-6A10CAEB000F}.Debug|Win64.Build.0 = Debug Win64|x64
+		{49B2837C-35E9-840D-DED5-6A10CAEB000F}.Release|Win64.ActiveCfg = Release Win64|x64
+		{49B2837C-35E9-840D-DED5-6A10CAEB000F}.Release|Win64.Build.0 = Release Win64|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{F0C7F1C8-4438-4C3B-A1D3-1C089A97C30C} = {4EFE75AB-4D1D-4159-AC67-43C378F3992F}
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {6C7129B2-5082-47D2-9516-0FC2D8BB0312}
+		{49B2837C-35E9-840D-DED5-6A10CAEB000F} = {8249BEE1-6EAC-4D86-1732-863C03741909}
 	EndGlobalSection
 EndGlobal
