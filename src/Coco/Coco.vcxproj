@@ -11,20 +11,21 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B84A52EF-2400-CBE4-ADF4-C4BB19A9C1E8}</ProjectGuid>
+    <ProjectGuid>{49B2837C-35E9-840D-DED5-6A10CAEB000F}</ProjectGuid>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>CocoSandbox</RootNamespace>
+    <RootNamespace>Coco</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Win64|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Win64|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
@@ -40,25 +41,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Win64|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\..\build\bin\Debug-windows-x86_64\CocoSandbox\</OutDir>
-    <IntDir>..\..\build\obj\Debug-windows-x86_64\CocoSandbox\</IntDir>
-    <TargetName>CocoSandbox</TargetName>
-    <TargetExt>.exe</TargetExt>
+    <OutDir>..\..\build\bin\Debug-windows-x86_64\Coco\</OutDir>
+    <IntDir>..\..\build\obj\Debug-windows-x86_64\Coco\</IntDir>
+    <TargetName>Coco</TargetName>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Win64|x64'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\build\bin\Release-windows-x86_64\CocoSandbox\</OutDir>
-    <IntDir>..\..\build\obj\Release-windows-x86_64\CocoSandbox\</IntDir>
-    <TargetName>CocoSandbox</TargetName>
-    <TargetExt>.exe</TargetExt>
+    <OutDir>..\..\build\bin\Release-windows-x86_64\Coco\</OutDir>
+    <IntDir>..\..\build\obj\Release-windows-x86_64\Coco\</IntDir>
+    <TargetName>Coco</TargetName>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Win64|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>COCO_ASSERTIONS;COCO_LOG_TRACE;COCO_LOG_INFO;COCO_LOG_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>COCO_ASSERTIONS;COCO_RENDERING_VULKAN;COCO_LOG_TRACE;COCO_LOG_INFO;COCO_LOG_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -73,8 +72,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>COCO_ASSERTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>COCO_ASSERTIONS;COCO_RENDERING_VULKAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -90,15 +89,52 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\CocoSandboxApplication.h" />
+    <ClInclude Include="Core\Application.h" />
+    <ClInclude Include="Core\Asserts.h" />
+    <ClInclude Include="Core\Core.h" />
+    <ClInclude Include="Core\Engine.h" />
+    <ClInclude Include="Core\Logging\LogLevel.h" />
+    <ClInclude Include="Core\Logging\LogSink.h" />
+    <ClInclude Include="Core\Logging\Logger.h" />
+    <ClInclude Include="Core\Logging\Sinks\ConsoleLogSink.h" />
+    <ClInclude Include="Core\MainLoop\MainLoop.h" />
+    <ClInclude Include="Core\Platform\EnginePlatform.h" />
+    <ClInclude Include="Core\Platform\EnginePlatformTypes.h" />
+    <ClInclude Include="Core\Services\EngineService.h" />
+    <ClInclude Include="Core\Services\EngineServiceManager.h" />
+    <ClInclude Include="Core\Types\DateTime.h" />
+    <ClInclude Include="Core\Types\Exceptions.h" />
+    <ClInclude Include="Core\Types\ExitCodes.h" />
+    <ClInclude Include="Core\Types\List.h" />
+    <ClInclude Include="Core\Types\Optional.h" />
+    <ClInclude Include="Core\Types\Ref.h" />
+    <ClInclude Include="Core\Types\Size.h" />
+    <ClInclude Include="Core\Types\String.h" />
+    <ClInclude Include="Core\Types\TimeSpan.h" />
+    <ClInclude Include="Core\Types\Vector.h" />
+    <ClInclude Include="Platforms\Windows\CoreWindows.h" />
+    <ClInclude Include="Platforms\Windows\EnginePlatformWindows.h" />
+    <ClInclude Include="Platforms\Windows\WindowsIncludes.h" />
+    <ClInclude Include="Platforms\Windows\WindowsWindow.h" />
+    <ClInclude Include="Windowing\Window.h" />
+    <ClInclude Include="Windowing\WindowingPlatform.h" />
+    <ClInclude Include="Windowing\WindowingService.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\CocoSandboxApplication.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Coco\Coco.vcxproj">
-      <Project>{49B2837C-35E9-840D-DED5-6A10CAEB000F}</Project>
-    </ProjectReference>
+    <ClCompile Include="Core\Application.cpp" />
+    <ClCompile Include="Core\Engine.cpp" />
+    <ClCompile Include="Core\Logging\LogSink.cpp" />
+    <ClCompile Include="Core\Logging\Logger.cpp" />
+    <ClCompile Include="Core\Logging\Sinks\ConsoleLogSink.cpp" />
+    <ClCompile Include="Core\MainLoop\MainLoop.cpp" />
+    <ClCompile Include="Core\Services\EngineServiceManager.cpp" />
+    <ClCompile Include="Core\Types\DateTime.cpp" />
+    <ClCompile Include="Core\Types\TimeSpan.cpp" />
+    <ClCompile Include="Platforms\Windows\EnginePlatformWindows.cpp" />
+    <ClCompile Include="Platforms\Windows\EntryWindows.cpp" />
+    <ClCompile Include="Platforms\Windows\WindowsWindow.cpp" />
+    <ClCompile Include="Windowing\Window.cpp" />
+    <ClCompile Include="Windowing\WindowingService.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

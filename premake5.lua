@@ -1,16 +1,17 @@
-workspace "NovaGameEngine"
+workspace "CocoEngine"
     configurations { "Debug", "Release" }
+    platforms { "Win64" }
     architecture "x64"
 
-    startproject "ExampleApp"
+    startproject "CocoSandbox"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}\\"
 
 -- Option for enabling SDL
-newoption {
-    trigger = "sdl-enabled",
-    description = "Include SDL in the engine build"
-}
+--newoption {
+--    trigger = "sdl-enabled",
+--    description = "Include SDL in the engine build"
+--}
 
 -- Option for enabling Vulkan
 newoption {
@@ -25,39 +26,35 @@ newoption {
     description = "Path to the Vulkan SDK"
 }
 
--- Option for enabling ImGui
-newoption {
-    trigger = "imgui-enabled",
-    description = "Include ImGui in the engine build"
-}
-
 -- Library directories relative to the workspace
 LibraryDir = {}
-LibraryDir["sdl"] = "%{wks.location}\\NovaEngine\\vendor\\SDL2\\lib\\x64\\"
+--LibraryDir["sdl"] = "%{wks.location}\\vendor\\SDL2\\lib\\x64\\"
 
 -- Output directories relative to the workspace
 OutputDir = {}
-OutputDir["bin"] = "%{wks.location}\\bin\\" .. outputdir
-OutputDir["obj"] = "%{wks.location}\\obj\\" .. outputdir
+OutputDir["bin"] = "%{wks.location}\\build\\bin\\" .. outputdir
+OutputDir["obj"] = "%{wks.location}\\build\\obj\\" .. outputdir
 
 -- Include directories relative to the workspace
 IncludeDir = {}
-IncludeDir["nova"] = "%{wks.location}\\NovaEngine\\src\\"
-IncludeDir["imgui"] = "%{wks.location}\\NovaEngine\\vendor\\ImGui\\"
+IncludeDir["Coco"] = "%{wks.location}\\src\\"
+--IncludeDir["imgui"] = "%{wks.location}\\vendor\\ImGui\\"
 
-filter "options:sdl-enabled"
-    IncludeDir["sdl"] = "%{wks.location}\\NovaEngine\\vendor\\SDL2\\include\\"
+--filter "options:sdl-enabled"
+--    IncludeDir["sdl"] = "%{wks.location}\\vendor\\SDL2\\include\\"
 
-filter "options:vulkan-enabled"
-    IncludeDir["volk"] = "%{wks.location}\\NovaEngine\\vendor\\volk\\"
-    IncludeDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Include\\"
+--filter "options:vulkan-enabled"
+--    IncludeDir["volk"] = "%{wks.location}\\vendor\\volk\\"
+--    IncludeDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Include\\"
 
 -- Deactivate the current filter
 filter {}
 
-group "Dependencies"
-    include "NovaEngine\\vendor\\premakes\\ImGui"
+--group "Dependencies"
+--    include "NovaEngine\\vendor\\premakes\\ImGui"
     
+group "Engine"
+    include "src\\Coco"
+
 group ""
-    include "NovaEngine"
-    include "ExampleApp"
+    include "examples\\CocoSandbox"

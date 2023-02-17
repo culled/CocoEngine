@@ -1,0 +1,19 @@
+Using smart pointers (Ref<T>, shared_ptr<T>) as arguments:
+	- When a function will cause the ownership level of that object to change, it should be passed by value
+		- Foo(Ref<T> value)
+	- When a function will not cause the ownership level of that object to change, it should be passed by const reference
+		- Foo(const Ref<T>& value)
+
+All base classes:
+	- Must have either a public virtual destructor or a protected destructor, depending on the base class usage
+		- Use a public virtual destructor if the base class can be deleted directly
+			- Derived classes must have an override on their destructor
+		- Use a protected non-virtual destructor if the base class should never be deleted directly
+	- Should separate public interface functions from their protected virtual implementations
+		- Pure virtual functions are exempt and can be public as their implementation is required in derived classes
+
+When performing operations that may throw exceptions:
+	- Always wrap in a try-catch block in the destructor
+	- Add a noexcept to a function that is guaranteed to prevent exceptions bubbling up
+
+Only include header files in header files if a forward delcaration would not work or the header is vital to the operation of the class (e.x. extending a base class)

@@ -15,7 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CocoSandbox.cpp">
+    <ClInclude Include="src\CocoSandboxApplication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\CocoSandboxApplication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
