@@ -93,6 +93,9 @@
     <ClInclude Include="Core\Asserts.h" />
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Core\Engine.h" />
+    <ClInclude Include="Core\Events\Event.h" />
+    <ClInclude Include="Core\Events\EventArgs.h" />
+    <ClInclude Include="Core\Events\EventHandler.h" />
     <ClInclude Include="Core\Logging\LogLevel.h" />
     <ClInclude Include="Core\Logging\LogSink.h" />
     <ClInclude Include="Core\Logging\Logger.h" />
@@ -123,6 +126,7 @@
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
+    <ClCompile Include="Core\Events\Event.cpp" />
     <ClCompile Include="Core\Logging\LogSink.cpp" />
     <ClCompile Include="Core\Logging\Logger.cpp" />
     <ClCompile Include="Core\Logging\Sinks\ConsoleLogSink.cpp" />

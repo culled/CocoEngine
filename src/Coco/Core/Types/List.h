@@ -42,9 +42,7 @@ namespace Coco
 		/// <returns>True if the item was found and removed</returns>
 		bool Remove(const T& item)
 		{
-			Iterator it = std::find_if(begin(), end(), [item](const T& other) {
-				return item == other;
-				});
+			Iterator it = std::find(begin(), end(), item);
 
 			if (it != end())
 			{
