@@ -116,7 +116,9 @@ namespace Coco
 		/// Gets an iterator for the beginning of this list
 		/// </summary>
 		/// <returns>An iterator for the beginning of this list</returns>
-		const ConstIterator cbegin() const { return _list.cbegin(); }
+		ConstIterator cbegin() const { return _list.cbegin(); }
+
+		ConstIterator begin() const { return cbegin(); }
 
 		/// <summary>
 		/// Gets an iterator for the end of this list
@@ -128,6 +130,8 @@ namespace Coco
 		/// Gets an iterator for the end of this list
 		/// </summary>
 		/// <returns>An iterator for the end of this list</returns>
-		const ConstIterator cend() const { return _list.cend(); }
+		ConstIterator cend() const { return _list.cend(); }
+
+		ConstIterator end() const { return cend(); }
 	};
 }

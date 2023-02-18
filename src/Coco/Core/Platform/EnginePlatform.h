@@ -16,6 +16,11 @@ namespace Coco::Platform
 		virtual ~EnginePlatform() = default;
 
 		/// <summary>
+		/// Called when the engine has initialized and all services have started
+		/// </summary>
+		virtual void Start() = 0;
+
+		/// <summary>
 		/// Gets the command line arguments passed to the application
 		/// </summary>
 		/// <param name="arguments">A list that will be populated with the command line arguments</param>

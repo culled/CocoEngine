@@ -126,6 +126,10 @@
     <ClInclude Include="Core\Events\Event.h" />
     <ClInclude Include="Core\Events\QueryHandler.h" />
     <ClInclude Include="Core\Events\Query.h" />
+    <ClInclude Include="Core\Input\InputService.h" />
+    <ClInclude Include="Core\Input\Keyboard.h" />
+    <ClInclude Include="Core\Input\Mouse.h" />
+    <ClInclude Include="Core\MainLoop\MainLoopTickListener.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -171,5 +175,10 @@
       <Filter>Windowing</Filter>
     </ClCompile>
     <ClCompile Include="Core\Events\Event.cpp" />
+    <ClCompile Include="Core\Input\InputService.cpp" />
+    <ClCompile Include="Core\Input\Keyboard.cpp" />
+    <ClCompile Include="Core\Input\Mouse.cpp" />
+    <ClCompile Include="Core\MainLoop\MainLoopTickListener.cpp" />
+    <ClCompile Include="Core\Types\Vector.cpp" />
   </ItemGroup>
 </Project>

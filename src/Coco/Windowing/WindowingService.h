@@ -45,7 +45,7 @@ namespace Coco::Windowing
         /// <param name="windowId">The id of the window</param>
         /// <param name="window">The pointer to the window with the given ID if it was found</param>
         /// <returns>True if a window with the given ID was found</returns>
-        bool TryFindWindow(void* windowId, Window* window) const;
+        bool TryFindWindow(void* windowId, Window** window) const;
 
     private:
         /// <summary>

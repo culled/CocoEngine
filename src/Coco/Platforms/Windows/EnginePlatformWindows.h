@@ -6,6 +6,11 @@
 #include <Coco/Core/Platform/EnginePlatform.h>
 #include <Coco/Windowing/WindowingPlatform.h>
 
+namespace Coco::Input
+{
+    class InputService;
+}
+
 namespace Coco::Windowing
 {
     class WindowingService;
@@ -20,18 +25,21 @@ namespace Coco::Platform::Windows
     {
     private:
         static wchar_t s_windowClassName[];
+        static Input::InputService* _inputService;
 
-        HINSTANCE _instance = NULL;
-        bool _isConsoleOpen = false;
+        HINSTANCE _instance;
+        bool _isConsoleOpen;
         double _secondsPerCycle;
         LARGE_INTEGER _clockFrequency;
 
         friend class WindowsWindow;
 
+
     public:
         EnginePlatformWindows(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow);
         virtual ~EnginePlatformWindows() override;
 
+        virtual void Start() override;
         virtual void GetPlatformCommandLineArguments(List<string>& arguments) const override;
         virtual void HandlePlatformMessages() override;
         virtual void GetPlatformRenderingExtensions(const string& renderingRHI, List<string>& extensionNames) const override;
@@ -79,6 +87,8 @@ namespace Coco::Platform::Windows
         /// <param name="wParam">Message WParams</param>
         /// <param name="lParam">Message LParams</param>
         static void HandleWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
+
+        static void HandleInputMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
 
         /// <summary>
         /// Registers the window class with Windows

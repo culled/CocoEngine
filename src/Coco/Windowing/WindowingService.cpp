@@ -46,7 +46,7 @@ namespace Coco::Windowing
 		throw Exception("Current platform does not support windows");
 	}
 
-	bool WindowingService::TryFindWindow(void* windowId, Window* window) const
+	bool WindowingService::TryFindWindow(void* windowId, Window** window) const
 	{
 		const auto it = std::find_if(_windows.cbegin(), _windows.cend(), [windowId](const Managed<Window>& other) {
 			return windowId == other->GetID();
@@ -54,7 +54,7 @@ namespace Coco::Windowing
 
 		if (it != _windows.cend())
 		{
-			window = (*it).get();
+			*window = (*it).get();
 			return true;
 		}
 

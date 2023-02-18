@@ -49,8 +49,8 @@ namespace Coco
 		LogTrace(_logger, "Shutting down engine...");
 
 		_application.reset();
-		_mainLoop.reset();
 		_serviceManager.reset();
+		_mainLoop.reset();
 		_platform.reset();
 		_logger.reset();
 	}
@@ -62,6 +62,7 @@ namespace Coco
 		try
 		{
 			_serviceManager->Start();
+			_platform->Start();
 			_application->Start();
 
 			LogTrace(_logger, "Main loop starting...");

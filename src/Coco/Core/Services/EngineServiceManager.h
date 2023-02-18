@@ -47,21 +47,21 @@ namespace Coco
 		/// <summary>
 		/// Tries to find a registered service and returns it
 		/// </summary>
-		/// <param name="service">A pointer that will be assigned to the service if it is found</param>
+		/// <param name="servicePtr">A pointer that will be assigned to the service if it is found</param>
 		/// <returns>True if a service of the given type has been registered</returns>
 		template<typename T>
-		bool TryFindService(T* service) const
+		bool TryFindService(T** servicePtr) const
 		{
 			for (const Managed<EngineService>& service : _services)
 			{
 				if (T* activeService = dynamic_cast<T*>(service.get()))
 				{
-					service = activeService;
+					*servicePtr = activeService;
 					return true;
 				}
 			}
 
-			service = nullptr;
+			servicePtr = nullptr;
 			return false;
 		}
 

@@ -12,13 +12,23 @@ namespace Coco::Windowing
 	class Window;
 }
 
+namespace Coco::Input
+{
+	class InputService;
+}
+
+namespace Coco
+{
+	class MainLoopTickListener;
+}
+
 class CocoSandboxApplication : public Coco::Application
 {
 private:
 	Coco::Windowing::WindowingService* _windowService;
 	Coco::Windowing::Window* _window;
-	Coco::Query<int, int> _query;
-	Coco::Event<int&> _event;
+	Coco::Input::InputService* _inputService;
+	Coco::Ref<Coco::MainLoopTickListener> _tickListener;
 
 public:
 	CocoSandboxApplication(Coco::Engine* engine);
@@ -26,8 +36,6 @@ public:
 
 	virtual void Start() override;
 
-private:
-	int QueryHandler(int param);
-	bool EventHandler(int& param);
+	void Tick(double deltaTime);
 };
 

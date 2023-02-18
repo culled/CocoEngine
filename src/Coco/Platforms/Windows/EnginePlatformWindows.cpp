@@ -5,15 +5,20 @@
 
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Logging/Logger.h>
+#include <Coco/Core/Services/EngineServiceManager.h>
 #include <Coco/Windowing/WindowingService.h>
+#include <Coco/Core/Input/InputService.h>
+#include <Coco/Core/Input/Keyboard.h>
+#include <Coco/Core/Input/Mouse.h>
 
 namespace Coco::Platform::Windows
 {
 	wchar_t EnginePlatformWindows::s_windowClassName[] = L"CocoWindowClass";
-
+	Input::InputService* EnginePlatformWindows::_inputService = nullptr;
 
 	EnginePlatformWindows::EnginePlatformWindows(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) : EnginePlatform(),
-		_instance(hInstance), _isConsoleOpen(false)
+		_instance(hInstance),
+		_isConsoleOpen(false)
 	{
 		QueryPerformanceFrequency(&_clockFrequency);
 		_secondsPerCycle = 1.0 / static_cast<double>(_clockFrequency.QuadPart);
@@ -25,6 +30,14 @@ namespace Coco::Platform::Windows
 	{
 		HideConsole();
 		_instance = NULL;
+	}
+
+	void EnginePlatformWindows::Start()
+	{
+		if (!Engine::Get()->GetServiceManager()->TryFindService<Input::InputService>(&_inputService))
+		{
+			LogWarning(Engine::Get()->GetLogger(), "Could not find an input service. Input will not be handled");
+		}
 	}
 
 	void EnginePlatformWindows::GetPlatformCommandLineArguments(List<string>& arguments) const
@@ -219,44 +232,23 @@ namespace Coco::Platform::Windows
 			break;
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
-			// TODO: update input service state
-			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			// TODO: update input service state
-			break;
 		case WM_MOUSEMOVE:
-		{
-			int x = GET_X_LPARAM(lParam);
-			int y = GET_Y_LPARAM(lParam);
-
-			// TODO: update input service state
-			break;
-		}
 		case WM_MOUSEWHEEL:
-		{
-			int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-
-			if (zDelta != 0)
-			{
-				// Flatten the z delta to be platform-independent
-				zDelta = (zDelta >= 0) ? 1 : -1;
-			}
-
-			// TODO: update input service state
-			break;
-		}
 		case WM_LBUTTONDOWN:
+		case WM_LBUTTONDBLCLK:
 		case WM_LBUTTONUP:
-			// TODO: update input service state
-			break;
 		case WM_MBUTTONDOWN:
+		case WM_MBUTTONDBLCLK:
 		case WM_MBUTTONUP:
-			// TODO: update input service state
-			break;
 		case WM_RBUTTONDOWN:
+		case WM_RBUTTONDBLCLK:
 		case WM_RBUTTONUP:
-			// TODO: update input service state
+		case WM_XBUTTONDOWN:
+		case WM_XBUTTONDBLCLK:
+		case WM_XBUTTONUP:
+			HandleInputMessage(windowHandle, message, wParam, lParam);
 			break;
 		}
 
@@ -274,6 +266,90 @@ namespace Coco::Platform::Windows
 		}
 
 		windowsWindow->ProcessMessage(message, wParam, lParam);
+	}
+
+	void EnginePlatformWindows::HandleInputMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		if (_inputService == nullptr)
+			return;
+
+		switch (message)
+		{
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+			_inputService->GetKeyboard()->UpdateKeyState(static_cast<Input::Keyboard::Key>(wParam), true);
+			break;
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+			_inputService->GetKeyboard()->UpdateKeyState(static_cast<Input::Keyboard::Key>(wParam), false);
+			break;
+		case WM_MOUSEMOVE:
+		{
+			int x = GET_X_LPARAM(lParam);
+			int y = GET_Y_LPARAM(lParam);
+
+			_inputService->GetMouse()->UpdatePositionState(Vector2Int(x, y));
+			break;
+		}
+		case WM_MOUSEWHEEL:
+		{
+			int yDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+
+			if (yDelta != 0)
+			{
+				// Flatten the z delta to be platform-independent
+				yDelta = (yDelta >= 0) ? 1 : -1;
+
+				_inputService->GetMouse()->UpdateScrollState(Vector2Int(0, yDelta));
+			}
+
+			break;
+		}
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONDBLCLK:
+		case WM_LBUTTONUP:
+		{
+			if (message == WM_LBUTTONDBLCLK)
+				_inputService->GetMouse()->DoubleClicked(Input::Mouse::Button::Left);
+
+			_inputService->GetMouse()->UpdateButtonState(Input::Mouse::Button::Left, message != WM_LBUTTONUP);
+			break;
+		}
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONDBLCLK:
+		case WM_MBUTTONUP:
+		{
+			if (message == WM_MBUTTONDBLCLK)
+				_inputService->GetMouse()->DoubleClicked(Input::Mouse::Button::Middle);
+
+			_inputService->GetMouse()->UpdateButtonState(Input::Mouse::Button::Middle, message != WM_MBUTTONUP);
+			break;
+		}
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONDBLCLK:
+		case WM_RBUTTONUP:
+		{
+			if (message == WM_RBUTTONDBLCLK)
+				_inputService->GetMouse()->DoubleClicked(Input::Mouse::Button::Right);
+
+			_inputService->GetMouse()->UpdateButtonState(Input::Mouse::Button::Right, message != WM_RBUTTONUP);
+			break;
+		}
+		case WM_XBUTTONDOWN:
+		case WM_XBUTTONDBLCLK:
+		case WM_XBUTTONUP:
+		{
+			Input::Mouse::Button button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? Input::Mouse::Button::Button3 : Input::Mouse::Button::Button4;
+
+			if (message == WM_XBUTTONDBLCLK)
+				_inputService->GetMouse()->DoubleClicked(button);
+
+			_inputService->GetMouse()->UpdateButtonState(button, message != WM_XBUTTONUP);
+			break;
+		}
+		default:
+			break;
+		}
 	}
 
 	void EnginePlatformWindows::RegisterWindowClass()

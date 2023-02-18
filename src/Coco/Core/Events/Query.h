@@ -120,13 +120,13 @@ namespace Coco
 		/// </summary>
 		/// <param name="...params">The parameters for the query</param>
 		/// <returns>If the query was handled</returns>
-		virtual bool Invoke(ReturnType* value, Args&&... params)
+		virtual bool Invoke(ReturnType* value, Args... params)
 		{
 			List<Ref<HandlerType>> handlersCopy = GetHandlerListCopy();
 
 			for (const Ref<HandlerType>& handler : handlersCopy)
 			{
-				if ((*handler)(value, std::forward<Args>(params)...))
+				if ((*handler)(value, params...))
 				{
 					return true;
 				}
@@ -150,9 +150,9 @@ namespace Coco
 			return RemoveHandler(handler);
 		}
 
-		bool operator()(ReturnType& value, Args&&... params)
+		bool operator()(ReturnType& value, Args... params)
 		{
-			return Invoke(value, std::forward<Args>(params)...);
+			return Invoke(value, params...);
 		}
 
 	protected:

@@ -33,7 +33,7 @@ namespace Coco
 
 		virtual ~QueryHandler() = default;
 
-		bool operator()(ReturnType* value, Args&& ... params) const
+		bool operator()(ReturnType* value, Args ... params) const
 		{
 			if (_handler && !_isBlocked)
 			{
