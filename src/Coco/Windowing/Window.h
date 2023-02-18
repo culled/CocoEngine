@@ -10,6 +10,13 @@ namespace Coco::Windowing
 {
 	class WindowingService;
 
+	enum class WindowState
+	{
+		Windowed,
+		Minimized,
+		Maximized,
+	};
+
 	/// <summary>
 	/// Parameters for creating a window
 	/// </summary>
@@ -19,9 +26,10 @@ namespace Coco::Windowing
 		SizeInt InitialSize;
 		bool IsResizable = true;
 		Optional<Vector2Int> InitialPosition;
+		WindowState InitialState = WindowState::Windowed;
 
-		WindowCreateParameters(const string& title, const SizeInt initialSize, bool isResizable = true) :
-			Title(title), InitialSize(initialSize), IsResizable(isResizable)
+		WindowCreateParameters(const string& title, const SizeInt initialSize, bool isResizable = true, WindowState initialState = WindowState::Windowed) :
+			Title(title), InitialSize(initialSize), IsResizable(isResizable), InitialState(initialState)
 		{}
 	};
 

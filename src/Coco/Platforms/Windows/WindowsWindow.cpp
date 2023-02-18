@@ -22,6 +22,21 @@ namespace Coco::Platform::Windows
 		if (createParameters.IsResizable)
 			windowFlags |= WS_MAXIMIZEBOX | WS_THICKFRAME;
 
+		switch (createParameters.InitialState)
+		{
+		case Windowing::WindowState::Minimized:
+			windowFlags |= WS_MINIMIZE;
+			break;
+		case Windowing::WindowState::Maximized:
+		{
+			if(createParameters.IsResizable)
+				windowFlags |= WS_MAXIMIZE;
+			break;
+		}
+		default:
+			break;
+		}
+
 		int x = CW_USEDEFAULT;
 		int y = CW_USEDEFAULT;
 
