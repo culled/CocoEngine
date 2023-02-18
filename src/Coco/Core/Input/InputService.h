@@ -4,20 +4,25 @@
 #include <Coco/Core/Services/EngineService.h>
 #include <Coco/Core/MainLoop/MainLoopTickListener.h>
 
+#include "Keyboard.h"
+#include "Mouse.h"
+
 namespace Coco::Input
 {
-    class Keyboard;
-    class Mouse;
-
+    /// <summary>
+    /// A service that handles input from peripherals
+    /// </summary>
     class COCOAPI InputService : public EngineService
     {
     private:
         Managed<Keyboard> _keyboard;
         Managed<Mouse> _mouse;
-        Ref<MainLoopTickListener> _tickListener;
+        Ref<MainLoopTickListener> _processListener;
+        Ref<MainLoopTickListener> _lateProcessListener;
 
     public:
-        const static int InputTickPriority = 1000;
+        const static int ProcessTickPriority = -1000;
+        const static int LateProcessTickPriority = 1000;
 
         InputService();
         virtual ~InputService() override;
@@ -25,11 +30,30 @@ namespace Coco::Input
         virtual Logging::Logger* GetLogger() const;
         virtual void Start() override;
 
+        /// <summary>
+        /// Gets the current keyboard
+        /// </summary>
+        /// <returns>The current keyboard</returns>
         Keyboard* GetKeyboard() const { return _keyboard.get(); }
+
+        /// <summary>
+        /// Gets the current mouse
+        /// </summary>
+        /// <returns>The current mouse</returns>
         Mouse* GetMouse() const { return _mouse.get(); }
 
     private:
-        void Tick(double deltaTime);
+        /// <summary>
+        /// Tick for updating the current state of the peripherals
+        /// </summary>
+        /// <param name="deltaTime">The number of seconds since the last tick</param>
+        void Process(double deltaTime);
+
+        /// <summary>
+        /// Tick for updating the previous state of the peripherals
+        /// </summary>
+        /// <param name="deltaTime">The number of seconds since the last tick</param>
+        void LateProcess(double deltaTime);
     };
 }
 

@@ -5,6 +5,8 @@
 #include <Coco/Core/Types/DateTime.h>
 #include <Coco/Core/Types/TimeSpan.h>
 
+#include "MainLoopTickListener.h"
+
 namespace Coco
 {
 	namespace Platform
@@ -12,8 +14,9 @@ namespace Coco
 		class EnginePlatform;
 	}
 
-	class MainLoopTickListener;
-
+	/// <summary>
+	/// The loop that runs for the lifetime of the application and dispatches ticks
+	/// </summary>
 	class COCOAPI MainLoop
 	{
 	private:
@@ -62,15 +65,42 @@ namespace Coco
 		/// <returns>True if the loop is suspended</returns>
 		bool GetIsSuspended() const { return _isSuspended; }
 
+		/// <summary>
+		/// Adds a tick listener to the main loop
+		/// </summary>
+		/// <param name="tickListener">The listener to add</param>
 		void AddTickListener(Ref<MainLoopTickListener> tickListener);
+
+		/// <summary>
+		/// Removes a tick listener from the main loop
+		/// </summary>
+		/// <param name="tickListener">The listener to remove</param>
 		void RemoveTickListener(const Ref<MainLoopTickListener>& tickListener);
 
+		/// <summary>
+		/// Sets the time scale of the main loop
+		/// </summary>
+		/// <param name="timeScale">The relative scale that time passes</param>
 		void SetTimeScale(double timeScale) { _timeScale = timeScale; }
+
+		/// <summary>
+		/// Gets the time scale of the main loop
+		/// </summary>
+		/// <returns>The relative scale that time passes</returns>
 		double GetTimeScale() const { return _timeScale; }
 
 	private:
+		/// <summary>
+		/// Compares two tick listeners
+		/// </summary>
+		/// <param name="a">The first listener</param>
+		/// <param name="b">The second listener</param>
+		/// <returns>True if listener A should be placed before listener B</returns>
 		static bool CompareTickListeners(const Ref<MainLoopTickListener>& a, const Ref<MainLoopTickListener>& b);
 
+		/// <summary>
+		/// Sorts the list of tick listeners
+		/// </summary>
 		void SortTickListeners();
 	};
 }

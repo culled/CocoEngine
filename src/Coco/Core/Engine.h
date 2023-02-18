@@ -3,22 +3,14 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/ExitCodes.h>
 #include <Coco/Core/Types/DateTime.h>
+#include <Coco/Core/Logging/Logger.h>
+#include <Coco/Core/Platform/EnginePlatform.h>
+#include <Coco/Core/Services/EngineServiceManager.h>
+#include <Coco/Core/MainLoop/MainLoop.h>
 
 namespace Coco
 {
-	namespace Platform
-	{
-		class EnginePlatform;
-	}
-
-	namespace Logging
-	{
-		class Logger;
-	}
-
 	class Application;
-	class EngineServiceManager;
-	class MainLoop;
 
 	/// <summary>
 	/// The core engine

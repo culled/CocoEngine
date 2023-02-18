@@ -1,17 +1,10 @@
 #include "CocoSandboxApplication.h"
 
-#include <Coco/Core/Engine.h>
-#include <Coco/Core/Logging/Logger.h>
-#include <Coco/Core/Logging/Sinks/ConsoleLogSink.h>
-#include <Coco/Core/Services/EngineServiceManager.h>
 #include <Coco/Core/Types/Size.h>
-#include <Coco/Windowing/Window.h>
-#include <Coco/Windowing/WindowingService.h>
+#include <Coco/Core/Engine.h>
+#include <Coco/Core/Logging/Sinks/ConsoleLogSink.h>
 #include <Coco/Core/Input/InputService.h>
-#include <Coco/Core/Input/Keyboard.h>
-#include <Coco/Core/Input/Mouse.h>
-#include <Coco/Core/MainLoop/MainLoopTickListener.h>
-#include <Coco/Core/MainLoop/MainLoop.h>
+#include <Coco/Windowing/WindowingService.h>
 
 MainApplication(CocoSandboxApplication)
 
@@ -47,6 +40,7 @@ void CocoSandboxApplication::Start()
 	_window->Show();
 
 	_inputService->GetKeyboard()->OnKeyPressedEvent += [&](Input::Keyboard::Key key) {
+		LogInfo(Logger, FormattedString("Pressed key {}", static_cast<int>(key)));
 		if (key == Input::Keyboard::Key::Escape)
 		{
 			Quit();
@@ -55,6 +49,31 @@ void CocoSandboxApplication::Start()
 
 		return false;
 		};
+
+	_inputService->GetKeyboard()->OnKeyReleasedEvent += [&](Input::Keyboard::Key key) {
+		LogInfo(Logger, FormattedString("Released key {}", static_cast<int>(key)));
+		return false;
+	};
+
+	_inputService->GetMouse()->OnButtonPressed += [&](Input::Mouse::Button button) {
+		LogInfo(Logger, FormattedString("Pressed mouse button {}", static_cast<int>(button)));
+		return false;
+	};
+
+	_inputService->GetMouse()->OnButtonReleased += [&](Input::Mouse::Button button) {
+		LogInfo(Logger, FormattedString("Released mouse button {}", static_cast<int>(button)));
+		return false;
+	};
+
+	_inputService->GetMouse()->OnMoved += [&](const Vector2Int& newPosition, const Vector2Int& delta) {
+		LogInfo(Logger, FormattedString("Moved mouse - Position ({}, {}), Delta ({}, {})", newPosition.X, newPosition.Y, delta.X, delta.Y));
+		return false;
+	};
+
+	_inputService->GetMouse()->OnScrolled += [&](const Vector2Int& delta) {
+		LogInfo(Logger, FormattedString("Scrolled mouse - Delta ({}, {})", delta.X, delta.Y));
+		return false;
+	};
 
 	this->Engine->GetMainLoop()->AddTickListener(_tickListener);
 

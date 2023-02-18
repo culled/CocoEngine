@@ -1,6 +1,7 @@
 #include "MainLoop.h"
 
 #include <Coco/Core/Platform/EnginePlatform.h>
+
 #include "MainLoopTickListener.h"
 
 namespace Coco
@@ -82,7 +83,7 @@ namespace Coco
 
 	bool MainLoop::CompareTickListeners(const Ref<MainLoopTickListener>& a, const Ref<MainLoopTickListener>& b)
 	{
-		// If true, b gets placed before a
+		// If true, a gets placed before b
 		return a->Priority < b->Priority;
 	}
 

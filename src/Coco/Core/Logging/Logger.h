@@ -1,8 +1,10 @@
 #pragma once
 
-#include "LogLevel.h"
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
+
+#include "LogLevel.h"
+#include "LogSink.h"
 
 #ifdef COCO_LOG_TRACE
 // Logs a trace message
@@ -58,8 +60,6 @@
 
 namespace Coco::Logging
 {
-	class LogSink;
-
 	/// <summary>
 	/// A log that can write messages to various LogSinks
 	/// </summary>

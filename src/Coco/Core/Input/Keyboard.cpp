@@ -2,23 +2,23 @@
 
 namespace Coco::Input
 {
+	KeyboardStateChange KeyboardStateChange::KeyStateChange(int keyIndex, bool isPressed)
+	{
+		KeyboardStateChange state = {};
+		state.KeyIndex = keyIndex;
+		state.IsPressed = isPressed;
+		return state;
+	}
+
 	void Keyboard::UpdateKeyState(Key key, bool isPressed)
 	{
 		int index = static_cast<int>(key);
 
-		if (_currentState.KeyState[index] == isPressed)
+		if (_preProcessState.KeyState[index] == isPressed)
 			return;
 
-		_currentState.KeyState[index] = isPressed;
-
-		if (isPressed)
-		{
-			OnKeyPressedEvent.InvokeEvent(key);
-		}
-		else
-		{
-			OnKeyReleasedEvent.InvokeEvent(key);
-		}
+		_preProcessStateChanges.Add(KeyboardStateChange::KeyStateChange(index, isPressed));
+		_preProcessState.KeyState[index] = isPressed;
 	}
 
 	bool Keyboard::IsKeyPressed(Key key) const
@@ -36,6 +36,28 @@ namespace Coco::Input
 	{
 		int index = static_cast<int>(key);
 		return (!_currentState.KeyState[index] && _previousState.KeyState[index]);
+	}
+
+	void Keyboard::ProcessCurrentState()
+	{
+		// Step through each state change since the last tick and fire the proper events
+		for (const auto& newState : _preProcessStateChanges)
+		{
+			if (newState.KeyIndex.has_value())
+			{
+				if (newState.IsPressed)
+				{
+					OnKeyPressedEvent.InvokeEvent(static_cast<Keyboard::Key>(newState.KeyIndex.value()));
+				}
+				else
+				{
+					OnKeyReleasedEvent.InvokeEvent(static_cast<Keyboard::Key>(newState.KeyIndex.value()));
+				}
+			}
+		}
+
+		_currentState = _preProcessState;
+		_preProcessStateChanges.Clear();
 	}
 
 	void Keyboard::SavePreviousState()

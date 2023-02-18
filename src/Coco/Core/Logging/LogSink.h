@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+
 #include "LogLevel.h"
 
 namespace Coco::Logging

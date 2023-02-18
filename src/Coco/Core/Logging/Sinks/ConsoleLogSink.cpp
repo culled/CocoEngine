@@ -1,6 +1,6 @@
 #include "ConsoleLogSink.h"
+
 #include <Coco/Core/Engine.h>
-#include <Coco/Core/Platform/EnginePlatform.h>
 
 namespace Coco::Logging
 {

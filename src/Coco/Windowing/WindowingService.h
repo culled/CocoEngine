@@ -4,6 +4,8 @@
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Services/EngineService.h>
 
+#include "Window.h"
+
 namespace Coco
 {
     class Engine;
@@ -12,7 +14,6 @@ namespace Coco
 namespace Coco::Windowing
 {
     struct WindowCreateParameters;
-    class Window;
 
     /// <summary>
     /// A service that manages GUI windows

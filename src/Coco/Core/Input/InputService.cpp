@@ -2,21 +2,23 @@
 
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/MainLoop/MainLoop.h>
-#include "Keyboard.h"
-#include "Mouse.h"
 
 namespace Coco::Input
 {
 	InputService::InputService() :
 		_keyboard(new Keyboard()),
 		_mouse(new Mouse()),
-		_tickListener(new MainLoopTickListener(this, &InputService::Tick, InputTickPriority))
+		_processListener(new MainLoopTickListener(this, &InputService::Process, ProcessTickPriority)),
+		_lateProcessListener(new MainLoopTickListener(this, &InputService::LateProcess, LateProcessTickPriority))
 	{}
 
 	InputService::~InputService()
 	{
-		Engine::Get()->GetMainLoop()->RemoveTickListener(_tickListener);
-		_tickListener.reset();
+		Engine::Get()->GetMainLoop()->RemoveTickListener(_processListener);
+		Engine::Get()->GetMainLoop()->RemoveTickListener(_lateProcessListener);
+
+		_processListener.reset();
+		_lateProcessListener.reset();
 
 		_keyboard.reset();
 		_mouse.reset();
@@ -29,10 +31,17 @@ namespace Coco::Input
 
 	void InputService::Start()
 	{
-		Engine::Get()->GetMainLoop()->AddTickListener(_tickListener);
+		Engine::Get()->GetMainLoop()->AddTickListener(_processListener);
+		Engine::Get()->GetMainLoop()->AddTickListener(_lateProcessListener);
 	}
 
-	void InputService::Tick(double deltaTime)
+	void InputService::Process(double deltaTime)
+	{
+		_keyboard->ProcessCurrentState();
+		_mouse->ProcessCurrentState();
+	}
+
+	void InputService::LateProcess(double deltaTime)
 	{
 		_keyboard->SavePreviousState();
 		_mouse->SavePreviousState();
