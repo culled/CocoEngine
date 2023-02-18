@@ -18,7 +18,7 @@ private:
 	Coco::Windowing::WindowingService* _windowService;
 	Coco::Windowing::Window* _window;
 	Coco::Query<int, int> _query;
-	Coco::Event<int> _event;
+	Coco::Event<int&> _event;
 
 public:
 	CocoSandboxApplication(Coco::Engine* engine);
@@ -28,6 +28,6 @@ public:
 
 private:
 	int QueryHandler(int param);
-	bool EventHandler(int param);
+	bool EventHandler(int& param);
 };
 

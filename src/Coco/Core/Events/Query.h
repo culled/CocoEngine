@@ -29,7 +29,7 @@ namespace Coco
 		}
 
 		/// <summary>
-		/// Adds an instance and member function handler to this query
+		/// Adds an instance and member function handler
 		/// </summary>
 		/// <typeparam name="ObjectType">The type of instance</typeparam>
 		/// <param name="object">The instanced object</param>
@@ -42,7 +42,7 @@ namespace Coco
 		}
 
 		/// <summary>
-		/// Adds a generic function handler to this query
+		/// Adds a generic function handler
 		/// </summary>
 		/// <param name="handlerFunction">The handler function</param>
 		/// <returns>The ID of the handler</returns>
@@ -52,12 +52,12 @@ namespace Coco
 		}
 
 		/// <summary>
-		/// Adds a handler to this query
+		/// Adds an existing handler
 		/// </summary>
 		/// <param name="handler">A handler reference</param>
 		void AddHandler(const Ref<HandlerType>& handler)
 		{
-			Handlers.Add(handler);
+			Handlers.Insert(0, handler);
 		}
 
 		/// <summary>
@@ -120,13 +120,13 @@ namespace Coco
 		/// </summary>
 		/// <param name="...params">The parameters for the query</param>
 		/// <returns>If the query was handled</returns>
-		virtual bool Invoke(ReturnType* value, Args... params)
+		virtual bool Invoke(ReturnType* value, Args&&... params)
 		{
 			List<Ref<HandlerType>> handlersCopy = GetHandlerListCopy();
 
 			for (const Ref<HandlerType>& handler : handlersCopy)
 			{
-				if ((*handler)(value, params...))
+				if ((*handler)(value, std::forward<Args>(params)...))
 				{
 					return true;
 				}
@@ -150,7 +150,7 @@ namespace Coco
 			return RemoveHandler(handler);
 		}
 
-		bool operator()(ReturnType& value, Args... params)
+		bool operator()(ReturnType& value, Args&&... params)
 		{
 			return Invoke(value, std::forward<Args>(params)...);
 		}
@@ -174,7 +174,7 @@ namespace Coco
 		Ref<HandlerType> AddHandlerImpl(HandlerType* handler)
 		{
 			Ref<HandlerType> handlerRef(handler);
-			Handlers.Add(handlerRef);
+			Handlers.Insert(0, handlerRef);
 			return handlerRef;
 		}
 	};

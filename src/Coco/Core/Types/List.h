@@ -35,6 +35,26 @@ namespace Coco
 			_list.push_back(item);
 		}
 
+		void Insert(int index, T&& item)
+		{
+			if (index < 0 || index > Count())
+			{
+				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
+			}
+
+			_list.insert(begin() + index, std::forward<T>(item));
+		}
+
+		void Insert(int index, const T& item)
+		{
+			if (index < 0 || index > Count())
+			{
+				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
+			}
+
+			_list.insert(begin() + index, item);
+		}
+
 		/// <summary>
 		/// Removes the first occurance of an item from this list
 		/// </summary>

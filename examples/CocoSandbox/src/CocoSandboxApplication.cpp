@@ -26,7 +26,7 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 
 	int i = 0;
 	_query.Invoke(&i, 9);
-	_event.InvokeEvent(1);
+	_event.InvokeEvent(i);
 
 	LogInfo(Logger, FormattedString("Query value is {}", i));
 
@@ -49,12 +49,13 @@ void CocoSandboxApplication::Start()
 
 int CocoSandboxApplication::QueryHandler(int param)
 {
-	LogInfo(Logger, FormattedString("Query with param {}!", param));
+	LogInfo(Logger, FormattedString("Query 1 with param {}!", param));
 	return param + 1;
 }
 
-bool CocoSandboxApplication::EventHandler(int param)
+bool CocoSandboxApplication::EventHandler(int& param)
 {
-	LogInfo(Logger, FormattedString("Event with param {}!", param));
-	return false;
+	LogInfo(Logger, FormattedString("Event 1 with param {}!", param));
+	param = 1000;
+	return true;
 }

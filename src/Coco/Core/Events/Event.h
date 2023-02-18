@@ -47,12 +47,12 @@ namespace Coco
 		/// Invokes this event with the given parameters
 		/// </summary>
 		/// <param name="...params">The parameters for the event</param>
-		void InvokeEvent(Args... params)
+		void InvokeEvent(Args&&... params)
 		{
 			Invoke(nullptr, std::forward<Args>(params)...);
 		}
 
-		void operator()(Args... params)
+		void operator()(Args&&... params)
 		{
 			InvokeEvent(std::forward<Args>(params)...);
 		}
