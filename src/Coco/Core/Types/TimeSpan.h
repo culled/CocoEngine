@@ -16,6 +16,41 @@ namespace Coco
 		TimeSpan(long long microseconds = 0);
 
 		/// <summary>
+		/// Creates a TimeSpan with the given number of fractional days
+		/// </summary>
+		/// <param name="days">The number of fractional days</param>
+		/// <returns>A TimeSpan</returns>
+		static TimeSpan FromDays(double days);
+
+		/// <summary>
+		/// Creates a TimeSpan with the given number of fractional hours
+		/// </summary>
+		/// <param name="hours">The number of fractional hours</param>
+		/// <returns>A TimeSpan</returns>
+		static TimeSpan FromHours(double hours);
+
+		/// <summary>
+		/// Creates a TimeSpan with the given number of fractional minutes
+		/// </summary>
+		/// <param name="minutes">The number of fractional minutes</param>
+		/// <returns>A TimeSpan</returns>
+		static TimeSpan FromMinutes(double minutes);
+
+		/// <summary>
+		/// Creates a TimeSpan with the given number of fractional seconds
+		/// </summary>
+		/// <param name="seconds">The number of fractional seconds</param>
+		/// <returns>A TimeSpan</returns>
+		static TimeSpan FromSeconds(double seconds);
+
+		/// <summary>
+		/// Creates a TimeSpan with the given number of fractional milliseconds
+		/// </summary>
+		/// <param name="milliseconds">The number of fractional milliseconds</param>
+		/// <returns>A TimeSpan</returns>
+		static TimeSpan FromMilliseconds(double milliseconds);
+
+		/// <summary>
 		/// Gets the number of days in this length of time
 		/// </summary>
 		/// <returns>The number of days</returns>
@@ -86,6 +121,18 @@ namespace Coco
 		/// </summary>
 		/// <returns>The amount of microseconds</returns>
 		long long GetTotalMicroseconds() const { return _microseconds; }
+
+		TimeSpan operator+(const TimeSpan& other) const;
+		TimeSpan operator-(const TimeSpan& other) const;
+		void operator+=(const TimeSpan& other);
+		void operator-=(const TimeSpan& other);
+
+		bool operator<(const TimeSpan& other);
+		bool operator<=(const TimeSpan& other);
+		bool operator>(const TimeSpan& other);
+		bool operator>=(const TimeSpan& other);
+		bool operator==(const TimeSpan& other);
+		bool operator!=(const TimeSpan& other);
 	};
 }
 

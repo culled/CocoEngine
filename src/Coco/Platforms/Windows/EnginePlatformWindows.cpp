@@ -180,6 +180,11 @@ namespace Coco::Platform::Windows
 		return new WindowsWindow(createParameters, windowingService, this);
 	}
 
+	void EnginePlatformWindows::Sleep(unsigned long milliseconds)
+	{
+		::Sleep(milliseconds);
+	}
+
 	string EnginePlatformWindows::WideStringToString(LPWSTR wideString)
 	{
 		int wStrLen = static_cast<int>(wcslen(wideString));

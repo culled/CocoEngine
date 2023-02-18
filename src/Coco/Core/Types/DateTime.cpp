@@ -108,6 +108,51 @@ namespace Coco
 		return TimeSpan(_unixMilliseconds * 1000 - other._unixMilliseconds * 1000);
 	}
 
+	DateTime DateTime::operator+(const TimeSpan& other) const
+	{
+		return DateTime(this->_unixMilliseconds + static_cast<long long>(other.GetTotalMilliseconds()));
+	}
+
+	void DateTime::operator+=(const TimeSpan& other)
+	{
+		_unixMilliseconds += static_cast<long long>(other.GetMilliseconds());
+	}
+
+	void DateTime::operator-=(const TimeSpan& other)
+	{
+		_unixMilliseconds -= static_cast<long long>(other.GetMilliseconds());
+	}
+
+	bool DateTime::operator<(const DateTime& other) const
+	{
+		return this->_unixMilliseconds < other._unixMilliseconds;
+	}
+
+	bool DateTime::operator<=(const DateTime& other) const
+	{
+		return this->_unixMilliseconds <= other._unixMilliseconds;
+	}
+	
+	bool DateTime::operator>(const DateTime& other) const
+	{
+		return this->_unixMilliseconds > other._unixMilliseconds;
+	}
+
+	bool DateTime::operator>=(const DateTime& other) const
+	{
+		return this->_unixMilliseconds >= other._unixMilliseconds;
+	}
+
+	bool DateTime::operator==(const DateTime& other) const
+	{
+		return this->_unixMilliseconds == other._unixMilliseconds;
+	}
+
+	bool DateTime::operator!=(const DateTime& other) const
+	{
+		return *this != other;
+	}
+
 	int DateTime::DaysSinceEpoch(int year, int month, int day)
 	{
 		// Since the epoch is 0 indexed, we need to subtract by 1 day

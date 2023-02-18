@@ -95,6 +95,16 @@ namespace Coco
 		long long GetTotalMilliseconds() const { return _unixMilliseconds; }
 
 		TimeSpan operator -(const DateTime& other) const;
+		DateTime operator +(const TimeSpan& other) const;
+		void operator+=(const TimeSpan& other);
+		void operator-=(const TimeSpan& other);
+
+		bool operator <(const DateTime& other) const;
+		bool operator <=(const DateTime& other) const;
+		bool operator >(const DateTime& other) const;
+		bool operator >=(const DateTime& other) const;
+		bool operator ==(const DateTime& other) const;
+		bool operator !=(const DateTime& other) const;
 
 	private:
 		/// <summary>

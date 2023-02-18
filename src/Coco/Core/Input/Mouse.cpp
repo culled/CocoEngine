@@ -50,7 +50,6 @@ namespace Coco::Input
 			return;
 
 		_preProcessStateChanges.Add(MouseStateChange::ScrollStateChange(scrollDelta));
-		_preProcessState.ScrollDelta = scrollDelta;
 	}
 
 	void Mouse::DoubleClicked(Button button)
@@ -98,6 +97,9 @@ namespace Coco::Input
 			else if (newState.ScrollDelta.has_value())
 			{
 				OnScrolled.InvokeEvent(newState.ScrollDelta.value());
+
+				// Make sure we preserve a scroll for the tick (else GetScrollWheelDelta() will always be 0) 
+				_preProcessState.ScrollDelta = newState.ScrollDelta.value();
 			}
 		}
 

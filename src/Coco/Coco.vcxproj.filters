@@ -4,6 +4,12 @@
     <Filter Include="Core">
       <UniqueIdentifier>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Events">
+      <UniqueIdentifier>{52201B74-BED5-9369-47CA-8D40B37E8A6D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Input">
+      <UniqueIdentifier>{AD4E7BCD-9906-BD1A-020E-9676EEE4570B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Core\Logging">
       <UniqueIdentifier>{C4E22202-B045-B2A6-59CB-EA5C450D7E29}</UniqueIdentifier>
     </Filter>
@@ -45,6 +51,24 @@
     <ClInclude Include="Core\Engine.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Events\Event.h">
+      <Filter>Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Events\Query.h">
+      <Filter>Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Events\QueryHandler.h">
+      <Filter>Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Input\InputService.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Input\Keyboard.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Input\Mouse.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
     <ClInclude Include="Core\Logging\LogLevel.h">
       <Filter>Core\Logging</Filter>
     </ClInclude>
@@ -58,6 +82,9 @@
       <Filter>Core\Logging\Sinks</Filter>
     </ClInclude>
     <ClInclude Include="Core\MainLoop\MainLoop.h">
+      <Filter>Core\MainLoop</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MainLoop\MainLoopTickListener.h">
       <Filter>Core\MainLoop</Filter>
     </ClInclude>
     <ClInclude Include="Core\Platform\EnginePlatform.h">
@@ -123,13 +150,6 @@
     <ClInclude Include="Windowing\WindowingService.h">
       <Filter>Windowing</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Events\Event.h" />
-    <ClInclude Include="Core\Events\QueryHandler.h" />
-    <ClInclude Include="Core\Events\Query.h" />
-    <ClInclude Include="Core\Input\InputService.h" />
-    <ClInclude Include="Core\Input\Keyboard.h" />
-    <ClInclude Include="Core\Input\Mouse.h" />
-    <ClInclude Include="Core\MainLoop\MainLoopTickListener.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -137,6 +157,18 @@
     </ClCompile>
     <ClCompile Include="Core\Engine.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Events\Event.cpp">
+      <Filter>Core\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Input\InputService.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Input\Keyboard.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Input\Mouse.cpp">
+      <Filter>Core\Input</Filter>
     </ClCompile>
     <ClCompile Include="Core\Logging\LogSink.cpp">
       <Filter>Core\Logging</Filter>
@@ -150,6 +182,9 @@
     <ClCompile Include="Core\MainLoop\MainLoop.cpp">
       <Filter>Core\MainLoop</Filter>
     </ClCompile>
+    <ClCompile Include="Core\MainLoop\MainLoopTickListener.cpp">
+      <Filter>Core\MainLoop</Filter>
+    </ClCompile>
     <ClCompile Include="Core\Services\EngineServiceManager.cpp">
       <Filter>Core\Services</Filter>
     </ClCompile>
@@ -157,6 +192,9 @@
       <Filter>Core\Types</Filter>
     </ClCompile>
     <ClCompile Include="Core\Types\TimeSpan.cpp">
+      <Filter>Core\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Types\Vector.cpp">
       <Filter>Core\Types</Filter>
     </ClCompile>
     <ClCompile Include="Platforms\Windows\EnginePlatformWindows.cpp">
@@ -174,11 +212,5 @@
     <ClCompile Include="Windowing\WindowingService.cpp">
       <Filter>Windowing</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Events\Event.cpp" />
-    <ClCompile Include="Core\Input\InputService.cpp" />
-    <ClCompile Include="Core\Input\Keyboard.cpp" />
-    <ClCompile Include="Core\Input\Mouse.cpp" />
-    <ClCompile Include="Core\MainLoop\MainLoopTickListener.cpp" />
-    <ClCompile Include="Core\Types\Vector.cpp" />
   </ItemGroup>
 </Project>

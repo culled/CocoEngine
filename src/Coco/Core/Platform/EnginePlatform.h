@@ -77,6 +77,12 @@ namespace Coco::Platform
 		/// <param name="isVisible">If true, the console will be visible/opened, else it will be invisible/closed</param>
 		virtual void SetPlatformConsoleVisible(bool isVisible) = 0;
 
+		/// <summary>
+		/// Causes the main program thread to sleep for the given amount of time
+		/// </summary>
+		/// <param name="milliseconds">The number of milliseconds to sleep</param>
+		virtual void Sleep(unsigned long milliseconds) = 0;
+
 	protected:
 		EnginePlatform() = default;
 	};

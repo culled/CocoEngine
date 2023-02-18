@@ -49,6 +49,7 @@ namespace Coco::Platform::Windows
         virtual double GetPlatformTimeSeconds() const override;
         virtual void WriteToPlatformConsole(const string& message, ConsoleColor color, bool isError) override;
         virtual void SetPlatformConsoleVisible(bool isVisible) override;
+        virtual void Sleep(unsigned long milliseconds) override;
 
         virtual ::Coco::Windowing::Window* CreatePlatformWindow(
             ::Coco::Windowing::WindowCreateParameters& createParameters, 

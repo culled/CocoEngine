@@ -94,8 +94,8 @@
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Core\Engine.h" />
     <ClInclude Include="Core\Events\Event.h" />
-    <ClInclude Include="Core\Events\QueryHandler.h" />
     <ClInclude Include="Core\Events\Query.h" />
+    <ClInclude Include="Core\Events\QueryHandler.h" />
     <ClInclude Include="Core\Input\InputService.h" />
     <ClInclude Include="Core\Input\Keyboard.h" />
     <ClInclude Include="Core\Input\Mouse.h" />
