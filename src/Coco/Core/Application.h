@@ -2,6 +2,8 @@
 
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Logging/Logger.h>
+#include <Coco/Core/Events/Query.h>
+#include <Coco/Core/Events/Event.h>
 
 namespace Coco
 {
@@ -17,6 +19,17 @@ namespace Coco
 		/// The name of the application
 		/// </summary>
 		const string Name;
+
+		/// <summary>
+		/// Invoked when the application is trying to quit.
+		/// Returning a value of true means the quit is cancelled
+		/// </summary>
+		Query<bool> OnQuitting;
+
+		/// <summary>
+		/// Invoked when the application has quit
+		/// </summary>
+		Event<> OnQuit;
 
 	protected:
 		Engine* Engine;

@@ -27,8 +27,15 @@ namespace Coco
 
 	bool Application::Quit()
 	{
-		// TODO: events and cancelling
+		bool cancelQuit = false;
+		OnQuitting.Invoke(&cancelQuit);
+
+		if (cancelQuit)
+			return false;
+
+		OnQuit.InvokeEvent();
 		Engine->GetMainLoop()->Stop();
+
 		return true;
 	}
 }

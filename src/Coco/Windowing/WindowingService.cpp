@@ -67,9 +67,13 @@ namespace Coco::Windowing
 		// The main window closes with the application
 		if (window == _mainWindow)
 		{
-			Engine::Get()->GetApplication()->Quit();
+			if (Engine::Get()->GetApplication()->Quit())
+				window->OnClosed.InvokeEvent(window);
+
 			return;
 		}
+
+		window->OnClosed.InvokeEvent(window);
 
 		auto it = std::find_if(_windows.begin(), _windows.end(), [window](const Managed<Window>& other) {
 			return window == other.get();

@@ -4,6 +4,7 @@
 #include <Coco/Core/Types/Optional.h>
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Events/Event.h>
 
 namespace Coco::Windowing
 {
@@ -29,6 +30,18 @@ namespace Coco::Windowing
 	/// </summary>
 	class COCOAPI Window
 	{
+	public:
+		/// <summary>
+		/// Invoked when the window is trying to close.
+		/// Returning a value of true means the close is cancelled
+		/// </summary>
+		Query<bool, Window*> OnClosing;
+
+		/// <summary>
+		/// Invoked when the window has closed
+		/// </summary>
+		Event<Window*> OnClosed;
+
 	protected:
 		WindowingService* WindowingService;
 

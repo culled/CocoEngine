@@ -15,9 +15,15 @@ namespace Coco::Windowing
 
 	bool Window::Close()
 	{
-		// TODO: cancelling close
+		bool cancelClose = false;
+		OnClosing.Invoke(&cancelClose, this);
 
+		if (cancelClose)
+			return false;
+
+		// The windowing service will handle the OnClosed event
 		WindowingService->WindowClosed(this);
+
 		return true;
 	}
 }
