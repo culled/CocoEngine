@@ -13,6 +13,8 @@ namespace Coco
 		_useAbsoluteTiming(false),
 		_tickListenersNeedSorting(false),
 		_timeScale(1.0),
+		_currentTickTime(0),
+		_lastTickTime(0),
 		_currentUnscaledDeltaTime(0),
 		_currentUnscaledRunningTime(0),
 		_currentDeltaTime(0),
@@ -25,10 +27,10 @@ namespace Coco
 	{
 		_isRunning = true;
 
-		_currentTickTime = _platform->GetPlatformLocalTime();
+		_currentTickTime = _platform->GetPlatformTimeSeconds();
 		_lastTickTime = _currentTickTime;
 
-		DateTime preTickTime;
+		double preTickTime = _currentTickTime;
 		bool didTick = true;
 
 		while (_isRunning)
@@ -37,7 +39,7 @@ namespace Coco
 			// Without this, we wouldn't account for time spent suspended as the loop only partially runs while suspended
 			if (didTick)
 			{
-				preTickTime = _platform->GetPlatformLocalTime();
+				preTickTime = _platform->GetPlatformTimeSeconds();
 				didTick = false;
 			}
 
@@ -54,16 +56,15 @@ namespace Coco
 			if (_tickListenersNeedSorting)
 				SortTickListeners();
 
-			_currentTickTime = _platform->GetPlatformLocalTime();
+			_currentTickTime = _platform->GetPlatformTimeSeconds();
 			
 			// Calculate time since the last tick
-			_deltaTime = _currentTickTime - _lastTickTime;
+			_currentUnscaledDeltaTime = _currentTickTime - _lastTickTime;
 
 			// Remove the time spent processing messages/suspended, preventing massive delta times while caught in a message process loop
 			if (!_useAbsoluteTiming)
-				_deltaTime -= _currentTickTime - preTickTime;
+				_currentUnscaledDeltaTime -= _currentTickTime - preTickTime;
 
-			_currentUnscaledDeltaTime = _deltaTime.GetTotalSeconds();
 			_currentUnscaledRunningTime += _currentUnscaledDeltaTime;
 
 			_currentDeltaTime = _currentUnscaledDeltaTime * _timeScale;
@@ -122,12 +123,30 @@ namespace Coco
 		if (_targetTickRate <= 0)
 			return;
 
-		DateTime nextTickTime = _currentTickTime + TimeSpan::FromSeconds(1.0 / _targetTickRate);
+		double nextTickTime = _currentTickTime + (1.0 / _targetTickRate);
 
-		// TODO: more precise sleep logic
-		while (_platform->GetPlatformLocalTime() < nextTickTime)
+		double timeRemaining = nextTickTime - _platform->GetPlatformTimeSeconds();
+		double estimatedWait = 0;
+		int waitCount = 1;
+
+		// Sleep until we feel like sleeping would overshoot our target time
+		while (timeRemaining > estimatedWait)
 		{
+			double waitStartTime = _platform->GetPlatformTimeSeconds();
+
 			_platform->Sleep(1);
+
+			double waitTime = _platform->GetPlatformTimeSeconds() - waitStartTime;
+			timeRemaining -= waitTime;
+
+			double delta = waitTime - estimatedWait;
+
+			estimatedWait += delta / waitCount;
+			waitCount++;
 		}
+
+		// Actively wait until our next tick time
+		while (_platform->GetPlatformTimeSeconds() < nextTickTime)
+		{}
 	}
 }

@@ -22,7 +22,7 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
 	_inputService = engine->GetServiceManager()->CreateService<Input::InputService>();
 
-	engine->GetMainLoop()->SetTargetTickRate(60);
+	engine->GetMainLoop()->SetTargetTickRate(2);
 
 	LogInfo(Logger, "Sandbox application created");
 }
@@ -104,5 +104,5 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	//	LogInfo(Logger, "Right mouse button released");
 	//}
 
-	//LogInfo(Logger, FormattedString("Tick! Time = {} (Dt = {})", Engine->GetMainLoop()->GetRunningTime(), deltaTime));
+	LogInfo(Logger, FormattedString("Tick! Time = {} (Dt = {})", Engine->GetMainLoop()->GetRunningTime(), deltaTime));
 }

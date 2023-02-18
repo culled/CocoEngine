@@ -29,9 +29,8 @@ namespace Coco
 		List<Ref<MainLoopTickListener>> _tickListeners;
 		bool _tickListenersNeedSorting;
 
-		DateTime _currentTickTime;
-		DateTime _lastTickTime;
-		TimeSpan _deltaTime;
+		double _currentTickTime;
+		double _lastTickTime;
 
 		double _timeScale;
 
