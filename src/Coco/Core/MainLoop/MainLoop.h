@@ -22,24 +22,26 @@ namespace Coco
 	private:
 		Platform::EnginePlatform* _platform;
 
-		bool _isRunning;
-		bool _isSuspended;
-		bool _useAbsoluteTiming;
+		bool _isRunning = false;
+		bool _isSuspended = false;
+		bool _useAbsoluteTiming = false;
 
 		List<Ref<MainLoopTickListener>> _tickListeners;
-		bool _tickListenersNeedSorting;
+		bool _tickListenersNeedSorting = false;
 
-		double _currentTickTime;
-		double _lastTickTime;
+		double _currentTickTime = 0.0;
+		double _lastTickTime = 0.0;
 
-		double _timeScale;
+		double _timeScale = 1.0;
 
-		double _currentUnscaledRunningTime;
-		double _currentUnscaledDeltaTime;
-		double _currentRunningTime;
-		double _currentDeltaTime;
+		double _currentUnscaledRunningTime = 0.0;
+		double _currentUnscaledDeltaTime = 0.0;
+		double _currentRunningTime = 0.0;
+		double _currentDeltaTime = 0.0;
 
-		int _targetTickRate;
+		int _targetTickRate = 0;
+
+		unsigned long long _tickCount = 0;
 
 	public:
 		MainLoop(Platform::EnginePlatform* platform);
@@ -140,6 +142,12 @@ namespace Coco
 		/// </summary>
 		/// <returns>The current tick scaled delta time, in seconds</returns>
 		double GetDeltaTime() const { return _currentDeltaTime; }
+
+		/// <summary>
+		/// Gets the number of ticks that have occurred
+		/// </summary>
+		/// <returns>The number of ticks that have occurred</returns>
+		unsigned long long GetTickCount() const { return _tickCount; }
 
 	private:
 		/// <summary>

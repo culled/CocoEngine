@@ -7,19 +7,7 @@
 namespace Coco
 {
 	MainLoop::MainLoop(Platform::EnginePlatform* platform) :
-		_platform(platform),
-		_isRunning(false),
-		_isSuspended(false),
-		_useAbsoluteTiming(false),
-		_tickListenersNeedSorting(false),
-		_timeScale(1.0),
-		_currentTickTime(0),
-		_lastTickTime(0),
-		_currentUnscaledDeltaTime(0),
-		_currentUnscaledRunningTime(0),
-		_currentDeltaTime(0),
-		_currentRunningTime(0),
-		_targetTickRate(-1)
+		_platform(platform)
 	{
 	}
 
@@ -78,6 +66,7 @@ namespace Coco
 			}
 
 			_lastTickTime = _currentTickTime;
+			_tickCount++;
 			didTick = true;
 
 			if (_targetTickRate > 0 && _isRunning)
