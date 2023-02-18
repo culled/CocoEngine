@@ -16,7 +16,7 @@ namespace Coco::Windowing
 	bool Window::Close()
 	{
 		bool cancelClose = false;
-		OnClosing.Invoke(&cancelClose, this);
+		OnClosing.InvokeEvent(this, cancelClose);
 
 		if (cancelClose)
 			return false;

@@ -33,9 +33,9 @@ namespace Coco::Windowing
 	public:
 		/// <summary>
 		/// Invoked when the window is trying to close.
-		/// Returning a value of true means the close is cancelled
+		/// Setting the bool value to true means the close is cancelled
 		/// </summary>
-		Query<bool, Window*> OnClosing;
+		Event<Window*, bool&> OnClosing;
 
 		/// <summary>
 		/// Invoked when the window has closed

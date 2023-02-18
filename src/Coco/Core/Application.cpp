@@ -28,7 +28,7 @@ namespace Coco
 	bool Application::Quit()
 	{
 		bool cancelQuit = false;
-		OnQuitting.Invoke(&cancelQuit);
+		OnQuitting.InvokeEvent(cancelQuit);
 
 		if (cancelQuit)
 			return false;
