@@ -34,10 +34,10 @@ namespace Coco::Platform
 		/// <summary>
 		/// Called to fill out the neccessary rendering extensions for the given render hardware interface
 		/// </summary>
-		/// <param name="renderingRHI">The name of the render hardware interface being used</param>
+		/// <param name="renderingRHIEnum">The type of the render hardware interface being used</param>
 		/// <param name="includePresentationExtensions">If true, extensions for presenting should be included</param>
 		/// <param name="extensionNames">A list that will be populated with the required render extensions</param>
-		virtual void GetPlatformRenderingExtensions(const string& renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const = 0;
+		virtual void GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const = 0;
 
 		/// <summary>
 		/// Gets the current UTC time from the platform

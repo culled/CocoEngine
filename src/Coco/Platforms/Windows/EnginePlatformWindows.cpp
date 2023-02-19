@@ -10,6 +10,7 @@
 #include <Coco/Core/Input/InputService.h>
 #include <Coco/Core/Input/Keyboard.h>
 #include <Coco/Core/Input/Mouse.h>
+#include <Coco/Rendering/Graphics/GraphicsPlatforms.h>
 
 namespace Coco::Platform::Windows
 {
@@ -74,11 +75,14 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	void EnginePlatformWindows::GetPlatformRenderingExtensions(const string& renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const
+	void EnginePlatformWindows::GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const
 	{
-		if (renderingRHI == "Vulkan")
+		switch(static_cast<Rendering::RenderingRHI>(renderingRHI))
 		{
+		case Rendering::RenderingRHI::Vulkan:
 			extensionNames.Add("VK_KHR_win32_surface");
+		default:
+			break;
 		}
 	}
 
@@ -277,11 +281,11 @@ namespace Coco::Platform::Windows
 		{
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
-			_inputService->GetKeyboard()->UpdateKeyState(static_cast<Input::Keyboard::Key>(wParam), true);
+			_inputService->GetKeyboard()->UpdateKeyState(static_cast<Input::KeyboardKey>(wParam), true);
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			_inputService->GetKeyboard()->UpdateKeyState(static_cast<Input::Keyboard::Key>(wParam), false);
+			_inputService->GetKeyboard()->UpdateKeyState(static_cast<Input::KeyboardKey>(wParam), false);
 			break;
 		case WM_MOUSEMOVE:
 		{
@@ -310,9 +314,9 @@ namespace Coco::Platform::Windows
 		case WM_LBUTTONUP:
 		{
 			if (message == WM_LBUTTONDBLCLK)
-				_inputService->GetMouse()->DoubleClicked(Input::Mouse::Button::Left);
+				_inputService->GetMouse()->DoubleClicked(Input::MouseButton::Left);
 
-			_inputService->GetMouse()->UpdateButtonState(Input::Mouse::Button::Left, message != WM_LBUTTONUP);
+			_inputService->GetMouse()->UpdateButtonState(Input::MouseButton::Left, message != WM_LBUTTONUP);
 			break;
 		}
 		case WM_MBUTTONDOWN:
@@ -320,9 +324,9 @@ namespace Coco::Platform::Windows
 		case WM_MBUTTONUP:
 		{
 			if (message == WM_MBUTTONDBLCLK)
-				_inputService->GetMouse()->DoubleClicked(Input::Mouse::Button::Middle);
+				_inputService->GetMouse()->DoubleClicked(Input::MouseButton::Middle);
 
-			_inputService->GetMouse()->UpdateButtonState(Input::Mouse::Button::Middle, message != WM_MBUTTONUP);
+			_inputService->GetMouse()->UpdateButtonState(Input::MouseButton::Middle, message != WM_MBUTTONUP);
 			break;
 		}
 		case WM_RBUTTONDOWN:
@@ -330,16 +334,16 @@ namespace Coco::Platform::Windows
 		case WM_RBUTTONUP:
 		{
 			if (message == WM_RBUTTONDBLCLK)
-				_inputService->GetMouse()->DoubleClicked(Input::Mouse::Button::Right);
+				_inputService->GetMouse()->DoubleClicked(Input::MouseButton::Right);
 
-			_inputService->GetMouse()->UpdateButtonState(Input::Mouse::Button::Right, message != WM_RBUTTONUP);
+			_inputService->GetMouse()->UpdateButtonState(Input::MouseButton::Right, message != WM_RBUTTONUP);
 			break;
 		}
 		case WM_XBUTTONDOWN:
 		case WM_XBUTTONDBLCLK:
 		case WM_XBUTTONUP:
 		{
-			Input::Mouse::Button button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? Input::Mouse::Button::Button3 : Input::Mouse::Button::Button4;
+			Input::MouseButton button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? Input::MouseButton::Button3 : Input::MouseButton::Button4;
 
 			if (message == WM_XBUTTONDBLCLK)
 				_inputService->GetMouse()->DoubleClicked(button);

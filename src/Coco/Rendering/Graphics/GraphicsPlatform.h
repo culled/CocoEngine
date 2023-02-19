@@ -3,15 +3,10 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Logging/Logger.h>
 
+#include "GraphicsPlatforms.h"
+
 namespace Coco::Rendering
 {
-	enum class RenderingRHI
-	{
-		Vulkan,
-		DirectX12,
-		OpenGL
-	};
-
 	class RenderingService;
 
 	struct GraphicsBackendCreationParameters

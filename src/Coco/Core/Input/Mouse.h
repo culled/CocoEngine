@@ -6,6 +6,8 @@
 #include <Coco/Core/Events/Event.h>
 #include <Coco/Core/Types/Optional.h>
 
+#include "InputTypes.h"
+
 namespace Coco::Input
 {
 	/// <summary>
@@ -39,7 +41,7 @@ namespace Coco::Input
 	/// </summary>
 	struct MouseStateChange
 	{
-		Optional<int> ButtonIndex;
+		Optional<MouseButton> Button;
 		bool IsButtonPressed = false;
 		Optional<Vector2Int> Position;
 		Vector2Int MoveDelta = Vector2Int::Zero;
@@ -47,28 +49,15 @@ namespace Coco::Input
 		
 		static MouseStateChange MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta);
 		static MouseStateChange ScrollStateChange(const Vector2Int& scrollDelta);
-		static MouseStateChange ButtonStateChange(int buttonIndex, bool isPressed);
+		static MouseStateChange ButtonStateChange(MouseButton button, bool isPressed);
 	};
 
 	class COCOAPI Mouse
 	{
 	public:
-		/// <summary>
-		/// Mouse buttons
-		/// </summary>
-		enum class Button
-		{
-			Left,
-			Middle,
-			Right,
-			Button3,
-			Button4,
-			Unknown,
-		};
-
-		Event<Button> OnButtonPressed;
-		Event<Button> OnButtonReleased;
-		Event<Button> OnDoubleClicked;
+		Event<MouseButton> OnButtonPressed;
+		Event<MouseButton> OnButtonReleased;
+		Event<MouseButton> OnDoubleClicked;
 		Event<const Vector2Int&, const Vector2Int&> OnMoved;
 		Event<const Vector2Int&> OnScrolled;
 
@@ -86,7 +75,7 @@ namespace Coco::Input
 		/// </summary>
 		/// <param name="button">The mouse button</param>
 		/// <param name="isPressed">True if the mouse button is pressed</param>
-		void UpdateButtonState(Button button, bool isPressed);
+		void UpdateButtonState(MouseButton button, bool isPressed);
 
 		/// <summary>
 		/// Updates the position state for the mouse
@@ -104,28 +93,28 @@ namespace Coco::Input
 		/// Called when a mouse button has been double-clicked
 		/// </summary>
 		/// <param name="button">The mouse button</param>
-		void DoubleClicked(Button button);
+		void DoubleClicked(MouseButton button);
 
 		/// <summary>
 		/// Gets if the given mouse button is currently pressed
 		/// </summary>
 		/// <param name="button">The mouse button</param>
 		/// <returns>True if the mouse button is currently pressed</returns>
-		bool IsButtonPressed(Button button) const;
+		bool IsButtonPressed(MouseButton button) const;
 
 		/// <summary>
 		/// Gets if the given mouse button was just pressed (unpressed -> pressed) within the last tick
 		/// </summary>
 		/// <param name="button">The mouse button</param>
 		/// <returns>True if the mouse button was pressed since the last tick</returns>
-		bool WasButtonJustPressed(Button button) const;
+		bool WasButtonJustPressed(MouseButton button) const;
 
 		/// <summary>
 		/// Gets if the given mouse button was just released (pressed -> unpressed) within the last tick
 		/// </summary>
 		/// <param name="button">The mouse button</param>
 		/// <returns>True if the mouse button was released since the last tick</returns>
-		bool WasButtonJustReleased(Button button) const;
+		bool WasButtonJustReleased(MouseButton button) const;
 
 		/// <summary>
 		/// Gets the current position of the mouse

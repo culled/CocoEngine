@@ -105,6 +105,7 @@
     <ClInclude Include="Core\Events\Query.h" />
     <ClInclude Include="Core\Events\QueryHandler.h" />
     <ClInclude Include="Core\Input\InputService.h" />
+    <ClInclude Include="Core\Input\InputTypes.h" />
     <ClInclude Include="Core\Input\Keyboard.h" />
     <ClInclude Include="Core\Input\Mouse.h" />
     <ClInclude Include="Core\Logging\LogLevel.h" />
@@ -134,6 +135,7 @@
     <ClInclude Include="Platforms\Windows\WindowsWindow.h" />
     <ClInclude Include="Rendering\Graphics\AttachmentDescription.h" />
     <ClInclude Include="Rendering\Graphics\GraphicsPlatform.h" />
+    <ClInclude Include="Rendering\Graphics\GraphicsPlatforms.h" />
     <ClInclude Include="Rendering\Graphics\ImageTypes.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanIncludes.h" />

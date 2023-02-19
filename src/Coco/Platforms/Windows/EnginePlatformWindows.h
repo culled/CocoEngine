@@ -42,7 +42,7 @@ namespace Coco::Platform::Windows
         virtual void Start() override;
         virtual void GetPlatformCommandLineArguments(List<string>& arguments) const override;
         virtual void HandlePlatformMessages() override;
-        virtual void GetPlatformRenderingExtensions(const string& renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const override;
+        virtual void GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const override;
         virtual DateTime GetPlatformUtcTime() const override;
         virtual DateTime GetPlatformLocalTime() const override;
         virtual double GetPlatformTimeSeconds() const override;

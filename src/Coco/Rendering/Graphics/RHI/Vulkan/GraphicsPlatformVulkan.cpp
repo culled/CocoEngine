@@ -56,7 +56,7 @@ namespace Coco::Rendering
 		List<const char*> requestedExtensionNames;
 		List<string> platformExtensionNames;
 
-		Engine::Get()->GetPlatform()->GetPlatformRenderingExtensions("Vulkan", SupportsPresentation, platformExtensionNames);
+		Engine::Get()->GetPlatform()->GetPlatformRenderingExtensions(static_cast<int>(GetRHI()), SupportsPresentation, platformExtensionNames);
 
 		for (const string& extension : platformExtensionNames)
 			requestedExtensionNames.Add(extension.c_str());

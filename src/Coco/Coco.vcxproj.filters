@@ -198,6 +198,8 @@
     <ClInclude Include="Windowing\WindowingService.h">
       <Filter>Windowing</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Input\InputTypes.h" />
+    <ClInclude Include="Rendering\Graphics\GraphicsPlatforms.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">

@@ -46,9 +46,9 @@ void CocoSandboxApplication::Start()
 	_window = _windowService->CreateNewWindow(windowCreateParams);
 	_window->Show();
 
-	_inputService->GetKeyboard()->OnKeyPressedEvent += [&](Input::Keyboard::Key key) {
+	_inputService->GetKeyboard()->OnKeyPressedEvent += [&](Input::KeyboardKey key) {
 		//LogInfo(Logger, FormattedString("Pressed key {}", static_cast<int>(key)));
-		if (key == Input::Keyboard::Key::Escape)
+		if (key == Input::KeyboardKey::Escape)
 		{
 			Quit();
 			return true;
@@ -57,31 +57,6 @@ void CocoSandboxApplication::Start()
 		return false;
 		};
 
-	//_inputService->GetKeyboard()->OnKeyReleasedEvent += [&](Input::Keyboard::Key key) {
-	//	LogInfo(Logger, FormattedString("Released key {}", static_cast<int>(key)));
-	//	return false;
-	//};
-
-	//_inputService->GetMouse()->OnButtonPressed += [&](Input::Mouse::Button button) {
-	//	LogInfo(Logger, FormattedString("Pressed mouse button {}", static_cast<int>(button)));
-	//	return false;
-	//};
-
-	//_inputService->GetMouse()->OnButtonReleased += [&](Input::Mouse::Button button) {
-	//	LogInfo(Logger, FormattedString("Released mouse button {}", static_cast<int>(button)));
-	//	return false;
-	//};
-
-	//_inputService->GetMouse()->OnMoved += [&](const Vector2Int& newPosition, const Vector2Int& delta) {
-	//	LogInfo(Logger, FormattedString("Moved mouse - Position ({}, {}), Delta ({}, {})", newPosition.X, newPosition.Y, delta.X, delta.Y));
-	//	return false;
-	//};
-
-	//_inputService->GetMouse()->OnScrolled += [&](const Vector2Int& delta) {
-	//	LogInfo(Logger, FormattedString("Scrolled mouse - Delta ({}, {})", delta.X, delta.Y));
-	//	return false;
-	//};
-
 	this->Engine->GetMainLoop()->AddTickListener(_tickListener);
 
 	LogInfo(Logger, "Sandbox application started");
@@ -89,25 +64,5 @@ void CocoSandboxApplication::Start()
 
 void CocoSandboxApplication::Tick(double deltaTime)
 {
-	//if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::Keyboard::Key::Q))
-	//{
-	//	LogInfo(Logger, "Q pressed");
-	//}
-	//
-	//if (_inputService->GetKeyboard()->WasKeyJustReleased(Input::Keyboard::Key::E))
-	//{
-	//	LogInfo(Logger, "E released");
-	//}
-	//
-	//if (_inputService->GetMouse()->WasButtonJustPressed(Input::Mouse::Button::Left))
-	//{
-	//	LogInfo(Logger, "Left mouse button pressed");
-	//}
-	//
-	//if (_inputService->GetMouse()->WasButtonJustReleased(Input::Mouse::Button::Right))
-	//{
-	//	LogInfo(Logger, "Right mouse button released");
-	//}
-
 	//LogInfo(Logger, FormattedString("Tick! Time = {} (Dt = {})", Engine->GetMainLoop()->GetRunningTime(), deltaTime));
 }

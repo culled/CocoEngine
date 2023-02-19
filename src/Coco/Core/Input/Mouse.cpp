@@ -17,21 +17,21 @@ namespace Coco::Input
 		return state;
 	}
 
-	MouseStateChange MouseStateChange::ButtonStateChange(int buttonIndex, bool isPressed)
+	MouseStateChange MouseStateChange::ButtonStateChange(MouseButton button, bool isPressed)
 	{
 		MouseStateChange state = {};
-		state.ButtonIndex = buttonIndex;
+		state.Button = button;
 		state.IsButtonPressed = isPressed;
 		return state;
 	}
 
-	void Mouse::UpdateButtonState(Button button, bool isPressed)
+	void Mouse::UpdateButtonState(MouseButton button, bool isPressed)
 	{
 		int index = static_cast<int>(button);
 		if (_preProcessState.ButtonStates[index] == isPressed)
 			return;
 
-		_preProcessStateChanges.Add(MouseStateChange::ButtonStateChange(index, isPressed));
+		_preProcessStateChanges.Add(MouseStateChange::ButtonStateChange(button, isPressed));
 		_preProcessState.ButtonStates[index] = isPressed;
 	}
 
@@ -52,23 +52,23 @@ namespace Coco::Input
 		_preProcessStateChanges.Add(MouseStateChange::ScrollStateChange(scrollDelta));
 	}
 
-	void Mouse::DoubleClicked(Button button)
+	void Mouse::DoubleClicked(MouseButton button)
 	{
 		OnDoubleClicked.InvokeEvent(button);
 	}
 
-	bool Mouse::IsButtonPressed(Button button) const
+	bool Mouse::IsButtonPressed(MouseButton button) const
 	{
 		return _currentState.ButtonStates[static_cast<int>(button)];
 	}
 
-	bool Mouse::WasButtonJustPressed(Button button) const
+	bool Mouse::WasButtonJustPressed(MouseButton button) const
 	{
 		int index = static_cast<int>(button);
 		return (_currentState.ButtonStates[index] && !_previousState.ButtonStates[index]);
 	}
 
-	bool Mouse::WasButtonJustReleased(Button button) const
+	bool Mouse::WasButtonJustReleased(MouseButton button) const
 	{
 		int index = static_cast<int>(button);
 		return (!_currentState.ButtonStates[index] && _previousState.ButtonStates[index]);
@@ -79,15 +79,15 @@ namespace Coco::Input
 		// Step through each state change since the last tick and fire the proper events
 		for(const auto& newState : _preProcessStateChanges)
 		{
-			if (newState.ButtonIndex.has_value())
+			if (newState.Button.has_value())
 			{
 				if (newState.IsButtonPressed)
 				{
-					OnButtonPressed.InvokeEvent(static_cast<Mouse::Button>(newState.ButtonIndex.value()));
+					OnButtonPressed.InvokeEvent(newState.Button.value());
 				}
 				else
 				{
-					OnButtonReleased.InvokeEvent(static_cast<Mouse::Button>(newState.ButtonIndex.value()));
+					OnButtonReleased.InvokeEvent(newState.Button.value());
 				}
 			}
 			else if (newState.Position.has_value())
