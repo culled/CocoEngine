@@ -150,7 +150,7 @@ namespace Coco
 
 	bool DateTime::operator!=(const DateTime& other) const
 	{
-		return !(*this != other);
+		return !(*this == other);
 	}
 
 	int DateTime::DaysSinceEpoch(int year, int month, int day)
