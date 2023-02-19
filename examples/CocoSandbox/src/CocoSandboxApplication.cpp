@@ -5,6 +5,7 @@
 #include <Coco/Core/Logging/Sinks/ConsoleLogSink.h>
 #include <Coco/Core/Input/InputService.h>
 #include <Coco/Windowing/WindowingService.h>
+#include <Coco/Rendering/RenderingService.h>
 
 MainApplication(CocoSandboxApplication)
 
@@ -12,15 +13,19 @@ using namespace Coco;
 
 CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) : 
 	Coco::Application(engine, "Coco Sandbox"),
-	_window(nullptr),
 	_tickListener(new Coco::MainLoopTickListener(this, &CocoSandboxApplication::Tick, 0))
 {
 	Ref<Logging::ConsoleLogSink> consoleSink = CreateRef<Logging::ConsoleLogSink>(Logging::LogLevel::Trace);
 	Logger->AddSink(consoleSink);
 	engine->GetLogger()->AddSink(consoleSink);
 
-	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
 	_inputService = engine->GetServiceManager()->CreateService<Input::InputService>();
+
+	Rendering::GraphicsBackendCreationParameters createParams(Name, Rendering::RenderingRHI::Vulkan);
+	createParams.SupportsPresentation = true;
+	_renderService = engine->GetServiceManager()->CreateService<Rendering::RenderingService>(createParams);
+
+	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
 
 	//engine->GetMainLoop()->SetTargetTickRate(60);
 

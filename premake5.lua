@@ -43,9 +43,10 @@ IncludeDir["Coco"] = "%{wks.location}\\src\\"
 --filter "options:sdl-enabled"
 --    IncludeDir["sdl"] = "%{wks.location}\\vendor\\SDL2\\include\\"
 
---filter "options:vulkan-enabled"
+filter "options:vulkan-enabled"
+    IncludeDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Include\\"
+    LibraryDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Lib\\"
 --    IncludeDir["volk"] = "%{wks.location}\\vendor\\volk\\"
---    IncludeDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Include\\"
 
 -- Deactivate the current filter
 filter {}

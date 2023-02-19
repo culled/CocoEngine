@@ -17,6 +17,9 @@ namespace Coco
 		using Iterator = std::vector<T>::iterator;
 		using ConstIterator = std::vector<T>::const_iterator;
 
+		List() = default;
+		List(int initialSize) : _list(initialSize) {}
+
 		/// <summary>
 		/// Adds an item to this list
 		/// </summary>
@@ -96,7 +99,7 @@ namespace Coco
 			return static_cast<int>(_list.size());
 		}
 
-		T& operator[](const int index)
+		T& operator[](int index)
 		{
 			if (index < 0 || index > Count() - 1)
 			{
@@ -104,6 +107,35 @@ namespace Coco
 			}
 
 			return _list[index];
+		}
+
+		const T& operator[](int index) const
+		{
+			if (index < 0 || index > Count() - 1)
+			{
+				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
+			}
+
+			return _list[index];
+		}
+
+		/// <summary>
+		/// Resizes this list to be the given size
+		/// </summary>
+		/// <param name="newSize">The new size of this list</param>
+		void Resize(int newSize)
+		{
+			_list.resize(newSize);
+		}
+
+		const T* Data() const
+		{
+			return _list.data();
+		}
+
+		T* Data()
+		{
+			return _list.data();
 		}
 
 		/// <summary>

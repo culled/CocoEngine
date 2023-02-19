@@ -26,10 +26,18 @@ project "CocoSandbox"
         --"SDL2.lib",
     }
 
-    libdirs
-    {
-        --"%{LibraryDir.sdl}",
-    }
+    filter "options:vulkan-enabled"
+        defines { "COCO_RENDERING_VULKAN"}
+
+        libdirs
+        {
+            "%{LibraryDir.vulkan}",
+        }
+
+        links
+        {
+            "vulkan-1.lib"
+        }
 
     filter "system:windows"
         postbuildcommands

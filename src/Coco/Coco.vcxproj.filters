@@ -34,6 +34,21 @@
     <Filter Include="Platforms\Windows">
       <UniqueIdentifier>{17E40808-83FA-069E-CC71-92BF38C7D725}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{E3AE1F7C-4F19-D4F2-9857-85980401B247}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Graphics">
+      <UniqueIdentifier>{83E6F56D-6FCA-B6C3-D82A-B116C42DA145}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Graphics\RHI">
+      <UniqueIdentifier>{359CD6AB-2196-FFFD-0A03-960EF69B656A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Graphics\RHI\Vulkan">
+      <UniqueIdentifier>{153C7F39-8154-6663-4A01-F6FCB6D8FAFC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Pipeline">
+      <UniqueIdentifier>{68C6B229-54AA-737F-BD0A-6ED2A90D5E01}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Windowing">
       <UniqueIdentifier>{5BEA4C74-C754-01EB-1093-B2907C3CDF3F}</UniqueIdentifier>
     </Filter>
@@ -99,6 +114,9 @@
     <ClInclude Include="Core\Services\EngineServiceManager.h">
       <Filter>Core\Services</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Types\Array.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
     <ClInclude Include="Core\Types\DateTime.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
@@ -140,6 +158,36 @@
     </ClInclude>
     <ClInclude Include="Platforms\Windows\WindowsWindow.h">
       <Filter>Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\AttachmentDescription.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\GraphicsPlatform.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\ImageTypes.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanIncludes.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Pipeline\IRenderPass.h">
+      <Filter>Rendering\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Pipeline\RenderPipeline.h">
+      <Filter>Rendering\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Pipeline\RenderPipelineBinding.h">
+      <Filter>Rendering\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RenderView.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RenderingService.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Windowing\Window.h">
       <Filter>Windowing</Filter>
@@ -205,6 +253,24 @@
     </ClCompile>
     <ClCompile Include="Platforms\Windows\WindowsWindow.cpp">
       <Filter>Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\AttachmentDescription.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\GraphicsPlatform.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Pipeline\RenderPipeline.cpp">
+      <Filter>Rendering\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Pipeline\RenderPipelineBinding.cpp">
+      <Filter>Rendering\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\RenderingService.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Windowing\Window.cpp">
       <Filter>Windowing</Filter>

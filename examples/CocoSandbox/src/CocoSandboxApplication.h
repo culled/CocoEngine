@@ -22,13 +22,19 @@ namespace Coco
 	class MainLoopTickListener;
 }
 
+namespace Coco::Rendering
+{
+	class RenderingService;
+}
+
 class CocoSandboxApplication : public Coco::Application
 {
 private:
-	Coco::Windowing::WindowingService* _windowService;
-	Coco::Windowing::Window* _window;
-	Coco::Input::InputService* _inputService;
 	Coco::Ref<Coco::MainLoopTickListener> _tickListener;
+	Coco::Input::InputService* _inputService;
+	Coco::Rendering::RenderingService* _renderService;
+	Coco::Windowing::WindowingService* _windowService;
+	Coco::Windowing::Window* _window = nullptr;
 
 public:
 	CocoSandboxApplication(Coco::Engine* engine);

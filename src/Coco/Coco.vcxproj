@@ -57,7 +57,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>COCO_ASSERTIONS;COCO_RENDERING_VULKAN;COCO_LOG_TRACE;COCO_LOG_INFO;COCO_LOG_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;C:\VulkanSDK\1.3.216.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -67,13 +67,17 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.216.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Win64|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>COCO_ASSERTIONS;COCO_RENDERING_VULKAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;C:\VulkanSDK\1.3.216.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -87,6 +91,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.216.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\Application.h" />
@@ -109,6 +117,7 @@
     <ClInclude Include="Core\Platform\EnginePlatformTypes.h" />
     <ClInclude Include="Core\Services\EngineService.h" />
     <ClInclude Include="Core\Services\EngineServiceManager.h" />
+    <ClInclude Include="Core\Types\Array.h" />
     <ClInclude Include="Core\Types\DateTime.h" />
     <ClInclude Include="Core\Types\Exceptions.h" />
     <ClInclude Include="Core\Types\ExitCodes.h" />
@@ -123,6 +132,16 @@
     <ClInclude Include="Platforms\Windows\EnginePlatformWindows.h" />
     <ClInclude Include="Platforms\Windows\WindowsIncludes.h" />
     <ClInclude Include="Platforms\Windows\WindowsWindow.h" />
+    <ClInclude Include="Rendering\Graphics\AttachmentDescription.h" />
+    <ClInclude Include="Rendering\Graphics\GraphicsPlatform.h" />
+    <ClInclude Include="Rendering\Graphics\ImageTypes.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanIncludes.h" />
+    <ClInclude Include="Rendering\Pipeline\IRenderPass.h" />
+    <ClInclude Include="Rendering\Pipeline\RenderPipeline.h" />
+    <ClInclude Include="Rendering\Pipeline\RenderPipelineBinding.h" />
+    <ClInclude Include="Rendering\RenderView.h" />
+    <ClInclude Include="Rendering\RenderingService.h" />
     <ClInclude Include="Windowing\Window.h" />
     <ClInclude Include="Windowing\WindowingPlatform.h" />
     <ClInclude Include="Windowing\WindowingService.h" />
@@ -146,6 +165,12 @@
     <ClCompile Include="Platforms\Windows\EnginePlatformWindows.cpp" />
     <ClCompile Include="Platforms\Windows\EntryWindows.cpp" />
     <ClCompile Include="Platforms\Windows\WindowsWindow.cpp" />
+    <ClCompile Include="Rendering\Graphics\AttachmentDescription.cpp" />
+    <ClCompile Include="Rendering\Graphics\GraphicsPlatform.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.cpp" />
+    <ClCompile Include="Rendering\Pipeline\RenderPipeline.cpp" />
+    <ClCompile Include="Rendering\Pipeline\RenderPipelineBinding.cpp" />
+    <ClCompile Include="Rendering\RenderingService.cpp" />
     <ClCompile Include="Windowing\Window.cpp" />
     <ClCompile Include="Windowing\WindowingService.cpp" />
   </ItemGroup>

@@ -25,7 +25,7 @@ namespace Coco
 		T* CreateService(Args&& ... args)
 		{
 			static_assert(std::is_base_of<EngineService, T>::value, "Can only create services derived from EngineService");
-			T* service = new T(std::forward(args)...);
+			T* service = new T(std::forward<Args>(args)...);
 			RegisterService(service);
 			return service;
 		}

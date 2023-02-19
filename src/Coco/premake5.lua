@@ -16,6 +16,12 @@ project "Coco"
         "Core/**.cpp",
         "Windowing/**.h",
         "Windowing/**.cpp",
+        "Rendering/*.h",
+        "Rendering/*.cpp",
+        "Rendering/Graphics/*.h",
+        "Rendering/Graphics/*.cpp",
+        "Rendering/Pipeline/*.h",
+        "Rendering/Pipeline/*.cpp",
     }
 
     includedirs
@@ -26,27 +32,30 @@ project "Coco"
 
     links
     {}
-
-    filter "options:sdl-enabled"
-        defines { "COCO_PLATFORM_SDL"}
-
-        files
-        {}
-
-        includedirs
-        {
-            "%{IncludeDir.volk}",
-            "%{IncludeDir.vulkan}",
-        }
-
+    
     filter "options:vulkan-enabled"
         defines { "COCO_RENDERING_VULKAN"}
 
         files
-        {}
+        {
+            "Rendering/Graphics/RHI/Vulkan/**.h",
+            "Rendering/Graphics/RHI/Vulkan/**.cpp",
+        }
 
         includedirs
-        {}
+        {
+            "%{IncludeDir.vulkan}"
+        }
+
+        libdirs
+        {
+            "%{LibraryDir.vulkan}"
+        }
+
+        links
+        {
+            "vulkan-1.lib"
+        }
 
     filter "system:windows"
         files

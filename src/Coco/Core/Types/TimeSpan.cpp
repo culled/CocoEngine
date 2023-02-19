@@ -139,6 +139,6 @@ namespace Coco
 
 	bool TimeSpan::operator!=(const TimeSpan& other)
 	{
-		return *this != other;
+		return !(*this == other);
 	}
 }

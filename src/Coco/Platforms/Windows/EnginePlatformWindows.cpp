@@ -74,15 +74,10 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	void EnginePlatformWindows::GetPlatformRenderingExtensions(const string& renderingRHI, List<string>& extensionNames) const
-	{
-	}
-
-	void EnginePlatformWindows::GetPlatformPresentationExtensions(const string& renderingRHI, List<string>& extensionNames) const
+	void EnginePlatformWindows::GetPlatformRenderingExtensions(const string& renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const
 	{
 		if (renderingRHI == "Vulkan")
 		{
-			extensionNames.Add("VK_KHR_surface");
 			extensionNames.Add("VK_KHR_win32_surface");
 		}
 	}
