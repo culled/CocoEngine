@@ -9,18 +9,22 @@
 
 namespace Coco::Rendering
 {
+    /// <summary>
+    /// A service that allows for rendering operations
+    /// </summary>
     class COCOAPI RenderingService : public EngineService
     {
     private:
         Managed<GraphicsPlatform> _graphics;
 
     public:
-        RenderingService(const GraphicsBackendCreationParameters& backendCreateParams);
+        RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
         ~RenderingService();
 
         virtual Logging::Logger* GetLogger() const override;
         virtual void Start() override;
 
+        // TODO
         void Render(const RenderView& view, const RenderPipeline& pipeline);
     };
 }

@@ -8,11 +8,11 @@
 
 namespace Coco::Rendering
 {
-	GraphicsPlatform::GraphicsPlatform(RenderingService* renderingService, const GraphicsBackendCreationParameters& creationParams) :
+	GraphicsPlatform::GraphicsPlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams) :
 		RenderService(renderingService), SupportsPresentation(creationParams.DeviceCreateParams.SupportsPresentation)
 	{}
 
-	GraphicsPlatform* GraphicsPlatform::CreatePlatform(RenderingService* renderingService, const GraphicsBackendCreationParameters& creationParams)
+	GraphicsPlatform* GraphicsPlatform::CreatePlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams)
 	{
 		switch (creationParams.RHI)
 		{

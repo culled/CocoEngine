@@ -4,6 +4,8 @@
 #include <Coco/Core/Application.h>
 #include <Coco/Core/Engine.h>
 
+#include "VulkanUtilities.h"
+
 namespace Coco::Rendering
 {
 	static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
@@ -42,15 +44,15 @@ namespace Coco::Rendering
 
 	const char* GraphicsPlatformVulkan::s_debugValidationLayerName = "VK_LAYER_KHRONOS_validation";
 
-	GraphicsPlatformVulkan::GraphicsPlatformVulkan(RenderingService* renderingService, const GraphicsBackendCreationParameters& creationParams) :
+	GraphicsPlatformVulkan::GraphicsPlatformVulkan(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams) :
 		GraphicsPlatform(renderingService, creationParams)
 	{
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pEngineName = "Coco";
-		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0); // TODO: get version
+		appInfo.engineVersion = ToVkVersion(Version(1, 0, 0)); // TODO: get version
 		appInfo.pApplicationName = creationParams.ApplicationName.c_str();
-		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0); // TODO: get version
+		appInfo.applicationVersion = ToVkVersion(Version(1, 0, 0)); // TODO: get version
 		appInfo.apiVersion = VK_API_VERSION_1_2; // TODO: option to choose api version?
 
 		List<const char*> requestedExtensionNames;

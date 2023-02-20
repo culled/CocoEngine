@@ -21,4 +21,9 @@ namespace Coco::Rendering
 	{
 		return Version(VK_VERSION_MAJOR(version), VK_VERSION_MINOR(version), VK_VERSION_PATCH(version));
 	}
+
+	uint32_t ToVkVersion(const Version& version)
+	{
+		return VK_MAKE_VERSION(version.Major, version.Minor, version.Patch);
+	}
 }

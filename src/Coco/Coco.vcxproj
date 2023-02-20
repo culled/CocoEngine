@@ -153,6 +153,7 @@
     <ClInclude Include="Windowing\Window.h" />
     <ClInclude Include="Windowing\WindowingPlatform.h" />
     <ClInclude Include="Windowing\WindowingService.h" />
+    <ClInclude Include="Windowing\WindowTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp" />

@@ -206,6 +206,7 @@
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.h" />
     <ClInclude Include="Core\Types\Set.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.h" />
+    <ClInclude Include="Windowing\WindowTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">

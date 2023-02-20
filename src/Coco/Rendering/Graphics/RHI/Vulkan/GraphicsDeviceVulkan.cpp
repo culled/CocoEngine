@@ -53,11 +53,6 @@ namespace Coco::Rendering
 
 		List<const char*> enabledExtensions;
 
-		for (const string& extension : createParams.RequiredExtensions)
-		{
-			enabledExtensions.Add(extension.c_str());
-		}
-
 		if (createParams.SupportsPresentation)
 			enabledExtensions.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
@@ -211,7 +206,7 @@ namespace Coco::Rendering
 		List<VkExtensionProperties> deviceExtensions(extensionCount);
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, deviceExtensions.Data());
 
-		List<string> requiredExtensions = createParams.RequiredExtensions;
+		List<string> requiredExtensions;
 
 		if (createParams.SupportsPresentation)
 			requiredExtensions.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);

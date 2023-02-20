@@ -4,6 +4,9 @@
 
 namespace Coco::Rendering
 {
+	/// <summary>
+	/// Types of render hardward interfaces
+	/// </summary>
 	enum class COCOAPI RenderingRHI
 	{
 		Vulkan,
@@ -11,6 +14,9 @@ namespace Coco::Rendering
 		OpenGL
 	};
 
+	/// <summary>
+	/// Types of graphics devices
+	/// </summary>
 	enum class COCOAPI GraphicsDeviceType
 	{
 		Discrete,

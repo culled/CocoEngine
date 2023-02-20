@@ -4,6 +4,9 @@
 
 namespace Coco::Rendering
 {
+	/// <summary>
+	/// Image pixel formats
+	/// </summary>
 	enum class PixelFormat
 	{
 		B8G8R8A8_UNorm,
@@ -11,13 +14,19 @@ namespace Coco::Rendering
 		Unknown
 	};
 
+	/// <summary>
+	/// Image color spaces
+	/// </summary>
 	enum class ColorSpace
 	{
 		sRGB,
 		Unknown
 	};
 
-	enum class ImageType
+	/// <summary>
+	/// Image dimension types
+	/// </summary>
+	enum class ImageDimensionType
 	{
 		OneDimensional,
 		TwoDimensional,

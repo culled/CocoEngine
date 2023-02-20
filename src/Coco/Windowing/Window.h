@@ -6,16 +6,11 @@
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Events/Event.h>
 
+#include "WindowTypes.h"
+
 namespace Coco::Windowing
 {
 	class WindowingService;
-
-	enum class WindowState
-	{
-		Windowed,
-		Minimized,
-		Maximized,
-	};
 
 	/// <summary>
 	/// Parameters for creating a window

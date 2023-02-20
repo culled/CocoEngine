@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vk_enum_string_helper.h>
 
+// Ensures an expression that returns a VkResult returns VK_SUCCESS
 #define CheckVKResult(Expression)																		\
 VkResult result = Expression;																			\
 if(result != VK_SUCCESS) {																				\

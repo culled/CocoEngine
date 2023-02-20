@@ -4,7 +4,7 @@
 
 namespace Coco::Rendering
 {
-	RenderingService::RenderingService(const GraphicsBackendCreationParameters& backendCreateParams)
+	RenderingService::RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams)
 	{
 		_graphics.reset(GraphicsPlatform::CreatePlatform(this, backendCreateParams));
 	}
@@ -20,10 +20,10 @@ namespace Coco::Rendering
 	}
 
 	void RenderingService::Start()
-	{
-	}
+	{}
 
 	void RenderingService::Render(const RenderView& view, const RenderPipeline& pipeline)
 	{
+		// TODO
 	}
 }
