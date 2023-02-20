@@ -3,13 +3,14 @@
 
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Core/Logging/Logger.h>
+#include <Coco/Rendering/Graphics/PresenterSurfaceInitializationInfo.h>
 
 #define CheckWindowHandle() Assert(_handle != NULL)
 
 namespace Coco::Platform::Windows
 {
 	WindowsWindow::WindowsWindow(Coco::Windowing::WindowCreateParameters& createParameters, Coco::Windowing::WindowingService* windowingService, EnginePlatformWindows* platform) :
-		Window(windowingService)
+		Window(windowingService), _instance(platform->_instance), _size(createParameters.InitialSize)
 	{
 #if UNICODE || _UNICODE
 		std::wstring title = EnginePlatformWindows::StringToWideString(createParameters.Title);
@@ -100,6 +101,15 @@ namespace Coco::Platform::Windows
 		CheckWindowHandle();
 	}
 
+	void WindowsWindow::SetupPresenterSurface()
+	{
+		Rendering::PresenterWin32SurfaceInitializationInfo surfaceInitInfo = {};
+		surfaceInitInfo.HWindow = _handle;
+		surfaceInitInfo.HInstance = _instance;
+
+		Presenter->InitializeSurface(&surfaceInitInfo);
+	}
+
 	void WindowsWindow::ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		switch (message)
@@ -107,6 +117,13 @@ namespace Coco::Platform::Windows
 		case WM_CLOSE:
 			Close();
 			break;
+		case WM_SIZE:
+		{
+			UINT width = LOWORD(lParam);
+			UINT height = HIWORD(lParam);
+			_size = SizeInt(static_cast<int>(width), static_cast<int>(height));
+			OnResized();
+		}
 		default:
 			LogTrace(WindowingService->GetLogger(), FormattedString("Got message {0}", message));
 			break;

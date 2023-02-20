@@ -3,6 +3,7 @@
 #include <Coco/Rendering/RenderingService.h>
 #include <Coco/Core/Application.h>
 #include <Coco/Core/Engine.h>
+#include "GraphicsPresenterVulkan.h"
 
 #include "VulkanUtilities.h"
 
@@ -136,6 +137,11 @@ namespace Coco::Rendering
 	Logging::Logger* GraphicsPlatformVulkan::GetLogger() const
 	{
 		return RenderService->GetLogger();
+	}
+
+	GraphicsPresenter* GraphicsPlatformVulkan::CreatePresenter()
+	{
+		return new GraphicsPresenterVulkan(_device.get());
 	}
 
 	bool GraphicsPlatformVulkan::CheckValidationLayersSupport()

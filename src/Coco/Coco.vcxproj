@@ -139,9 +139,12 @@
     <ClInclude Include="Rendering\Graphics\GraphicsDevice.h" />
     <ClInclude Include="Rendering\Graphics\GraphicsPlatform.h" />
     <ClInclude Include="Rendering\Graphics\GraphicsPlatformTypes.h" />
+    <ClInclude Include="Rendering\Graphics\GraphicsPresenter.h" />
     <ClInclude Include="Rendering\Graphics\ImageTypes.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsDeviceVulkan.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\PresenterSurfaceInitializationInfo.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanIncludes.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.h" />
@@ -181,6 +184,7 @@
     <ClCompile Include="Rendering\Graphics\GraphicsPlatform.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsDeviceVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.cpp" />
     <ClCompile Include="Rendering\Pipeline\RenderPipeline.cpp" />

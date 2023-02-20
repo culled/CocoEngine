@@ -92,6 +92,38 @@ namespace Coco::Rendering
         /// <returns>The Vulkan logical device</returns>
         VkDevice GetDevice() const { return _device; }
 
+        /// <summary>
+        /// Attempts to initialize the present queue with the given surface
+        /// </summary>
+        /// <param name="surface">The surface to use for initialization</param>
+        /// <returns>True if the present queue is initialized</returns>
+        bool InitializePresentQueue(VkSurfaceKHR surface);
+
+        /// <summary>
+        /// Gets the graphics queue, if the device supports it
+        /// </summary>
+        /// <returns>The graphics queue</returns>
+        Optional<Ref<VulkanQueue>> GetGraphicsQueue() const { return _graphicsQueue; }
+
+        /// <summary>
+        /// Gets the transfer queue, if the device supports it
+        /// </summary>
+        /// <returns>The transfer queue</returns>
+        Optional<Ref<VulkanQueue>> GetTransferQueue() const { return _transferQueue; }
+
+        /// <summary>
+        /// Gets the compute queue, if the device supports it
+        /// </summary>
+        /// <returns>The compute queue</returns>
+        Optional<Ref<VulkanQueue>> GetComputeQueue() const { return _computeQueue; }
+
+        /// <summary>
+        /// Gets the present queue if it has been intialized and the device supports it.
+        /// The present queue must be initialized with InitializePresentQueue() before this becomes valid
+        /// </summary>
+        /// <returns>The present queue</returns>
+        Optional<Ref<VulkanQueue>> GetPresentQueue() const { return _presentQueue; }
+
     private:
         GraphicsDeviceVulkan(GraphicsPlatformVulkan* platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
 
@@ -117,6 +149,14 @@ namespace Coco::Rendering
         /// <param name="device">The device</param>
         /// <returns>Information about the device's queue families</returns>
         static PhysicalDeviceQueueFamilyInfo GetQueueFamilyInfo(VkPhysicalDevice device);
+
+        /// <summary>
+        /// Checks if a queue supports surfaces
+        /// </summary>
+        /// <param name="surface">The surface to check with</param>
+        /// <param name="queue">The queue to check</param>
+        /// <returns>True if the given queue supports surfaces</returns>
+        bool CheckQueuePresentSupport(VkSurfaceKHR surface, const Ref<VulkanQueue>& queue) const ;
     };
 }
 

@@ -21,14 +21,22 @@ namespace Coco::Platform::Windows
         friend EnginePlatformWindows;
 
         HWND _handle;
+        HINSTANCE _instance;
+
+        SizeInt _size;
 
     public:
         WindowsWindow(Coco::Windowing::WindowCreateParameters& createParameters, Coco::Windowing::WindowingService* windowingService, EnginePlatformWindows* platform);
         virtual ~WindowsWindow() override;
 
-        virtual void* GetID() const { return _handle; }
+        virtual void* GetID() const override { return _handle; }
+        virtual SizeInt GetSize() const override { return _size; }
         virtual void Show() override;
         virtual void Hide() override;
+
+    protected:
+        virtual void SetupPresenterSurface() override;
+        virtual SizeInt GetBackbufferSize() const override { return GetSize(); }
 
     private:
         /// <summary>

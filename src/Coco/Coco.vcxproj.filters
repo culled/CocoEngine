@@ -207,6 +207,9 @@
     <ClInclude Include="Core\Types\Set.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.h" />
     <ClInclude Include="Windowing\WindowTypes.h" />
+    <ClInclude Include="Rendering\Graphics\GraphicsPresenter.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\PresenterSurfaceInitializationInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -293,5 +296,6 @@
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsDeviceVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.cpp" />
   </ItemGroup>
 </Project>

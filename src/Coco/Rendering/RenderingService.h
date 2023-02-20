@@ -5,6 +5,7 @@
 
 #include "RenderView.h"
 #include "Graphics/GraphicsPlatform.h"
+#include "Graphics/GraphicsPresenter.h"
 #include "Pipeline/RenderPipeline.h"
 
 namespace Coco::Rendering
@@ -23,6 +24,12 @@ namespace Coco::Rendering
 
         virtual Logging::Logger* GetLogger() const override;
         virtual void Start() override;
+
+        /// <summary>
+        /// Creates a graphics presenter
+        /// </summary>
+        /// <returns>A graphics presenter</returns>
+        GraphicsPresenter* CreatePresenter() const { return _graphics->CreatePresenter(); }
 
         // TODO
         void Render(const RenderView& view, const RenderPipeline& pipeline);

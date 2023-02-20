@@ -113,6 +113,27 @@ namespace Coco::Rendering
 		return new GraphicsDeviceVulkan(platform, physicalDevice, createParams);
 	}
 
+	bool GraphicsDeviceVulkan::InitializePresentQueue(VkSurfaceKHR surface)
+	{
+		if (_presentQueue.has_value())
+			return true;
+
+		if (_graphicsQueue.has_value() && CheckQueuePresentSupport(surface, _graphicsQueue.value()))
+		{
+			_presentQueue = _graphicsQueue.value();
+		}
+		else if (_transferQueue.has_value() && CheckQueuePresentSupport(surface, _transferQueue.value()))
+		{
+			_presentQueue = _transferQueue.value();
+		}
+		else if (_computeQueue.has_value() && CheckQueuePresentSupport(surface, _computeQueue.value()))
+		{
+			_presentQueue = _computeQueue.value();
+		}
+
+		return _presentQueue.has_value();
+	}
+
 	bool CompareDeviceRankings(const PhysicalDeviceRanking& a, const PhysicalDeviceRanking& b)
 	{
 		return a.Score > b.Score;
@@ -293,5 +314,14 @@ namespace Coco::Rendering
 			queueFamilyInfos.ComputeQueueFamily = computeIndex;
 
 		return queueFamilyInfos;
+	}
+
+	bool GraphicsDeviceVulkan::CheckQueuePresentSupport(VkSurfaceKHR surface, const Ref<VulkanQueue>& queue) const
+	{
+		VkBool32 supported = VK_FALSE;
+
+		vkGetPhysicalDeviceSurfaceSupportKHR(_physicalDevice, static_cast<uint32_t>(queue->QueueFamily), surface, &supported);
+
+		return supported != VK_FALSE;
 	}
 }

@@ -27,4 +27,18 @@ namespace Coco::Rendering
 	/// <param name="version">The version</param>
 	/// <returns>The converted Vulkan version</returns>
 	uint32_t ToVkVersion(const Version& version);
+
+	/// <summary>
+	/// Converts a VerticalSyncMode to a VkPresentModeKHR
+	/// </summary>
+	/// <param name="vsyncMode">The vsync mode</param>
+	/// <returns>The converted present mode</returns>
+	VkPresentModeKHR ToVkPresentMode(VerticalSyncMode vsyncMode);
+
+	/// <summary>
+	/// Converts a VkPresentModeKHR to a VerticalSyncMode
+	/// </summary>
+	/// <param name="presentMode">The present mode</param>
+	/// <returns>The converted vertical sync mode</returns>
+	VerticalSyncMode ToVerticalSyncMode(VkPresentModeKHR presentMode);
 }

@@ -5,6 +5,7 @@
 
 #include "GraphicsPlatformTypes.h"
 #include "GraphicsDevice.h"
+#include "GraphicsPresenter.h"
 
 namespace Coco::Rendering
 {
@@ -75,6 +76,12 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>The graphics device that is used for rendering</returns>
 		virtual GraphicsDevice* GetDevice() const = 0;
+
+		/// <summary>
+		/// Creates a graphics presenter
+		/// </summary>
+		/// <returns>A graphics presenter</returns>
+		virtual GraphicsPresenter* CreatePresenter() = 0;
 
 	protected:
 		GraphicsPlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);

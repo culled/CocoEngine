@@ -24,4 +24,14 @@ namespace Coco::Rendering
 		CPU,
 		Other
 	};
+
+	/// <summary>
+	/// Vertical sync modes
+	/// </summary>
+	enum class COCOAPI VerticalSyncMode
+	{
+		Disabled,
+		Enabled,
+		Mailbox
+	};
 }

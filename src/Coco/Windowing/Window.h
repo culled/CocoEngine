@@ -5,6 +5,7 @@
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Events/Event.h>
+#include <Coco/Rendering/Graphics/GraphicsPresenter.h>
 
 #include "WindowTypes.h"
 
@@ -33,6 +34,12 @@ namespace Coco::Windowing
 	/// </summary>
 	class COCOAPI Window
 	{
+	protected:
+		/// <summary>
+		/// The presenter for the window
+		/// </summary>
+		Managed<Rendering::GraphicsPresenter> Presenter;
+
 	public:
 		/// <summary>
 		/// Invoked when the window is trying to close.
@@ -61,6 +68,12 @@ namespace Coco::Windowing
 		virtual void* GetID() const = 0;
 
 		/// <summary>
+		/// Gets the size of the window's client area
+		/// </summary>
+		/// <returns>The size of the window's client area</returns>
+		virtual SizeInt GetSize() const = 0;
+
+		/// <summary>
 		/// Shows this window
 		/// </summary>
 		virtual void Show() = 0;
@@ -75,5 +88,22 @@ namespace Coco::Windowing
 		/// </summary>
 		/// <returns>True if this window will close</returns>
 		bool Close();
+
+	protected:
+		/// <summary>
+		/// Called when the window has resized
+		/// </summary>
+		void OnResized();
+
+		/// <summary>
+		/// Sets up the surface for the window presenter
+		/// </summary>
+		virtual void SetupPresenterSurface() = 0;
+
+		/// <summary>
+		/// Gets the drawable size of the window's backbuffer
+		/// </summary>
+		/// <returns>The size of the window's backbuffer</returns>
+		virtual SizeInt GetBackbufferSize() const = 0;
 	};
 }
