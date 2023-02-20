@@ -9,7 +9,7 @@
 namespace Coco::Rendering
 {
 	GraphicsPlatform::GraphicsPlatform(RenderingService* renderingService, const GraphicsBackendCreationParameters& creationParams) :
-		RenderService(renderingService), SupportsPresentation(creationParams.SupportsPresentation)
+		RenderService(renderingService), SupportsPresentation(creationParams.DeviceCreateParams.SupportsPresentation)
 	{}
 
 	GraphicsPlatform* GraphicsPlatform::CreatePlatform(RenderingService* renderingService, const GraphicsBackendCreationParameters& creationParams)

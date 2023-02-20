@@ -3,7 +3,8 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Logging/Logger.h>
 
-#include "GraphicsPlatforms.h"
+#include "GraphicsPlatformTypes.h"
+#include "GraphicsDevice.h"
 
 namespace Coco::Rendering
 {
@@ -13,7 +14,8 @@ namespace Coco::Rendering
 	{
 		string ApplicationName;
 		RenderingRHI RHI;
-		bool SupportsPresentation = false;
+
+		GraphicsDeviceCreationParameters DeviceCreateParams = {};
 
 		GraphicsBackendCreationParameters(const string& applicationName, RenderingRHI rhi) : ApplicationName(applicationName), RHI(rhi) {}
 	};
@@ -34,5 +36,6 @@ namespace Coco::Rendering
 
 		virtual Logging::Logger* GetLogger() const = 0;
 		virtual RenderingRHI GetRHI() const = 0;
+		virtual GraphicsDevice* GetDevice() const = 0;
 	};
 }

@@ -11,7 +11,12 @@ namespace Coco
 	{
 		int Width, Height;
 
-		SizeInt(int width, int height) : Width(width), Height(height) {}
-		SizeInt() : SizeInt(0, 0) {}
+		SizeInt();
+		SizeInt(int width, int height);
+
+		SizeInt operator+(const SizeInt& other) const;
+		SizeInt operator-(const SizeInt& other) const;
+		bool operator==(const SizeInt& other) const;
+		bool operator!=(const SizeInt& other) const;
 	};
 }

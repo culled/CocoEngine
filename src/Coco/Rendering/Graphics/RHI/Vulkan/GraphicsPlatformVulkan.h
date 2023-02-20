@@ -4,6 +4,7 @@
 #include <Coco/Rendering/Graphics/GraphicsPlatform.h>
 
 #include "VulkanIncludes.h"
+#include "GraphicsDeviceVulkan.h"
 
 namespace Coco::Rendering
 {
@@ -19,12 +20,17 @@ namespace Coco::Rendering
 
         bool _usingValidationLayers = false;
 
+        Managed<GraphicsDeviceVulkan> _device;
+
     public:
         GraphicsPlatformVulkan(Rendering::RenderingService* renderingService, const GraphicsBackendCreationParameters& creationParams);
         virtual ~GraphicsPlatformVulkan() override;
 
         virtual Logging::Logger* GetLogger() const override;
         virtual RenderingRHI GetRHI() const override { return RenderingRHI::Vulkan; }
+        virtual GraphicsDevice* GetDevice() const override { return _device.get(); }
+
+        VkInstance GetInstance() const { return _instance; }
 
     private:
         static bool CheckValidationLayersSupport();

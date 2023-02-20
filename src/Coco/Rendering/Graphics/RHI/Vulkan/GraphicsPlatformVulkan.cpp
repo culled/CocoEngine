@@ -66,7 +66,6 @@ namespace Coco::Rendering
 
 		List<const char*> requestedLayerNames;
 
-
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
 
 #if _DEBUG
@@ -109,11 +108,15 @@ namespace Coco::Rendering
 		if (_usingValidationLayers)
 			CreateDebugMessenger();
 
+		_device.reset(GraphicsDeviceVulkan::Create(this, creationParams.DeviceCreateParams));
+
 		LogTrace(GetLogger(), "Created Vulkan graphics platform");
 	}
 
 	GraphicsPlatformVulkan::~GraphicsPlatformVulkan()
 	{
+		_device.reset();
+
 		if (_debugMessenger != nullptr)
 		{
 			DestroyDebugMessenger();

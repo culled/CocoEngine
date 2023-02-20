@@ -10,4 +10,12 @@ namespace Coco::Rendering
 		DirectX12,
 		OpenGL
 	};
+
+	enum class COCOAPI GraphicsDeviceType
+	{
+		Discrete,
+		Integrated,
+		CPU,
+		Other
+	};
 }

@@ -22,7 +22,6 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	_inputService = engine->GetServiceManager()->CreateService<Input::InputService>();
 
 	Rendering::GraphicsBackendCreationParameters createParams(Name, Rendering::RenderingRHI::Vulkan);
-	createParams.SupportsPresentation = true;
 	_renderService = engine->GetServiceManager()->CreateService<Rendering::RenderingService>(createParams);
 
 	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();

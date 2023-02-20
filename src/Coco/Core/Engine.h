@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-#include <Coco/Core/Types/ExitCodes.h>
+#include <Coco/Core/ExitCodes.h>
 #include <Coco/Core/Types/DateTime.h>
 #include <Coco/Core/Logging/Logger.h>
 #include <Coco/Core/Platform/EnginePlatform.h>

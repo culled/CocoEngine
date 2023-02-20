@@ -10,7 +10,7 @@
 #include <Coco/Core/Input/InputService.h>
 #include <Coco/Core/Input/Keyboard.h>
 #include <Coco/Core/Input/Mouse.h>
-#include <Coco/Rendering/Graphics/GraphicsPlatforms.h>
+#include <Coco/Rendering/Graphics/GraphicsPlatformTypes.h>
 
 namespace Coco::Platform::Windows
 {
@@ -81,6 +81,7 @@ namespace Coco::Platform::Windows
 		{
 		case Rendering::RenderingRHI::Vulkan:
 			extensionNames.Add("VK_KHR_win32_surface");
+			break;
 		default:
 			break;
 		}

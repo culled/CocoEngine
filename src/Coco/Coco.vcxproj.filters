@@ -123,7 +123,7 @@
     <ClInclude Include="Core\Types\Exceptions.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Types\ExitCodes.h">
+    <ClInclude Include="Core\ExitCodes.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
     <ClInclude Include="Core\Types\List.h">
@@ -199,7 +199,13 @@
       <Filter>Windowing</Filter>
     </ClInclude>
     <ClInclude Include="Core\Input\InputTypes.h" />
-    <ClInclude Include="Rendering\Graphics\GraphicsPlatforms.h" />
+    <ClInclude Include="Rendering\Graphics\GraphicsPlatformTypes.h" />
+    <ClInclude Include="Rendering\Graphics\GraphicsDevice.h" />
+    <ClInclude Include="Core\Types\Version.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsDeviceVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.h" />
+    <ClInclude Include="Core\Types\Set.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -280,5 +286,11 @@
     <ClCompile Include="Windowing\WindowingService.cpp">
       <Filter>Windowing</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Graphics\GraphicsDevice.cpp" />
+    <ClCompile Include="Core\Types\Version.cpp" />
+    <ClCompile Include="Core\Types\Size.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsDeviceVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.cpp" />
   </ItemGroup>
 </Project>
