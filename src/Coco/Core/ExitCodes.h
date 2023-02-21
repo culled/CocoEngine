@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core.h"
+
 namespace Coco
 {
 	/// <summary>

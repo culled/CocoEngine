@@ -9,8 +9,8 @@ namespace Coco::Rendering
 	/// </summary>
 	enum class PixelFormat
 	{
-		B8G8R8A8_UNorm,
-		D24UNorm_S8UInt,
+		BGRA8,
+		Depth24_Stencil8,
 		Unknown
 	};
 
@@ -29,9 +29,11 @@ namespace Coco::Rendering
 	enum class ImageDimensionType
 	{
 		OneDimensional,
+		OneDimensionalArray,
 		TwoDimensional,
 		TwoDimensionalArray,
 		ThreeDimensional,
+		ThreeDimensionalArray,
 		CubeMap,
 		CubeMapArray
 	};

@@ -156,6 +156,8 @@ namespace Coco::Platform::Windows
 
 		LPDWORD charactersWritten = 0;
 		WriteConsole(outputHandle, str.c_str(), static_cast<DWORD>(str.length()), charactersWritten, 0);
+
+		OutputDebugString(str.c_str());
 	}
 
 	void EnginePlatformWindows::SetPlatformConsoleVisible(bool isVisible)

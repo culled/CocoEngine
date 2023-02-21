@@ -1,13 +1,11 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-
 namespace Coco::Rendering
 {
 	/// <summary>
 	/// Types of render hardward interfaces
 	/// </summary>
-	enum class COCOAPI RenderingRHI
+	enum class RenderingRHI
 	{
 		Vulkan,
 		DirectX12,
@@ -17,7 +15,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Types of graphics devices
 	/// </summary>
-	enum class COCOAPI GraphicsDeviceType
+	enum class GraphicsDeviceType
 	{
 		Discrete,
 		Integrated,
@@ -28,7 +26,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Vertical sync modes
 	/// </summary>
-	enum class COCOAPI VerticalSyncMode
+	enum class VerticalSyncMode
 	{
 		Disabled,
 		Enabled,

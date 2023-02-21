@@ -125,7 +125,7 @@ namespace Coco::Platform::Windows
 			OnResized();
 		}
 		default:
-			LogTrace(WindowingService->GetLogger(), FormattedString("Got message {0}", message));
+			//LogTrace(WindowingService->GetLogger(), FormattedString("Got message {0}", message));
 			break;
 		}
 	}

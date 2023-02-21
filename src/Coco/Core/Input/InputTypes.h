@@ -1,13 +1,11 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-
 namespace Coco::Input
 {
 	/// <summary>
 	/// Mouse buttons
 	/// </summary>
-	enum class COCOAPI MouseButton
+	enum class MouseButton
 	{
 		Left,
 		Middle,
@@ -20,7 +18,7 @@ namespace Coco::Input
     /// <summary>
     /// Keyboard keys
     /// </summary>
-    enum class COCOAPI KeyboardKey
+    enum class KeyboardKey
     {
         Backspace = 0x08,
         Tab = 0x09,
