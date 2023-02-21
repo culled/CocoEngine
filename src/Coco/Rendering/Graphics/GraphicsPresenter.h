@@ -5,10 +5,15 @@
 
 #include "GraphicsPlatformTypes.h"
 #include "PresenterSurfaceInitializationInfo.h"
+#include "GraphicsFence.h"
+#include "GraphicsSemaphore.h"
 
 namespace Coco::Rendering
 {
-	enum class COCOAPI GraphicsPresenterResult
+	/// <summary>
+	/// A result from a GraphicsPresenter operation
+	/// </summary>
+	enum class GraphicsPresenterResult
 	{
 		Success,
 		NeedsReinitialization,
@@ -59,5 +64,27 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>The vertical sync mode that this presenter is using</returns>
 		virtual VerticalSyncMode GetVSyncMode() const = 0;
+
+		/// <summary>
+		/// Acquires the index of the next backbuffer to draw to
+		/// </summary>
+		/// <param name="timeoutNs">The timeout to wait for, in nanoseconds</param>
+		/// <param name="imageAvailableFence">A fence to wait on for the image to become available</param>
+		/// <param name="imageAvailableSemaphore">A semaphore to wait on for the image to become available</param>
+		/// <param name="backbufferImageIndex">The index of the backbuffer to use</param>
+		/// <returns>The operation result</returns>
+		virtual GraphicsPresenterResult AcquireNextBackbuffer(
+			unsigned long long timeoutNs, 
+			GraphicsFence* imageAvailableFence,
+			GraphicsSemaphore* imageAvailableSemaphore, 
+			int& backbufferImageIndex) = 0;
+
+		/// <summary>
+		/// Queues the backbuffer at the given index for presentation
+		/// </summary>
+		/// <param name="backbufferImageIndex">The index of the backbuffer</param>
+		/// <param name="renderCompleteSemaphore">A semaphore to wait on for the image to finish rendering</param>
+		/// <returns>The operation result</returns>
+		virtual GraphicsPresenterResult Present(int backbufferImageIndex, GraphicsSemaphore* renderCompleteSemaphore) = 0;
 	};
 }

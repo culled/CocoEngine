@@ -3,6 +3,7 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/Version.h>
 #include <Coco/Rendering/Graphics/GraphicsPlatformTypes.h>
+#include <Coco/Rendering/Graphics/ImageTypes.h>
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -41,4 +42,32 @@ namespace Coco::Rendering
 	/// <param name="presentMode">The present mode</param>
 	/// <returns>The converted vertical sync mode</returns>
 	VerticalSyncMode ToVerticalSyncMode(VkPresentModeKHR presentMode);
+
+	/// <summary>
+	/// Converts a VkFormat to a PixelFormat
+	/// </summary>
+	/// <param name="format">The format</param>
+	/// <returns>The converted PixelFormat</returns>
+	PixelFormat ToPixelFormat(VkFormat format);
+
+	/// <summary>
+	/// Converts a PixelFormat to a VkFormat
+	/// </summary>
+	/// <param name="format">The format</param>
+	/// <returns>The converted VkFormat</returns>
+	VkFormat ToVkFormat(PixelFormat format);
+
+	/// <summary>
+	/// Converts a VkColorSpaceKHR to a ColorSpace
+	/// </summary>
+	/// <param name="colorSpace">The color space</param>
+	/// <returns>The converted ColorSpace</returns>
+	ColorSpace ToColorSpace(VkColorSpaceKHR colorSpace);
+
+	/// <summary>
+	/// Converts a ColorSpace to a VkColorSpaceKHR
+	/// </summary>
+	/// <param name="colorSpace">The color space</param>
+	/// <returns>The converted VkColorSpaceKHR</returns>
+	VkColorSpaceKHR ToVkColorSpace(ColorSpace colorSpace);
 }

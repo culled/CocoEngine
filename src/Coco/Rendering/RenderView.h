@@ -2,6 +2,9 @@
 
 #include <Coco/Core/Core.h>
 
+#include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Size.h>
+
 namespace Coco::Rendering
 {
 	/// <summary>
@@ -9,6 +12,7 @@ namespace Coco::Rendering
 	/// </summary>
 	struct COCOAPI RenderView
 	{
-
+		const Vector2Int RenderOffset;
+		const SizeInt RenderSize;
 	};
 }

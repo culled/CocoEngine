@@ -76,25 +76,41 @@ namespace Coco::Rendering
 			vkGetDeviceQueue(_device, static_cast<uint32_t>(queueFamily), 0, &queue);
 			Ref<VulkanQueue> queueRef = CreateRef<VulkanQueue>(queue, queueFamily);
 
-			if (queueFamilies.GraphicsQueueFamily.has_value() && queueFamilies.GraphicsQueueFamily.value() == queueFamily)
+			if (!_graphicsQueue.has_value() && queueFamilies.GraphicsQueueFamily.has_value() && queueFamilies.GraphicsQueueFamily.value() == queueFamily)
+			{
 				_graphicsQueue = queueRef;
+				_graphicsCommandPool = CreateManaged<CommandBufferPoolVulkan>(this, _graphicsQueue.value());
+			}
 
-			if (queueFamilies.TransferQueueFamily.has_value() && queueFamilies.TransferQueueFamily.value() == queueFamily)
+			if (!_transferQueue.has_value() && queueFamilies.TransferQueueFamily.has_value() && queueFamilies.TransferQueueFamily.value() == queueFamily)
 				_transferQueue = queueRef;
 
-			if (queueFamilies.ComputeQueueFamily.has_value() && queueFamilies.ComputeQueueFamily.value() == queueFamily)
+			if (!_computeQueue.has_value() && queueFamilies.ComputeQueueFamily.has_value() && queueFamilies.ComputeQueueFamily.value() == queueFamily)
 				_computeQueue = queueRef;
 		}
+
+		_renderCache = CreateManaged<VulkanRenderCache>(this);
 
 		LogInfo(platform->GetLogger(), FormattedString("Using Vulkan on {} - Driver version {}, API version {}", _name, _driverVersion.ToString(), _apiVersion.ToString()));
 	}
 
 	GraphicsDeviceVulkan::~GraphicsDeviceVulkan()
 	{
+		// Wait for any async work to finish
+		WaitForIdle();
+
 		_graphicsQueue.reset();
 		_transferQueue.reset();
 		_computeQueue.reset();
 		_presentQueue.reset();
+
+		LogTrace(VulkanPlatform->GetLogger(), FormattedString("Releasing {} resources", _resources.Count()));
+		_resources.Clear();
+
+		_renderCache.reset();
+
+		if (_graphicsCommandPool.has_value())
+			_graphicsCommandPool.value().reset();
 
 		if (_device != nullptr)
 		{
@@ -105,6 +121,43 @@ namespace Coco::Rendering
 		_physicalDevice = nullptr;
 
 		LogTrace(VulkanPlatform->GetLogger(), "Destroyed Vulkan device");
+	}
+
+	void GraphicsDeviceVulkan::AddResource(GraphicsResource* resource)
+	{
+		_resources.Add(Managed<GraphicsResource>(resource));
+	}
+
+	void GraphicsDeviceVulkan::ReleaseResource(GraphicsResource* resource)
+	{
+		auto it = std::find_if(_resources.begin(), _resources.end(), [resource](const Managed<GraphicsResource>& other) {
+			return resource == other.get();
+			});
+
+		if (it != _resources.end())
+		{
+			// Release the resource before removing it to prevent it from being destroyed
+			it->release();
+			_resources.Erase(it);
+		}
+	}
+
+	void GraphicsDeviceVulkan::DestroyResource(GraphicsResource* resource)
+	{
+		auto it = std::find_if(_resources.begin(), _resources.end(), [resource](const Managed<GraphicsResource>& other) {
+			return resource == other.get();
+			});
+
+		// Erasing will cause the resource to be destroyed
+		if (it != _resources.end())
+		{
+			_resources.Erase(it);
+		}
+	}
+
+	void GraphicsDeviceVulkan::WaitForIdle()
+	{
+		vkDeviceWaitIdle(_device);
 	}
 
 	GraphicsDeviceVulkan* GraphicsDeviceVulkan::Create(GraphicsPlatformVulkan* platform, const GraphicsDeviceCreationParameters& createParams)
@@ -132,6 +185,11 @@ namespace Coco::Rendering
 		}
 
 		return _presentQueue.has_value();
+	}
+
+	Optional<CommandBufferPoolVulkan*> GraphicsDeviceVulkan::GetGraphicsCommandPool() const
+	{
+		return _graphicsCommandPool.has_value() ? _graphicsCommandPool.value().get() : Optional<CommandBufferPoolVulkan*>();
 	}
 
 	bool CompareDeviceRankings(const PhysicalDeviceRanking& a, const PhysicalDeviceRanking& b)

@@ -210,6 +210,22 @@
     <ClInclude Include="Rendering\Graphics\GraphicsPresenter.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.h" />
     <ClInclude Include="Rendering\Graphics\PresenterSurfaceInitializationInfo.h" />
+    <ClInclude Include="Rendering\Graphics\GraphicsResource.h" />
+    <ClInclude Include="Rendering\Graphics\Image.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\ImageVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\GraphicsFence.h" />
+    <ClInclude Include="Rendering\Graphics\GraphicsSemaphore.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsFenceVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsSemaphoreVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\RenderContext.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanRenderCache.h" />
+    <ClInclude Include="Core\Types\Map.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\RenderContextVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\CommandBuffer.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\CommandBufferVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\CommandBufferPool.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\ImageUtilities.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -297,5 +313,18 @@
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\GraphicsResource.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\ImageVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\Image.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsFenceVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsSemaphoreVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanRenderCache.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\RenderContextVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\RenderContext.cpp" />
+    <ClCompile Include="Rendering\Graphics\CommandBuffer.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\CommandBufferVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\CommandBufferPool.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\ImageUtilities.cpp" />
   </ItemGroup>
 </Project>

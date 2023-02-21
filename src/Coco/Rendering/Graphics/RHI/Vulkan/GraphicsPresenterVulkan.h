@@ -3,6 +3,7 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Rendering/Graphics/GraphicsPresenter.h>
+#include "ImageVulkan.h"
 
 #include "VulkanIncludes.h"
 
@@ -30,11 +31,16 @@ namespace Coco::Rendering
 
 		VerticalSyncMode _vsyncMode = VerticalSyncMode::Enabled;
 		SizeInt _backbufferSize;
+		ImageDescription _backbufferDescription;
 
 		VkSurfaceKHR _surface = nullptr;
 		VkSwapchainKHR _swapchain = nullptr;
 
 		bool _isSwapchainDirty = true;
+
+		List<ImageVulkan*> _backbuffers;
+		
+		unsigned long _currentFrame = 0;
 
 	public:
 		GraphicsPresenterVulkan(GraphicsDeviceVulkan* device);
@@ -48,6 +54,14 @@ namespace Coco::Rendering
 
 		virtual void SetVSyncMode(VerticalSyncMode mode) override;
 		virtual VerticalSyncMode GetVSyncMode() const override { return _vsyncMode; }
+
+		virtual GraphicsPresenterResult AcquireNextBackbuffer(
+			unsigned long long timeoutNs,
+			GraphicsFence* imageAvailableFence,
+			GraphicsSemaphore* imageAvailableSemaphore,
+			int& backbufferImageIndex) override;
+
+		virtual GraphicsPresenterResult Present(int backbufferImageIndex, GraphicsSemaphore* renderCompleteSemaphore) override;
 
 	private:
 		/// <summary>
@@ -107,5 +121,11 @@ namespace Coco::Rendering
 		/// Destroys all objects created from a swapchain
 		/// </summary>
 		void DestroySwapchainObjects();
+
+		/// <summary>
+		/// Gets the backbuffer images from the swapchain
+		/// </summary>
+		/// <returns>True if the images were obtained</returns>
+		bool GetBackbufferImages();
     };
 }

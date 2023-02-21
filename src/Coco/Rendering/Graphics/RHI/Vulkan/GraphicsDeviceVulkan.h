@@ -5,7 +5,9 @@
 #include <Coco/Core/Types/Optional.h>
 
 #include "VulkanQueue.h"
+#include "VulkanRenderCache.h"
 #include "VulkanIncludes.h"
+#include "CommandBufferPoolVulkan.h"
 
 namespace Coco::Rendering
 {
@@ -64,6 +66,10 @@ namespace Coco::Rendering
         Optional<Ref<VulkanQueue>> _computeQueue;
         Optional<Ref<VulkanQueue>> _presentQueue;
 
+        List<Managed<GraphicsResource>> _resources;
+        Managed<VulkanRenderCache> _renderCache;
+        Optional<Managed<CommandBufferPoolVulkan>> _graphicsCommandPool;
+
     public:
         virtual ~GraphicsDeviceVulkan() override;
 
@@ -79,6 +85,10 @@ namespace Coco::Rendering
         virtual GraphicsDeviceType GetType() const override { return _deviceType; }
         virtual Version GetDriverVersion() const override { return _driverVersion; }
         virtual Version GetAPIVersion() const override { return _apiVersion; }
+        virtual void AddResource(GraphicsResource* resource) override;
+        virtual void ReleaseResource(GraphicsResource* resource) override;
+        virtual void DestroyResource(GraphicsResource* resource) override;
+        virtual void WaitForIdle() override;
 
         /// <summary>
         /// Gets the Vulkan physical device that this graphics device uses
@@ -123,6 +133,18 @@ namespace Coco::Rendering
         /// </summary>
         /// <returns>The present queue</returns>
         Optional<Ref<VulkanQueue>> GetPresentQueue() const { return _presentQueue; }
+
+        /// <summary>
+        /// Gets this device's Vulkan render cache
+        /// </summary>
+        /// <returns>The Vulkan render cache</returns>
+        VulkanRenderCache* GetRenderCache() const { return _renderCache.get(); }
+
+        /// <summary>
+        /// Gets this device's command pool for the graphics queue (if a graphics queue has been created)
+        /// </summary>
+        /// <returns>The graphics command pool (if one has been created)</returns>
+        Optional<CommandBufferPoolVulkan*> GetGraphicsCommandPool() const;
 
     private:
         GraphicsDeviceVulkan(GraphicsPlatformVulkan* platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);

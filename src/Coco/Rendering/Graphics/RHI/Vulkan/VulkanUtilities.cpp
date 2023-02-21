@@ -56,4 +56,52 @@ namespace Coco::Rendering
 			return VerticalSyncMode::Enabled;
 		}
 	}
+
+	PixelFormat ToPixelFormat(VkFormat format)
+	{
+		switch (format)
+		{
+		case VK_FORMAT_B8G8R8A8_UNORM:
+			return PixelFormat::BGRA8;
+		case VK_FORMAT_D24_UNORM_S8_UINT:
+			return PixelFormat::Depth24_Stencil8;
+		default:
+			return PixelFormat::Unknown;
+		}
+	}
+
+	VkFormat ToVkFormat(PixelFormat format)
+	{
+		switch (format)
+		{
+		case PixelFormat::BGRA8:
+			return VK_FORMAT_B8G8R8A8_UNORM;
+		case PixelFormat::Depth24_Stencil8:
+			return VK_FORMAT_D24_UNORM_S8_UINT;
+		default:
+			return VK_FORMAT_UNDEFINED;
+		}
+	}
+
+	ColorSpace ToColorSpace(VkColorSpaceKHR colorSpace)
+	{
+		switch (colorSpace)
+		{
+		case VK_COLORSPACE_SRGB_NONLINEAR_KHR:
+			return ColorSpace::sRGB;
+		default:
+			return ColorSpace::Unknown;
+		}
+	}
+
+	VkColorSpaceKHR ToVkColorSpace(ColorSpace colorSpace)
+	{
+		switch (colorSpace)
+		{
+		case ColorSpace::sRGB:
+			return VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+		default:
+			return VK_COLOR_SPACE_MAX_ENUM_KHR;
+		}
+	}
 }

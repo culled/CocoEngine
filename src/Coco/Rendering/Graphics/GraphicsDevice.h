@@ -4,6 +4,7 @@
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Version.h>
 
+#include "GraphicsResource.h"
 #include "GraphicsPlatformTypes.h"
 
 namespace Coco::Rendering
@@ -70,6 +71,58 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>This device's API version</returns>
 		virtual Version GetAPIVersion() const = 0;
+
+		/// <summary>
+		/// Creates a resource wrapper for the given raw resource and adds it to this device's list of managed resources
+		/// </summary>
+		/// <typeparam name="T">The type of resource being added</typeparam>
+		/// <param name="resource">The raw resource</param>
+		/// <returns>A managed resource</returns>
+		template<typename T>
+		ManagedGraphicsResource<T>* CreateAndAddRawResource(T* rawResource)
+		{
+			ManagedGraphicsResource<T> wrapper = new ManagedGraphicsResource<T>(this, rawResource);
+			AddResource(wrapper);
+			return wrapper;
+		}
+
+		/// <summary>
+		/// Creates a GraphicsResource-derived type and adds it to this device's list of managed resources
+		/// </summary>
+		/// <typeparam name="T">The type of resource being created</typeparam>
+		/// <typeparam name="...Args">The type of arguments to pass to the resource constructor</typeparam>
+		/// <param name="...args">The arguments to pass to the resource's constructor</param>
+		/// <returns>A managed resource</returns>
+		template<typename T, typename ... Args, typename = std::enable_if_t<std::is_base_of_v<GraphicsResource, T>>>
+		T* CreateAndAddResource(Args&& ... args)
+		{
+			T wrapper = new T(this, std::forward<Args>(args)...);
+			AddResource(wrapper);
+			return wrapper;
+		}
+
+		/// <summary>
+		/// Adds a resource for this device to manage
+		/// </summary>
+		/// <param name="resource">The resource to add</param>
+		virtual void AddResource(GraphicsResource* resource) = 0;
+
+		/// <summary>
+		/// Releases a managed resource without destroying it
+		/// </summary>
+		/// <param name="resource">The resource to release</param>
+		virtual void ReleaseResource(GraphicsResource* resource) = 0;
+
+		/// <summary>
+		/// Destroys a managed resource
+		/// </summary>
+		/// <param name="resource">The resource to destroy</param>
+		virtual void DestroyResource(GraphicsResource* resource) = 0;
+
+		/// <summary>
+		/// Blocks until this device is idle
+		/// </summary>
+		virtual void WaitForIdle() = 0;
 	};
 }
 

@@ -38,21 +38,6 @@ namespace Coco::Rendering
 		_renderPasses.Clear();
 	}
 
-	List<AttachmentDescription> RenderPipeline::GetAttachmentDescriptions()
-	{
-		if (_attachmentDescriptionsDirty)
-			GatherPipelineAttachmentDescriptions();
-
-		List<AttachmentDescription> descriptions;
-
-		for (const RenderPipelineAttachmentDescription& desc : _attachmentDescriptions)
-		{
-			descriptions.Add(desc.Description);
-		}
-
-		return descriptions;
-	}
-
 	List<RenderPipelineAttachmentDescription> RenderPipeline::GetPipelineAttachmentDescriptions()
 	{
 		if (_attachmentDescriptionsDirty)
@@ -85,6 +70,18 @@ namespace Coco::Rendering
 		return false;
 	}
 
+	List<RenderPipelineBinding*> RenderPipeline::GetPasses() const
+	{
+		List<RenderPipelineBinding*> passes;
+
+		for (const Managed<RenderPipelineBinding>& binding : _renderPasses)
+		{
+			passes.Add(binding.get());
+		}
+
+		return passes;
+	}
+
 	void RenderPipeline::GatherPipelineAttachmentDescriptions()
 	{
 		_attachmentDescriptions.Clear();
@@ -94,22 +91,19 @@ namespace Coco::Rendering
 			const Managed<RenderPipelineBinding>& binding = _renderPasses[rpI];
 			List<MappedAttachmentDescription> mappedPassAttachments = binding->GetMappedAttachmentDescriptions();
 
-			if (_attachmentDescriptions.Count() < mappedPassAttachments.Count())
-				_attachmentDescriptions.Resize(mappedPassAttachments.Count());
-
 			for (int i = 0; i < mappedPassAttachments.Count(); i++)
 			{
 				const MappedAttachmentDescription& attachmentDescription = mappedPassAttachments[i];
 
-				if (!attachmentDescription.AttachmentDescription.has_value())
-					continue;
+				if (_attachmentDescriptions.Count() <= attachmentDescription.PipelineAttachmentIndex)
+					_attachmentDescriptions.Resize(attachmentDescription.PipelineAttachmentIndex + 1);
 
-				RenderPipelineAttachmentDescription& pipelineAttachment = _attachmentDescriptions[i];
+				RenderPipelineAttachmentDescription& pipelineAttachment = _attachmentDescriptions[attachmentDescription.PipelineAttachmentIndex];
 
 				if (pipelineAttachment.Description == AttachmentDescription::Empty)
-					pipelineAttachment.Description = attachmentDescription.AttachmentDescription.value();
+					pipelineAttachment.Description = attachmentDescription.AttachmentDescription;
 
-				if (pipelineAttachment.Description != attachmentDescription.AttachmentDescription.value())
+				if (pipelineAttachment.Description != attachmentDescription.AttachmentDescription)
 					throw Exception("Conflicting render pipeline attachment binding");
 
 				pipelineAttachment.AddPassUse(rpI);

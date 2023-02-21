@@ -14,8 +14,15 @@ namespace Coco::Rendering
 	/// </summary>
 	struct MappedAttachmentDescription
 	{
-		Optional<AttachmentDescription> AttachmentDescription;
-		int PipelineAttachmentIndex;
+		/// <summary>
+		/// The attachment description
+		/// </summary>
+		AttachmentDescription AttachmentDescription = AttachmentDescription::Empty;
+
+		/// <summary>
+		/// The index of the pipeline attachment
+		/// </summary>
+		int PipelineAttachmentIndex = -1;
 	};
 
 	/// <summary>

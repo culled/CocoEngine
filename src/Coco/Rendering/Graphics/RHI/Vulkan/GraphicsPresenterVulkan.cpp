@@ -2,6 +2,8 @@
 
 #include "GraphicsDeviceVulkan.h"
 #include "GraphicsPlatformVulkan.h"
+#include "GraphicsFenceVulkan.h"
+#include "GraphicsSemaphoreVulkan.h"
 #include "VulkanUtilities.h"
 
 namespace Coco::Rendering
@@ -61,6 +63,9 @@ namespace Coco::Rendering
 
 		_backbufferSize = backbufferSize;
 		_isSwapchainDirty = true;
+
+		// TEMPORARY
+		CreateOrRecreateSwapchain();
 	}
 
 	void GraphicsPresenterVulkan::SetVSyncMode(VerticalSyncMode mode)
@@ -70,6 +75,85 @@ namespace Coco::Rendering
 
 		_vsyncMode = mode;
 		_isSwapchainDirty = true;
+	}
+
+	GraphicsPresenterResult GraphicsPresenterVulkan::AcquireNextBackbuffer(
+		unsigned long long timeoutNs,
+		GraphicsFence* imageAvailableFence,
+		GraphicsSemaphore* imageAvailableSemaphore,
+		int& backbufferImageIndex)
+	{
+		VkSemaphore semaphore = VK_NULL_HANDLE;
+
+		if (GraphicsSemaphoreVulkan* vulkanSemapore = dynamic_cast<GraphicsSemaphoreVulkan*>(imageAvailableSemaphore))
+		{
+			semaphore = vulkanSemapore->GetSemaphore();
+		}
+
+		VkFence fence = VK_NULL_HANDLE;
+
+		if (GraphicsFenceVulkan* vulkanFence = dynamic_cast<GraphicsFenceVulkan*>(imageAvailableFence))
+		{
+			fence = vulkanFence->GetFence();
+		}
+
+		uint32_t imageIndex;
+		VkResult result = vkAcquireNextImageKHR(_device->GetDevice(), _swapchain, timeoutNs, semaphore, fence, &imageIndex);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR)
+		{
+			return GraphicsPresenterResult::NeedsReinitialization;
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+		{
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Failed to acquire backbuffer image index: {}", string_VkResult(result)));
+			return GraphicsPresenterResult::Failure;
+		}
+
+		backbufferImageIndex = static_cast<int>(imageIndex);
+
+		return GraphicsPresenterResult::Success;
+	}
+
+	GraphicsPresenterResult GraphicsPresenterVulkan::Present(int backbufferImageIndex, GraphicsSemaphore* renderCompleteSemaphore)
+	{
+		GraphicsSemaphoreVulkan* vulkanSemaphore = dynamic_cast<GraphicsSemaphoreVulkan*>(renderCompleteSemaphore);
+
+		if (vulkanSemaphore == nullptr)
+			throw Exception("Render complete semaphore must be a GraphicsSemaphoreVulkan");
+
+		if (!_device->GetPresentQueue().has_value())
+		{
+			LogError(_device->VulkanPlatform->GetLogger(), "Device must have a valid present queue");
+			return GraphicsPresenterResult::Failure;
+		}
+
+		VkSemaphore waitSemaphore = vulkanSemaphore->GetSemaphore();
+		uint32_t imageIndex = static_cast<uint32_t>(backbufferImageIndex);
+
+		VkPresentInfoKHR presentInfo = {};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.pWaitSemaphores = &waitSemaphore;
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pSwapchains = &_swapchain;
+		presentInfo.swapchainCount = 1;
+		presentInfo.pImageIndices = &imageIndex;
+
+		VkQueue presentQueue = _device->GetPresentQueue().value()->Queue;
+
+		VkResult result = vkQueuePresentKHR(presentQueue, &presentInfo);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+		{
+			return GraphicsPresenterResult::NeedsReinitialization;
+		}
+		else if (result != VK_SUCCESS)
+		{
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Failed to queue present: {}", string_VkResult(result)));
+			return GraphicsPresenterResult::Failure;
+		}
+
+		return GraphicsPresenterResult::Success;
 	}
 
 	VkPresentModeKHR GraphicsPresenterVulkan::PickPresentMode(VerticalSyncMode preferredVSyncMode, const SwapchainSupportDetails& supportDetails)
@@ -89,7 +173,7 @@ namespace Coco::Rendering
 	{
 		for (const VkSurfaceFormatKHR& format : supportDetails.SurfaceFormats)
 		{
-			if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR)
+			if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR)
 			{
 				return format;
 			}
@@ -243,20 +327,88 @@ namespace Coco::Rendering
 		if (_swapchain == nullptr)
 			return false;
 
-		_isSwapchainDirty = false;
 		_backbufferSize = SizeInt(static_cast<int>(extent.width), static_cast<int>(extent.height));
 		_vsyncMode = ToVerticalSyncMode(presentMode);
 
-		LogTrace(_device->VulkanPlatform->GetLogger(), 
-			FormattedString("Created Vulkan swapchain with {} backbuffers at ({}, {})", imageCount, _backbufferSize.Width, _backbufferSize.Height));
+		_backbufferDescription = ImageDescription(
+			_backbufferSize.Width, 
+			_backbufferSize.Height, 
+			1, 
+			ToPixelFormat(surfaceFormat.format), 
+			ToColorSpace(surfaceFormat.colorSpace));
+
+		if (!GetBackbufferImages())
+			return false;
+
+		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString(
+			"Created Vulkan swapchain with {} backbuffers at ({}, {})", 
+			imageCount, 
+			_backbufferSize.Width, 
+			_backbufferSize.Height));
+
+		_isSwapchainDirty = false;
+		_currentFrame = 0;
 
 		return true;
 	}
 
 	void GraphicsPresenterVulkan::DestroySwapchainObjects()
 	{
+		for (ImageVulkan* backbuffer : _backbuffers)
+		{
+			_device->DestroyResource(backbuffer);
+		}
 
+		_backbuffers.Clear();
 
 		_isSwapchainDirty = true;
+	}
+
+	bool GraphicsPresenterVulkan::GetBackbufferImages()
+	{
+		try
+		{
+			uint32_t imageCount;
+			CheckVKResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &imageCount, nullptr));
+
+			List<VkImage> images(imageCount);
+			CheckVKResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &imageCount, images.Data()));
+
+			VkImageViewCreateInfo createInfo = {};
+			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			createInfo.format = ToVkFormat(_backbufferDescription.PixelFormat);
+			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+
+			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+			createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+			createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			createInfo.subresourceRange.baseMipLevel = 0;
+			createInfo.subresourceRange.levelCount = static_cast<uint32_t>(_backbufferDescription.MipCount);
+			createInfo.subresourceRange.baseArrayLayer = 0;
+			createInfo.subresourceRange.layerCount = static_cast<uint32_t>(_backbufferDescription.Layers);
+
+			for (int i = 0; i < images.Count(); i++)
+			{
+				createInfo.image = images[i];
+
+				VkImageView view;
+				CheckVKResult(vkCreateImageView(_device->GetDevice(), &createInfo, nullptr, &view));
+
+				ImageVulkan* image = new ImageVulkan(_device, _backbufferDescription, images[i], view, true);
+				_device->AddResource(image);
+
+				_backbuffers.Add(image);
+			}
+
+			return true;
+		}
+		catch (Exception& ex)
+		{
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to get swapchain images: {}", ex.what()));
+			return false;
+		}
 	}
 }

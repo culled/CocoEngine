@@ -15,13 +15,29 @@ namespace Coco::Rendering
 	public:
 		friend class RenderPipeline;
 
+		/// <summary>
+		/// The attachment description
+		/// </summary>
 		AttachmentDescription Description = AttachmentDescription::Empty;
 
+		/// <summary>
+		/// The index of the pass that this attachment is first used
+		/// </summary>
 		int FirstUsePassIndex = 0;
+
+		/// <summary>
+		/// The index of the pass that this attachment is last used
+		/// </summary>
 		int LastUsePassIndex = 0;
 
+		/// <summary>
+		/// If true, this attachment is used in the first pass of the pipeline
+		/// </summary>
 		bool IsUsedInFirstPipelinePass = false;
 
+		/// <summary>
+		/// If true, this attachment is only used in a single render pass
+		/// </summary>
 		bool IsUsedInSinglePass = false;
 		
 	private:
@@ -32,16 +48,25 @@ namespace Coco::Rendering
 		RenderPipelineAttachmentDescription(const AttachmentDescription& description);
 		~RenderPipelineAttachmentDescription();
 
+		/// <summary>
+		/// Gets the indices of the render passes in a pipeline that this attachment is used
+		/// </summary>
+		/// <returns>The indices of the pipeline render passes where this attachment is used</returns>
 		const List<int>& GetPassesUsed() const { return _passesUsed; }
 
 	private:
+
+		/// <summary>
+		/// Marks a pass's index where this attachment is used
+		/// </summary>
+		/// <param name="passIndex"></param>
 		void AddPassUse(int passIndex);
 	};
 
 	/// <summary>
 	/// Defines a set of render passes to create a rendered image
 	/// </summary>
-	class COCOAPI RenderPipeline : public IRenderPass
+	class COCOAPI RenderPipeline
 	{
 	private:
 		List<Managed<RenderPipelineBinding>> _renderPasses;
@@ -50,8 +75,6 @@ namespace Coco::Rendering
 
 	public:
 		~RenderPipeline();
-
-		virtual List<AttachmentDescription> GetAttachmentDescriptions() override;
 
 		/// <summary>
 		/// Gets the render pipeline attachment descriptions for this pipeline
@@ -75,6 +98,12 @@ namespace Coco::Rendering
 		/// <param name="renderPassBinding">The binding to the renderpass</param>
 		/// <returns>True if the binding was found and removed</returns>
 		bool RemoveRenderPass(RenderPipelineBinding* renderPassBinding);
+
+		/// <summary>
+		/// Gets the list of render passes in this pipeline
+		/// </summary>
+		/// <returns>The passes in this pipeline</returns>
+		List<RenderPipelineBinding*> GetPasses() const;
 
 	private:
 		/// <summary>
