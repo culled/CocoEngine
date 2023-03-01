@@ -9,6 +9,10 @@
 
 namespace Coco::Rendering
 {
+	class GraphicsFenceVulkan;
+	class GraphicsSemaphoreVulkan;
+	class CommandBufferVulkan;
+
 	/// <summary>
 	/// Support details for a swapchain
 	/// </summary>
@@ -17,6 +21,14 @@ namespace Coco::Rendering
 		VkSurfaceCapabilitiesKHR SurfaceCapabilities;
 		List<VkSurfaceFormatKHR> SurfaceFormats;
 		List<VkPresentModeKHR> PresentModes;
+	};
+
+	struct BackBuffer
+	{
+		ImageVulkan* Image = nullptr;
+		GraphicsSemaphoreVulkan* ImageAvailableSemaphore = nullptr;
+		GraphicsSemaphoreVulkan* RenderingCompletedSemaphore = nullptr;
+		GraphicsFenceVulkan* RenderingCompletedFence = nullptr;
 	};
 
 	class GraphicsDeviceVulkan;
@@ -38,9 +50,13 @@ namespace Coco::Rendering
 
 		bool _isSwapchainDirty = true;
 
-		List<ImageVulkan*> _backbuffers;
+		List<BackBuffer> _backbuffers;
+
+		List<CommandBufferVulkan*> _commandBuffers;
+		List<VkFramebuffer> _framebuffers;
+		WeakRef<RenderPipeline> _framebufferPipeline;
 		
-		unsigned long _currentFrame = 0;
+		int _currentFrame = 0;
 
 	public:
 		GraphicsPresenterVulkan(GraphicsDeviceVulkan* device);
@@ -55,13 +71,13 @@ namespace Coco::Rendering
 		virtual void SetVSyncMode(VerticalSyncMode mode) override;
 		virtual VerticalSyncMode GetVSyncMode() const override { return _vsyncMode; }
 
+		virtual Managed<RenderContext> CreateRenderContext(const Ref<RenderView>& view, const Ref<RenderPipeline>& pipeline, int backbufferImageIndex) override;
+
 		virtual GraphicsPresenterResult AcquireNextBackbuffer(
 			unsigned long long timeoutNs,
-			GraphicsFence* imageAvailableFence,
-			GraphicsSemaphore* imageAvailableSemaphore,
 			int& backbufferImageIndex) override;
 
-		virtual GraphicsPresenterResult Present(int backbufferImageIndex, GraphicsSemaphore* renderCompleteSemaphore) override;
+		virtual GraphicsPresenterResult Present(int backbufferImageIndex) override;
 
 	private:
 		/// <summary>
@@ -106,7 +122,7 @@ namespace Coco::Rendering
 		/// <summary>
 		/// Creates or recreates the swapchain using the currently set parameters
 		/// </summary>
-		void CreateOrRecreateSwapchain();
+		void EnsureSwapchainIsUpdated();
 
 		/// <summary>
 		/// Creates/recreates the swapchain
@@ -127,5 +143,12 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>True if the images were obtained</returns>
 		bool GetBackbufferImages();
+
+		void RecreateFramebuffers(const Ref<RenderPipeline>& pipeline, VkRenderPass renderPass);
+
+		void DestroyFramebuffers();
+
+		void RecreateCommandBuffers();
+		void DestroyCommandBuffers();
     };
 }

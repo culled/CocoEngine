@@ -24,6 +24,9 @@ namespace Coco
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
 
+	template<class T>
+	using WeakRef = std::weak_ptr<T>;
+
 	/// <summary>
 	/// Class that manages the lifetime of an object
 	/// </summary>

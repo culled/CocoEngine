@@ -33,6 +33,7 @@ namespace Coco::Platform::Windows
         virtual SizeInt GetSize() const override { return _size; }
         virtual void Show() override;
         virtual void Hide() override;
+        virtual bool GetIsVisible() const override;
 
     protected:
         virtual void SetupPresenterSurface() override;

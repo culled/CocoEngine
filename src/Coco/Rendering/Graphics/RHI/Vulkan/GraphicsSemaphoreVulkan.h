@@ -22,6 +22,8 @@ namespace Coco::Rendering
 	public:
 		GraphicsSemaphoreVulkan(GraphicsDeviceVulkan* owningDevice);
 		virtual ~GraphicsSemaphoreVulkan() override;
+		
+		virtual void* GetResource() const override { return _semaphore; }
 
 		/// <summary>
 		/// Gets the underlying VkSemaphore

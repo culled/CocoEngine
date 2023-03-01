@@ -101,6 +101,11 @@ namespace Coco::Platform::Windows
 		CheckWindowHandle();
 	}
 
+	bool WindowsWindow::GetIsVisible() const
+	{
+		return IsWindowVisible(_handle);
+	}
+
 	void WindowsWindow::SetupPresenterSurface()
 	{
 		Rendering::PresenterWin32SurfaceInitializationInfo surfaceInitInfo = {};

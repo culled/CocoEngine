@@ -6,6 +6,10 @@
 #include "GraphicsPlatformTypes.h"
 #include "GraphicsDevice.h"
 #include "GraphicsPresenter.h"
+#include "RenderContext.h"
+#include "RenderView.h"
+#include "Image.h"
+#include <Coco/Rendering/Pipeline/RenderPipeline.h>
 
 namespace Coco::Rendering
 {

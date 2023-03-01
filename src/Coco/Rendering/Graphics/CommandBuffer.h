@@ -2,6 +2,8 @@
 
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
+#include <Coco/Core/Types/Size.h>
+#include <Coco/Core/Types/Vector.h>
 #include "GraphicsSemaphore.h"
 #include "GraphicsFence.h"
 
@@ -65,5 +67,7 @@ namespace Coco::Rendering
 		/// <param name="signalSemaphores">Semaphores to signal once this buffer's work has been completed</param>
 		/// <param name="signalFence">A fence to signal once this buffer's work has been completed</param>
 		void EndAndSubmit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence = nullptr);
+
+		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) = 0;
 	};
 }

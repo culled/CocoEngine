@@ -32,6 +32,7 @@ namespace Coco::Rendering
 		virtual void End() override;
 		virtual void Submit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence = nullptr) override;
 		virtual void Reset() override;
+		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) override;
 
 		/// <summary>
 		/// Begins a render pass
@@ -39,7 +40,7 @@ namespace Coco::Rendering
 		/// <param name="renderPass">The render pass</param>
 		/// <param name="framebuffer">The framebuffer to use</param>
 		/// <param name="renderView">The render view</param>
-		void BeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, RenderView* renderView);
+		void BeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, const Ref<RenderView>& renderView);
 
 		/// <summary>
 		/// Ends the current render pass

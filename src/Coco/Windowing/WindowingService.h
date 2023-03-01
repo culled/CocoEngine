@@ -9,6 +9,12 @@
 namespace Coco
 {
     class Engine;
+    class MainLoopTickListener;
+}
+
+namespace Coco::Rendering
+{
+    class RenderingService;
 }
 
 namespace Coco::Windowing
@@ -20,11 +26,17 @@ namespace Coco::Windowing
     /// </summary>
     class COCOAPI WindowingService : public EngineService
     {
+    public:
+        static const int WindowRenderPriority = 1000;
+
     private:
         friend Window;
 
         List<Managed<Window>> _windows;
         Window* _mainWindow;
+        Ref<MainLoopTickListener> _renderTickListener;
+
+        Rendering::RenderingService* _renderingService = nullptr;
 
     public:
         WindowingService();
@@ -54,6 +66,8 @@ namespace Coco::Windowing
         /// </summary>
         /// <param name="window">The window that closed</param>
         void WindowClosed(Window* window);
+
+        void RenderTick(double deltaTime);
     };
 }
 

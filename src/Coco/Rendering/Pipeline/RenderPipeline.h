@@ -4,6 +4,7 @@
 #include <Coco/Rendering/Graphics/AttachmentDescription.h>
 #include "IRenderPass.h"
 #include "RenderPipelineBinding.h"
+#include <Coco/Core/Types/Color.h>
 
 namespace Coco::Rendering
 {
@@ -72,8 +73,10 @@ namespace Coco::Rendering
 		List<Managed<RenderPipelineBinding>> _renderPasses;
 		List<RenderPipelineAttachmentDescription> _attachmentDescriptions;
 		bool _attachmentDescriptionsDirty = false;
+		Color _clearColor;
 
 	public:
+		RenderPipeline();
 		~RenderPipeline();
 
 		/// <summary>
@@ -104,6 +107,9 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>The passes in this pipeline</returns>
 		List<RenderPipelineBinding*> GetPasses() const;
+
+		void SetClearColor(const Color& color) { _clearColor = color; }
+		Color GetClearColor() const { return _clearColor; }
 
 	private:
 		/// <summary>

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+#include <Coco/Core/Types/Size.h>
+#include <Coco/Core/Types/Vector.h>
 
-#include <Coco/Rendering/RenderView.h>
+#include "RenderView.h"
 
 namespace Coco::Rendering
 {
@@ -12,12 +14,19 @@ namespace Coco::Rendering
 	class COCOAPI RenderContext
 	{
 	protected:
-		Managed<RenderView> RenderView;
+		Ref<RenderView> RenderView;
 
 	protected:
-		RenderContext(Rendering::RenderView* renderView);
+		RenderContext(Ref<Rendering::RenderView> renderView);
 
 	public:
 		virtual ~RenderContext();
+
+		virtual void Begin() = 0;
+		virtual void End() = 0;
+
+		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) = 0;
+
+		void RestoreViewport();
 	};
 }

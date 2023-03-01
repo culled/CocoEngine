@@ -32,6 +32,10 @@ namespace Coco::Rendering
 		IsUsedInFirstPipelinePass = FirstUsePassIndex == 0;
 	}
 
+	RenderPipeline::RenderPipeline() :
+		_clearColor(Color::Black)
+	{}
+
 	RenderPipeline::~RenderPipeline()
 	{
 		_attachmentDescriptions.Clear();

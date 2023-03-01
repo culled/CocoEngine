@@ -21,11 +21,4 @@ namespace Coco::Rendering
 		_nativeView = nullptr;
 		_image = nullptr;
 	}
-
-	void* ImageVulkan::ReleaseResource()
-	{
-		VkImage image = _image;
-		_image = nullptr;
-		return image;
-	}
 }

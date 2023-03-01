@@ -2,7 +2,9 @@
 
 #include <Coco/Core/Application.h>
 #include <Coco/Core/Engine.h>
+#include <Coco/Core/MainLoop/MainLoopTickListener.h>
 #include <Coco/Core/Platform/EnginePlatform.h>
+#include <Coco/Rendering/RenderingService.h>
 
 #include "WindowingPlatform.h"
 #include "Window.h"
@@ -12,10 +14,12 @@ namespace Coco::Windowing
 	WindowingService::WindowingService() :
 		_mainWindow(nullptr)
 	{
+		_renderTickListener = CreateRef<MainLoopTickListener>(this, &WindowingService::RenderTick, WindowRenderPriority);
 	}
 
 	WindowingService::~WindowingService()
 	{
+		Engine::Get()->GetMainLoop()->RemoveTickListener(_renderTickListener);
 		_mainWindow = nullptr;
 		_windows.Clear();
 	}
@@ -27,6 +31,10 @@ namespace Coco::Windowing
 
 	void WindowingService::Start()
 	{
+		Engine::Get()->GetMainLoop()->AddTickListener(_renderTickListener);
+
+		if (!Engine::Get()->GetServiceManager()->TryFindService<Rendering::RenderingService>(&_renderingService))
+			LogError(GetLogger(), "Could not find a rendering service");
 	}
 
 	Window* WindowingService::CreateNewWindow(WindowCreateParameters& createParameters)
@@ -82,6 +90,21 @@ namespace Coco::Windowing
 		if (it != _windows.end())
 		{
 			_windows.Erase(it);
+		}
+	}
+
+	void WindowingService::RenderTick(double deltaTime)
+	{
+		if (!_renderingService)
+			return;
+
+		for (const Managed<Window>& window : _windows)
+		{
+			// Don't render invisble windows
+			if (!window->GetIsVisible())
+				continue;
+
+			_renderingService->Render(window->GetPresenter());
 		}
 	}
 }

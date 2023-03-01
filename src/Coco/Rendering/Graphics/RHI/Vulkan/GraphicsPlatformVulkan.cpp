@@ -4,6 +4,7 @@
 #include <Coco/Core/Application.h>
 #include <Coco/Core/Engine.h>
 #include "GraphicsPresenterVulkan.h"
+#include "RenderContextVulkan.h"
 
 #include "VulkanUtilities.h"
 

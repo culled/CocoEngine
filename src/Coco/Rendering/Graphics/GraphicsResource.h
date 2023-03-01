@@ -32,12 +32,6 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>A pointer to the raw resource</returns>
 		virtual void* GetResource() const = 0;
-
-		/// <summary>
-		/// Releases the raw resource without destroying it
-		/// </summary>
-		/// <returns>A pointer to the raw resource</returns>
-		virtual void* ReleaseResource() = 0;
 	};
 
 	/// <summary>
@@ -57,18 +51,17 @@ namespace Coco::Rendering
 		virtual ~ManagedGraphicsResource() override { Resource.reset(); }
 
 		virtual void* GetResource() const override { return Resource.get(); }
-		virtual void* ReleaseResource() override { return Resource.release(); }
 
 		/// <summary>
 		/// Gets the raw resource
 		/// </summary>
 		/// <returns>A pointer to the raw resource</returns>
-		virtual T* GetResource() const { return Resource.get(); }
+		T* GetResource() const { return Resource.get(); }
 
 		/// <summary>
 		/// Releases the raw resource without destroying it
 		/// </summary>
 		/// <returns>A pointer to the raw resource</returns>
-		virtual T* ReleaseResource() override { return Resource.release(); }
+		T* ReleaseResource() { return Resource.release(); }
 	};
 }

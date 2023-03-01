@@ -31,6 +31,9 @@ namespace Coco::Rendering
 		/// </summary>
 		bool UsesBlending = false;
 
+		AttachmentDescription() = default;
+		AttachmentDescription(Rendering::PixelFormat pixelFormat, Rendering::ColorSpace colorSpace, bool usesBlending);
+
 		bool operator ==(const AttachmentDescription& other) const;
 		bool operator !=(const AttachmentDescription& other) const;
 	};

@@ -2,7 +2,7 @@
 
 namespace Coco::Rendering
 {
-	RenderContext::RenderContext(Rendering::RenderView* renderView) :
+	RenderContext::RenderContext(Ref<Rendering::RenderView> renderView) :
 		RenderView(renderView)
 	{
 	}
@@ -10,5 +10,10 @@ namespace Coco::Rendering
 	RenderContext::~RenderContext()
 	{
 		RenderView.reset();
+	}
+
+	void RenderContext::RestoreViewport()
+	{
+		SetViewport(RenderView->RenderOffset, RenderView->RenderSize);
 	}
 }

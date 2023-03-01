@@ -119,6 +119,7 @@
     <ClInclude Include="Core\Services\EngineService.h" />
     <ClInclude Include="Core\Services\EngineServiceManager.h" />
     <ClInclude Include="Core\Types\Array.h" />
+    <ClInclude Include="Core\Types\Color.h" />
     <ClInclude Include="Core\Types\DateTime.h" />
     <ClInclude Include="Core\Types\Exceptions.h" />
     <ClInclude Include="Core\ExitCodes.h" />
@@ -167,7 +168,7 @@
     <ClInclude Include="Rendering\Pipeline\IRenderPass.h" />
     <ClInclude Include="Rendering\Pipeline\RenderPipeline.h" />
     <ClInclude Include="Rendering\Pipeline\RenderPipelineBinding.h" />
-    <ClInclude Include="Rendering\RenderView.h" />
+    <ClInclude Include="Rendering\Graphics\RenderView.h" />
     <ClInclude Include="Rendering\RenderingService.h" />
     <ClInclude Include="Windowing\Window.h" />
     <ClInclude Include="Windowing\WindowingPlatform.h" />
@@ -187,6 +188,7 @@
     <ClCompile Include="Core\MainLoop\MainLoop.cpp" />
     <ClCompile Include="Core\MainLoop\MainLoopTickListener.cpp" />
     <ClCompile Include="Core\Services\EngineServiceManager.cpp" />
+    <ClCompile Include="Core\Types\Color.cpp" />
     <ClCompile Include="Core\Types\DateTime.cpp" />
     <ClCompile Include="Core\Types\Size.cpp" />
     <ClCompile Include="Core\Types\TimeSpan.cpp" />
@@ -204,6 +206,7 @@
     <ClCompile Include="Rendering\Graphics\Image.cpp" />
     <ClCompile Include="Rendering\Graphics\ImageUtilities.cpp" />
     <ClCompile Include="Rendering\Graphics\RenderContext.cpp" />
+    <ClCompile Include="Rendering\Graphics\RenderView.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsDeviceVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsFenceVulkan.cpp" />

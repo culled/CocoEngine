@@ -1,6 +1,6 @@
 #include "CommandBufferVulkan.h"
 
-#include <Coco/Rendering/RenderView.h>
+#include <Coco/Rendering/Graphics/RenderView.h>
 #include "GraphicsDeviceVulkan.h"
 #include "CommandBufferPoolVulkan.h"
 #include "GraphicsSemaphoreVulkan.h"
@@ -80,9 +80,13 @@ namespace Coco::Rendering
 		if (GraphicsFenceVulkan* vulkanFence = dynamic_cast<GraphicsFenceVulkan*>(signalFence))
 			vulkanSignalFence = vulkanFence->GetFence();
 
+		// TODO: make this configurable?
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
 		VkSubmitInfo submitInfo = {};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount = 1;
+		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.pCommandBuffers = &_commandBuffer;
 		submitInfo.waitSemaphoreCount = vulkanWaitSemaphores.Count();
 		submitInfo.pWaitSemaphores = vulkanWaitSemaphores.Data();
@@ -100,7 +104,20 @@ namespace Coco::Rendering
 		CurrentState = State::Ready;
 	}
 
-	void CommandBufferVulkan::BeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, RenderView* renderView)
+	void CommandBufferVulkan::SetViewport(const Vector2Int& offset, const SizeInt& size)
+	{
+		VkViewport viewport = {};
+		viewport.x = static_cast<float>(offset.X);
+		viewport.y = static_cast<float>(offset.Y);
+		viewport.width = static_cast<float>(size.Width);
+		viewport.height = static_cast<float>(size.Height);
+		viewport.minDepth = 0.0f; // TODO
+		viewport.maxDepth = 1.0f; // TODO
+
+		vkCmdSetViewport(_commandBuffer, 0, 1, &viewport);
+	}
+
+	void CommandBufferVulkan::BeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, const Ref<RenderView>& renderView)
 	{
 		VkRenderPassBeginInfo beginInfo = {};
 		beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -112,7 +129,13 @@ namespace Coco::Rendering
 		beginInfo.renderArea.extent.width = static_cast<uint32_t>(renderView->RenderSize.Width);
 		beginInfo.renderArea.extent.height = static_cast<uint32_t>(renderView->RenderSize.Height);
 
-		VkClearValue clearValue = { {{0.0f, 0.0f, 0.0f, 1.0f}} }; // TODO: configurable clear color/values from render view
+		VkClearValue clearValue = { {{
+				static_cast<float>(renderView->ClearColor.R), 
+				static_cast<float>(renderView->ClearColor.G), 
+				static_cast<float>(renderView->ClearColor.B), 
+				static_cast<float>(renderView->ClearColor.A)
+			}} };
+
 		beginInfo.clearValueCount = 1;
 		beginInfo.pClearValues = &clearValue;
 

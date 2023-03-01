@@ -2,9 +2,12 @@
 
 #include "GraphicsDeviceVulkan.h"
 #include "GraphicsPlatformVulkan.h"
+#include "ImageVulkan.h"
 #include "GraphicsFenceVulkan.h"
 #include "GraphicsSemaphoreVulkan.h"
 #include "VulkanUtilities.h"
+#include "RenderContextVulkan.h"
+#include "CommandBufferVulkan.h"
 
 namespace Coco::Rendering
 {
@@ -63,9 +66,6 @@ namespace Coco::Rendering
 
 		_backbufferSize = backbufferSize;
 		_isSwapchainDirty = true;
-
-		// TEMPORARY
-		CreateOrRecreateSwapchain();
 	}
 
 	void GraphicsPresenterVulkan::SetVSyncMode(VerticalSyncMode mode)
@@ -77,31 +77,53 @@ namespace Coco::Rendering
 		_isSwapchainDirty = true;
 	}
 
+	Managed<RenderContext> GraphicsPresenterVulkan::CreateRenderContext(const Ref<RenderView>& view, const Ref<RenderPipeline>& pipeline, int backbufferImageIndex)
+	{
+		EnsureSwapchainIsUpdated();
+
+		// TODO: more than 1 attachment
+		List<ImageVulkan*> images;
+		images.Add(_backbuffers[backbufferImageIndex].Image);
+
+		Managed<RenderContextVulkan> context = CreateManaged<RenderContextVulkan>(view, _device, pipeline, images, _commandBuffers[backbufferImageIndex]);
+
+		// Add sync objects to the render context
+		const BackBuffer& backbuffer = _backbuffers[backbufferImageIndex];
+		context->AddWaitSemaphore(backbuffer.ImageAvailableSemaphore);
+		context->AddSignalSemaphore(backbuffer.RenderingCompletedSemaphore);
+		context->SetSignalFence(backbuffer.RenderingCompletedFence);
+
+		// Ensure the framebuffers are up-to-date and valid for the render pipeline
+		RecreateFramebuffers(pipeline, context->GetRenderPass());
+		context->SetFramebuffer(_framebuffers[backbufferImageIndex]);
+
+		return std::move(context);
+	}
+
 	GraphicsPresenterResult GraphicsPresenterVulkan::AcquireNextBackbuffer(
 		unsigned long long timeoutNs,
-		GraphicsFence* imageAvailableFence,
-		GraphicsSemaphore* imageAvailableSemaphore,
 		int& backbufferImageIndex)
 	{
-		VkSemaphore semaphore = VK_NULL_HANDLE;
+		EnsureSwapchainIsUpdated();
 
-		if (GraphicsSemaphoreVulkan* vulkanSemapore = dynamic_cast<GraphicsSemaphoreVulkan*>(imageAvailableSemaphore))
-		{
-			semaphore = vulkanSemapore->GetSemaphore();
-		}
+		const BackBuffer& lastBackbuffer = _backbuffers[_currentFrame];
 
-		VkFence fence = VK_NULL_HANDLE;
-
-		if (GraphicsFenceVulkan* vulkanFence = dynamic_cast<GraphicsFenceVulkan*>(imageAvailableFence))
-		{
-			fence = vulkanFence->GetFence();
-		}
+		// Wait until a fresh frame is ready
+		lastBackbuffer.RenderingCompletedFence->Wait(std::numeric_limits<unsigned long long>::max());
+		lastBackbuffer.RenderingCompletedFence->Reset();
 
 		uint32_t imageIndex;
-		VkResult result = vkAcquireNextImageKHR(_device->GetDevice(), _swapchain, timeoutNs, semaphore, fence, &imageIndex);
+		VkResult result = vkAcquireNextImageKHR(
+			_device->GetDevice(), 
+			_swapchain, 
+			timeoutNs, 
+			lastBackbuffer.ImageAvailableSemaphore->GetSemaphore(), 
+			VK_NULL_HANDLE,
+			&imageIndex);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
+			_isSwapchainDirty = true;
 			return GraphicsPresenterResult::NeedsReinitialization;
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -111,25 +133,22 @@ namespace Coco::Rendering
 		}
 
 		backbufferImageIndex = static_cast<int>(imageIndex);
+		_currentFrame = (_currentFrame + 1) % _backbuffers.Count();
 
 		return GraphicsPresenterResult::Success;
 	}
 
-	GraphicsPresenterResult GraphicsPresenterVulkan::Present(int backbufferImageIndex, GraphicsSemaphore* renderCompleteSemaphore)
+	GraphicsPresenterResult GraphicsPresenterVulkan::Present(int backbufferImageIndex)
 	{
-		GraphicsSemaphoreVulkan* vulkanSemaphore = dynamic_cast<GraphicsSemaphoreVulkan*>(renderCompleteSemaphore);
-
-		if (vulkanSemaphore == nullptr)
-			throw Exception("Render complete semaphore must be a GraphicsSemaphoreVulkan");
-
 		if (!_device->GetPresentQueue().has_value())
 		{
 			LogError(_device->VulkanPlatform->GetLogger(), "Device must have a valid present queue");
 			return GraphicsPresenterResult::Failure;
 		}
 
-		VkSemaphore waitSemaphore = vulkanSemaphore->GetSemaphore();
 		uint32_t imageIndex = static_cast<uint32_t>(backbufferImageIndex);
+
+		VkSemaphore waitSemaphore = _backbuffers[backbufferImageIndex].RenderingCompletedSemaphore->GetSemaphore();
 
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -145,6 +164,7 @@ namespace Coco::Rendering
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
 		{
+			_isSwapchainDirty = true;
 			return GraphicsPresenterResult::NeedsReinitialization;
 		}
 		else if (result != VK_SUCCESS)
@@ -232,7 +252,7 @@ namespace Coco::Rendering
 		return details;
 	}
 
-	void GraphicsPresenterVulkan::CreateOrRecreateSwapchain()
+	void GraphicsPresenterVulkan::EnsureSwapchainIsUpdated()
 	{
 		if(_isSwapchainDirty)
 			CreateSwapchain(_vsyncMode, _backbufferSize, _vsyncMode == VerticalSyncMode::Mailbox ? 3 : 2);
@@ -257,6 +277,9 @@ namespace Coco::Rendering
 			LogError(_device->VulkanPlatform->GetLogger(), "Device doesn't support graphics operations");
 			return false;
 		}
+
+		// Only recreate when all async work has finished
+		_device->WaitForIdle();
 
 		SwapchainSupportDetails swapchainSupportDetails = GetSwapchainSupportDetails(_device->GetPhysicalDevice(), _surface);
 
@@ -348,15 +371,22 @@ namespace Coco::Rendering
 
 		_isSwapchainDirty = false;
 		_currentFrame = 0;
+		RecreateCommandBuffers();
 
 		return true;
 	}
 
 	void GraphicsPresenterVulkan::DestroySwapchainObjects()
 	{
-		for (ImageVulkan* backbuffer : _backbuffers)
+		DestroyCommandBuffers();
+		DestroyFramebuffers();
+
+		for (const BackBuffer& backbuffer : _backbuffers)
 		{
-			_device->DestroyResource(backbuffer);
+			_device->DestroyResource(backbuffer.Image);
+			_device->DestroyResource(backbuffer.ImageAvailableSemaphore);
+			_device->DestroyResource(backbuffer.RenderingCompletedSemaphore);
+			_device->DestroyResource(backbuffer.RenderingCompletedFence);
 		}
 
 		_backbuffers.Clear();
@@ -397,10 +427,21 @@ namespace Coco::Rendering
 				VkImageView view;
 				CheckVKResult(vkCreateImageView(_device->GetDevice(), &createInfo, nullptr, &view));
 
-				ImageVulkan* image = new ImageVulkan(_device, _backbufferDescription, images[i], view, true);
-				_device->AddResource(image);
+				BackBuffer backbuffer = {};
 
-				_backbuffers.Add(image);
+				backbuffer.Image = new ImageVulkan(_device, _backbufferDescription, images[i], view, true);
+				_device->AddResource(backbuffer.Image);
+
+				backbuffer.ImageAvailableSemaphore = new GraphicsSemaphoreVulkan(_device);
+				_device->AddResource(backbuffer.ImageAvailableSemaphore);
+
+				backbuffer.RenderingCompletedSemaphore = new GraphicsSemaphoreVulkan(_device);
+				_device->AddResource(backbuffer.RenderingCompletedSemaphore);
+
+				backbuffer.RenderingCompletedFence = new GraphicsFenceVulkan(_device, true);
+				_device->AddResource(backbuffer.RenderingCompletedFence);
+
+				_backbuffers.Add(backbuffer);
 			}
 
 			return true;
@@ -410,5 +451,75 @@ namespace Coco::Rendering
 			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to get swapchain images: {}", ex.what()));
 			return false;
 		}
+	}
+
+	void GraphicsPresenterVulkan::RecreateFramebuffers(const Ref<RenderPipeline>& pipeline, VkRenderPass renderPass)
+	{
+		if (_framebuffers.Count() == _backbuffers.Count() && _framebufferPipeline.lock() == pipeline)
+			return;
+
+		DestroyFramebuffers();
+
+		_framebufferPipeline = pipeline;
+
+		VkFramebufferCreateInfo framebufferInfo = {};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = renderPass;
+		framebufferInfo.width = static_cast<uint32_t>(_backbufferSize.Width);
+		framebufferInfo.height = static_cast<uint32_t>(_backbufferSize.Height);
+		framebufferInfo.layers = 1;
+
+		for (const BackBuffer& backbuffer : _backbuffers)
+		{
+			VkImageView view = backbuffer.Image->GetNativeView();
+			framebufferInfo.attachmentCount = 1;
+			framebufferInfo.pAttachments = &view;
+
+			VkFramebuffer framebuffer;
+			CheckVKResult(vkCreateFramebuffer(_device->GetDevice(), &framebufferInfo, nullptr, &framebuffer));
+
+			_framebuffers.Add(framebuffer);
+		}
+	}
+
+	void GraphicsPresenterVulkan::DestroyFramebuffers()
+	{
+		_device->WaitForIdle();
+
+		for (const VkFramebuffer framebuffer : _framebuffers)
+		{
+			vkDestroyFramebuffer(_device->GetDevice(), framebuffer, nullptr);
+		}
+
+		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString("Destroyed {} framebuffers", _framebuffers.Count()));
+
+		_framebuffers.Clear();
+	}
+
+	void GraphicsPresenterVulkan::RecreateCommandBuffers()
+	{
+		if (_commandBuffers.Count() == _backbuffers.Count())
+			return;
+
+		DestroyCommandBuffers();
+
+		for (int i = 0; i < _backbuffers.Count(); i++)
+		{
+			_commandBuffers.Add(static_cast<CommandBufferVulkan*>(_device->GetGraphicsCommandPool().value()->Allocate(true)));
+		}
+	}
+
+	void GraphicsPresenterVulkan::DestroyCommandBuffers()
+	{
+		_device->WaitForIdle();
+
+		for (CommandBufferVulkan* buffer : _commandBuffers)
+		{
+			_device->GetGraphicsCommandPool().value()->Free(buffer);
+		}
+
+		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString("Destroyed {} command buffers", _commandBuffers.Count()));
+
+		_commandBuffers.Clear();
 	}
 }

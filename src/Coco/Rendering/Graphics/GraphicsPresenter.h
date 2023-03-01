@@ -7,6 +7,9 @@
 #include "PresenterSurfaceInitializationInfo.h"
 #include "GraphicsFence.h"
 #include "GraphicsSemaphore.h"
+#include "RenderView.h"
+#include "RenderContext.h"
+#include <Coco/Rendering/Pipeline/RenderPipeline.h>
 
 namespace Coco::Rendering
 {
@@ -65,6 +68,8 @@ namespace Coco::Rendering
 		/// <returns>The vertical sync mode that this presenter is using</returns>
 		virtual VerticalSyncMode GetVSyncMode() const = 0;
 
+		virtual Managed<RenderContext> CreateRenderContext(const Ref<RenderView>& view, const Ref<RenderPipeline>& pipeline, int backbufferImageIndex) = 0;
+
 		/// <summary>
 		/// Acquires the index of the next backbuffer to draw to
 		/// </summary>
@@ -75,8 +80,6 @@ namespace Coco::Rendering
 		/// <returns>The operation result</returns>
 		virtual GraphicsPresenterResult AcquireNextBackbuffer(
 			unsigned long long timeoutNs, 
-			GraphicsFence* imageAvailableFence,
-			GraphicsSemaphore* imageAvailableSemaphore, 
 			int& backbufferImageIndex) = 0;
 
 		/// <summary>
@@ -85,6 +88,6 @@ namespace Coco::Rendering
 		/// <param name="backbufferImageIndex">The index of the backbuffer</param>
 		/// <param name="renderCompleteSemaphore">A semaphore to wait on for the image to finish rendering</param>
 		/// <returns>The operation result</returns>
-		virtual GraphicsPresenterResult Present(int backbufferImageIndex, GraphicsSemaphore* renderCompleteSemaphore) = 0;
+		virtual GraphicsPresenterResult Present(int backbufferImageIndex) = 0;
 	};
 }

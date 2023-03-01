@@ -26,12 +26,13 @@ namespace Coco::Rendering
 		virtual ~ImageVulkan() override;
 
 		virtual void* GetResource() const override { return GetImage(); }
-		virtual void* ReleaseResource() override;
 
 		/// <summary>
 		/// Gets the VkImage object
 		/// </summary>
 		/// <returns>The VkImage</returns>
 		VkImage GetImage() const { return _image; }
+
+		VkImageView GetNativeView() const { return _nativeView; }
 	};
 }

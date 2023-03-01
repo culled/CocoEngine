@@ -3,7 +3,7 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Services/EngineService.h>
 
-#include "RenderView.h"
+#include "Graphics/RenderView.h"
 #include "Graphics/GraphicsPlatform.h"
 #include "Graphics/GraphicsPresenter.h"
 #include "Pipeline/RenderPipeline.h"
@@ -17,6 +17,7 @@ namespace Coco::Rendering
     {
     private:
         Managed<GraphicsPlatform> _graphics;
+        Ref<RenderPipeline> _defaultPipeline;
 
     public:
         RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
@@ -31,8 +32,14 @@ namespace Coco::Rendering
         /// <returns>A graphics presenter</returns>
         GraphicsPresenter* CreatePresenter() const { return _graphics->CreatePresenter(); }
 
+        void SetDefaultPipeline(Ref<RenderPipeline> pipeline);
+
         // TODO
-        void Render(const RenderView& view, const RenderPipeline& pipeline);
+        void Render(GraphicsPresenter* presenter);
+        void Render(GraphicsPresenter* presenter, const Ref<RenderPipeline>& pipeline);
+
+    private:
+        void DoRender(const Ref<RenderPipeline>& pipeline, RenderContext* context);
     };
 }
 

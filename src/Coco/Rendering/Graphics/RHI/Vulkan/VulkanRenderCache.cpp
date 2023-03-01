@@ -58,8 +58,10 @@ namespace Coco::Rendering
 			description.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // TODO: temporal effects
 			description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			description.initialLayout = imageLayout;
-			description.finalLayout = imageLayout;
+			description.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // TEMPORARY
+			description.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // TEMPORARY
+
+			attachments.Add(description);
 		}
 
 		List<RenderPipelineBinding*> renderPasses = renderPipeline->GetPasses();
@@ -113,6 +115,7 @@ namespace Coco::Rendering
 			subpassDescription.pResolveAttachments = nullptr; // TODO
 
 			subpassInfos[i].SubpassDescription = subpassDescription;
+			subpasses.Add(subpassDescription);
 		}
 
 		List<VkSubpassDependency> subpassDependencies;

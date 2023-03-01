@@ -26,6 +26,7 @@ namespace Coco::Rendering
 		virtual bool IsSignalled() const override;
 		virtual void Reset() override;
 		virtual void Wait(unsigned long long timeoutNs) override;
+		virtual void* GetResource() const override { return _fence; }
 
 		/// <summary>
 		/// Gets the underlying VkFence

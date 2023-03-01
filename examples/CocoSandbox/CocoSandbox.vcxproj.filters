@@ -18,9 +18,15 @@
     <ClInclude Include="src\CocoSandboxApplication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\HelloTriangleRenderPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CocoSandboxApplication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HelloTriangleRenderPass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

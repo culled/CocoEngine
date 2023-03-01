@@ -6,6 +6,7 @@
 #include <Coco/Core/Input/InputService.h>
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/RenderingService.h>
+#include "HelloTriangleRenderPass.h"
 
 MainApplication(CocoSandboxApplication)
 
@@ -24,9 +25,18 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	Rendering::GraphicsPlatformCreationParameters createParams(Name, Rendering::RenderingRHI::Vulkan);
 	_renderService = engine->GetServiceManager()->CreateService<Rendering::RenderingService>(createParams);
 
+	Ref<Rendering::RenderPipeline> pipeline = CreateRef<Rendering::RenderPipeline>();
+	pipeline->SetClearColor(Color(0.1, 0.2, 0.3));
+
+	List<int> attachmentMapping;
+	attachmentMapping.Add(0);
+
+	pipeline->AddRenderPass(CreateRef<HelloTriangleRenderPass>(), attachmentMapping);
+	_renderService->SetDefaultPipeline(pipeline);
+
 	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
 
-	//engine->GetMainLoop()->SetTargetTickRate(60);
+	//engine->GetMainLoop()->SetTargetTickRate(2);
 
 	LogInfo(Logger, "Sandbox application created");
 }

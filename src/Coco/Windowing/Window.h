@@ -61,6 +61,8 @@ namespace Coco::Windowing
 	public:
 		virtual ~Window();
 
+		Rendering::GraphicsPresenter* GetPresenter() const { return Presenter.get(); }
+
 		/// <summary>
 		/// Gets the platform-specific ID for this window
 		/// </summary>
@@ -82,6 +84,8 @@ namespace Coco::Windowing
 		/// Hides this window
 		/// </summary>
 		virtual void Hide() = 0;
+
+		virtual bool GetIsVisible() const = 0;
 
 		/// <summary>
 		/// Requests this window to close

@@ -2,47 +2,83 @@
 
 #include "GraphicsDeviceVulkan.h"
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
+#include "ImageVulkan.h"
 
 namespace Coco::Rendering
 {
 	RenderContextVulkan::RenderContextVulkan(
-		Rendering::RenderView* renderView, 
+		Ref<Rendering::RenderView> renderView, 
 		GraphicsDeviceVulkan* device, 
 		const Ref<RenderPipeline>& pipeline, 
-		List<VkImageView> views) : 
+		List<ImageVulkan*> attachments,
+		CommandBufferVulkan* commandBuffer) : 
 		RenderContext(renderView),
-		_device(device)
+		_device(device),
+		_commandBuffer(commandBuffer)
 	{
 		if (!_device->GetGraphicsCommandPool().has_value())
 			throw Exception("A graphics command pool needs to be created for rendering");
 
+		List<VkImageView> views;
+
+		for (ImageVulkan* attachment : attachments)
+		{
+			views.Add(attachment->GetNativeView());
+		}
+
+		if (views.Count() == 0)
+			throw Exception("No Vulkan image attachments were given");
+
 		_renderPass = _device->GetRenderCache()->GetOrCreateRenderPass(pipeline);
+	}
 
-		VkFramebufferCreateInfo framebufferInfo = {};
-		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = _renderPass;
-		framebufferInfo.width = static_cast<uint32_t>(renderView->RenderSize.Width);
-		framebufferInfo.height = static_cast<uint32_t>(renderView->RenderSize.Height);
-		framebufferInfo.attachmentCount = views.Count();
-		framebufferInfo.pAttachments = views.Data();
-		framebufferInfo.layers = 1;
-
-		CheckVKResult(vkCreateFramebuffer(_device->GetDevice(), &framebufferInfo, nullptr, &_framebuffer));
-		
-		_commandBuffer = static_cast<CommandBufferVulkan*>(_device->GetGraphicsCommandPool().value()->Allocate(true));
+	void RenderContextVulkan::Begin()
+	{
+		if(_framebuffer == nullptr)
+			throw Exception("No framebuffer was set");
 
 		_commandBuffer->Begin(true, false);
-		_commandBuffer->BeginRenderPass(_renderPass, _framebuffer, renderView);
+		_commandBuffer->BeginRenderPass(_renderPass, _framebuffer, RenderView);
+	}
+
+	void RenderContextVulkan::End()
+	{
+		List<GraphicsSemaphore*> waitSemaphores;
+
+		for (GraphicsSemaphoreVulkan* semaphore : _waitSemaphores)
+			waitSemaphores.Add(semaphore);
+
+		List<GraphicsSemaphore*> signalSemaphores;
+
+		for (GraphicsSemaphoreVulkan* semaphore : _signalSemaphores)
+			signalSemaphores.Add(semaphore);
+
+		_commandBuffer->EndRenderPass();
+		_commandBuffer->EndAndSubmit(waitSemaphores, signalSemaphores, _signalFence);
+	}
+
+	void RenderContextVulkan::SetFramebuffer(VkFramebuffer framebuffer)
+	{
+		_framebuffer = framebuffer;
+	}
+
+	void RenderContextVulkan::AddWaitSemaphore(GraphicsSemaphoreVulkan* semaphore)
+	{
+		_waitSemaphores.Add(semaphore);
+	}
+
+	void RenderContextVulkan::AddSignalSemaphore(GraphicsSemaphoreVulkan* semaphore)
+	{
+		_signalSemaphores.Add(semaphore);
+	}
+
+	void RenderContextVulkan::SetSignalFence(GraphicsFenceVulkan* fence)
+	{
+		_signalFence = fence;
 	}
 
 	RenderContextVulkan::~RenderContextVulkan()
 	{
-		if (_framebuffer != nullptr)
-		{
-			vkDestroyFramebuffer(_device->GetDevice(), _framebuffer, nullptr);
-			_framebuffer = nullptr;
-		}
-
 		_renderPass = nullptr;
 	}
 }

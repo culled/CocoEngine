@@ -183,7 +183,7 @@
     <ClInclude Include="Rendering\Pipeline\RenderPipelineBinding.h">
       <Filter>Rendering\Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RenderView.h">
+    <ClInclude Include="Rendering\Graphics\RenderView.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RenderingService.h">
@@ -226,6 +226,7 @@
     <ClInclude Include="Rendering\Graphics\CommandBufferPool.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.h" />
     <ClInclude Include="Rendering\Graphics\ImageUtilities.h" />
+    <ClInclude Include="Core\Types\Color.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -326,5 +327,7 @@
     <ClCompile Include="Rendering\Graphics\CommandBufferPool.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\ImageUtilities.cpp" />
+    <ClCompile Include="Rendering\Graphics\RenderView.cpp" />
+    <ClCompile Include="Core\Types\Color.cpp" />
   </ItemGroup>
 </Project>
