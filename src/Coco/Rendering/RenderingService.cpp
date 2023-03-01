@@ -55,7 +55,9 @@ namespace Coco::Rendering
 		// Actually render with the pipeline
 		DoRender(pipeline, context.get());
 
-		// Submit the render data to the gpu and present it
+		// TODO: present transition
+
+		// Submit the render data to the gpu and present
 		context->End();
 		presenter->Present(backbufferIndex);
 
