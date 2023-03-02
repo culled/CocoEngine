@@ -227,6 +227,10 @@
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.h" />
     <ClInclude Include="Rendering\Graphics\ImageUtilities.h" />
     <ClInclude Include="Core\Types\Color.h" />
+    <ClInclude Include="Core\Types\Quaternion.h" />
+    <ClInclude Include="Core\Math\Math.h" />
+    <ClInclude Include="Core\Math\Random.h" />
+    <ClInclude Include="Core\Types\Matrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -326,5 +330,9 @@
     <ClCompile Include="Rendering\Graphics\ImageUtilities.cpp" />
     <ClCompile Include="Rendering\Graphics\RenderView.cpp" />
     <ClCompile Include="Core\Types\Color.cpp" />
+    <ClCompile Include="Core\Math\Math.cpp" />
+    <ClCompile Include="Core\Math\Random.cpp" />
+    <ClCompile Include="Core\Types\Matrix.cpp" />
+    <ClCompile Include="Core\Types\Quaternion.cpp" />
   </ItemGroup>
 </Project>

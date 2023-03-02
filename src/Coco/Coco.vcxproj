@@ -114,6 +114,8 @@
     <ClInclude Include="Core\Logging\Sinks\ConsoleLogSink.h" />
     <ClInclude Include="Core\MainLoop\MainLoop.h" />
     <ClInclude Include="Core\MainLoop\MainLoopTickListener.h" />
+    <ClInclude Include="Core\Math\Math.h" />
+    <ClInclude Include="Core\Math\Random.h" />
     <ClInclude Include="Core\Platform\IEnginePlatform.h" />
     <ClInclude Include="Core\Platform\EnginePlatformTypes.h" />
     <ClInclude Include="Core\Services\EngineService.h" />
@@ -125,7 +127,9 @@
     <ClInclude Include="Core\ExitCodes.h" />
     <ClInclude Include="Core\Types\List.h" />
     <ClInclude Include="Core\Types\Map.h" />
+    <ClInclude Include="Core\Types\Matrix.h" />
     <ClInclude Include="Core\Types\Optional.h" />
+    <ClInclude Include="Core\Types\Quaternion.h" />
     <ClInclude Include="Core\Types\Ref.h" />
     <ClInclude Include="Core\Types\Set.h" />
     <ClInclude Include="Core\Types\Size.h" />
@@ -186,9 +190,13 @@
     <ClCompile Include="Core\Logging\Sinks\ConsoleLogSink.cpp" />
     <ClCompile Include="Core\MainLoop\MainLoop.cpp" />
     <ClCompile Include="Core\MainLoop\MainLoopTickListener.cpp" />
+    <ClCompile Include="Core\Math\Math.cpp" />
+    <ClCompile Include="Core\Math\Random.cpp" />
     <ClCompile Include="Core\Services\EngineServiceManager.cpp" />
     <ClCompile Include="Core\Types\Color.cpp" />
     <ClCompile Include="Core\Types\DateTime.cpp" />
+    <ClCompile Include="Core\Types\Matrix.cpp" />
+    <ClCompile Include="Core\Types\Quaternion.cpp" />
     <ClCompile Include="Core\Types\Size.cpp" />
     <ClCompile Include="Core\Types\TimeSpan.cpp" />
     <ClCompile Include="Core\Types\Vector.cpp" />
