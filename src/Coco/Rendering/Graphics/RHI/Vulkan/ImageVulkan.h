@@ -33,6 +33,10 @@ namespace Coco::Rendering
 		/// <returns>The VkImage</returns>
 		VkImage GetImage() const { return _image; }
 
+		/// <summary>
+		/// Gets the native view onto the image
+		/// </summary>
+		/// <returns>The native view onto the image</returns>
 		VkImageView GetNativeView() const { return _nativeView; }
 	};
 }

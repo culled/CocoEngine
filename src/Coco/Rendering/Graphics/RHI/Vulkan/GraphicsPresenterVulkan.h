@@ -23,7 +23,10 @@ namespace Coco::Rendering
 		List<VkPresentModeKHR> PresentModes;
 	};
 
-	struct BackBuffer
+	/// <summary>
+	/// Container for backbuffer objects
+	/// </summary>
+	struct Backbuffer
 	{
 		ImageVulkan* Image = nullptr;
 		GraphicsSemaphoreVulkan* ImageAvailableSemaphore = nullptr;
@@ -50,7 +53,7 @@ namespace Coco::Rendering
 
 		bool _isSwapchainDirty = true;
 
-		List<BackBuffer> _backbuffers;
+		List<Backbuffer> _backbuffers;
 
 		List<CommandBufferVulkan*> _commandBuffers;
 		List<VkFramebuffer> _framebuffers;
@@ -144,11 +147,26 @@ namespace Coco::Rendering
 		/// <returns>True if the images were obtained</returns>
 		bool GetBackbufferImages();
 
+		/// <summary>
+		/// Creates/recreates the framebuffers for a given render pipeline and renderpass combo
+		/// </summary>
+		/// <param name="pipeline">The render pipeline</param>
+		/// <param name="renderPass">The renderpass</param>
 		void RecreateFramebuffers(const Ref<RenderPipeline>& pipeline, VkRenderPass renderPass);
 
+		/// <summary>
+		/// Destroys the current framebuffers
+		/// </summary>
 		void DestroyFramebuffers();
 
-		void RecreateCommandBuffers();
-		void DestroyCommandBuffers();
+		/// <summary>
+		/// Allocates/reallocates the command buffers used for rendering
+		/// </summary>
+		void ReallocateCommandBuffers();
+
+		/// <summary>
+		/// Frees the current command buffers
+		/// </summary>
+		void FreeCommandBuffers();
     };
 }

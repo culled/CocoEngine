@@ -12,7 +12,7 @@ namespace Coco::Rendering
 		if (startSignalled)
 			createInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
 
-		CheckVKResult(vkCreateFence(owningDevice->GetDevice(), &createInfo, nullptr, &_fence));
+		AssertVkResult(vkCreateFence(owningDevice->GetDevice(), &createInfo, nullptr, &_fence));
 	}
 
 	GraphicsFenceVulkan::~GraphicsFenceVulkan()
@@ -31,7 +31,7 @@ namespace Coco::Rendering
 
 	void GraphicsFenceVulkan::Reset()
 	{
-		CheckVKResult(vkResetFences(_device->GetDevice(), 1, &_fence));
+		AssertVkResult(vkResetFences(_device->GetDevice(), 1, &_fence));
 	}
 
 	void GraphicsFenceVulkan::Wait(unsigned long long timeoutNs)

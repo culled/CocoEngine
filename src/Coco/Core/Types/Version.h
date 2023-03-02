@@ -5,15 +5,20 @@
 
 namespace Coco
 {
+	/// <summary>
+	/// Represents a version with a major, minor, and patch number
+	/// </summary>
 	struct COCOAPI Version
 	{
-		int Major;
-		int Minor;
-		int Patch;
+		int Major, Minor, Patch;
 
 		Version();
 		Version(int major, int minor, int patch);
 
+		/// <summary>
+		/// Gets a string representation of this version
+		/// </summary>
+		/// <returns>The string representation of this version</returns>
 		string ToString() const;
 	};
 }

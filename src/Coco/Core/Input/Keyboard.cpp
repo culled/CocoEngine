@@ -17,6 +17,7 @@ namespace Coco::Input
 		if (_preProcessState.KeyState[index] == isPressed)
 			return;
 
+		// Save the state change and the current interim state
 		_preProcessStateChanges.Add(KeyboardStateChange::KeyStateChange(key, isPressed));
 		_preProcessState.KeyState[index] = isPressed;
 	}

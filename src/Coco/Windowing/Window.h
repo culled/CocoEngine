@@ -18,10 +18,29 @@ namespace Coco::Windowing
 	/// </summary>
 	struct COCOAPI WindowCreateParameters
 	{
+		/// <summary>
+		/// The title for the window
+		/// </summary>
 		string Title;
+
+		/// <summary>
+		/// The initial size for the window, if starting in a windowed state
+		/// </summary>
 		SizeInt InitialSize;
+
+		/// <summary>
+		/// If true, the window will be resizable/maximizable
+		/// </summary>
 		bool IsResizable = true;
+
+		/// <summary>
+		/// If provided, the window's top-left corner will be located here
+		/// </summary>
 		Optional<Vector2Int> InitialPosition;
+
+		/// <summary>
+		/// The initial state for the window
+		/// </summary>
 		WindowState InitialState = WindowState::Windowed;
 
 		WindowCreateParameters(const string& title, const SizeInt initialSize, bool isResizable = true, WindowState initialState = WindowState::Windowed) :
@@ -40,6 +59,11 @@ namespace Coco::Windowing
 		/// </summary>
 		Managed<Rendering::GraphicsPresenter> Presenter;
 
+		/// <summary>
+		/// The windowing service
+		/// </summary>
+		WindowingService* WindowingService;
+
 	public:
 		/// <summary>
 		/// Invoked when the window is trying to close.
@@ -52,8 +76,10 @@ namespace Coco::Windowing
 		/// </summary>
 		Event<Window*> OnClosed;
 
-	protected:
-		WindowingService* WindowingService;
+		/// <summary>
+		/// Invoked when the window is resized
+		/// </summary>
+		Event<Window*, const SizeInt&> OnResized;
 
 	protected:
 		Window(Windowing::WindowingService* windowingService);
@@ -61,6 +87,10 @@ namespace Coco::Windowing
 	public:
 		virtual ~Window();
 
+		/// <summary>
+		/// Gets this window's presenter
+		/// </summary>
+		/// <returns>This window's presenter</returns>
 		Rendering::GraphicsPresenter* GetPresenter() const { return Presenter.get(); }
 
 		/// <summary>
@@ -85,6 +115,10 @@ namespace Coco::Windowing
 		/// </summary>
 		virtual void Hide() = 0;
 
+		/// <summary>
+		/// Gets if this window is visible (shown and not minimized)
+		/// </summary>
+		/// <returns>True if this window is visible</returns>
 		virtual bool GetIsVisible() const = 0;
 
 		/// <summary>
@@ -97,7 +131,7 @@ namespace Coco::Windowing
 		/// <summary>
 		/// Called when the window has resized
 		/// </summary>
-		void OnResized();
+		void HandleResized();
 
 		/// <summary>
 		/// Sets up the surface for the window presenter

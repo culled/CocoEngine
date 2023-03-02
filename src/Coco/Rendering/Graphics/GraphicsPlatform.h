@@ -50,10 +50,20 @@ namespace Coco::Rendering
 		const bool SupportsPresentation;
 
 	protected:
+		/// <summary>
+		/// The render service
+		/// </summary>
 		RenderingService* RenderService;
 
 	public:
 		virtual ~GraphicsPlatform() = default;
+
+		/// <summary>
+		/// Converts an RenderingRHI to a string
+		/// </summary>
+		/// <param name="rhi">The render hardware interface</param>
+		/// <returns>The string equivalent of the RHI</returns>
+		static string PlatformRHIToString(RenderingRHI rhi);
 
 		/// <summary>
 		/// Creates a graphics platform
@@ -61,7 +71,7 @@ namespace Coco::Rendering
 		/// <param name="renderingService">The service creating the platform</param>
 		/// <param name="creationParams">Platform creation parameters</param>
 		/// <returns>A created graphics platform</returns>
-		static GraphicsPlatform* CreatePlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);
+		static Managed<GraphicsPlatform> CreatePlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);
 
 		/// <summary>
 		/// Gets this graphics platform's logger
@@ -82,10 +92,15 @@ namespace Coco::Rendering
 		virtual GraphicsDevice* GetDevice() const = 0;
 
 		/// <summary>
+		/// Resets the graphics device
+		/// </summary>
+		virtual void ResetDevice() = 0;
+
+		/// <summary>
 		/// Creates a graphics presenter
 		/// </summary>
 		/// <returns>A graphics presenter</returns>
-		virtual GraphicsPresenter* CreatePresenter() = 0;
+		virtual Managed<GraphicsPresenter> CreatePresenter() = 0;
 
 	protected:
 		GraphicsPlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);

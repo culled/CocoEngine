@@ -3,10 +3,10 @@
 #include <Coco/Core/Application.h>
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/MainLoop/MainLoopTickListener.h>
-#include <Coco/Core/Platform/EnginePlatform.h>
+#include <Coco/Core/Platform/IEnginePlatform.h>
 #include <Coco/Rendering/RenderingService.h>
 
-#include "WindowingPlatform.h"
+#include "IWindowingPlatform.h"
 #include "Window.h"
 
 namespace Coco::Windowing
@@ -31,24 +31,25 @@ namespace Coco::Windowing
 
 	void WindowingService::Start()
 	{
-		Engine::Get()->GetMainLoop()->AddTickListener(_renderTickListener);
-
 		if (!Engine::Get()->GetServiceManager()->TryFindService<Rendering::RenderingService>(&_renderingService))
-			LogError(GetLogger(), "Could not find a rendering service");
+			throw Exception("Could not find an active rendering service. The windowing service requires an active rendering service");
+
+		Engine::Get()->GetMainLoop()->AddTickListener(_renderTickListener);
 	}
 
 	Window* WindowingService::CreateNewWindow(WindowCreateParameters& createParameters)
 	{
-		if (Platform::WindowingPlatform* platform = dynamic_cast<Platform::WindowingPlatform*>(Engine::Get()->GetPlatform()))
+		if (Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(Engine::Get()->GetPlatform()))
 		{
-			Window* window = platform->CreatePlatformWindow(createParameters, this);
+			Managed<Window> window = platform->CreatePlatformWindow(createParameters, this);
+			Window* windowPtr = window.get();
 
 			if (_mainWindow == nullptr)
-				_mainWindow = window;
+				_mainWindow = windowPtr;
 
-			_windows.Add(Managed<Window>(window));
+			_windows.Add(std::move(window));
 
-			return window;
+			return windowPtr;
 		}
 
 		throw Exception("Current platform does not support windows");
@@ -75,22 +76,16 @@ namespace Coco::Windowing
 		// The main window closes with the application
 		if (window == _mainWindow)
 		{
-			if (Engine::Get()->GetApplication()->Quit())
-				window->OnClosed.InvokeEvent(window);
-
+			Engine::Get()->GetApplication()->Quit();
 			return;
 		}
-
-		window->OnClosed.InvokeEvent(window);
 
 		auto it = std::find_if(_windows.begin(), _windows.end(), [window](const Managed<Window>& other) {
 			return window == other.get();
 			});
 
 		if (it != _windows.end())
-		{
 			_windows.Erase(it);
-		}
 	}
 
 	void WindowingService::RenderTick(double deltaTime)

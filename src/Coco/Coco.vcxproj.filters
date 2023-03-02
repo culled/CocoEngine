@@ -102,7 +102,7 @@
     <ClInclude Include="Core\MainLoop\MainLoopTickListener.h">
       <Filter>Core\MainLoop</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Platform\EnginePlatform.h">
+    <ClInclude Include="Core\Platform\IEnginePlatform.h">
       <Filter>Core\Platform</Filter>
     </ClInclude>
     <ClInclude Include="Core\Platform\EnginePlatformTypes.h">
@@ -192,7 +192,7 @@
     <ClInclude Include="Windowing\Window.h">
       <Filter>Windowing</Filter>
     </ClInclude>
-    <ClInclude Include="Windowing\WindowingPlatform.h">
+    <ClInclude Include="Windowing\IWindowingPlatform.h">
       <Filter>Windowing</Filter>
     </ClInclude>
     <ClInclude Include="Windowing\WindowingService.h">
@@ -234,9 +234,6 @@
     </ClCompile>
     <ClCompile Include="Core\Engine.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Events\Event.cpp">
-      <Filter>Core\Events</Filter>
     </ClCompile>
     <ClCompile Include="Core\Input\InputService.cpp">
       <Filter>Core\Input</Filter>

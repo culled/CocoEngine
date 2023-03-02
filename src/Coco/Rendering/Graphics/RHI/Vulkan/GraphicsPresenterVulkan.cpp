@@ -47,7 +47,7 @@ namespace Coco::Rendering
 			createInfo.hwnd = static_cast<HWND>(win32SurfaceInitInfo->HWindow);
 			createInfo.hinstance = static_cast<HINSTANCE>(win32SurfaceInitInfo->HInstance);
 
-			CheckVKResult(vkCreateWin32SurfaceKHR(_device->VulkanPlatform->GetInstance(), &createInfo, nullptr, &_surface));
+			AssertVkResult(vkCreateWin32SurfaceKHR(_device->VulkanPlatform->GetInstance(), &createInfo, nullptr, &_surface));
 
 			_isSwapchainDirty = true;
 
@@ -55,7 +55,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(_device->VulkanPlatform->GetLogger(), "Unsupported surface type");
+			throw Exception("Unsupported surface type");
 		}
 	}
 
@@ -81,14 +81,10 @@ namespace Coco::Rendering
 	{
 		EnsureSwapchainIsUpdated();
 
-		// TODO: more than 1 attachment
-		List<ImageVulkan*> images;
-		images.Add(_backbuffers[backbufferImageIndex].Image);
-
-		Managed<RenderContextVulkan> context = CreateManaged<RenderContextVulkan>(view, _device, pipeline, images, _commandBuffers[backbufferImageIndex]);
+		Managed<RenderContextVulkan> context = CreateManaged<RenderContextVulkan>(view, _device, pipeline, _commandBuffers[backbufferImageIndex]);
 
 		// Add sync objects to the render context
-		const BackBuffer& backbuffer = _backbuffers[backbufferImageIndex];
+		const Backbuffer& backbuffer = _backbuffers[backbufferImageIndex];
 		context->AddWaitSemaphore(backbuffer.ImageAvailableSemaphore);
 		context->AddSignalSemaphore(backbuffer.RenderingCompletedSemaphore);
 		context->SetSignalFence(backbuffer.RenderingCompletedFence);
@@ -106,7 +102,7 @@ namespace Coco::Rendering
 	{
 		EnsureSwapchainIsUpdated();
 
-		const BackBuffer& lastBackbuffer = _backbuffers[_currentFrame];
+		const Backbuffer& lastBackbuffer = _backbuffers[_currentFrame];
 
 		// Wait until a fresh frame is ready
 		lastBackbuffer.RenderingCompletedFence->Wait(std::numeric_limits<unsigned long long>::max());
@@ -205,9 +201,7 @@ namespace Coco::Rendering
 	VkExtent2D GraphicsPresenterVulkan::PickBackbufferExtent(const SizeInt& preferredSize, const SwapchainSupportDetails& supportDetails)
 	{
 		if (supportDetails.SurfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
-		{
 			return supportDetails.SurfaceCapabilities.currentExtent;
-		}
 
 		VkExtent2D extent = { 
 			std::clamp(static_cast<uint32_t>(preferredSize.Width), 
@@ -334,13 +328,11 @@ namespace Coco::Rendering
 		createInfo.queueFamilyIndexCount = queueFamilyIndices.Count();
 		createInfo.pQueueFamilyIndices = queueFamilyIndices.Data();
 
-		try
+		VkResult result = vkCreateSwapchainKHR(_device->GetDevice(), &createInfo, nullptr, &_swapchain);
+
+		if (result != VK_SUCCESS)
 		{
-			CheckVKResult(vkCreateSwapchainKHR(_device->GetDevice(), &createInfo, nullptr, &_swapchain));
-		}
-		catch (Exception& ex)
-		{
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Failed to create swapchain: {}", ex.what()));
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Failed to create swapchain: {}", string_VkResult(result)));
 			_swapchain = nullptr;
 		}
 
@@ -363,25 +355,25 @@ namespace Coco::Rendering
 		if (!GetBackbufferImages())
 			return false;
 
-		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString(
-			"Created Vulkan swapchain with {} backbuffers at ({}, {})", 
-			imageCount, 
-			_backbufferSize.Width, 
-			_backbufferSize.Height));
-
 		_isSwapchainDirty = false;
 		_currentFrame = 0;
-		RecreateCommandBuffers();
+		ReallocateCommandBuffers();
+
+		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString(
+			"Created Vulkan swapchain with {} backbuffers at ({}, {})",
+			imageCount,
+			_backbufferSize.Width,
+			_backbufferSize.Height));
 
 		return true;
 	}
 
 	void GraphicsPresenterVulkan::DestroySwapchainObjects()
 	{
-		DestroyCommandBuffers();
+		FreeCommandBuffers();
 		DestroyFramebuffers();
 
-		for (const BackBuffer& backbuffer : _backbuffers)
+		for (const Backbuffer& backbuffer : _backbuffers)
 		{
 			_device->DestroyResource(backbuffer.Image);
 			_device->DestroyResource(backbuffer.ImageAvailableSemaphore);
@@ -399,10 +391,10 @@ namespace Coco::Rendering
 		try
 		{
 			uint32_t imageCount;
-			CheckVKResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &imageCount, nullptr));
+			AssertVkResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &imageCount, nullptr));
 
 			List<VkImage> images(imageCount);
-			CheckVKResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &imageCount, images.Data()));
+			AssertVkResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &imageCount, images.Data()));
 
 			VkImageViewCreateInfo createInfo = {};
 			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -425,9 +417,9 @@ namespace Coco::Rendering
 				createInfo.image = images[i];
 
 				VkImageView view;
-				CheckVKResult(vkCreateImageView(_device->GetDevice(), &createInfo, nullptr, &view));
+				AssertVkResult(vkCreateImageView(_device->GetDevice(), &createInfo, nullptr, &view));
 
-				BackBuffer backbuffer = {};
+				Backbuffer backbuffer = {};
 
 				backbuffer.Image = new ImageVulkan(_device, _backbufferDescription, images[i], view, true);
 				_device->AddResource(backbuffer.Image);
@@ -469,16 +461,24 @@ namespace Coco::Rendering
 		framebufferInfo.height = static_cast<uint32_t>(_backbufferSize.Height);
 		framebufferInfo.layers = 1;
 
-		for (const BackBuffer& backbuffer : _backbuffers)
+		try
 		{
-			VkImageView view = backbuffer.Image->GetNativeView();
-			framebufferInfo.attachmentCount = 1;
-			framebufferInfo.pAttachments = &view;
+			for (const Backbuffer& backbuffer : _backbuffers)
+			{
+				VkImageView view = backbuffer.Image->GetNativeView();
+				framebufferInfo.attachmentCount = 1;
+				framebufferInfo.pAttachments = &view;
 
-			VkFramebuffer framebuffer;
-			CheckVKResult(vkCreateFramebuffer(_device->GetDevice(), &framebufferInfo, nullptr, &framebuffer));
+				VkFramebuffer framebuffer;
+				AssertVkResult(vkCreateFramebuffer(_device->GetDevice(), &framebufferInfo, nullptr, &framebuffer));
 
-			_framebuffers.Add(framebuffer);
+				_framebuffers.Add(framebuffer);
+			}
+		}
+		catch (Exception& ex)
+		{
+			string err = FormattedString("Failed to create framebuffers: {}", ex.what());
+			throw Exception(err.c_str());
 		}
 	}
 
@@ -496,12 +496,14 @@ namespace Coco::Rendering
 		_framebuffers.Clear();
 	}
 
-	void GraphicsPresenterVulkan::RecreateCommandBuffers()
+	void GraphicsPresenterVulkan::ReallocateCommandBuffers()
 	{
 		if (_commandBuffers.Count() == _backbuffers.Count())
 			return;
+		
+		LogAssert(_device->VulkanPlatform->GetLogger(), _device->GetGraphicsCommandPool().has_value());
 
-		DestroyCommandBuffers();
+		FreeCommandBuffers();
 
 		for (int i = 0; i < _backbuffers.Count(); i++)
 		{
@@ -509,7 +511,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void GraphicsPresenterVulkan::DestroyCommandBuffers()
+	void GraphicsPresenterVulkan::FreeCommandBuffers()
 	{
 		_device->WaitForIdle();
 

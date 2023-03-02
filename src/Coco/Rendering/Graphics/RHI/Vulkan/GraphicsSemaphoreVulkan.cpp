@@ -10,7 +10,7 @@ namespace Coco::Rendering
 		VkSemaphoreCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		
-		CheckVKResult(vkCreateSemaphore(_device->GetDevice(), &createInfo, nullptr, &_semaphore));
+		AssertVkResult(vkCreateSemaphore(_device->GetDevice(), &createInfo, nullptr, &_semaphore));
 	}
 
 	GraphicsSemaphoreVulkan::~GraphicsSemaphoreVulkan()

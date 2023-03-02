@@ -47,7 +47,7 @@ namespace Coco::Rendering
 	const char* GraphicsPlatformVulkan::s_debugValidationLayerName = "VK_LAYER_KHRONOS_validation";
 
 	GraphicsPlatformVulkan::GraphicsPlatformVulkan(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams) :
-		GraphicsPlatform(renderingService, creationParams)
+		GraphicsPlatform(renderingService, creationParams), _deviceCreationParams(creationParams.DeviceCreateParams)
 	{
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -107,7 +107,7 @@ namespace Coco::Rendering
 			createInfo.pNext = nullptr;
 		}
 
-		CheckVKResult(vkCreateInstance(&createInfo, nullptr, &_instance));
+		AssertVkResult(vkCreateInstance(&createInfo, nullptr, &_instance));
 
 		if (_usingValidationLayers)
 			CreateDebugMessenger();
@@ -140,9 +140,16 @@ namespace Coco::Rendering
 		return RenderService->GetLogger();
 	}
 
-	GraphicsPresenter* GraphicsPlatformVulkan::CreatePresenter()
+	void GraphicsPlatformVulkan::ResetDevice()
 	{
-		return new GraphicsPresenterVulkan(_device.get());
+		LogInfo(GetLogger(), "Resetting graphics device...");
+		_device.reset(GraphicsDeviceVulkan::Create(this, _deviceCreationParams));
+		LogInfo(GetLogger(), "Graphics device reset");
+	}
+
+	Managed<GraphicsPresenter> GraphicsPlatformVulkan::CreatePresenter()
+	{
+		return CreateManaged<GraphicsPresenterVulkan>(_device.get());
 	}
 
 	bool GraphicsPlatformVulkan::CheckValidationLayersSupport()

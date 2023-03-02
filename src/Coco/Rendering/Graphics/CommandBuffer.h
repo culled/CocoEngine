@@ -68,6 +68,11 @@ namespace Coco::Rendering
 		/// <param name="signalFence">A fence to signal once this buffer's work has been completed</param>
 		void EndAndSubmit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence = nullptr);
 
-		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) = 0;
+		/// <summary>
+		/// Command for setting the viewport
+		/// </summary>
+		/// <param name="offset">The offset of the viewport</param>
+		/// <param name="size">The size of the viewport</param>
+		virtual void CmdSetViewport(const Vector2Int& offset, const SizeInt& size) = 0;
 	};
 }

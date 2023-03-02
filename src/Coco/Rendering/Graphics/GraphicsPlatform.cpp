@@ -12,16 +12,34 @@ namespace Coco::Rendering
 		RenderService(renderingService), SupportsPresentation(creationParams.DeviceCreateParams.SupportsPresentation)
 	{}
 
-	GraphicsPlatform* GraphicsPlatform::CreatePlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams)
+	string GraphicsPlatform::PlatformRHIToString(RenderingRHI rhi)
+	{
+		switch (rhi)
+		{
+		case RenderingRHI::Vulkan:
+			return "Vulkan";
+		case RenderingRHI::DirectX12:
+			return "DirectX 12";
+		case RenderingRHI::OpenGL:
+			return "Open GL";
+		default:
+			return "Unknown";
+		}
+	}
+
+	Managed<GraphicsPlatform> GraphicsPlatform::CreatePlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams)
 	{
 		switch (creationParams.RHI)
 		{
 #if COCO_RENDERING_VULKAN
 		case RenderingRHI::Vulkan:
-			return new GraphicsPlatformVulkan(renderingService, creationParams);
+			return CreateManaged<GraphicsPlatformVulkan>(renderingService, creationParams);
 #endif
 		default:
-			throw Exception("Unsupported rendering interface");
+			break;
 		}
+
+		string err = FormattedString("{} RHI is not supported", PlatformRHIToString(creationParams.RHI));
+		throw Exception(err.c_str());
 	}
 }

@@ -35,19 +35,41 @@ namespace Coco::Rendering
 			Ref<Rendering::RenderView> renderView, 
 			GraphicsDeviceVulkan* device,
 			const Ref<RenderPipeline>& pipeline,
-			List<ImageVulkan*> attachments,
 			CommandBufferVulkan* commandBuffer);
 		virtual ~RenderContextVulkan() override;
 
-		virtual void Begin() override;
+		virtual bool Begin() override;
 		virtual void End() override;
-		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) override { _commandBuffer->SetViewport(offset, size); }
+		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) override { _commandBuffer->CmdSetViewport(offset, size); }
 
-		void SetFramebuffer(VkFramebuffer framebuffer);
+		/// <summary>
+		/// Sets the framebuffer for this render context to use
+		/// </summary>
+		/// <param name="framebuffer">The framebuffer to use</param>
+		void SetFramebuffer(VkFramebuffer framebuffer) { _framebuffer = framebuffer; }
+
+		/// <summary>
+		/// Adds a semaphore to use for waiting before rendering begins
+		/// </summary>
+		/// <param name="semaphore">The semaphore to wait on</param>
 		void AddWaitSemaphore(GraphicsSemaphoreVulkan* semaphore);
-		void AddSignalSemaphore(GraphicsSemaphoreVulkan* semaphore);
-		void SetSignalFence(GraphicsFenceVulkan* fence);
 
+		/// <summary>
+		/// Adds a semaphore to use for signalling when rendering has completed
+		/// </summary>
+		/// <param name="semaphore">The semaphore to signal</param>
+		void AddSignalSemaphore(GraphicsSemaphoreVulkan* semaphore);
+
+		/// <summary>
+		/// Sets the fence to use for signalling when rendering has completed
+		/// </summary>
+		/// <param name="fence">The fence to signal</param>
+		void SetSignalFence(GraphicsFenceVulkan* fence) { _signalFence = fence; }
+
+		/// <summary>
+		/// Gets the render pass being used for this context
+		/// </summary>
+		/// <returns>The render pass being used</returns>
 		VkRenderPass GetRenderPass() const { return _renderPass; }
 	};
 }

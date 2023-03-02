@@ -3,8 +3,8 @@
 #include "WindowsIncludes.h"
 
 #include <Coco/Core/Core.h>
-#include <Coco/Core/Platform/EnginePlatform.h>
-#include <Coco/Windowing/WindowingPlatform.h>
+#include <Coco/Core/Platform/IEnginePlatform.h>
+#include <Coco/Windowing/IWindowingPlatform.h>
 
 namespace Coco::Input
 {
@@ -21,7 +21,7 @@ namespace Coco::Platform::Windows
     /// <summary>
     /// Win32 platform implementation
     /// </summary>
-    class COCOAPI EnginePlatformWindows : public EnginePlatform, public WindowingPlatform
+    class COCOAPI EnginePlatformWindows : public IEnginePlatform, public IWindowingPlatform
     {
     private:
         static wchar_t s_windowClassName[];
@@ -49,8 +49,9 @@ namespace Coco::Platform::Windows
         virtual void WriteToPlatformConsole(const string& message, ConsoleColor color, bool isError) override;
         virtual void SetPlatformConsoleVisible(bool isVisible) override;
         virtual void Sleep(unsigned long milliseconds) override;
+        virtual void ShowPlatformMessageBox(const string& title, const string& message, bool isError) override;
 
-        virtual ::Coco::Windowing::Window* CreatePlatformWindow(
+        virtual Managed<::Coco::Windowing::Window> CreatePlatformWindow(
             ::Coco::Windowing::WindowCreateParameters& createParameters, 
             ::Coco::Windowing::WindowingService* windowingService) override;
 

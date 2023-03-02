@@ -68,7 +68,7 @@ namespace Coco::Rendering
 		createInfo.enabledExtensionCount = enabledExtensions.Count();
 		createInfo.enabledLayerCount = 0;
 		
-		CheckVKResult(vkCreateDevice(physicalDevice, &createInfo, nullptr, &_device));
+		AssertVkResult(vkCreateDevice(physicalDevice, &createInfo, nullptr, &_device));
 
 		for (const int& queueFamily : uniqueQueueFamilies)
 		{
@@ -218,7 +218,7 @@ namespace Coco::Rendering
 		const PhysicalDeviceRanking& firstRank = deviceRankings[0];
 
 		if (firstRank.Score == -1)
-			throw Exception("No devices found that satisfy the creation requirements");
+			throw Exception("No GPUs found that satisfy the creation requirements");
 
 		return firstRank.Device;
 	}

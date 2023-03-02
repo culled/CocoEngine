@@ -13,7 +13,7 @@ namespace Coco::Rendering
 		createInfo.queueFamilyIndex = static_cast<uint32_t>(queue->QueueFamily);
 		createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-		CheckVKResult(vkCreateCommandPool(_device->GetDevice(), &createInfo, nullptr, &_pool));
+		AssertVkResult(vkCreateCommandPool(_device->GetDevice(), &createInfo, nullptr, &_pool));
 	}
 
 	CommandBufferPoolVulkan::~CommandBufferPoolVulkan()

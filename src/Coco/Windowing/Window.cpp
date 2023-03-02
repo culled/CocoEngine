@@ -13,9 +13,9 @@ namespace Coco::Windowing
 		Rendering::RenderingService* renderingService;
 
 		if (!Engine::Get()->GetServiceManager()->TryFindService<Rendering::RenderingService>(&renderingService))
-			throw Exception("Windowing requires an active rendering service");
+			throw Exception("Could not find an active rendering service. Windowing requires an active rendering service");
 
-		Presenter.reset(renderingService->CreatePresenter());
+		Presenter = renderingService->CreatePresenter();
 	}
 
 	Window::~Window()
@@ -31,17 +31,20 @@ namespace Coco::Windowing
 		if (cancelClose)
 			return false;
 
-		// The windowing service will handle the OnClosed event
+		OnClosed.InvokeEvent(this);
 		WindowingService->WindowClosed(this);
 
 		return true;
 	}
 
-	void Window::OnResized()
+	void Window::HandleResized()
 	{
+		// By handling the surface on resize, we can make sure we always have a surface
 		if (!Presenter->IsSurfaceInitialized())
 			SetupPresenterSurface();
 
 		Presenter->SetBackbufferSize(GetBackbufferSize());
+
+		OnResized.InvokeEvent(this, GetSize());
 	}
 }

@@ -5,21 +5,24 @@
 #include <Coco/Core/Services/EngineServiceManager.h>
 #include <Coco/Core/Types/TimeSpan.h>
 #include <Coco/Core/MainLoop/MainLoop.h>
-#include <Coco/Core/Platform/EnginePlatform.h>
+#include <Coco/Core/Platform/IEnginePlatform.h>
 
 namespace Coco
 {
 	Engine* Engine::_instance = nullptr;
 
-	ExitCode Engine::Run(Managed<Platform::EnginePlatform> platform)
+	ExitCode Engine::Run(Managed<Platform::IEnginePlatform> platform)
 	{
+		Platform::IEnginePlatform* platformPtr = platform.get();
+
 		try
 		{
 			Managed<Engine, EngineDeleter> engine(new Engine(std::move(platform)));
 			return engine->Run();
 		}
-		catch (Exception&)
+		catch (Exception& ex)
 		{
+			platformPtr->ShowPlatformMessageBox("Fatal error", string(ex.what()), true);
 			DebuggerBreak();
 			return ExitCode::FatalError;
 		}
@@ -30,7 +33,7 @@ namespace Coco
 		return _platform->GetPlatformLocalTime() - _startTime;
 	}
 
-	Engine::Engine(Managed<Platform::EnginePlatform> platform) :
+	Engine::Engine(Managed<Platform::IEnginePlatform> platform) :
 		_platform(std::move(platform))
 	{
 		_instance = this;
@@ -41,7 +44,7 @@ namespace Coco
 
 		_application = Application::Create(this);
 
-		LogTrace(_logger, "Engine objects created");
+		LogTrace(_logger, "Engine created");
 	}
 
 	Engine::~Engine()
@@ -74,6 +77,8 @@ namespace Coco
 		catch (Exception ex)
 		{
 			LogFatal(_logger, FormattedString("Fatal error: {0}", ex.what()));
+			_platform->ShowPlatformMessageBox("Fatal error", string(ex.what()), true);
+
 			DebuggerBreak();
 			return ExitCode::FatalError;
 		}

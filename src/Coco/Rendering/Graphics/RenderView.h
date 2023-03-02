@@ -13,8 +13,19 @@ namespace Coco::Rendering
 	/// </summary>
 	struct COCOAPI RenderView
 	{
+		/// <summary>
+		/// The offset to begin rendering
+		/// </summary>
 		const Vector2Int RenderOffset;
+
+		/// <summary>
+		/// The size of the render
+		/// </summary>
 		const SizeInt RenderSize;
+
+		/// <summary>
+		/// The clear color for the render
+		/// </summary>
 		const Color ClearColor;
 
 		RenderView(const Vector2Int& offset, const SizeInt& size, const Color& clearColor);

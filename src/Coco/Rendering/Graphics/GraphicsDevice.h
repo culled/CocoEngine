@@ -73,13 +73,13 @@ namespace Coco::Rendering
 		virtual Version GetAPIVersion() const = 0;
 
 		/// <summary>
-		/// Creates a resource wrapper for the given raw resource and adds it to this device's list of managed resources
+		/// Creates a managed resource wrapper for the given raw resource and adds it to this device's list of managed resources
 		/// </summary>
 		/// <typeparam name="T">The type of resource being added</typeparam>
 		/// <param name="resource">The raw resource</param>
 		/// <returns>A managed resource</returns>
 		template<typename T>
-		ManagedGraphicsResource<T>* CreateAndAddRawResource(T* rawResource)
+		ManagedGraphicsResource<T>* CreateAndAddManagedResource(T* rawResource)
 		{
 			ManagedGraphicsResource<T> wrapper = new ManagedGraphicsResource<T>(this, rawResource);
 			AddResource(wrapper);

@@ -32,7 +32,7 @@ namespace Coco::Rendering
 		virtual void End() override;
 		virtual void Submit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence = nullptr) override;
 		virtual void Reset() override;
-		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) override;
+		virtual void CmdSetViewport(const Vector2Int& offset, const SizeInt& size) override;
 
 		/// <summary>
 		/// Begins a render pass

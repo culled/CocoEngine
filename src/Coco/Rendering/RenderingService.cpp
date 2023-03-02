@@ -8,7 +8,7 @@ namespace Coco::Rendering
 {
 	RenderingService::RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams)
 	{
-		_graphics.reset(GraphicsPlatform::CreatePlatform(this, backendCreateParams));
+		_graphics = GraphicsPlatform::CreatePlatform(this, backendCreateParams);
 	}
 
 	RenderingService::~RenderingService()

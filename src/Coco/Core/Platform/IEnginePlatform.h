@@ -10,10 +10,10 @@ namespace Coco::Platform
 	/// <summary>
 	/// An interface for communicating with the underlying platform the engine is running on
 	/// </summary>
-	class COCOAPI EnginePlatform
+	class COCOAPI IEnginePlatform
 	{
 	public:
-		virtual ~EnginePlatform() = default;
+		virtual ~IEnginePlatform() = default;
 
 		/// <summary>
 		/// Called when the engine has initialized and all services have started
@@ -77,7 +77,15 @@ namespace Coco::Platform
 		/// <param name="milliseconds">The number of milliseconds to sleep</param>
 		virtual void Sleep(unsigned long milliseconds) = 0;
 
+		/// <summary>
+		/// Shows a message box on the platform
+		/// </summary>
+		/// <param name="title">The title</param>
+		/// <param name="message">The message</param>
+		/// <param name="isError">If true, the message box will display for an error</param>
+		virtual void ShowPlatformMessageBox(const string& title, const string& message, bool isError) = 0;
+
 	protected:
-		EnginePlatform() = default;
+		IEnginePlatform() = default;
 	};
 }

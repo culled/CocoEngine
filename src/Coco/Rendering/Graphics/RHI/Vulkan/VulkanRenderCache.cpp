@@ -169,7 +169,7 @@ namespace Coco::Rendering
 		createInfo.pDependencies = subpassDependencies.Data();
 		
 		VkRenderPass renderPass;
-		CheckVKResult(vkCreateRenderPass(_device->GetDevice(), &createInfo, nullptr, &renderPass));
+		AssertVkResult(vkCreateRenderPass(_device->GetDevice(), &createInfo, nullptr, &renderPass));
 
 		return renderPass;
 	}

@@ -38,22 +38,28 @@ namespace Coco
 			_list.push_back(item);
 		}
 
+		/// <summary>
+		/// Inserts an item at the specified index
+		/// </summary>
+		/// <param name="index">The index that the item will be insterted at</param>
+		/// <param name="item">The item to insert</param>
 		void Insert(int index, T&& item)
 		{
 			if (index < 0 || index > Count())
-			{
 				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
-			}
 
 			_list.insert(begin() + index, std::forward<T>(item));
 		}
 
+		/// <summary>
+		/// Inserts an item at the specified index
+		/// </summary>
+		/// <param name="index">The index that the item will be insterted at</param>
+		/// <param name="item">The item to insert</param>
 		void Insert(int index, const T& item)
 		{
 			if (index < 0 || index > Count())
-			{
 				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
-			}
 
 			_list.insert(begin() + index, item);
 		}
@@ -76,6 +82,10 @@ namespace Coco
 			return false;
 		}
 
+		/// <summary>
+		/// Erases an item at the given iterator
+		/// </summary>
+		/// <param name="it">The iterator</param>
 		void Erase(Iterator it)
 		{
 			if(it != end())
@@ -128,11 +138,19 @@ namespace Coco
 			_list.resize(newSize);
 		}
 
+		/// <summary>
+		/// Gets a pointer to this list's first item
+		/// </summary>
+		/// <returns>A pointer to this list's first item</returns>
 		const T* Data() const
 		{
 			return _list.data();
 		}
 
+		/// <summary>
+		/// Gets a pointer to this list's first item
+		/// </summary>
+		/// <returns>A pointer to this list's first item</returns>
 		T* Data()
 		{
 			return _list.data();
@@ -148,9 +166,13 @@ namespace Coco
 		/// Gets an iterator for the beginning of this list
 		/// </summary>
 		/// <returns>An iterator for the beginning of this list</returns>
-		ConstIterator cbegin() const { return _list.cbegin(); }
-
 		ConstIterator begin() const { return cbegin(); }
+
+		/// <summary>
+		/// Gets an iterator for the beginning of this list
+		/// </summary>
+		/// <returns>An iterator for the beginning of this list</returns>
+		ConstIterator cbegin() const { return _list.cbegin(); }
 
 		/// <summary>
 		/// Gets an iterator for the end of this list
@@ -162,8 +184,12 @@ namespace Coco
 		/// Gets an iterator for the end of this list
 		/// </summary>
 		/// <returns>An iterator for the end of this list</returns>
-		ConstIterator cend() const { return _list.cend(); }
-
 		ConstIterator end() const { return cend(); }
+
+		/// <summary>
+		/// Gets an iterator for the end of this list
+		/// </summary>
+		/// <returns>An iterator for the end of this list</returns>
+		ConstIterator cend() const { return _list.cend(); }
 	};
 }

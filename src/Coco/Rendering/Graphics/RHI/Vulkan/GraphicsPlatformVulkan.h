@@ -23,6 +23,7 @@ namespace Coco::Rendering
 
         bool _usingValidationLayers = false;
 
+        GraphicsDeviceCreationParameters _deviceCreationParams;
         Managed<GraphicsDeviceVulkan> _device;
 
     public:
@@ -32,7 +33,8 @@ namespace Coco::Rendering
         virtual Logging::Logger* GetLogger() const override;
         virtual RenderingRHI GetRHI() const override { return RenderingRHI::Vulkan; }
         virtual GraphicsDevice* GetDevice() const override { return _device.get(); }
-        virtual GraphicsPresenter* CreatePresenter() override;
+        virtual void ResetDevice() override;
+        virtual Managed<GraphicsPresenter> CreatePresenter() override;
 
         /// <summary>
         /// Gets the Vulkan instance

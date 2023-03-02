@@ -108,7 +108,16 @@ namespace Coco::Rendering
 		/// <returns>The passes in this pipeline</returns>
 		List<RenderPipelineBinding*> GetPasses() const;
 
+		/// <summary>
+		/// Sets the clear color of this render pipeline
+		/// </summary>
+		/// <param name="color">The clear color</param>
 		void SetClearColor(const Color& color) { _clearColor = color; }
+
+		/// <summary>
+		/// Gets the clear color used by this render pipeline
+		/// </summary>
+		/// <returns>The clear color</returns>
 		Color GetClearColor() const { return _clearColor; }
 
 	private:

@@ -30,15 +30,39 @@ namespace Coco::Rendering
         /// Creates a graphics presenter
         /// </summary>
         /// <returns>A graphics presenter</returns>
-        GraphicsPresenter* CreatePresenter() const { return _graphics->CreatePresenter(); }
+        Managed<GraphicsPresenter> CreatePresenter() const { return _graphics->CreatePresenter(); }
 
+        /// <summary>
+        /// Sets the default render pipeline to use
+        /// </summary>
+        /// <param name="pipeline">The default render pipeline to use</param>
         void SetDefaultPipeline(Ref<RenderPipeline> pipeline);
 
-        // TODO
+        /// <summary>
+        /// Gets the default render pipeline
+        /// </summary>
+        /// <returns>The default render pipeline</returns>
+        Ref<RenderPipeline> GetDefaultPipeline() const { return _defaultPipeline; }
+
+        /// <summary>
+        /// Renders using the default render pipeline for a graphics presenter
+        /// </summary>
+        /// <param name="presenter">The presenter</param>
         void Render(GraphicsPresenter* presenter);
+
+        /// <summary>
+        /// Renders using a render pipeline for a graphics presenter
+        /// </summary>
+        /// <param name="presenter">The presenter</param>
+        /// <param name="pipeline">The render pipeline</param>
         void Render(GraphicsPresenter* presenter, const Ref<RenderPipeline>& pipeline);
 
     private:
+        /// <summary>
+        /// Performs rendering using a render pipeline
+        /// </summary>
+        /// <param name="pipeline">The render pipeline</param>
+        /// <param name="context">The render context</param>
         void DoRender(const Ref<RenderPipeline>& pipeline, RenderContext* context);
     };
 }

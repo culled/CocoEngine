@@ -114,7 +114,7 @@
     <ClInclude Include="Core\Logging\Sinks\ConsoleLogSink.h" />
     <ClInclude Include="Core\MainLoop\MainLoop.h" />
     <ClInclude Include="Core\MainLoop\MainLoopTickListener.h" />
-    <ClInclude Include="Core\Platform\EnginePlatform.h" />
+    <ClInclude Include="Core\Platform\IEnginePlatform.h" />
     <ClInclude Include="Core\Platform\EnginePlatformTypes.h" />
     <ClInclude Include="Core\Services\EngineService.h" />
     <ClInclude Include="Core\Services\EngineServiceManager.h" />
@@ -171,14 +171,13 @@
     <ClInclude Include="Rendering\Graphics\RenderView.h" />
     <ClInclude Include="Rendering\RenderingService.h" />
     <ClInclude Include="Windowing\Window.h" />
-    <ClInclude Include="Windowing\WindowingPlatform.h" />
+    <ClInclude Include="Windowing\IWindowingPlatform.h" />
     <ClInclude Include="Windowing\WindowingService.h" />
     <ClInclude Include="Windowing\WindowTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
-    <ClCompile Include="Core\Events\Event.cpp" />
     <ClCompile Include="Core\Input\InputService.cpp" />
     <ClCompile Include="Core\Input\Keyboard.cpp" />
     <ClCompile Include="Core\Input\Mouse.cpp" />

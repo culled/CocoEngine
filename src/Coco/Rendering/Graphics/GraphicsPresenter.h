@@ -68,6 +68,13 @@ namespace Coco::Rendering
 		/// <returns>The vertical sync mode that this presenter is using</returns>
 		virtual VerticalSyncMode GetVSyncMode() const = 0;
 
+		/// <summary>
+		/// Creates a render context for this presenter
+		/// </summary>
+		/// <param name="view">The render view</param>
+		/// <param name="pipeline">The render pipeline</param>
+		/// <param name="backbufferImageIndex">The index of the backbuffer that will be used for rendering</param>
+		/// <returns>A render context</returns>
 		virtual Managed<RenderContext> CreateRenderContext(const Ref<RenderView>& view, const Ref<RenderPipeline>& pipeline, int backbufferImageIndex) = 0;
 
 		/// <summary>

@@ -4,7 +4,7 @@
 #include <Coco/Core/ExitCodes.h>
 #include <Coco/Core/Types/DateTime.h>
 #include <Coco/Core/Logging/Logger.h>
-#include <Coco/Core/Platform/EnginePlatform.h>
+#include <Coco/Core/Platform/IEnginePlatform.h>
 #include <Coco/Core/Services/EngineServiceManager.h>
 #include <Coco/Core/MainLoop/MainLoop.h>
 
@@ -29,7 +29,7 @@ namespace Coco
 
 		ExitCode _exitCode = ExitCode::Ok;
 		Managed<Logging::Logger> _logger;
-		Managed<Platform::EnginePlatform> _platform;
+		Managed<Platform::IEnginePlatform> _platform;
 		Managed<Application> _application;
 		Managed<EngineServiceManager> _serviceManager;
 		Managed<MainLoop> _mainLoop;
@@ -40,7 +40,7 @@ namespace Coco
 		/// </summary>
 		/// <param name="platform">The platform for the engine to use</param>
 		/// <returns>The exit code from the engine</returns>
-		static ExitCode Run(Managed<Platform::EnginePlatform> platform);
+		static ExitCode Run(Managed<Platform::IEnginePlatform> platform);
 
 		/// <summary>
 		/// Gets the engine instance
@@ -58,7 +58,7 @@ namespace Coco
 		/// Gets the engine's platform
 		/// </summary>
 		/// <returns>The engine's platform</returns>
-		Platform::EnginePlatform* GetPlatform() const { return _platform.get(); }
+		Platform::IEnginePlatform* GetPlatform() const { return _platform.get(); }
 
 		/// <summary>
 		/// Gets the client application
@@ -97,7 +97,7 @@ namespace Coco
 		struct TimeSpan GetRunningTime() const;
 
 	private:
-		Engine(Managed<Platform::EnginePlatform> platform);
+		Engine(Managed<Platform::IEnginePlatform> platform);
 		~Engine();
 
 		/// <summary>

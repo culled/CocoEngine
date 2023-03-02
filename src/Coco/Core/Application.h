@@ -38,14 +38,14 @@ namespace Coco
 		Application(Coco::Engine* engine, const string& name);
 
 	public:
+		virtual ~Application();
+
 		/// <summary>
 		/// Creates an application for a given engine
 		/// </summary>
 		/// <param name="engine">The engine</param>
 		/// <returns>The created application</returns>
 		static Managed<Application> Create(Coco::Engine* engine);
-
-		virtual ~Application();
 
 		/// <summary>
 		/// Called right before the main loop begins, but after all other engine initialization has happened

@@ -1,12 +1,12 @@
 #include "MainLoop.h"
 
-#include <Coco/Core/Platform/EnginePlatform.h>
+#include <Coco/Core/Platform/IEnginePlatform.h>
 
 #include "MainLoopTickListener.h"
 
 namespace Coco
 {
-	MainLoop::MainLoop(Platform::EnginePlatform* platform) :
+	MainLoop::MainLoop(Platform::IEnginePlatform* platform) :
 		_platform(platform)
 	{
 	}
@@ -15,6 +15,7 @@ namespace Coco
 	{
 		_isRunning = true;
 
+		// Set the current time to the current time
 		_currentTickTime = _platform->GetPlatformTimeSeconds();
 		_lastTickTime = _currentTickTime;
 
@@ -49,15 +50,17 @@ namespace Coco
 			// Calculate time since the last tick
 			_currentUnscaledDeltaTime = _currentTickTime - _lastTickTime;
 
-			// Remove the time spent processing messages/suspended, preventing massive delta times while caught in a message process loop
+			// Optionally remove the time spent processing messages/suspended, preventing massive delta times while caught in a message process loop
 			if (!_useAbsoluteTiming)
 				_currentUnscaledDeltaTime -= _currentTickTime - preTickTime;
 
 			_currentUnscaledRunningTime += _currentUnscaledDeltaTime;
 
+			// Scaled delta and running times
 			_currentDeltaTime = _currentUnscaledDeltaTime * _timeScale;
 			_currentRunningTime += _currentDeltaTime;
 
+			// Copy the tick listeners so that we don't have issues if a listener removes themselves during the tick
 			List<Ref<MainLoopTickListener>> listenersCopy = _tickListeners;
 
 			for (const Ref<MainLoopTickListener>& listener : listenersCopy)
@@ -69,6 +72,7 @@ namespace Coco
 			_tickCount++;
 			didTick = true;
 
+			// Optionally sleep if we're throttling the loop
 			if (_targetTickRate > 0 && _isRunning)
 				WaitForNextTick();
 		}

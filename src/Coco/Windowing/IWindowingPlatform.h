@@ -14,7 +14,7 @@ namespace Coco::Platform
 	/// <summary>
 	/// An interface that allows EnginePlatforms to create windows
 	/// </summary>
-	class COCOAPI WindowingPlatform
+	class COCOAPI IWindowingPlatform
 	{
 	public:
 		/// <summary>
@@ -23,7 +23,7 @@ namespace Coco::Platform
 		/// <param name="createParameters">Parameters for creating the window</param>
 		/// <param name="windowingService">The service that will manage the window</param>
 		/// <returns>The created window</returns>
-		virtual ::Coco::Windowing::Window* CreatePlatformWindow(
+		virtual Managed<::Coco::Windowing::Window> CreatePlatformWindow(
 			::Coco::Windowing::WindowCreateParameters& createParameters, 
 			::Coco::Windowing::WindowingService* windowingService) = 0;
 	};

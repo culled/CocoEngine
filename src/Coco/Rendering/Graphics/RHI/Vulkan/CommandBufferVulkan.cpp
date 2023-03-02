@@ -17,7 +17,7 @@ namespace Coco::Rendering
 		allocateInfo.level = isPrimary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 		allocateInfo.commandBufferCount = 1;
 
-		CheckVKResult(vkAllocateCommandBuffers(_device->GetDevice(), &allocateInfo, &_commandBuffer));
+		AssertVkResult(vkAllocateCommandBuffers(_device->GetDevice(), &allocateInfo, &_commandBuffer));
 
 		CurrentState = State::Ready;
 	}
@@ -44,7 +44,7 @@ namespace Coco::Rendering
 		if (isSimultaneousUse)
 			beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-		CheckVKResult(vkBeginCommandBuffer(_commandBuffer, &beginInfo));
+		AssertVkResult(vkBeginCommandBuffer(_commandBuffer, &beginInfo));
 		CurrentState = State::Recording;
 	}
 
@@ -53,7 +53,7 @@ namespace Coco::Rendering
 		if (_isInRenderPass)
 			EndRenderPass();
 
-		CheckVKResult(vkEndCommandBuffer(_commandBuffer));
+		AssertVkResult(vkEndCommandBuffer(_commandBuffer));
 		CurrentState = State::RecordingEnded;
 	}
 
@@ -93,18 +93,18 @@ namespace Coco::Rendering
 		submitInfo.signalSemaphoreCount = vulkanSignalSemaphores.Count();
 		submitInfo.pSignalSemaphores = vulkanSignalSemaphores.Data();
 
-		CheckVKResult(vkQueueSubmit(_pool->GetQueue(), 1, &submitInfo, vulkanSignalFence));
+		AssertVkResult(vkQueueSubmit(_pool->GetQueue(), 1, &submitInfo, vulkanSignalFence));
 
 		CurrentState = State::Submitted;
 	}
 
 	void CommandBufferVulkan::Reset()
 	{
-		CheckVKResult(vkResetCommandBuffer(_commandBuffer, 0));
+		AssertVkResult(vkResetCommandBuffer(_commandBuffer, 0));
 		CurrentState = State::Ready;
 	}
 
-	void CommandBufferVulkan::SetViewport(const Vector2Int& offset, const SizeInt& size)
+	void CommandBufferVulkan::CmdSetViewport(const Vector2Int& offset, const SizeInt& size)
 	{
 		VkViewport viewport = {};
 		viewport.x = static_cast<float>(offset.X);

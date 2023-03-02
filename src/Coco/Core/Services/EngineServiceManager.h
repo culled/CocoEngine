@@ -10,6 +10,10 @@ namespace Coco
 	/// </summary>
 	class COCOAPI EngineServiceManager
 	{
+	private:
+		bool _isStarted = false;
+		List<Managed<EngineService>> _services;
+
 	public:
 		EngineServiceManager() = default;
 		~EngineServiceManager();
@@ -25,23 +29,13 @@ namespace Coco
 		T* CreateService(Args&& ... args)
 		{
 			static_assert(std::is_base_of<EngineService, T>::value, "Can only create services derived from EngineService");
-			T* service = new T(std::forward<Args>(args)...);
-			RegisterService(service);
-			return service;
-		}
-
-		/// <summary>
-		/// Registers a service to this manager
-		/// </summary>
-		/// <typeparam name="T">The type of service to register</typeparam>
-		/// <param name="service">The service to register</param>
-		template<typename T>
-		void RegisterService(T* service)
-		{
-			static_assert(std::is_base_of<EngineService, T>::value, "Can only register services derived from EngineService");
 
 			// TODO: prevent duplicate services
-			_services.Add(Managed<EngineService>(service));
+			T* service = new T(std::forward<Args>(args)...);
+
+			RegisterService(service);
+
+			return service;
 		}
 
 		/// <summary>
@@ -71,7 +65,22 @@ namespace Coco
 		void Start();
 
 	private:
-		List<Managed<EngineService>> _services;
+		/// <summary>
+		/// Registers a service to this manager
+		/// </summary>
+		/// <typeparam name="T">The type of service to register</typeparam>
+		/// <param name="service">The service to register</param>
+		template<typename T>
+		void RegisterService(T* service)
+		{
+			static_assert(std::is_base_of<EngineService, T>::value, "Can only register services derived from EngineService");
+
+			// TODO: prevent duplicate services
+			_services.Add(Managed<EngineService>(service));
+
+			if (_isStarted)
+				service->Start();
+		}
 	};
 }
 

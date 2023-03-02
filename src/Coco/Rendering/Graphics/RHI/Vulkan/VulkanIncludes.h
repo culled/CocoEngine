@@ -16,10 +16,10 @@
 #endif
 
 // Ensures an expression that returns a VkResult returns VK_SUCCESS
-#define CheckVKResult(Expression) {																		\
-VkResult result = Expression;																			\
-if(result != VK_SUCCESS) {																				\
-	string error = FormattedString("Vulkan operation failed with code {}", string_VkResult(result));	\
-	throw Exception(error.c_str());																		\
-}																										\
+#define AssertVkResult(Expression) {														\
+VkResult result = Expression;																\
+if(result != VK_SUCCESS) {																	\
+	string error = FormattedString("Vulkan operation failed: {}", string_VkResult(result));	\
+	throw Exception(error.c_str());															\
+}																							\
 }

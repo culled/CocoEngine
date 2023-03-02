@@ -11,7 +11,6 @@ namespace Coco
 	{
 		Ok = 0,
 		FatalError = 1,
-		UnhandledClientError = 2,
 		OtherError = 999
 	};
 }

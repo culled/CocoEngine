@@ -14,6 +14,10 @@ namespace Coco::Input
     /// </summary>
     class COCOAPI InputService : public EngineService
     {
+    public:
+        const static int ProcessTickPriority = -1000;
+        const static int LateProcessTickPriority = 1000;
+
     private:
         Managed<Keyboard> _keyboard;
         Managed<Mouse> _mouse;
@@ -21,9 +25,6 @@ namespace Coco::Input
         Ref<MainLoopTickListener> _lateProcessListener;
 
     public:
-        const static int ProcessTickPriority = -1000;
-        const static int LateProcessTickPriority = 1000;
-
         InputService();
         virtual ~InputService() override;
 

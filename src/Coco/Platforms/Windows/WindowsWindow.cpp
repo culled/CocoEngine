@@ -17,6 +17,7 @@ namespace Coco::Platform::Windows
 #else
 		string title = createParameters.Title;
 #endif
+
 		int windowFlags = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 		int windowFlagsEx = WS_EX_APPWINDOW;
 
@@ -127,7 +128,8 @@ namespace Coco::Platform::Windows
 			UINT width = LOWORD(lParam);
 			UINT height = HIWORD(lParam);
 			_size = SizeInt(static_cast<int>(width), static_cast<int>(height));
-			OnResized();
+			HandleResized();
+			break;
 		}
 		default:
 			//LogTrace(WindowingService->GetLogger(), FormattedString("Got message {0}", message));

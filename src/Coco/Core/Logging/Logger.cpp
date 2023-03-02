@@ -2,7 +2,7 @@
 
 #include "LogSink.h"
 #include <Coco/Core/Engine.h>
-#include <Coco/Core/Platform/EnginePlatform.h>
+#include <Coco/Core/Platform/IEnginePlatform.h>
 #include <Coco/Core/Types/TimeSpan.h>
 
 namespace Coco::Logging
@@ -18,6 +18,9 @@ namespace Coco::Logging
 		"Fatal"
 	};
 
+	/// <summary>
+	/// The number of log levels
+	/// </summary>
 	const int NumLogLevels = 5;
 
 	Logger::Logger(const string& name) :
@@ -41,19 +44,21 @@ namespace Coco::Logging
 
 	void Logger::Write(LogLevel level, const string& message)
 	{
-		int levelIndex = static_cast<int>(level);
-
-		if (levelIndex < 0 || levelIndex > NumLogLevels - 1)
-		{
-			throw IndexOutOfRangeException(FormattedString("Log level was invalid: 0 <= {0} <= 4", levelIndex));
-		}
+		// Safety if an invalid level was passed to us
+		int levelIndex = std::clamp(static_cast<int>(level), 0, NumLogLevels - 1);
+		level = static_cast<LogLevel>(levelIndex);
 
 		const TimeSpan time = Engine::Get()->GetRunningTime();
-		const string timeString = FormattedString("{:0>2}:{:0>2}:{:0>2}:{:0>3}", time.GetHours(), time.GetMinutes(), time.GetSeconds(), time.GetMilliseconds());
+		const string formattedMessage = FormattedString("[{:0>2}:{:0>2}:{:0>2}:{:0>3}] {} ({}): {}", 
+			time.GetHours(), 
+			time.GetMinutes(), 
+			time.GetSeconds(), 
+			time.GetMilliseconds(), 
+			Name, 
+			LogLevels[levelIndex], 
+			message);
 
-		// TODO: get time
-		const string formattedMessage = FormattedString("[{}] {} ({}): {}", timeString, Name, LogLevels[levelIndex], message);
-
+		// Write the full log message to all sinks with a lower minimum level than the message
 		for (const Ref<LogSink>& sink : _logSinks)
 		{
 			if (sink->MinimumLevel <= level)

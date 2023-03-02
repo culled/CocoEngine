@@ -67,6 +67,10 @@ namespace Coco::Windowing
         /// <param name="window">The window that closed</param>
         void WindowClosed(Window* window);
 
+        /// <summary>
+        /// Callback for when all windows should render themselves
+        /// </summary>
+        /// <param name="deltaTime">The time since the last tick</param>
         void RenderTick(double deltaTime);
     };
 }

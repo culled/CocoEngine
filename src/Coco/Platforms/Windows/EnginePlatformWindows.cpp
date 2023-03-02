@@ -17,11 +17,16 @@ namespace Coco::Platform::Windows
 	wchar_t EnginePlatformWindows::s_windowClassName[] = L"CocoWindowClass";
 	Input::InputService* EnginePlatformWindows::_inputService = nullptr;
 
-	EnginePlatformWindows::EnginePlatformWindows(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) : EnginePlatform(),
+	EnginePlatformWindows::EnginePlatformWindows(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) : IEnginePlatform(),
 		_instance(hInstance),
 		_isConsoleOpen(false)
 	{
-		QueryPerformanceFrequency(&_clockFrequency);
+		if (!QueryPerformanceFrequency(&_clockFrequency))
+		{
+			string err = FormattedString("Unable to query performance frequency: {}", GetLastError());
+			throw Exception(err.c_str());
+		}
+
 		_secondsPerCycle = 1.0 / static_cast<double>(_clockFrequency.QuadPart);
 
 		RegisterWindowClass();
@@ -38,6 +43,7 @@ namespace Coco::Platform::Windows
 		if (!Engine::Get()->GetServiceManager()->TryFindService<Input::InputService>(&_inputService))
 		{
 			LogWarning(Engine::Get()->GetLogger(), "Could not find an input service. Input will not be handled");
+			_inputService = nullptr;
 		}
 	}
 
@@ -48,7 +54,8 @@ namespace Coco::Platform::Windows
 
 		if (rawArguments == NULL)
 		{
-			throw Exception("Could not retrieve command line arguments");
+			LogError(Engine::Get()->GetLogger(), "Could not retrieve command line arguments");
+			return;
 		}
 
 		try
@@ -59,8 +66,10 @@ namespace Coco::Platform::Windows
 				arguments.Add(WideStringToString(rawArguments[i]));
 			}
 		}
-		catch (...)
-		{ }
+		catch (Exception& err)
+		{
+			LogError(Engine::Get()->GetLogger(), FormattedString("Could not narrow command line arguments: {}", err.what()));
+		}
 
 		LocalFree(rawArguments);
 	}
@@ -106,7 +115,12 @@ namespace Coco::Platform::Windows
 	double EnginePlatformWindows::GetPlatformTimeSeconds() const
 	{
 		LARGE_INTEGER cycles = {};
-		QueryPerformanceCounter(&cycles);
+		if(!QueryPerformanceCounter(&cycles))
+		{
+			string err = FormattedString("Unable to query performance counter: {}", GetLastError());
+			throw Exception(err.c_str());
+		}
+
 		return static_cast<double>(cycles.QuadPart) * _secondsPerCycle;
 	}
 
@@ -175,16 +189,36 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	::Coco::Windowing::Window* EnginePlatformWindows::CreatePlatformWindow(
+	Managed<::Coco::Windowing::Window> EnginePlatformWindows::CreatePlatformWindow(
 		::Coco::Windowing::WindowCreateParameters& createParameters, 
 		::Coco::Windowing::WindowingService* windowingService)
 	{
-		return new WindowsWindow(createParameters, windowingService, this);
+		return CreateManaged<WindowsWindow>(createParameters, windowingService, this);
 	}
 
 	void EnginePlatformWindows::Sleep(unsigned long milliseconds)
 	{
 		::Sleep(milliseconds);
+	}
+
+	void EnginePlatformWindows::ShowPlatformMessageBox(const string& title, const string& message, bool isError)
+	{
+#if UNICODE || _UNICODE
+		std::wstring titleStr = StringToWideString(title);
+		std::wstring messageStr = StringToWideString(message);
+#else
+		std::string titleStr = title;
+		std::string messageStr = message;
+#endif
+
+		UINT flags = MB_OK;
+
+		if (isError)
+			flags |= MB_ICONERROR;
+		else
+			flags |= MB_ICONINFORMATION;
+
+		MessageBox(NULL, messageStr.c_str(), titleStr.c_str(), flags);
 	}
 
 	string EnginePlatformWindows::WideStringToString(LPWSTR wideString)
@@ -270,6 +304,7 @@ namespace Coco::Platform::Windows
 		if (windowsWindow == nullptr)
 		{
 			LogWarning(Coco::Engine::Get()->GetLogger(), "Window handle was null");
+			return;
 		}
 
 		windowsWindow->ProcessMessage(message, wParam, lParam);

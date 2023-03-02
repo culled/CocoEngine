@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-#include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/DateTime.h>
+#include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/TimeSpan.h>
 
 #include "MainLoopTickListener.h"
@@ -11,7 +11,7 @@ namespace Coco
 {
 	namespace Platform
 	{
-		class EnginePlatform;
+		class IEnginePlatform;
 	}
 
 	/// <summary>
@@ -20,7 +20,7 @@ namespace Coco
 	class COCOAPI MainLoop
 	{
 	private:
-		Platform::EnginePlatform* _platform;
+		Platform::IEnginePlatform* _platform;
 
 		bool _isRunning = false;
 		bool _isSuspended = false;
@@ -44,7 +44,7 @@ namespace Coco
 		unsigned long long _tickCount = 0;
 
 	public:
-		MainLoop(Platform::EnginePlatform* platform);
+		MainLoop(Platform::IEnginePlatform* platform);
 
 		/// <summary>
 		/// Runs this loop and blocks until it has stopped

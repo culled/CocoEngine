@@ -41,24 +41,81 @@ namespace Coco::Input
 	/// </summary>
 	struct MouseStateChange
 	{
+		/// <summary>
+		/// The button (if any) whose state changed
+		/// </summary>
 		Optional<MouseButton> Button;
+
+		/// <summary>
+		/// If true, the button for this state was pressed, else it was released
+		/// </summary>
 		bool IsButtonPressed = false;
+
+		/// <summary>
+		/// The new mouse position (if any)
+		/// </summary>
 		Optional<Vector2Int> Position;
+
+		/// <summary>
+		/// If the position has changed, holds the delta movement since the last state change
+		/// </summary>
 		Vector2Int MoveDelta = Vector2Int::Zero;
+
+		/// <summary>
+		/// The mouse scroll delta (if any)
+		/// </summary>
 		Optional<Vector2Int> ScrollDelta;
 		
+		/// <summary>
+		/// Creates a mouse state change for moving the mouse
+		/// </summary>
+		/// <param name="newPosition">The new mouse position</param>
+		/// <param name="delta">The delta between the new mouse position and the last position</param>
+		/// <returns>A mouse state change</returns>
 		static MouseStateChange MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta);
+
+		/// <summary>
+		/// Creates a mouse state change for scrolling the mouse
+		/// </summary>
+		/// <param name="scrollDelta">The amount the mouse was scrolled</param>
+		/// <returns>A mouse state change</returns>
 		static MouseStateChange ScrollStateChange(const Vector2Int& scrollDelta);
+
+		/// <summary>
+		/// Creates a mouse state change for pressing or releasing a mouse button
+		/// </summary>
+		/// <param name="button">The mouse button</param>
+		/// <param name="isPressed">True if the button was pressed, false if it was released</param>
+		/// <returns>A mouse state change</returns>
 		static MouseStateChange ButtonStateChange(MouseButton button, bool isPressed);
 	};
 
 	class COCOAPI Mouse
 	{
 	public:
+		/// <summary>
+		/// Invoked when a mouse button is pressed
+		/// </summary>
 		Event<MouseButton> OnButtonPressed;
+
+		/// <summary>
+		/// Invoked when a mouse button is released
+		/// </summary>
 		Event<MouseButton> OnButtonReleased;
+
+		/// <summary>
+		/// Invoked when a mouse button is double-clicked
+		/// </summary>
 		Event<MouseButton> OnDoubleClicked;
+
+		/// <summary>
+		/// Invoked when the mouse is moved
+		/// </summary>
 		Event<const Vector2Int&, const Vector2Int&> OnMoved;
+
+		/// <summary>
+		/// Invoked when the mouse is scrolled
+		/// </summary>
 		Event<const Vector2Int&> OnScrolled;
 
 	private:

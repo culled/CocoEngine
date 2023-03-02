@@ -16,9 +16,12 @@ namespace Coco
 
 	void EngineServiceManager::Start()
 	{
+		// Start all services
 		for (const Managed<EngineService>& service : _services)
 		{
 			service->Start();
 		}
+
+		_isStarted = true;
 	}
 }
