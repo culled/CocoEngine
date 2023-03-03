@@ -105,10 +105,8 @@ namespace Coco
 
 	double Vector2::Dot(const Vector2& other) const
 	{
-		double p = 0.0;
-		p += X * other.X;
-		p += Y * other.Y;
-		return p;
+		return X * other.X +
+			Y * other.Y;
 	}
 
 	Vector2 Vector2::operator+(const Vector2 & other) const
@@ -207,7 +205,7 @@ namespace Coco
 	Vector3 Vector3::Normalized(bool safe) const
 	{
 		Vector3 copy = *this;
-		copy.Normalize();
+		copy.Normalize(safe);
 		return copy;
 	}
 
@@ -227,11 +225,9 @@ namespace Coco
 
 	double Vector3::Dot(const Vector3& other) const
 	{
-		double p = 0.0;
-		p += X * other.X;
-		p += Y * other.Y;
-		p += Z * other.Z;
-		return p;
+		return X * other.X +
+			Y * other.Y +
+			Z * other.Z;
 	}
 
 	Vector3 Vector3::Cross(const Vector3& other) const
@@ -327,18 +323,16 @@ namespace Coco
 	Vector4 Vector4::Normalized(bool safe) const
 	{
 		Vector4 copy = *this;
-		copy.Normalize();
+		copy.Normalize(safe);
 		return copy;
 	}
 
 	double Vector4::Dot(const Vector4& other) const
 	{
-		double p = 0.0;
-		p += X * other.X;
-		p += Y * other.Y;
-		p += Z * other.Z;
-		p += W * other.W;
-		return p;
+		return X * other.X +
+			Y * other.Y +
+			Z * other.Z +
+			W * other.W;
 	}
 
 	Vector4 Vector4::operator+(const Vector4 & other) const
