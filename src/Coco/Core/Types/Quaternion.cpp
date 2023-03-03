@@ -1,35 +1,46 @@
 #include "Quaternion.h"
+#include <Coco/Core/Math/Math.h>
 
 namespace Coco
 {
 	const Quaternion Quaternion::Identity = Quaternion(0.0, 0.0, 0.0, 1.0);
 
 	Quaternion::Quaternion() : Quaternion(0.0, 0.0, 0.0, 1.0)
-	{
-	}
+	{}
 
 	Quaternion::Quaternion(double x, double y, double z, double w) :
-		_data(x, y, z, w)
-	{
-	}
+		X(x), Y(y), Z(z), W(w)
+	{}
 
 	double Quaternion::Dot(const Quaternion& a, const Quaternion& b)
 	{
 		return a.Dot(b);
 	}
 
-	double Quaternion::Normal() const
+	double Quaternion::Normal(bool safe) const
 	{
-		return _data.GetLength();
+		if (safe &&
+			Math::Approximately(X, 0.0) &&
+			Math::Approximately(Y, 0.0) &&
+			Math::Approximately(Z, 0.0) &&
+			Math::Approximately(W, 0.0))
+			return 0.0;
+
+		return Math::Sqrt(X * X + Y * Y + Z * Z + W * W);
 	}
 
-	void Quaternion::Normalize()
+	void Quaternion::Normalize(bool safe)
 	{
-		_data.Normalize();
+		const double l = Normal(safe);
+		X /= l;
+		Y /= l;
+		Z /= l;
+		W /= l;
 	}
+
 	Quaternion Quaternion::Conjugate() const
 	{
-		return Quaternion(-this->_data.X, -this->_data.Y, -this->_data.Z, this->_data.W);
+		return Quaternion(-X, -Y, -Z, W);
 	}
 	Quaternion Quaternion::Inverted() const
 	{
@@ -40,32 +51,37 @@ namespace Coco
 
 	double Quaternion::Dot(const Quaternion& other) const
 	{
-		return this->_data.Dot(other._data);
+		double p = 0.0;
+		p += X * other.X;
+		p += Y * other.Y;
+		p += Z * other.Z;
+		p += W * other.W;
+		return p;
 	}
 
 	Quaternion Quaternion::operator*(const Quaternion& other) const
 	{
 		Quaternion result;
 
-		result._data.X = this->_data.X * other._data.W +
-			this->_data.Y * other._data.Z -
-			this->_data.Z * other._data.Y +
-			this->_data.W * other._data.X;
+		result.X = X * other.W +
+			Y * other.Z -
+			Z * other.Y +
+			W * other.X;
 
-		result._data.Y = -this->_data.X * other._data.Z +
-			this->_data.Y * other._data.W +
-			this->_data.Z * other._data.X +
-			this->_data.W * other._data.Y;
+		result.Y = -X * other.Z +
+			Y * other.W +
+			Z * other.X +
+			W * other.Y;
 
-		result._data.Z = this->_data.X * other._data.Y -
-			this->_data.Y * other._data.X +
-			this->_data.Z * other._data.W +
-			this->_data.W * other._data.Z;
+		result.Z = X * other.Y -
+			Y * other.X +
+			Z * other.W +
+			W * other.Z;
 
-		result._data.W = -this->_data.X * other._data.X -
-			this->_data.Y * other._data.Y -
-			this->_data.Z * other._data.Z +
-			this->_data.W * other._data.W;
+		result.W = -X * other.X -
+			Y * other.Y -
+			Z * other.Z +
+			W * other.W;
 
 		return result;
 	}

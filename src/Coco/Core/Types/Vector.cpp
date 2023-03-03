@@ -14,22 +14,22 @@ namespace Coco
 
 	Vector2Int Vector2Int::operator+(const Vector2Int& other) const
 	{
-		return Vector2Int(this->X + other.X, this->Y + other.Y);
+		return Vector2Int(X + other.X, Y + other.Y);
 	}
 
 	Vector2Int Vector2Int::operator-(const Vector2Int& other) const
 	{
-		return Vector2Int(this->X - other.X, this->Y - other.Y);
+		return Vector2Int(X - other.X, Y - other.Y);
 	}
 
 	Vector2Int Vector2Int::operator*(int scalar) const
 	{
-		return Vector2Int(this->X * scalar, this->Y * scalar);
+		return Vector2Int(X * scalar, Y * scalar);
 	}
 
 	bool Vector2Int::operator==(const Vector2Int& other) const
 	{
-		return this->X == other.X && this->Y == other.Y;
+		return X == other.X && Y == other.Y;
 	}
 
 	bool Vector2Int::operator!= (const Vector2Int& other) const
@@ -65,7 +65,7 @@ namespace Coco
 
 	double Vector2::GetLengthSquared() const
 	{
-		return this->X * this->X + this->Y * this->Y;
+		return X * X + Y * Y;
 	}
 
 	double Vector2::GetLength() const
@@ -76,8 +76,8 @@ namespace Coco
 	void Vector2::Normalize(bool safe)
 	{
 		if (safe && 
-			Math::Approximately(this->X, 0.0) && 
-			Math::Approximately(this->Y, 0.0))
+			Math::Approximately(X, 0.0) && 
+			Math::Approximately(Y, 0.0))
 			return;
 
 		const double length = GetLength();
@@ -94,10 +94,10 @@ namespace Coco
 
 	bool Vector2::Equals(const Vector2& other, double tolerance) const
 	{
-		if (!Math::Approximately(this->X, other.X, tolerance))
+		if (!Math::Approximately(X, other.X, tolerance))
 			return false;
 
-		if (!Math::Approximately(this->Y, other.Y, tolerance))
+		if (!Math::Approximately(Y, other.Y, tolerance))
 			return false;
 
 		return true;
@@ -106,39 +106,39 @@ namespace Coco
 	double Vector2::Dot(const Vector2& other) const
 	{
 		double p = 0.0;
-		p += this->X * other.X;
-		p += this->Y * other.Y;
+		p += X * other.X;
+		p += Y * other.Y;
 		return p;
 	}
 
 	Vector2 Vector2::operator+(const Vector2 & other) const
 	{
-		return Vector2(this->X + other.X, this->Y + other.Y);
+		return Vector2(X + other.X, Y + other.Y);
 	}
 
 	Vector2 Vector2::operator-(const Vector2& other) const
 	{
-		return Vector2(this->X - other.X, this->Y - other.Y);
+		return Vector2(X - other.X, Y - other.Y);
 	}
 
 	Vector2 Vector2::operator*(double scalar) const
 	{
-		return Vector2(this->X * scalar, this->Y * scalar);
+		return Vector2(X * scalar, Y * scalar);
 	}
 
 	Vector2 Vector2::operator*(const Vector2& other) const
 	{
-		return Vector2(this->X * other.X, this->Y * other.Y);
+		return Vector2(X * other.X, Y * other.Y);
 	}
 
 	Vector2 Vector2::operator/(double divisor) const
 	{
-		return Vector2(this->X / divisor, this->Y / divisor);
+		return Vector2(X / divisor, Y / divisor);
 	}
 
 	Vector2 Vector2::operator/(const Vector2& other) const
 	{
-		return Vector2(this->X / other.X, this->Y / other.Y);
+		return Vector2(X / other.X, Y / other.Y);
 	}
 
 	const Vector3 Vector3::Zero = Vector3(0.0, 0.0, 0.0);
@@ -182,7 +182,7 @@ namespace Coco
 
 	double Vector3::GetLengthSquared() const
 	{
-		return this->X * this->X + this->Y * this->Y + this->Z * this->Z;
+		return X * X + Y * Y + Z * Z;
 	}
 
 	double Vector3::GetLength() const
@@ -193,9 +193,9 @@ namespace Coco
 	void Vector3::Normalize(bool safe)
 	{
 		if (safe && 
-			Math::Approximately(this->X, 0.0) && 
-			Math::Approximately(this->Y, 0.0) && 
-			Math::Approximately(this->Z, 0.0))
+			Math::Approximately(X, 0.0) && 
+			Math::Approximately(Y, 0.0) && 
+			Math::Approximately(Z, 0.0))
 			return;
 
 		const double length = GetLength();
@@ -213,13 +213,13 @@ namespace Coco
 
 	bool Vector3::Equals(const Vector3& other, double tolerance) const
 	{
-		if(!Math::Approximately(this->X, other.X, tolerance))
+		if(!Math::Approximately(X, other.X, tolerance))
 			return false;
 
-		if (!Math::Approximately(this->Y, other.Y, tolerance))
+		if (!Math::Approximately(Y, other.Y, tolerance))
 			return false;
 
-		if (!Math::Approximately(this->Z, other.Z, tolerance))
+		if (!Math::Approximately(Z, other.Z, tolerance))
 			return false;
 
 		return true;
@@ -228,53 +228,53 @@ namespace Coco
 	double Vector3::Dot(const Vector3& other) const
 	{
 		double p = 0.0;
-		p += this->X * other.X;
-		p += this->Y * other.Y;
-		p += this->Z * other.Z;
+		p += X * other.X;
+		p += Y * other.Y;
+		p += Z * other.Z;
 		return p;
 	}
 
 	Vector3 Vector3::Cross(const Vector3& other) const
 	{
 		return Vector3(
-			this->Y * other.Z - this->Z * other.Y, 
-			this->Z * other.X - this->X * other.Z, 
-			this->X * other.Y - this->Y * other.X);
+			Y * other.Z - Z * other.Y, 
+			Z * other.X - X * other.Z, 
+			X * other.Y - Y * other.X);
 	}
 
 	Vector3 Vector3::operator+(const Vector3 & other) const
 	{
-		return Vector3(this->X + other.X, this->Y + other.Y, this->Z + other.Z);
+		return Vector3(X + other.X, Y + other.Y, Z + other.Z);
 	}
 
 	Vector3 Vector3::operator-(const Vector3& other) const
 	{
-		return Vector3(this->X - other.X, this->Y - other.Y, this->Z - other.Z);
+		return Vector3(X - other.X, Y - other.Y, Z - other.Z);
 	}
 
 	Vector3 Vector3::operator*(double scalar) const
 	{
-		return Vector3(this->X * scalar, this->Y * scalar, this->Z * scalar);
+		return Vector3(X * scalar, Y * scalar, Z * scalar);
 	}
 
 	Vector3 Vector3::operator*(const Vector3& other) const
 	{
-		return Vector3(this->X * other.X, this->Y * other.Y, this->Z * other.Z);
+		return Vector3(X * other.X, Y * other.Y, Z * other.Z);
 	}
 
 	Vector3 Vector3::operator/(double divisor) const
 	{
-		return Vector3(this->X / divisor, this->Y / divisor, this->Z / divisor);
+		return Vector3(X / divisor, Y / divisor, Z / divisor);
 	}
 
 	Vector3 Vector3::operator/(const Vector3& other) const
 	{
-		return Vector3(this->X / other.X, this->Y / other.Y, this->Z / other.Z);
+		return Vector3(X / other.X, Y / other.Y, Z / other.Z);
 	}
 
 	Vector3 Vector3::operator-() const
 	{
-		return Vector3(-this->X, -this->Y, -this->Z);
+		return Vector3(-X, -Y, -Z);
 	}
 
 	const Vector4 Vector4::Zero = Vector4(0.0, 0.0, 0.0, 0.0);
@@ -300,7 +300,7 @@ namespace Coco
 
 	double Vector4::GetLengthSquared() const
 	{
-		return this->X * this->X + this->Y * this->Y + this->Z * this->Z + this->W * this->W;
+		return X * X + Y * Y + Z * Z + W * W;
 	}
 
 	double Vector4::GetLength() const
@@ -311,17 +311,17 @@ namespace Coco
 	void Vector4::Normalize(bool safe)
 	{
 		if (safe && 
-			Math::Approximately(this->X, 0.0) && 
-			Math::Approximately(this->Y, 0.0) && 
-			Math::Approximately(this->Z, 0.0) && 
-			Math::Approximately(this->W, 0.0))
+			Math::Approximately(X, 0.0) && 
+			Math::Approximately(Y, 0.0) && 
+			Math::Approximately(Z, 0.0) && 
+			Math::Approximately(W, 0.0))
 			return;
 
 		const double length = GetLength();
-		this->X /= length;
-		this->Y /= length;
-		this->Z /= length;
-		this->W /= length;
+		X /= length;
+		Y /= length;
+		Z /= length;
+		W /= length;
 	}
 
 	Vector4 Vector4::Normalized(bool safe) const
@@ -334,40 +334,40 @@ namespace Coco
 	double Vector4::Dot(const Vector4& other) const
 	{
 		double p = 0.0;
-		p += this->X * other.X;
-		p += this->Y * other.Y;
-		p += this->Z * other.Z;
-		p += this->W * other.W;
+		p += X * other.X;
+		p += Y * other.Y;
+		p += Z * other.Z;
+		p += W * other.W;
 		return p;
 	}
 
 	Vector4 Vector4::operator+(const Vector4 & other) const
 	{
-		return Vector4(this->X + other.X, this->Y + other.Y, this->Z + other.Z, this->W + other.W);
+		return Vector4(X + other.X, Y + other.Y, Z + other.Z, W + other.W);
 	}
 
 	Vector4 Vector4::operator-(const Vector4& other) const
 	{
-		return Vector4(this->X - other.X, this->Y - other.Y, this->Z - other.Z, this->W - other.W);
+		return Vector4(X - other.X, Y - other.Y, Z - other.Z, W - other.W);
 	}
 
 	Vector4 Vector4::operator*(double scalar) const
 	{
-		return Vector4(this->X * scalar, this->Y * scalar, this->Z * scalar, this->W * scalar);
+		return Vector4(X * scalar, Y * scalar, Z * scalar, W * scalar);
 	}
 
 	Vector4 Vector4::operator*(const Vector4& other) const
 	{
-		return Vector4(this->X * other.X, this->Y * other.Y, this->Z * other.Z, this->W * other.W);
+		return Vector4(X * other.X, Y * other.Y, Z * other.Z, W * other.W);
 	}
 
 	Vector4 Vector4::operator/(double divisor) const
 	{
-		return Vector4(this->X / divisor, this->Y / divisor, this->Z / divisor, this->W / divisor);
+		return Vector4(X / divisor, Y / divisor, Z / divisor, W / divisor);
 	}
 
 	Vector4 Vector4::operator/(const Vector4& other) const
 	{
-		return Vector4(this->X / other.X, this->Y / other.Y, this->Z / other.Z, this->W / other.W);
+		return Vector4(X / other.X, Y / other.Y, Z / other.Z, W / other.W);
 	}
 }
