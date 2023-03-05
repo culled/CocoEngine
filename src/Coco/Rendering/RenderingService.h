@@ -33,6 +33,12 @@ namespace Coco::Rendering
         Managed<GraphicsPresenter> CreatePresenter() const { return _graphics->CreatePresenter(); }
 
         /// <summary>
+        /// Gets the current graphics platform
+        /// </summary>
+        /// <returns>The current graphics platform</returns>
+        GraphicsPlatform* GetPlatform() const { return _graphics.get(); }
+
+        /// <summary>
         /// Sets the default render pipeline to use
         /// </summary>
         /// <param name="pipeline">The default render pipeline to use</param>
