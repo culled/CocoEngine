@@ -9,6 +9,8 @@ project "CocoSandbox"
     targetdir "%{OutputDir.bin}%{prj.name}"
     objdir "%{OutputDir.obj}%{prj.name}"
 
+    TargetDir = "%{OutputDir.bin}%{prj.name}\\"
+
     files
     {
         "src/**.h",
@@ -23,7 +25,6 @@ project "CocoSandbox"
     links
     {
         "Coco",
-        --"SDL2.lib",
     }
 
     filter "options:vulkan-enabled"
@@ -42,7 +43,25 @@ project "CocoSandbox"
     filter "system:windows"
         postbuildcommands
         {
-            --"xcopy /D /Y ..\\NovaEngine\\vendor\\SDL2\\lib\\x64\\SDL2.dll ..\\bin\\" .. outputdir .. "%{prj.name}\\SDL2.dll"
+            "echo Copying assets to %{TargetDir}assets...", 
+            "xcopy %{AssetsDir} %{TargetDir}assets /h /i /c /k /e /r /y",
+            "echo Assets copied"
+        }
+        
+
+    filter {"system:windows", "options:vulkan-enabled"}
+        -- TEMPORARY
+        postbuildcommands
+        {
+            "if not exist %{TargetDir}assets\\shaders mkdir %{TargetDir}assets\\shaders",
+            "echo Compiling shaders...", 
+            "echo %{AssetsDir}shaders\\built-in\\ObjectShader.vert.glsl -> %{TargetDir}assets\\shaders\\built-in\\ObjectShader.vert.spv",
+            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=vert %{AssetsDir}shaders\\built-in\\ObjectShader.vert.glsl -o %{TargetDir}assets\\shaders\\built-in\\ObjectShader.vert.spv",
+            "if %ERRORLEVEL% NEQ 0 (echo Error compiling vertex shader: %ERRORLEVEL% && exit)",
+            "echo %{AssetsDir}shaders\\built-in\\ObjectShader.frag.glsl -> %{TargetDir}assets\\shaders\\built-in\\ObjectShader.frag.spv",
+            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=frag %{AssetsDir}shaders\\built-in\\ObjectShader.frag.glsl -o %{TargetDir}assets\\shaders\\built-in\\ObjectShader.frag.spv",
+            "if %ERRORLEVEL% NEQ 0 (echo Error compiling fragment shader: %ERRORLEVEL% && exit)",
+            "echo Shaders compiled"
         }
 
     filter "configurations:Debug"

@@ -27,7 +27,6 @@ project "Coco"
     includedirs
     {
         "%{IncludeDir.Coco}",
-        --"%{IncludeDir.sdl}",
     }
 
     links

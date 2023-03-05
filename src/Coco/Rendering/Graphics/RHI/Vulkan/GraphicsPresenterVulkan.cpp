@@ -325,7 +325,7 @@ namespace Coco::Rendering
 			queueFamilyIndices.Add(static_cast<uint32_t>(presentQueue->QueueFamily));
 		}
 
-		createInfo.queueFamilyIndexCount = queueFamilyIndices.Count();
+		createInfo.queueFamilyIndexCount = static_cast<uint32_t>(queueFamilyIndices.Count());
 		createInfo.pQueueFamilyIndices = queueFamilyIndices.Data();
 
 		VkResult result = vkCreateSwapchainKHR(_device->GetDevice(), &createInfo, nullptr, &_swapchain);

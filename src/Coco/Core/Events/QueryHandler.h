@@ -19,10 +19,10 @@ namespace Coco
 		using HandlerFunctionType = std::function<ReturnType(Args...)>;
 
 	private:
-		static std::atomic_uint _handlerIdCounter;
+		static std::atomic<uint32_t> _handlerIdCounter;
 
 		HandlerFunctionType _handler;
-		unsigned int _id;
+		uint32_t _id;
 		bool _isBlocked = false;
 
 	public:

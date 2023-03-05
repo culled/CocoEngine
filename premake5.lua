@@ -7,12 +7,6 @@ workspace "CocoEngine"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}\\"
 
--- Option for enabling SDL
---newoption {
---    trigger = "sdl-enabled",
---    description = "Include SDL in the engine build"
---}
-
 -- Option for enabling Vulkan
 newoption {
     trigger = "vulkan-enabled",
@@ -28,7 +22,6 @@ newoption {
 
 -- Library directories relative to the workspace
 LibraryDir = {}
---LibraryDir["sdl"] = "%{wks.location}\\vendor\\SDL2\\lib\\x64\\"
 
 -- Output directories relative to the workspace
 OutputDir = {}
@@ -40,13 +33,16 @@ IncludeDir = {}
 IncludeDir["Coco"] = "%{wks.location}\\src\\"
 --IncludeDir["imgui"] = "%{wks.location}\\vendor\\ImGui\\"
 
---filter "options:sdl-enabled"
---    IncludeDir["sdl"] = "%{wks.location}\\vendor\\SDL2\\include\\"
+-- Assets directory
+AssetsDir = "%{wks.location}\\assets\\"
+
+-- External program directories
+BinDir = {}
 
 filter "options:vulkan-enabled"
     IncludeDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Include\\"
     LibraryDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Lib\\"
---    IncludeDir["volk"] = "%{wks.location}\\vendor\\volk\\"
+    BinDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Bin\\"
 
 -- Deactivate the current filter
 filter {}

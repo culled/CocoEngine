@@ -104,4 +104,22 @@ namespace Coco::Rendering
 			return VK_COLOR_SPACE_MAX_ENUM_KHR;
 		}
 	}
+	VkShaderStageFlags ToVkShaderStageFlags(ShaderStageType stage)
+	{
+		switch (stage)
+		{
+		case ShaderStageType::Vertex:
+			return VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
+		case ShaderStageType::Tesselation:
+			return VkShaderStageFlagBits::VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		case ShaderStageType::Geometry:
+			return VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
+		case ShaderStageType::Compute:
+			return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
+		case ShaderStageType::Fragment:
+			return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
+		default:
+			return 0;
+		}
+	}
 }

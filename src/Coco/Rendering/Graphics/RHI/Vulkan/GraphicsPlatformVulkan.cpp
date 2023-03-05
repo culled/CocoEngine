@@ -93,9 +93,9 @@ namespace Coco::Rendering
 		VkInstanceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.pApplicationInfo = &appInfo;
-		createInfo.enabledExtensionCount = requestedExtensionNames.Count();
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(requestedExtensionNames.Count());
 		createInfo.ppEnabledExtensionNames = requestedExtensionNames.Data();
-		createInfo.enabledLayerCount = requestedLayerNames.Count();
+		createInfo.enabledLayerCount = static_cast<uint32_t>(requestedLayerNames.Count());
 		createInfo.ppEnabledLayerNames = requestedLayerNames.Data();
 
 		if (_usingValidationLayers)

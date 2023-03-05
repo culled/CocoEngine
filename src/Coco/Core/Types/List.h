@@ -18,7 +18,7 @@ namespace Coco
 		using ConstIterator = std::vector<T>::const_iterator;
 
 		List() = default;
-		List(int initialSize) : _list(initialSize) {}
+		List(uint64_t initialSize) : _list(initialSize) {}
 
 		/// <summary>
 		/// Adds an item to this list
@@ -43,7 +43,7 @@ namespace Coco
 		/// </summary>
 		/// <param name="index">The index that the item will be insterted at</param>
 		/// <param name="item">The item to insert</param>
-		void Insert(int index, T&& item)
+		void Insert(uint64_t index, T&& item)
 		{
 			if (index < 0 || index > Count())
 				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
@@ -56,7 +56,7 @@ namespace Coco
 		/// </summary>
 		/// <param name="index">The index that the item will be insterted at</param>
 		/// <param name="item">The item to insert</param>
-		void Insert(int index, const T& item)
+		void Insert(uint64_t index, const T& item)
 		{
 			if (index < 0 || index > Count())
 				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
@@ -104,14 +104,11 @@ namespace Coco
 		/// Gets the number of items in this list
 		/// </summary>
 		/// <returns>The number of items in this list</returns>
-		int Count() const
-		{
-			return static_cast<int>(_list.size());
-		}
+		uint64_t Count() const { return _list.size(); }
 
-		T& operator[](int index)
+		T& operator[](uint64_t index)
 		{
-			if (index < 0 || index > Count() - 1)
+			if (index > Count() - 1)
 			{
 				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
 			}
@@ -119,9 +116,9 @@ namespace Coco
 			return _list[index];
 		}
 
-		const T& operator[](int index) const
+		const T& operator[](uint64_t index) const
 		{
-			if (index < 0 || index > Count() - 1)
+			if (index > Count() - 1)
 			{
 				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
 			}
@@ -133,7 +130,7 @@ namespace Coco
 		/// Resizes this list to be the given size
 		/// </summary>
 		/// <param name="newSize">The new size of this list</param>
-		void Resize(int newSize)
+		void Resize(uint64_t newSize)
 		{
 			_list.resize(newSize);
 		}

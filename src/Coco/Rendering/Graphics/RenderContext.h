@@ -5,6 +5,7 @@
 #include <Coco/Core/Types/Vector.h>
 
 #include "RenderView.h"
+#include "Shader.h"
 
 namespace Coco::Rendering
 {
@@ -47,5 +48,7 @@ namespace Coco::Rendering
 		/// Restores the viewport to the size and offset specified by the RenderView
 		/// </summary>
 		void RestoreViewport();
+
+		//virtual void UseShader(const Shader* shader) = 0;
 	};
 }

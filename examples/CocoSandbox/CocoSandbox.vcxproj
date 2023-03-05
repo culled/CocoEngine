@@ -70,6 +70,20 @@
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.216.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>echo Copying assets to $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets...
+xcopy $(SolutionDir)\assets\ $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets /h /i /c /k /e /r /y
+echo Assets copied
+if not exist $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders mkdir $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders
+echo Compiling shaders...
+echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -&gt; $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.vert.spv
+C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=vert $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -o $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.vert.spv
+if %ERRORLEVEL% NEQ 0 (echo Error compiling vertex shader: %ERRORLEVEL% &amp;&amp; exit)
+echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -&gt; $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.frag.spv
+C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=frag $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -o $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.frag.spv
+if %ERRORLEVEL% NEQ 0 (echo Error compiling fragment shader: %ERRORLEVEL% &amp;&amp; exit)
+echo Shaders compiled</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Win64|x64'">
     <ClCompile>
@@ -92,6 +106,20 @@
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.216.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>echo Copying assets to $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets...
+xcopy $(SolutionDir)\assets\ $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets /h /i /c /k /e /r /y
+echo Assets copied
+if not exist $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders mkdir $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders
+echo Compiling shaders...
+echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -&gt; $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.vert.spv
+C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=vert $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -o $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.vert.spv
+if %ERRORLEVEL% NEQ 0 (echo Error compiling vertex shader: %ERRORLEVEL% &amp;&amp; exit)
+echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -&gt; $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.frag.spv
+C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=frag $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -o $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.frag.spv
+if %ERRORLEVEL% NEQ 0 (echo Error compiling fragment shader: %ERRORLEVEL% &amp;&amp; exit)
+echo Shaders compiled</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\CocoSandboxApplication.h" />

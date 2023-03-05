@@ -88,9 +88,9 @@ namespace Coco::Rendering
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.pCommandBuffers = &_commandBuffer;
-		submitInfo.waitSemaphoreCount = vulkanWaitSemaphores.Count();
+		submitInfo.waitSemaphoreCount = static_cast<uint32_t>(vulkanWaitSemaphores.Count());
 		submitInfo.pWaitSemaphores = vulkanWaitSemaphores.Data();
-		submitInfo.signalSemaphoreCount = vulkanSignalSemaphores.Count();
+		submitInfo.signalSemaphoreCount = static_cast<uint32_t>(vulkanSignalSemaphores.Count());
 		submitInfo.pSignalSemaphores = vulkanSignalSemaphores.Data();
 
 		AssertVkResult(vkQueueSubmit(_pool->GetQueue(), 1, &submitInfo, vulkanSignalFence));

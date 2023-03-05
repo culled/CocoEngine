@@ -105,11 +105,11 @@ namespace Coco::Rendering
 
 			VkSubpassDescription subpassDescription = {};
 			subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-			subpassDescription.colorAttachmentCount = subpassInfos[i].ColorAttachmentReferences.Count();
+			subpassDescription.colorAttachmentCount = static_cast<uint32_t>(subpassInfos[i].ColorAttachmentReferences.Count());
 			subpassDescription.pColorAttachments = subpassInfos[i].ColorAttachmentReferences.Data();
 			subpassDescription.pDepthStencilAttachment = subpassInfos[i].DepthStencilAttachmentReference.has_value() ? 
 				&subpassInfos[i].DepthStencilAttachmentReference.value() : VK_NULL_HANDLE;
-			subpassDescription.preserveAttachmentCount = subpassInfos[i].PreserveAttachments.Count();
+			subpassDescription.preserveAttachmentCount = static_cast<uint32_t>(subpassInfos[i].PreserveAttachments.Count());
 			subpassDescription.pPreserveAttachments = subpassInfos[i].PreserveAttachments.Data();
 			subpassDescription.inputAttachmentCount = 0; // TODO
 			subpassDescription.pResolveAttachments = nullptr; // TODO

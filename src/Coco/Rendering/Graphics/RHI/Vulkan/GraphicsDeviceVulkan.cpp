@@ -62,10 +62,10 @@ namespace Coco::Rendering
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		createInfo.pQueueCreateInfos = queueCreateInfos.Data();
-		createInfo.queueCreateInfoCount = queueCreateInfos.Count();
+		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.Count());
 		createInfo.pEnabledFeatures = &deviceFeatures;
 		createInfo.ppEnabledExtensionNames = enabledExtensions.Data();
-		createInfo.enabledExtensionCount = enabledExtensions.Count();
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions.Count());
 		createInfo.enabledLayerCount = 0;
 		
 		AssertVkResult(vkCreateDevice(physicalDevice, &createInfo, nullptr, &_device));

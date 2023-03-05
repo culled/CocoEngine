@@ -4,6 +4,7 @@
 #include <Coco/Core/Types/Version.h>
 #include <Coco/Rendering/Graphics/GraphicsPlatformTypes.h>
 #include <Coco/Rendering/Graphics/ImageTypes.h>
+#include <Coco/Rendering/Graphics/ShaderTypes.h>
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -70,4 +71,11 @@ namespace Coco::Rendering
 	/// <param name="colorSpace">The color space</param>
 	/// <returns>The converted VkColorSpaceKHR</returns>
 	VkColorSpaceKHR ToVkColorSpace(ColorSpace colorSpace);
+
+	/// <summary>
+	/// Converts a ShaderStageType to a VkShaderStageFlags
+	/// </summary>
+	/// <param name="stage">The stage</param>
+	/// <returns>The converted VkShaderStageFlags</returns>
+	VkShaderStageFlags ToVkShaderStageFlags(ShaderStageType stage);
 }

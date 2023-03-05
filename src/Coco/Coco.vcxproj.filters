@@ -7,6 +7,9 @@
     <Filter Include="Core\Events">
       <UniqueIdentifier>{52201B74-BED5-9369-47CA-8D40B37E8A6D}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\IO">
+      <UniqueIdentifier>{153F7134-811E-F0CF-8A36-7BA6F6945631}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Core\Input">
       <UniqueIdentifier>{AD4E7BCD-9906-BD1A-020E-9676EEE4570B}</UniqueIdentifier>
     </Filter>
@@ -18,6 +21,9 @@
     </Filter>
     <Filter Include="Core\MainLoop">
       <UniqueIdentifier>{1CD92A02-8899-A638-51D4-EFB5BD53EB14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Math">
+      <UniqueIdentifier>{C7E5BF15-3350-748C-7C8E-2532E83752E1}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\Platform">
       <UniqueIdentifier>{42848203-AE44-FE39-777F-47B7E3FE4216}</UniqueIdentifier>
@@ -75,7 +81,19 @@
     <ClInclude Include="Core\Events\QueryHandler.h">
       <Filter>Core\Events</Filter>
     </ClInclude>
+    <ClInclude Include="Core\ExitCodes.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IO\File.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IO\FileTypes.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
     <ClInclude Include="Core\Input\InputService.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Input\InputTypes.h">
       <Filter>Core\Input</Filter>
     </ClInclude>
     <ClInclude Include="Core\Input\Keyboard.h">
@@ -102,10 +120,16 @@
     <ClInclude Include="Core\MainLoop\MainLoopTickListener.h">
       <Filter>Core\MainLoop</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Platform\IEnginePlatform.h">
-      <Filter>Core\Platform</Filter>
+    <ClInclude Include="Core\Math\Math.h">
+      <Filter>Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Math\Random.h">
+      <Filter>Core\Math</Filter>
     </ClInclude>
     <ClInclude Include="Core\Platform\EnginePlatformTypes.h">
+      <Filter>Core\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platform\IEnginePlatform.h">
       <Filter>Core\Platform</Filter>
     </ClInclude>
     <ClInclude Include="Core\Services\EngineService.h">
@@ -117,22 +141,34 @@
     <ClInclude Include="Core\Types\Array.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Types\Color.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
     <ClInclude Include="Core\Types\DateTime.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
     <ClInclude Include="Core\Types\Exceptions.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
-    <ClInclude Include="Core\ExitCodes.h">
+    <ClInclude Include="Core\Types\List.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Types\List.h">
+    <ClInclude Include="Core\Types\Map.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\Matrix.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
     <ClInclude Include="Core\Types\Optional.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Types\Quaternion.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
     <ClInclude Include="Core\Types\Ref.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\Set.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
     <ClInclude Include="Core\Types\Size.h">
@@ -145,6 +181,9 @@
       <Filter>Core\Types</Filter>
     </ClInclude>
     <ClInclude Include="Core\Types\Vector.h">
+      <Filter>Core\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types\Version.h">
       <Filter>Core\Types</Filter>
     </ClInclude>
     <ClInclude Include="Platforms\Windows\CoreWindows.h">
@@ -162,17 +201,98 @@
     <ClInclude Include="Rendering\Graphics\AttachmentDescription.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\Graphics\CommandBuffer.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\CommandBufferPool.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\GraphicsDevice.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\GraphicsFence.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="Rendering\Graphics\GraphicsPlatform.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\GraphicsPlatformTypes.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\GraphicsPresenter.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\GraphicsResource.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\GraphicsSemaphore.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\Image.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Graphics\ImageTypes.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\Graphics\ImageUtilities.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\PresenterSurfaceInitializationInfo.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\CommandBufferVulkan.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsDeviceVulkan.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsFenceVulkan.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsSemaphoreVulkan.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\ImageVulkan.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\RenderContextVulkan.h">
       <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanIncludes.h">
       <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanRenderCache.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanShader.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RenderContext.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RenderView.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\Shader.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\ShaderTypes.h">
+      <Filter>Rendering\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Pipeline\IRenderPass.h">
       <Filter>Rendering\Pipeline</Filter>
@@ -183,54 +303,21 @@
     <ClInclude Include="Rendering\Pipeline\RenderPipelineBinding.h">
       <Filter>Rendering\Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Graphics\RenderView.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\RenderingService.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Windowing\IWindowingPlatform.h">
+      <Filter>Windowing</Filter>
     </ClInclude>
     <ClInclude Include="Windowing\Window.h">
       <Filter>Windowing</Filter>
     </ClInclude>
-    <ClInclude Include="Windowing\IWindowingPlatform.h">
+    <ClInclude Include="Windowing\WindowTypes.h">
       <Filter>Windowing</Filter>
     </ClInclude>
     <ClInclude Include="Windowing\WindowingService.h">
       <Filter>Windowing</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Input\InputTypes.h" />
-    <ClInclude Include="Rendering\Graphics\GraphicsPlatformTypes.h" />
-    <ClInclude Include="Rendering\Graphics\GraphicsDevice.h" />
-    <ClInclude Include="Core\Types\Version.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsDeviceVulkan.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.h" />
-    <ClInclude Include="Core\Types\Set.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.h" />
-    <ClInclude Include="Windowing\WindowTypes.h" />
-    <ClInclude Include="Rendering\Graphics\GraphicsPresenter.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.h" />
-    <ClInclude Include="Rendering\Graphics\PresenterSurfaceInitializationInfo.h" />
-    <ClInclude Include="Rendering\Graphics\GraphicsResource.h" />
-    <ClInclude Include="Rendering\Graphics\Image.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\ImageVulkan.h" />
-    <ClInclude Include="Rendering\Graphics\GraphicsFence.h" />
-    <ClInclude Include="Rendering\Graphics\GraphicsSemaphore.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsFenceVulkan.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsSemaphoreVulkan.h" />
-    <ClInclude Include="Rendering\Graphics\RenderContext.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanRenderCache.h" />
-    <ClInclude Include="Core\Types\Map.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\RenderContextVulkan.h" />
-    <ClInclude Include="Rendering\Graphics\CommandBuffer.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\CommandBufferVulkan.h" />
-    <ClInclude Include="Rendering\Graphics\CommandBufferPool.h" />
-    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.h" />
-    <ClInclude Include="Rendering\Graphics\ImageUtilities.h" />
-    <ClInclude Include="Core\Types\Color.h" />
-    <ClInclude Include="Core\Types\Quaternion.h" />
-    <ClInclude Include="Core\Math\Math.h" />
-    <ClInclude Include="Core\Math\Random.h" />
-    <ClInclude Include="Core\Types\Matrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -238,6 +325,12 @@
     </ClCompile>
     <ClCompile Include="Core\Engine.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\IO\File.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\IO\FileTypes.cpp">
+      <Filter>Core\IO</Filter>
     </ClCompile>
     <ClCompile Include="Core\Input\InputService.cpp">
       <Filter>Core\Input</Filter>
@@ -263,16 +356,37 @@
     <ClCompile Include="Core\MainLoop\MainLoopTickListener.cpp">
       <Filter>Core\MainLoop</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Math\Math.cpp">
+      <Filter>Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Math\Random.cpp">
+      <Filter>Core\Math</Filter>
+    </ClCompile>
     <ClCompile Include="Core\Services\EngineServiceManager.cpp">
       <Filter>Core\Services</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Types\Color.cpp">
+      <Filter>Core\Types</Filter>
+    </ClCompile>
     <ClCompile Include="Core\Types\DateTime.cpp">
+      <Filter>Core\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Types\Matrix.cpp">
+      <Filter>Core\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Types\Quaternion.cpp">
+      <Filter>Core\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Types\Size.cpp">
       <Filter>Core\Types</Filter>
     </ClCompile>
     <ClCompile Include="Core\Types\TimeSpan.cpp">
       <Filter>Core\Types</Filter>
     </ClCompile>
     <ClCompile Include="Core\Types\Vector.cpp">
+      <Filter>Core\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Types\Version.cpp">
       <Filter>Core\Types</Filter>
     </ClCompile>
     <ClCompile Include="Platforms\Windows\EnginePlatformWindows.cpp">
@@ -287,11 +401,74 @@
     <ClCompile Include="Rendering\Graphics\AttachmentDescription.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Graphics\CommandBuffer.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\CommandBufferPool.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\GraphicsDevice.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="Rendering\Graphics\GraphicsPlatform.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Graphics\GraphicsResource.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\Image.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\ImageUtilities.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\CommandBufferVulkan.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsDeviceVulkan.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsFenceVulkan.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.cpp">
       <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsSemaphoreVulkan.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\ImageVulkan.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\RenderContextVulkan.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanRenderCache.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanShader.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RenderContext.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RenderView.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\Shader.cpp">
+      <Filter>Rendering\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Pipeline\RenderPipeline.cpp">
       <Filter>Rendering\Pipeline</Filter>
@@ -308,31 +485,5 @@
     <ClCompile Include="Windowing\WindowingService.cpp">
       <Filter>Windowing</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Graphics\GraphicsDevice.cpp" />
-    <ClCompile Include="Core\Types\Version.cpp" />
-    <ClCompile Include="Core\Types\Size.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsDeviceVulkan.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.cpp" />
-    <ClCompile Include="Rendering\Graphics\GraphicsResource.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\ImageVulkan.cpp" />
-    <ClCompile Include="Rendering\Graphics\Image.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsFenceVulkan.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsSemaphoreVulkan.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanRenderCache.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\RenderContextVulkan.cpp" />
-    <ClCompile Include="Rendering\Graphics\RenderContext.cpp" />
-    <ClCompile Include="Rendering\Graphics\CommandBuffer.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\CommandBufferVulkan.cpp" />
-    <ClCompile Include="Rendering\Graphics\CommandBufferPool.cpp" />
-    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.cpp" />
-    <ClCompile Include="Rendering\Graphics\ImageUtilities.cpp" />
-    <ClCompile Include="Rendering\Graphics\RenderView.cpp" />
-    <ClCompile Include="Core\Types\Color.cpp" />
-    <ClCompile Include="Core\Math\Math.cpp" />
-    <ClCompile Include="Core\Math\Random.cpp" />
-    <ClCompile Include="Core\Types\Matrix.cpp" />
-    <ClCompile Include="Core\Types\Quaternion.cpp" />
   </ItemGroup>
 </Project>
