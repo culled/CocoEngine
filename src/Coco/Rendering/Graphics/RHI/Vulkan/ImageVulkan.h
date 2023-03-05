@@ -25,8 +25,6 @@ namespace Coco::Rendering
 		ImageVulkan(GraphicsDeviceVulkan* device, ImageDescription description, VkImage image, VkImageView nativeView, bool isManagedInternally = false);
 		virtual ~ImageVulkan() override;
 
-		virtual void* GetResource() const override { return GetImage(); }
-
 		/// <summary>
 		/// Gets the VkImage object
 		/// </summary>

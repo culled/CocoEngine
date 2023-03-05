@@ -26,12 +26,6 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>The owning GraphicsDevice</returns>
 		GraphicsDevice* GetOwningDevice() const { return OwningDevice; }
-
-		/// <summary>
-		/// Gets the raw resource
-		/// </summary>
-		/// <returns>A pointer to the raw resource</returns>
-		virtual void* GetResource() const = 0;
 	};
 
 	/// <summary>
@@ -49,8 +43,6 @@ namespace Coco::Rendering
 	public:
 		ManagedGraphicsResource(GraphicsDevice* owningDevice, T* resource) : GraphicsResource(owningDevice), Resource(resource) {}
 		virtual ~ManagedGraphicsResource() override { Resource.reset(); }
-
-		virtual void* GetResource() const override { return Resource.get(); }
 
 		/// <summary>
 		/// Gets the raw resource
