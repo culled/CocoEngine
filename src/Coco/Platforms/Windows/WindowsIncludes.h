@@ -11,6 +11,7 @@
 #define NODRAWTEXT
 #define NOCTLMGR
 #define NOFLATSBAPIS
+#define NOSERVICE
 
 // Use unicode version of functions
 #ifndef UNICODE
