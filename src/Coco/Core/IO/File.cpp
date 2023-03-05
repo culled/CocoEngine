@@ -13,13 +13,13 @@ namespace Coco
 		if (openModes == FileModes::None)
 			throw Exception("Invalid open mode");
 
-		if (openModes & FileModes::Read)
+		if ((openModes & FileModes::Read) > 0)
 			mode |= std::ios::in;
 
-		if (openModes & FileModes::Write)
+		if ((openModes & FileModes::Write) > 0)
 			mode |= std::ios::out;
 
-		if (openModes & FileModes::Binary)
+		if ((openModes & FileModes::Binary) > 0)
 			mode |= std::ios::binary;
 
 		_handle.open(path, mode);
@@ -30,8 +30,8 @@ namespace Coco
 			throw Exception(err.c_str());
 		}
 
-		// By default, have all write operations start at the end of the file
-		_handle.seekp(0, std::ios::end);
+		// By default, have all operations start at the beginning of the file
+		_handle.seekg(0, std::ios::beg);
 
 		_path = path;
 	}
@@ -57,7 +57,7 @@ namespace Coco
 
 	List<uint8_t> File::ReadAllBytes(const string& path)
 	{
-		File f = Open(path, FileModes::Read);
+		File f = Open(path, FileModes::Read | FileModes::Binary);
 		List<uint8_t> bytes = f.ReadToEnd();
 		f.Close();
 		return bytes;
@@ -133,7 +133,7 @@ namespace Coco
 
 		_handle.seekg(current);
 
-		return ReadText(length);
+		return ReadText(GetSize());
 	}
 
 	void File::WriteText(const string& text)
@@ -159,42 +159,21 @@ namespace Coco
 		WriteText(writeText);
 	}
 
-	void File::SeekWrite(uint64_t position)
-	{
-		CheckHandle();
-
-		_handle.seekp(position);
-	}
-
-	void File::SeekWriteRelative(int64_t positionOffset)
-	{
-		CheckHandle();
-
-		_handle.seekp(positionOffset, std::ios::cur);
-	}
-
-	uint64_t File::GetWritePosition()
-	{
-		CheckHandle();
-
-		return _handle.tellp();
-	}
-
-	void File::SeekRead(uint64_t position)
+	void File::Seek(uint64_t position)
 	{
 		CheckHandle();
 
 		_handle.seekg(position);
 	}
 
-	void File::SeekReadRelative(int64_t positionOffset)
+	void File::SeekRelative(int64_t positionOffset)
 	{
 		CheckHandle();
 
 		_handle.seekg(positionOffset, std::ios::cur);
 	}
 
-	uint64_t File::GetReadPosition()
+	uint64_t File::GetPosition()
 	{
 		CheckHandle();
 
@@ -207,15 +186,12 @@ namespace Coco
 
 		std::streampos current = _handle.tellg();
 
-		_handle.seekg(0, std::ios::beg);
-		std::streampos start = _handle.tellg();
-
 		_handle.seekg(0, std::ios::end);
-		std::streampos end = _handle.tellg();
+		uint64_t length = _handle.tellg();
 
 		_handle.seekg(current);
 
-		return end - start;
+		return length;
 	}
 
 	void File::Flush()

@@ -2,9 +2,9 @@
 
 namespace Coco
 {
-	int operator&(FileModes a, FileModes b)
+	FileModes operator&(FileModes a, FileModes b)
 	{
-		return static_cast<int>(a) & static_cast<int>(b);
+		return static_cast<FileModes>(static_cast<int>(a) & static_cast<int>(b));
 	}
 
 	void operator&=(FileModes& a, FileModes b)
@@ -12,13 +12,18 @@ namespace Coco
 		a = static_cast<FileModes>(a & b);
 	}
 
-	int operator|(FileModes a, FileModes b)
+	FileModes operator|(FileModes a, FileModes b)
 	{
-		return static_cast<int>(a) | static_cast<int>(b);
+		return static_cast<FileModes>(static_cast<int>(a) | static_cast<int>(b));
 	}
 
 	void operator|=(FileModes& a, FileModes b)
 	{
 		a = static_cast<FileModes>(a | b);
+	}
+
+	bool operator>(FileModes a, int b)
+	{
+		return static_cast<int>(a) > b;
 	}
 }

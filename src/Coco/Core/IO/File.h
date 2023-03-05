@@ -116,40 +116,22 @@ namespace Coco
 		void WriteLine(const string& text);
 
 		/// <summary>
-		/// Seeks the writing position to an absolute position within the file
+		/// Seeks the position to an absolute position within the file
 		/// </summary>
-		/// <param name="position">The position (in bytes) to seek the writing position to</param>
-		void SeekWrite(uint64_t position);
+		/// <param name="position">The position (in bytes) to seek the position to</param>
+		void Seek(uint64_t position);
 
 		/// <summary>
-		/// Seeks the writing position a number of bytes before or after its current position
+		/// Seeks the position a number of bytes before or after its current position
 		/// </summary>
-		/// <param name="positionOffset">The number of bytes to move the writing position</param>
-		void SeekWriteRelative(int64_t positionOffset);
+		/// <param name="positionOffset">The number of bytes to move the position</param>
+		void SeekRelative(int64_t positionOffset);
 
 		/// <summary>
-		/// Gets the current write position within the file
+		/// Gets the current position within the file
 		/// </summary>
-		/// <returns>The current write position</returns>
-		uint64_t GetWritePosition();
-
-		/// <summary>
-		/// Seeks the reading position to an absolute position within the file
-		/// </summary>
-		/// <param name="position">The position (in bytes) to seek the reading position to</param>
-		void SeekRead(uint64_t position);
-
-		/// <summary>
-		/// Seeks the reading position a number of bytes before or after its current position
-		/// </summary>
-		/// <param name="positionOffset">The number of bytes to move the reading position</param>
-		void SeekReadRelative(int64_t positionOffset);
-
-		/// <summary>
-		/// Gets the current read position within the file
-		/// </summary>
-		/// <returns>The current read position</returns>
-		uint64_t GetReadPosition();
+		/// <returns>The current position</returns>
+		uint64_t GetPosition();
 
 		/// <summary>
 		/// Gets the size of this file

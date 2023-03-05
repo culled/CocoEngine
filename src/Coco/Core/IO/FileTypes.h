@@ -13,8 +13,10 @@ namespace Coco
 		Binary = 0x04,
 	};
 
-	int operator&(FileModes a, FileModes b);
+	FileModes operator&(FileModes a, FileModes b);
 	void operator&=(FileModes& a, FileModes b);
-	int operator|(FileModes a, FileModes b);
+	FileModes operator|(FileModes a, FileModes b);
 	void operator|=(FileModes& a, FileModes b);
+
+	bool operator>(FileModes a, int b);
 }
