@@ -5,7 +5,7 @@
 
 namespace Coco::Rendering
 {
-	VulkanShader::VulkanShader(GraphicsDeviceVulkan* device, const Shader* shader) : GraphicsResource(device),
+	VulkanShader::VulkanShader(GraphicsDeviceVulkan* device, Shader* shader) : GraphicsResource(device),
 		_device(device)
 	{
 		Map<ShaderStageType, string> shaderStages = shader->GetStageSources();

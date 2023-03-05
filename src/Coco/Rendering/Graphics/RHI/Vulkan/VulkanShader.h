@@ -33,7 +33,7 @@ namespace Coco::Rendering
 		//VkPipelineLayout _pipelineLayout;
 
 	public:
-		VulkanShader(GraphicsDeviceVulkan* device, const Shader* shader);
+		VulkanShader(GraphicsDeviceVulkan* device, Shader* shader);
 		~VulkanShader();
 
 	private:
