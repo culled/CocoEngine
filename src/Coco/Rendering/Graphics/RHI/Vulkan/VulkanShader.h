@@ -17,7 +17,7 @@ namespace Coco::Rendering
 	struct VulkanShaderStage
 	{
 		ShaderStageType StageType;
-		VkShaderModule ShaderModule;
+		VkShaderModule ShaderModule = nullptr;
 		VkShaderModuleCreateInfo ShaderModuleCreateInfo;
 		VkPipelineShaderStageCreateInfo ShaderStageCreateInfo;
 	};

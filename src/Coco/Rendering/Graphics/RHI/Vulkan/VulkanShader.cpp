@@ -15,6 +15,7 @@ namespace Coco::Rendering
 			try
 			{
 				VulkanShaderStage stage = CreateShaderStage(kvp.first, kvp.second);
+				_shaderStages.Add(stage);
 			}
 			catch (Exception& ex)
 			{
@@ -26,6 +27,13 @@ namespace Coco::Rendering
 
 	VulkanShader::~VulkanShader()
 	{
+		for (const VulkanShaderStage& stage : _shaderStages)
+		{
+			if (stage.ShaderModule != nullptr)
+			{
+				vkDestroyShaderModule(_device->GetDevice(), stage.ShaderModule, nullptr);
+			}
+		}
 	}
 
 	VulkanShaderStage VulkanShader::CreateShaderStage(ShaderStageType stage, const string& file)
