@@ -115,6 +115,7 @@
     <ClInclude Include="Core\Logging\LogSink.h" />
     <ClInclude Include="Core\Logging\Logger.h" />
     <ClInclude Include="Core\Logging\Sinks\ConsoleLogSink.h" />
+    <ClInclude Include="Core\Logging\Sinks\FileLogSink.h" />
     <ClInclude Include="Core\MainLoop\MainLoop.h" />
     <ClInclude Include="Core\MainLoop\MainLoopTickListener.h" />
     <ClInclude Include="Core\Math\Math.h" />
@@ -195,6 +196,7 @@
     <ClCompile Include="Core\Logging\LogSink.cpp" />
     <ClCompile Include="Core\Logging\Logger.cpp" />
     <ClCompile Include="Core\Logging\Sinks\ConsoleLogSink.cpp" />
+    <ClCompile Include="Core\Logging\Sinks\FileLogSink.cpp" />
     <ClCompile Include="Core\MainLoop\MainLoop.cpp" />
     <ClCompile Include="Core\MainLoop\MainLoopTickListener.cpp" />
     <ClCompile Include="Core\Math\Math.cpp" />

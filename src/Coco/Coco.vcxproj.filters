@@ -318,6 +318,7 @@
     <ClInclude Include="Windowing\WindowingService.h">
       <Filter>Windowing</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Logging\Sinks\FileLogSink.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -485,5 +486,6 @@
     <ClCompile Include="Windowing\WindowingService.cpp">
       <Filter>Windowing</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Logging\Sinks\FileLogSink.cpp" />
   </ItemGroup>
 </Project>
