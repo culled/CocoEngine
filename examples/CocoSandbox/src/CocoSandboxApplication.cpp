@@ -3,6 +3,7 @@
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Logging/Sinks/ConsoleLogSink.h>
+#include <Coco/Core/Logging/Sinks/FileLogSink.h>
 #include <Coco/Core/Input/InputService.h>
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/RenderingService.h>
@@ -19,6 +20,10 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	Ref<Logging::ConsoleLogSink> consoleSink = CreateRef<Logging::ConsoleLogSink>(Logging::LogLevel::Trace);
 	Logger->AddSink(consoleSink);
 	engine->GetLogger()->AddSink(consoleSink);
+
+	Ref<Logging::FileLogSink> fileSink = CreateRef<Logging::FileLogSink>(Logging::LogLevel::Trace, "coco.log");
+	Logger->AddSink(fileSink);
+	engine->GetLogger()->AddSink(fileSink);
 
 	_inputService = engine->GetServiceManager()->CreateService<Input::InputService>();
 
