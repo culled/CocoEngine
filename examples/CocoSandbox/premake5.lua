@@ -46,8 +46,7 @@ project "CocoSandbox"
             "echo Copying assets to %{TargetDir}assets...", 
             "xcopy %{AssetsDir} %{TargetDir}assets /h /i /c /k /e /r /y",
             "echo Assets copied"
-        }
-        
+        }  
 
     filter {"system:windows", "options:vulkan-enabled"}
         -- TEMPORARY
@@ -55,11 +54,11 @@ project "CocoSandbox"
         {
             "if not exist %{TargetDir}assets\\shaders mkdir %{TargetDir}assets\\shaders",
             "echo Compiling shaders...", 
-            "echo %{AssetsDir}shaders\\built-in\\ObjectShader.vert.glsl -> %{AssetsDir}shaders\\built-in\\ObjectShader.vert.spv",
-            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=vert %{AssetsDir}shaders\\built-in\\ObjectShader.vert.glsl -o %{AssetsDir}shaders\\built-in\\ObjectShader.vert.spv",
+            "echo %{TargetDir}assets\\shaders\\built-in\\ObjectShader.vert.glsl to %{TargetDir}assets\\shaders\\built-in\\ObjectShader.vert.spv",
+            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=vert %{TargetDir}assets\\shaders\\built-in\\ObjectShader.vert.glsl -o %{TargetDir}assets\\shaders\\built-in\\ObjectShader.vert.spv",
             "if %ERRORLEVEL% NEQ 0 (echo Error compiling vertex shader: %ERRORLEVEL% && exit)",
-            "echo %{AssetsDir}shaders\\built-in\\ObjectShader.frag.glsl -> %{AssetsDir}shaders\\built-in\\ObjectShader.frag.spv",
-            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=frag %{AssetsDir}shaders\\built-in\\ObjectShader.frag.glsl -o %{AssetsDir}shaders\\built-in\\ObjectShader.frag.spv",
+            "echo %{TargetDir}assets\\shaders\\built-in\\ObjectShader.frag.glsl to %{TargetDir}assets\\shaders\\built-in\\ObjectShader.frag.spv",
+            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=frag %{TargetDir}assets\\shaders\\built-in\\ObjectShader.frag.glsl -o %{TargetDir}assets\\shaders\\built-in\\ObjectShader.frag.spv",
             "if %ERRORLEVEL% NEQ 0 (echo Error compiling fragment shader: %ERRORLEVEL% && exit)",
             "echo Shaders compiled"
         }
@@ -71,6 +70,8 @@ project "CocoSandbox"
             "COCO_LOG_INFO",
             "COCO_LOG_WARNING",
         }
+
+        debugdir "%{OutputDir.bin}%{prj.name}\\"
 
         runtime "Debug"
         symbols "on"

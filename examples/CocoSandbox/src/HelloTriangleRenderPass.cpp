@@ -11,8 +11,8 @@ HelloTriangleRenderPass::HelloTriangleRenderPass()
 	_shader = CreateRef<Shader>("HelloTriangle");
 	_shader->CreateSubshader("main",
 		{
-			{ShaderStageType::Vertex, "../../assets/shaders/built-in/ObjectShader.vert.spv"},
-			{ShaderStageType::Fragment, "../../assets/shaders/built-in/ObjectShader.frag.spv"}
+			{ShaderStageType::Vertex, "assets/shaders/built-in/ObjectShader.vert.spv"},
+			{ShaderStageType::Fragment, "assets/shaders/built-in/ObjectShader.frag.spv"}
 		},
 		pipelineState,
 		{
