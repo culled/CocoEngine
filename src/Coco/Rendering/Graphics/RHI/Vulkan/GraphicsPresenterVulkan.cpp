@@ -90,7 +90,7 @@ namespace Coco::Rendering
 		context->SetSignalFence(backbuffer.RenderingCompletedFence);
 
 		// Ensure the framebuffers are up-to-date and valid for the render pipeline
-		RecreateFramebuffers(pipeline, context->GetRenderPass());
+		RecreateFramebuffers(pipeline, context->GetRenderPass().RenderPass);
 		context->SetFramebuffer(_framebuffers[backbufferImageIndex]);
 
 		return std::move(context);
@@ -105,7 +105,7 @@ namespace Coco::Rendering
 		const Backbuffer& lastBackbuffer = _backbuffers[_currentFrame];
 
 		// Wait until a fresh frame is ready
-		lastBackbuffer.RenderingCompletedFence->Wait(std::numeric_limits<unsigned long long>::max());
+		lastBackbuffer.RenderingCompletedFence->Wait(std::numeric_limits<uint64_t>::max());
 		lastBackbuffer.RenderingCompletedFence->Reset();
 
 		uint32_t imageIndex;
@@ -129,14 +129,16 @@ namespace Coco::Rendering
 		}
 
 		backbufferImageIndex = static_cast<int>(imageIndex);
-		_currentFrame = (_currentFrame + 1) % _backbuffers.Count();
+		_currentFrame = (_currentFrame + 1) % static_cast<uint>(_backbuffers.Count());
 
 		return GraphicsPresenterResult::Success;
 	}
 
 	GraphicsPresenterResult GraphicsPresenterVulkan::Present(int backbufferImageIndex)
 	{
-		if (!_device->GetPresentQueue().has_value())
+		Ref<VulkanQueue> presentQueue;
+
+		if (!_device->GetPresentQueue(presentQueue))
 		{
 			LogError(_device->VulkanPlatform->GetLogger(), "Device must have a valid present queue");
 			return GraphicsPresenterResult::Failure;
@@ -154,9 +156,7 @@ namespace Coco::Rendering
 		presentInfo.swapchainCount = 1;
 		presentInfo.pImageIndices = &imageIndex;
 
-		VkQueue presentQueue = _device->GetPresentQueue().value()->Queue;
-
-		VkResult result = vkQueuePresentKHR(presentQueue, &presentInfo);
+		VkResult result = vkQueuePresentKHR(presentQueue->Queue, &presentInfo);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
 		{
@@ -260,13 +260,19 @@ namespace Coco::Rendering
 			return false;
 		}
 
-		if (!_device->GetPresentQueue().has_value() && !_device->InitializePresentQueue(_surface))
+		Ref<VulkanQueue> presentQueue;
+
+		// If we can't get the present queue, try to initialize it and then get it.
+		// If all that fails, we have no present queue
+		if (!_device->GetPresentQueue(presentQueue) && (!_device->InitializePresentQueue(_surface) || !_device->GetPresentQueue(presentQueue)))
 		{
 			LogError(_device->VulkanPlatform->GetLogger(), "Device doesn't support presentation");
 			return false;
 		}
 
-		if (!_device->GetGraphicsQueue().has_value())
+		Ref<VulkanQueue> graphicsQueue;
+
+		if (!_device->GetGraphicsQueue(graphicsQueue))
 		{
 			LogError(_device->VulkanPlatform->GetLogger(), "Device doesn't support graphics operations");
 			return false;
@@ -307,8 +313,6 @@ namespace Coco::Rendering
 		createInfo.clipped = VK_TRUE;
 		createInfo.oldSwapchain = oldSwapchain;
 
-		Ref<VulkanQueue> presentQueue = _device->GetPresentQueue().value();
-		Ref<VulkanQueue> graphicsQueue = _device->GetGraphicsQueue().value();
 		List<uint32_t> queueFamilyIndices;
 
 		if (presentQueue->QueueFamily != graphicsQueue->QueueFamily)
@@ -420,18 +424,10 @@ namespace Coco::Rendering
 				AssertVkResult(vkCreateImageView(_device->GetDevice(), &createInfo, nullptr, &view));
 
 				Backbuffer backbuffer = {};
-
-				backbuffer.Image = new ImageVulkan(_device, _backbufferDescription, images[i], view, true);
-				_device->AddResource(backbuffer.Image);
-
-				backbuffer.ImageAvailableSemaphore = new GraphicsSemaphoreVulkan(_device);
-				_device->AddResource(backbuffer.ImageAvailableSemaphore);
-
-				backbuffer.RenderingCompletedSemaphore = new GraphicsSemaphoreVulkan(_device);
-				_device->AddResource(backbuffer.RenderingCompletedSemaphore);
-
-				backbuffer.RenderingCompletedFence = new GraphicsFenceVulkan(_device, true);
-				_device->AddResource(backbuffer.RenderingCompletedFence);
+				backbuffer.Image = _device->CreateAndAddResource<ImageVulkan>(_backbufferDescription, images[i], view, true);
+				backbuffer.ImageAvailableSemaphore = _device->CreateAndAddResource<GraphicsSemaphoreVulkan>();
+				backbuffer.RenderingCompletedSemaphore = _device->CreateAndAddResource<GraphicsSemaphoreVulkan>();
+				backbuffer.RenderingCompletedFence = _device->CreateAndAddResource<GraphicsFenceVulkan>(true);
 
 				_backbuffers.Add(backbuffer);
 			}
@@ -501,13 +497,15 @@ namespace Coco::Rendering
 		if (_commandBuffers.Count() == _backbuffers.Count())
 			return;
 		
-		LogAssert(_device->VulkanPlatform->GetLogger(), _device->GetGraphicsCommandPool().has_value());
+		CommandBufferPoolVulkan* pool;
+
+		LogAssert(_device->VulkanPlatform->GetLogger(), _device->GetGraphicsCommandPool(&pool));
 
 		FreeCommandBuffers();
 
 		for (int i = 0; i < _backbuffers.Count(); i++)
 		{
-			_commandBuffers.Add(static_cast<CommandBufferVulkan*>(_device->GetGraphicsCommandPool().value()->Allocate(true)));
+			_commandBuffers.Add(static_cast<CommandBufferVulkan*>(pool->Allocate(true)));
 		}
 	}
 
@@ -515,9 +513,13 @@ namespace Coco::Rendering
 	{
 		_device->WaitForIdle();
 
+		CommandBufferPoolVulkan* pool;
+
+		LogAssert(_device->VulkanPlatform->GetLogger(), _device->GetGraphicsCommandPool(&pool));
+
 		for (CommandBufferVulkan* buffer : _commandBuffers)
 		{
-			_device->GetGraphicsCommandPool().value()->Free(buffer);
+			pool->Free(buffer);
 		}
 
 		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString("Destroyed {} command buffers", _commandBuffers.Count()));

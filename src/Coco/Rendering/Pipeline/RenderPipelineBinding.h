@@ -22,7 +22,7 @@ namespace Coco::Rendering
 		/// <summary>
 		/// The index of the pipeline attachment
 		/// </summary>
-		int PipelineAttachmentIndex = -1;
+		uint PipelineAttachmentIndex = 0;
 	};
 
 	/// <summary>
@@ -36,12 +36,20 @@ namespace Coco::Rendering
 
 	public:
 		RenderPipelineBinding(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentMapping);
-		~RenderPipelineBinding();
+		virtual ~RenderPipelineBinding();
 
 		/// <summary>
 		/// Gets the mapping between the pipeline attachments and this render pass's attachments
 		/// </summary>
 		/// <returns>The list of attachment mappings</returns>
 		List<MappedAttachmentDescription> GetMappedAttachmentDescriptions() const { return _mappedAttachmentDescriptions; }
+
+		/// <summary>
+		/// Gets the bound render pass
+		/// </summary>
+		/// <returns>The render pass</returns>
+		Ref<IRenderPass> GetRenderPass() { return _renderPass; }
+
+		Ref<IRenderPass> operator()() { return _renderPass; }
 	};
 }

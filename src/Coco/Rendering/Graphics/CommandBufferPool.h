@@ -29,5 +29,10 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="buffer">The buffer to free</param>
 		virtual void Free(CommandBuffer* buffer) = 0;
+
+		/// <summary>
+		/// Waits for this pool's queue to finish any asyncronous work
+		/// </summary>
+		virtual void WaitForQueue() = 0;
 	};
 }

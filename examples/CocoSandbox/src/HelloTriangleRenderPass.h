@@ -1,10 +1,22 @@
 #pragma once
 
 #include <Coco/Rendering/Pipeline/IRenderPass.h>
-#include <Coco/Core/Types/List.h>
-#include <Coco/Rendering/Graphics/AttachmentDescription.h>
+#include <Coco/Rendering/Graphics/Shader.h>
+#include <Coco/Rendering/Mesh.h>
 
-class HelloTriangleRenderPass : public Coco::Rendering::IRenderPass 
+using namespace Coco;
+using namespace Coco::Rendering;
+
+class HelloTriangleRenderPass : public IRenderPass 
 {
-	virtual Coco::List<Coco::Rendering::AttachmentDescription> GetAttachmentDescriptions() override;
+private:
+	Ref<Shader> _shader;
+	Ref<Mesh> _mesh;
+
+public:
+	HelloTriangleRenderPass();
+
+	virtual string GetName() const override { return "main"; }
+	virtual List<AttachmentDescription> GetAttachmentDescriptions() override;
+	virtual void Execute(RenderContext* renderContext) override;
 };

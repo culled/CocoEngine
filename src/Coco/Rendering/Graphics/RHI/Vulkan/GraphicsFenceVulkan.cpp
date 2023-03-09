@@ -3,8 +3,8 @@
 
 namespace Coco::Rendering
 {
-	GraphicsFenceVulkan::GraphicsFenceVulkan(GraphicsDeviceVulkan* owningDevice, bool startSignalled) : GraphicsFence(owningDevice),
-		_device(owningDevice)
+	GraphicsFenceVulkan::GraphicsFenceVulkan(GraphicsDevice* owningDevice, bool startSignalled) : GraphicsFence(owningDevice),
+		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice))
 	{
 		VkFenceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -12,7 +12,7 @@ namespace Coco::Rendering
 		if (startSignalled)
 			createInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
 
-		AssertVkResult(vkCreateFence(owningDevice->GetDevice(), &createInfo, nullptr, &_fence));
+		AssertVkResult(vkCreateFence(_device->GetDevice(), &createInfo, nullptr, &_fence));
 	}
 
 	GraphicsFenceVulkan::~GraphicsFenceVulkan()

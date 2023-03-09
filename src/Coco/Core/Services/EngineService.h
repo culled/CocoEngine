@@ -1,14 +1,10 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+#include <Coco/Core/Logging/Logger.h>
 
 namespace Coco
 {
-	namespace Logging
-	{
-		class Logger;
-	}
-
 	/// <summary>
 	/// A class that provides a service to the engine
 	/// </summary>

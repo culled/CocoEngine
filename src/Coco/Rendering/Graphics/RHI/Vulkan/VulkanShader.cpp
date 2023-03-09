@@ -2,43 +2,61 @@
 #include <Coco/Core/Types/Map.h>
 #include "GraphicsDeviceVulkan.h"
 #include <Coco/Core/IO/File.h>
+#include "VulkanUtilities.h"
 
 namespace Coco::Rendering
 {
-	VulkanShader::VulkanShader(GraphicsDeviceVulkan* device, Shader* shader) : GraphicsResource(device),
-		_device(device)
+	VulkanShader::VulkanShader(GraphicsDevice* device, const Ref<Shader>& shader) : GraphicsResource(device),
+		_device(static_cast<GraphicsDeviceVulkan*>(device))
 	{
-		Map<ShaderStageType, string> shaderStages = shader->GetStageSources();
+		List<Subshader> subshaders = shader->GetSubshaders();
 
-		for (const auto& kvp : shaderStages)
+		for (const Subshader& subshader : subshaders)
 		{
-			try
+			for (const auto& subshaderStagesKVP : subshader.StageFiles)
 			{
-				VulkanShaderStage stage = CreateShaderStage(kvp.first, kvp.second);
-				_shaderStages.Add(stage);
-			}
-			catch (Exception& ex)
-			{
-				string err = FormattedString("Unable to create shader: {}", ex.what());
-				throw Exception(err.c_str());
+				try
+				{
+					VulkanShaderStage stage = CreateShaderStage(subshaderStagesKVP.first, subshader.PassName, subshaderStagesKVP.second);
+					_shaderStages[subshader.PassName].Add(stage);
+				}
+				catch (Exception& ex)
+				{
+					string err = FormattedString("Unable to create shader module for \"{}:{}\": {}", shader->GetName(), subshader.PassName, ex.what());
+					throw Exception(err.c_str());
+				}
 			}
 		}
 	}
 
 	VulkanShader::~VulkanShader()
 	{
-		for (const VulkanShaderStage& stage : _shaderStages)
+		for (const auto& shaderKVP : _shaderStages)
 		{
-			if (stage.ShaderModule != nullptr)
+			for (const VulkanShaderStage& stage : shaderKVP.second)
 			{
-				vkDestroyShaderModule(_device->GetDevice(), stage.ShaderModule, nullptr);
+				if (stage.ShaderModule != nullptr)
+				{
+					vkDestroyShaderModule(_device->GetDevice(), stage.ShaderModule, nullptr);
+				}
 			}
 		}
+
+		_shaderStages.clear();
 	}
 
-	VulkanShaderStage VulkanShader::CreateShaderStage(ShaderStageType stage, const string& file)
+	List<VulkanShaderStage> VulkanShader::GetSubshaderStages(const string& subshaderName) const
+	{
+		if (!_shaderStages.contains(subshaderName))
+			return List<VulkanShaderStage>();
+
+		return _shaderStages.at(subshaderName);
+	}
+
+	VulkanShaderStage VulkanShader::CreateShaderStage(ShaderStageType stage, const string& subshaderName, const string& file)
 	{
 		VulkanShaderStage shaderStage = {};
+		shaderStage.EntryPointName = subshaderName;
 		shaderStage.StageType = stage;
 
 		shaderStage.ShaderModuleCreateInfo = {};
@@ -60,12 +78,6 @@ namespace Coco::Rendering
 		shaderStage.ShaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(byteCode.Data());
 
 		AssertVkResult(vkCreateShaderModule(_device->GetDevice(), &shaderStage.ShaderModuleCreateInfo, nullptr, &shaderStage.ShaderModule));
-
-		shaderStage.ShaderStageCreateInfo = {};
-		shaderStage.ShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		shaderStage.ShaderStageCreateInfo.flags = VkShaderStageFlags(stage);
-		shaderStage.ShaderStageCreateInfo.module = shaderStage.ShaderModule;
-		shaderStage.ShaderStageCreateInfo.pName = "main"; // TODO: configurable entry point
 
 		return shaderStage;
 	}

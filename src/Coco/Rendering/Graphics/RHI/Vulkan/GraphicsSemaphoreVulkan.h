@@ -20,7 +20,7 @@ namespace Coco::Rendering
 		GraphicsDeviceVulkan* _device;
 
 	public:
-		GraphicsSemaphoreVulkan(GraphicsDeviceVulkan* owningDevice);
+		GraphicsSemaphoreVulkan(GraphicsDevice* owningDevice);
 		virtual ~GraphicsSemaphoreVulkan() override;
 
 		/// <summary>

@@ -13,6 +13,7 @@ namespace Coco::Rendering
 
 	RenderingService::~RenderingService()
 	{
+		_defaultPipeline.reset();
 		_graphics.reset();
 	}
 
@@ -70,5 +71,6 @@ namespace Coco::Rendering
 		context->RestoreViewport();
 
 		// Do render!
+		pipeline->Execute(context);
 	}
 }

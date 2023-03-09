@@ -114,6 +114,9 @@
     <ClInclude Include="Core\Logging\Sinks\ConsoleLogSink.h">
       <Filter>Core\Logging\Sinks</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Logging\Sinks\FileLogSink.h">
+      <Filter>Core\Logging\Sinks</Filter>
+    </ClInclude>
     <ClInclude Include="Core\MainLoop\MainLoop.h">
       <Filter>Core\MainLoop</Filter>
     </ClInclude>
@@ -201,6 +204,12 @@
     <ClInclude Include="Rendering\Graphics\AttachmentDescription.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\Graphics\Buffer.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\BufferTypes.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="Rendering\Graphics\CommandBuffer.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
@@ -211,6 +220,12 @@
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Graphics\GraphicsFence.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\GraphicsPipelineState.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\GraphicsPipelineTypes.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Graphics\GraphicsPlatform.h">
@@ -234,11 +249,11 @@
     <ClInclude Include="Rendering\Graphics\ImageTypes.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Graphics\ImageUtilities.h">
-      <Filter>Rendering\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Graphics\PresenterSurfaceInitializationInfo.h">
       <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\BufferVulkan.h">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.h">
       <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
@@ -285,6 +300,9 @@
     <ClInclude Include="Rendering\Graphics\RenderContext.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RenderContextTypes.h">
+      <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="Rendering\Graphics\RenderView.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
@@ -293,6 +311,12 @@
     </ClInclude>
     <ClInclude Include="Rendering\Graphics\ShaderTypes.h">
       <Filter>Rendering\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Mesh.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\MeshTypes.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Pipeline\IRenderPass.h">
       <Filter>Rendering\Pipeline</Filter>
@@ -318,7 +342,6 @@
     <ClInclude Include="Windowing\WindowingService.h">
       <Filter>Windowing</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Logging\Sinks\FileLogSink.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -349,6 +372,9 @@
       <Filter>Core\Logging</Filter>
     </ClCompile>
     <ClCompile Include="Core\Logging\Sinks\ConsoleLogSink.cpp">
+      <Filter>Core\Logging\Sinks</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Logging\Sinks\FileLogSink.cpp">
       <Filter>Core\Logging\Sinks</Filter>
     </ClCompile>
     <ClCompile Include="Core\MainLoop\MainLoop.cpp">
@@ -402,6 +428,12 @@
     <ClCompile Include="Rendering\Graphics\AttachmentDescription.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Graphics\Buffer.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\BufferTypes.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="Rendering\Graphics\CommandBuffer.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
@@ -409,6 +441,9 @@
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Graphics\GraphicsDevice.cpp">
+      <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\GraphicsPipelineTypes.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Graphics\GraphicsPlatform.cpp">
@@ -420,8 +455,11 @@
     <ClCompile Include="Rendering\Graphics\Image.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Graphics\ImageUtilities.cpp">
+    <ClCompile Include="Rendering\Graphics\ImageTypes.cpp">
       <Filter>Rendering\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\BufferVulkan.cpp">
+      <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.cpp">
       <Filter>Rendering\Graphics\RHI\Vulkan</Filter>
@@ -471,6 +509,9 @@
     <ClCompile Include="Rendering\Graphics\Shader.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Mesh.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
     <ClCompile Include="Rendering\Pipeline\RenderPipeline.cpp">
       <Filter>Rendering\Pipeline</Filter>
     </ClCompile>
@@ -486,6 +527,5 @@
     <ClCompile Include="Windowing\WindowingService.cpp">
       <Filter>Windowing</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Logging\Sinks\FileLogSink.cpp" />
   </ItemGroup>
 </Project>

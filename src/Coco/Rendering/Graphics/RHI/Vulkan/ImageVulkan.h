@@ -22,7 +22,7 @@ namespace Coco::Rendering
 		GraphicsDeviceVulkan* _device;
 
 	public:
-		ImageVulkan(GraphicsDeviceVulkan* device, ImageDescription description, VkImage image, VkImageView nativeView, bool isManagedInternally = false);
+		ImageVulkan(GraphicsDevice* device, ImageDescription description, VkImage image, VkImageView nativeView, bool isManagedInternally = false);
 		virtual ~ImageVulkan() override;
 
 		/// <summary>

@@ -5,16 +5,7 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Platform/IEnginePlatform.h>
 #include <Coco/Windowing/IWindowingPlatform.h>
-
-namespace Coco::Input
-{
-    class InputService;
-}
-
-namespace Coco::Windowing
-{
-    class WindowingService;
-}
+#include <Coco/Core/Input/InputService.h>
 
 namespace Coco::Platform::Windows
 {
@@ -89,6 +80,13 @@ namespace Coco::Platform::Windows
         /// <param name="lParam">Message LParams</param>
         static void HandleWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
 
+        /// <summary>
+        /// Handles an input-specific message
+        /// </summary>
+        /// <param name="windowHandle">The window handle</param>
+        /// <param name="message">The type of message</param>
+        /// <param name="wParam">Message WParams</param>
+        /// <param name="lParam">Message LParams</param>
         static void HandleInputMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
 
         /// <summary>

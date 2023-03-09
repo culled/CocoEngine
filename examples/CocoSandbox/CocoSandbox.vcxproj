@@ -76,11 +76,11 @@ xcopy $(SolutionDir)\assets\ $(SolutionDir)\build\bin\Debug-windows-x86_64\$(Pro
 echo Assets copied
 if not exist $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders mkdir $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders
 echo Compiling shaders...
-echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -&gt; $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.vert.spv
-C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=vert $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -o $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.vert.spv
+echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -&gt; $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.spv
+C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=vert $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -o $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.spv
 if %ERRORLEVEL% NEQ 0 (echo Error compiling vertex shader: %ERRORLEVEL% &amp;&amp; exit)
-echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -&gt; $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.frag.spv
-C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=frag $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -o $(SolutionDir)\build\bin\Debug-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.frag.spv
+echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -&gt; $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.spv
+C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=frag $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -o $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.spv
 if %ERRORLEVEL% NEQ 0 (echo Error compiling fragment shader: %ERRORLEVEL% &amp;&amp; exit)
 echo Shaders compiled</Command>
     </PostBuildEvent>
@@ -112,11 +112,11 @@ xcopy $(SolutionDir)\assets\ $(SolutionDir)\build\bin\Release-windows-x86_64\$(P
 echo Assets copied
 if not exist $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders mkdir $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders
 echo Compiling shaders...
-echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -&gt; $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.vert.spv
-C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=vert $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -o $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.vert.spv
+echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -&gt; $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.spv
+C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=vert $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.glsl -o $(SolutionDir)\assets\shaders\built-in\ObjectShader.vert.spv
 if %ERRORLEVEL% NEQ 0 (echo Error compiling vertex shader: %ERRORLEVEL% &amp;&amp; exit)
-echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -&gt; $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.frag.spv
-C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=frag $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -o $(SolutionDir)\build\bin\Release-windows-x86_64\$(ProjectName)\assets\shaders\built-in\ObjectShader.frag.spv
+echo $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -&gt; $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.spv
+C:/VulkanSDK/1.3.216.0/Bin\glslc.exe -fshader-stage=frag $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.glsl -o $(SolutionDir)\assets\shaders\built-in\ObjectShader.frag.spv
 if %ERRORLEVEL% NEQ 0 (echo Error compiling fragment shader: %ERRORLEVEL% &amp;&amp; exit)
 echo Shaders compiled</Command>
     </PostBuildEvent>

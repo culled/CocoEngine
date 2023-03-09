@@ -31,8 +31,10 @@ namespace Coco::Rendering
 		State CurrentState;
 		bool IsPrimary;
 
-	public:
+	protected:
 		CommandBuffer(bool isPrimary);
+
+	public:
 		virtual ~CommandBuffer();
 
 		/// <summary>
@@ -53,7 +55,7 @@ namespace Coco::Rendering
 		/// <param name="waitSemaphores">Semaphores to wait on before performing this buffer's work</param>
 		/// <param name="signalSemaphores">Semaphores to signal once this buffer's work has been completed</param>
 		/// <param name="signalFence">A fence to signal once this buffer's work has been completed</param>
-		virtual void Submit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence = nullptr) = 0;
+		virtual void Submit(const List<GraphicsSemaphore*>& waitSemaphores = {}, const List<GraphicsSemaphore*>& signalSemaphores = {}, GraphicsFence* signalFence = nullptr) = 0;
 
 		/// <summary>
 		/// Resets this buffer
@@ -66,13 +68,6 @@ namespace Coco::Rendering
 		/// <param name="waitSemaphores">Semaphores to wait on before performing this buffer's work</param>
 		/// <param name="signalSemaphores">Semaphores to signal once this buffer's work has been completed</param>
 		/// <param name="signalFence">A fence to signal once this buffer's work has been completed</param>
-		void EndAndSubmit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence = nullptr);
-
-		/// <summary>
-		/// Command for setting the viewport
-		/// </summary>
-		/// <param name="offset">The offset of the viewport</param>
-		/// <param name="size">The size of the viewport</param>
-		virtual void CmdSetViewport(const Vector2Int& offset, const SizeInt& size) = 0;
+		void EndAndSubmit(const List<GraphicsSemaphore*>& waitSemaphores = {}, const List<GraphicsSemaphore*>& signalSemaphores = {}, GraphicsFence* signalFence = nullptr);
 	};
 }

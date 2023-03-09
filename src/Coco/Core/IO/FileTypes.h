@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Coco/Core/Core.h>
+
 namespace Coco
 {
 	/// <summary>
@@ -13,10 +15,10 @@ namespace Coco
 		Binary = 0x04,
 	};
 
-	FileModes operator&(FileModes a, FileModes b);
-	void operator&=(FileModes& a, FileModes b);
-	FileModes operator|(FileModes a, FileModes b);
-	void operator|=(FileModes& a, FileModes b);
+	COCOAPI FileModes operator&(FileModes a, FileModes b);
+	COCOAPI void operator&=(FileModes& a, FileModes b);
+	COCOAPI FileModes operator|(FileModes a, FileModes b);
+	COCOAPI void operator|=(FileModes& a, FileModes b);
 
-	bool operator>(FileModes a, int b);
+	COCOAPI bool operator>(FileModes a, int b);
 }

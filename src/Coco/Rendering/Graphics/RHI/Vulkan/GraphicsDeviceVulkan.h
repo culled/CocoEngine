@@ -66,12 +66,20 @@ namespace Coco::Rendering
         Optional<Ref<VulkanQueue>> _computeQueue;
         Optional<Ref<VulkanQueue>> _presentQueue;
 
-        List<Managed<GraphicsResource>> _resources;
         Managed<VulkanRenderCache> _renderCache;
         Optional<Managed<CommandBufferPoolVulkan>> _graphicsCommandPool;
+        Optional<Managed<CommandBufferPoolVulkan>> _transferCommandPool;
+        Optional<Managed<CommandBufferPoolVulkan>> _computeCommandPool;
 
     public:
+        GraphicsDeviceVulkan(GraphicsPlatformVulkan* platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
         virtual ~GraphicsDeviceVulkan() override;
+
+        virtual string GetName() const override { return _name; }
+        virtual GraphicsDeviceType GetType() const override { return _deviceType; }
+        virtual Version GetDriverVersion() const override { return _driverVersion; }
+        virtual Version GetAPIVersion() const override { return _apiVersion; }
+        virtual void WaitForIdle() override;
 
         /// <summary>
         /// Creates a graphics device with the given parameters
@@ -79,16 +87,7 @@ namespace Coco::Rendering
         /// <param name="platform">The platform creating the device</param>
         /// <param name="createParams">The parameters for creating the device</param>
         /// <returns>A created graphics device</returns>
-        static GraphicsDeviceVulkan* Create(GraphicsPlatformVulkan* platform, const GraphicsDeviceCreationParameters& createParams);
-
-        virtual string GetName() const override { return _name; }
-        virtual GraphicsDeviceType GetType() const override { return _deviceType; }
-        virtual Version GetDriverVersion() const override { return _driverVersion; }
-        virtual Version GetAPIVersion() const override { return _apiVersion; }
-        virtual void AddResource(GraphicsResource* resource) override;
-        virtual void ReleaseResource(GraphicsResource* resource) override;
-        virtual void DestroyResource(GraphicsResource* resource) override;
-        virtual void WaitForIdle() override;
+        static Managed<GraphicsDeviceVulkan> Create(GraphicsPlatformVulkan* platform, const GraphicsDeviceCreationParameters& createParams);
 
         /// <summary>
         /// Gets the Vulkan physical device that this graphics device uses
@@ -112,27 +111,30 @@ namespace Coco::Rendering
         /// <summary>
         /// Gets the graphics queue, if the device supports it
         /// </summary>
-        /// <returns>The graphics queue</returns>
-        Optional<Ref<VulkanQueue>> GetGraphicsQueue() const { return _graphicsQueue; }
+        /// <param name="graphicsQueue">The queue reference that will be filled out if this device has a graphics queue</param>
+        /// <returns>True if this device has a graphics queue</returns>
+        bool GetGraphicsQueue(Ref<VulkanQueue>& graphicsQueue) const;
 
         /// <summary>
         /// Gets the transfer queue, if the device supports it
         /// </summary>
-        /// <returns>The transfer queue</returns>
-        Optional<Ref<VulkanQueue>> GetTransferQueue() const { return _transferQueue; }
+        /// <param name="transferQueue">The queue reference that will be filled out if this device has a transfer queue</param>
+        /// <returns>True if this device has a transfer queue</returns>
+        bool GetTransferQueue(Ref<VulkanQueue>& transferQueue) const;
 
         /// <summary>
         /// Gets the compute queue, if the device supports it
         /// </summary>
-        /// <returns>The compute queue</returns>
-        Optional<Ref<VulkanQueue>> GetComputeQueue() const { return _computeQueue; }
+        /// <param name="computeQueue">The queue reference that will be filled out if this device has a compute queue</param>
+        /// <returns>True if this device has a compute queue</returns>
+        bool GetComputeQueue(Ref<VulkanQueue>& computeQueue) const;
 
         /// <summary>
-        /// Gets the present queue if it has been intialized and the device supports it.
-        /// The present queue must be initialized with InitializePresentQueue() before this becomes valid
+        /// Gets the present queue, if the device supports it
         /// </summary>
-        /// <returns>The present queue</returns>
-        Optional<Ref<VulkanQueue>> GetPresentQueue() const { return _presentQueue; }
+        /// <param name="presentQueue">The queue reference that will be filled out if this device has a present queue</param>
+        /// <returns>True if this device has a present queue</returns>
+        bool GetPresentQueue(Ref<VulkanQueue>& presentQueue) const;
 
         /// <summary>
         /// Gets this device's Vulkan render cache
@@ -143,12 +145,33 @@ namespace Coco::Rendering
         /// <summary>
         /// Gets this device's command pool for the graphics queue (if a graphics queue has been created)
         /// </summary>
-        /// <returns>The graphics command pool (if one has been created)</returns>
-        Optional<CommandBufferPoolVulkan*> GetGraphicsCommandPool() const;
+        /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
+        /// <returns>True if the graphics command pool exists</returns>
+        bool GetGraphicsCommandPool(CommandBufferPoolVulkan** poolPtr) const;
+
+        /// <summary>
+        /// Gets this device's command pool for the transfer queue (if a transfer queue has been created)
+        /// </summary>
+        /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
+        /// <returns>True if the transfer command pool exists</returns>
+        bool GetTransferCommandPool(CommandBufferPoolVulkan** poolPtr) const;
+
+        /// <summary>
+        /// Gets this device's command pool for the compute queue (if a compute queue has been created)
+        /// </summary>
+        /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
+        /// <returns>True if the compute command pool exists</returns>
+        bool GetComputeCommandPool(CommandBufferPoolVulkan** poolPtr) const;
+
+        /// <summary>
+        /// Finds a memory index for a type of memory
+        /// </summary>
+        /// <param name="type">The type of memory</param>
+        /// <param name="memoryProperties">Memory properties</param>
+        /// <returns>A valid memory index, or -1 if one could not be found</returns>
+        int FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties) const;
 
     private:
-        GraphicsDeviceVulkan(GraphicsPlatformVulkan* platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
-
         /// <summary>
         /// Picks a suitable physical device to use given the parameters
         /// </summary>

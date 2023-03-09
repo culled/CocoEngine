@@ -2,11 +2,14 @@
 
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
+#include <Coco/Core/Types/Set.h>
 #include <Coco/Rendering/Graphics/RenderContext.h>
 #include "GraphicsFenceVulkan.h"
 #include "GraphicsSemaphoreVulkan.h"
 #include "CommandBufferVulkan.h"
+#include "VulkanRenderCache.h"
 
+#include <Coco/Rendering/Graphics/RenderContextTypes.h>
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -22,13 +25,18 @@ namespace Coco::Rendering
 	{
 	private:
 		GraphicsDeviceVulkan* _device;
-		VkFramebuffer _framebuffer = nullptr;
-		VkRenderPass _renderPass = nullptr;
+		VulkanRenderPass _renderPass;
 		CommandBufferVulkan* _commandBuffer;
+		VkFramebuffer _framebuffer = nullptr;
+		VulkanPipeline _currentPipeline = VulkanPipeline::None;
 
 		List<GraphicsSemaphoreVulkan*> _waitSemaphores;
 		List<GraphicsSemaphoreVulkan*> _signalSemaphores;
 		GraphicsFenceVulkan* _signalFence = nullptr;
+
+		Set<RenderContextStateChange> _stateChanges;
+
+		Ref<Shader> _currentShader;
 
 	public:
 		RenderContextVulkan(
@@ -36,11 +44,15 @@ namespace Coco::Rendering
 			GraphicsDeviceVulkan* device,
 			const Ref<RenderPipeline>& pipeline,
 			CommandBufferVulkan* commandBuffer);
+
 		virtual ~RenderContextVulkan() override;
 
 		virtual bool Begin() override;
 		virtual void End() override;
-		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) override { _commandBuffer->CmdSetViewport(offset, size); }
+		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) override;
+		virtual void UseShader(Ref<Shader> shader) override;
+		virtual void DrawIndexed(uint indexCount, uint indexOffset, uint vertexOffset, uint instanceCount, uint instanceOffset) override;
+		virtual void Draw(const Ref<Mesh>& mesh) override;
 
 		/// <summary>
 		/// Sets the framebuffer for this render context to use
@@ -70,6 +82,12 @@ namespace Coco::Rendering
 		/// Gets the render pass being used for this context
 		/// </summary>
 		/// <returns>The render pass being used</returns>
-		VkRenderPass GetRenderPass() const { return _renderPass; }
+		VulkanRenderPass GetRenderPass() const { return _renderPass; }
+
+	private:
+		/// <summary>
+		/// Flushes all state changes and binds the current state
+		/// </summary>
+		void FlushStateChanges();
 	};
 }

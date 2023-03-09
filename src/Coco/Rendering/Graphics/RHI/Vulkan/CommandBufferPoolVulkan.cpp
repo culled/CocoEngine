@@ -41,4 +41,9 @@ namespace Coco::Rendering
 		if (it != _allocatedBuffers.end())
 			_allocatedBuffers.Erase(it);
 	}
+
+	void CommandBufferPoolVulkan::WaitForQueue()
+	{
+		AssertVkResult(vkQueueWaitIdle(_queue->Queue));
+	}
 }

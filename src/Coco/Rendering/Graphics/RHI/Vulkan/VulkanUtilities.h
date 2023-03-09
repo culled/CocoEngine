@@ -5,6 +5,8 @@
 #include <Coco/Rendering/Graphics/GraphicsPlatformTypes.h>
 #include <Coco/Rendering/Graphics/ImageTypes.h>
 #include <Coco/Rendering/Graphics/ShaderTypes.h>
+#include <Coco/Rendering/Graphics/GraphicsPipelineTypes.h>
+#include <Coco/Rendering/Graphics/BufferTypes.h>
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -73,9 +75,65 @@ namespace Coco::Rendering
 	VkColorSpaceKHR ToVkColorSpace(ColorSpace colorSpace);
 
 	/// <summary>
-	/// Converts a ShaderStageType to a VkShaderStageFlags
+	/// Converts a ShaderStageType to a VkShaderStageFlagBits
 	/// </summary>
 	/// <param name="stage">The stage</param>
-	/// <returns>The converted VkShaderStageFlags</returns>
-	VkShaderStageFlags ToVkShaderStageFlags(ShaderStageType stage);
+	/// <returns>The converted VkShaderStageFlagBits</returns>
+	VkShaderStageFlagBits ToVkShaderStageFlagBits(ShaderStageType stage);
+
+	/// <summary>
+	/// Converts a PolygonFillMode to a VkPolygonMode
+	/// </summary>
+	/// <param name="fillMode">The fill mode</param>
+	/// <returns>The converted VkPolygonMode</returns>
+	VkPolygonMode ToVkPolygonMode(PolygonFillMode fillMode);
+
+	/// <summary>
+	/// Converts a TopologyMode to a VkPrimitiveTopology
+	/// </summary>
+	/// <param name="topologyMode">The topology mode</param>
+	/// <returns>The converted VkPrimitiveTopology</returns>
+	VkPrimitiveTopology ToVkPrimativeTopology(TopologyMode topologyMode);
+
+	/// <summary>
+	/// Converts a CullMode to a VkCullModeFlags
+	/// </summary>
+	/// <param name="cullMode">The cull mode</param>
+	/// <returns>The converted VkCullModeFlags</returns>
+	VkCullModeFlags ToVkCullModeFlags(CullMode cullMode);
+
+	/// <summary>
+	/// Converts a DepthTestingMode to a VkCompareOp
+	/// </summary>
+	/// <param name="depthMode">The depth mode</param>
+	/// <returns>The converted VkCompareOp</returns>
+	VkCompareOp ToVkCompareOp(DepthTestingMode depthMode);
+
+	/// <summary>
+	/// Converts a BlendOperation to a VkBlendOp
+	/// </summary>
+	/// <param name="blendOperation">The blend operation</param>
+	/// <returns>The converted VkBlendOp</returns>
+	VkBlendOp ToVkBlendOp(BlendOperation blendOperation);
+
+	/// <summary>
+	/// Converts a BlendFactorMode to a VkBlendFactor
+	/// </summary>
+	/// <param name="blendFactorMode">The blend factor mode</param>
+	/// <returns>The converted VkBlendFactor</returns>
+	VkBlendFactor ToVkBlendFactor(BlendFactorMode blendFactorMode);
+
+	/// <summary>
+	/// Converts a BufferDataFormat to a VkFormat
+	/// </summary>
+	/// <param name="dataFormat">The buffer data format</param>
+	/// <returns>The converted VkFormat</returns>
+	VkFormat ToVkFormat(BufferDataFormat dataFormat);
+
+	/// <summary>
+	/// Converts BufferUsageFlags to VkBufferUsageFlags
+	/// </summary>
+	/// <param name="usageFlags">The buffer usage flags</param>
+	/// <returns>The converted VkBufferUsageFlags</returns>
+	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags);
 }

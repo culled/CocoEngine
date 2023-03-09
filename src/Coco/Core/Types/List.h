@@ -19,6 +19,7 @@ namespace Coco
 
 		List() = default;
 		List(uint64_t initialSize) : _list(initialSize) {}
+		List(std::initializer_list<T>&& items) : _list(items) {}
 
 		/// <summary>
 		/// Adds an item to this list

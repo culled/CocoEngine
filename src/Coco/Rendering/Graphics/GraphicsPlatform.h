@@ -6,13 +6,12 @@
 #include "GraphicsPlatformTypes.h"
 #include "GraphicsDevice.h"
 #include "GraphicsPresenter.h"
-#include "RenderContext.h"
-#include "RenderView.h"
-#include "Image.h"
-#include <Coco/Rendering/Pipeline/RenderPipeline.h>
+#include "Buffer.h"
 
 namespace Coco::Rendering
 {
+	class RenderingService;
+
 	/// <summary>
 	/// Parameters for creating a graphics platform
 	/// </summary>
@@ -36,8 +35,6 @@ namespace Coco::Rendering
 		GraphicsPlatformCreationParameters(const string& applicationName, RenderingRHI rhi) : ApplicationName(applicationName), RHI(rhi) {}
 	};
 
-	class RenderingService;
-
 	/// <summary>
 	/// A platform that interfaces with low-level rendering hardware
 	/// </summary>
@@ -54,6 +51,9 @@ namespace Coco::Rendering
 		/// The render service
 		/// </summary>
 		RenderingService* RenderService;
+
+	protected:
+		GraphicsPlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);
 
 	public:
 		virtual ~GraphicsPlatform() = default;
@@ -102,7 +102,13 @@ namespace Coco::Rendering
 		/// <returns>A graphics presenter</returns>
 		virtual Managed<GraphicsPresenter> CreatePresenter() = 0;
 
-	protected:
-		GraphicsPlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);
+		/// <summary>
+		/// Creates a data buffer
+		/// </summary>
+		/// <param name="size">The size of the buffer (in bytes)</param>
+		/// <param name="usageFlags">Flags for how the buffer will be used</param>
+		/// <param name="bindOnCreate">If true, the buffer will be bound after it is created</param>
+		/// <returns>A pointer to the buffer</returns>
+		virtual Buffer* CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
 	};
 }

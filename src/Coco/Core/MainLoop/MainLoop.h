@@ -1,9 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-#include <Coco/Core/Types/DateTime.h>
 #include <Coco/Core/Types/List.h>
-#include <Coco/Core/Types/TimeSpan.h>
 
 #include "MainLoopTickListener.h"
 

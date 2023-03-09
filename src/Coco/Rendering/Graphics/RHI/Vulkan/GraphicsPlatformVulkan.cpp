@@ -5,6 +5,7 @@
 #include <Coco/Core/Engine.h>
 #include "GraphicsPresenterVulkan.h"
 #include "RenderContextVulkan.h"
+#include "BufferVulkan.h"
 
 #include "VulkanUtilities.h"
 
@@ -112,7 +113,7 @@ namespace Coco::Rendering
 		if (_usingValidationLayers)
 			CreateDebugMessenger();
 
-		_device.reset(GraphicsDeviceVulkan::Create(this, creationParams.DeviceCreateParams));
+		_device = GraphicsDeviceVulkan::Create(this, creationParams.DeviceCreateParams);
 
 		LogTrace(GetLogger(), "Created Vulkan graphics platform");
 	}
@@ -143,13 +144,30 @@ namespace Coco::Rendering
 	void GraphicsPlatformVulkan::ResetDevice()
 	{
 		LogInfo(GetLogger(), "Resetting graphics device...");
-		_device.reset(GraphicsDeviceVulkan::Create(this, _deviceCreationParams));
+		_device = GraphicsDeviceVulkan::Create(this, _deviceCreationParams);
 		LogInfo(GetLogger(), "Graphics device reset");
 	}
 
 	Managed<GraphicsPresenter> GraphicsPlatformVulkan::CreatePresenter()
 	{
 		return CreateManaged<GraphicsPresenterVulkan>(_device.get());
+	}
+
+	Buffer* GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
+	{
+		uint memoryProperties;
+
+		// TODO: better host configurable memory?
+		if ((usageFlags & BufferUsageFlags::HostVisible) > 0)
+		{
+			memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		}
+		else
+		{
+			memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		}
+
+		return _device->CreateAndAddResource<BufferVulkan>(usageFlags, size, memoryProperties, bindOnCreate);
 	}
 
 	bool GraphicsPlatformVulkan::CheckValidationLayersSupport()

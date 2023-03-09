@@ -1,13 +1,8 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-
-namespace Coco::Windowing
-{
-	class Window;
-	class WindowingService;
-	struct WindowCreateParameters;
-}
+#include "Window.h"
+#include "WindowingService.h"
 
 namespace Coco::Platform
 {

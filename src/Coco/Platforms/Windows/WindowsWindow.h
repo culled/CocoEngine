@@ -3,11 +3,6 @@
 #include "WindowsIncludes.h"
 #include <Coco/Windowing/Window.h>
 
-namespace Coco::Windowing
-{
-    class WindowingService;
-}
-
 namespace Coco::Platform::Windows
 {
     class EnginePlatformWindows;

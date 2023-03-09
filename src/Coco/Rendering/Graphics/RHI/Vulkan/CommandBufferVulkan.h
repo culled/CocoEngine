@@ -30,9 +30,14 @@ namespace Coco::Rendering
 
 		virtual void Begin(bool isSingleUse, bool isSimultaneousUse) override;
 		virtual void End() override;
-		virtual void Submit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence = nullptr) override;
+		virtual void Submit(const List<GraphicsSemaphore*>& waitSemaphores = {}, const List<GraphicsSemaphore*>& signalSemaphores = {}, GraphicsFence* signalFence = nullptr) override;
 		virtual void Reset() override;
-		virtual void CmdSetViewport(const Vector2Int& offset, const SizeInt& size) override;
+
+		/// <summary>
+		/// Gets the underlying Vulkan command buffer
+		/// </summary>
+		/// <returns>The underlying Vulkan command buffer</returns>
+		VkCommandBuffer GetCmdBuffer() const { return _commandBuffer; }
 
 		/// <summary>
 		/// Begins a render pass
@@ -40,11 +45,11 @@ namespace Coco::Rendering
 		/// <param name="renderPass">The render pass</param>
 		/// <param name="framebuffer">The framebuffer to use</param>
 		/// <param name="renderView">The render view</param>
-		void BeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, const Ref<RenderView>& renderView);
+		void CmdBeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, const Ref<RenderView>& renderView);
 
 		/// <summary>
 		/// Ends the current render pass
 		/// </summary>
-		void EndRenderPass();
+		void CmdEndRenderPass();
 	};
 }

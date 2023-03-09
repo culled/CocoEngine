@@ -86,6 +86,17 @@ namespace Coco::Rendering
 		return passes;
 	}
 
+	void RenderPipeline::Execute(RenderContext* renderContext)
+	{
+		for (uint i = 0; i < _renderPasses.Count(); i++)
+		{
+			Ref<IRenderPass> renderPass = _renderPasses[i]->GetRenderPass();
+
+			renderContext->SetCurrentRenderPass(renderPass, i);
+			renderPass->Execute(renderContext);
+		}
+	}
+
 	void RenderPipeline::GatherPipelineAttachmentDescriptions()
 	{
 		_attachmentDescriptions.Clear();
@@ -100,7 +111,7 @@ namespace Coco::Rendering
 				const MappedAttachmentDescription& attachmentDescription = mappedPassAttachments[i];
 
 				if (_attachmentDescriptions.Count() <= attachmentDescription.PipelineAttachmentIndex)
-					_attachmentDescriptions.Resize(attachmentDescription.PipelineAttachmentIndex + 1);
+					_attachmentDescriptions.Resize(static_cast<uint64_t>(attachmentDescription.PipelineAttachmentIndex) + 1);
 
 				RenderPipelineAttachmentDescription& pipelineAttachment = _attachmentDescriptions[attachmentDescription.PipelineAttachmentIndex];
 

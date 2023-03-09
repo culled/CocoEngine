@@ -7,6 +7,7 @@
 #include <Coco/Core/Input/InputService.h>
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/RenderingService.h>
+
 #include "HelloTriangleRenderPass.h"
 
 MainApplication(CocoSandboxApplication)

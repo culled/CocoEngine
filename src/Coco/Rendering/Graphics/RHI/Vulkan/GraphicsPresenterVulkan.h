@@ -59,7 +59,7 @@ namespace Coco::Rendering
 		List<VkFramebuffer> _framebuffers;
 		WeakRef<RenderPipeline> _framebufferPipeline;
 		
-		int _currentFrame = 0;
+		uint _currentFrame = 0;
 
 	public:
 		GraphicsPresenterVulkan(GraphicsDeviceVulkan* device);

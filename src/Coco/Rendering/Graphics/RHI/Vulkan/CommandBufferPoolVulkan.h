@@ -30,6 +30,7 @@ namespace Coco::Rendering
 
 		virtual CommandBuffer* Allocate(bool isPrimary) override;
 		virtual void Free(CommandBuffer* buffer) override;
+		virtual void WaitForQueue() override;
 
 		/// <summary>
 		/// Gets the underlying VkCommandPool

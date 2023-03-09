@@ -5,6 +5,7 @@
 #include "IRenderPass.h"
 #include "RenderPipelineBinding.h"
 #include <Coco/Core/Types/Color.h>
+#include <Coco/Rendering/Graphics/RenderContext.h>
 
 namespace Coco::Rendering
 {
@@ -77,7 +78,7 @@ namespace Coco::Rendering
 
 	public:
 		RenderPipeline();
-		~RenderPipeline();
+		virtual ~RenderPipeline();
 
 		/// <summary>
 		/// Gets the render pipeline attachment descriptions for this pipeline
@@ -119,6 +120,12 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>The clear color</returns>
 		Color GetClearColor() const { return _clearColor; }
+
+		/// <summary>
+		/// Performs rendering operations for this pipeline
+		/// </summary>
+		/// <param name="renderContext">The context to use for rendering</param>
+		void Execute(RenderContext* renderContext);
 
 	private:
 		/// <summary>

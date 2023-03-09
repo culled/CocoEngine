@@ -3,14 +3,9 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Services/EngineService.h>
+#include <Coco/Core/MainLoop/MainLoopTickListener.h>
 
 #include "Window.h"
-
-namespace Coco
-{
-    class Engine;
-    class MainLoopTickListener;
-}
 
 namespace Coco::Rendering
 {

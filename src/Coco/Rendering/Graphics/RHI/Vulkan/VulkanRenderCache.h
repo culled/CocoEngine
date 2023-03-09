@@ -4,24 +4,43 @@
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/Optional.h>
-
+#include <Coco/Rendering/Graphics/AttachmentDescription.h>
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
 {
 	class GraphicsDeviceVulkan;
 	class RenderPipeline;
+	class Shader;
+	class RenderPipeline;
+	class VulkanShader;
 
 	/// <summary>
 	/// Information for a RenderPass Subpass
 	/// </summary>
 	struct SubpassInfo
 	{
+		List<AttachmentDescription> ColorAttachments;
 		List<VkAttachmentReference> ColorAttachmentReferences;
+		Optional<AttachmentDescription> DepthStencilAttachment;
 		Optional<VkAttachmentReference> DepthStencilAttachmentReference;
 		List<uint32_t> PreserveAttachments;
 
 		VkSubpassDescription SubpassDescription = {};
+	};
+
+	struct VulkanRenderPass
+	{
+		List<SubpassInfo> Subpasses;
+		VkRenderPass RenderPass = nullptr;
+	};
+
+	struct VulkanPipeline
+	{
+		static const VulkanPipeline None;
+
+		VkPipelineLayout Layout = nullptr;
+		VkPipeline Pipeline = nullptr;
 	};
 
 	/// <summary>
@@ -32,7 +51,13 @@ namespace Coco::Rendering
 	private:
 		GraphicsDeviceVulkan* _device;
 
-		Map<Ref<RenderPipeline>, VkRenderPass> _renderPassCache;
+		std::hash<RenderPipeline*> _renderPipelineHasher;
+		std::hash<VkRenderPass> _renderPassHasher;
+		std::hash<Shader*> _shaderHasher;
+
+		Map<uint64_t, VulkanRenderPass> _renderPassCache;
+		Map<uint64_t, VulkanPipeline> _pipelineCache;
+		Map<Shader*, VulkanShader*> _shaderCache;
 
 	public:
 		VulkanRenderCache(GraphicsDeviceVulkan* device);
@@ -44,18 +69,45 @@ namespace Coco::Rendering
 		void Invalidate();
 
 		/// <summary>
-		/// Gets or creates a VkRenderPass for a RenderPipeline
+		/// Gets or creates a VulkanRenderPass for a RenderPipeline
 		/// </summary>
 		/// <param name="renderPipeline">The render pipeline</param>
-		/// <returns>The renderpass to use</returns>
-		VkRenderPass GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline);
+		/// <returns>The VulkanRenderPass for the pipeline</returns>
+		VulkanRenderPass GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline);
+
+		/// <summary>
+		/// Gets or creates a VulkanPipeline for a render pass and shader combination
+		/// </summary>
+		/// <param name="renderPass">The render pass</param>
+		/// <param name="subpassName">The name of the subpass</param>
+		/// <param name="subpassIndex">The index of the subpass in the pipeline</param>
+		/// <param name="shader">The shader</param>
+		/// <returns>The VulkanPipeline for the shader and render pass</returns>
+		VulkanPipeline GetOrCreatePipeline(VulkanRenderPass renderPass, const string& subpassName, uint32_t subpassIndex, const Ref<Shader>& shader);
+
+		/// <summary>
+		/// Gets or creates a VulkanShader for a shader
+		/// </summary>
+		/// <param name="shader">The shader</param>
+		/// <returns>The Vulkan-ready shader</returns>
+		VulkanShader* GetOrCreateVulkanShader(const Ref<Shader>& shader);
 
 	private:
 		/// <summary>
-		/// Creates a VkRenderPass for a RenderPipeline
+		/// Creates a VulkanRenderPass for a RenderPipeline
 		/// </summary>
 		/// <param name="renderPipeline">The render pipeline</param>
-		/// <returns>The renderpass to use</returns>
-		VkRenderPass CreateRenderPass(const Ref<RenderPipeline>& renderPipeline);
+		/// <returns>The VulkanRenderPass for the pipeline</returns>
+		VulkanRenderPass CreateRenderPass(const Ref<RenderPipeline>& renderPipeline);
+
+		/// <summary>
+		/// Creates a VulkanPipeline for a render pass and shader combination
+		/// </summary>
+		/// <param name="renderPass">The render pass</param>
+		/// <param name="subpassName">The name of the subpass</param>
+		/// <param name="subpassIndex">The index of the subpass in the pipeline</param>
+		/// <param name="shader">The shader</param>
+		/// <returns>The VulkanPipeline for the shader and render pass</returns>
+		VulkanPipeline CreatePipeline(VulkanRenderPass renderPass, const string& subpassName, uint32_t subpassIndex, const Ref<Shader>& shader);
 	};
 }

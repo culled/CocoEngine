@@ -9,6 +9,10 @@ namespace Coco::Rendering
 	/// </summary>
 	struct COCOAPI PresenterSurfaceInitializationInfo
 	{
+	protected:
+		PresenterSurfaceInitializationInfo() = default;
+
+	public:
 		virtual ~PresenterSurfaceInitializationInfo() = default;
 	};
 
@@ -27,6 +31,7 @@ namespace Coco::Rendering
 		/// </summary>
 		void* HInstance;
 
+		PresenterWin32SurfaceInitializationInfo(void* hWnd, void* hInstance) : HWindow(hWnd), HInstance(hInstance) {}
 		virtual ~PresenterWin32SurfaceInitializationInfo() override = default;
 	};
 }

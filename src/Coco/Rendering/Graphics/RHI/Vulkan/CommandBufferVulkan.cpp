@@ -51,7 +51,7 @@ namespace Coco::Rendering
 	void CommandBufferVulkan::End()
 	{
 		if (_isInRenderPass)
-			EndRenderPass();
+			CmdEndRenderPass();
 
 		AssertVkResult(vkEndCommandBuffer(_commandBuffer));
 		CurrentState = State::RecordingEnded;
@@ -104,20 +104,7 @@ namespace Coco::Rendering
 		CurrentState = State::Ready;
 	}
 
-	void CommandBufferVulkan::CmdSetViewport(const Vector2Int& offset, const SizeInt& size)
-	{
-		VkViewport viewport = {};
-		viewport.x = static_cast<float>(offset.X);
-		viewport.y = static_cast<float>(offset.Y);
-		viewport.width = static_cast<float>(size.Width);
-		viewport.height = static_cast<float>(size.Height);
-		viewport.minDepth = 0.0f; // TODO
-		viewport.maxDepth = 1.0f; // TODO
-
-		vkCmdSetViewport(_commandBuffer, 0, 1, &viewport);
-	}
-
-	void CommandBufferVulkan::BeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, const Ref<RenderView>& renderView)
+	void CommandBufferVulkan::CmdBeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, const Ref<RenderView>& renderView)
 	{
 		VkRenderPassBeginInfo beginInfo = {};
 		beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -144,7 +131,7 @@ namespace Coco::Rendering
 		_isInRenderPass = true;
 	}
 
-	void CommandBufferVulkan::EndRenderPass()
+	void CommandBufferVulkan::CmdEndRenderPass()
 	{
 		vkCmdEndRenderPass(_commandBuffer);
 		_isInRenderPass = false;

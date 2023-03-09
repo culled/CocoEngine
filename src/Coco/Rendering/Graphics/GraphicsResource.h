@@ -17,8 +17,10 @@ namespace Coco::Rendering
 		/// </summary>
 		GraphicsDevice* OwningDevice;
 
-	public:
+	protected:
 		GraphicsResource(GraphicsDevice* owningDevice);
+
+	public:
 		virtual ~GraphicsResource() = default;
 
 		/// <summary>
@@ -26,34 +28,5 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>The owning GraphicsDevice</returns>
 		GraphicsDevice* GetOwningDevice() const { return OwningDevice; }
-	};
-
-	/// <summary>
-	/// A resource that a GraphicsDevice manages
-	/// </summary>
-	template<typename T>
-	class COCOAPI ManagedGraphicsResource : public GraphicsResource
-	{
-	protected:
-		/// <summary>
-		/// The managed resource
-		/// </summary>
-		Managed<T> Resource;
-
-	public:
-		ManagedGraphicsResource(GraphicsDevice* owningDevice, T* resource) : GraphicsResource(owningDevice), Resource(resource) {}
-		virtual ~ManagedGraphicsResource() override { Resource.reset(); }
-
-		/// <summary>
-		/// Gets the raw resource
-		/// </summary>
-		/// <returns>A pointer to the raw resource</returns>
-		T* GetResource() const { return Resource.get(); }
-
-		/// <summary>
-		/// Releases the raw resource without destroying it
-		/// </summary>
-		/// <returns>A pointer to the raw resource</returns>
-		T* ReleaseResource() { return Resource.release(); }
 	};
 }

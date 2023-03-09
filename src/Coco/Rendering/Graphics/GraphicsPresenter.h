@@ -5,8 +5,6 @@
 
 #include "GraphicsPlatformTypes.h"
 #include "PresenterSurfaceInitializationInfo.h"
-#include "GraphicsFence.h"
-#include "GraphicsSemaphore.h"
 #include "RenderView.h"
 #include "RenderContext.h"
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
@@ -28,6 +26,9 @@ namespace Coco::Rendering
 	/// </summary>
 	class COCOAPI GraphicsPresenter
 	{
+	protected:
+		GraphicsPresenter() = default;
+
 	public:
 		virtual ~GraphicsPresenter() = default;
 

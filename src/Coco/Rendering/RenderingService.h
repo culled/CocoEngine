@@ -3,10 +3,10 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Services/EngineService.h>
 
-#include "Graphics/RenderView.h"
 #include "Graphics/GraphicsPlatform.h"
 #include "Graphics/GraphicsPresenter.h"
 #include "Pipeline/RenderPipeline.h"
+#include "Graphics/Buffer.h"
 
 namespace Coco::Rendering
 {
@@ -21,7 +21,7 @@ namespace Coco::Rendering
 
     public:
         RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
-        ~RenderingService();
+        virtual ~RenderingService();
 
         virtual Logging::Logger* GetLogger() const override;
         virtual void Start() override;
@@ -62,6 +62,21 @@ namespace Coco::Rendering
         /// <param name="presenter">The presenter</param>
         /// <param name="pipeline">The render pipeline</param>
         void Render(GraphicsPresenter* presenter, const Ref<RenderPipeline>& pipeline);
+
+        /// <summary>
+        /// Creates a data buffer that can be used to store data on the GPU
+        /// </summary>
+        /// <param name="size">The size of the buffer (in bytes)</param>
+        /// <param name="usageFlags">The usage flags for the buffer</param>
+        /// <param name="bindOnCreate">If true, the buffer's memory will be bound once created</param>
+        /// <returns>The created buffer</returns>
+        Buffer* CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) { return _graphics->CreateBuffer(size, usageFlags, bindOnCreate); }
+
+        /// <summary>
+        /// Destroys a GraphicsResource that is managed by the GPU
+        /// </summary>
+        /// <param name="resource">The resource to destroy</param>
+        void DestroyResource(GraphicsResource* resource) { _graphics->GetDevice()->DestroyResource(resource); }
 
     private:
         /// <summary>

@@ -20,7 +20,7 @@ namespace Coco::Rendering
 		GraphicsDeviceVulkan* _device;
 
 	public:
-		GraphicsFenceVulkan(GraphicsDeviceVulkan* owningDevice, bool startSignalled);
+		GraphicsFenceVulkan(GraphicsDevice* owningDevice, bool startSignalled);
 		virtual ~GraphicsFenceVulkan() override;
 
 		virtual bool IsSignalled() const override;

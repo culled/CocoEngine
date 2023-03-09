@@ -1,4 +1,4 @@
-#include "ImageUtilities.h"
+#include "ImageTypes.h"
 
 namespace Coco::Rendering
 {

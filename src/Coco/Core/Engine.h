@@ -3,15 +3,15 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/ExitCodes.h>
 #include <Coco/Core/Types/DateTime.h>
+#include <Coco/Core/Types/TimeSpan.h>
 #include <Coco/Core/Logging/Logger.h>
 #include <Coco/Core/Platform/IEnginePlatform.h>
 #include <Coco/Core/Services/EngineServiceManager.h>
 #include <Coco/Core/MainLoop/MainLoop.h>
+#include "Application.h"
 
 namespace Coco
 {
-	class Application;
-
 	/// <summary>
 	/// The core engine
 	/// </summary>

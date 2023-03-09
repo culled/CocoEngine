@@ -45,6 +45,15 @@ namespace Coco::Rendering
 	/// </summary>
 	class COCOAPI GraphicsDevice
 	{
+	protected:
+		/// <summary>
+		/// The list of resources this device manages
+		/// </summary>
+		List<Managed<GraphicsResource>> Resources;
+
+	protected:
+		GraphicsDevice() = default;
+
 	public:
 		virtual ~GraphicsDevice() = default;
 
@@ -73,18 +82,9 @@ namespace Coco::Rendering
 		virtual Version GetAPIVersion() const = 0;
 
 		/// <summary>
-		/// Creates a managed resource wrapper for the given raw resource and adds it to this device's list of managed resources
+		/// Blocks until this device is idle
 		/// </summary>
-		/// <typeparam name="T">The type of resource being added</typeparam>
-		/// <param name="resource">The raw resource</param>
-		/// <returns>A managed resource</returns>
-		template<typename T>
-		ManagedGraphicsResource<T>* CreateAndAddManagedResource(T* rawResource)
-		{
-			ManagedGraphicsResource<T> wrapper = new ManagedGraphicsResource<T>(this, rawResource);
-			AddResource(wrapper);
-			return wrapper;
-		}
+		virtual void WaitForIdle() = 0;
 
 		/// <summary>
 		/// Creates a GraphicsResource-derived type and adds it to this device's list of managed resources
@@ -96,8 +96,8 @@ namespace Coco::Rendering
 		template<typename T, typename ... Args, typename = std::enable_if_t<std::is_base_of_v<GraphicsResource, T>>>
 		T* CreateAndAddResource(Args&& ... args)
 		{
-			T wrapper = new T(this, std::forward<Args>(args)...);
-			AddResource(wrapper);
+			T* wrapper = new T(this, std::forward<Args>(args)...);
+			AddResource(Managed<T>(wrapper));
 			return wrapper;
 		}
 
@@ -105,24 +105,19 @@ namespace Coco::Rendering
 		/// Adds a resource for this device to manage
 		/// </summary>
 		/// <param name="resource">The resource to add</param>
-		virtual void AddResource(GraphicsResource* resource) = 0;
+		void AddResource(Managed<GraphicsResource> resource);
 
 		/// <summary>
 		/// Releases a managed resource without destroying it
 		/// </summary>
 		/// <param name="resource">The resource to release</param>
-		virtual void ReleaseResource(GraphicsResource* resource) = 0;
+		void ReleaseResource(GraphicsResource* resource);
 
 		/// <summary>
 		/// Destroys a managed resource
 		/// </summary>
 		/// <param name="resource">The resource to destroy</param>
-		virtual void DestroyResource(GraphicsResource* resource) = 0;
-
-		/// <summary>
-		/// Blocks until this device is idle
-		/// </summary>
-		virtual void WaitForIdle() = 0;
+		void DestroyResource(GraphicsResource* resource);
 	};
 }
 

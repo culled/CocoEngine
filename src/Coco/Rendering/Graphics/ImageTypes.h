@@ -37,4 +37,11 @@ namespace Coco::Rendering
 		CubeMap,
 		CubeMapArray
 	};
+
+	/// <summary>
+	/// Gets if the given pixel format is a depth/stencil format
+	/// </summary>
+	/// <param name="format">The format</param>
+	/// <returns>True if the format is a depth/stencil format</returns>
+	COCOAPI bool IsDepthStencilFormat(PixelFormat format);
 }
