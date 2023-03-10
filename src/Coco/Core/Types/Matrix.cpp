@@ -3,10 +3,18 @@
 
 namespace Coco
 {
-	const Matrix4x4 Matrix4x4::Identity = Matrix4x4();
+	const Matrix4x4 Matrix4x4::Identity = Matrix4x4(true);
 
-	Matrix4x4::Matrix4x4()
-	{}
+	Matrix4x4::Matrix4x4(bool isIdentity)
+	{
+		for (int i = 0; i < CellCount; i++)
+		{
+			Data[i] = 0.0;
+
+			if (isIdentity && (i == 0 || i == 5 || i == 10 || i == 15))
+				Data[i] = 1.0;
+		}
+	}
 
 	Matrix4x4::Matrix4x4(double data[CellCount])
 	{
@@ -14,6 +22,11 @@ namespace Coco
 		{
 			Data[i] = data[i];
 		}
+	}
+
+	Matrix4x4::Matrix4x4(const Matrix4x4& other)
+	{
+		std::memcpy(Data, other.Data, CellCount * sizeof(double));
 	}
 
 	Matrix4x4 Matrix4x4::CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip)

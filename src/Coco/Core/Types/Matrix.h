@@ -13,8 +13,9 @@ namespace Coco
 
 		double Data[CellCount];
 
-		Matrix4x4();
+		Matrix4x4(bool isIdentity = false);
 		Matrix4x4(double data[CellCount]);
+		Matrix4x4(const Matrix4x4& other);
 
 		/// <summary>
 		/// Creates an orthographic projection matrix
