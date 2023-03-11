@@ -8,6 +8,7 @@
 
 namespace Coco::Rendering
 {
+	class GraphicsDevice;
 	class GraphicsDeviceVulkan;
 
 	/// <summary>

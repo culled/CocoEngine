@@ -82,5 +82,6 @@ namespace Coco
 		Matrix4x4 ToMatrix4x4() const;
 
 		Quaternion operator*(const Quaternion& other) const;
+		void operator*=(const Quaternion& other);
 	};
 }

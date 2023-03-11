@@ -3,7 +3,8 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/List.h>
-#include "GraphicsPipelineState.h"
+#include <Coco/Core/Types/Matrix.h>
+#include "Graphics/GraphicsPipelineState.h"
 #include "ShaderTypes.h"
 
 namespace Coco::Rendering

@@ -167,7 +167,7 @@ namespace Coco::Rendering
 			memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 		}
 
-		return _device->CreateAndAddResource<BufferVulkan>(usageFlags, size, memoryProperties, bindOnCreate);
+		return _device->CreateResource<BufferVulkan>(usageFlags, size, memoryProperties, bindOnCreate);
 	}
 
 	bool GraphicsPlatformVulkan::CheckValidationLayersSupport()

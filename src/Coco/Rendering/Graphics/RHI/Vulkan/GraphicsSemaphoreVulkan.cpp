@@ -4,8 +4,8 @@
 
 namespace Coco::Rendering
 {
-	GraphicsSemaphoreVulkan::GraphicsSemaphoreVulkan(GraphicsDevice* owningDevice) : GraphicsSemaphore(owningDevice),
-		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice))
+	GraphicsSemaphoreVulkan::GraphicsSemaphoreVulkan(GraphicsDevice* device) :
+		_device(static_cast<GraphicsDeviceVulkan*>(device))
 	{
 		VkSemaphoreCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;

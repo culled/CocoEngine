@@ -2,8 +2,8 @@
 
 #include <Coco/Core/Core.h>
 
-#include "GraphicsResource.h"
 #include "ImageTypes.h"
+#include "GraphicsResource.h"
 
 namespace Coco::Rendering
 {
@@ -65,13 +65,13 @@ namespace Coco::Rendering
 	/// <summary>
 	/// A representation of an image on the GPU
 	/// </summary>
-	class COCOAPI Image : public GraphicsResource
+	class COCOAPI Image : public IGraphicsResource
 	{
 	protected:
 		ImageDescription Description;
 
 	protected:
-		Image(GraphicsDevice* device, ImageDescription description);
+		Image(ImageDescription description);
 
 	public:
 		virtual ~Image() = default;

@@ -3,13 +3,14 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Map.h>
-#include <Coco/Rendering/Graphics/Shader.h>
-#include <Coco/Rendering/Graphics/ShaderTypes.h>
+#include <Coco/Rendering/Shader.h>
+#include <Coco/Rendering/ShaderTypes.h>
 #include <Coco/Rendering/Graphics/GraphicsResource.h>
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
 {
+	class GraphicsDevice;
 	class GraphicsDeviceVulkan;
 
 	/// <summary>
@@ -26,11 +27,12 @@ namespace Coco::Rendering
 	/// <summary>
 	/// A shader that can be used with Vulkan
 	/// </summary>
-	class VulkanShader : public GraphicsResource
+	class VulkanShader : public IGraphicsResource
 	{
 	private:
 		GraphicsDeviceVulkan* _device;
 		Map<string, List<VulkanShaderStage>> _shaderStages;
+		VkDescriptorSetLayout _globalUBODescriptorSetLayout;
 
 	public:
 		VulkanShader(GraphicsDevice* device, const Ref<Shader>& shader);
@@ -42,6 +44,12 @@ namespace Coco::Rendering
 		/// <param name="subshaderName">The name of the subshader</param>
 		/// <returns>The list of subshader stages</returns>
 		List<VulkanShaderStage> GetSubshaderStages(const string& subshaderName) const;
+
+		/// <summary>
+		/// Gets the descriptor set layouts for this shader
+		/// </summary>
+		/// <returns>This shader's descriptor set layouts</returns>
+		List<VkDescriptorSetLayout> GetDescriptorSetLayouts() const { return List<VkDescriptorSetLayout>({ _globalUBODescriptorSetLayout }); }
 
 	private:
 		/// <summary>

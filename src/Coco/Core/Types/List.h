@@ -25,9 +25,9 @@ namespace Coco
 		/// Adds an item to this list
 		/// </summary>
 		/// <param name="item">The item to add</param>
-		void Add(T&& item)
+		T& Add(T&& item)
 		{
-			_list.push_back(std::forward<T>(item));
+			return _list.emplace_back(std::forward<T>(item));
 		}
 
 		/// <summary>
@@ -152,6 +152,23 @@ namespace Coco
 		T* Data()
 		{
 			return _list.data();
+		}
+
+		/// <summary>
+		/// Determines if a given element exists in this list
+		/// </summary>
+		/// <param name="item">The item to search for</param>
+		/// <returns>True if the item is found in this list</returns>
+		bool Contains(const T& item) const
+		{
+			ConstIterator it = std::find(begin(), end(), item);
+
+			if (it != end())
+			{
+				return true;
+			}
+
+			return false;
 		}
 
 		/// <summary>

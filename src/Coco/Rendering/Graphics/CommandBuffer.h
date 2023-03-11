@@ -4,8 +4,8 @@
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
-#include "GraphicsSemaphore.h"
-#include "GraphicsFence.h"
+#include "IGraphicsSemaphore.h"
+#include "IGraphicsFence.h"
 
 namespace Coco::Rendering
 {
@@ -55,7 +55,10 @@ namespace Coco::Rendering
 		/// <param name="waitSemaphores">Semaphores to wait on before performing this buffer's work</param>
 		/// <param name="signalSemaphores">Semaphores to signal once this buffer's work has been completed</param>
 		/// <param name="signalFence">A fence to signal once this buffer's work has been completed</param>
-		virtual void Submit(const List<GraphicsSemaphore*>& waitSemaphores = {}, const List<GraphicsSemaphore*>& signalSemaphores = {}, GraphicsFence* signalFence = nullptr) = 0;
+		virtual void Submit(
+			const List<IGraphicsSemaphore*>& waitSemaphores = {},
+			const List<IGraphicsSemaphore*>& signalSemaphores = {},
+			IGraphicsFence* signalFence = nullptr) = 0;
 
 		/// <summary>
 		/// Resets this buffer
@@ -68,6 +71,9 @@ namespace Coco::Rendering
 		/// <param name="waitSemaphores">Semaphores to wait on before performing this buffer's work</param>
 		/// <param name="signalSemaphores">Semaphores to signal once this buffer's work has been completed</param>
 		/// <param name="signalFence">A fence to signal once this buffer's work has been completed</param>
-		void EndAndSubmit(const List<GraphicsSemaphore*>& waitSemaphores = {}, const List<GraphicsSemaphore*>& signalSemaphores = {}, GraphicsFence* signalFence = nullptr);
+		void EndAndSubmit(
+			const List<IGraphicsSemaphore*>& waitSemaphores = {},
+			const List<IGraphicsSemaphore*>& signalSemaphores = {},
+			IGraphicsFence* signalFence = nullptr);
 	};
 }

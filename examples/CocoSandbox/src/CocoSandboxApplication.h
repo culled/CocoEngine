@@ -4,7 +4,11 @@
 #include <Coco/Core/Events/Query.h>
 #include <Coco/Core/Events/Event.h>
 
-class Coco::Engine;
+namespace Coco
+{
+	class Engine;
+	class MainLoopTickListener;
+}
 
 namespace Coco::Windowing
 {
@@ -15,11 +19,6 @@ namespace Coco::Windowing
 namespace Coco::Input
 {
 	class InputService;
-}
-
-namespace Coco
-{
-	class MainLoopTickListener;
 }
 
 namespace Coco::Rendering

@@ -283,6 +283,16 @@ namespace Coco
 		return vec;
 	}
 
+	Array<float, Matrix4x4::CellCount> Matrix4x4::AsFloat() const
+	{
+		Array<float, Matrix4x4::CellCount> data = {};
+
+		for (int i = 0; i < CellCount; i++)
+			data[i] = static_cast<float>(Data[i]);
+
+		return std::move(data);
+	}
+
 	Matrix4x4 Matrix4x4::operator*(const Matrix4x4& other) const
 	{
 		Matrix4x4 result = Identity;

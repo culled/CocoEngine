@@ -2,25 +2,26 @@
 
 #include <Coco/Core/Core.h>
 
-#include <Coco/Rendering/Graphics/GraphicsSemaphore.h>
+#include <Coco/Rendering/Graphics/IGraphicsSemaphore.h>
 
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
 {
+	class GraphicsDevice;
 	class GraphicsDeviceVulkan;
 
 	/// <summary>
 	/// Vulkan-implementation of a GraphicsSemaphore
 	/// </summary>
-	class GraphicsSemaphoreVulkan : public GraphicsSemaphore
+	class GraphicsSemaphoreVulkan : public IGraphicsSemaphore
 	{
 	private:
 		VkSemaphore _semaphore = nullptr;
 		GraphicsDeviceVulkan* _device;
 
 	public:
-		GraphicsSemaphoreVulkan(GraphicsDevice* owningDevice);
+		GraphicsSemaphoreVulkan(GraphicsDevice* device);
 		virtual ~GraphicsSemaphoreVulkan() override;
 
 		/// <summary>

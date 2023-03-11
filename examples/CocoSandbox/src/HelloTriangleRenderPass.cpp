@@ -20,9 +20,12 @@ HelloTriangleRenderPass::HelloTriangleRenderPass()
 		});
 
 	// Setup our basic mesh
+	double size = 10.0;
 	_mesh = CreateRef<Mesh>();
-	_mesh->SetPositions({ Vector3(0.0, -0.5, 0.0), Vector3(0.5, 0.5, 0.0), Vector3(0.0, 0.5, 0.0), Vector3(0.5, -0.5, 0.0) });
+	_mesh->SetPositions({ Vector3(-0.5, -0.5, 0.0) * size, Vector3(0.5, 0.5, 0.0) * size, Vector3(-0.5, 0.5, 0.0) * size, Vector3(0.5, -0.5, 0.0) * size });
 	_mesh->SetIndices({ 0, 1, 2, 0, 3, 1 });
+
+	_meshRotation = Quaternion::Identity;
 }
 
 List<AttachmentDescription> HelloTriangleRenderPass::GetAttachmentDescriptions()
@@ -40,5 +43,7 @@ void HelloTriangleRenderPass::Execute(RenderContext* renderContext)
 
 	// Draw the mesh
 	renderContext->UseShader(_shader);
-	renderContext->Draw(_mesh);
+	renderContext->Draw(_mesh, _meshRotation.ToMatrix4x4());
+
+	_meshRotation *= Quaternion(Vector3::Up, 0.01);
 }

@@ -1,6 +1,6 @@
 #include "CommandBufferVulkan.h"
 
-#include <Coco/Rendering/Graphics/RenderView.h>
+#include <Coco/Rendering/RenderView.h>
 #include "GraphicsDeviceVulkan.h"
 #include "CommandBufferPoolVulkan.h"
 #include "GraphicsSemaphoreVulkan.h"
@@ -50,14 +50,14 @@ namespace Coco::Rendering
 
 	void CommandBufferVulkan::End()
 	{
-		if (_isInRenderPass)
-			CmdEndRenderPass();
-
 		AssertVkResult(vkEndCommandBuffer(_commandBuffer));
 		CurrentState = State::RecordingEnded;
 	}
 
-	void CommandBufferVulkan::Submit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence)
+	void CommandBufferVulkan::Submit(
+		const List<IGraphicsSemaphore*>& waitSemaphores,
+		const List<IGraphicsSemaphore*>& signalSemaphores,
+		IGraphicsFence* signalFence)
 	{
 		List<VkSemaphore> vulkanWaitSemaphores;
 
@@ -102,38 +102,5 @@ namespace Coco::Rendering
 	{
 		AssertVkResult(vkResetCommandBuffer(_commandBuffer, 0));
 		CurrentState = State::Ready;
-	}
-
-	void CommandBufferVulkan::CmdBeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, const Ref<RenderView>& renderView)
-	{
-		VkRenderPassBeginInfo beginInfo = {};
-		beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		beginInfo.renderPass = renderPass;
-		beginInfo.framebuffer = framebuffer;
-
-		beginInfo.renderArea.offset.x = static_cast<uint32_t>(renderView->RenderOffset.X);
-		beginInfo.renderArea.offset.y = static_cast<uint32_t>(renderView->RenderOffset.Y);
-		beginInfo.renderArea.extent.width = static_cast<uint32_t>(renderView->RenderSize.Width);
-		beginInfo.renderArea.extent.height = static_cast<uint32_t>(renderView->RenderSize.Height);
-
-		VkClearValue clearValue = { {{
-				static_cast<float>(renderView->ClearColor.R), 
-				static_cast<float>(renderView->ClearColor.G), 
-				static_cast<float>(renderView->ClearColor.B), 
-				static_cast<float>(renderView->ClearColor.A)
-			}} };
-
-		beginInfo.clearValueCount = 1;
-		beginInfo.pClearValues = &clearValue;
-
-		vkCmdBeginRenderPass(_commandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		_isInRenderPass = true;
-	}
-
-	void CommandBufferVulkan::CmdEndRenderPass()
-	{
-		vkCmdEndRenderPass(_commandBuffer);
-		_isInRenderPass = false;
 	}
 }

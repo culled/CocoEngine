@@ -39,7 +39,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	Image::Image(GraphicsDevice* device, ImageDescription description) : GraphicsResource(device),
+	Image::Image(ImageDescription description) : 
 		Description(description)
 	{}
 }

@@ -49,7 +49,7 @@ namespace Coco::Rendering
 		/// <summary>
 		/// The list of resources this device manages
 		/// </summary>
-		List<Managed<GraphicsResource>> Resources;
+		List<Managed<IGraphicsResource>> Resources;
 
 	protected:
 		GraphicsDevice() = default;
@@ -87,37 +87,24 @@ namespace Coco::Rendering
 		virtual void WaitForIdle() = 0;
 
 		/// <summary>
-		/// Creates a GraphicsResource-derived type and adds it to this device's list of managed resources
+		/// Creates a graphics resource, adds it to this device's list of managed resources, and returns a handle to it
 		/// </summary>
 		/// <typeparam name="T">The type of resource being created</typeparam>
 		/// <typeparam name="...Args">The type of arguments to pass to the resource constructor</typeparam>
 		/// <param name="...args">The arguments to pass to the resource's constructor</param>
-		/// <returns>A managed resource</returns>
-		template<typename T, typename ... Args, typename = std::enable_if_t<std::is_base_of_v<GraphicsResource, T>>>
-		T* CreateAndAddResource(Args&& ... args)
+		/// <returns>A handle to the resource</returns>
+		template<typename ObjectT, typename ... Args, std::enable_if_t<std::is_base_of<IGraphicsResource, ObjectT>::value, bool> = true>
+		ObjectT* CreateResource(Args&& ... args)
 		{
-			T* wrapper = new T(this, std::forward<Args>(args)...);
-			AddResource(Managed<T>(wrapper));
-			return wrapper;
+			Managed<IGraphicsResource>& resource = Resources.Add(CreateManaged<ObjectT>(this, std::forward<Args>(args)...));
+			return static_cast<ObjectT*>(resource.get());
 		}
 
 		/// <summary>
-		/// Adds a resource for this device to manage
-		/// </summary>
-		/// <param name="resource">The resource to add</param>
-		void AddResource(Managed<GraphicsResource> resource);
-
-		/// <summary>
-		/// Releases a managed resource without destroying it
-		/// </summary>
-		/// <param name="resource">The resource to release</param>
-		void ReleaseResource(GraphicsResource* resource);
-
-		/// <summary>
-		/// Destroys a managed resource
+		/// Destroys a managed graphics resource
 		/// </summary>
 		/// <param name="resource">The resource to destroy</param>
-		void DestroyResource(GraphicsResource* resource);
+		void DestroyResource(const IGraphicsResource* resource);
 	};
 }
 

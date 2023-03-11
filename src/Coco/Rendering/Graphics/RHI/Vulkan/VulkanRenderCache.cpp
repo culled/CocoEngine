@@ -79,7 +79,7 @@ namespace Coco::Rendering
 	{
 		if (!_shaderCache.contains(shader.get()))
 		{
-			_shaderCache[shader.get()] = _device->CreateAndAddResource<VulkanShader>(shader);
+			_shaderCache[shader.get()] = _device->CreateResource<VulkanShader>(shader);
 		}
 
 		return _shaderCache[shader.get()];
@@ -338,17 +338,25 @@ namespace Coco::Rendering
 		inputState.topology = ToVkPrimativeTopology(subshader->PipelineState.TopologyMode);
 		inputState.primitiveRestartEnable = VK_FALSE;
 
+		// TODO: make this more configurable
+		VkPushConstantRange pushConstants = { };
+		pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		pushConstants.offset = 0;
+		pushConstants.size = sizeof(float) * 16; // 64 bytes for now
+
+		VulkanShader* vulkanShader = GetOrCreateVulkanShader(shader);
+		List<VkDescriptorSetLayout> descriptorSetLayouts = vulkanShader->GetDescriptorSetLayouts();
+
 		VkPipelineLayoutCreateInfo layoutInfo = {};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		layoutInfo.setLayoutCount = 0; // TODO
-		layoutInfo.pSetLayouts = nullptr;
-		layoutInfo.pushConstantRangeCount = 0; // TODO
-		layoutInfo.pPushConstantRanges = nullptr;
+		layoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.Count());
+		layoutInfo.pSetLayouts = descriptorSetLayouts.Data();
+		layoutInfo.pushConstantRangeCount = 1;
+		layoutInfo.pPushConstantRanges = &pushConstants;
 
 		VulkanPipeline pipeline = {};
 		AssertVkResult(vkCreatePipelineLayout(_device->GetDevice(), &layoutInfo, nullptr, &pipeline.Layout));
 
-		VulkanShader* vulkanShader = GetOrCreateVulkanShader(shader);
 		List<VulkanShaderStage> shaderStages = vulkanShader->GetSubshaderStages(subpassName);
 		List<VkPipelineShaderStageCreateInfo> shaderStageInfos;
 

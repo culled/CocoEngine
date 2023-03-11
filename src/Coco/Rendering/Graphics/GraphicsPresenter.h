@@ -5,7 +5,7 @@
 
 #include "GraphicsPlatformTypes.h"
 #include "PresenterSurfaceInitializationInfo.h"
-#include "RenderView.h"
+#include <Coco/Rendering/RenderView.h>
 #include "RenderContext.h"
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 
@@ -70,32 +70,15 @@ namespace Coco::Rendering
 		virtual VerticalSyncMode GetVSyncMode() const = 0;
 
 		/// <summary>
-		/// Creates a render context for this presenter
+		/// Gets a render context that can be used for rendering
 		/// </summary>
-		/// <param name="view">The render view</param>
-		/// <param name="pipeline">The render pipeline</param>
-		/// <param name="backbufferImageIndex">The index of the backbuffer that will be used for rendering</param>
 		/// <returns>A render context</returns>
-		virtual Managed<RenderContext> CreateRenderContext(const Ref<RenderView>& view, const Ref<RenderPipeline>& pipeline, int backbufferImageIndex) = 0;
+		virtual RenderContext* GetRenderContext() = 0;
 
 		/// <summary>
-		/// Acquires the index of the next backbuffer to draw to
+		/// Queues the given render context for presentation
 		/// </summary>
-		/// <param name="timeoutNs">The timeout to wait for, in nanoseconds</param>
-		/// <param name="imageAvailableFence">A fence to wait on for the image to become available</param>
-		/// <param name="imageAvailableSemaphore">A semaphore to wait on for the image to become available</param>
-		/// <param name="backbufferImageIndex">The index of the backbuffer to use</param>
-		/// <returns>The operation result</returns>
-		virtual GraphicsPresenterResult AcquireNextBackbuffer(
-			unsigned long long timeoutNs, 
-			int& backbufferImageIndex) = 0;
-
-		/// <summary>
-		/// Queues the backbuffer at the given index for presentation
-		/// </summary>
-		/// <param name="backbufferImageIndex">The index of the backbuffer</param>
-		/// <param name="renderCompleteSemaphore">A semaphore to wait on for the image to finish rendering</param>
-		/// <returns>The operation result</returns>
-		virtual GraphicsPresenterResult Present(int backbufferImageIndex) = 0;
+		/// <param name="renderContext">The render context</param>
+		virtual void Present(RenderContext* renderContext) = 0;
 	};
 }

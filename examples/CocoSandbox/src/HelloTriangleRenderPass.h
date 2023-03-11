@@ -1,8 +1,9 @@
 #pragma once
 
 #include <Coco/Rendering/Pipeline/IRenderPass.h>
-#include <Coco/Rendering/Graphics/Shader.h>
+#include <Coco/Rendering/Shader.h>
 #include <Coco/Rendering/Mesh.h>
+#include <Coco/Core/Types/Quaternion.h>
 
 using namespace Coco;
 using namespace Coco::Rendering;
@@ -12,6 +13,7 @@ class HelloTriangleRenderPass : public IRenderPass
 private:
 	Ref<Shader> _shader;
 	Ref<Mesh> _mesh;
+	Quaternion _meshRotation;
 
 public:
 	HelloTriangleRenderPass();

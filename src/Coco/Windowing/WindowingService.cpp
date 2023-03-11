@@ -40,13 +40,11 @@ namespace Coco::Windowing
 	{
 		if (Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(Engine::Get()->GetPlatform()))
 		{
-			Managed<Window> window = platform->CreatePlatformWindow(createParameters, this);
+			Managed<Window>& window = _windows.Add(platform->CreatePlatformWindow(createParameters, this));
 			Window* windowPtr = window.get();
 
 			if (_mainWindow == nullptr)
 				_mainWindow = windowPtr;
-
-			_windows.Add(std::move(window));
 
 			return windowPtr;
 		}

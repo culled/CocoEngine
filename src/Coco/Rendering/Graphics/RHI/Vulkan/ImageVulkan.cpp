@@ -5,7 +5,7 @@
 namespace Coco::Rendering
 {
 	ImageVulkan::ImageVulkan(GraphicsDevice* device, ImageDescription description, VkImage image, VkImageView nativeView, bool isManagedInternally) : 
-		Image(device, description),
+		Image(description),
 		_device(static_cast<GraphicsDeviceVulkan*>(device)), _image(image), _nativeView(nativeView), _isManagedInternally(isManagedInternally)
 	{
 	}

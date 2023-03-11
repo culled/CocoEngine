@@ -1,23 +1,20 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-
 #include "GraphicsResource.h"
 
 namespace Coco::Rendering
 {
-	class GraphicsDevice;
-
 	/// <summary>
 	/// A fence that can be used to make the host wait for an async GPU operation to complete
 	/// </summary>
-	class COCOAPI GraphicsFence : public GraphicsResource
+	class COCOAPI IGraphicsFence : public IGraphicsResource
 	{
 	protected:
-		GraphicsFence(GraphicsDevice* owningDevice) : GraphicsResource(owningDevice) {}
+		IGraphicsFence() = default;
 
 	public:
-		virtual ~GraphicsFence() = default;
+		virtual ~IGraphicsFence() = default;
 
 		/// <summary>
 		/// Gets if this fence has been signalled
@@ -34,6 +31,6 @@ namespace Coco::Rendering
 		/// Waits on this fence
 		/// </summary>
 		/// <param name="timeoutNs">The maximum timeout to wait for, in nanoseconds</param>
-		virtual void Wait(unsigned long long timeoutNs) = 0;
+		virtual void Wait(uint64_t timeoutNs) = 0;
 	};
 }

@@ -1,17 +1,20 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-#include <Coco/Core/Types/List.h>
 #include <Coco/Rendering/Graphics/GraphicsPresenter.h>
+#include <Coco/Core/Types/List.h>
 #include "ImageVulkan.h"
+#include "RenderContextVulkan.h"
 
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
 {
+	class GraphicsDeviceVulkan;
 	class GraphicsFenceVulkan;
 	class GraphicsSemaphoreVulkan;
 	class CommandBufferVulkan;
+	class BufferVulkan;
 
 	/// <summary>
 	/// Support details for a swapchain
@@ -22,19 +25,6 @@ namespace Coco::Rendering
 		List<VkSurfaceFormatKHR> SurfaceFormats;
 		List<VkPresentModeKHR> PresentModes;
 	};
-
-	/// <summary>
-	/// Container for backbuffer objects
-	/// </summary>
-	struct Backbuffer
-	{
-		ImageVulkan* Image = nullptr;
-		GraphicsSemaphoreVulkan* ImageAvailableSemaphore = nullptr;
-		GraphicsSemaphoreVulkan* RenderingCompletedSemaphore = nullptr;
-		GraphicsFenceVulkan* RenderingCompletedFence = nullptr;
-	};
-
-	class GraphicsDeviceVulkan;
 
     /// <summary>
     /// Vulkan implentation of a GraphicsPresenter
@@ -53,11 +43,8 @@ namespace Coco::Rendering
 
 		bool _isSwapchainDirty = true;
 
-		List<Backbuffer> _backbuffers;
-
-		List<CommandBufferVulkan*> _commandBuffers;
-		List<VkFramebuffer> _framebuffers;
-		WeakRef<RenderPipeline> _framebufferPipeline;
+		List<ImageVulkan*> _backbuffers;
+		List<RenderContextVulkan*> _renderContexts;
 		
 		uint _currentFrame = 0;
 
@@ -74,13 +61,8 @@ namespace Coco::Rendering
 		virtual void SetVSyncMode(VerticalSyncMode mode) override;
 		virtual VerticalSyncMode GetVSyncMode() const override { return _vsyncMode; }
 
-		virtual Managed<RenderContext> CreateRenderContext(const Ref<RenderView>& view, const Ref<RenderPipeline>& pipeline, int backbufferImageIndex) override;
-
-		virtual GraphicsPresenterResult AcquireNextBackbuffer(
-			unsigned long long timeoutNs,
-			int& backbufferImageIndex) override;
-
-		virtual GraphicsPresenterResult Present(int backbufferImageIndex) override;
+		virtual RenderContext* GetRenderContext() override;
+		virtual void Present(RenderContext* renderContext) override;
 
 	private:
 		/// <summary>
@@ -148,25 +130,13 @@ namespace Coco::Rendering
 		bool GetBackbufferImages();
 
 		/// <summary>
-		/// Creates/recreates the framebuffers for a given render pipeline and renderpass combo
+		/// Creates/recreates the render contexts used for rendering frames
 		/// </summary>
-		/// <param name="pipeline">The render pipeline</param>
-		/// <param name="renderPass">The renderpass</param>
-		void RecreateFramebuffers(const Ref<RenderPipeline>& pipeline, VkRenderPass renderPass);
+		void RecreateRenderContexts();
 
 		/// <summary>
-		/// Destroys the current framebuffers
+		/// Destroys the current render contexts
 		/// </summary>
-		void DestroyFramebuffers();
-
-		/// <summary>
-		/// Allocates/reallocates the command buffers used for rendering
-		/// </summary>
-		void ReallocateCommandBuffers();
-
-		/// <summary>
-		/// Frees the current command buffers
-		/// </summary>
-		void FreeCommandBuffers();
+		void DestroyRenderContexts();
     };
 }

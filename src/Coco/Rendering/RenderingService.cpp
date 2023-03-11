@@ -36,34 +36,33 @@ namespace Coco::Rendering
 			Render(presenter, _defaultPipeline);
 	}
 
-	void RenderingService::Render(GraphicsPresenter* presenter, const Ref<RenderPipeline>& pipeline)
+	void RenderingService::Render(GraphicsPresenter* presenter, Ref<RenderPipeline>& pipeline)
 	{
+		SizeInt size = presenter->GetBackbufferSize();
+		Matrix4x4 projectionMat = Matrix4x4::CreatePerspectiveProjection(Math::Deg2Rad(45.0), static_cast<double>(size.Width) / size.Height, 0.1, 100.0);
+
+		// Camera is looking in the -Z axis, so move forward to see our mesh at the world origin
+		Matrix4x4 viewMat = Matrix4x4::CreateWithTranslation(Vector3(0, 0, 30));
+
 		// TODO: create this from the scene graph
-		Ref<RenderView> view = CreateRef<RenderView>(Vector2Int::Zero, presenter->GetBackbufferSize(), pipeline->GetClearColor());
+		Ref<RenderView> view = CreateRef<RenderView>(Vector2Int::Zero, size, pipeline->GetClearColor(), projectionMat, viewMat);
 
-		// Acquire the image that we'll be using
-		int backbufferIndex;
-		GraphicsPresenterResult result = presenter->AcquireNextBackbuffer(std::numeric_limits<unsigned long long>::max(), backbufferIndex);
+		// Acquire the render context that we'll be using
+		RenderContext* renderContext = presenter->GetRenderContext();
 
-		// Early out if the presenter needs to rebuild
-		if (result != GraphicsPresenterResult::Success)
+		if (renderContext == nullptr)
+		{
+			LogError(GetLogger(), "Failed to get RenderContext to render presenter");
 			return;
-
-		// Create a render context
-		Managed<RenderContext> context = presenter->CreateRenderContext(view, pipeline, backbufferIndex);
-		context->Begin();
+		}
 
 		// Actually render with the pipeline
-		DoRender(pipeline, context.get());
-
-		// TODO: present transition
+		renderContext->Begin(view, pipeline);
+		DoRender(pipeline, renderContext);
+		renderContext->End();
 
 		// Submit the render data to the gpu and present
-		context->End();
-		presenter->Present(backbufferIndex);
-
-		context.reset();
-		view.reset();
+		presenter->Present(renderContext);
 	}
 
 	void RenderingService::DoRender(const Ref<RenderPipeline>& pipeline, RenderContext* context)

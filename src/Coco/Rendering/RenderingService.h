@@ -7,6 +7,7 @@
 #include "Graphics/GraphicsPresenter.h"
 #include "Pipeline/RenderPipeline.h"
 #include "Graphics/Buffer.h"
+#include "Graphics/GraphicsResource.h"
 
 namespace Coco::Rendering
 {
@@ -61,7 +62,7 @@ namespace Coco::Rendering
         /// </summary>
         /// <param name="presenter">The presenter</param>
         /// <param name="pipeline">The render pipeline</param>
-        void Render(GraphicsPresenter* presenter, const Ref<RenderPipeline>& pipeline);
+        void Render(GraphicsPresenter* presenter, Ref<RenderPipeline>& pipeline);
 
         /// <summary>
         /// Creates a data buffer that can be used to store data on the GPU
@@ -76,7 +77,7 @@ namespace Coco::Rendering
         /// Destroys a GraphicsResource that is managed by the GPU
         /// </summary>
         /// <param name="resource">The resource to destroy</param>
-        void DestroyResource(GraphicsResource* resource) { _graphics->GetDevice()->DestroyResource(resource); }
+        void DestroyResource(const IGraphicsResource* resource) { _graphics->GetDevice()->DestroyResource(resource); }
 
     private:
         /// <summary>

@@ -205,4 +205,9 @@ namespace Coco
 
 		return result;
 	}
+
+	void Quaternion::operator*=(const Quaternion& other)
+	{
+		*this = *this * other;
+	}
 }

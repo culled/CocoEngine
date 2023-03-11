@@ -5,14 +5,63 @@
 
 namespace Coco::Rendering
 {
-	RenderContext::RenderContext(Ref<Rendering::RenderView> renderView) :
-		RenderView(renderView)
+	GlobalUniformObject::GlobalUniformObject()
 	{
+		std::memset(Projection, 0, 16 * sizeof(float));
+		std::memset(View, 0, 16 * sizeof(float));
+		std::memset(Padding, 0, 128 * sizeof(uint8_t));
 	}
 
-	RenderContext::~RenderContext()
+	GlobalUniformObject::GlobalUniformObject(const Ref<RenderView>& renderView)
+	{
+		PopulateMatrix(Projection, renderView->Projection);
+
+		// A proper view matrix is inverted to go from world-space to view-space
+		PopulateMatrix(View, renderView->View.Inverted());
+
+		std::memset(Padding, 0, 128 * sizeof(uint8_t));
+	}
+
+	void GlobalUniformObject::PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix)
+	{
+		const double* sourceMatrixPtr = &sourceMatrix.Data[0];
+
+		for (int i = 0; i < 16; i++)
+		{
+			destinationMatrixPtr[i] = static_cast<float>(*sourceMatrixPtr);
+			sourceMatrixPtr++;
+		}
+	}
+
+	bool RenderContext::Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline>& pipeline)
+	{
+		if (!IsAvaliableForRendering())
+		{
+			WaitForRenderingCompleted();
+		}
+
+		Reset();
+
+		CurrentPipeline = pipeline;
+		RenderView = renderView;
+		GlobalUO = GlobalUniformObject(renderView);
+
+		return BeginImpl();
+	}
+
+	void RenderContext::End()
+	{
+		EndImpl();
+	}
+
+	void RenderContext::Reset()
 	{
 		RenderView.reset();
+		CurrentPipeline.reset();
+		CurrentRenderPass.reset();
+		CurrentRenderPassIndex = 0;
+
+		ResetImpl();
 	}
 
 	void RenderContext::RestoreViewport()

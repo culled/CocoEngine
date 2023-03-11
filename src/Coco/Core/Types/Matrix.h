@@ -3,6 +3,7 @@
 #include <Coco/Core/Core.h>
 
 #include "Vector.h"
+#include "Array.h"
 
 namespace Coco
 {
@@ -146,6 +147,12 @@ namespace Coco
 		/// </summary>
 		/// <returns>A vector that points forwards</returns>
 		Vector3 GetForwardsVector() const { return -GetBackwardsVector(); }
+
+		/// <summary>
+		/// Gets this matrix's data as a float array of 16 elements
+		/// </summary>
+		/// <returns>This matrix's data as a float array of 16 elements</returns>
+		Array<float, Matrix4x4::CellCount> AsFloat() const;
 
 		Matrix4x4 operator*(const Matrix4x4& other) const;
 	};

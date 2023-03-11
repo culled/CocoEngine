@@ -1,5 +1,5 @@
 #include "BufferVulkan.h"
-
+#include "GraphicsDeviceVulkan.h"
 #include "CommandBufferPoolVulkan.h"
 #include "CommandBufferVulkan.h"
 #include "VulkanUtilities.h"
@@ -7,7 +7,7 @@
 namespace Coco::Rendering
 {
 	BufferVulkan::BufferVulkan(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags, uint64_t size, uint memoryPropertyFlags, bool createBound) : 
-		Buffer(owningDevice, usageFlags),
+		Buffer(usageFlags),
 		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice)), _size(size), _memoryPropertyFlags(memoryPropertyFlags)
 	{
 		_usageFlags = ToVkBufferUsageFlags(usageFlags);

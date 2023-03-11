@@ -4,9 +4,12 @@
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Rendering/Mesh.h>
+#include <Coco/Rendering/Graphics/Buffer.h>
+#include <Coco/Rendering/Shader.h>
+#include <Coco/Rendering/RenderView.h>
 
-#include "RenderView.h"
-#include "Shader.h"
+#include "GraphicsResource.h"
+#include "RenderContextTypes.h"
 
 namespace Coco::Rendering
 {
@@ -14,9 +17,30 @@ namespace Coco::Rendering
 	class RenderPipeline;
 
 	/// <summary>
+	/// An object that holds global uniform data that can be directly pushed to a shader
+	/// </summary>
+	struct GlobalUniformObject
+	{
+		float Projection[4 * 4];	// 64 bytes
+		float View[4 * 4];			// 64 bytes
+		uint8_t Padding[128];		// 128 bytes - padding
+
+		GlobalUniformObject();
+		GlobalUniformObject(const Ref<RenderView>& renderView);
+
+	private:
+		/// <summary>
+		/// Populates a float array pointer with matrix values
+		/// </summary>
+		/// <param name="destinationMatrixPtr">The pointer to the first element of the float array</param>
+		/// <param name="sourceMatrix">The matrix</param>
+		void PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix);
+	};
+
+	/// <summary>
 	/// A context that can be used for rendering
 	/// </summary>
-	class COCOAPI RenderContext
+	class COCOAPI RenderContext : public IGraphicsResource
 	{
 		friend RenderPipeline;
 
@@ -25,6 +49,11 @@ namespace Coco::Rendering
 		/// The render view used for rendering
 		/// </summary>
 		Ref<RenderView> RenderView;
+
+		/// <summary>
+		/// The render pipeline being used for rendering
+		/// </summary>
+		Ref<RenderPipeline> CurrentPipeline;
 
 		/// <summary>
 		/// The currently rendering render pass
@@ -36,22 +65,29 @@ namespace Coco::Rendering
 		/// </summary>
 		uint CurrentRenderPassIndex = 0;
 
+		GlobalUniformObject GlobalUO;
+
 	protected:
-		RenderContext(Ref<Rendering::RenderView> renderView);
+		RenderContext() = default;
 
 	public:
-		virtual ~RenderContext();
+		virtual ~RenderContext() = default;
 
 		/// <summary>
 		/// Begins rendering for a scene
 		/// </summary>
 		/// <returns>True if the context began rendering successfully</returns>
-		virtual bool Begin() = 0;
+		bool Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline>& pipeline);
 
 		/// <summary>
 		/// Ends rendering for a scene
 		/// </summary>
-		virtual void End() = 0;
+		void End();
+
+		/// <summary>
+		/// Resets this context to begin rendering a new scene
+		/// </summary>
+		void Reset();
 
 		/// <summary>
 		/// Sets the size and offset of the viewport to use
@@ -80,12 +116,41 @@ namespace Coco::Rendering
 		/// Draws a mesh
 		/// </summary>
 		/// <param name="mesh">The mesh to draw</param>
-		virtual void Draw(const Ref<Mesh>& mesh) = 0;
+		/// <param name="modelMatrix">The model matrix</param>
+		virtual void Draw(const Ref<Mesh>& mesh, const Matrix4x4& modelMatrix) = 0;
 
 		/// <summary>
 		/// Restores the viewport to the size and offset specified by the RenderView
 		/// </summary>
 		void RestoreViewport();
+
+		/// <summary>
+		/// Gets if this render context can be immediately used for rendering
+		/// </summary>
+		/// <returns>True if this render context can immediately be used for rendering</returns>
+		virtual bool IsAvaliableForRendering() = 0;
+
+		/// <summary>
+		/// Waits for this render context's rendering to complete
+		/// </summary>
+		virtual void WaitForRenderingCompleted() = 0;
+
+	protected:
+		/// <summary>
+		/// Called when this render context is starting to render a scene
+		/// </summary>
+		/// <returns>True if rendering started successfully</returns>
+		virtual bool BeginImpl() = 0;
+
+		/// <summary>
+		/// Ends rendering the current scene 
+		/// </summary>
+		virtual void EndImpl() = 0;
+
+		/// <summary>
+		/// Resets this context
+		/// </summary>
+		virtual void ResetImpl() = 0;
 
 	private:
 		/// <summary>

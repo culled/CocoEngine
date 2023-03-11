@@ -28,7 +28,6 @@ namespace Coco::Rendering
 
 	Mesh::~Mesh()
 	{
-		// TODO: fix dangling pointer issue
 		_renderingService->DestroyResource(_vertexBuffer);
 		_renderingService->DestroyResource(_indexBuffer);
 	}
@@ -75,7 +74,7 @@ namespace Coco::Rendering
 
 		_indexCount = _vertexIndices.Count();
 
-		_renderingService->GetPlatform()->GetDevice()->DestroyResource(staging);
+		_renderingService->DestroyResource(staging);
 
 		if (deleteLocalData)
 		{

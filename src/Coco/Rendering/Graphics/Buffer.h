@@ -11,7 +11,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// A buffer that holds contiguous data for a graphics device
 	/// </summary>
-	class COCOAPI Buffer : public GraphicsResource
+	class COCOAPI Buffer : public IGraphicsResource
 	{
 	protected:
 		/// <summary>
@@ -20,7 +20,7 @@ namespace Coco::Rendering
 		BufferUsageFlags UsageFlags;
 
 	protected:
-		Buffer(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags);
+		Buffer(BufferUsageFlags usageFlags);
 
 	public:
 		virtual ~Buffer() = default;
@@ -78,6 +78,21 @@ namespace Coco::Rendering
 			uint64_t byteSize = sizeof(T) * data.Count();
 			void* bufferData = Lock(offset, byteSize);
 			std::memcpy(bufferData, reinterpret_cast<const void*>(data.Data()), byteSize);
+			Unlock();
+		}
+
+		/// <summary>
+		/// Loads an item into this buffer
+		/// </summary>
+		/// <typeparam name="T">The type of data to load</typeparam>
+		/// <param name="offset">The offset in the buffer to start loading data to (in bytes)</param>
+		/// <param name="size">The number of bytes to load in</param>
+		/// <param name="data">The data to load</param>
+		template<typename T>
+		void LoadData(uint64_t offset, uint64_t size, const T* data)
+		{
+			void* bufferData = Lock(offset, size);
+			std::memcpy(bufferData, reinterpret_cast<const void*>(data), size);
 			Unlock();
 		}
 	};

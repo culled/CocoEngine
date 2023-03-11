@@ -110,11 +110,6 @@ namespace Coco::Rendering
 		_computeQueue.reset();
 		_presentQueue.reset();
 
-		LogTrace(VulkanPlatform->GetLogger(), FormattedString("Releasing {} resources", Resources.Count()));
-		Resources.Clear();
-
-		_renderCache.reset();
-
 		if (_graphicsCommandPool.has_value())
 			_graphicsCommandPool.value().reset();
 
@@ -123,6 +118,11 @@ namespace Coco::Rendering
 
 		if (_computeCommandPool.has_value())
 			_computeCommandPool.value().reset();
+
+		_renderCache.reset();
+
+		LogTrace(VulkanPlatform->GetLogger(), FormattedString("Releasing {} resources", Resources.Count()));
+		Resources.Clear();
 
 		if (_device != nullptr)
 		{

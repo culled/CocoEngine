@@ -6,7 +6,7 @@
 
 namespace Coco::Rendering
 {
-	VulkanShader::VulkanShader(GraphicsDevice* device, const Ref<Shader>& shader) : GraphicsResource(device),
+	VulkanShader::VulkanShader(GraphicsDevice* device, const Ref<Shader>& shader) :
 		_device(static_cast<GraphicsDeviceVulkan*>(device))
 	{
 		List<Subshader> subshaders = shader->GetSubshaders();
@@ -27,10 +27,28 @@ namespace Coco::Rendering
 				}
 			}
 		}
+
+		// Global descriptor set
+		VkDescriptorSetLayoutBinding globalUBOLayoutBinding = {};
+		globalUBOLayoutBinding.binding = 0;
+		globalUBOLayoutBinding.descriptorCount = 1;
+		globalUBOLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		globalUBOLayoutBinding.pImmutableSamplers = nullptr;
+		globalUBOLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+		VkDescriptorSetLayoutCreateInfo globalUBOCreateInfo = {};
+		globalUBOCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		globalUBOCreateInfo.bindingCount = 1;
+		globalUBOCreateInfo.pBindings = &globalUBOLayoutBinding;
+
+		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &globalUBOCreateInfo, nullptr, &_globalUBODescriptorSetLayout));
 	}
 
 	VulkanShader::~VulkanShader()
 	{
+		vkDestroyDescriptorSetLayout(_device->GetDevice(), _globalUBODescriptorSetLayout, nullptr);
+		_globalUBODescriptorSetLayout = nullptr;
+
 		for (const auto& shaderKVP : _shaderStages)
 		{
 			for (const VulkanShaderStage& stage : shaderKVP.second)

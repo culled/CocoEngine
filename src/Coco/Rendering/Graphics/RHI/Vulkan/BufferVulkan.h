@@ -2,12 +2,14 @@
 
 #include <Coco/Core/Core.h>
 #include <Coco/Rendering/Graphics/Buffer.h>
-#include "GraphicsDeviceVulkan.h"
 
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
 {
+	class GraphicsDevice;
+	class GraphicsDeviceVulkan;
+
 	/// <summary>
 	/// Vulkan-implementation of a Buffer
 	/// </summary>
@@ -39,7 +41,7 @@ namespace Coco::Rendering
 		/// Gets the underlying Vulkan buffer
 		/// </summary>
 		/// <returns>The underlying Vulkan buffer</returns>
-		VkBuffer GetCmdBuffer() const { return _buffer; }
+		VkBuffer GetBuffer() const { return _buffer; }
 
 	private:
 		/// <summary>

@@ -2,7 +2,7 @@
 
 namespace Coco::Rendering
 {
-	Buffer::Buffer(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags) : GraphicsResource(owningDevice),
+	Buffer::Buffer(BufferUsageFlags usageFlags) :
 		UsageFlags(usageFlags)
 	{}
 }

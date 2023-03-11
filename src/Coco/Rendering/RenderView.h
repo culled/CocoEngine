@@ -3,6 +3,7 @@
 #include <Coco/Core/Core.h>
 
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Color.h>
 
@@ -28,6 +29,16 @@ namespace Coco::Rendering
 		/// </summary>
 		const Color ClearColor;
 
-		RenderView(const Vector2Int& offset, const SizeInt& size, const Color& clearColor);
+		/// <summary>
+		/// The projection matrix used for rendering
+		/// </summary>
+		const Matrix4x4 Projection;
+
+		/// <summary>
+		/// The view matrix used for rendering
+		/// </summary>
+		const Matrix4x4 View;
+
+		RenderView(const Vector2Int& offset, const SizeInt& size, const Color& clearColor, const Matrix4x4& projection, const Matrix4x4& view);
 	};
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Coco/Core/Core.h>
+#include <Coco/Core/Types/List.h>
 #include <memory>
 
 namespace Coco
@@ -24,9 +26,13 @@ namespace Coco
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
 
+	/// <summary>
+	/// A weak reference to a reference
+	/// </summary>
+	/// <typeparam name="T">The type of object</typeparam>
 	template<class T>
 	using WeakRef = std::weak_ptr<T>;
-
+	
 	/// <summary>
 	/// Class that manages the lifetime of an object
 	/// </summary>

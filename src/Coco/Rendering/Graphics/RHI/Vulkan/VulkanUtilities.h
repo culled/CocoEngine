@@ -4,7 +4,7 @@
 #include <Coco/Core/Types/Version.h>
 #include <Coco/Rendering/Graphics/GraphicsPlatformTypes.h>
 #include <Coco/Rendering/Graphics/ImageTypes.h>
-#include <Coco/Rendering/Graphics/ShaderTypes.h>
+#include <Coco/Rendering/ShaderTypes.h>
 #include <Coco/Rendering/Graphics/GraphicsPipelineTypes.h>
 #include <Coco/Rendering/Graphics/BufferTypes.h>
 #include "VulkanIncludes.h"

@@ -219,7 +219,7 @@
     <ClInclude Include="Rendering\Graphics\GraphicsDevice.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Graphics\GraphicsFence.h">
+    <ClInclude Include="Rendering\Graphics\IGraphicsFence.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Graphics\GraphicsPipelineState.h">
@@ -240,7 +240,7 @@
     <ClInclude Include="Rendering\Graphics\GraphicsResource.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Graphics\GraphicsSemaphore.h">
+    <ClInclude Include="Rendering\Graphics\IGraphicsSemaphore.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Graphics\Image.h">
@@ -303,13 +303,13 @@
     <ClInclude Include="Rendering\Graphics\RenderContextTypes.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Graphics\RenderView.h">
+    <ClInclude Include="Rendering\RenderView.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Graphics\Shader.h">
+    <ClInclude Include="Rendering\Shader.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Graphics\ShaderTypes.h">
+    <ClInclude Include="Rendering\ShaderTypes.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Mesh.h">
@@ -342,6 +342,7 @@
     <ClInclude Include="Windowing\WindowingService.h">
       <Filter>Windowing</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\DescriptorPoolVulkan.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -449,9 +450,6 @@
     <ClCompile Include="Rendering\Graphics\GraphicsPlatform.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Graphics\GraphicsResource.cpp">
-      <Filter>Rendering\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\Graphics\Image.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
@@ -503,10 +501,10 @@
     <ClCompile Include="Rendering\Graphics\RenderContext.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Graphics\RenderView.cpp">
+    <ClCompile Include="Rendering\RenderView.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Graphics\Shader.cpp">
+    <ClCompile Include="Rendering\Shader.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Mesh.cpp">
@@ -527,5 +525,6 @@
     <ClCompile Include="Windowing\WindowingService.cpp">
       <Filter>Windowing</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\DescriptorPoolVulkan.cpp" />
   </ItemGroup>
 </Project>

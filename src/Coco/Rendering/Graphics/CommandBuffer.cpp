@@ -12,7 +12,10 @@ namespace Coco::Rendering
 		CurrentState = State::NotAllocated;
 	}
 
-	void CommandBuffer::EndAndSubmit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence)
+	void CommandBuffer::EndAndSubmit(
+		const List<IGraphicsSemaphore*>& waitSemaphores,
+		const List<IGraphicsSemaphore*>& signalSemaphores,
+		IGraphicsFence* signalFence)
 	{
 		End();
 		Submit(waitSemaphores, signalSemaphores, signalFence);

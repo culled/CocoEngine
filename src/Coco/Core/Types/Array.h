@@ -2,12 +2,14 @@
 
 #include <Coco/Core/Core.h>
 
+#include <array>
+
 namespace Coco
 {
 	/// <summary>
 	/// Helper for a constant array of N length
 	/// </summary>
-	/// <typeparam name="T">The type of value for the array</typeparam>
-	template<typename T, int N>
-	using Array = std::array<T, N>;
+	/// <typeparam name="ArrayT">The type of value for the array</typeparam>
+	template<typename ArrayT, int Length>
+	using Array = std::array<ArrayT, Length>;
 }

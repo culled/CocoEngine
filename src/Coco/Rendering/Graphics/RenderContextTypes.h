@@ -9,4 +9,14 @@ namespace Coco::Rendering
 	{
 		Shader,
 	};
+
+	/// <summary>
+	/// States for a render context to be in
+	/// </summary>
+	enum class RenderContextState
+	{
+		Ready,
+		CompilingDrawCalls,
+		DrawCallsSubmitted,
+	};
 }
