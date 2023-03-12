@@ -4,6 +4,8 @@
 
 namespace Coco
 {
+	struct Vector2;
+
 	/// <summary>
 	/// Represents a 2D vector using integers
 	/// </summary>
@@ -22,6 +24,8 @@ namespace Coco
 		Vector2Int operator*(int scalar) const;
 		bool operator==(const Vector2Int& other) const;
 		bool operator!= (const Vector2Int& other) const;
+
+		operator Vector2() const;
 	};
 
 	/// <summary>
@@ -114,12 +118,35 @@ namespace Coco
 		static const Vector3 Zero;
 		static const Vector3 One;
 
+		/// <summary>
+		/// A vector pointing to the right (+X axis)
+		/// </summary>
 		static const Vector3 Right;
+
+		/// <summary>
+		/// A vector pointing to the left (-X axis)
+		/// </summary>
 		static const Vector3 Left;
+
+		/// <summary>
+		/// A vector pointing up (+Y axis)
+		/// </summary>
 		static const Vector3 Up;
+
+		/// <summary>
+		/// A vector pointing down (-Y axis)
+		/// </summary>
 		static const Vector3 Down;
-		static const Vector3 Backwards;
+
+		/// <summary>
+		/// A vector pointing forward (-Z axis)
+		/// </summary>
 		static const Vector3 Forwards;
+
+		/// <summary>
+		/// A vector pointing backward (+Z axis)
+		/// </summary>
+		static const Vector3 Backwards;
 
 		double X, Y, Z;
 
@@ -202,11 +229,23 @@ namespace Coco
 		Vector3 Cross(const Vector3& other) const;
 
 		Vector3 operator+(const Vector3& other) const;
+		void operator+=(const Vector3& other);
+
 		Vector3 operator-(const Vector3& other) const;
+		void operator-=(const Vector3& other);
+
 		Vector3 operator*(double scalar) const;
+		void operator*=(double scalar);
+
 		Vector3 operator*(const Vector3& other) const;
+		void operator*=(const Vector3& other);
+
 		Vector3 operator/(double divisor) const;
+		void operator/=(double divisor);
+
 		Vector3 operator/(const Vector3& other) const;
+		void operator/=(const Vector3& other);
+
 		Vector3 operator-() const;
 	};
 

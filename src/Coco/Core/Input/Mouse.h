@@ -126,6 +126,8 @@ namespace Coco::Input
 		MouseState _currentState = {};
 		MouseState _previousState = {};
 
+		bool _isFirstState = true;
+
 	public:
 		/// <summary>
 		/// Updates the pressed state for a mouse button

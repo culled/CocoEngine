@@ -1,5 +1,4 @@
 #include "Vector.h"
-#include <Coco/Core/Math/Math.h>
 
 namespace Coco
 {
@@ -35,6 +34,11 @@ namespace Coco
 	bool Vector2Int::operator!= (const Vector2Int& other) const
 	{
 		return !(*this == other);
+	}
+
+	Vector2Int::operator Vector2() const
+	{
+		return Vector2(static_cast<double>(X), static_cast<double>(Y));
 	}
 
 	const Vector2 Vector2::Zero = Vector2(0.0, 0.0);
@@ -146,8 +150,8 @@ namespace Coco
 	const Vector3 Vector3::Left = Vector3(-1.0, 0.0, 0.0);
 	const Vector3 Vector3::Up = Vector3(0.0, 1.0, 0.0);
 	const Vector3 Vector3::Down = Vector3(0.0, -1.0, 0.0);
-	const Vector3 Vector3::Backwards = Vector3(0.0, 0.0, 1.0);
 	const Vector3 Vector3::Forwards = Vector3(0.0, 0.0, -1.0);
+	const Vector3 Vector3::Backwards = Vector3(0.0, 0.0, 1.0);
 
 	Vector3::Vector3() : Vector3(0, 0 ,0)
 	{}
@@ -243,9 +247,23 @@ namespace Coco
 		return Vector3(X + other.X, Y + other.Y, Z + other.Z);
 	}
 
+	void Vector3::operator+=(const Vector3& other)
+	{
+		X += other.X;
+		Y += other.Y;
+		Z += other.Z;
+	}
+
 	Vector3 Vector3::operator-(const Vector3& other) const
 	{
 		return Vector3(X - other.X, Y - other.Y, Z - other.Z);
+	}
+
+	void Vector3::operator-=(const Vector3& other)
+	{
+		X -= other.X;
+		Y -= other.Y;
+		Z -= other.Z;
 	}
 
 	Vector3 Vector3::operator*(double scalar) const
@@ -253,9 +271,23 @@ namespace Coco
 		return Vector3(X * scalar, Y * scalar, Z * scalar);
 	}
 
+	void Vector3::operator*=(double scalar)
+	{
+		X *= scalar;
+		Y *= scalar;
+		Z *= scalar;
+	}
+
 	Vector3 Vector3::operator*(const Vector3& other) const
 	{
 		return Vector3(X * other.X, Y * other.Y, Z * other.Z);
+	}
+
+	void Vector3::operator*=(const Vector3& other)
+	{
+		X *= other.X;
+		Y *= other.Y;
+		Z *= other.Z;
 	}
 
 	Vector3 Vector3::operator/(double divisor) const
@@ -263,9 +295,23 @@ namespace Coco
 		return Vector3(X / divisor, Y / divisor, Z / divisor);
 	}
 
+	void Vector3::operator/=(double divisor)
+	{
+		X /= divisor;
+		Y /= divisor;
+		Z /= divisor;
+	}
+
 	Vector3 Vector3::operator/(const Vector3& other) const
 	{
 		return Vector3(X / other.X, Y / other.Y, Z / other.Z);
+	}
+
+	void Vector3::operator/=(const Vector3& other)
+	{
+		X /= other.X;
+		Y /= other.Y;
+		Z /= other.Z;
 	}
 
 	Vector3 Vector3::operator-() const

@@ -76,35 +76,44 @@ namespace Coco::Input
 
 	void Mouse::ProcessCurrentState()
 	{
-		// Step through each state change since the last tick and fire the proper events
-		for(const auto& newState : _preProcessStateChanges)
+		if (_isFirstState)
 		{
-			if (newState.Button.has_value())
+			// Set the previous state to the current to prevent large deltas on the first frame
+			_previousState = _preProcessState;
+		}
+		else
+		{
+			// Step through each state change since the last tick and fire the proper events
+			for (const auto& newState : _preProcessStateChanges)
 			{
-				if (newState.IsButtonPressed)
+				if (newState.Button.has_value())
 				{
-					OnButtonPressed.InvokeEvent(newState.Button.value());
+					if (newState.IsButtonPressed)
+					{
+						OnButtonPressed.InvokeEvent(newState.Button.value());
+					}
+					else
+					{
+						OnButtonReleased.InvokeEvent(newState.Button.value());
+					}
 				}
-				else
+				else if (newState.Position.has_value())
 				{
-					OnButtonReleased.InvokeEvent(newState.Button.value());
+					OnMoved.InvokeEvent(newState.Position.value(), newState.MoveDelta);
 				}
-			}
-			else if (newState.Position.has_value())
-			{
-				OnMoved.InvokeEvent(newState.Position.value(), newState.MoveDelta);
-			}
-			else if (newState.ScrollDelta.has_value())
-			{
-				OnScrolled.InvokeEvent(newState.ScrollDelta.value());
+				else if (newState.ScrollDelta.has_value())
+				{
+					OnScrolled.InvokeEvent(newState.ScrollDelta.value());
 
-				// Make sure we preserve a scroll for the tick (else GetScrollWheelDelta() will always be 0) 
-				_preProcessState.ScrollDelta = newState.ScrollDelta.value();
+					// Make sure we preserve a scroll for the tick (else GetScrollWheelDelta() will always be 0) 
+					_preProcessState.ScrollDelta = newState.ScrollDelta.value();
+				}
 			}
 		}
 
 		_currentState = _preProcessState;
 		_preProcessStateChanges.Clear();
+		_isFirstState = false;
 	}
 
 	void Mouse::SavePreviousState()
