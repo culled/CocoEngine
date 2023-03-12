@@ -97,13 +97,13 @@ namespace Coco
 		static Matrix4x4 CreatePerspectiveProjection(double fieldOfViewRadians, double aspectRatio, double nearClip, double farClip);
 
 		/// <summary>
-		/// Creates a matrix that looks from a position to a target position
+		/// Creates a view matrix that looks from an eye position at a target position
 		/// </summary>
-		/// <param name="position">The position</param>
+		/// <param name="eyePosition">The eye position</param>
 		/// <param name="targetPosition">The position to look at</param>
 		/// <param name="up">The up direction</param>
-		/// <returns>A look at matrix</returns>
-		static Matrix4x4 CreateLookAtMatrix(const Vector3& position, const Vector3& targetPosition, const Vector3& up);
+		/// <returns>A view matrix with the looking from the eye position to the target position</returns>
+		static Matrix4x4 CreateLookAtMatrix(const Vector3& eyePosition, const Vector3& targetPosition, const Vector3& up);
 
 		/// <summary>
 		/// Creates a matrix with only a translation

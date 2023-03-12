@@ -86,11 +86,11 @@ namespace Coco
 		return CocoViewToRenderView * perspective;
 	}
 
-	Matrix4x4 Matrix4x4::CreateLookAtMatrix(const Vector3& position, const Vector3& targetPosition, const Vector3& up)
+	Matrix4x4 Matrix4x4::CreateLookAtMatrix(const Vector3& eyePosition, const Vector3& targetPosition, const Vector3& up)
 	{
 		Matrix4x4 lookAt = Identity;
 
-		Vector3 yAxis = targetPosition - position;
+		Vector3 yAxis = targetPosition - eyePosition;
 		yAxis.Normalize();
 
 		Vector3 xAxis = yAxis.Cross(up);
@@ -111,9 +111,9 @@ namespace Coco
 		m[m23] = yAxis.Z;
 		m[m33] = zAxis.Z;
 		
-		m[m14] = -xAxis.Dot(position);
-		m[m24] = -yAxis.Dot(position);
-		m[m34] = -zAxis.Dot(position);
+		m[m14] = -xAxis.Dot(eyePosition);
+		m[m24] = -yAxis.Dot(eyePosition);
+		m[m34] = -zAxis.Dot(eyePosition);
 
 		return lookAt;
 	}
