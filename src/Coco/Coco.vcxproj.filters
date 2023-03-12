@@ -343,6 +343,8 @@
       <Filter>Windowing</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\DescriptorPoolVulkan.h" />
+    <ClInclude Include="Core\Scene\Components\CameraComponent.h" />
+    <ClInclude Include="Core\Scene\Components\CameraComponentTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -526,5 +528,6 @@
       <Filter>Windowing</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\DescriptorPoolVulkan.cpp" />
+    <ClCompile Include="Core\Scene\Components\CameraComponent.cpp" />
   </ItemGroup>
 </Project>

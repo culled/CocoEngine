@@ -7,6 +7,7 @@
 #include "GraphicsDevice.h"
 #include "GraphicsPresenter.h"
 #include "Buffer.h"
+#include <Coco/Core/Types/Matrix.h>
 
 namespace Coco::Rendering
 {

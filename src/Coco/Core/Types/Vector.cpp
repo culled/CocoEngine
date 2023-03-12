@@ -148,10 +148,10 @@ namespace Coco
 
 	const Vector3 Vector3::Right = Vector3(1.0, 0.0, 0.0);
 	const Vector3 Vector3::Left = Vector3(-1.0, 0.0, 0.0);
-	const Vector3 Vector3::Up = Vector3(0.0, 1.0, 0.0);
-	const Vector3 Vector3::Down = Vector3(0.0, -1.0, 0.0);
-	const Vector3 Vector3::Forwards = Vector3(0.0, 0.0, -1.0);
-	const Vector3 Vector3::Backwards = Vector3(0.0, 0.0, 1.0);
+	const Vector3 Vector3::Up = Vector3(0.0, 0.0, 1.0);
+	const Vector3 Vector3::Down = Vector3(0.0, 0.0, -1.0);
+	const Vector3 Vector3::Forwards = Vector3(0.0, 1.0, 0.0);
+	const Vector3 Vector3::Backwards = Vector3(0.0, -1.0, 0.0);
 
 	Vector3::Vector3() : Vector3(0, 0 ,0)
 	{}

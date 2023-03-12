@@ -15,9 +15,7 @@ namespace Coco::Rendering
 	GlobalUniformObject::GlobalUniformObject(const Ref<RenderView>& renderView)
 	{
 		PopulateMatrix(Projection, renderView->Projection);
-
-		// A proper view matrix is inverted to go from world-space to view-space
-		PopulateMatrix(View, renderView->View.Inverted());
+		PopulateMatrix(View, renderView->View);
 
 		std::memset(Padding, 0, 128 * sizeof(uint8_t));
 	}

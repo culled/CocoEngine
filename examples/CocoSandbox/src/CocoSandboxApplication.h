@@ -4,6 +4,9 @@
 #include <Coco/Core/Events/Query.h>
 #include <Coco/Core/Events/Event.h>
 
+#include <Coco/Core/Types/Quaternion.h>
+#include <Coco/Core/Types/Vector.h>
+
 namespace Coco
 {
 	class Engine;
@@ -34,12 +37,16 @@ private:
 	Coco::Rendering::RenderingService* _renderService;
 	Coco::Windowing::WindowingService* _windowService;
 	Coco::Windowing::Window* _window = nullptr;
+	Coco::Ref<Coco::CameraComponent> _camera;
+	Coco::Vector3 _cameraPosition;
+	Coco::Vector3 _cameraEulerAngles;
 
 public:
 	CocoSandboxApplication(Coco::Engine* engine);
 	virtual ~CocoSandboxApplication() override;
 
 	virtual void Start() override;
+	virtual Coco::Ref<Coco::CameraComponent> GetCamera() override { return _camera; }
 
 	void Tick(double deltaTime);
 };

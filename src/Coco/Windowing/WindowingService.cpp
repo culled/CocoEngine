@@ -96,6 +96,7 @@ namespace Coco::Windowing
 			if (!window->GetIsVisible())
 				continue;
 
+			// TODO: which camera should each window use?
 			_renderingService->Render(window->GetPresenter());
 		}
 	}

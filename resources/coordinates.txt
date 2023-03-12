@@ -1,0 +1,31 @@
+Coordinate system: Right-handed
+	- X-axis = index finger
+	- Y-axis = middle finger
+	- Z-axis = thumb
+
++X = right
++Y = forward
++Z = Up
+
+
+	     (Z) (Y)
+		|  /
+		| /
+		|/
+(-X)--------+--------(X)
+	     /|
+	    / |
+	   /  |
+       (-Y)(-Z)
+
+Positive rotation = turn counter clockwise
+
+Rotation Matrix:
+	[xx, yx, zx]
+	[xy, yy, zy]
+	[xz, yz, zz]
+
+Projection matrix adjustment:
+	X axis (1, 0, 0) -> (1, 0, 0)
+	Y axis (0, 1, 0) -> (0, 0, 1)
+	Z axis (0, 0, 1) -> (0, -1, 0)

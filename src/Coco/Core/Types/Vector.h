@@ -129,22 +129,22 @@ namespace Coco
 		static const Vector3 Left;
 
 		/// <summary>
-		/// A vector pointing up (+Y axis)
+		/// A vector pointing up (+Z axis)
 		/// </summary>
 		static const Vector3 Up;
 
 		/// <summary>
-		/// A vector pointing down (-Y axis)
+		/// A vector pointing down (-Z axis)
 		/// </summary>
 		static const Vector3 Down;
 
 		/// <summary>
-		/// A vector pointing forward (-Z axis)
+		/// A vector pointing forward (+Y axis)
 		/// </summary>
 		static const Vector3 Forwards;
 
 		/// <summary>
-		/// A vector pointing backward (+Z axis)
+		/// A vector pointing backward (-Y axis)
 		/// </summary>
 		static const Vector3 Backwards;
 

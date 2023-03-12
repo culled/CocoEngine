@@ -33,19 +33,22 @@ namespace Coco::Rendering
 	void RenderingService::Render(GraphicsPresenter* presenter)
 	{
 		if (_defaultPipeline)
-			Render(presenter, _defaultPipeline);
+		{
+			Render(presenter, _defaultPipeline, Engine::Get()->GetApplication()->GetCamera());
+		}
 	}
 
-	void RenderingService::Render(GraphicsPresenter* presenter, Ref<RenderPipeline>& pipeline)
+	void RenderingService::Render(GraphicsPresenter* presenter, Ref<RenderPipeline>& pipeline, const Ref<CameraComponent>& camera)
 	{
 		SizeInt size = presenter->GetBackbufferSize();
-		Matrix4x4 projectionMat = Matrix4x4::CreatePerspectiveProjection(Math::Deg2Rad(45.0), static_cast<double>(size.Width) / size.Height, 0.1, 100.0);
 
-		// Camera is looking in the -Z axis, so move forward to see our mesh at the world origin
-		Matrix4x4 viewMat = Matrix4x4::CreateWithTranslation(Vector3(0, 0, 30));
+		// Make sure the camera matches our rendering aspect ratio
+		camera->SetAspectRatio(static_cast<double>(size.Width) / size.Height);
+
+		//Matrix4x4 viewMat = _graphics->AdjustViewMatrix(camera->GetViewMatrix());
 
 		// TODO: create this from the scene graph
-		Ref<RenderView> view = CreateRef<RenderView>(Vector2Int::Zero, size, pipeline->GetClearColor(), projectionMat, viewMat);
+		Ref<RenderView> view = CreateRef<RenderView>(Vector2Int::Zero, size, pipeline->GetClearColor(), camera->GetProjectionMatrix(), camera->GetViewMatrix());
 
 		// Acquire the render context that we'll be using
 		RenderContext* renderContext = presenter->GetRenderContext();

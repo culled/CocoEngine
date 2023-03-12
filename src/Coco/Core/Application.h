@@ -4,6 +4,10 @@
 #include <Coco/Core/Logging/Logger.h>
 #include <Coco/Core/Events/Event.h>
 
+// TEMPORARY -----------------------------------------------
+#include <Coco/Core/Scene/Components/CameraComponent.h>
+// TEMPORARY -----------------------------------------------
+
 namespace Coco
 {
 	class Engine;
@@ -57,6 +61,10 @@ namespace Coco
 		/// </summary>
 		/// <returns>True if the application will quit</returns>
 		bool Quit();
+
+		// TEMPORARY -------------------------------------
+		virtual Ref<CameraComponent> GetCamera() = 0;
+		// TEMPORARY -------------------------------------
 	};
 }
 

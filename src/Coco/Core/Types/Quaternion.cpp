@@ -1,5 +1,6 @@
 #include "Quaternion.h"
-#include <Coco/Core/Math/Math.h>
+
+#include "Matrix.h"
 
 namespace Coco
 {
@@ -12,52 +13,31 @@ namespace Coco
 		X(x), Y(y), Z(z), W(w)
 	{}
 
-	Quaternion::Quaternion(const Vector3 & axis, double angleRadians, bool normalize)
+	Quaternion::Quaternion(const Vector3& axis, double angleRadians, bool normalize)
 	{
 		const double halfAngle = angleRadians * 0.5;
 		const double s = Math::Sin(halfAngle);
 		const double c = Math::Cos(halfAngle);
+		const Vector3 normalizedAxis = axis.Normalized();
 
-		X = s * axis.X;
-		Y = s * axis.Y;
-		Z = s * axis.Z;
+		X = s * normalizedAxis.X;
+		Y = s * normalizedAxis.Y;
+		Z = s * normalizedAxis.Z;
 		W = c;
 
 		if (normalize)
 			Normalize();
 	}
 
+	Quaternion::Quaternion(const Vector3& eulerAngles, bool normalize) : Quaternion(Vector3::Up, eulerAngles.Z, normalize)
+	{
+		*this *= Quaternion(Vector3::Right, eulerAngles.X, normalize);
+		*this *= Quaternion(Vector3::Forwards, eulerAngles.Y, normalize);	
+	}
+
 	double Quaternion::Dot(const Quaternion& a, const Quaternion& b)
 	{
 		return a.Dot(b);
-	}
-
-	Matrix4x4 Quaternion::CreateRotationMatrix(const Quaternion& rotation, const Vector3& center)
-	{
-		Matrix4x4 mat;
-
-		double* m = mat.Data;
-		m[0] = rotation.X * rotation.X - rotation.Y * rotation.Y - rotation.Z * rotation.Z + rotation.W * rotation.W;
-		m[1] = 2.0 * (rotation.X * rotation.Y + rotation.Z * rotation.W);
-		m[2] = 2.0 * (rotation.X * rotation.Z - rotation.Y * rotation.W);
-		m[3] = center.X - center.X * m[0] - center.Y * m[1] - center.Z * m[2];
-
-		m[4] = 2.0 * (rotation.X * rotation.Y - rotation.Z * rotation.W);
-		m[5] = -(rotation.X * rotation.X) + rotation.Y * rotation.Y - rotation.Z * rotation.Z + rotation.W * rotation.W;
-		m[6] = 2.0 * (rotation.Y * rotation.Z + rotation.X * rotation.W);
-		m[7] = center.Y - center.X * m[4] - center.Y * m[5] - center.Z * m[6];
-
-		m[8] = 2.0 * (rotation.X * rotation.Z + rotation.Y * rotation.W);
-		m[9] = 2.0 * (rotation.Y * rotation.Z - rotation.X * rotation.W);
-		m[10] = -(rotation.X * rotation.X) - rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W;
-		m[11] = center.Z - center.X * m[8] - center.Y * m[9] - center.Z * m[10];
-
-		m[12] = 0.0;
-		m[13] = 0.0;
-		m[14] = 0.0;
-		m[15] = 1.0;
-
-		return mat;
 	}
 
 	Quaternion Quaternion::Slerp(const Quaternion& from, const Quaternion& to, double alpha)
@@ -141,6 +121,7 @@ namespace Coco
 	{
 		return Quaternion(-X, -Y, -Z, W);
 	}
+
 	Quaternion Quaternion::Inverted() const
 	{
 		Quaternion inv = Conjugate();
@@ -156,7 +137,7 @@ namespace Coco
 			W * other.W;
 	}
 
-	Matrix4x4 Quaternion::ToMatrix4x4() const
+	Matrix4x4 Quaternion::ToRotationMatrix() const
 	{
 		Matrix4x4 mat = Matrix4x4::Identity;
 
@@ -164,17 +145,18 @@ namespace Coco
 
 		double* m = mat.Data;
 
-		m[0] = 1.0 - 2.0 * q.Y * q.Y - 2.0 * q.Z * q.Z;
-		m[1] = 2.0 * q.X * q.Y - 2.0 * q.Z * q.W;
-		m[2] = 2.0 * q.X * q.Z + 2.0 * q.Y * q.W;
-
-		m[4] = 2.0 * q.X * q.Y + 2.0 * q.Z * q.W;
-		m[5] = 1.0 - 2.0 * q.X * q.X - 2.0 * q.Z * q.Z;
-		m[6] = 2.0 * q.Y * q.Z - 2.0 * q.X * q.W;
-
-		m[8] = 2.0 * q.X * q.Z - 2.0 * q.Y * q.W;
-		m[9] = 2.0 * q.Y * q.Z + 2.0 * q.X * q.W;
-		m[10] = 1.0 - 2.0 * q.X * q.X - 2.0 * q.Y * q.Y;
+		// https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
+		m[Matrix4x4::m11] = 1.0 - 2.0 * q.Y * q.Y - 2.0 * q.Z * q.Z;
+		m[Matrix4x4::m21] = 2.0 * q.X * q.Y + 2.0 * q.Z * q.W;
+		m[Matrix4x4::m31] = 2.0 * q.X * q.Z - 2.0 * q.Y * q.W;
+		
+		m[Matrix4x4::m12] = 2.0 * q.X * q.Y - 2.0 * q.Z * q.W;
+		m[Matrix4x4::m22] = 1.0 - 2.0 * q.X * q.X - 2.0 * q.Z * q.Z;
+		m[Matrix4x4::m32] = 2.0 * q.Y * q.Z + 2.0 * q.X * q.W;
+		
+		m[Matrix4x4::m13] = 2.0 * q.X * q.Z + 2.0 * q.Y * q.W;
+		m[Matrix4x4::m23] = 2.0 * q.Y * q.Z - 2.0 * q.X * q.W;
+		m[Matrix4x4::m33] = 1.0 - 2.0 * q.X * q.X - 2.0 * q.Y * q.Y;
 
 		return mat;
 	}
@@ -209,5 +191,15 @@ namespace Coco
 	void Quaternion::operator*=(const Quaternion& other)
 	{
 		*this = *this * other;
+	}
+
+	Vector3 Quaternion::operator*(const Vector3& direction) const
+	{
+		// https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion
+		Vector3 u(X, Y, Z);
+		
+		return u * 2.0 * u.Dot(direction) +
+			direction * (W * W - u.GetLengthSquared()) +
+			u.Cross(direction) * 2.0 * W;
 	}
 }

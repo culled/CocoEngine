@@ -2,10 +2,11 @@
 
 #include <Coco/Core/Core.h>
 #include "Vector.h"
-#include "Matrix.h"
 
 namespace Coco
 {
+	struct Matrix4x4;
+
 	/// <summary>
 	/// Represents a 3D rotation
 	/// </summary>
@@ -18,6 +19,7 @@ namespace Coco
 		Quaternion();
 		Quaternion(double x, double y, double z, double w);
 		Quaternion(const Vector3& axis, double angleRadians, bool normalize = true);
+		Quaternion(const Vector3& eulerAngles, bool normalize = true);
 
 		/// <summary>
 		/// Calculates the dot product of two quaternions
@@ -28,13 +30,12 @@ namespace Coco
 		static double Dot(const Quaternion& a, const Quaternion& b);
 
 		/// <summary>
-		/// Creates a rotation matrix based on the rotation and center point
+		/// Spherically lerps from one rotation to another
 		/// </summary>
-		/// <param name="rotation">The rotation</param>
-		/// <param name="center">The center point</param>
-		/// <returns>A rotation matrix</returns>
-		static Matrix4x4 CreateRotationMatrix(const Quaternion& rotation, const Vector3& center);
-
+		/// <param name="from">The starting rotation</param>
+		/// <param name="to">The ending rotation</param>
+		/// <param name="alpha">The amount between from and to to rotate, in the range [0.0, 1.0]</param>
+		/// <returns>A rotation</returns>
 		static Quaternion Slerp(const Quaternion& from, const Quaternion& to, double alpha);
 
 		/// <summary>
@@ -79,9 +80,11 @@ namespace Coco
 		/// Creates a rotation matrix from this quaternion
 		/// </summary>
 		/// <returns>A rotation matrix</returns>
-		Matrix4x4 ToMatrix4x4() const;
+		Matrix4x4 ToRotationMatrix() const;
 
 		Quaternion operator*(const Quaternion& other) const;
 		void operator*=(const Quaternion& other);
+
+		Vector3 operator*(const Vector3& direction) const;
 	};
 }

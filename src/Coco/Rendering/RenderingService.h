@@ -8,6 +8,7 @@
 #include "Pipeline/RenderPipeline.h"
 #include "Graphics/Buffer.h"
 #include "Graphics/GraphicsResource.h"
+#include <Coco/Core/Scene/Components/CameraComponent.h>
 
 namespace Coco::Rendering
 {
@@ -62,7 +63,7 @@ namespace Coco::Rendering
         /// </summary>
         /// <param name="presenter">The presenter</param>
         /// <param name="pipeline">The render pipeline</param>
-        void Render(GraphicsPresenter* presenter, Ref<RenderPipeline>& pipeline);
+        void Render(GraphicsPresenter* presenter, Ref<RenderPipeline>& pipeline, const Ref<CameraComponent>& camera);
 
         /// <summary>
         /// Creates a data buffer that can be used to store data on the GPU

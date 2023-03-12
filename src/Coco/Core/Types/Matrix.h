@@ -7,15 +7,71 @@
 
 namespace Coco
 {
+	struct Quaternion;
+
+	/// <summary>
+	/// A matrix with 4 rows and 4 columns, stored in column-major order
+	/// </summary>
 	struct COCOAPI Matrix4x4
 	{
 		static const int CellCount = 16;
 		static const Matrix4x4 Identity;
 
+		// First row, first column
+		static const int m11 = 0;
+
+		// Second row, first column
+		static const int m21 = 1;
+
+		// Third row, first column
+		static const int m31 = 2;
+
+		// Fourth row, first column
+		static const int m41 = 3;
+
+		// First row, second column
+		static const int m12 = 4;
+
+		// Second row, second column
+		static const int m22 = 5;
+
+		// Third row, second column
+		static const int m32 = 6;
+
+		// Fourth row, second column
+		static const int m42 = 7;
+
+		// First row, third column
+		static const int m13 = 8;
+
+		// Second row, third column
+		static const int m23 = 9;
+
+		// Third row, third column
+		static const int m33 = 10;
+
+		// Fourth row, third column
+		static const int m43 = 11;
+
+		// First row, fourth column
+		static const int m14 = 12;
+
+		// Second row, fourth column
+		static const int m24 = 13;
+
+		// Third row, fourth column
+		static const int m34 = 14;
+
+		// Fourth row, fourth column
+		static const int m44 = 15;
+
+		/// <summary>
+		/// The matrix data, stored in column-major order
+		/// </summary>
 		double Data[CellCount];
 
 		Matrix4x4(bool isIdentity = false);
-		Matrix4x4(double data[CellCount]);
+		Matrix4x4(const Array<double, CellCount>& data);
 		Matrix4x4(const Matrix4x4& other);
 
 		/// <summary>
@@ -94,6 +150,22 @@ namespace Coco
 		static Matrix4x4 CreateWithEulerRotation(double xRadians, double yRadians, double zRadians);
 
 		/// <summary>
+		/// Creates a matrix with only a rotation
+		/// </summary>
+		/// <param name="eulerAnglesRadians">The euler angles in radians</param>
+		/// <returns>The matrix</returns>
+		static Matrix4x4 CreateWithEulerRotation(const Vector3& eulerAnglesRadians);
+
+		/// <summary>
+		/// Creates a transform matrix with a translation, orientation, and scale
+		/// </summary>
+		/// <param name="position">The position</param>
+		/// <param name="orientation">The orientation</param>
+		/// <param name="scale">The scale</param>
+		/// <returns>A transform matrix</returns>
+		static Matrix4x4 CreateTransform(const Vector3& position, const Quaternion& orientation, const Vector3& scale);
+
+		/// <summary>
 		/// Multiplies the rows of this matrix with the columns of another matrix
 		/// </summary>
 		/// <param name="other">The other matrix</param>
@@ -140,13 +212,13 @@ namespace Coco
 		/// Gets a vector that points backwards
 		/// </summary>
 		/// <returns>A vector that points backwards</returns>
-		Vector3 GetBackwardsVector() const;
+		Vector3 GetForwardVector() const;
 
 		/// <summary>
 		/// Gets a vector that points forwards
 		/// </summary>
 		/// <returns>A vector that points forwards</returns>
-		Vector3 GetForwardsVector() const { return -GetBackwardsVector(); }
+		Vector3 GetBackwardVector() const { return -GetForwardVector(); }
 
 		/// <summary>
 		/// Gets this matrix's data as a float array of 16 elements

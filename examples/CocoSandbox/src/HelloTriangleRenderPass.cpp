@@ -8,6 +8,7 @@ HelloTriangleRenderPass::HelloTriangleRenderPass()
 {
 	// Setup our basic shader
 	GraphicsPipelineState pipelineState;
+	//pipelineState.CullingMode = CullMode::None;
 	_shader = CreateRef<Shader>("HelloTriangle");
 	_shader->CreateSubshader("main",
 		{
@@ -22,10 +23,18 @@ HelloTriangleRenderPass::HelloTriangleRenderPass()
 	// Setup our basic mesh
 	double size = 10.0;
 	_mesh = CreateRef<Mesh>();
-	_mesh->SetPositions({ Vector3(-0.5, -0.5, 0.0) * size, Vector3(0.5, 0.5, 0.0) * size, Vector3(-0.5, 0.5, 0.0) * size, Vector3(0.5, -0.5, 0.0) * size });
-	_mesh->SetIndices({ 0, 1, 2, 0, 3, 1 });
 
-	_meshRotation = Quaternion::Identity;
+	_mesh->SetPositions({ 
+		Vector3(-0.1, 0.0, 0.0) * size, Vector3(-0.1, 1.0, 0.0) * size, Vector3(0.1, 1.0, 0.0) * size, Vector3(0.1, 0.0, 0.0) * size, // Forward (+Y)
+		Vector3(0.0, 0.1, 0.0) * size, Vector3(1.0, 0.1, 0.0)* size, Vector3(1.0, -0.1, 0.0) * size, Vector3(0.0, -0.1, 0.0) * size, // Right (+X)
+		Vector3(-0.1, 1.0, 0.0)* size, Vector3(-0.1, 1.0, 1.0)* size, Vector3(0.1, 1.0, 1.0)* size, Vector3(0.1, 1.0, 0.0)* size }); // Up (+Z)
+
+	_mesh->SetIndices({ 
+		0, 1, 2, 2, 3, 0,
+		4, 5, 6, 6, 7, 4,
+		8, 9, 10, 10, 11, 8});
+
+	_meshTransform = Matrix4x4::CreateWithTranslation(Vector3(0.0, 0.0, -10.0));
 }
 
 List<AttachmentDescription> HelloTriangleRenderPass::GetAttachmentDescriptions()
@@ -43,7 +52,7 @@ void HelloTriangleRenderPass::Execute(RenderContext* renderContext)
 
 	// Draw the mesh
 	renderContext->UseShader(_shader);
-	renderContext->Draw(_mesh, _meshRotation.ToMatrix4x4());
+	renderContext->Draw(_mesh, _meshTransform);
 
-	_meshRotation *= Quaternion(Vector3::Up, 0.01);
+	//_meshRotation *= Quaternion(Vector3::Up, 0.01);
 }

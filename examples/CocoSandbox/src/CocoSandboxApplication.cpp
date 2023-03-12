@@ -42,6 +42,11 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 
 	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
 
+	_camera = CreateRef<CameraComponent>();
+	_camera->SetPerspectiveProjection(90.0, 1.0, 0.1, 100.0);
+	//_camera->SetOrthographicProjection(10.0, 1.0, 0.1, 100.0);
+	_cameraPosition = Vector3(0.0, 0.0, 0.0);
+
 	//engine->GetMainLoop()->SetTargetTickRate(2);
 
 	LogInfo(Logger, "Sandbox application created");
@@ -79,5 +84,41 @@ void CocoSandboxApplication::Start()
 
 void CocoSandboxApplication::Tick(double deltaTime)
 {
-	//LogInfo(Logger, FormattedString("Tick! Time = {} (Dt = {})", Engine->GetMainLoop()->GetRunningTime(), deltaTime));
+	Vector2 mouseDelta = _inputService->GetMouse()->GetDelta();
+
+	_cameraEulerAngles.Z -= mouseDelta.X * 0.005;
+	_cameraEulerAngles.X = Math::Clamp(_cameraEulerAngles.X - mouseDelta.Y * 0.005, Math::Deg2Rad(-90.0), Math::Deg2Rad(90.0));
+
+	//if (mouseDelta.GetLength() > 0.5)
+	//	LogInfo(Logger, FormattedString("Tilt: {}, Yaw: {}", Math::Rad2Deg(_cameraEulerAngles.X), Math::Rad2Deg(_cameraEulerAngles.Z)));
+
+	Quaternion orientation = Quaternion(_cameraEulerAngles);
+
+	Input::Keyboard* keyboard = _inputService->GetKeyboard();
+	Vector3 velocity;
+
+	if (keyboard->IsKeyPressed(Input::KeyboardKey::W))
+		velocity += orientation * Vector3::Forwards * 5.0;
+
+	if (keyboard->IsKeyPressed(Input::KeyboardKey::S))
+		velocity += orientation * Vector3::Backwards * 5.0;
+
+	if (keyboard->IsKeyPressed(Input::KeyboardKey::D))
+		velocity += orientation * Vector3::Right * 5.0;
+
+	if (keyboard->IsKeyPressed(Input::KeyboardKey::A))
+		velocity += orientation * Vector3::Left * 5.0;
+
+	if (keyboard->IsKeyPressed(Input::KeyboardKey::E))
+		velocity += orientation * Vector3::Up * 5.0;
+
+	if (keyboard->IsKeyPressed(Input::KeyboardKey::Q))
+		velocity += orientation * Vector3::Down * 5.0;
+
+	_cameraPosition += velocity * deltaTime;
+
+	Matrix4x4 transform = Matrix4x4::CreateTransform(_cameraPosition, orientation, Vector3::One);
+
+	_camera->SetViewMatrix(transform.Inverted());
+	//_camera->SetViewMatrix(Matrix4x4::CreateLookAtMatrix(_cameraPosition, _cameraPosition + transform.GetForwardVector(), transform.GetUpVector()));
 }

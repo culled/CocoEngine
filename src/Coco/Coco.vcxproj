@@ -144,6 +144,8 @@
     <ClInclude Include="Platforms\Windows\EnginePlatformWindows.h" />
     <ClInclude Include="Platforms\Windows\WindowsIncludes.h" />
     <ClInclude Include="Platforms\Windows\WindowsWindow.h" />
+    <ClInclude Include="Core\Scene\Components\CameraComponent.h" />
+    <ClInclude Include="Core\Scene\Components\CameraComponentTypes.h" />
     <ClInclude Include="Rendering\Graphics\AttachmentDescription.h" />
     <ClInclude Include="Rendering\Graphics\Buffer.h" />
     <ClInclude Include="Rendering\Graphics\BufferTypes.h" />
@@ -221,6 +223,7 @@
     <ClCompile Include="Platforms\Windows\EnginePlatformWindows.cpp" />
     <ClCompile Include="Platforms\Windows\EntryWindows.cpp" />
     <ClCompile Include="Platforms\Windows\WindowsWindow.cpp" />
+    <ClCompile Include="Core\Scene\Components\CameraComponent.cpp" />
     <ClCompile Include="Rendering\Graphics\AttachmentDescription.cpp" />
     <ClCompile Include="Rendering\Graphics\Buffer.cpp" />
     <ClCompile Include="Rendering\Graphics\BufferTypes.cpp" />

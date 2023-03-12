@@ -13,7 +13,7 @@ class HelloTriangleRenderPass : public IRenderPass
 private:
 	Ref<Shader> _shader;
 	Ref<Mesh> _mesh;
-	Quaternion _meshRotation;
+	Matrix4x4 _meshTransform;
 
 public:
 	HelloTriangleRenderPass();
