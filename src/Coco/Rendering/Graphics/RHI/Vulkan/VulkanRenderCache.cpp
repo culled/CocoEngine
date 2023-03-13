@@ -6,7 +6,7 @@
 #include "GraphicsDeviceVulkan.h"
 #include "VulkanUtilities.h"
 #include <Coco/Core/Types/List.h>
-#include <Coco/Rendering/MeshTypes.h>
+#include <Coco/Rendering/Mesh.h>
 #include "VulkanShader.h"
 #include <Coco/Rendering/Graphics/GraphicsPipelineState.h>
 
@@ -41,9 +41,9 @@ namespace Coco::Rendering
 
 		_pipelineCache.clear();
 
-		for (const auto& shaderKVP : _shaderCache)
+		for (auto& shaderKVP : _shaderCache)
 		{
-			_device->DestroyResource(shaderKVP.second);
+			shaderKVP.second.reset();
 		}
 
 		_shaderCache.clear();
@@ -61,7 +61,12 @@ namespace Coco::Rendering
 		return _renderPassCache[key];
 	}
 
-	VulkanPipeline VulkanRenderCache::GetOrCreatePipeline(VulkanRenderPass renderPass, const string& subpassName, uint32_t subpassIndex, const Ref<Shader>& shader)
+	VulkanPipeline VulkanRenderCache::GetOrCreatePipeline(
+		VulkanRenderPass renderPass, 
+		const string& subpassName, 
+		uint32_t subpassIndex, 
+		const Ref<Shader>& shader,
+		VkDescriptorSetLayout globalDescriptorLayout)
 	{
 		uint64_t rpHash = _renderPassHasher(renderPass.RenderPass);
 		uint64_t sHash = _shaderHasher(shader.get());
@@ -69,13 +74,13 @@ namespace Coco::Rendering
 
 		if (!_pipelineCache.contains(key))
 		{
-			_pipelineCache[key] = CreatePipeline(renderPass, subpassName, subpassIndex, shader);
+			_pipelineCache[key] = CreatePipeline(renderPass, subpassName, subpassIndex, shader, globalDescriptorLayout);
 		}
 
 		return _pipelineCache[key];
 	}
 
-	VulkanShader* VulkanRenderCache::GetOrCreateVulkanShader(const Ref<Shader>& shader)
+	GraphicsResourceRef<VulkanShader> VulkanRenderCache::GetOrCreateVulkanShader(const Ref<Shader>& shader)
 	{
 		if (!_shaderCache.contains(shader.get()))
 		{
@@ -221,7 +226,12 @@ namespace Coco::Rendering
 		return renderPass;
 	}
 
-	VulkanPipeline VulkanRenderCache::CreatePipeline(VulkanRenderPass renderPass, const string& subpassName, uint32_t subpassIndex, const Ref<Shader>& shader)
+	VulkanPipeline VulkanRenderCache::CreatePipeline(
+		VulkanRenderPass renderPass, 
+		const string& subpassName, 
+		uint32_t subpassIndex, 
+		const Ref<Shader>& shader,
+		VkDescriptorSetLayout globalDescriptorLayout)
 	{
 		const Subshader* subshader;
 		if (!shader->TryGetSubshader(subpassName, &subshader))
@@ -344,8 +354,9 @@ namespace Coco::Rendering
 		pushConstants.offset = 0;
 		pushConstants.size = sizeof(float) * 16; // 64 bytes for now
 
-		VulkanShader* vulkanShader = GetOrCreateVulkanShader(shader);
+		GraphicsResourceRef<VulkanShader> vulkanShader = GetOrCreateVulkanShader(shader);
 		List<VkDescriptorSetLayout> descriptorSetLayouts = vulkanShader->GetDescriptorSetLayouts();
+		descriptorSetLayouts.Insert(0, globalDescriptorLayout);
 
 		VkPipelineLayoutCreateInfo layoutInfo = {};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;

@@ -5,6 +5,8 @@
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/Optional.h>
 #include <Coco/Rendering/Graphics/AttachmentDescription.h>
+#include <Coco/Rendering/Graphics/GraphicsResource.h>
+#include "VulkanShader.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -13,7 +15,6 @@ namespace Coco::Rendering
 	class RenderPipeline;
 	class Shader;
 	class RenderPipeline;
-	class VulkanShader;
 
 	/// <summary>
 	/// Information for a RenderPass Subpass
@@ -57,7 +58,7 @@ namespace Coco::Rendering
 
 		Map<uint64_t, VulkanRenderPass> _renderPassCache;
 		Map<uint64_t, VulkanPipeline> _pipelineCache;
-		Map<Shader*, VulkanShader*> _shaderCache;
+		Map<Shader*, GraphicsResourceRef<VulkanShader>> _shaderCache;
 
 	public:
 		VulkanRenderCache(GraphicsDeviceVulkan* device);
@@ -83,14 +84,19 @@ namespace Coco::Rendering
 		/// <param name="subpassIndex">The index of the subpass in the pipeline</param>
 		/// <param name="shader">The shader</param>
 		/// <returns>The VulkanPipeline for the shader and render pass</returns>
-		VulkanPipeline GetOrCreatePipeline(VulkanRenderPass renderPass, const string& subpassName, uint32_t subpassIndex, const Ref<Shader>& shader);
+		VulkanPipeline GetOrCreatePipeline(
+			VulkanRenderPass renderPass, 
+			const string& subpassName,
+			uint32_t subpassIndex, 
+			const Ref<Shader>& shader, 
+			VkDescriptorSetLayout globalDescriptorLayout);
 
 		/// <summary>
 		/// Gets or creates a VulkanShader for a shader
 		/// </summary>
 		/// <param name="shader">The shader</param>
 		/// <returns>The Vulkan-ready shader</returns>
-		VulkanShader* GetOrCreateVulkanShader(const Ref<Shader>& shader);
+		GraphicsResourceRef<VulkanShader> GetOrCreateVulkanShader(const Ref<Shader>& shader);
 
 	private:
 		/// <summary>
@@ -108,6 +114,11 @@ namespace Coco::Rendering
 		/// <param name="subpassIndex">The index of the subpass in the pipeline</param>
 		/// <param name="shader">The shader</param>
 		/// <returns>The VulkanPipeline for the shader and render pass</returns>
-		VulkanPipeline CreatePipeline(VulkanRenderPass renderPass, const string& subpassName, uint32_t subpassIndex, const Ref<Shader>& shader);
+		VulkanPipeline CreatePipeline(
+			VulkanRenderPass renderPass, 
+			const string& subpassName, 
+			uint32_t subpassIndex, 
+			const Ref<Shader>& shader,
+			VkDescriptorSetLayout globalDescriptorLayout);
 	};
 }

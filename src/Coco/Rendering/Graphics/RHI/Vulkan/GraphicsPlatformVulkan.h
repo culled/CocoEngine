@@ -35,7 +35,9 @@ namespace Coco::Rendering
         virtual GraphicsDevice* GetDevice() const override { return _device.get(); }
         virtual void ResetDevice() override;
         virtual Managed<GraphicsPresenter> CreatePresenter() override;
-        virtual Buffer* CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) override;
+        virtual GraphicsResourceRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) override;
+        virtual GraphicsResourceRef<Image> CreateImage(ImageDescription description) override;
+        virtual GraphicsResourceRef<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) override;
 
         /// <summary>
         /// Gets the Vulkan instance

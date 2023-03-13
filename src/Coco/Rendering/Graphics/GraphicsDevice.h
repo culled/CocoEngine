@@ -3,12 +3,17 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Version.h>
-
 #include "GraphicsResource.h"
+
 #include "GraphicsPlatformTypes.h"
 
 namespace Coco::Rendering
 {
+	//template<class>
+	//class GraphicsResourceRef;
+
+	class IGraphicsResource;
+
 	/// <summary>
 	/// Parameters for choosing and creating a graphics device
 	/// </summary>
@@ -94,10 +99,14 @@ namespace Coco::Rendering
 		/// <param name="...args">The arguments to pass to the resource's constructor</param>
 		/// <returns>A handle to the resource</returns>
 		template<typename ObjectT, typename ... Args, std::enable_if_t<std::is_base_of<IGraphicsResource, ObjectT>::value, bool> = true>
-		ObjectT* CreateResource(Args&& ... args)
+		GraphicsResourceRef<ObjectT> CreateResource(Args&& ... args)
 		{
-			Managed<IGraphicsResource>& resource = Resources.Add(CreateManaged<ObjectT>(this, std::forward<Args>(args)...));
-			return static_cast<ObjectT*>(resource.get());
+			Resources.Add(CreateManaged<ObjectT>(this, std::forward<Args>(args)...));
+			Managed<IGraphicsResource>& resource = Resources[Resources.Count() - 1];
+			return GraphicsResourceRef<ObjectT>(static_cast<ObjectT*>(resource.get()), [&](ObjectT* resource) 
+				{ 
+					this->DestroyResource(resource); 
+				});
 		}
 
 		/// <summary>

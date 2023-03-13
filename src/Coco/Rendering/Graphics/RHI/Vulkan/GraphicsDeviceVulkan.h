@@ -168,8 +168,9 @@ namespace Coco::Rendering
         /// </summary>
         /// <param name="type">The type of memory</param>
         /// <param name="memoryProperties">Memory properties</param>
-        /// <returns>A valid memory index, or -1 if one could not be found</returns>
-        int FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties) const;
+        /// <param name="memoryIndex">The memory index</param>
+        /// <returns>True if a valid memory index was found, or false if one could not be found</returns>
+        bool FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const;
 
     private:
         /// <summary>

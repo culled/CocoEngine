@@ -79,43 +79,44 @@ namespace Coco::Rendering
 		_isSwapchainDirty = true;
 	}
 
-	RenderContext* GraphicsPresenterVulkan::GetRenderContext()
+	bool GraphicsPresenterVulkan::GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext)
 	{
 		EnsureSwapchainIsUpdated();
 
 		_currentFrame = (_currentFrame + 1) % static_cast<uint>(_backbuffers.Count());
 
-		RenderContextVulkan* renderContext = _renderContexts[_currentFrame];
+		GraphicsResourceRef<RenderContextVulkan> currentContext = _renderContexts[_currentFrame];
 		
 		// Wait until a fresh frame is ready
-		renderContext->WaitForRenderingCompleted();
+		currentContext->WaitForRenderingCompleted();
 
 		uint32_t imageIndex;
 		VkResult result = vkAcquireNextImageKHR(
 			_device->GetDevice(),
 			_swapchain,
 			std::numeric_limits<uint64_t>::max(),
-			renderContext->GetImageAvailableSemaphore(),
+			currentContext->GetImageAvailableSemaphore(),
 			VK_NULL_HANDLE,
 			&imageIndex);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			_isSwapchainDirty = true;
-			return nullptr;
+			return false;
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 		{
 			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Failed to acquire backbuffer image index: {}", string_VkResult(result)));
-			return nullptr;
+			return false;
 		}
 
-		renderContext->SetRenderTargets({ _backbuffers[imageIndex] });
+		currentContext->SetRenderTargets({ _backbuffers[imageIndex] });
 
-		return renderContext;
+		renderContext = currentContext;
+		return true;
 	}
 
-	void GraphicsPresenterVulkan::Present(RenderContext* renderContext)
+	void GraphicsPresenterVulkan::Present(const GraphicsResourceRef<RenderContext>& renderContext)
 	{
 		Ref<VulkanQueue> presentQueue;
 
@@ -125,12 +126,12 @@ namespace Coco::Rendering
 			return;
 		}
 
-		RenderContextVulkan* vulkanRenderContext = static_cast<RenderContextVulkan*>(renderContext);
+		RenderContextVulkan* vulkanRenderContext = static_cast<RenderContextVulkan*>(renderContext.get());
 		uint imageIndex = 0;
 		bool imageFound = false;
 
 		// TODO: just save the image index in the RenderContext?
-		List<ImageVulkan*> renderTargets = vulkanRenderContext->GetRenderTargets();
+		List<GraphicsResourceRef<ImageVulkan>> renderTargets = vulkanRenderContext->GetRenderTargets();
 		for (int i = 0; i < _backbuffers.Count(); i++)
 		{
 			if (renderTargets.Contains(_backbuffers[i]))
@@ -351,7 +352,8 @@ namespace Coco::Rendering
 			_backbufferSize.Height, 
 			1, 
 			ToPixelFormat(surfaceFormat.format), 
-			ToColorSpace(surfaceFormat.colorSpace));
+			ToColorSpace(surfaceFormat.colorSpace),
+			ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled);
 
 		if (!GetBackbufferImages())
 			return false;
@@ -371,9 +373,9 @@ namespace Coco::Rendering
 
 	void GraphicsPresenterVulkan::DestroySwapchainObjects()
 	{
-		for (const ImageVulkan* backbuffer : _backbuffers)
+		for (GraphicsResourceRef<ImageVulkan>& backbuffer : _backbuffers)
 		{
-			_device->DestroyResource(backbuffer);
+			backbuffer.reset();
 		}
 
 		_backbuffers.Clear();
@@ -391,30 +393,9 @@ namespace Coco::Rendering
 			List<VkImage> images(imageCount);
 			AssertVkResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &imageCount, images.Data()));
 
-			VkImageViewCreateInfo createInfo = {};
-			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			createInfo.format = ToVkFormat(_backbufferDescription.PixelFormat);
-			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-
-			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			createInfo.subresourceRange.baseMipLevel = 0;
-			createInfo.subresourceRange.levelCount = static_cast<uint32_t>(_backbufferDescription.MipCount);
-			createInfo.subresourceRange.baseArrayLayer = 0;
-			createInfo.subresourceRange.layerCount = static_cast<uint32_t>(_backbufferDescription.Layers);
-
 			for (int i = 0; i < images.Count(); i++)
 			{
-				createInfo.image = images[i];
-
-				VkImageView view;
-				AssertVkResult(vkCreateImageView(_device->GetDevice(), &createInfo, nullptr, &view));
-
-				_backbuffers.Add(_device->CreateResource<ImageVulkan>(_backbufferDescription, images[i], view, true));
+				_backbuffers.Add(_device->CreateResource<ImageVulkan>(_backbufferDescription, images[i]));
 			}
 
 			return true;
@@ -445,9 +426,9 @@ namespace Coco::Rendering
 	{
 		_device->WaitForIdle();
 
-		for (RenderContextVulkan* renderContext : _renderContexts)
+		for (GraphicsResourceRef<RenderContextVulkan>& renderContext : _renderContexts)
 		{
-			_device->DestroyResource(renderContext);
+			renderContext.reset();
 		}
 
 		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString("Destroyed {} render contexts", _renderContexts.Count()));

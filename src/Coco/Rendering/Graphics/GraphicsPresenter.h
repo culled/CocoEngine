@@ -5,7 +5,7 @@
 
 #include "GraphicsPlatformTypes.h"
 #include "PresenterSurfaceInitializationInfo.h"
-#include <Coco/Rendering/RenderView.h>
+#include "RenderView.h"
 #include "RenderContext.h"
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 
@@ -73,12 +73,12 @@ namespace Coco::Rendering
 		/// Gets a render context that can be used for rendering
 		/// </summary>
 		/// <returns>A render context</returns>
-		virtual RenderContext* GetRenderContext() = 0;
+		virtual bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) = 0;
 
 		/// <summary>
 		/// Queues the given render context for presentation
 		/// </summary>
 		/// <param name="renderContext">The render context</param>
-		virtual void Present(RenderContext* renderContext) = 0;
+		virtual void Present(const GraphicsResourceRef<RenderContext>& renderContext) = 0;
 	};
 }

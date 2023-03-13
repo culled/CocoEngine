@@ -5,6 +5,7 @@
 #include <Coco/Core/Types/List.h>
 #include "ImageVulkan.h"
 #include "RenderContextVulkan.h"
+#include <Coco/Rendering/Graphics/GraphicsResource.h>
 
 #include "VulkanIncludes.h"
 
@@ -43,8 +44,8 @@ namespace Coco::Rendering
 
 		bool _isSwapchainDirty = true;
 
-		List<ImageVulkan*> _backbuffers;
-		List<RenderContextVulkan*> _renderContexts;
+		List<GraphicsResourceRef<ImageVulkan>> _backbuffers;
+		List< GraphicsResourceRef<RenderContextVulkan>> _renderContexts;
 		
 		uint _currentFrame = 0;
 
@@ -61,8 +62,8 @@ namespace Coco::Rendering
 		virtual void SetVSyncMode(VerticalSyncMode mode) override;
 		virtual VerticalSyncMode GetVSyncMode() const override { return _vsyncMode; }
 
-		virtual RenderContext* GetRenderContext() override;
-		virtual void Present(RenderContext* renderContext) override;
+		virtual bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) override;
+		virtual void Present(const GraphicsResourceRef<RenderContext>& renderContext) override;
 
 	private:
 		/// <summary>

@@ -3,6 +3,8 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Resources/IResource.h>
+#include "Graphics/GraphicsResource.h"
 #include "Graphics/Buffer.h"
 
 namespace Coco::Rendering
@@ -10,9 +12,17 @@ namespace Coco::Rendering
 	class RenderingService;
 
 	/// <summary>
+	/// Vertex data that can be sent to the GPU
+	/// </summary>
+	struct VertexData
+	{
+		float Position[3];
+	};
+
+	/// <summary>
 	/// Holds data for rendering geometry
 	/// </summary>
-	class COCOAPI Mesh
+	class COCOAPI Mesh : IResource
 	{
 	public:
 		/// <summary>
@@ -27,8 +37,8 @@ namespace Coco::Rendering
 
 	private:
 		RenderingService* _renderingService;
-		Buffer* _vertexBuffer;
-		Buffer* _indexBuffer;
+		GraphicsResourceRef<Buffer> _vertexBuffer;
+		GraphicsResourceRef<Buffer> _indexBuffer;
 
 		List<Vector3> _vertexPositions;
 		List<uint32_t> _vertexIndices;
@@ -41,6 +51,7 @@ namespace Coco::Rendering
 	public:
 		Mesh();
 		virtual ~Mesh();
+		virtual uint64_t GetID() const override { return 0; } // TODO
 
 		/// <summary>
 		/// Sets vertex positions for this mesh.
@@ -72,13 +83,13 @@ namespace Coco::Rendering
 		/// Gets this mesh's vertex buffer
 		/// </summary>
 		/// <returns>The vertex buffer</returns>
-		Buffer* GetVertexBuffer() const { return _vertexBuffer; }
+		GraphicsResourceRef<Buffer> GetVertexBuffer() const { return _vertexBuffer; }
 
 		/// <summary>
 		/// Gets this mesh's index buffer
 		/// </summary>
 		/// <returns>The index buffer</returns>
-		Buffer* GetIndexBuffer() const { return _indexBuffer; }
+		GraphicsResourceRef<Buffer> GetIndexBuffer() const { return _indexBuffer; }
 
 		/// <summary>
 		/// Gets the number of vertices in this mesh

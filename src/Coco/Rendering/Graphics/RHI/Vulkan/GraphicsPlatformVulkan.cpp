@@ -6,6 +6,8 @@
 #include "GraphicsPresenterVulkan.h"
 #include "RenderContextVulkan.h"
 #include "BufferVulkan.h"
+#include "ImageVulkan.h"
+#include "ImageSamplerVulkan.h"
 
 #include "VulkanUtilities.h"
 
@@ -153,12 +155,12 @@ namespace Coco::Rendering
 		return CreateManaged<GraphicsPresenterVulkan>(_device.get());
 	}
 
-	Buffer* GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
+	GraphicsResourceRef<Buffer> GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
 	{
 		uint memoryProperties;
 
 		// TODO: better host configurable memory?
-		if ((usageFlags & BufferUsageFlags::HostVisible) > 0)
+		if ((usageFlags & BufferUsageFlags::HostVisible) == BufferUsageFlags::HostVisible)
 		{
 			memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		}
@@ -168,6 +170,16 @@ namespace Coco::Rendering
 		}
 
 		return _device->CreateResource<BufferVulkan>(usageFlags, size, memoryProperties, bindOnCreate);
+	}
+
+	GraphicsResourceRef<Image> GraphicsPlatformVulkan::CreateImage(ImageDescription description)
+	{
+		return _device->CreateResource<ImageVulkan>(description);
+	}
+
+	GraphicsResourceRef<ImageSampler> GraphicsPlatformVulkan::CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy)
+	{
+		return _device->CreateResource<ImageSamplerVulkan>(filterMode, repeatMode, maxAnisotropy);
 	}
 
 	bool GraphicsPlatformVulkan::CheckValidationLayersSupport()

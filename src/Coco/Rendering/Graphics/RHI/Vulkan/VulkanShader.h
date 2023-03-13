@@ -32,7 +32,7 @@ namespace Coco::Rendering
 	private:
 		GraphicsDeviceVulkan* _device;
 		Map<string, List<VulkanShaderStage>> _shaderStages;
-		VkDescriptorSetLayout _globalUBODescriptorSetLayout;
+		VkDescriptorSetLayout _descriptorSetLayout;
 
 	public:
 		VulkanShader(GraphicsDevice* device, const Ref<Shader>& shader);
@@ -49,7 +49,7 @@ namespace Coco::Rendering
 		/// Gets the descriptor set layouts for this shader
 		/// </summary>
 		/// <returns>This shader's descriptor set layouts</returns>
-		List<VkDescriptorSetLayout> GetDescriptorSetLayouts() const { return List<VkDescriptorSetLayout>({ _globalUBODescriptorSetLayout }); }
+		List<VkDescriptorSetLayout> GetDescriptorSetLayouts() const { return List<VkDescriptorSetLayout>({ _descriptorSetLayout }); }
 
 	private:
 		/// <summary>

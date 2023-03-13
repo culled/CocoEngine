@@ -6,7 +6,7 @@
 #include <Coco/Rendering/Mesh.h>
 #include <Coco/Rendering/Graphics/Buffer.h>
 #include <Coco/Rendering/Shader.h>
-#include <Coco/Rendering/RenderView.h>
+#include "RenderView.h"
 
 #include "GraphicsResource.h"
 #include "RenderContextTypes.h"
@@ -65,6 +65,9 @@ namespace Coco::Rendering
 		/// </summary>
 		uint CurrentRenderPassIndex = 0;
 
+		/// <summary>
+		/// The global uniform object
+		/// </summary>
 		GlobalUniformObject GlobalUO;
 
 	protected:

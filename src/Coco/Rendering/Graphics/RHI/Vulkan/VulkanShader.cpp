@@ -28,26 +28,37 @@ namespace Coco::Rendering
 			}
 		}
 
-		// Global descriptor set
-		VkDescriptorSetLayoutBinding globalUBOLayoutBinding = {};
-		globalUBOLayoutBinding.binding = 0;
-		globalUBOLayoutBinding.descriptorCount = 1;
-		globalUBOLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		globalUBOLayoutBinding.pImmutableSamplers = nullptr;
-		globalUBOLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		// TODO: configurable
+		List<VkDescriptorSetLayoutBinding> layoutBindings;
+		Array<VkDescriptorType, 1> descriptorTypes = {
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, // Shader uniform
+		};
 
-		VkDescriptorSetLayoutCreateInfo globalUBOCreateInfo = {};
-		globalUBOCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		globalUBOCreateInfo.bindingCount = 1;
-		globalUBOCreateInfo.pBindings = &globalUBOLayoutBinding;
+		layoutBindings.Resize(descriptorTypes.size());
 
-		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &globalUBOCreateInfo, nullptr, &_globalUBODescriptorSetLayout));
+		for (uint32_t i = 0; i < descriptorTypes.size(); i++)
+		{
+			VkDescriptorSetLayoutBinding& binding = layoutBindings[i];
+			binding.binding = i + 1;
+			binding.descriptorCount = 1;
+			binding.descriptorType = descriptorTypes[i];
+			binding.pImmutableSamplers = nullptr;
+			binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // TODO: configurable
+		}
+
+		// Descriptor sets
+		VkDescriptorSetLayoutCreateInfo createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		createInfo.bindingCount = static_cast<uint32_t>(layoutBindings.Count());
+		createInfo.pBindings = layoutBindings.Data();
+
+		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &createInfo, nullptr, &_descriptorSetLayout));
 	}
 
 	VulkanShader::~VulkanShader()
 	{
-		vkDestroyDescriptorSetLayout(_device->GetDevice(), _globalUBODescriptorSetLayout, nullptr);
-		_globalUBODescriptorSetLayout = nullptr;
+		vkDestroyDescriptorSetLayout(_device->GetDevice(), _descriptorSetLayout, nullptr);
+		_descriptorSetLayout = nullptr;
 
 		for (const auto& shaderKVP : _shaderStages)
 		{

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+#include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Rendering/Graphics/GraphicsResource.h>
 #include "VulkanIncludes.h"
@@ -24,10 +25,10 @@ namespace Coco::Rendering
 		Map<uint64_t, VkDescriptorSet> _allocatedDescriptorSets;
 
 		VkDescriptorPool _pool;
-		VkDescriptorSetLayout _descriptorSetLayout;
+		List<VkDescriptorSetLayout> _descriptorSetLayouts;
 
 	public:
-		DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, VkDescriptorSetLayout descriptorSetLayout);
+		DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VkDescriptorSetLayout>& descriptorSetLayouts);
 		virtual ~DescriptorPoolVulkan();
 
 		/// <summary>

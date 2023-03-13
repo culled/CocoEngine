@@ -21,7 +21,7 @@ namespace Coco::Rendering
 		VkBuffer _buffer = nullptr;
 		VkDeviceMemory _bufferMemory = nullptr;
 		VkBufferUsageFlags _usageFlags;
-		int _memoryIndex;
+		uint32_t _memoryIndex;
 		uint _memoryPropertyFlags;
 		bool _isBound = false;
 		bool _isLocked = false;
@@ -51,7 +51,7 @@ namespace Coco::Rendering
 		/// <param name="buffer">The buffer</param>
 		/// <param name="bufferMemory">The buffer memory</param>
 		/// <param name="bufferMemoryIndex">The index of memory used for the buffer</param>
-		void CreateBuffer(uint64_t size, VkBuffer* buffer, VkDeviceMemory* bufferMemory, int& bufferMemoryIndex);
+		void CreateBuffer(uint64_t size, VkBuffer* buffer, VkDeviceMemory* bufferMemory, uint32_t& bufferMemoryIndex);
 
 		/// <summary>
 		/// Destroys a buffer

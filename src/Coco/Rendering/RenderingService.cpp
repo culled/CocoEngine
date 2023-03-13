@@ -51,9 +51,9 @@ namespace Coco::Rendering
 		Ref<RenderView> view = CreateRef<RenderView>(Vector2Int::Zero, size, pipeline->GetClearColor(), camera->GetProjectionMatrix(), camera->GetViewMatrix());
 
 		// Acquire the render context that we'll be using
-		RenderContext* renderContext = presenter->GetRenderContext();
+		GraphicsResourceRef<RenderContext> renderContext;
 
-		if (renderContext == nullptr)
+		if (!presenter->GetRenderContext(renderContext))
 		{
 			LogError(GetLogger(), "Failed to get RenderContext to render presenter");
 			return;
@@ -61,11 +61,16 @@ namespace Coco::Rendering
 
 		// Actually render with the pipeline
 		renderContext->Begin(view, pipeline);
-		DoRender(pipeline, renderContext);
+		DoRender(pipeline, renderContext.get());
 		renderContext->End();
 
 		// Submit the render data to the gpu and present
 		presenter->Present(renderContext);
+	}
+
+	Ref<Texture> RenderingService::CreateTexture(int width, int height, PixelFormat pixelFormat, ColorSpace colorSpace, ImageUsageFlags usageFlags)
+	{
+		return CreateRef<Texture>(width, height, pixelFormat, colorSpace, usageFlags, _graphics.get());
 	}
 
 	void RenderingService::DoRender(const Ref<RenderPipeline>& pipeline, RenderContext* context)

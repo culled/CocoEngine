@@ -26,7 +26,9 @@ namespace Coco::Rendering
 		virtual ~Buffer() = default;
 
 		/// <summary>
-		/// Resizes this buffer to a new size, retaining its data (as long as it isn't culled by shrinking)
+		/// Resizes this buffer to a new size, retaining its data (as long as it isn't culled by shrinking).
+		/// NOTE: this creates a copy of the current buffer and copies data, 
+		/// so this buffer must have been created with the BufferUsageFlags::TransferDestination and BufferUsageFlags::TransferSource flags
 		/// </summary>
 		/// <param name="newSize">The new size (in bytes)</param>
 		virtual void Resize(uint64_t newSize) = 0;

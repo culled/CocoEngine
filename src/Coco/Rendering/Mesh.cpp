@@ -2,7 +2,6 @@
 
 #include "RenderingService.h"
 #include <Coco/Core/Engine.h>
-#include "MeshTypes.h"
 #include "Graphics/BufferTypes.h"
 
 namespace Coco::Rendering
@@ -28,8 +27,8 @@ namespace Coco::Rendering
 
 	Mesh::~Mesh()
 	{
-		_renderingService->DestroyResource(_vertexBuffer);
-		_renderingService->DestroyResource(_indexBuffer);
+		_vertexBuffer.reset();
+		_indexBuffer.reset();
 	}
 
 	void Mesh::SetPositions(const List<Vector3>& positions)
@@ -49,9 +48,9 @@ namespace Coco::Rendering
 		if (!_isDirty)
 			return;
 
-		Buffer* staging = _renderingService->CreateBuffer(
+		GraphicsResourceRef<Buffer> staging = _renderingService->CreateBuffer(
 			VertexBufferSize,
-			BufferUsageFlags::TransferSource | BufferUsageFlags::HostVisible,
+			BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
 			true);
 
 		List<VertexData> vertexData(_vertexPositions.Count());
@@ -63,18 +62,18 @@ namespace Coco::Rendering
 		}
 
 		staging->LoadData(0, vertexData);
-		staging->CopyTo(0, _vertexBuffer, 0, sizeof(VertexData) * vertexData.Count());
+		staging->CopyTo(0, _vertexBuffer.get(), 0, sizeof(VertexData) * vertexData.Count());
 
 		_vertexCount = vertexData.Count();
 
 		staging->Resize(IndexBufferSize);
 
 		staging->LoadData(0, _vertexIndices);
-		staging->CopyTo(0, _indexBuffer, 0, sizeof(uint32_t) * _vertexIndices.Count());
+		staging->CopyTo(0, _indexBuffer.get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
 
 		_indexCount = _vertexIndices.Count();
 
-		_renderingService->DestroyResource(staging);
+		staging.reset();
 
 		if (deleteLocalData)
 		{

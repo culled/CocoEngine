@@ -1,6 +1,10 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+//#include "GraphicsDevice.h"
+
+//#include <atomic>
+#include <type_traits>
 
 namespace Coco::Rendering
 {
@@ -11,6 +15,92 @@ namespace Coco::Rendering
 	public:
 		virtual ~IGraphicsResource() = default;
 	};
+
+	template<class ObjectT>
+	using GraphicsResourceRef = std::shared_ptr<ObjectT>;
+
+	/*template<class ObjectT>
+	class COCOAPI GraphicsResourceRef
+	{
+		template<class ObjectV>
+		friend class GraphicsResourceRef;
+
+	private:
+		ObjectT* _resource = nullptr;
+		GraphicsDevice* _owningDevice = nullptr;
+		Ref<std::atomic_uint64_t> _counter = nullptr;
+
+	public:
+		GraphicsResourceRef() = default;
+
+		GraphicsResourceRef(ObjectT* resource, GraphicsDevice* device) :
+			_resource(resource), _owningDevice(device)
+		{
+			_counter = CreateRef<std::atomic_uint64_t>(1);
+		}
+
+		//template<class ObjectV, std::enable_if<std::is_convertible<ObjectV*, ObjectT*>::value, bool> = true>
+		template<class ObjectV>
+		GraphicsResourceRef(const GraphicsResourceRef<ObjectV>& other) :
+			_resource(other._resource), _owningDevice(other._owningDevice), _counter(other._counter)
+		{
+			_counter->fetch_add(1);
+		}
+
+		//template<class ObjectV, std::enable_if<std::is_convertible<ObjectT*, ObjectV*>::value, bool> = true>
+		template<class ObjectV>
+		GraphicsResourceRef(GraphicsResourceRef<ObjectV>&& other) :
+			_owningDevice(std::move(other._owningDevice)), _resource(std::move(other._resource)), _counter(std::move(other._counter))
+		{
+			other._resource = nullptr;
+		}
+
+		virtual ~GraphicsResourceRef()
+		{
+			Invalidate();
+		}
+
+		ObjectT* Get() const { return _resource; }
+
+		void Invalidate()
+		{
+			if (_counter != nullptr && _counter->fetch_sub(1) <= 1 && _resource != nullptr)
+				_owningDevice->DestroyResource(_resource);
+
+			_resource = nullptr;
+		}
+
+		void operator=(const GraphicsResourceRef& other)
+		{
+			Invalidate();
+
+			_resource = other._resource;
+			_counter = other._counter;
+			_owningDevice = other._owningDevice;
+
+			_counter->fetch_add(1);
+		}
+
+		ObjectT* operator->() const { return _resource; }
+
+		//template<class ObjectV, std::enable_if<std::is_convertible<ObjectV*, ObjectT*>::value, bool> = true>
+		template<class ObjectV>
+		explicit operator GraphicsResourceRef() const
+		{
+			return GraphicsResourceRef<ObjectV>();
+			//GraphicsResourceRef<ObjectV> other;
+			//other._counter = _counter;
+			//other._resource = static_cast<ObjectV*>(_resource);
+			//other._owningDevice = _owningDevice;
+			//
+			//_counter->fetch_add(1);
+			//
+			//return other;
+		}
+
+		template<class ObjectV>
+		bool operator==(const GraphicsResourceRef<ObjectV>& other) const { return _resource == other._resource; }
+	};*/
 
 	/*class GraphicsDevice;
 

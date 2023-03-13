@@ -31,7 +31,7 @@ namespace Coco::Rendering
 		// Create a new buffer at the requested size
 		VkBuffer newBuffer;
 		VkDeviceMemory newBufferMemory;
-		int newBufferMemoryIndex;
+		uint32_t newBufferMemoryIndex;
 		CreateBuffer(newSize, &newBuffer, &newBufferMemory, newBufferMemoryIndex);
 
 		// Bind the new buffer
@@ -81,7 +81,7 @@ namespace Coco::Rendering
 		_isLocked = false;
 	}
 
-	void BufferVulkan::CreateBuffer(uint64_t size, VkBuffer* buffer, VkDeviceMemory* bufferMemory, int& bufferMemoryIndex)
+	void BufferVulkan::CreateBuffer(uint64_t size, VkBuffer* buffer, VkDeviceMemory* bufferMemory, uint32_t& bufferMemoryIndex)
 	{
 		VkBufferCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -95,8 +95,7 @@ namespace Coco::Rendering
 		VkMemoryRequirements memoryRequirements;
 		vkGetBufferMemoryRequirements(_device->GetDevice(), *buffer, &memoryRequirements);
 
-		bufferMemoryIndex = _device->FindMemoryIndex(memoryRequirements.memoryTypeBits, _memoryPropertyFlags);
-		if (bufferMemoryIndex == -1)
+		if (!_device->FindMemoryIndex(memoryRequirements.memoryTypeBits, _memoryPropertyFlags, bufferMemoryIndex))
 			throw Exception("Unable to create Vulkan buffer because the required memory type could not be found");
 
 		// Allocate memory for the buffer

@@ -29,18 +29,19 @@ namespace Coco::Rendering
 		GraphicsDeviceVulkan* _device;
 		CommandBufferPoolVulkan* _pool;
 		CommandBufferVulkan* _commandBuffer;
-		BufferVulkan* _globalUBO;
-		GraphicsSemaphoreVulkan* _imageAvailableSemaphore;
-		GraphicsSemaphoreVulkan* _renderingCompleteSemaphore;
-		GraphicsFenceVulkan* _renderingCompleteFence;
+		GraphicsResourceRef<BufferVulkan> _globalUBO;
+		GraphicsResourceRef<BufferVulkan> _objectUBO;
+		GraphicsResourceRef<GraphicsSemaphoreVulkan> _imageAvailableSemaphore;
+		GraphicsResourceRef<GraphicsSemaphoreVulkan> _renderingCompleteSemaphore;
+		GraphicsResourceRef<GraphicsFenceVulkan> _renderingCompleteFence;
 		std::hash<RenderContextVulkan*> _rcHash;
 
 		WeakRef<RenderPipeline> _framebufferPipeline;
-		List<ImageVulkan*> _renderTargets;
+		List<GraphicsResourceRef<ImageVulkan>> _renderTargets;
 
 		RenderContextState _currentState;
-		List<GraphicsSemaphoreVulkan*> _signalSemaphores;
-		List<GraphicsSemaphoreVulkan*> _waitSemaphores;
+		List<GraphicsResourceRef<GraphicsSemaphoreVulkan>> _signalSemaphores;
+		List<GraphicsResourceRef<GraphicsSemaphoreVulkan>> _waitSemaphores;
 
 		Set<RenderContextStateChange> _stateChanges;
 		VulkanRenderPass _renderPass;
@@ -48,7 +49,11 @@ namespace Coco::Rendering
 		VulkanPipeline _currentPipeline = VulkanPipeline::None;
 		Ref<Shader> _currentShader;
 
-		Map<Shader*, DescriptorPoolVulkan*> _descriptorPools;
+		VkDescriptorSetLayout _globalDescriptorSetLayout;
+		GraphicsResourceRef<DescriptorPoolVulkan> _globalDescriptorPool;
+		VkDescriptorSet _globalDescriptorSet;
+
+		Map<Shader*, GraphicsResourceRef<DescriptorPoolVulkan>> _descriptorPools;
 		Map<Shader*, VkDescriptorSet> _descriptorSets;
 
 	public:
@@ -66,9 +71,9 @@ namespace Coco::Rendering
 		/// Sets the render targets for this render context to use
 		/// </summary>
 		/// <param name="renderTargets">The render targets to use</param>
-		void SetRenderTargets(const List<ImageVulkan*>& renderTargets);
+		void SetRenderTargets(const List<GraphicsResourceRef<ImageVulkan>>& renderTargets);
 
-		List<ImageVulkan*> GetRenderTargets() const { return _renderTargets; }
+		List<GraphicsResourceRef<ImageVulkan>> GetRenderTargets() const { return _renderTargets; }
 
 		/// <summary>
 		/// Gets the render pass being used for this context
@@ -99,9 +104,12 @@ namespace Coco::Rendering
 		/// Destroys the current framebuffer
 		/// </summary>
 		void DestroyFramebuffer();
+
 		/// <summary>
 		/// Creates a descriptor set for the currently bound shader
 		/// </summary>
-		void CreateDescriptorSet();
+		void UpdateObjectDescriptorSet();
+
+		void CreateGlobalDescriptorSet();
 	};
 }

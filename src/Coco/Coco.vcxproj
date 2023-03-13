@@ -122,6 +122,7 @@
     <ClInclude Include="Core\Math\Random.h" />
     <ClInclude Include="Core\Platform\EnginePlatformTypes.h" />
     <ClInclude Include="Core\Platform\IEnginePlatform.h" />
+    <ClInclude Include="Core\Resources\IResource.h" />
     <ClInclude Include="Core\Services\EngineService.h" />
     <ClInclude Include="Core\Services\EngineServiceManager.h" />
     <ClInclude Include="Core\Types\Array.h" />
@@ -161,6 +162,8 @@
     <ClInclude Include="Rendering\Graphics\GraphicsResource.h" />
     <ClInclude Include="Rendering\Graphics\IGraphicsSemaphore.h" />
     <ClInclude Include="Rendering\Graphics\Image.h" />
+    <ClInclude Include="Rendering\Graphics\ImageSampler.h" />
+    <ClInclude Include="Rendering\Graphics\ImageSamplerTypes.h" />
     <ClInclude Include="Rendering\Graphics\ImageTypes.h" />
     <ClInclude Include="Rendering\Graphics\PresenterSurfaceInitializationInfo.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\BufferVulkan.h" />
@@ -172,6 +175,7 @@
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\GraphicsSemaphoreVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\ImageSamplerVulkan.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\ImageVulkan.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\RenderContextVulkan.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanIncludes.h" />
@@ -181,15 +185,15 @@
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.h" />
     <ClInclude Include="Rendering\Graphics\RenderContext.h" />
     <ClInclude Include="Rendering\Graphics\RenderContextTypes.h" />
-    <ClInclude Include="Rendering\RenderView.h" />
+    <ClInclude Include="Rendering\Graphics\RenderView.h" />
     <ClInclude Include="Rendering\Shader.h" />
     <ClInclude Include="Rendering\ShaderTypes.h" />
     <ClInclude Include="Rendering\Mesh.h" />
-    <ClInclude Include="Rendering\MeshTypes.h" />
     <ClInclude Include="Rendering\Pipeline\IRenderPass.h" />
     <ClInclude Include="Rendering\Pipeline\RenderPipeline.h" />
     <ClInclude Include="Rendering\Pipeline\RenderPipelineBinding.h" />
     <ClInclude Include="Rendering\RenderingService.h" />
+    <ClInclude Include="Rendering\Texture.h" />
     <ClInclude Include="Windowing\IWindowingPlatform.h" />
     <ClInclude Include="Windowing\Window.h" />
     <ClInclude Include="Windowing\WindowTypes.h" />
@@ -233,6 +237,7 @@
     <ClCompile Include="Rendering\Graphics\GraphicsPipelineTypes.cpp" />
     <ClCompile Include="Rendering\Graphics\GraphicsPlatform.cpp" />
     <ClCompile Include="Rendering\Graphics\Image.cpp" />
+    <ClCompile Include="Rendering\Graphics\ImageSampler.cpp" />
     <ClCompile Include="Rendering\Graphics\ImageTypes.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\BufferVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\CommandBufferPoolVulkan.cpp" />
@@ -243,6 +248,7 @@
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPlatformVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsPresenterVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\GraphicsSemaphoreVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\ImageSamplerVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\ImageVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\RenderContextVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.cpp" />
@@ -250,14 +256,18 @@
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanShader.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.cpp" />
     <ClCompile Include="Rendering\Graphics\RenderContext.cpp" />
-    <ClCompile Include="Rendering\RenderView.cpp" />
+    <ClCompile Include="Rendering\Graphics\RenderView.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Rendering\Mesh.cpp" />
     <ClCompile Include="Rendering\Pipeline\RenderPipeline.cpp" />
     <ClCompile Include="Rendering\Pipeline\RenderPipelineBinding.cpp" />
     <ClCompile Include="Rendering\RenderingService.cpp" />
+    <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Windowing\Window.cpp" />
     <ClCompile Include="Windowing\WindowingService.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

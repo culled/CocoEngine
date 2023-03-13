@@ -247,7 +247,7 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	int GraphicsDeviceVulkan::FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties) const
+	bool GraphicsDeviceVulkan::FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const
 	{
 		VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
 		vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &deviceMemoryProperties);
@@ -256,12 +256,12 @@ namespace Coco::Rendering
 		{
 			if (type & (1 << i) && (deviceMemoryProperties.memoryTypes[i].propertyFlags & memoryProperties) == memoryProperties)
 			{
-				return static_cast<int>(i);
+				memoryIndex = static_cast<uint32_t>(i);
+				return true;
 			}
 		}
 
-		LogWarning(VulkanPlatform->GetLogger(), "Unable to find suitable memory type");
-		return -1;
+		return false;
 	}
 
 	bool CompareDeviceRankings(const PhysicalDeviceRanking& a, const PhysicalDeviceRanking& b)

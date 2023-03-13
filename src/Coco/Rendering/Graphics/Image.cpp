@@ -6,21 +6,27 @@ namespace Coco::Rendering
 {
 	const ImageDescription ImageDescription::Empty = ImageDescription();
 
-	ImageDescription::ImageDescription() : ImageDescription(1, 1, 1, 1, 1, PixelFormat::Unknown, ColorSpace::Unknown)
+	ImageDescription::ImageDescription(int width, int height, 
+		int mipCount, 
+		Rendering::PixelFormat pixelFormat, 
+		Rendering::ColorSpace colorSpace,
+		ImageUsageFlags usageFlags) :
+		ImageDescription(width, height, 1, 1, mipCount, pixelFormat, colorSpace, usageFlags)
 	{}
 
-	ImageDescription::ImageDescription(int width, int height, int mipCount, Rendering::PixelFormat pixelFormat, Rendering::ColorSpace colorSpace) :
-		ImageDescription(width, height, 1, 1, mipCount, pixelFormat, colorSpace)
-	{}
-
-	ImageDescription::ImageDescription(int width, int height, int depth, int layers, int mipCount, Rendering::PixelFormat pixelFormat, Rendering::ColorSpace colorSpace) :
+	ImageDescription::ImageDescription(int width, int height, int depth, 
+		int layers, int mipCount, 
+		Rendering::PixelFormat pixelFormat, 
+		Rendering::ColorSpace colorSpace,
+		ImageUsageFlags usageFlags) :
 		Height(std::max(height, 1)),
 		Width(std::max(width, 1)),
 		Depth(std::max(depth, 1)),
 		Layers(std::max(layers, 1)),
 		MipCount(std::max(mipCount, 1)),
 		PixelFormat(pixelFormat),
-		ColorSpace(colorSpace)
+		ColorSpace(colorSpace),
+		UsageFlags(usageFlags)
 	{
 		if (depth == 1)
 		{

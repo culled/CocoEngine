@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+#include <Coco/Core/Resources/IResource.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Matrix.h>
@@ -67,10 +68,16 @@ namespace Coco::Rendering
 		void UpdateAttributeOffsets();
 	};
 
+	struct COCOAPI ShaderUniformObject
+	{
+		float DiffuseColor[4];
+		uint8_t Padding[48];
+	};
+
 	/// <summary>
 	/// Defines how geometry is rendered
 	/// </summary>
-	class COCOAPI Shader
+	class COCOAPI Shader : IResource
 	{
 	private:
 		string _name;
@@ -79,6 +86,8 @@ namespace Coco::Rendering
 	public:
 		Shader(const string& name);
 		virtual ~Shader() = default;
+
+		virtual uint64_t GetID() const override { return 0; } // TODO
 
 		/// <summary>
 		/// Gets this shader's name

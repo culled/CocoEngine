@@ -9,6 +9,7 @@
 #include "Graphics/Buffer.h"
 #include "Graphics/GraphicsResource.h"
 #include <Coco/Core/Scene/Components/CameraComponent.h>
+#include "Texture.h"
 
 namespace Coco::Rendering
 {
@@ -72,13 +73,21 @@ namespace Coco::Rendering
         /// <param name="usageFlags">The usage flags for the buffer</param>
         /// <param name="bindOnCreate">If true, the buffer's memory will be bound once created</param>
         /// <returns>The created buffer</returns>
-        Buffer* CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) { return _graphics->CreateBuffer(size, usageFlags, bindOnCreate); }
+        GraphicsResourceRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
+        { 
+            return _graphics->CreateBuffer(size, usageFlags, bindOnCreate);
+        }
 
         /// <summary>
-        /// Destroys a GraphicsResource that is managed by the GPU
+        /// Creates a two-dimensional texture
         /// </summary>
-        /// <param name="resource">The resource to destroy</param>
-        void DestroyResource(const IGraphicsResource* resource) { _graphics->GetDevice()->DestroyResource(resource); }
+        /// <param name="width">The texture width</param>
+        /// <param name="height">The texture height</param>
+        /// <param name="pixelFormat">The pixel format for the texture</param>
+        /// <param name="colorSpace">The color space for the texture</param>
+        /// <param name="usageFlags">The usage flags for the texture</param>
+        /// <returns>The created texture</returns>
+        Ref<Texture> CreateTexture(int width, int height, PixelFormat pixelFormat, ColorSpace colorSpace, ImageUsageFlags usageFlags);
 
     private:
         /// <summary>

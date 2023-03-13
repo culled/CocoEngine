@@ -303,7 +303,7 @@
     <ClInclude Include="Rendering\Graphics\RenderContextTypes.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RenderView.h">
+    <ClInclude Include="Rendering\Graphics\RenderView.h">
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Shader.h">
@@ -313,9 +313,6 @@
       <Filter>Rendering\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Mesh.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\MeshTypes.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Pipeline\IRenderPass.h">
@@ -345,6 +342,11 @@
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\DescriptorPoolVulkan.h" />
     <ClInclude Include="Core\Scene\Components\CameraComponent.h" />
     <ClInclude Include="Core\Scene\Components\CameraComponentTypes.h" />
+    <ClInclude Include="Core\Resources\IResource.h" />
+    <ClInclude Include="Rendering\Texture.h" />
+    <ClInclude Include="Rendering\Graphics\ImageSampler.h" />
+    <ClInclude Include="Rendering\Graphics\ImageSamplerTypes.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\ImageSamplerVulkan.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -503,7 +505,7 @@
     <ClCompile Include="Rendering\Graphics\RenderContext.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RenderView.cpp">
+    <ClCompile Include="Rendering\Graphics\RenderView.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Shader.cpp">
@@ -529,5 +531,11 @@
     </ClCompile>
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\DescriptorPoolVulkan.cpp" />
     <ClCompile Include="Core\Scene\Components\CameraComponent.cpp" />
+    <ClCompile Include="Rendering\Texture.cpp" />
+    <ClCompile Include="Rendering\Graphics\ImageSampler.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\ImageSamplerVulkan.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

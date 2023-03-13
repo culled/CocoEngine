@@ -7,6 +7,7 @@
 #include <Coco/Rendering/ShaderTypes.h>
 #include <Coco/Rendering/Graphics/GraphicsPipelineTypes.h>
 #include <Coco/Rendering/Graphics/BufferTypes.h>
+#include <Coco/Rendering/Graphics/ImageSamplerTypes.h>
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -136,4 +137,17 @@ namespace Coco::Rendering
 	/// <param name="usageFlags">The buffer usage flags</param>
 	/// <returns>The converted VkBufferUsageFlags</returns>
 	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags);
+
+	/// <summary>
+	/// Converts ImageUsageFlags to VkImageUsageFlags
+	/// </summary>
+	/// <param name="usageFlags">The image usage flags</param>
+	/// <returns>The converted VkImageUsageFlags</returns>
+	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags);
+
+	VkFilter ToVkFilter(FilterMode filterMode);
+
+	VkSamplerMipmapMode ToVkSamplerMipmapMode(FilterMode filterMode);
+
+	VkSamplerAddressMode ToVkSamplerAddressMode(RepeatMode repeatMode);
 }

@@ -2,8 +2,6 @@
 
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
-#include <Coco/Core/Types/Size.h>
-#include <Coco/Core/Types/Vector.h>
 #include "IGraphicsSemaphore.h"
 #include "IGraphicsFence.h"
 

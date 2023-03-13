@@ -25,9 +25,9 @@ namespace Coco
 		/// Adds an item to this list
 		/// </summary>
 		/// <param name="item">The item to add</param>
-		T& Add(T&& item)
+		void Add(T&& item)
 		{
-			return _list.emplace_back(std::forward<T>(item));
+			_list.push_back(std::forward<T>(item));
 		}
 
 		/// <summary>

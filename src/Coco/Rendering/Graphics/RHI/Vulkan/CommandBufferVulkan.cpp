@@ -1,6 +1,5 @@
 #include "CommandBufferVulkan.h"
 
-#include <Coco/Rendering/RenderView.h>
 #include "GraphicsDeviceVulkan.h"
 #include "CommandBufferPoolVulkan.h"
 #include "GraphicsSemaphoreVulkan.h"

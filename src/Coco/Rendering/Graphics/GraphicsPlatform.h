@@ -7,6 +7,8 @@
 #include "GraphicsDevice.h"
 #include "GraphicsPresenter.h"
 #include "Buffer.h"
+#include "Image.h"
+#include "ImageSampler.h"
 #include <Coco/Core/Types/Matrix.h>
 
 namespace Coco::Rendering
@@ -110,6 +112,9 @@ namespace Coco::Rendering
 		/// <param name="usageFlags">Flags for how the buffer will be used</param>
 		/// <param name="bindOnCreate">If true, the buffer will be bound after it is created</param>
 		/// <returns>A pointer to the buffer</returns>
-		virtual Buffer* CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
+		virtual GraphicsResourceRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
+
+		virtual GraphicsResourceRef<Image> CreateImage(ImageDescription description) = 0;
+		virtual GraphicsResourceRef<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) = 0;
 	};
 }

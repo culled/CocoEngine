@@ -272,33 +272,95 @@ namespace Coco::Rendering
 	{
 		VkBufferUsageFlags flags = 0;
 
-		if ((usageFlags & BufferUsageFlags::TransferSource) > 0)
+		if ((usageFlags & BufferUsageFlags::TransferSource) == BufferUsageFlags::TransferSource)
 			flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
-		if ((usageFlags & BufferUsageFlags::TransferDestination) > 0)
+		if ((usageFlags & BufferUsageFlags::TransferDestination) == BufferUsageFlags::TransferDestination)
 			flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
-		if ((usageFlags & BufferUsageFlags::UniformTexel) > 0)
+		if ((usageFlags & BufferUsageFlags::UniformTexel) == BufferUsageFlags::UniformTexel)
 			flags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
 
-		if ((usageFlags & BufferUsageFlags::StorageTexel) > 0)
+		if ((usageFlags & BufferUsageFlags::StorageTexel) == BufferUsageFlags::StorageTexel)
 			flags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 
-		if ((usageFlags & BufferUsageFlags::Uniform) > 0)
+		if ((usageFlags & BufferUsageFlags::Uniform) == BufferUsageFlags::Uniform)
 			flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 
-		if ((usageFlags & BufferUsageFlags::Storage) > 0)
+		if ((usageFlags & BufferUsageFlags::Storage) == BufferUsageFlags::Storage)
 			flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 
-		if ((usageFlags & BufferUsageFlags::Index) > 0)
+		if ((usageFlags & BufferUsageFlags::Index) == BufferUsageFlags::Index)
 			flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 
-		if ((usageFlags & BufferUsageFlags::Vertex) > 0)
+		if ((usageFlags & BufferUsageFlags::Vertex) == BufferUsageFlags::Vertex)
 			flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
-		if ((usageFlags & BufferUsageFlags::Indirect) > 0)
+		if ((usageFlags & BufferUsageFlags::Indirect) == BufferUsageFlags::Indirect)
 			flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
 		
 		return flags;
+	}
+
+	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags)
+	{
+		VkImageUsageFlags flags = 0;
+
+		if ((usageFlags & ImageUsageFlags::TransferSource) == ImageUsageFlags::TransferSource)
+			flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+
+		if ((usageFlags & ImageUsageFlags::TransferDestination) == ImageUsageFlags::TransferDestination)
+			flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+		if ((usageFlags & ImageUsageFlags::Sampled) == ImageUsageFlags::Sampled)
+			flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+
+		if ((usageFlags & ImageUsageFlags::RenderTarget) == ImageUsageFlags::RenderTarget)
+			flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+		return flags;
+	}
+
+	VkFilter ToVkFilter(FilterMode filterMode)
+	{
+		switch (filterMode)
+		{
+		case FilterMode::Nearest:
+			return VK_FILTER_NEAREST;
+		case FilterMode::Linear:
+			return VK_FILTER_LINEAR;
+		default:
+			return VK_FILTER_NEAREST;
+		}
+	}
+
+	VkSamplerMipmapMode ToVkSamplerMipmapMode(FilterMode filterMode)
+	{
+		switch (filterMode)
+		{
+		case FilterMode::Nearest:
+			return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+		case FilterMode::Linear:
+			return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		default:
+			return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+		}
+	}
+
+	VkSamplerAddressMode ToVkSamplerAddressMode(RepeatMode repeatMode)
+	{
+		switch (repeatMode)
+		{
+		case RepeatMode::Clamp:
+			return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		case RepeatMode::Repeat:
+			return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		case RepeatMode::Mirror:
+			return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+		case RepeatMode::MirrorOnce:
+			return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
+		default:
+			return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		}
 	}
 }

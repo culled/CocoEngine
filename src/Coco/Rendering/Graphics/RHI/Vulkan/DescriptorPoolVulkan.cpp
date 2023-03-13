@@ -5,9 +5,9 @@
 
 namespace Coco::Rendering
 {
-	DescriptorPoolVulkan::DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, VkDescriptorSetLayout descriptorSetLayout) :
+	DescriptorPoolVulkan::DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VkDescriptorSetLayout>& descriptorSetLayouts) :
 		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice)), 
-		_descriptorSetLayout(descriptorSetLayout), 
+		_descriptorSetLayouts(descriptorSetLayouts),
 		_maxDescriptorSets(maxSets)
 	{
 		VkDescriptorPoolSize poolSize = {};
@@ -57,8 +57,8 @@ namespace Coco::Rendering
 		VkDescriptorSetAllocateInfo setAllocate = {};
 		setAllocate.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		setAllocate.descriptorPool = _pool;
-		setAllocate.descriptorSetCount = 1;
-		setAllocate.pSetLayouts = &_descriptorSetLayout;
+		setAllocate.descriptorSetCount = static_cast<uint32_t>(_descriptorSetLayouts.Count());
+		setAllocate.pSetLayouts = _descriptorSetLayouts.Data();
 
 		VkDescriptorSet set;
 		AssertVkResult(vkAllocateDescriptorSets(_device->GetDevice(), &setAllocate, &set));

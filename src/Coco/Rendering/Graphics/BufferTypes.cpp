@@ -21,9 +21,4 @@ namespace Coco::Rendering
     {
         a = a & b;
     }
-
-    bool operator>(BufferUsageFlags a, int b)
-    {
-        return static_cast<int>(a) > b;
-    }
 }
