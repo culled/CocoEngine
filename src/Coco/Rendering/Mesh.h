@@ -17,12 +17,13 @@ namespace Coco::Rendering
 	struct VertexData
 	{
 		float Position[3];
+		float UV0[2];
 	};
 
 	/// <summary>
 	/// Holds data for rendering geometry
 	/// </summary>
-	class COCOAPI Mesh : IResource
+	class COCOAPI Mesh : public IResource
 	{
 	public:
 		/// <summary>
@@ -41,6 +42,7 @@ namespace Coco::Rendering
 		GraphicsResourceRef<Buffer> _indexBuffer;
 
 		List<Vector3> _vertexPositions;
+		List<Vector2> _vertexUV0s;
 		List<uint32_t> _vertexIndices;
 
 		uint64_t _vertexCount = 0;
@@ -51,7 +53,8 @@ namespace Coco::Rendering
 	public:
 		Mesh();
 		virtual ~Mesh();
-		virtual uint64_t GetID() const override { return 0; } // TODO
+
+		virtual ResourceID GetID() const override { return 0; } // TODO
 
 		/// <summary>
 		/// Sets vertex positions for this mesh.
@@ -59,6 +62,13 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="positions">A list of vertex positions</param>
 		void SetPositions(const List<Vector3>& positions);
+
+		/// <summary>
+		/// Sets vertex positions for this mesh.
+		/// NOTE: this will define the number of vertices this mesh has
+		/// </summary>
+		/// <param name="positions">A list of vertex positions</param>
+		void SetUVs(const List<Vector2>& uvs);
 
 		/// <summary>
 		/// Sets the indices for this mesh.

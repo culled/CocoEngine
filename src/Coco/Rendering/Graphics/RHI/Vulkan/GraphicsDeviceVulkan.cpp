@@ -56,8 +56,9 @@ namespace Coco::Rendering
 		if (createParams.SupportsPresentation)
 			enabledExtensions.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-		// TODO: enable features
+		// TODO: configurable features
 		VkPhysicalDeviceFeatures deviceFeatures = {};
+		deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

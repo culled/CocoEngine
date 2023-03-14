@@ -4,14 +4,13 @@
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Rendering/Graphics/GraphicsResource.h>
+#include "VulkanDescriptorSet.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
 {
 	class GraphicsDevice;
 	class GraphicsDeviceVulkan;
-
-	// TODO: probably need to overhaul this to make more sense. Just need to figure out the proper way this will work in the backend
 
 	/// <summary>
 	/// Manages a set pool of descriptor sets
@@ -23,12 +22,12 @@ namespace Coco::Rendering
 
 		uint _maxDescriptorSets;
 		Map<uint64_t, VkDescriptorSet> _allocatedDescriptorSets;
+		List<VulkanShaderDescriptorLayout> _descriptorSetLayouts;
 
 		VkDescriptorPool _pool;
-		List<VkDescriptorSetLayout> _descriptorSetLayouts;
 
 	public:
-		DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VkDescriptorSetLayout>& descriptorSetLayouts);
+		DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanShaderDescriptorLayout>& descriptorSetLayouts);
 		virtual ~DescriptorPoolVulkan();
 
 		/// <summary>
@@ -36,7 +35,11 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="key">The key for the set</param>
 		/// <returns></returns>
-		VkDescriptorSet GetOrAllocateSet(uint64_t key);
-		//void FreeSet(uint64_t key);
+		VkDescriptorSet GetOrAllocateSet(const VulkanShaderDescriptorLayout& layout, uint64_t key);
+
+		/// <summary>
+		/// Frees all allocated descriptor sets
+		/// </summary>
+		void FreeSets();
 	};
 }

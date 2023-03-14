@@ -6,6 +6,8 @@
 #include <Coco/Rendering/Shader.h>
 #include <Coco/Rendering/ShaderTypes.h>
 #include <Coco/Rendering/Graphics/GraphicsResource.h>
+#include "VulkanDescriptorSet.h"
+#include "DescriptorPoolVulkan.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -32,7 +34,8 @@ namespace Coco::Rendering
 	private:
 		GraphicsDeviceVulkan* _device;
 		Map<string, List<VulkanShaderStage>> _shaderStages;
-		VkDescriptorSetLayout _descriptorSetLayout;
+		Map<string, VulkanShaderDescriptorLayout> _descriptorSetLayouts;
+		GraphicsResourceRef<DescriptorPoolVulkan> _descriptorPool;
 
 	public:
 		VulkanShader(GraphicsDevice* device, const Ref<Shader>& shader);
@@ -46,10 +49,12 @@ namespace Coco::Rendering
 		List<VulkanShaderStage> GetSubshaderStages(const string& subshaderName) const;
 
 		/// <summary>
-		/// Gets the descriptor set layouts for this shader
+		/// Gets the descriptor set layout for a subshader
 		/// </summary>
-		/// <returns>This shader's descriptor set layouts</returns>
-		List<VkDescriptorSetLayout> GetDescriptorSetLayouts() const { return List<VkDescriptorSetLayout>({ _descriptorSetLayout }); }
+		/// <returns>The subshader's descriptor set layout</returns>
+		VulkanShaderDescriptorLayout GetDescriptorSetLayout(const string& subshaderName) const;
+
+		GraphicsResourceRef<DescriptorPoolVulkan> GetDescriptorPool() const { return _descriptorPool; }
 
 	private:
 		/// <summary>

@@ -8,8 +8,17 @@
 #include "GraphicsPlatformVulkan.h"
 #include "BufferVulkan.h"
 #include "VulkanShader.h"
+#include "ImageSamplerVulkan.h"
 #include <Coco/Rendering/Graphics/GraphicsResource.h>
 #include <Coco/Core/Types/Array.h>
+#include <Coco/Core/Engine.h>
+#include <Coco/Rendering/RenderingService.h>
+
+#include "VulkanUtilities.h"
+
+// TODO: how to calculate this?
+#define MAX_OBJECT_COUNT 1024
+#define MAX_MATERIAL_SIZE 256
 
 namespace Coco::Rendering
 {
@@ -22,15 +31,13 @@ namespace Coco::Rendering
 		_commandBuffer = static_cast<CommandBufferVulkan*>(_pool->Allocate(true));
 
 		_globalUBO = _device->CreateResource<BufferVulkan>(
-			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform,
+			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
 			sizeof(GlobalUniformObject),
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 			true);
 
 		_objectUBO = _device->CreateResource<BufferVulkan>(
-			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform,
-			sizeof(ShaderUniformObject) * 10,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
+			MAX_MATERIAL_SIZE * MAX_OBJECT_COUNT,
 			true);
 
 		_imageAvailableSemaphore = _device->CreateResource<GraphicsSemaphoreVulkan>();
@@ -44,18 +51,10 @@ namespace Coco::Rendering
 	{
 		_device->WaitForIdle();
 
-		for (auto& poolKVP : _descriptorPools)
-		{
-			poolKVP.second.reset();
-		}
-
-		_descriptorSets.clear();
-		_descriptorPools.clear();
-
 		_globalDescriptorPool.reset();
 
-		vkDestroyDescriptorSetLayout(_device->GetDevice(), _globalDescriptorSetLayout, nullptr);
-		_globalDescriptorSetLayout = nullptr;
+		vkDestroyDescriptorSetLayout(_device->GetDevice(), _globalDescriptor.Layout, nullptr);
+		_globalDescriptor.Layout = nullptr;
 
 		_signalSemaphores.Clear();
 		_waitSemaphores.Clear();
@@ -97,6 +96,15 @@ namespace Coco::Rendering
 	{
 		_stateChanges.insert(RenderContextStateChange::Shader);
 		_currentShader = shader;
+	}
+
+	void RenderContextVulkan::UseMaterial(Ref<Material> material)
+	{
+		_stateChanges.insert(RenderContextStateChange::Material);
+		_currentMaterial = material;
+		
+		if (material->GetShader() != _currentShader)
+			UseShader(material->GetShader());
 	}
 
 	void RenderContextVulkan::SetRenderTargets(const List<GraphicsResourceRef<ImageVulkan>>& renderTargets)
@@ -204,8 +212,23 @@ namespace Coco::Rendering
 
 	void RenderContextVulkan::ResetImpl()
 	{
+		// Free all material descriptor sets
+		for (auto& poolKVP : _shaderDescriptorPools)
+		{
+			poolKVP.second->FreeSets();
+		}
+
+		_shaderDescriptorPools.clear();
+		_materialDescriptorSets.clear();
+		_currentObjectUBOOffset = 0;
+
+		// Clear all currently bound items
 		_stateChanges.clear();
 		_currentShader.reset();
+		_currentMaterial.reset();
+		_currentPipeline = VulkanPipeline::None;
+
+		// Reset render syncronization objects
 		_signalSemaphores.Clear();
 		_waitSemaphores.Clear();
 
@@ -228,26 +251,33 @@ namespace Coco::Rendering
 				CurrentRenderPass->GetName(), 
 				CurrentRenderPassIndex, 
 				_currentShader, 
-				_globalDescriptorSetLayout);
+				_globalDescriptor.Layout);
 
 			vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, _currentPipeline.Pipeline);
-
-			// TODO: this needs to change
-			if (!_descriptorSets.contains(_currentShader.get()))
-				UpdateObjectDescriptorSet();
-
-			Array<VkDescriptorSet, 2> sets = { _globalDescriptorSet, _descriptorSets[_currentShader.get()] };
 
 			// Bind the descriptor sets
 			vkCmdBindDescriptorSets(
 				_commandBuffer->GetCmdBuffer(),
 				VK_PIPELINE_BIND_POINT_GRAPHICS,
 				_currentPipeline.Layout,
-				0,
-				static_cast<uint32_t>(sets.size()),
-				sets.data(),
-				0,
-				0);
+				0, 1, &_globalDescriptorSet,
+				0, 0);
+		}
+
+		if (_stateChanges.contains(RenderContextStateChange::Material))
+		{
+			VkDescriptorSet set = GetOrAllocateMaterialDescriptorSet();
+
+			if (set != nullptr)
+			{
+				// Bind the descriptor sets
+				vkCmdBindDescriptorSets(
+					_commandBuffer->GetCmdBuffer(),
+					VK_PIPELINE_BIND_POINT_GRAPHICS,
+					_currentPipeline.Layout,
+					1, 1, &set,
+					0, 0);
+			}			
 		}
 
 		_stateChanges.clear();
@@ -292,35 +322,6 @@ namespace Coco::Rendering
 		_framebuffer = nullptr;
 	}
 
-	void RenderContextVulkan::UpdateObjectDescriptorSet()
-	{
-		if (!_descriptorPools.contains(_currentShader.get()))
-		{
-			GraphicsResourceRef<VulkanShader> vulkanShader = _device->GetRenderCache()->GetOrCreateVulkanShader(_currentShader);
-			List<VkDescriptorSetLayout> descriptorSetLayouts = vulkanShader->GetDescriptorSetLayouts();
-
-			_descriptorPools[_currentShader.get()] = _device->CreateResource<DescriptorPoolVulkan>(static_cast<uint>(descriptorSetLayouts.Count()), descriptorSetLayouts);
-			_descriptorSets[_currentShader.get()] = _descriptorPools[_currentShader.get()]->GetOrAllocateSet(_rcHash(this));
-		}
-
-		// Update the descriptor sets
-		VkDescriptorBufferInfo objectUBOBufferInfo = {};
-		objectUBOBufferInfo.buffer = _objectUBO->GetBuffer();
-		objectUBOBufferInfo.offset = 0;
-		objectUBOBufferInfo.range = sizeof(ShaderUniformObject); // TODO
-
-		VkWriteDescriptorSet descriptorWrite = {};
-		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = _descriptorSets[_currentShader.get()];
-		descriptorWrite.dstBinding = 1;
-		descriptorWrite.dstArrayElement = 0;
-		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pBufferInfo = &objectUBOBufferInfo;
-
-		vkUpdateDescriptorSets(_device->GetDevice(), 1, &descriptorWrite, 0, nullptr);
-	}
-
 	void RenderContextVulkan::CreateGlobalDescriptorSet()
 	{
 		VkDescriptorSetLayoutBinding binding = {};
@@ -329,18 +330,17 @@ namespace Coco::Rendering
 		binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		binding.pImmutableSamplers = nullptr;
 		binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		_globalDescriptor.LayoutBindings.Add(binding);
 
 		VkDescriptorSetLayoutCreateInfo layoutCreateInfo = {};
 		layoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layoutCreateInfo.bindingCount = 1;
 		layoutCreateInfo.pBindings = &binding;
 
-		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &layoutCreateInfo, nullptr, &_globalDescriptorSetLayout));
+		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &layoutCreateInfo, nullptr, &_globalDescriptor.Layout));
 
-		List<VkDescriptorSetLayout> descriptorSetLayouts{ _globalDescriptorSetLayout };
-
-		_globalDescriptorPool = _device->CreateResource<DescriptorPoolVulkan>(static_cast<uint>(descriptorSetLayouts.Count()), descriptorSetLayouts);
-		_globalDescriptorSet = _globalDescriptorPool->GetOrAllocateSet(_rcHash(this));
+		_globalDescriptorPool = _device->CreateResource<DescriptorPoolVulkan>(1, List<VulkanShaderDescriptorLayout>({ _globalDescriptor }));
+		_globalDescriptorSet = _globalDescriptorPool->GetOrAllocateSet(_globalDescriptor, 0);
 
 		// Update the descriptor sets
 		VkDescriptorBufferInfo globalUBOBufferInfo = {};
@@ -358,5 +358,112 @@ namespace Coco::Rendering
 		descriptorWrite.pBufferInfo = &globalUBOBufferInfo;
 
 		vkUpdateDescriptorSets(_device->GetDevice(), 1, &descriptorWrite, 0, nullptr);
+	}
+
+	VkDescriptorSet RenderContextVulkan::GetOrAllocateMaterialDescriptorSet()
+	{
+		const string subshaderName = CurrentRenderPass->GetName();
+
+		GraphicsResourceRef<DescriptorPoolVulkan> pool;
+		ResourceID shaderID = _currentShader->GetID();
+		ResourceID materialID = _currentMaterial->GetID();
+
+		GraphicsResourceRef<VulkanShader> vulkanShader = _device->GetRenderCache()->GetOrCreateVulkanShader(_currentShader);
+		pool = vulkanShader->GetDescriptorPool();
+
+		if (!_shaderDescriptorPools.contains(shaderID))
+		{
+			_shaderDescriptorPools[shaderID] = pool;
+		}
+		else if (_materialDescriptorSets.contains(materialID))
+		{
+			return _materialDescriptorSets[materialID];
+		}
+
+		RenderingService* rendering;
+		if (!Engine::Get()->GetServiceManager()->TryFindService(&rendering))
+			throw Exception("Could not find rendering service");
+
+		VkDescriptorSet set = pool->GetOrAllocateSet(vulkanShader->GetDescriptorSetLayout(subshaderName), materialID);
+
+		const Subshader* subshader;
+		if (!_currentShader->TryGetSubshader(subshaderName, &subshader))
+		{
+			LogError(rendering->GetLogger(), FormattedString("Could not find a subshader for pass {}", subshaderName));
+			return nullptr;
+		}
+
+		List<VkWriteDescriptorSet> descriptorWrites(subshader->Descriptors.Count());
+		List<VkDescriptorBufferInfo> bufferInfos(subshader->Descriptors.Count());
+		List<VkDescriptorImageInfo> imageInfos(subshader->Descriptors.Count());
+		
+		for (uint32_t i = 0; i < subshader->Descriptors.Count(); i++)
+		{
+			const ShaderDescriptor& descriptor = subshader->Descriptors[i];
+
+			VkWriteDescriptorSet& write = descriptorWrites[i];
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.dstSet = set;
+			write.dstBinding = i;
+			write.descriptorType = ToVkDescriptorType(descriptor.Type);
+			write.descriptorCount = 1;
+
+			switch (descriptor.Type)
+			{
+			case ShaderDescriptorType::UniformStruct:
+			{
+				List<uint8_t> data = _currentMaterial->GetStructData(descriptor.Name);
+				if (data.Count() == 0)
+				{
+					LogError(rendering->GetLogger(), FormattedString("No data was set for material descriptor {}", descriptor.Name));
+					continue;
+				}
+
+				VkDescriptorBufferInfo& objectUBOBufferInfo = bufferInfos[i];
+				objectUBOBufferInfo.buffer = _objectUBO->GetBuffer();
+				objectUBOBufferInfo.offset = _currentObjectUBOOffset;
+				objectUBOBufferInfo.range = static_cast<uint32_t>(data.Count());
+
+				// TODO: need to not make blocking
+				_objectUBO->LoadData(_currentObjectUBOOffset, data);
+
+				_currentObjectUBOOffset += objectUBOBufferInfo.range;
+
+				write.pBufferInfo = &objectUBOBufferInfo;
+
+				break;
+			}
+			case ShaderDescriptorType::UniformSampler:
+			{
+				Ref<Texture> texture = _currentMaterial->GetTexture(descriptor.Name);
+
+				if (!texture)
+				{
+					texture = rendering->GetDefaultTexture();
+				}
+
+				GraphicsResourceRef<Image> image = texture->GetImage();
+				ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.get());
+				GraphicsResourceRef<ImageSampler> sampler = texture->GetSampler();
+				ImageSamplerVulkan* vulkanSampler = static_cast<ImageSamplerVulkan*>(sampler.get());
+
+				// Texture data
+				VkDescriptorImageInfo& imageInfo = imageInfos[i];
+				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				imageInfo.imageView = vulkanImage->GetNativeView();
+				imageInfo.sampler = vulkanSampler->GetSampler();
+
+				write.pImageInfo = &imageInfo;
+
+				break;
+			}
+			default:
+				continue;
+			}
+		}
+
+		vkUpdateDescriptorSets(_device->GetDevice(), static_cast<uint32_t>(descriptorWrites.Count()), descriptorWrites.Data(), 0, nullptr);
+
+		return set;
 	}
 }

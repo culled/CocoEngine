@@ -37,6 +37,12 @@ namespace Coco::Rendering
 		_isDirty = true;
 	}
 
+	void Mesh::SetUVs(const List<Vector2>& uvs)
+	{
+		_vertexUV0s = uvs;
+		_isDirty = true;
+	}
+
 	void Mesh::SetIndices(const List<uint32_t>& indices)
 	{
 		_vertexIndices = indices;
@@ -47,6 +53,16 @@ namespace Coco::Rendering
 	{
 		if (!_isDirty)
 			return;
+
+		if (_vertexUV0s.Count() != _vertexPositions.Count())
+		{
+			LogError(Engine::Get()->GetLogger(), FormattedString(
+				"Failed to upload mesh data: UV0 count ({}) doesn't match vertex count of {}", 
+				_vertexUV0s.Count(), 
+				_vertexPositions.Count()
+			));
+			return;
+		}
 
 		GraphicsResourceRef<Buffer> staging = _renderingService->CreateBuffer(
 			VertexBufferSize,
@@ -59,6 +75,9 @@ namespace Coco::Rendering
 			vertexData[i].Position[0] = static_cast<float>(_vertexPositions[i].X);
 			vertexData[i].Position[1] = static_cast<float>(_vertexPositions[i].Y);
 			vertexData[i].Position[2] = static_cast<float>(_vertexPositions[i].Z);
+
+			vertexData[i].UV0[0] = static_cast<float>(_vertexUV0s[i].X);
+			vertexData[i].UV0[1] = static_cast<float>(_vertexUV0s[i].Y);
 		}
 
 		staging->LoadData(0, vertexData);

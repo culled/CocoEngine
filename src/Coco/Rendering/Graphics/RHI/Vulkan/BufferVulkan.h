@@ -27,7 +27,7 @@ namespace Coco::Rendering
 		bool _isLocked = false;
 
 	public:
-		BufferVulkan(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags, uint64_t size, uint memoryPropertyFlags, bool createBound);
+		BufferVulkan(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags, uint64_t size, bool createBound);
 		virtual ~BufferVulkan() override;
 
 		virtual void Resize(uint64_t newSize) override;

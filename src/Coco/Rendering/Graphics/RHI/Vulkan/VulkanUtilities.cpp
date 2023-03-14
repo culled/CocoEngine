@@ -363,4 +363,35 @@ namespace Coco::Rendering
 			return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		}
 	}
+
+	VkImageType ToVkImageType(ImageDimensionType dimensionType)
+	{
+		switch (dimensionType)
+		{
+		case ImageDimensionType::OneDimensional:
+		case ImageDimensionType::OneDimensionalArray:
+			return VK_IMAGE_TYPE_1D;
+		case ImageDimensionType::TwoDimensional:
+		case ImageDimensionType::TwoDimensionalArray:
+			return VK_IMAGE_TYPE_2D;
+		case ImageDimensionType::ThreeDimensional:
+		case ImageDimensionType::ThreeDimensionalArray:
+			return VK_IMAGE_TYPE_3D;
+		default:
+			return VK_IMAGE_TYPE_2D;
+		}
+	}
+
+	VkDescriptorType ToVkDescriptorType(ShaderDescriptorType descriptorType)
+	{
+		switch (descriptorType)
+		{
+		case ShaderDescriptorType::UniformStruct:
+			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		case ShaderDescriptorType::UniformSampler:
+			return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		default:
+			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		}
+	}
 }

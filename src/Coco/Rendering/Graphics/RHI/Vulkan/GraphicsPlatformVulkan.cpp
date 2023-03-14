@@ -157,19 +157,7 @@ namespace Coco::Rendering
 
 	GraphicsResourceRef<Buffer> GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
 	{
-		uint memoryProperties;
-
-		// TODO: better host configurable memory?
-		if ((usageFlags & BufferUsageFlags::HostVisible) == BufferUsageFlags::HostVisible)
-		{
-			memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		}
-		else
-		{
-			memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-		}
-
-		return _device->CreateResource<BufferVulkan>(usageFlags, size, memoryProperties, bindOnCreate);
+		return _device->CreateResource<BufferVulkan>(usageFlags, size, bindOnCreate);
 	}
 
 	GraphicsResourceRef<Image> GraphicsPlatformVulkan::CreateImage(ImageDescription description)

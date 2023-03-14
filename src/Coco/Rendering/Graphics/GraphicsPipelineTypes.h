@@ -80,26 +80,4 @@ namespace Coco::Rendering
 		Min,
 		Max
 	};
-
-	/// <summary>
-	/// Data types that a buffer can hold and shaders can read
-	/// </summary>
-	enum class BufferDataFormat
-	{
-		Float,
-		Int,
-		Vector2,
-		Vector2Int,
-		Vector3,
-		Vector3Int,
-		Vector4,
-		Vector4Int,
-	};
-
-	/// <summary>
-	/// Gets the size of a BufferDataFormat
-	/// </summary>
-	/// <param name="format">The buffer data format</param>
-	/// <returns>The size of the buffer data format (in bytes)</returns>
-	COCOAPI uint32_t GetBufferDataFormatSize(BufferDataFormat format);
 }

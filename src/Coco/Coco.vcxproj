@@ -178,6 +178,7 @@
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\ImageSamplerVulkan.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\ImageVulkan.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\RenderContextVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanDescriptorSet.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanIncludes.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanRenderCache.h" />
@@ -186,6 +187,7 @@
     <ClInclude Include="Rendering\Graphics\RenderContext.h" />
     <ClInclude Include="Rendering\Graphics\RenderContextTypes.h" />
     <ClInclude Include="Rendering\Graphics\RenderView.h" />
+    <ClInclude Include="Rendering\Material.h" />
     <ClInclude Include="Rendering\Shader.h" />
     <ClInclude Include="Rendering\ShaderTypes.h" />
     <ClInclude Include="Rendering\Mesh.h" />
@@ -234,7 +236,6 @@
     <ClCompile Include="Rendering\Graphics\CommandBuffer.cpp" />
     <ClCompile Include="Rendering\Graphics\CommandBufferPool.cpp" />
     <ClCompile Include="Rendering\Graphics\GraphicsDevice.cpp" />
-    <ClCompile Include="Rendering\Graphics\GraphicsPipelineTypes.cpp" />
     <ClCompile Include="Rendering\Graphics\GraphicsPlatform.cpp" />
     <ClCompile Include="Rendering\Graphics\Image.cpp" />
     <ClCompile Include="Rendering\Graphics\ImageSampler.cpp" />
@@ -251,12 +252,14 @@
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\ImageSamplerVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\ImageVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\RenderContextVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanDescriptorSet.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanQueue.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanRenderCache.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanShader.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanUtilities.cpp" />
     <ClCompile Include="Rendering\Graphics\RenderContext.cpp" />
     <ClCompile Include="Rendering\Graphics\RenderView.cpp" />
+    <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Rendering\Mesh.cpp" />
     <ClCompile Include="Rendering\Pipeline\RenderPipeline.cpp" />

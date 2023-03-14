@@ -150,4 +150,8 @@ namespace Coco::Rendering
 	VkSamplerMipmapMode ToVkSamplerMipmapMode(FilterMode filterMode);
 
 	VkSamplerAddressMode ToVkSamplerAddressMode(RepeatMode repeatMode);
+
+	VkImageType ToVkImageType(ImageDimensionType dimensionType);
+
+	VkDescriptorType ToVkDescriptorType(ShaderDescriptorType descriptorType);
 }

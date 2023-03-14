@@ -13,4 +13,10 @@ namespace Coco::Rendering
 		Fragment,
 		Compute
 	};
+
+	enum class ShaderDescriptorType
+	{
+		UniformStruct,
+		UniformSampler
+	};
 }

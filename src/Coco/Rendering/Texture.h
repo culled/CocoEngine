@@ -3,10 +3,11 @@
 #include <Coco/Core/Resources/IResource.h>
 #include "Graphics/Image.h"
 #include "Graphics/ImageSampler.h"
-#include "Graphics/GraphicsPlatform.h"
 
 namespace Coco::Rendering
 {
+	class GraphicsPlatform;
+
 	/// <summary>
 	/// A texture that can be used for rendering
 	/// </summary>
@@ -14,20 +15,28 @@ namespace Coco::Rendering
 	{
 	private:
 		GraphicsPlatform* _platform;
-		uint64_t _id;
 		GraphicsResourceRef<Image> _image;
 		GraphicsResourceRef<ImageSampler> _sampler;
 		uint32_t _refreshCount = 0;
 		ImageDescription _description;
-		FilterMode _filterMode = FilterMode::Linear;
-		RepeatMode _repeatMode = RepeatMode::Repeat;
-		uint _anisotropy = 16;
+		FilterMode _filterMode;
+		RepeatMode _repeatMode;
+		uint _anisotropy;
 
 	public:
-		Texture(int width, int height, PixelFormat pixelFormat, ColorSpace colorSpace, ImageUsageFlags usageFlags, GraphicsPlatform* platform);
+		Texture(
+			int width, 
+			int height, 
+			PixelFormat pixelFormat, 
+			ColorSpace colorSpace, 
+			ImageUsageFlags usageFlags, 
+			FilterMode filterMode,
+			RepeatMode repeatMode,
+			uint anisotropy,
+			GraphicsPlatform* platform);
 		virtual ~Texture() override;
 
-		virtual uint64_t GetID() const override { return 0; } // TODO
+		virtual ResourceID GetID() const override { return 0; } // TODO
 
 		/// <summary>
 		/// Sets the pixel data for this texture
@@ -49,6 +58,9 @@ namespace Coco::Rendering
 		/// </summary>
 		void RecreateInternalImage();
 
+		/// <summary>
+		/// Recreates the internal sampler
+		/// </summary>
 		void RecreateInternalSampler();
 	};
 }

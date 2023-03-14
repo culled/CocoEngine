@@ -1,5 +1,6 @@
 #include "VulkanRenderCache.h"
 
+#include <Coco/Core/Types/Array.h>
 #include <Coco/Core/Types/Optional.h>
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 #include <Coco/Rendering/Pipeline/RenderPipelineBinding.h>
@@ -69,8 +70,8 @@ namespace Coco::Rendering
 		VkDescriptorSetLayout globalDescriptorLayout)
 	{
 		uint64_t rpHash = _renderPassHasher(renderPass.RenderPass);
-		uint64_t sHash = _shaderHasher(shader.get());
-		uint64_t key = rpHash ^ (sHash << 1);
+		ResourceID shaderID = shader->GetID();
+		uint64_t key = rpHash ^ (shaderID << 1);
 
 		if (!_pipelineCache.contains(key))
 		{
@@ -82,12 +83,14 @@ namespace Coco::Rendering
 
 	GraphicsResourceRef<VulkanShader> VulkanRenderCache::GetOrCreateVulkanShader(const Ref<Shader>& shader)
 	{
-		if (!_shaderCache.contains(shader.get()))
+		ResourceID shaderID = shader->GetID();
+
+		if (!_shaderCache.contains(shaderID))
 		{
-			_shaderCache[shader.get()] = _device->CreateResource<VulkanShader>(shader);
+			_shaderCache[shaderID] = _device->CreateResource<VulkanShader>(shader);
 		}
 
-		return _shaderCache[shader.get()];
+		return _shaderCache[shaderID];
 	}
 
 	VulkanRenderPass VulkanRenderCache::CreateRenderPass(const Ref<RenderPipeline>& renderPipeline)
@@ -355,13 +358,15 @@ namespace Coco::Rendering
 		pushConstants.size = sizeof(float) * 16; // 64 bytes for now
 
 		GraphicsResourceRef<VulkanShader> vulkanShader = GetOrCreateVulkanShader(shader);
-		List<VkDescriptorSetLayout> descriptorSetLayouts = vulkanShader->GetDescriptorSetLayouts();
-		descriptorSetLayouts.Insert(0, globalDescriptorLayout);
+		Array<VkDescriptorSetLayout, 2> descriptorSetLayouts = {
+			globalDescriptorLayout,
+			vulkanShader->GetDescriptorSetLayout(subpassName).Layout
+		};
 
 		VkPipelineLayoutCreateInfo layoutInfo = {};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		layoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.Count());
-		layoutInfo.pSetLayouts = descriptorSetLayouts.Data();
+		layoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+		layoutInfo.pSetLayouts = descriptorSetLayouts.data();
 		layoutInfo.pushConstantRangeCount = 1;
 		layoutInfo.pPushConstantRanges = &pushConstants;
 

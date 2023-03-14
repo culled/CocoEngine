@@ -1,9 +1,20 @@
 #include "Texture.h"
 
+#include "Graphics/GraphicsPlatform.h"
+
 namespace Coco::Rendering
 {
-	Texture::Texture(int width, int height, PixelFormat pixelFormat, ColorSpace colorSpace, ImageUsageFlags usageFlags, GraphicsPlatform* platform) :
-		_platform(platform), _refreshCount(0)
+	Texture::Texture(
+		int width,
+		int height,
+		PixelFormat pixelFormat,
+		ColorSpace colorSpace,
+		ImageUsageFlags usageFlags,
+		FilterMode filterMode,
+		RepeatMode repeatMode,
+		uint anisotropy,
+		GraphicsPlatform* platform) :
+		_platform(platform), _refreshCount(0), _filterMode(filterMode), _repeatMode(repeatMode), _anisotropy(anisotropy)
 	{
 		_description.Width = width;
 		_description.Height = height;

@@ -347,6 +347,8 @@
     <ClInclude Include="Rendering\Graphics\ImageSampler.h" />
     <ClInclude Include="Rendering\Graphics\ImageSamplerTypes.h" />
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\ImageSamplerVulkan.h" />
+    <ClInclude Include="Rendering\Graphics\RHI\Vulkan\VulkanDescriptorSet.h" />
+    <ClInclude Include="Rendering\Material.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Application.cpp">
@@ -448,9 +450,6 @@
     <ClCompile Include="Rendering\Graphics\GraphicsDevice.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Graphics\GraphicsPipelineTypes.cpp">
-      <Filter>Rendering\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\Graphics\GraphicsPlatform.cpp">
       <Filter>Rendering\Graphics</Filter>
     </ClCompile>
@@ -534,6 +533,8 @@
     <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Rendering\Graphics\ImageSampler.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\ImageSamplerVulkan.cpp" />
+    <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanDescriptorSet.cpp" />
+    <ClCompile Include="Rendering\Material.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

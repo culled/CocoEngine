@@ -23,7 +23,8 @@ namespace Coco::Rendering
 
 		createInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
 		createInfo.unnormalizedCoordinates = VK_FALSE;
-		createInfo.compareEnable = VK_COMPARE_OP_ALWAYS;
+		createInfo.compareEnable = VK_TRUE;
+		createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 		createInfo.mipmapMode = ToVkSamplerMipmapMode(FilterMode);
 		createInfo.mipLodBias = 0.0f;
 		createInfo.minLod = 0.0f;

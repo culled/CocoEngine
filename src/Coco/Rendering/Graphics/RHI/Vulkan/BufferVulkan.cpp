@@ -6,10 +6,16 @@
 
 namespace Coco::Rendering
 {
-	BufferVulkan::BufferVulkan(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags, uint64_t size, uint memoryPropertyFlags, bool createBound) : 
+	BufferVulkan::BufferVulkan(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags, uint64_t size, bool createBound) : 
 		Buffer(usageFlags),
-		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice)), _size(size), _memoryPropertyFlags(memoryPropertyFlags)
+		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice)), _size(size)
 	{
+		// TODO: configurable memory properties?
+		_memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+		if ((usageFlags & BufferUsageFlags::HostVisible) == BufferUsageFlags::HostVisible)
+			_memoryPropertyFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
 		_usageFlags = ToVkBufferUsageFlags(usageFlags);
 
 		CreateBuffer(size, &_buffer, &_bufferMemory, _memoryIndex);

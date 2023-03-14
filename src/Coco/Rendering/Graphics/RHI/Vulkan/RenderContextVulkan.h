@@ -30,11 +30,9 @@ namespace Coco::Rendering
 		CommandBufferPoolVulkan* _pool;
 		CommandBufferVulkan* _commandBuffer;
 		GraphicsResourceRef<BufferVulkan> _globalUBO;
-		GraphicsResourceRef<BufferVulkan> _objectUBO;
 		GraphicsResourceRef<GraphicsSemaphoreVulkan> _imageAvailableSemaphore;
 		GraphicsResourceRef<GraphicsSemaphoreVulkan> _renderingCompleteSemaphore;
 		GraphicsResourceRef<GraphicsFenceVulkan> _renderingCompleteFence;
-		std::hash<RenderContextVulkan*> _rcHash;
 
 		WeakRef<RenderPipeline> _framebufferPipeline;
 		List<GraphicsResourceRef<ImageVulkan>> _renderTargets;
@@ -48,13 +46,16 @@ namespace Coco::Rendering
 		VkFramebuffer _framebuffer = nullptr;
 		VulkanPipeline _currentPipeline = VulkanPipeline::None;
 		Ref<Shader> _currentShader;
+		Ref<Material> _currentMaterial;
 
-		VkDescriptorSetLayout _globalDescriptorSetLayout;
+		VulkanShaderDescriptorLayout _globalDescriptor;
 		GraphicsResourceRef<DescriptorPoolVulkan> _globalDescriptorPool;
 		VkDescriptorSet _globalDescriptorSet;
 
-		Map<Shader*, GraphicsResourceRef<DescriptorPoolVulkan>> _descriptorPools;
-		Map<Shader*, VkDescriptorSet> _descriptorSets;
+		GraphicsResourceRef<BufferVulkan> _objectUBO;
+		uint64_t _currentObjectUBOOffset = 0;
+		Map<ResourceID, GraphicsResourceRef<DescriptorPoolVulkan>> _shaderDescriptorPools;
+		Map<ResourceID, VkDescriptorSet> _materialDescriptorSets;
 
 	public:
 		RenderContextVulkan(GraphicsDevice* owningDevice);
@@ -62,6 +63,7 @@ namespace Coco::Rendering
 
 		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) override;
 		virtual void UseShader(Ref<Shader> shader) override;
+		virtual void UseMaterial(Ref<Material> material) override;
 		virtual void DrawIndexed(uint indexCount, uint indexOffset, uint vertexOffset, uint instanceCount, uint instanceOffset) override;
 		virtual void Draw(const Ref<Mesh>& mesh, const Matrix4x4& modelMatrix) override;
 		virtual bool IsAvaliableForRendering() override;
@@ -106,10 +108,13 @@ namespace Coco::Rendering
 		void DestroyFramebuffer();
 
 		/// <summary>
-		/// Creates a descriptor set for the currently bound shader
+		/// Creates the global descriptor set
 		/// </summary>
-		void UpdateObjectDescriptorSet();
-
 		void CreateGlobalDescriptorSet();
+
+		/// <summary>
+		/// Creates a descriptor set for the currently bound material instance
+		/// </summary>
+		VkDescriptorSet GetOrAllocateMaterialDescriptorSet();
 	};
 }

@@ -54,11 +54,10 @@ namespace Coco::Rendering
 
 		std::hash<RenderPipeline*> _renderPipelineHasher;
 		std::hash<VkRenderPass> _renderPassHasher;
-		std::hash<Shader*> _shaderHasher;
 
 		Map<uint64_t, VulkanRenderPass> _renderPassCache;
 		Map<uint64_t, VulkanPipeline> _pipelineCache;
-		Map<Shader*, GraphicsResourceRef<VulkanShader>> _shaderCache;
+		Map<ResourceID, GraphicsResourceRef<VulkanShader>> _shaderCache;
 
 	public:
 		VulkanRenderCache(GraphicsDeviceVulkan* device);

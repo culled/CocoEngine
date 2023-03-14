@@ -1,6 +1,7 @@
 #include "RenderingService.h"
 
 #include <Coco/Core/Engine.h>
+#include <Coco/Core/Types/Array.h>
 #include "Graphics/RenderContext.h"
 #include <limits>
 
@@ -9,11 +10,13 @@ namespace Coco::Rendering
 	RenderingService::RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams)
 	{
 		_graphics = GraphicsPlatform::CreatePlatform(this, backendCreateParams);
+		CreateDefaultTexture();
 	}
 
 	RenderingService::~RenderingService()
 	{
 		_defaultPipeline.reset();
+		_defaultTexture.reset();
 		_graphics.reset();
 	}
 
@@ -68,9 +71,17 @@ namespace Coco::Rendering
 		presenter->Present(renderContext);
 	}
 
-	Ref<Texture> RenderingService::CreateTexture(int width, int height, PixelFormat pixelFormat, ColorSpace colorSpace, ImageUsageFlags usageFlags)
+	Ref<Texture> RenderingService::CreateTexture(
+		int width,
+		int height,
+		PixelFormat pixelFormat,
+		ColorSpace colorSpace,
+		ImageUsageFlags usageFlags,
+		FilterMode filterMode,
+		RepeatMode repeatMode,
+		uint anisotropy)
 	{
-		return CreateRef<Texture>(width, height, pixelFormat, colorSpace, usageFlags, _graphics.get());
+		return CreateRef<Texture>(width, height, pixelFormat, colorSpace, usageFlags, filterMode, repeatMode, anisotropy, _graphics.get());
 	}
 
 	void RenderingService::DoRender(const Ref<RenderPipeline>& pipeline, RenderContext* context)
@@ -79,5 +90,41 @@ namespace Coco::Rendering
 
 		// Do render!
 		pipeline->Execute(context);
+	}
+
+	void RenderingService::CreateDefaultTexture()
+	{
+		LogInfo(GetLogger(), "Creating default texture...");
+
+		const int size = 32;
+		const int channels = 4;
+
+		_defaultTexture = CreateTexture(
+			size, size, 
+			PixelFormat::BGRA8, ColorSpace::sRGB, 
+			ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled,
+			FilterMode::Nearest);
+
+		List<uint8_t> pixelData(size * size * channels);
+
+		for (size_t x = 0; x < size; x++)
+		{
+			for (size_t y = 0; y < size; y++)
+			{
+				const size_t baseIndex = ((x * size) + y) * channels;
+				pixelData[baseIndex + 0] = 255;
+				pixelData[baseIndex + 1] = 255;
+				pixelData[baseIndex + 2] = 255;
+				pixelData[baseIndex + 3] = 255;
+
+				if (((x % 2) && (y % 2)) || !(y % 2))
+				{
+					pixelData[baseIndex + 1] = 0; // Green = 0
+					pixelData[baseIndex + 2] = 0; // Red = 0
+				}
+			}
+		}
+
+		_defaultTexture->SetPixels(pixelData.Data());
 	}
 }

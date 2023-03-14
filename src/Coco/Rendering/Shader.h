@@ -7,6 +7,7 @@
 #include <Coco/Core/Types/Matrix.h>
 #include "Graphics/GraphicsPipelineState.h"
 #include "ShaderTypes.h"
+#include "Graphics/BufferTypes.h"
 
 namespace Coco::Rendering
 {
@@ -26,6 +27,17 @@ namespace Coco::Rendering
 		uint32_t DataOffset;
 
 		ShaderVertexAttribute(BufferDataFormat dataFormat);
+	};
+
+	struct COCOAPI ShaderDescriptor
+	{
+		string Name;
+		uint BindingIndex;
+		ShaderDescriptorType Type;
+		ShaderStageType StageBindingPoint;
+		uint Size;
+
+		ShaderDescriptor(const string& name, uint bindingIndex, ShaderDescriptorType type, uint size = 0, ShaderStageType bindingPoint = ShaderStageType::Fragment);
 	};
 
 	/// <summary>
@@ -53,11 +65,14 @@ namespace Coco::Rendering
 		/// </summary>
 		List<ShaderVertexAttribute> Attributes;
 
+		List<ShaderDescriptor> Descriptors;
+
 		Subshader(
 			const string& name,
 			const Map<ShaderStageType, string>& stageFiles,
 			const GraphicsPipelineState& pipelineState,
-			const List<ShaderVertexAttribute>& attributes);
+			const List<ShaderVertexAttribute>& attributes,
+			const List<ShaderDescriptor>& descriptors);
 
 	private:
 		friend class Shader;
@@ -68,16 +83,10 @@ namespace Coco::Rendering
 		void UpdateAttributeOffsets();
 	};
 
-	struct COCOAPI ShaderUniformObject
-	{
-		float DiffuseColor[4];
-		uint8_t Padding[48];
-	};
-
 	/// <summary>
 	/// Defines how geometry is rendered
 	/// </summary>
-	class COCOAPI Shader : IResource
+	class COCOAPI Shader : public IResource
 	{
 	private:
 		string _name;
@@ -87,7 +96,7 @@ namespace Coco::Rendering
 		Shader(const string& name);
 		virtual ~Shader() = default;
 
-		virtual uint64_t GetID() const override { return 0; } // TODO
+		virtual ResourceID GetID() const override { return 0; } // TODO
 
 		/// <summary>
 		/// Gets this shader's name
@@ -114,10 +123,12 @@ namespace Coco::Rendering
 		/// <param name="stageFiles">The files for each stage of the subshader</param>
 		/// <param name="pipelineState">The pipeline state for the subshader</param>
 		/// <param name="attributes">The attributes for the subshader</param>
+		/// <param name="descriptors">The descriptors for the subshader</param>
 		void CreateSubshader(
 			const string& name, 
 			const Map<ShaderStageType, string>& stageFiles, 
 			const GraphicsPipelineState& pipelineState, 
-			const List<ShaderVertexAttribute>& attributes);
+			const List<ShaderVertexAttribute>& attributes,
+			const List<ShaderDescriptor>& descriptors);
 	};
 }

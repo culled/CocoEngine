@@ -8,6 +8,7 @@ namespace Coco::Rendering
 	enum class RenderContextStateChange
 	{
 		Shader,
+		Material
 	};
 
 	/// <summary>

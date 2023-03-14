@@ -32,7 +32,7 @@ namespace Coco::Rendering
 		switch (format)
 		{
 		case PixelFormat::BGRA8:
-			return 32;
+			return 4;
 		default:
 			return 0;
 		}

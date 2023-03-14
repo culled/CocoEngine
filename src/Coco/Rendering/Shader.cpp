@@ -6,12 +6,17 @@ namespace Coco::Rendering
 		DataFormat(dataFormat), DataOffset(0)
 	{}
 
+	ShaderDescriptor::ShaderDescriptor(const string & name, uint bindingIndex, ShaderDescriptorType type, uint size, ShaderStageType bindingPoint) :
+		Name(name), BindingIndex(bindingIndex), Type(type), Size(size), StageBindingPoint(bindingPoint)
+	{}
+
 	Subshader::Subshader(
 		const string& name,
 		const Map<ShaderStageType, string>& stageFiles,
 		const GraphicsPipelineState& pipelineState,
-		const List<ShaderVertexAttribute>& attributes) :
-		PassName(name), StageFiles(stageFiles), PipelineState(pipelineState), Attributes(attributes)
+		const List<ShaderVertexAttribute>& attributes,
+		const List<ShaderDescriptor>& descriptors) :
+		PassName(name), StageFiles(stageFiles), PipelineState(pipelineState), Attributes(attributes), Descriptors(descriptors)
 	{
 		UpdateAttributeOffsets();
 	}
@@ -50,8 +55,9 @@ namespace Coco::Rendering
 		const string& name, 
 		const Map<ShaderStageType, string>& stageFiles, 
 		const GraphicsPipelineState& pipelineState, 
-		const List<ShaderVertexAttribute>& attributes)
+		const List<ShaderVertexAttribute>& attributes,
+		const List<ShaderDescriptor>& descriptors)
 	{
-		_subshaders.Add(Subshader(name, stageFiles, pipelineState, attributes));
+		_subshaders.Add(Subshader(name, stageFiles, pipelineState, attributes, descriptors));
 	}
 }

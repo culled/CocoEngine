@@ -20,6 +20,7 @@ namespace Coco::Rendering
 		_device(static_cast<GraphicsDeviceVulkan*>(device)), _isManagedInternally(false)
 	{
 		CreateImageFromDescription();
+		CreateNativeImageView();
 	}
 
 	ImageVulkan::~ImageVulkan()
@@ -50,9 +51,8 @@ namespace Coco::Rendering
 			static_cast<uint64_t>(GetPixelFormatSize(Description.PixelFormat));
 
 		GraphicsResourceRef<BufferVulkan> staging = _device->CreateResource<BufferVulkan>(
-			BufferUsageFlags::HostVisible | BufferUsageFlags::TransferSource,
+			BufferUsageFlags::HostVisible | BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination,
 			bufferSize,
-			0,
 			true);
 
 		staging->LoadData(0, bufferSize, pixelData);
@@ -164,6 +164,7 @@ namespace Coco::Rendering
 		create.extent.depth = static_cast<uint32_t>(Description.Depth);
 		create.mipLevels = static_cast<uint32_t>(Description.MipCount);
 		create.arrayLayers = static_cast<uint32_t>(Description.Layers);
+		create.imageType = ToVkImageType(Description.DimensionType);
 		create.format = ToVkFormat(Description.PixelFormat);
 		create.tiling = VK_IMAGE_TILING_OPTIMAL;
 		create.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;

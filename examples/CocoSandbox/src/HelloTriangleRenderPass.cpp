@@ -1,8 +1,17 @@
 #include "HelloTriangleRenderPass.h"
 #include <Coco/Rendering/Graphics/GraphicsPipelineState.h>
+#include <Coco/Core/Engine.h>
 
 using namespace Coco;
 using namespace Coco::Rendering;
+
+ShaderUniformObject::ShaderUniformObject()
+{
+	BaseColor[0] = 0.0f;
+	BaseColor[1] = 0.0f;
+	BaseColor[2] = 0.0f;
+	BaseColor[3] = 1.0f;
+}
 
 HelloTriangleRenderPass::HelloTriangleRenderPass()
 {
@@ -17,17 +26,31 @@ HelloTriangleRenderPass::HelloTriangleRenderPass()
 		},
 		pipelineState,
 		{
-			ShaderVertexAttribute(BufferDataFormat::Vector3)
+			ShaderVertexAttribute(BufferDataFormat::Vector3),
+			ShaderVertexAttribute(BufferDataFormat::Vector2)
+		},
+		{
+			ShaderDescriptor("_MaterialInfo", 0, ShaderDescriptorType::UniformStruct, sizeof(ShaderUniformObject)),
+			ShaderDescriptor("_MainTex", 1, ShaderDescriptorType::UniformSampler)
 		});
+
+	_material = CreateRef<Material>(_shader);
+	_material->SetStruct("_MaterialInfo", _shaderUO);
 
 	// Setup our basic mesh
 	double size = 10.0;
 	_mesh = CreateRef<Mesh>();
 
 	_mesh->SetPositions({ 
-		Vector3(-0.1, 0.0, 0.0) * size, Vector3(-0.1, 1.0, 0.0) * size, Vector3(0.1, 1.0, 0.0) * size, Vector3(0.1, 0.0, 0.0) * size, // Forward (+Y)
-		Vector3(0.0, 0.1, 0.0) * size, Vector3(1.0, 0.1, 0.0)* size, Vector3(1.0, -0.1, 0.0) * size, Vector3(0.0, -0.1, 0.0) * size, // Right (+X)
-		Vector3(-0.1, 1.0, 0.0)* size, Vector3(-0.1, 1.0, 1.0)* size, Vector3(0.1, 1.0, 1.0)* size, Vector3(0.1, 1.0, 0.0)* size }); // Up (+Z)
+		Vector3(-0.5, 0.5, 0.0) * size, Vector3(-0.5, 1.5, 0.0) * size, Vector3(0.5, 1.5, 0.0) * size, Vector3(0.5, 0.5, 0.0) * size, // Forward (+Y)
+		Vector3(0.5, 0.5, 0.0) * size, Vector3(1.5, 0.5, 0.0)* size, Vector3(1.5, -0.5, 0.0) * size, Vector3(0.5, -0.5, 0.0) * size, // Right (+X)
+		Vector3(-0.5, 1.5, 0.0)* size, Vector3(-0.5, 1.5, 1.0)* size, Vector3(0.5, 1.5, 1.0)* size, Vector3(0.5, 1.5, 0.0)* size }); // Up (+Z)
+
+	_mesh->SetUVs({
+		Vector2(0.0, 0.0), Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0),
+		Vector2(0.0, 0.0), Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0),
+		Vector2(0.0, 0.0), Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0),
+		});
 
 	_mesh->SetIndices({ 
 		0, 1, 2, 2, 3, 0,
@@ -51,8 +74,15 @@ void HelloTriangleRenderPass::Execute(RenderContext* renderContext)
 		_mesh->UploadData();
 
 	// Draw the mesh
-	renderContext->UseShader(_shader);
+	renderContext->UseMaterial(_material);
 	renderContext->Draw(_mesh, _meshTransform);
+
+	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
+	const double a = Math::Sin(t) * 0.5 + 0.5;
+	_shaderUO.BaseColor[0] = static_cast<float>(a);
+	_shaderUO.BaseColor[1] = static_cast<float>(a);
+	_shaderUO.BaseColor[2] = static_cast<float>(a);
+	_material->SetStruct("_MaterialInfo", _shaderUO);
 
 	//_meshRotation *= Quaternion(Vector3::Up, 0.01);
 }

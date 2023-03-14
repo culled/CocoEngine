@@ -4,14 +4,16 @@
 
 namespace Coco
 {
+	using ResourceID = uint64_t;
+
 	class COCOAPI IResource
 	{
 	public:
-		const static uint64_t InvalidID = std::numeric_limits<uint64_t>::max();
+		const static ResourceID InvalidID = std::numeric_limits<ResourceID>::max();
 
 	public:
 		virtual ~IResource() = default;
 
-		virtual uint64_t GetID() const = 0;
+		virtual ResourceID GetID() const = 0;
 	};
 }

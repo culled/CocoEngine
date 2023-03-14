@@ -21,6 +21,7 @@ namespace Coco::Rendering
     private:
         Managed<GraphicsPlatform> _graphics;
         Ref<RenderPipeline> _defaultPipeline;
+        Ref<Texture> _defaultTexture;
 
     public:
         RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
@@ -87,7 +88,17 @@ namespace Coco::Rendering
         /// <param name="colorSpace">The color space for the texture</param>
         /// <param name="usageFlags">The usage flags for the texture</param>
         /// <returns>The created texture</returns>
-        Ref<Texture> CreateTexture(int width, int height, PixelFormat pixelFormat, ColorSpace colorSpace, ImageUsageFlags usageFlags);
+        Ref<Texture> CreateTexture(
+            int width, 
+            int height, 
+            PixelFormat pixelFormat, 
+            ColorSpace colorSpace, 
+            ImageUsageFlags usageFlags,
+            FilterMode filterMode = FilterMode::Linear,
+            RepeatMode repeatMode = RepeatMode::Repeat,
+            uint anisotropy = 16);
+
+        Ref<Texture> GetDefaultTexture() const { return _defaultTexture; }
 
     private:
         /// <summary>
@@ -96,6 +107,8 @@ namespace Coco::Rendering
         /// <param name="pipeline">The render pipeline</param>
         /// <param name="context">The render context</param>
         void DoRender(const Ref<RenderPipeline>& pipeline, RenderContext* context);
+
+        void CreateDefaultTexture();
     };
 }
 

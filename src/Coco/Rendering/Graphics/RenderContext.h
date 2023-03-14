@@ -6,6 +6,7 @@
 #include <Coco/Rendering/Mesh.h>
 #include <Coco/Rendering/Graphics/Buffer.h>
 #include <Coco/Rendering/Shader.h>
+#include <Coco/Rendering/Material.h>
 #include "RenderView.h"
 
 #include "GraphicsResource.h"
@@ -104,6 +105,12 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="shader">The shader to use</param>
 		virtual void UseShader(Ref<Shader> shader) = 0;
+
+		/// <summary>
+		/// Sets the given material as the one that will be used to draw subsequent geometry
+		/// </summary>
+		/// <param name="material">The material to use</param>
+		virtual void UseMaterial(Ref<Material> material) = 0;
 
 		/// <summary>
 		/// Draws a number of triangles
