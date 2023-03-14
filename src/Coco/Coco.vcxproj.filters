@@ -90,16 +90,16 @@
     <ClInclude Include="Core\IO\FileTypes.h">
       <Filter>Core\IO</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Input\InputService.h">
+    <ClInclude Include="Input\InputService.h">
       <Filter>Core\Input</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Input\InputTypes.h">
+    <ClInclude Include="Input\InputTypes.h">
       <Filter>Core\Input</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Input\Keyboard.h">
+    <ClInclude Include="Input\Keyboard.h">
       <Filter>Core\Input</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Input\Mouse.h">
+    <ClInclude Include="Input\Mouse.h">
       <Filter>Core\Input</Filter>
     </ClInclude>
     <ClInclude Include="Core\Logging\LogLevel.h">
@@ -363,13 +363,13 @@
     <ClCompile Include="Core\IO\FileTypes.cpp">
       <Filter>Core\IO</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Input\InputService.cpp">
+    <ClCompile Include="Input\InputService.cpp">
       <Filter>Core\Input</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Input\Keyboard.cpp">
+    <ClCompile Include="Input\Keyboard.cpp">
       <Filter>Core\Input</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Input\Mouse.cpp">
+    <ClCompile Include="Input\Mouse.cpp">
       <Filter>Core\Input</Filter>
     </ClCompile>
     <ClCompile Include="Core\Logging\LogSink.cpp">

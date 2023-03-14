@@ -5,7 +5,11 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Platform/IEnginePlatform.h>
 #include <Coco/Windowing/IWindowingPlatform.h>
-#include <Coco/Core/Input/InputService.h>
+
+namespace Coco::Input
+{
+    class InputService;
+}
 
 namespace Coco::Platform::Windows
 {

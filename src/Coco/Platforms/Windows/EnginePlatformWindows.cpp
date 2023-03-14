@@ -7,9 +7,9 @@
 #include <Coco/Core/Logging/Logger.h>
 #include <Coco/Core/Services/EngineServiceManager.h>
 #include <Coco/Windowing/WindowingService.h>
-#include <Coco/Core/Input/InputService.h>
-#include <Coco/Core/Input/Keyboard.h>
-#include <Coco/Core/Input/Mouse.h>
+#include <Coco/Input/InputService.h>
+#include <Coco/Input/Keyboard.h>
+#include <Coco/Input/Mouse.h>
 #include <Coco/Rendering/Graphics/GraphicsPlatformTypes.h>
 
 namespace Coco::Platform::Windows

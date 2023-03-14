@@ -11,7 +11,7 @@ namespace Coco
 	class COCOAPI CameraComponent
 	{
 	private:
-		ProjectionType _projectionType;
+		ProjectionType _projectionType = ProjectionType::Custom;
 
 		Matrix4x4 _projectionMatrix = Matrix4x4::Identity;
 		Matrix4x4 _viewMatrix = Matrix4x4::Identity;

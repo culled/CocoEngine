@@ -107,10 +107,10 @@
     <ClInclude Include="Core\ExitCodes.h" />
     <ClInclude Include="Core\IO\File.h" />
     <ClInclude Include="Core\IO\FileTypes.h" />
-    <ClInclude Include="Core\Input\InputService.h" />
-    <ClInclude Include="Core\Input\InputTypes.h" />
-    <ClInclude Include="Core\Input\Keyboard.h" />
-    <ClInclude Include="Core\Input\Mouse.h" />
+    <ClInclude Include="Input\InputService.h" />
+    <ClInclude Include="Input\InputTypes.h" />
+    <ClInclude Include="Input\Keyboard.h" />
+    <ClInclude Include="Input\Mouse.h" />
     <ClInclude Include="Core\Logging\LogLevel.h" />
     <ClInclude Include="Core\Logging\LogSink.h" />
     <ClInclude Include="Core\Logging\Logger.h" />
@@ -206,9 +206,9 @@
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\IO\File.cpp" />
     <ClCompile Include="Core\IO\FileTypes.cpp" />
-    <ClCompile Include="Core\Input\InputService.cpp" />
-    <ClCompile Include="Core\Input\Keyboard.cpp" />
-    <ClCompile Include="Core\Input\Mouse.cpp" />
+    <ClCompile Include="Input\InputService.cpp" />
+    <ClCompile Include="Input\Keyboard.cpp" />
+    <ClCompile Include="Input\Mouse.cpp" />
     <ClCompile Include="Core\Logging\LogSink.cpp" />
     <ClCompile Include="Core\Logging\Logger.cpp" />
     <ClCompile Include="Core\Logging\Sinks\ConsoleLogSink.cpp" />

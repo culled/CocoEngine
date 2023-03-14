@@ -4,7 +4,7 @@
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Logging/Sinks/ConsoleLogSink.h>
 #include <Coco/Core/Logging/Sinks/FileLogSink.h>
-#include <Coco/Core/Input/InputService.h>
+#include <Coco/Input/InputService.h>
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/RenderingService.h>
 
