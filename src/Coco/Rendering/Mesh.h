@@ -3,7 +3,7 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Vector.h>
-#include <Coco/Core/Resources/IResource.h>
+#include <Coco/Core/Resources/Resource.h>
 #include "Graphics/GraphicsResource.h"
 #include "Graphics/Buffer.h"
 
@@ -23,7 +23,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Holds data for rendering geometry
 	/// </summary>
-	class COCOAPI Mesh : public IResource
+	class COCOAPI Mesh : public Resource
 	{
 	public:
 		/// <summary>
@@ -53,8 +53,6 @@ namespace Coco::Rendering
 	public:
 		Mesh();
 		virtual ~Mesh();
-
-		virtual ResourceID GetID() const override { return 0; } // TODO
 
 		/// <summary>
 		/// Sets vertex positions for this mesh.

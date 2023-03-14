@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Coco/Core/Resources/IResource.h>
+#include <Coco/Core/Resources/Resource.h>
 
 #include "Shader.h"
 #include <Coco/Core/Types/Color.h>
@@ -11,7 +11,7 @@ namespace Coco::Rendering
 {
 	class MaterialInstance;
 
-	class COCOAPI Material : public IResource
+	class COCOAPI Material : public Resource
 	{
 		friend MaterialInstance;
 
@@ -24,8 +24,6 @@ namespace Coco::Rendering
 	public:
 		Material(Ref<Rendering::Shader> shader);
 		virtual ~Material();
-
-		virtual ResourceID GetID() const override { return 0; } // TODO
 
 		Ref<MaterialInstance> CreateInstance() const;
 

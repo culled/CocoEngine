@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-#include <Coco/Core/Resources/IResource.h>
+#include <Coco/Core/Resources/Resource.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Matrix.h>
@@ -86,7 +86,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Defines how geometry is rendered
 	/// </summary>
-	class COCOAPI Shader : public IResource
+	class COCOAPI Shader : public Resource
 	{
 	private:
 		string _name;
@@ -95,8 +95,6 @@ namespace Coco::Rendering
 	public:
 		Shader(const string& name);
 		virtual ~Shader() = default;
-
-		virtual ResourceID GetID() const override { return 0; } // TODO
 
 		/// <summary>
 		/// Gets this shader's name

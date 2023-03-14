@@ -342,7 +342,7 @@
     <ClInclude Include="Rendering\Graphics\RHI\Vulkan\DescriptorPoolVulkan.h" />
     <ClInclude Include="Core\Scene\Components\CameraComponent.h" />
     <ClInclude Include="Core\Scene\Components\CameraComponentTypes.h" />
-    <ClInclude Include="Core\Resources\IResource.h" />
+    <ClInclude Include="Core\Resources\Resource.h" />
     <ClInclude Include="Rendering\Texture.h" />
     <ClInclude Include="Rendering\Graphics\ImageSampler.h" />
     <ClInclude Include="Rendering\Graphics\ImageSamplerTypes.h" />
@@ -535,6 +535,7 @@
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\ImageSamplerVulkan.cpp" />
     <ClCompile Include="Rendering\Graphics\RHI\Vulkan\VulkanDescriptorSet.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />
+    <ClCompile Include="Core\Resources\Resource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

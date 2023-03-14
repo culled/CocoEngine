@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Coco/Core/Resources/IResource.h>
+#include <Coco/Core/Resources/Resource.h>
 #include "Graphics/Image.h"
 #include "Graphics/ImageSampler.h"
 
@@ -11,7 +11,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// A texture that can be used for rendering
 	/// </summary>
-	class COCOAPI Texture : public IResource
+	class COCOAPI Texture : public Resource
 	{
 	private:
 		GraphicsPlatform* _platform;
@@ -35,8 +35,6 @@ namespace Coco::Rendering
 			uint anisotropy,
 			GraphicsPlatform* platform);
 		virtual ~Texture() override;
-
-		virtual ResourceID GetID() const override { return 0; } // TODO
 
 		/// <summary>
 		/// Sets the pixel data for this texture
