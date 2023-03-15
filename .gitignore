@@ -353,4 +353,4 @@ MigrationBackup/
 # Project files
 *.sln
 *.vcxproj
-*.filter
+*.filters
