@@ -16,6 +16,8 @@ project "Coco"
         "Core/**.cpp",
         "Windowing/**.h",
         "Windowing/**.cpp",
+        "Input/*.h",
+        "Input/*.cpp",
         "Rendering/*.h",
         "Rendering/*.cpp",
         "Rendering/Graphics/*.h",
