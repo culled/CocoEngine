@@ -110,7 +110,7 @@ namespace Coco::Rendering
         /// </summary>
         /// <param name="pipeline">The render pipeline</param>
         /// <param name="context">The render context</param>
-        bool DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept;
+        void DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept;
 
         /// <summary>
         /// Creates the default texture

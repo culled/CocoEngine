@@ -69,10 +69,7 @@ namespace Coco::Rendering
 
 		// Actually render with the pipeline
 		renderContext->Begin(view, pipeline);
-
-		if (!DoRender(pipeline.get(), renderContext.get()))
-			return;
-
+		DoRender(pipeline.get(), renderContext.get());
 		renderContext->End();
 
 		// Submit the render data to the gpu and present
@@ -95,7 +92,7 @@ namespace Coco::Rendering
 		return CreateRef<Texture>(width, height, pixelFormat, colorSpace, usageFlags, filterMode, repeatMode, anisotropy, _graphics.get());
 	}
 
-	bool RenderingService::DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept
+	void RenderingService::DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept
 	{
 		try
 		{
@@ -103,13 +100,10 @@ namespace Coco::Rendering
 
 			// Do render!
 			pipeline->Execute(context);
-
-			return true;
 		}
 		catch (const Exception& ex)
 		{
 			LogError(GetLogger(), FormattedString("Rendering failed: {}", ex.what()));
-			return false;
 		}
 	}
 
