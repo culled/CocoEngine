@@ -53,8 +53,8 @@ namespace Coco::Platform::Windows
 			y = createParameters.InitialPosition->Y + borderRect.top;
 		}
 
-		int width = createParameters.InitialSize.Width + (borderRect.right - borderRect.left);
-		int height = createParameters.InitialSize.Height + (borderRect.bottom - borderRect.top);
+		const int width = createParameters.InitialSize.Width + (borderRect.right - borderRect.left);
+		const int height = createParameters.InitialSize.Height + (borderRect.bottom - borderRect.top);
 
 		_handle = CreateWindowEx(
 			windowFlagsEx,
@@ -90,19 +90,19 @@ namespace Coco::Platform::Windows
 		LogTrace(WindowingService->GetLogger(), "Destroyed Windows window");
 	}
 
-	void WindowsWindow::Show()
+	void WindowsWindow::Show() noexcept
 	{
 		CheckWindowHandle();
 
 		ShowWindow(_handle, SW_SHOW);
 	}
 
-	void WindowsWindow::Hide()
+	void WindowsWindow::Hide() noexcept
 	{
 		CheckWindowHandle();
 	}
 
-	bool WindowsWindow::GetIsVisible() const
+	bool WindowsWindow::GetIsVisible() const noexcept
 	{
 		return IsWindowVisible(_handle);
 	}
@@ -122,8 +122,8 @@ namespace Coco::Platform::Windows
 			break;
 		case WM_SIZE:
 		{
-			UINT width = LOWORD(lParam);
-			UINT height = HIWORD(lParam);
+			const UINT width = LOWORD(lParam);
+			const UINT height = HIWORD(lParam);
 			_size = SizeInt(static_cast<int>(width), static_cast<int>(height));
 			HandleResized();
 			break;

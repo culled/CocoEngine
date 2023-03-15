@@ -5,7 +5,7 @@
 using namespace Coco;
 using namespace Coco::Rendering;
 
-ShaderUniformObject::ShaderUniformObject()
+ShaderUniformObject::ShaderUniformObject() : Padding{ 0 }
 {
 	BaseColor[0] = 0.0f;
 	BaseColor[1] = 0.0f;

@@ -39,7 +39,7 @@ namespace Coco
 		/// </summary>
 		double A;
 
-		Color();
-		Color(double r, double g, double b, double a = 1.0);
+		Color() noexcept;
+		Color(double r, double g, double b, double a = 1.0) noexcept;
 	};
 }

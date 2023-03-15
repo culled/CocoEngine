@@ -9,7 +9,7 @@ namespace Coco
 	{
 	private:
 		static bool _isSeeded;
-		static unsigned int _seed;
+		static uint _seed;
 
 		static std::default_random_engine _generator;
 
@@ -42,13 +42,13 @@ namespace Coco
 		/// Sets the seed of the psuedorandom number generator
 		/// </summary>
 		/// <param name="seed">The seed for the psuedorandom number generator</param>
-		static void SetSeed(unsigned int seed);
+		static void SetSeed(int seed);
 
 		/// <summary>
 		/// Gets the current seed used by the psuedorandom number generator
 		/// </summary>
 		/// <returns>The current seed</returns>
-		static unsigned int GetSeed();
+		static uint GetSeed();
 
 	private:
 		/// <summary>

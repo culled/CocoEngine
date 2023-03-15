@@ -17,16 +17,24 @@ namespace Coco
 	public:
 		using HandlerFunctionType = QueryHandler<ReturnType, Args...>::HandlerFunctionType;
 		using HandlerType = QueryHandler<ReturnType, Args...>;
-		using HandlerID = unsigned int;
+		using HandlerID = uint;
 
 	private:
-		List<Ref<HandlerType>> Handlers;
+		List<Ref<HandlerType>> _handlers;
 
 	public:
+		Query() = default;
+
 		virtual ~Query()
 		{
-			Handlers.Clear();
+			_handlers.Clear();
 		}
+
+		Query(const Query&) = delete;
+		Query(Query&&) = delete;
+
+		Query& operator=(const Query&) = delete;
+		Query& operator=(Query&&) = delete;
 
 		/// <summary>
 		/// Adds an instance and member function handler
@@ -57,7 +65,7 @@ namespace Coco
 		/// <param name="handler">A handler reference</param>
 		void AddHandler(const Ref<HandlerType>& handler)
 		{
-			Handlers.Insert(0, handler);
+			_handlers.Insert(0, handler);
 		}
 
 		/// <summary>
@@ -72,13 +80,13 @@ namespace Coco
 		{
 			ObjectQueryHandler<ObjectType, ReturnType, Args...> handler(object, function);
 
-			auto it = std::find_if(Handlers.begin(), Handlers.end(), [handler](const Ref<HandlerType>& other) {
+			auto it = std::find_if(_handlers.begin(), _handlers.end(), [handler](const Ref<HandlerType>& other) {
 				return handler == other.get();
 				});
 
-			if (it != Handlers.end())
+			if (it != _handlers.end())
 			{
-				Handlers.Erase(it);
+				_handlers.Erase(it);
 				return true;
 			}
 
@@ -92,13 +100,13 @@ namespace Coco
 		/// <returns>True if the handler was found and removed</returns>
 		bool RemoveHandler(HandlerID handlerId)
 		{
-			auto it = std::find_if(Handlers.begin(), Handlers.end(), [handlerId](const Ref<HandlerType>& other) {
+			auto it = std::find_if(_handlers.begin(), _handlers.end(), [handlerId](const Ref<HandlerType>& other) {
 				return other->GetID() == handlerId;
 				});
 
-			if (it != Handlers.end())
+			if (it != _handlers.end())
 			{
-				Handlers.Erase(it);
+				_handlers.Erase(it);
 				return true;
 			}
 
@@ -112,7 +120,7 @@ namespace Coco
 		/// <returns>True if the handler was found and removed</returns>
 		bool RemoveHandler(const Ref<HandlerType>& handler)
 		{
-			return Handlers.Remove(handler);
+			return _handlers.Remove(handler);
 		}
 
 		/// <summary>
@@ -120,9 +128,9 @@ namespace Coco
 		/// </summary>
 		/// <param name="...params">The parameters for the query</param>
 		/// <returns>If the query was handled</returns>
-		virtual bool Invoke(ReturnType* value, Args... params)
+		bool Invoke(ReturnType* value, Args... params)
 		{
-			List<Ref<HandlerType>> handlersCopy = GetHandlerListCopy();
+			List<Ref<HandlerType>> handlersCopy = _handlers;
 
 			for (const Ref<HandlerType>& handler : handlersCopy)
 			{
@@ -155,16 +163,6 @@ namespace Coco
 			return Invoke(value, params...);
 		}
 
-	protected:
-		/// <summary>
-		/// Gets a copy of the handler list
-		/// </summary>
-		/// <returns>A copy of the handler list</returns>
-		List<Ref<HandlerType>> GetHandlerListCopy()
-		{
-			return Handlers;
-		}
-
 	private:
 		/// <summary>
 		/// Adds a handler pointer to the handlers for this query
@@ -174,7 +172,7 @@ namespace Coco
 		Ref<HandlerType> AddHandlerImpl(HandlerType* handler)
 		{
 			Ref<HandlerType> handlerRef(handler);
-			Handlers.Insert(0, handlerRef);
+			_handlers.Insert(0, handlerRef);
 			return handlerRef;
 		}
 	};

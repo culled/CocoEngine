@@ -18,10 +18,14 @@ namespace Coco::Logging
 		const LogLevel MinimumLevel;
 
 	public:
+		LogSink() = delete;
+		LogSink(const LogSink&) = delete;
+		LogSink(LogSink&&) = delete;
+
 		virtual ~LogSink() = default;
 
 	protected:
-		LogSink(LogLevel minimumLevel);
+		LogSink(LogLevel minimumLevel = LogLevel::Trace) noexcept;
 
 	public:
 		/// <summary>
@@ -29,7 +33,7 @@ namespace Coco::Logging
 		/// </summary>
 		/// <param name="level">The level of the message</param>
 		/// <param name="message">The message</param>
-		virtual void Write(LogLevel level, const string& message) = 0;
+		virtual void Write(LogLevel level, const string& message) noexcept = 0;
 	};
 }
 

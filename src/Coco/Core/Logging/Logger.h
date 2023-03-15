@@ -2,6 +2,7 @@
 
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
+#include <Coco/Core/Types/Array.h>
 
 #include "LogLevel.h"
 #include "LogSink.h"
@@ -72,8 +73,7 @@ namespace Coco::Logging
 		/// <summary>
 		/// Text representations of log levels
 		/// </summary>
-		static const char* LogLevels[];
-
+		static const Array<const char*, 5> LogLevels;
 
 		/// <summary>
 		/// The name of this logger
@@ -83,6 +83,13 @@ namespace Coco::Logging
 	public:
 		Logger(const string& name);
 		virtual ~Logger();
+
+		Logger() = delete;
+		Logger(const Logger&) = delete;
+		Logger(Logger&&) = delete;
+
+		Logger& operator=(const Logger&) = delete;
+		Logger& operator=(Logger&&) = delete;
 
 		/// <summary>
 		/// Adds a log sink to this logger
@@ -101,7 +108,7 @@ namespace Coco::Logging
 		/// </summary>
 		/// <param name="level">The level of the message</param>
 		/// <param name="message">The message</param>
-		void Write(LogLevel level, const string& message);
+		void Write(LogLevel level, const string& message) noexcept;
 	};
 }
 

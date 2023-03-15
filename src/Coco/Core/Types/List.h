@@ -18,8 +18,11 @@ namespace Coco
 		using ConstIterator = std::vector<T>::const_iterator;
 
 		List() = default;
+		virtual ~List() = default;
+
 		List(uint64_t initialSize) : _list(initialSize) {}
 		List(std::initializer_list<T>&& items) : _list(items) {}
+
 
 		/// <summary>
 		/// Adds an item to this list
@@ -96,7 +99,7 @@ namespace Coco
 		/// <summary>
 		/// Removes all items from this list
 		/// </summary>
-		void Clear()
+		void Clear() noexcept
 		{
 			_list.clear();
 		}
@@ -105,26 +108,52 @@ namespace Coco
 		/// Gets the number of items in this list
 		/// </summary>
 		/// <returns>The number of items in this list</returns>
-		uint64_t Count() const { return _list.size(); }
+		uint64_t Count() const noexcept { return _list.size(); }
 
 		T& operator[](uint64_t index)
 		{
-			if (index > Count() - 1)
-			{
-				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
-			}
-
-			return _list[index];
+			return _list.at(index);
 		}
 
 		const T& operator[](uint64_t index) const
 		{
-			if (index > Count() - 1)
-			{
-				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} < {1}", index, Count()));
-			}
+			return _list.at(index);
+		}
 
-			return _list[index];
+		/// <summary>
+		/// Gets the first element in the list
+		/// </summary>
+		/// <returns>The first element of the list</returns>
+		T& First()
+		{
+			return _list.at(0);
+		}
+
+		/// <summary>
+		/// Gets the first element in the list
+		/// </summary>
+		/// <returns>The first element of the list</returns>
+		const T& First() const
+		{
+			return _list.at(0);
+		}
+
+		/// <summary>
+		/// Gets the last element in the list
+		/// </summary>
+		/// <returns>The last element in the list</returns>
+		T& Last()
+		{
+			return _list.at(Count() - 1);
+		}
+
+		/// <summary>
+		/// Gets the last element in the list
+		/// </summary>
+		/// <returns>The last element in the list</returns>
+		const T& Last() const
+		{
+			return _list.at(Count() - 1);
 		}
 
 		/// <summary>
@@ -140,7 +169,7 @@ namespace Coco
 		/// Gets a pointer to this list's first item
 		/// </summary>
 		/// <returns>A pointer to this list's first item</returns>
-		const T* Data() const
+		const T* Data() const noexcept
 		{
 			return _list.data();
 		}
@@ -149,7 +178,7 @@ namespace Coco
 		/// Gets a pointer to this list's first item
 		/// </summary>
 		/// <returns>A pointer to this list's first item</returns>
-		T* Data()
+		T* Data() noexcept
 		{
 			return _list.data();
 		}
@@ -159,7 +188,7 @@ namespace Coco
 		/// </summary>
 		/// <param name="item">The item to search for</param>
 		/// <returns>True if the item is found in this list</returns>
-		bool Contains(const T& item) const
+		bool Contains(const T& item) const noexcept
 		{
 			ConstIterator it = std::find(begin(), end(), item);
 
@@ -175,36 +204,36 @@ namespace Coco
 		/// Gets an iterator for the beginning of this list
 		/// </summary>
 		/// <returns>An iterator for the beginning of this list</returns>
-		Iterator begin() { return _list.begin(); }
+		Iterator begin() noexcept { return _list.begin(); }
 
 		/// <summary>
 		/// Gets an iterator for the beginning of this list
 		/// </summary>
 		/// <returns>An iterator for the beginning of this list</returns>
-		ConstIterator begin() const { return cbegin(); }
+		ConstIterator begin() const noexcept { return cbegin(); }
 
 		/// <summary>
 		/// Gets an iterator for the beginning of this list
 		/// </summary>
 		/// <returns>An iterator for the beginning of this list</returns>
-		ConstIterator cbegin() const { return _list.cbegin(); }
+		ConstIterator cbegin() const noexcept { return _list.cbegin(); }
 
 		/// <summary>
 		/// Gets an iterator for the end of this list
 		/// </summary>
 		/// <returns>An iterator for the end of this list</returns>
-		Iterator end() { return _list.end(); }
+		Iterator end() noexcept { return _list.end(); }
 
 		/// <summary>
 		/// Gets an iterator for the end of this list
 		/// </summary>
 		/// <returns>An iterator for the end of this list</returns>
-		ConstIterator end() const { return cend(); }
+		ConstIterator end() const noexcept { return cend(); }
 
 		/// <summary>
 		/// Gets an iterator for the end of this list
 		/// </summary>
 		/// <returns>An iterator for the end of this list</returns>
-		ConstIterator cend() const { return _list.cend(); }
+		ConstIterator cend() const noexcept { return _list.cend(); }
 	};
 }

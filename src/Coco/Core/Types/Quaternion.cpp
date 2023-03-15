@@ -6,14 +6,11 @@ namespace Coco
 {
 	const Quaternion Quaternion::Identity = Quaternion(0.0, 0.0, 0.0, 1.0);
 
-	Quaternion::Quaternion() : Quaternion(0.0, 0.0, 0.0, 1.0)
-	{}
-
-	Quaternion::Quaternion(double x, double y, double z, double w) :
+	Quaternion::Quaternion(double x, double y, double z, double w) noexcept :
 		X(x), Y(y), Z(z), W(w)
 	{}
 
-	Quaternion::Quaternion(const Vector3& axis, double angleRadians, bool normalize)
+	Quaternion::Quaternion(const Vector3& axis, double angleRadians, bool normalize) noexcept
 	{
 		const double halfAngle = angleRadians * 0.5;
 		const double s = Math::Sin(halfAngle);
@@ -29,22 +26,22 @@ namespace Coco
 			Normalize();
 	}
 
-	Quaternion::Quaternion(const Vector3& eulerAngles, bool normalize) : Quaternion(Vector3::Up, eulerAngles.Z, normalize)
+	Quaternion::Quaternion(const Vector3& eulerAngles, bool normalize) noexcept : Quaternion(Vector3::Up, eulerAngles.Z, normalize)
 	{
 		*this *= Quaternion(Vector3::Right, eulerAngles.X, normalize);
 		*this *= Quaternion(Vector3::Forwards, eulerAngles.Y, normalize);	
 	}
 
-	double Quaternion::Dot(const Quaternion& a, const Quaternion& b)
+	double Quaternion::Dot(const Quaternion& a, const Quaternion& b) noexcept
 	{
 		return a.Dot(b);
 	}
 
-	Quaternion Quaternion::Slerp(const Quaternion& from, const Quaternion& to, double alpha)
+	Quaternion Quaternion::Slerp(const Quaternion& from, const Quaternion& to, double alpha) noexcept
 	{
 		Quaternion out;
 
-		Quaternion a = from.Normalized();
+		const Quaternion a = from.Normalized();
 		Quaternion b = to.Normalized();
 
 		double dot = a.Dot(b);
@@ -61,7 +58,7 @@ namespace Coco
 		}
 
 		// If the inputs are really close, linearly interpolate and normalize the result
-		const double dotThreshold = 0.9995;
+		constexpr double dotThreshold = 0.9995;
 		if (dot > dotThreshold)
 		{
 			out.X = a.X + (b.X - a.X) * alpha;
@@ -88,13 +85,13 @@ namespace Coco
 		return out.Normalized();
 	}
 
-	double Quaternion::Normal() const
+	double Quaternion::Normal() const noexcept
 	{
 
 		return Math::Sqrt(X * X + Y * Y + Z * Z + W * W);
 	}
 
-	void Quaternion::Normalize(bool safe)
+	void Quaternion::Normalize(bool safe) noexcept
 	{
 		if (safe &&
 			Math::Approximately(X, 0.0) &&
@@ -110,26 +107,26 @@ namespace Coco
 		W /= l;
 	}
 
-	Quaternion Quaternion::Normalized(bool safe) const
+	Quaternion Quaternion::Normalized(bool safe) const noexcept
 	{
 		Quaternion copy = *this;
 		copy.Normalize(safe);
 		return copy;
 	}
 
-	Quaternion Quaternion::Conjugate() const
+	Quaternion Quaternion::Conjugate() const noexcept
 	{
 		return Quaternion(-X, -Y, -Z, W);
 	}
 
-	Quaternion Quaternion::Inverted() const
+	Quaternion Quaternion::Inverted() const noexcept
 	{
 		Quaternion inv = Conjugate();
 		inv.Normalize();
 		return inv;
 	}
 
-	double Quaternion::Dot(const Quaternion& other) const
+	double Quaternion::Dot(const Quaternion& other) const noexcept
 	{
 		return X * other.X +
 			Y * other.Y +
@@ -137,31 +134,29 @@ namespace Coco
 			W * other.W;
 	}
 
-	Matrix4x4 Quaternion::ToRotationMatrix() const
+	Matrix4x4 Quaternion::ToRotationMatrix() const noexcept
 	{
 		Matrix4x4 mat = Matrix4x4::Identity;
 
 		Quaternion q = Normalized();
 
-		double* m = mat.Data;
-
 		// https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
-		m[Matrix4x4::m11] = 1.0 - 2.0 * q.Y * q.Y - 2.0 * q.Z * q.Z;
-		m[Matrix4x4::m21] = 2.0 * q.X * q.Y + 2.0 * q.Z * q.W;
-		m[Matrix4x4::m31] = 2.0 * q.X * q.Z - 2.0 * q.Y * q.W;
-		
-		m[Matrix4x4::m12] = 2.0 * q.X * q.Y - 2.0 * q.Z * q.W;
-		m[Matrix4x4::m22] = 1.0 - 2.0 * q.X * q.X - 2.0 * q.Z * q.Z;
-		m[Matrix4x4::m32] = 2.0 * q.Y * q.Z + 2.0 * q.X * q.W;
-		
-		m[Matrix4x4::m13] = 2.0 * q.X * q.Z + 2.0 * q.Y * q.W;
-		m[Matrix4x4::m23] = 2.0 * q.Y * q.Z - 2.0 * q.X * q.W;
-		m[Matrix4x4::m33] = 1.0 - 2.0 * q.X * q.X - 2.0 * q.Y * q.Y;
+		mat.Data[Matrix4x4::m11] = 1.0 - 2.0 * q.Y * q.Y - 2.0 * q.Z * q.Z;
+		mat.Data[Matrix4x4::m21] = 2.0 * q.X * q.Y + 2.0 * q.Z * q.W;
+		mat.Data[Matrix4x4::m31] = 2.0 * q.X * q.Z - 2.0 * q.Y * q.W;
+
+		mat.Data[Matrix4x4::m12] = 2.0 * q.X * q.Y - 2.0 * q.Z * q.W;
+		mat.Data[Matrix4x4::m22] = 1.0 - 2.0 * q.X * q.X - 2.0 * q.Z * q.Z;
+		mat.Data[Matrix4x4::m32] = 2.0 * q.Y * q.Z + 2.0 * q.X * q.W;
+
+		mat.Data[Matrix4x4::m13] = 2.0 * q.X * q.Z + 2.0 * q.Y * q.W;
+		mat.Data[Matrix4x4::m23] = 2.0 * q.Y * q.Z - 2.0 * q.X * q.W;
+		mat.Data[Matrix4x4::m33] = 1.0 - 2.0 * q.X * q.X - 2.0 * q.Y * q.Y;
 
 		return mat;
 	}
 
-	Quaternion Quaternion::operator*(const Quaternion& other) const
+	Quaternion Quaternion::operator*(const Quaternion& other) const noexcept
 	{
 		Quaternion result;
 
@@ -188,15 +183,15 @@ namespace Coco
 		return result;
 	}
 
-	void Quaternion::operator*=(const Quaternion& other)
+	void Quaternion::operator*=(const Quaternion& other) noexcept
 	{
 		*this = *this * other;
 	}
 
-	Vector3 Quaternion::operator*(const Vector3& direction) const
+	Vector3 Quaternion::operator*(const Vector3& direction) const noexcept
 	{
 		// https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion
-		Vector3 u(X, Y, Z);
+		const Vector3 u(X, Y, Z);
 		
 		return u * 2.0 * u.Dot(direction) +
 			direction * (W * W - u.GetLengthSquared()) +

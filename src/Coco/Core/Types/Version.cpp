@@ -2,14 +2,11 @@
 
 namespace Coco
 {
-	Version::Version() : Version(0, 0, 0)
-	{}
-
-	Version::Version(int major, int minor, int patch) :
+	Version::Version(int major, int minor, int patch) noexcept :
 		Major(major), Minor(minor), Patch(patch)
 	{}
 
-	string Version::ToString() const
+	string Version::ToString() const noexcept
 	{
 		return FormattedString("{}.{}.{}", Major, Minor, Patch);
 	}

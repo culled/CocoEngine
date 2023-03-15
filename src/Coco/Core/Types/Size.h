@@ -9,14 +9,15 @@ namespace Coco
 	/// </summary>
 	struct COCOAPI SizeInt
 	{
-		int Width, Height;
+		int Width = 0;
+		int Height = 0;
 
-		SizeInt();
-		SizeInt(int width, int height);
+		SizeInt() = default;
+		SizeInt(int width, int height) noexcept;
 
-		SizeInt operator+(const SizeInt& other) const;
-		SizeInt operator-(const SizeInt& other) const;
-		bool operator==(const SizeInt& other) const;
-		bool operator!=(const SizeInt& other) const;
+		SizeInt operator+(const SizeInt& other) const noexcept;
+		SizeInt operator-(const SizeInt& other) const noexcept;
+		bool operator==(const SizeInt& other) const noexcept;
+		bool operator!=(const SizeInt& other) const noexcept;
 	};
 }

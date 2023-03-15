@@ -9,13 +9,24 @@ namespace Coco::Logging
 
 	FileLogSink::~FileLogSink()
 	{
-		_file->Close();
+		try
+		{
+			_file->Close();
+		}
+		catch (...)
+		{}
+
 		_file.reset();
 	}
 
-	void FileLogSink::Write(LogLevel level, const string& message)
+	void FileLogSink::Write(LogLevel level, const string& message) noexcept
 	{
-		// TODO: write on another thread to prevent performance drops
-		_file->WriteLine(message);
+		try
+		{
+			// TODO: write on another thread to prevent performance drops
+			_file->WriteLine(message);
+		}
+		catch(...)
+		{}
 	}
 }

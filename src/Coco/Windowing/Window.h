@@ -43,7 +43,7 @@ namespace Coco::Windowing
 		/// </summary>
 		WindowState InitialState = WindowState::Windowed;
 
-		WindowCreateParameters(const string& title, const SizeInt initialSize, bool isResizable = true, WindowState initialState = WindowState::Windowed) :
+		WindowCreateParameters(const string& title, const SizeInt initialSize, bool isResizable = true, WindowState initialState = WindowState::Windowed) noexcept :
 			Title(title), InitialSize(initialSize), IsResizable(isResizable), InitialState(initialState)
 		{}
 	};
@@ -87,23 +87,30 @@ namespace Coco::Windowing
 	public:
 		virtual ~Window();
 
+		Window() = delete;
+		Window(const Window& other) = delete;
+		Window(Window&& other) = delete;
+
+		Window& operator=(const Window& other) = delete;
+		Window& operator=(Window&& other) = delete;
+
 		/// <summary>
 		/// Gets this window's presenter
 		/// </summary>
 		/// <returns>This window's presenter</returns>
-		Rendering::GraphicsPresenter* GetPresenter() const { return Presenter.get(); }
+		Rendering::GraphicsPresenter* GetPresenter() const noexcept { return Presenter.get(); }
 
 		/// <summary>
 		/// Gets the platform-specific ID for this window
 		/// </summary>
 		/// <returns>The ID for this window</returns>
-		virtual void* GetID() const = 0;
+		virtual void* GetID() const noexcept = 0;
 
 		/// <summary>
 		/// Gets the size of the window's client area
 		/// </summary>
 		/// <returns>The size of the window's client area</returns>
-		virtual SizeInt GetSize() const = 0;
+		virtual SizeInt GetSize() const noexcept = 0;
 
 		/// <summary>
 		/// Shows this window
@@ -125,7 +132,7 @@ namespace Coco::Windowing
 		/// Requests this window to close
 		/// </summary>
 		/// <returns>True if this window will close</returns>
-		bool Close();
+		bool Close() noexcept;
 
 	protected:
 		/// <summary>
@@ -142,6 +149,6 @@ namespace Coco::Windowing
 		/// Gets the drawable size of the window's backbuffer
 		/// </summary>
 		/// <returns>The size of the window's backbuffer</returns>
-		virtual SizeInt GetBackbufferSize() const = 0;
+		virtual SizeInt GetBackbufferSize() const noexcept = 0;
 	};
 }

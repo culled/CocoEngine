@@ -10,11 +10,9 @@
 
 namespace Coco::Windowing
 {
-	WindowingService::WindowingService() :
-		_mainWindow(nullptr)
-	{
-		_renderTickListener = CreateRef<MainLoopTickListener>(this, &WindowingService::RenderTick, WindowRenderPriority);
-	}
+	WindowingService::WindowingService() noexcept :
+		_mainWindow(nullptr), _renderTickListener(CreateRef<MainLoopTickListener>(this, &WindowingService::RenderTick, WindowRenderPriority))
+	{}
 
 	WindowingService::~WindowingService()
 	{
@@ -23,7 +21,7 @@ namespace Coco::Windowing
 		_windows.Clear();
 	}
 
-	Logging::Logger* WindowingService::GetLogger() const
+	Logging::Logger* WindowingService::GetLogger() const noexcept
 	{
 		return Engine::Get()->GetLogger();
 	}
@@ -41,7 +39,7 @@ namespace Coco::Windowing
 		if (Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(Engine::Get()->GetPlatform()))
 		{
 			_windows.Add(platform->CreatePlatformWindow(createParameters, this));
-			Managed<Window>& window = _windows[_windows.Count() - 1];
+			const Managed<Window>& window = _windows.Last();
 			Window* windowPtr = window.get();
 
 			if (_mainWindow == nullptr)
@@ -53,7 +51,7 @@ namespace Coco::Windowing
 		throw Exception("Current platform does not support windows");
 	}
 
-	bool WindowingService::TryFindWindow(void* windowId, Window** window) const
+	bool WindowingService::TryFindWindow(void* windowId, Window** window) const noexcept
 	{
 		const auto it = std::find_if(_windows.cbegin(), _windows.cend(), [windowId](const Managed<Window>& other) {
 			return windowId == other->GetID();
@@ -69,7 +67,7 @@ namespace Coco::Windowing
 		return false;
 	}
 
-	void WindowingService::WindowClosed(Window* window)
+	void WindowingService::WindowClosed(Window* window) noexcept
 	{
 		// The main window closes with the application
 		if (window == _mainWindow)
@@ -78,12 +76,17 @@ namespace Coco::Windowing
 			return;
 		}
 
-		auto it = std::find_if(_windows.begin(), _windows.end(), [window](const Managed<Window>& other) {
+		auto it = std::find_if(_windows.begin(), _windows.end(), [window](const Managed<Window>& other) noexcept {
 			return window == other.get();
 			});
 
-		if (it != _windows.end())
-			_windows.Erase(it);
+		try
+		{
+			if (it != _windows.end())
+				_windows.Erase(it);
+		}
+		catch(...)
+		{ }
 	}
 
 	void WindowingService::RenderTick(double deltaTime)

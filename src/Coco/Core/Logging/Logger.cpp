@@ -10,18 +10,13 @@ namespace Coco::Logging
 	/// <summary>
 	/// Text representations of log levels
 	/// </summary>
-	const char* Logger::LogLevels[] = {
+	const Array<const char*, 5> Logger::LogLevels = {
 		"Trace",
 		"Info",
 		"Warning",
 		"Error",
 		"Fatal"
 	};
-
-	/// <summary>
-	/// The number of log levels
-	/// </summary>
-	const int NumLogLevels = 5;
 
 	Logger::Logger(const string& name) :
 		Name(name)
@@ -42,11 +37,10 @@ namespace Coco::Logging
 		_logSinks.Remove(sink);
 	}
 
-	void Logger::Write(LogLevel level, const string& message)
+	void Logger::Write(LogLevel level, const string& message) noexcept
 	{
 		// Safety if an invalid level was passed to us
-		int levelIndex = std::clamp(static_cast<int>(level), 0, NumLogLevels - 1);
-		level = static_cast<LogLevel>(levelIndex);
+		const int levelIndex = Math::Clamp(static_cast<int>(level), 0, static_cast<int>(LogLevels.size()));
 
 		const TimeSpan time = Engine::Get()->GetRunningTime();
 		const string formattedMessage = FormattedString("[{:0>2}:{:0>2}:{:0>2}:{:0>3}] {} ({}): {}", 
@@ -55,7 +49,7 @@ namespace Coco::Logging
 			time.GetSeconds(), 
 			time.GetMilliseconds(), 
 			Name, 
-			LogLevels[levelIndex], 
+			LogLevels.at(levelIndex), 
 			message);
 
 		// Write the full log message to all sinks with a lower minimum level than the message

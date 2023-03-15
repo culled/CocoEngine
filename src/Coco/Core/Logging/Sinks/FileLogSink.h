@@ -9,15 +9,22 @@ namespace Coco::Logging
 	/// <summary>
 	/// A LogSink that writes to a file
 	/// </summary>
-	class COCOAPI FileLogSink : public LogSink
+	class COCOAPI FileLogSink final : public LogSink
 	{
 	private:
 		Managed<File> _file;
 
 	public:
 		FileLogSink(LogLevel minimumLevel, const string& file);
-		virtual ~FileLogSink() override;
+		~FileLogSink() final;
 
-		virtual void Write(LogLevel level, const string& message) override;
+		FileLogSink() = delete;
+		FileLogSink(const FileLogSink&) = delete;
+		FileLogSink(FileLogSink&&) = delete;
+
+		FileLogSink operator=(const FileLogSink&) = delete;
+		FileLogSink operator=(FileLogSink&&) = delete;
+
+		void Write(LogLevel level, const string& message) noexcept final;
 	};
 }

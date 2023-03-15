@@ -27,7 +27,7 @@ namespace Coco::Rendering
         RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
         virtual ~RenderingService();
 
-        virtual Logging::Logger* GetLogger() const override;
+        virtual Logging::Logger* GetLogger() const noexcept override;
         virtual void Start() override;
 
         /// <summary>

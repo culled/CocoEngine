@@ -18,11 +18,6 @@ namespace Coco
 	class COCOAPI Engine
 	{
 	private:
-		struct EngineDeleter
-		{
-			void operator()(Engine* engine) { delete engine; }
-		};
-
 		static Engine* _instance;
 
 		DateTime _startTime;
@@ -35,6 +30,16 @@ namespace Coco
 		Managed<MainLoop> _mainLoop;
 
 	public:
+		Engine(Managed<Platform::IEnginePlatform> platform);
+		virtual ~Engine();
+
+		Engine() = delete;
+		Engine(const Engine&) = delete;
+		Engine(Engine&&) = delete;
+
+		Engine& operator=(const Engine&) = delete;
+		Engine& operator=(Engine&&) = delete;
+
 		/// <summary>
 		/// Called from the main entry to run the engine and client application
 		/// </summary>
@@ -46,60 +51,57 @@ namespace Coco
 		/// Gets the engine instance
 		/// </summary>
 		/// <returns>The engine instace</returns>
-		static Engine* Get() { return _instance; }
+		static Engine* Get() noexcept { return _instance; }
 
 		/// <summary>
 		/// Gets the engine's logger
 		/// </summary>
 		/// <returns>The engine's logger</returns>
-		Logging::Logger* GetLogger() const { return _logger.get(); }
+		Logging::Logger* GetLogger() const noexcept { return _logger.get(); }
 
 		/// <summary>
 		/// Gets the engine's platform
 		/// </summary>
 		/// <returns>The engine's platform</returns>
-		Platform::IEnginePlatform* GetPlatform() const { return _platform.get(); }
+		Platform::IEnginePlatform* GetPlatform() const noexcept { return _platform.get(); }
 
 		/// <summary>
 		/// Gets the client application
 		/// </summary>
 		/// <returns>The client application</returns>
-		Application* GetApplication() const { return _application.get(); }
+		Application* GetApplication() const noexcept { return _application.get(); }
 
 		/// <summary>
 		/// Gets the service manager
 		/// </summary>
 		/// <returns>The service manager</returns>
-		EngineServiceManager* GetServiceManager() const { return _serviceManager.get(); }
+		EngineServiceManager* GetServiceManager() const noexcept { return _serviceManager.get(); }
 
 		/// <summary>
 		/// Gets the main loop
 		/// </summary>
 		/// <returns>The main loop</returns>
-		MainLoop* GetMainLoop() const { return _mainLoop.get(); }
+		MainLoop* GetMainLoop() const noexcept { return _mainLoop.get(); }
 
 		/// <summary>
 		/// Sets the exit code for the engine. Will be used unless an error occurs
 		/// </summary>
 		/// <param name="code">The exit code</param>
-		void SetExitCode(ExitCode code) { _exitCode = code; }
+		void SetExitCode(ExitCode code) noexcept { _exitCode = code; }
 
 		/// <summary>
 		/// Gets the current exit code for the engine
 		/// </summary>
 		/// <returns>The current exit code</returns>
-		ExitCode GetExitCode() const { return _exitCode; }
+		ExitCode GetExitCode() const noexcept { return _exitCode; }
 
 		/// <summary>
 		/// Gets the amount of time the engine has been running
 		/// </summary>
 		/// <returns>The amount of time the engine has been running</returns>
-		struct TimeSpan GetRunningTime() const;
+		TimeSpan GetRunningTime() const noexcept;
 
 	private:
-		Engine(Managed<Platform::IEnginePlatform> platform);
-		~Engine();
-
 		/// <summary>
 		/// Runs the client application
 		/// </summary>

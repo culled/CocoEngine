@@ -52,20 +52,20 @@ namespace Coco
 			return false;
 		}
 
-		virtual bool operator==(QueryHandler<ReturnType, Args...>* other) const { return _id == other->_id; }
+		virtual bool operator==(QueryHandler<ReturnType, Args...>* other) const noexcept { return _id == other->_id; }
 
 		/// <summary>
 		/// Gets this handler's ID
 		/// </summary>
 		/// <returns>This handler's ID</returns>
-		unsigned int GetID() const { return _id; }
+		unsigned int GetID() const noexcept { return _id; }
 
 		/// <summary>
 		/// Sets the blocked state of this handler.
 		/// Blocked handlers do not receive events
 		/// </summary>
 		/// <param name="isBlocked">The blocked state</param>
-		void SetIsBlocked(bool isBlocked) { _isBlocked = true; }
+		void SetIsBlocked(bool isBlocked) noexcept { _isBlocked = true; }
 	};
 
 	template <typename ReturnType, typename... Args>

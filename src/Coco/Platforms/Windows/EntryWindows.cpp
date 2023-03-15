@@ -5,9 +5,8 @@
 #include <Coco/Core/Engine.h>
 #include "EnginePlatformWindows.h"
 
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
+int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR pCmdLine, _In_ int nCmdShow)
 {
 	using namespace Coco;
-	Managed<Platform::Windows::EnginePlatformWindows> platform = CreateManaged<Platform::Windows::EnginePlatformWindows>(hInstance, hPrevInstance, pCmdLine, nCmdShow);
-	return static_cast<int>(Engine::Run(std::move(platform)));
+	return static_cast<int>(Engine::Run(CreateManaged<Platform::Windows::EnginePlatformWindows>(hInstance, hPrevInstance, pCmdLine, nCmdShow)));
 }

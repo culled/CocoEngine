@@ -14,12 +14,11 @@
 
 namespace Coco::Platform::Windows
 {
-	wchar_t EnginePlatformWindows::s_windowClassName[] = L"CocoWindowClass";
+	const wchar_t* EnginePlatformWindows::s_windowClassName = L"CocoWindowClass";
 	Input::InputService* EnginePlatformWindows::_inputService = nullptr;
 
-	EnginePlatformWindows::EnginePlatformWindows(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) : IEnginePlatform(),
-		_instance(hInstance),
-		_isConsoleOpen(false)
+	EnginePlatformWindows::EnginePlatformWindows(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) :
+		_instance(hInstance)
 	{
 		if (!QueryPerformanceFrequency(&_clockFrequency))
 		{
@@ -47,7 +46,7 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	void EnginePlatformWindows::GetPlatformCommandLineArguments(List<string>& arguments) const
+	void EnginePlatformWindows::GetPlatformCommandLineArguments(List<string>& arguments) const noexcept
 	{
 		int numArgs;
 		LPWSTR* rawArguments = ::CommandLineToArgvW(::GetCommandLineW(), &numArgs);
@@ -66,7 +65,7 @@ namespace Coco::Platform::Windows
 				arguments.Add(WideStringToString(rawArguments[i]));
 			}
 		}
-		catch (Exception& err)
+		catch (const Exception& err)
 		{
 			LogError(Engine::Get()->GetLogger(), FormattedString("Could not narrow command line arguments: {}", err.what()));
 		}
@@ -74,7 +73,7 @@ namespace Coco::Platform::Windows
 		LocalFree(rawArguments);
 	}
 
-	void EnginePlatformWindows::HandlePlatformMessages()
+	void EnginePlatformWindows::HandlePlatformMessages() noexcept
 	{
 		MSG message = {};
 		while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE) > 0)
@@ -84,44 +83,75 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	void EnginePlatformWindows::GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const
+	void EnginePlatformWindows::GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept
 	{
-		switch(static_cast<Rendering::RenderingRHI>(renderingRHI))
+		try
 		{
-		case Rendering::RenderingRHI::Vulkan:
-			extensionNames.Add("VK_KHR_win32_surface");
-			break;
-		default:
-			break;
+			switch (static_cast<Rendering::RenderingRHI>(renderingRHI))
+			{
+			case Rendering::RenderingRHI::Vulkan:
+				extensionNames.Add("VK_KHR_win32_surface");
+				break;
+			default:
+				break;
+			}
+		}
+		catch (const Exception& ex)
+		{
+			LogError(Engine::Get()->GetLogger(), FormattedString("Could not retreive platform rendering extensions: {}", ex.what()));
 		}
 	}
 
-	DateTime EnginePlatformWindows::GetPlatformUtcTime() const
+	DateTime EnginePlatformWindows::GetPlatformUtcTime() const noexcept
 	{
-		SYSTEMTIME systemTime = {};
-		GetSystemTime(&systemTime);
-
-		return DateTime(systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds);
-	}
-
-	DateTime EnginePlatformWindows::GetPlatformLocalTime() const
-	{
-		SYSTEMTIME localTime = {};
-		GetLocalTime(&localTime);
-
-		return DateTime(localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds);
-	}
-
-	double EnginePlatformWindows::GetPlatformTimeSeconds() const
-	{
-		LARGE_INTEGER cycles = {};
-		if(!QueryPerformanceCounter(&cycles))
+		try
 		{
-			string err = FormattedString("Unable to query performance counter: {}", GetLastError());
-			throw Exception(err.c_str());
-		}
+			SYSTEMTIME systemTime = {};
+			GetSystemTime(&systemTime);
 
-		return static_cast<double>(cycles.QuadPart) * _secondsPerCycle;
+			return DateTime(systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds);
+		}
+		catch (const Exception& ex)
+		{
+			LogError(Engine::Get()->GetLogger(), FormattedString("Could not retreive platform UTC time: {}", ex.what()));
+			return DateTime(0);
+		}
+	}
+
+	DateTime EnginePlatformWindows::GetPlatformLocalTime() const noexcept
+	{
+		try
+		{
+			SYSTEMTIME localTime = {};
+			GetLocalTime(&localTime);
+
+			return DateTime(localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds);
+		}
+		catch (const Exception& ex)
+		{
+			LogError(Engine::Get()->GetLogger(), FormattedString("Could not retreive platform local time: {}", ex.what()));
+			return DateTime(0);
+		}
+	}
+
+	double EnginePlatformWindows::GetPlatformTimeSeconds() const noexcept
+	{
+		try
+		{
+			LARGE_INTEGER cycles = {};
+			if (!QueryPerformanceCounter(&cycles))
+			{
+				string err = FormattedString("Unable to query performance counter: {}", GetLastError());
+				throw Exception(err.c_str());
+			}
+
+			return static_cast<double>(cycles.QuadPart) * _secondsPerCycle;
+		}
+		catch (const Exception& ex)
+		{
+			LogError(Engine::Get()->GetLogger(), FormattedString("Could not retreive platform counter time: {}", ex.what()));
+			return 0.0;
+		}
 	}
 
 	void EnginePlatformWindows::WriteToPlatformConsole(const string& message, ConsoleColor color, bool isError)
@@ -174,7 +204,7 @@ namespace Coco::Platform::Windows
 		OutputDebugString(str.c_str());
 	}
 
-	void EnginePlatformWindows::SetPlatformConsoleVisible(bool isVisible)
+	void EnginePlatformWindows::SetPlatformConsoleVisible(bool isVisible) noexcept
 	{
 		if (isVisible == _isConsoleOpen)
 			return;
@@ -196,7 +226,7 @@ namespace Coco::Platform::Windows
 		return CreateManaged<WindowsWindow>(createParameters, windowingService, this);
 	}
 
-	void EnginePlatformWindows::Sleep(unsigned long milliseconds)
+	void EnginePlatformWindows::Sleep(unsigned long milliseconds) noexcept
 	{
 		::Sleep(milliseconds);
 	}
@@ -221,28 +251,28 @@ namespace Coco::Platform::Windows
 		MessageBox(NULL, messageStr.c_str(), titleStr.c_str(), flags);
 	}
 
-	string EnginePlatformWindows::WideStringToString(LPWSTR wideString)
+	string EnginePlatformWindows::WideStringToString(const LPWSTR wideString)
 	{
-		int wStrLen = static_cast<int>(wcslen(wideString));
-		int strLen = WideCharToMultiByte(CP_UTF8, 0, wideString, wStrLen, NULL, 0, NULL, NULL);
+		const int wStrLen = static_cast<const int>(wcslen(wideString));
+		const int strLen = WideCharToMultiByte(CP_UTF8, 0, wideString, wStrLen, NULL, 0, NULL, NULL);
 
 		string str;
 		str.resize(strLen);
 
-		WideCharToMultiByte(CP_UTF8, 0, wideString, wStrLen, &str[0], strLen, NULL, NULL);
+		WideCharToMultiByte(CP_UTF8, 0, wideString, wStrLen, str.data(), strLen, NULL, NULL);
 
 		return str;
 	}
 
-	std::wstring EnginePlatformWindows::StringToWideString(string string)
+	std::wstring EnginePlatformWindows::StringToWideString(const string& string)
 	{
-		int strLen = static_cast<int>(string.length());
-		int wStrLen = MultiByteToWideChar(CP_UTF8, 0, string.c_str(), strLen, NULL, 0);
+		const int strLen = static_cast<const int>(string.length());
+		const int wStrLen = MultiByteToWideChar(CP_UTF8, 0, string.c_str(), strLen, NULL, 0);
 
 		std::wstring wStr;
 		wStr.resize(wStrLen);
 
-		MultiByteToWideChar(CP_UTF8, 0, string.c_str(), strLen, &wStr[0], wStrLen);
+		MultiByteToWideChar(CP_UTF8, 0, string.c_str(), strLen, wStr.data(), wStrLen);
 		return wStr;
 	}
 
@@ -255,8 +285,8 @@ namespace Coco::Platform::Windows
 		{
 			// Set our window pointer so we can access it when the window receives messages
 			LPCREATESTRUCT createPtr = reinterpret_cast<LPCREATESTRUCT>(lParam);
-			WindowsWindow* windowPtr = reinterpret_cast<WindowsWindow*>(createPtr->lpCreateParams);
-			SetWindowLongPtr(windowHandle, GWLP_USERDATA, (LONG_PTR)windowPtr);
+			const WindowsWindow* windowPtr = reinterpret_cast<WindowsWindow*>(createPtr->lpCreateParams);
+			SetWindowLongPtr(windowHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(windowPtr));
 			break;
 		}
 		case WM_ERASEBKGND:
@@ -290,6 +320,8 @@ namespace Coco::Platform::Windows
 		case WM_XBUTTONDBLCLK:
 		case WM_XBUTTONUP:
 			HandleInputMessage(windowHandle, message, wParam, lParam);
+			break;
+		default:
 			break;
 		}
 
@@ -327,8 +359,8 @@ namespace Coco::Platform::Windows
 			break;
 		case WM_MOUSEMOVE:
 		{
-			int x = GET_X_LPARAM(lParam);
-			int y = GET_Y_LPARAM(lParam);
+			const int x = GET_X_LPARAM(lParam);
+			const int y = GET_Y_LPARAM(lParam);
 
 			_inputService->GetMouse()->UpdatePositionState(Vector2Int(x, y));
 			break;
@@ -381,7 +413,7 @@ namespace Coco::Platform::Windows
 		case WM_XBUTTONDBLCLK:
 		case WM_XBUTTONUP:
 		{
-			Input::MouseButton button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? Input::MouseButton::Button3 : Input::MouseButton::Button4;
+			const Input::MouseButton button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? Input::MouseButton::Button3 : Input::MouseButton::Button4;
 
 			if (message == WM_XBUTTONDBLCLK)
 				_inputService->GetMouse()->DoubleClicked(button);
@@ -414,7 +446,7 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	void EnginePlatformWindows::ShowConsole()
+	void EnginePlatformWindows::ShowConsole() noexcept
 	{
 		if (_isConsoleOpen)
 			return;
@@ -425,7 +457,7 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	void EnginePlatformWindows::HideConsole()
+	void EnginePlatformWindows::HideConsole() noexcept
 	{
 		if (!_isConsoleOpen)
 			return;

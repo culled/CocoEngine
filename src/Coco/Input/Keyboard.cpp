@@ -2,17 +2,9 @@
 
 namespace Coco::Input
 {
-	KeyboardStateChange KeyboardStateChange::KeyStateChange(KeyboardKey key, bool isPressed)
-	{
-		KeyboardStateChange state = {};
-		state.Key = key;
-		state.IsPressed = isPressed;
-		return state;
-	}
-
 	void Keyboard::UpdateKeyState(KeyboardKey key, bool isPressed)
 	{
-		int index = static_cast<int>(key);
+		const int index = static_cast<int>(key);
 
 		if (_preProcessState.KeyState[index] == isPressed)
 			return;
@@ -22,20 +14,20 @@ namespace Coco::Input
 		_preProcessState.KeyState[index] = isPressed;
 	}
 
-	bool Keyboard::IsKeyPressed(KeyboardKey key) const
+	bool Keyboard::IsKeyPressed(KeyboardKey key) const noexcept
 	{
-		return _currentState.KeyState[static_cast<int>(key)];
+		return _currentState.KeyState.at(static_cast<int>(key));
 	}
 
-	bool Keyboard::WasKeyJustPressed(KeyboardKey key) const
+	bool Keyboard::WasKeyJustPressed(KeyboardKey key) const noexcept
 	{
-		int index = static_cast<int>(key);
+		const int index = static_cast<int>(key);
 		return (_currentState.KeyState[index] && !_previousState.KeyState[index]);
 	}
 
-	bool Keyboard::WasKeyJustReleased(KeyboardKey key) const
+	bool Keyboard::WasKeyJustReleased(KeyboardKey key) const noexcept
 	{
-		int index = static_cast<int>(key);
+		const int index = static_cast<int>(key);
 		return (!_currentState.KeyState[index] && _previousState.KeyState[index]);
 	}
 
@@ -48,11 +40,11 @@ namespace Coco::Input
 			{
 				if (newState.IsPressed)
 				{
-					OnKeyPressedEvent.InvokeEvent(newState.Key.value());
+					OnKeyPressedEvent.Invoke(newState.Key.value());
 				}
 				else
 				{
-					OnKeyReleasedEvent.InvokeEvent(newState.Key.value());
+					OnKeyReleasedEvent.Invoke(newState.Key.value());
 				}
 			}
 		}
@@ -61,7 +53,7 @@ namespace Coco::Input
 		_preProcessStateChanges.Clear();
 	}
 
-	void Keyboard::SavePreviousState()
+	void Keyboard::SavePreviousState() noexcept
 	{
 		_previousState = _currentState;
 	}

@@ -17,7 +17,7 @@ namespace Coco
 		/// Gets this service's logger
 		/// </summary>
 		/// <returns>This service's logger</returns>
-		virtual Logging::Logger* GetLogger() const = 0;
+		virtual Logging::Logger* GetLogger() const noexcept = 0;
 
 		/// <summary>
 		/// Called when the service should start executing

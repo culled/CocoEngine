@@ -2,29 +2,6 @@
 
 namespace Coco::Input
 {
-	MouseStateChange MouseStateChange::MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta)
-	{
-		MouseStateChange state = {};
-		state.Position = newPosition;
-		state.MoveDelta = delta;
-		return state;
-	}
-
-	MouseStateChange MouseStateChange::ScrollStateChange(const Vector2Int& scrollDelta)
-	{
-		MouseStateChange state = {};
-		state.ScrollDelta = scrollDelta;
-		return state;
-	}
-
-	MouseStateChange MouseStateChange::ButtonStateChange(MouseButton button, bool isPressed)
-	{
-		MouseStateChange state = {};
-		state.Button = button;
-		state.IsButtonPressed = isPressed;
-		return state;
-	}
-
 	void Mouse::UpdateButtonState(MouseButton button, bool isPressed)
 	{
 		int index = static_cast<int>(button);
@@ -54,23 +31,23 @@ namespace Coco::Input
 
 	void Mouse::DoubleClicked(MouseButton button)
 	{
-		OnDoubleClicked.InvokeEvent(button);
+		OnDoubleClicked.Invoke(button);
 	}
 
-	bool Mouse::IsButtonPressed(MouseButton button) const
+	bool Mouse::IsButtonPressed(MouseButton button) const noexcept
 	{
 		return _currentState.ButtonStates[static_cast<int>(button)];
 	}
 
-	bool Mouse::WasButtonJustPressed(MouseButton button) const
+	bool Mouse::WasButtonJustPressed(MouseButton button) const noexcept
 	{
-		int index = static_cast<int>(button);
+		const int index = static_cast<int>(button);
 		return (_currentState.ButtonStates[index] && !_previousState.ButtonStates[index]);
 	}
 
-	bool Mouse::WasButtonJustReleased(MouseButton button) const
+	bool Mouse::WasButtonJustReleased(MouseButton button) const noexcept
 	{
-		int index = static_cast<int>(button);
+		const int index = static_cast<int>(button);
 		return (!_currentState.ButtonStates[index] && _previousState.ButtonStates[index]);
 	}
 
@@ -90,20 +67,20 @@ namespace Coco::Input
 				{
 					if (newState.IsButtonPressed)
 					{
-						OnButtonPressed.InvokeEvent(newState.Button.value());
+						OnButtonPressed.Invoke(newState.Button.value());
 					}
 					else
 					{
-						OnButtonReleased.InvokeEvent(newState.Button.value());
+						OnButtonReleased.Invoke(newState.Button.value());
 					}
 				}
 				else if (newState.Position.has_value())
 				{
-					OnMoved.InvokeEvent(newState.Position.value(), newState.MoveDelta);
+					OnMoved.Invoke(newState.Position.value(), newState.MoveDelta);
 				}
 				else if (newState.ScrollDelta.has_value())
 				{
-					OnScrolled.InvokeEvent(newState.ScrollDelta.value());
+					OnScrolled.Invoke(newState.ScrollDelta.value());
 
 					// Make sure we preserve a scroll for the tick (else GetScrollWheelDelta() will always be 0) 
 					_preProcessState.ScrollDelta = newState.ScrollDelta.value();
@@ -116,7 +93,7 @@ namespace Coco::Input
 		_isFirstState = false;
 	}
 
-	void Mouse::SavePreviousState()
+	void Mouse::SavePreviousState() noexcept
 	{
 		_previousState = _currentState;
 		_currentState.ScrollDelta = Vector2Int::Zero;

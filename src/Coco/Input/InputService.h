@@ -25,23 +25,29 @@ namespace Coco::Input
         Ref<MainLoopTickListener> _lateProcessListener;
 
     public:
-        InputService();
+        InputService() noexcept;
         virtual ~InputService() override;
 
-        virtual Logging::Logger* GetLogger() const;
-        virtual void Start() override;
+        InputService(const InputService&) = delete;
+        InputService(InputService&&) = delete;
+
+        InputService& operator=(const InputService&) = delete;
+        InputService& operator=(InputService&&) = delete;
+
+        virtual Logging::Logger* GetLogger() const noexcept override;
+        virtual void Start() noexcept override;
 
         /// <summary>
         /// Gets the current keyboard
         /// </summary>
         /// <returns>The current keyboard</returns>
-        Keyboard* GetKeyboard() const { return _keyboard.get(); }
+        Keyboard* GetKeyboard() const noexcept { return _keyboard.get(); }
 
         /// <summary>
         /// Gets the current mouse
         /// </summary>
         /// <returns>The current mouse</returns>
-        Mouse* GetMouse() const { return _mouse.get(); }
+        Mouse* GetMouse() const noexcept { return _mouse.get(); }
 
     private:
         /// <summary>

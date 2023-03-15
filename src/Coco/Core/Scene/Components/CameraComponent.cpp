@@ -2,7 +2,7 @@
 
 namespace Coco
 {
-	void CameraComponent::SetPerspectiveProjection(double fieldOfView, double aspectRatio, double nearClipDistance, double farClipDistance)
+	void CameraComponent::SetPerspectiveProjection(double fieldOfView, double aspectRatio, double nearClipDistance, double farClipDistance) noexcept
 	{
 		_projectionType = ProjectionType::Perspective;
 		_perspectiveFieldOfView = fieldOfView;
@@ -12,7 +12,7 @@ namespace Coco
 		_isProjectionMatrixDirty = true;
 	}
 
-	void CameraComponent::SetOrthographicProjection(double size, double aspectRatio, double nearClipDistance, double farClipDistance)
+	void CameraComponent::SetOrthographicProjection(double size, double aspectRatio, double nearClipDistance, double farClipDistance) noexcept
 	{
 		_projectionType = ProjectionType::Orthographic;
 		_orthographicSize = size;
@@ -22,7 +22,7 @@ namespace Coco
 		_isProjectionMatrixDirty = true;
 	}
 
-	void CameraComponent::SetCustomProjection(const Matrix4x4& projection)
+	void CameraComponent::SetCustomProjection(const Matrix4x4& projection) noexcept
 	{
 		_projectionType = ProjectionType::Custom;
 		_projectionMatrix = projection;
@@ -30,7 +30,7 @@ namespace Coco
 		_isProjectionMatrixDirty = false;
 	}
 
-	Matrix4x4 CameraComponent::GetProjectionMatrix()
+	Matrix4x4 CameraComponent::GetProjectionMatrix() noexcept
 	{
 		if (_isProjectionMatrixDirty)
 			UpdateProjectionMatrix();
@@ -38,7 +38,7 @@ namespace Coco
 		return _projectionMatrix;
 	}
 
-	void CameraComponent::SetAspectRatio(double aspectRatio)
+	void CameraComponent::SetAspectRatio(double aspectRatio) noexcept
 	{
 		if (Math::Approximately(aspectRatio, _aspectRatio))
 			return;
@@ -48,7 +48,7 @@ namespace Coco
 		_isProjectionMatrixDirty = true;
 	}
 
-	void CameraComponent::SetNearClipDistance(double nearClipDistance)
+	void CameraComponent::SetNearClipDistance(double nearClipDistance) noexcept
 	{
 		if (Math::Approximately(nearClipDistance, _nearClipDistance))
 			return;
@@ -58,7 +58,7 @@ namespace Coco
 		_isProjectionMatrixDirty = true;
 	}
 
-	void CameraComponent::SetFarClipDistance(double farClipDistance)
+	void CameraComponent::SetFarClipDistance(double farClipDistance) noexcept
 	{
 		if (Math::Approximately(farClipDistance, _farClipDistance))
 			return;
@@ -68,7 +68,7 @@ namespace Coco
 		_isProjectionMatrixDirty = true;
 	}
 
-	void CameraComponent::UpdateProjectionMatrix()
+	void CameraComponent::UpdateProjectionMatrix() noexcept
 	{
 		if (_projectionType == ProjectionType::Custom || !_isProjectionMatrixDirty)
 			return;

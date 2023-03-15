@@ -15,12 +15,15 @@ namespace Coco
 	{
 		Platform::IEnginePlatform* platformPtr = platform.get();
 
+		if(platformPtr == nullptr)
+			return ExitCode::FatalError;
+
 		try
 		{
-			Managed<Engine, EngineDeleter> engine(new Engine(std::move(platform)));
+			Managed<Engine> engine = CreateManaged<Engine>(std::move(platform));
 			return engine->Run();
 		}
-		catch (Exception& ex)
+		catch (const Exception& ex)
 		{
 			platformPtr->ShowPlatformMessageBox("Fatal error", string(ex.what()), true);
 			DebuggerBreak();
@@ -28,7 +31,7 @@ namespace Coco
 		}
 	}
 
-	TimeSpan Engine::GetRunningTime() const
+	TimeSpan Engine::GetRunningTime() const noexcept
 	{
 		return _platform->GetPlatformLocalTime() - _startTime;
 	}

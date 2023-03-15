@@ -25,15 +25,27 @@ namespace Coco
 		Logger.reset();
 	}
 
-	bool Application::Quit()
+	bool Application::Quit() noexcept
 	{
 		bool cancelQuit = false;
-		OnQuitting.InvokeEvent(cancelQuit);
+
+		try
+		{
+			OnQuitting.Invoke(cancelQuit);
+		}
+		catch(...)
+		{ }
 
 		if (cancelQuit)
 			return false;
 
-		OnQuit.InvokeEvent();
+		try
+		{
+			OnQuit.Invoke();
+		}
+		catch(...)
+		{ }
+
 		Engine->GetMainLoop()->Stop();
 
 		return true;

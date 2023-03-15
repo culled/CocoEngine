@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+#include <Coco/Core/Types/Array.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Optional.h>
 #include <Coco/Core/Events/Event.h>
@@ -17,12 +18,12 @@ namespace Coco::Input
         /// <summary>
         /// The maximum number of keys
         /// </summary>
-        static const int KeyCount = 256;
+        static constexpr int KeyCount = 256;
 
         /// <summary>
         /// Key pressed states
         /// </summary>
-        bool KeyState[KeyCount];
+        Array<bool, KeyCount> KeyState = {false};
     };
 
     /// <summary>
@@ -38,7 +39,7 @@ namespace Coco::Input
         /// <summary>
         /// If true, the key was pressed, else it was released
         /// </summary>
-        bool IsPressed;
+        bool IsPressed = false;
 
         /// <summary>
         /// Creates a keyboard state change for a key that was pressed or released
@@ -46,7 +47,13 @@ namespace Coco::Input
         /// <param name="key">The key</param>
         /// <param name="isPressed">True if the key was pressed, false if it was released</param>
         /// <returns>A state change</returns>
-        static KeyboardStateChange KeyStateChange(KeyboardKey key, bool isPressed);
+        static constexpr KeyboardStateChange KeyStateChange(KeyboardKey key, bool isPressed) noexcept
+        {
+            KeyboardStateChange state = {};
+            state.Key = key;
+            state.IsPressed = isPressed;
+            return state;
+        }
     };
 
 	/// <summary>
@@ -86,21 +93,21 @@ namespace Coco::Input
         /// </summary>
         /// <param name="key">The key</param>
         /// <returns>True if the key is currently pressed</returns>
-        bool IsKeyPressed(KeyboardKey key) const;
+        bool IsKeyPressed(KeyboardKey key) const noexcept;
 
         /// <summary>
         /// Gets if the given key was just pressed (unpressed -> pressed) within the last tick
         /// </summary>
         /// <param name="key">The key</param>
         /// <returns>True if the key was pressed since the last tick</returns>
-        bool WasKeyJustPressed(KeyboardKey key) const;
+        bool WasKeyJustPressed(KeyboardKey key) const noexcept;
 
         /// <summary>
         /// Gets if the given key was just released (pressed -> unpressed) within the last tick
         /// </summary>
         /// <param name="key">The key</param>
         /// <returns>True if the key was released since the last tick</returns>
-        bool WasKeyJustReleased(KeyboardKey key) const;
+        bool WasKeyJustReleased(KeyboardKey key) const noexcept;
 
     private:
         /// <summary>
@@ -111,6 +118,6 @@ namespace Coco::Input
         /// <summary>
         /// Saves the current state as the previous state
         /// </summary>
-        void SavePreviousState();
+        void SavePreviousState() noexcept;
 	};
 }

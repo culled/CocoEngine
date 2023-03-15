@@ -20,7 +20,7 @@ namespace Coco::Rendering
 		_graphics.reset();
 	}
 
-	Logging::Logger* RenderingService::GetLogger() const
+	Logging::Logger* RenderingService::GetLogger() const noexcept
 	{
 		return Engine::Get()->GetLogger();
 	}

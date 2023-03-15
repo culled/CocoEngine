@@ -44,6 +44,13 @@ namespace Coco
 	public:
 		virtual ~Application();
 
+		Application() = delete;
+		Application(const Application&) = delete;
+		Application(Application&&) = delete;
+
+		Application& operator=(const Application&) = delete;
+		Application& operator=(Application&&) = delete;
+
 		/// <summary>
 		/// Creates an application for a given engine
 		/// </summary>
@@ -60,7 +67,7 @@ namespace Coco
 		/// Requests this application to quit
 		/// </summary>
 		/// <returns>True if the application will quit</returns>
-		bool Quit();
+		bool Quit() noexcept;
 
 		// TEMPORARY -------------------------------------
 		virtual Ref<CameraComponent> GetCamera() = 0;

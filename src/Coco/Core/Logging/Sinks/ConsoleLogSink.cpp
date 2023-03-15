@@ -4,12 +4,12 @@
 
 namespace Coco::Logging
 {
-	ConsoleLogSink::ConsoleLogSink(LogLevel minimumLevel) : LogSink(minimumLevel)
+	ConsoleLogSink::ConsoleLogSink(LogLevel minimumLevel) noexcept : LogSink(minimumLevel)
 	{}
 
-	void ConsoleLogSink::Write(LogLevel level, const string & message)
+	void ConsoleLogSink::Write(LogLevel level, const string & message) noexcept
 	{
-		Platform::ConsoleColor color;
+		Platform::ConsoleColor color = Platform::ConsoleColor::White;
 
 		switch (level)
 		{	
@@ -29,10 +29,14 @@ namespace Coco::Logging
 			color = Platform::ConsoleColor::Magenta;
 			break;
 		default:
-			color = Platform::ConsoleColor::White;
 			break;
 		}
 
-		Engine::Get()->GetPlatform()->WriteToPlatformConsole(message + "\n", color, level >= LogLevel::Error);
+		try
+		{
+			Engine::Get()->GetPlatform()->WriteToPlatformConsole(message + "\n", color, level >= LogLevel::Error);
+		}
+		catch(...)
+		{ }
 	}
 }

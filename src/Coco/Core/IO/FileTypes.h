@@ -15,10 +15,8 @@ namespace Coco
 		Binary = 0x04,
 	};
 
-	COCOAPI FileModes operator&(FileModes a, FileModes b);
-	COCOAPI void operator&=(FileModes& a, FileModes b);
-	COCOAPI FileModes operator|(FileModes a, FileModes b);
-	COCOAPI void operator|=(FileModes& a, FileModes b);
-
-	COCOAPI bool operator>(FileModes a, int b);
+	COCOAPI FileModes operator&(FileModes a, FileModes b) noexcept;
+	COCOAPI void operator&=(FileModes& a, FileModes b) noexcept;
+	COCOAPI FileModes operator|(FileModes a, FileModes b) noexcept;
+	COCOAPI void operator|=(FileModes& a, FileModes b) noexcept;
 }

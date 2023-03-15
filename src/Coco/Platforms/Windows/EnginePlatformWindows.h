@@ -16,14 +16,14 @@ namespace Coco::Platform::Windows
     /// <summary>
     /// Win32 platform implementation
     /// </summary>
-    class COCOAPI EnginePlatformWindows : public IEnginePlatform, public IWindowingPlatform
+    class COCOAPI EnginePlatformWindows final : public IEnginePlatform, public IWindowingPlatform
     {
     private:
-        static wchar_t s_windowClassName[];
+        static const wchar_t* s_windowClassName;
         static Input::InputService* _inputService;
 
         HINSTANCE _instance;
-        bool _isConsoleOpen;
+        bool _isConsoleOpen = false;
         double _secondsPerCycle;
         LARGE_INTEGER _clockFrequency;
 
@@ -32,23 +32,30 @@ namespace Coco::Platform::Windows
 
     public:
         EnginePlatformWindows(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow);
-        virtual ~EnginePlatformWindows() override;
+        ~EnginePlatformWindows() final;
 
-        virtual void Start() override;
-        virtual void GetPlatformCommandLineArguments(List<string>& arguments) const override;
-        virtual void HandlePlatformMessages() override;
-        virtual void GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const override;
-        virtual DateTime GetPlatformUtcTime() const override;
-        virtual DateTime GetPlatformLocalTime() const override;
-        virtual double GetPlatformTimeSeconds() const override;
-        virtual void WriteToPlatformConsole(const string& message, ConsoleColor color, bool isError) override;
-        virtual void SetPlatformConsoleVisible(bool isVisible) override;
-        virtual void Sleep(unsigned long milliseconds) override;
-        virtual void ShowPlatformMessageBox(const string& title, const string& message, bool isError) override;
+        EnginePlatformWindows() = delete;
+        EnginePlatformWindows(const EnginePlatformWindows&) = delete;
+        EnginePlatformWindows(EnginePlatformWindows&&) = delete;
 
-        virtual Managed<::Coco::Windowing::Window> CreatePlatformWindow(
+        EnginePlatformWindows& operator=(const EnginePlatformWindows&) = delete;
+        EnginePlatformWindows& operator=(EnginePlatformWindows&&) = delete;
+
+        void Start() final;
+        void GetPlatformCommandLineArguments(List<string>& arguments) const noexcept final;
+        void HandlePlatformMessages() noexcept final;
+        void GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept final;
+        DateTime GetPlatformUtcTime() const noexcept final;
+        DateTime GetPlatformLocalTime() const noexcept final;
+        double GetPlatformTimeSeconds() const noexcept final;
+        void WriteToPlatformConsole(const string& message, ConsoleColor color, bool isError) final;
+        void SetPlatformConsoleVisible(bool isVisible) noexcept final;
+        void Sleep(unsigned long milliseconds) noexcept final;
+        void ShowPlatformMessageBox(const string& title, const string& message, bool isError) final;
+
+        Managed<::Coco::Windowing::Window> CreatePlatformWindow(
             ::Coco::Windowing::WindowCreateParameters& createParameters, 
-            ::Coco::Windowing::WindowingService* windowingService) override;
+            ::Coco::Windowing::WindowingService* windowingService) final;
 
     private:
         /// <summary>
@@ -56,14 +63,14 @@ namespace Coco::Platform::Windows
         /// </summary>
         /// <param name="wideString">A wide character array</param>
         /// <returns>A UTF-8 string representation of the input character array</returns>
-        static string WideStringToString(LPWSTR wideString);
+        static string WideStringToString(const LPWSTR wideString);
 
         /// <summary>
         /// Converts a string to a wide string
         /// </summary>
         /// <param name="string">A string</param>
         /// <returns>An equivalent wide string representation</returns>
-        static std::wstring StringToWideString(string string);
+        static std::wstring StringToWideString(const string& string);
 
         /// <summary>
         /// Message processing callback
@@ -101,12 +108,12 @@ namespace Coco::Platform::Windows
         /// <summary>
         /// Shows the console
         /// </summary>
-        void ShowConsole();
+        void ShowConsole() noexcept;
 
         /// <summary>
         /// Hides the console
         /// </summary>
-        void HideConsole();
+        void HideConsole() noexcept;
     };
 }
 

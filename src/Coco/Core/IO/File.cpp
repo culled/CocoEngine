@@ -13,13 +13,13 @@ namespace Coco
 		if (openModes == FileModes::None)
 			throw Exception("Invalid open mode");
 
-		if ((openModes & FileModes::Read) > 0)
+		if ((openModes & FileModes::Read) == FileModes::Read)
 			mode |= std::ios::in;
 
-		if ((openModes & FileModes::Write) > 0)
+		if ((openModes & FileModes::Write) == FileModes::Write)
 			mode |= std::ios::out;
 
-		if ((openModes & FileModes::Binary) > 0)
+		if ((openModes & FileModes::Binary) == FileModes::Binary)
 			mode |= std::ios::binary;
 
 		_handle.open(path, mode);
@@ -36,10 +36,27 @@ namespace Coco
 		_path = path;
 	}
 
+	File::File(File&& other) noexcept :
+		_modes(other._modes), _path(std::move(other._path)), _handle(std::move(other._handle))
+	{}
+
 	File::~File()
 	{
-		if (_handle.is_open())
-			Close();
+		try
+		{
+			if (_handle.is_open())
+				Close();
+		}
+		catch(...)
+		{ }
+	}
+
+	File& File::operator=(File&& other) noexcept
+	{
+		_modes = other._modes;
+		_path = std::move(other._path);
+		_handle = std::move(other._handle);
+		return *this;
 	}
 
 	bool File::Exists(const string& path)
@@ -77,7 +94,7 @@ namespace Coco
 		List<uint8_t> bytes(bytesToRead);
 
 		_handle.read(reinterpret_cast<char*>(bytes.Data()), bytesToRead);
-		uint64_t bytesRead = _handle.gcount();
+		const uint64_t bytesRead = _handle.gcount();
 
 		if (bytesRead < bytesToRead)
 			bytes.Resize(bytesRead);
@@ -89,11 +106,11 @@ namespace Coco
 	{
 		CheckHandle();
 
-		std::streampos current = _handle.tellg();
+		const std::streampos current = _handle.tellg();
 
 		_handle.seekg(0, std::ios::end);
 
-		uint64_t length = _handle.tellg() - current;
+		const uint64_t length = _handle.tellg() - current;
 
 		_handle.seekg(current);
 
@@ -114,7 +131,7 @@ namespace Coco
 		List<char> chars(charactersToRead);
 		_handle.get(chars.Data(), charactersToRead);
 
-		uint64_t charactersRead = _handle.gcount();
+		const uint64_t charactersRead = _handle.gcount();
 		if (charactersRead < charactersToRead)
 			chars.Resize(charactersRead);
 
@@ -125,11 +142,11 @@ namespace Coco
 	{
 		CheckHandle();
 
-		std::streampos current = _handle.tellg();
+		const std::streampos current = _handle.tellg();
 
 		_handle.seekg(0, std::ios::end);
 
-		uint64_t length = _handle.tellg() - current;
+		const uint64_t length = _handle.tellg() - current;
 
 		_handle.seekg(current);
 
@@ -184,10 +201,10 @@ namespace Coco
 	{
 		CheckHandle();
 
-		std::streampos current = _handle.tellg();
+		const std::streampos current = _handle.tellg();
 
 		_handle.seekg(0, std::ios::end);
-		uint64_t length = _handle.tellg();
+		const uint64_t length = _handle.tellg();
 
 		_handle.seekg(current);
 

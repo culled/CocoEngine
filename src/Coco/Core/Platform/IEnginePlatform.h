@@ -24,7 +24,7 @@ namespace Coco::Platform
 		/// Gets the command line arguments passed to the application
 		/// </summary>
 		/// <param name="arguments">A list that will be populated with the command line arguments</param>
-		virtual void GetPlatformCommandLineArguments(List<string>& arguments) const = 0;
+		virtual void GetPlatformCommandLineArguments(List<string>& arguments) const noexcept = 0;
 
 		/// <summary>
 		/// Called by the engine when platform-specific messages should be handled
@@ -37,25 +37,25 @@ namespace Coco::Platform
 		/// <param name="renderingRHIEnum">The type of the render hardware interface being used</param>
 		/// <param name="includePresentationExtensions">If true, extensions for presenting should be included</param>
 		/// <param name="extensionNames">A list that will be populated with the required render extensions</param>
-		virtual void GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const = 0;
+		virtual void GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept = 0;
 
 		/// <summary>
 		/// Gets the current UTC time from the platform
 		/// </summary>
 		/// <returns>The current UTC time</returns>
-		virtual DateTime GetPlatformUtcTime() const = 0;
+		virtual DateTime GetPlatformUtcTime() const noexcept = 0;
 
 		/// <summary>
 		/// Gets the current local time from the platform
 		/// </summary>
 		/// <returns>The current local time</returns>
-		virtual DateTime GetPlatformLocalTime() const = 0;
+		virtual DateTime GetPlatformLocalTime() const noexcept = 0;
 
 		/// <summary>
 		/// Gets the amount of time the machine has been running
 		/// </summary>
 		/// <returns>The number of seconds the machine has been running</returns>
-		virtual double GetPlatformTimeSeconds() const = 0;
+		virtual double GetPlatformTimeSeconds() const noexcept = 0;
 
 		/// <summary>
 		/// Writes a message to the platform's console output

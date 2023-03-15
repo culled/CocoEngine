@@ -53,4 +53,17 @@ namespace Coco
 	{
 		return std::make_unique<T>(std::forward<Args>(args)...);
 	}
+
+	/// <summary>
+	/// Creates a managed object that can be shared
+	/// </summary>
+	/// <typeparam name="T">The type of object</typeparam>
+	/// <typeparam name="...Args">Arguments to pass to the object constructor</typeparam>
+	/// <param name="...args">Arguments to pass to the object constructor</param>
+	/// <returns>A managed object</returns>
+	template<class T, typename U, typename ... Args>
+	Managed<T, U> COCOAPI CreateManaged(Args&& ... args)
+	{
+		return std::make_unique<T, U>(std::forward<Args>(args)...);
+	}
 }

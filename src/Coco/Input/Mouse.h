@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+#include <Coco/Core/Types/Array.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Events/Event.h>
@@ -18,12 +19,12 @@ namespace Coco::Input
 		/// <summary>
 		/// The maximum number of mouse buttons
 		/// </summary>
-		static const int ButtonCount = 6;
+		static constexpr int ButtonCount = 6;
 
 		/// <summary>
 		/// Mouse button states
 		/// </summary>
-		bool ButtonStates[ButtonCount];
+		Array<bool, ButtonCount> ButtonStates;
 
 		/// <summary>
 		/// The mouse position
@@ -72,14 +73,25 @@ namespace Coco::Input
 		/// <param name="newPosition">The new mouse position</param>
 		/// <param name="delta">The delta between the new mouse position and the last position</param>
 		/// <returns>A mouse state change</returns>
-		static MouseStateChange MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta);
+		static constexpr MouseStateChange MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta) noexcept
+		{
+			MouseStateChange state = {};
+			state.Position = newPosition;
+			state.MoveDelta = delta;
+			return state;
+		}
 
 		/// <summary>
 		/// Creates a mouse state change for scrolling the mouse
 		/// </summary>
 		/// <param name="scrollDelta">The amount the mouse was scrolled</param>
 		/// <returns>A mouse state change</returns>
-		static MouseStateChange ScrollStateChange(const Vector2Int& scrollDelta);
+		static constexpr MouseStateChange ScrollStateChange(const Vector2Int& scrollDelta) noexcept
+		{
+			MouseStateChange state = {};
+			state.ScrollDelta = scrollDelta;
+			return state;
+		}
 
 		/// <summary>
 		/// Creates a mouse state change for pressing or releasing a mouse button
@@ -87,7 +99,13 @@ namespace Coco::Input
 		/// <param name="button">The mouse button</param>
 		/// <param name="isPressed">True if the button was pressed, false if it was released</param>
 		/// <returns>A mouse state change</returns>
-		static MouseStateChange ButtonStateChange(MouseButton button, bool isPressed);
+		static constexpr MouseStateChange ButtonStateChange(MouseButton button, bool isPressed) noexcept
+		{
+			MouseStateChange state = {};
+			state.Button = button;
+			state.IsButtonPressed = isPressed;
+			return state;
+		}
 	};
 
 	class COCOAPI Mouse
@@ -159,39 +177,39 @@ namespace Coco::Input
 		/// </summary>
 		/// <param name="button">The mouse button</param>
 		/// <returns>True if the mouse button is currently pressed</returns>
-		bool IsButtonPressed(MouseButton button) const;
+		bool IsButtonPressed(MouseButton button) const noexcept;
 
 		/// <summary>
 		/// Gets if the given mouse button was just pressed (unpressed -> pressed) within the last tick
 		/// </summary>
 		/// <param name="button">The mouse button</param>
 		/// <returns>True if the mouse button was pressed since the last tick</returns>
-		bool WasButtonJustPressed(MouseButton button) const;
+		bool WasButtonJustPressed(MouseButton button) const noexcept;
 
 		/// <summary>
 		/// Gets if the given mouse button was just released (pressed -> unpressed) within the last tick
 		/// </summary>
 		/// <param name="button">The mouse button</param>
 		/// <returns>True if the mouse button was released since the last tick</returns>
-		bool WasButtonJustReleased(MouseButton button) const;
+		bool WasButtonJustReleased(MouseButton button) const noexcept;
 
 		/// <summary>
 		/// Gets the current position of the mouse
 		/// </summary>
 		/// <returns>The mouse position</returns>
-		Vector2Int GetPosition() const { return _currentState.Position; }
+		Vector2Int GetPosition() const noexcept { return _currentState.Position; }
 
 		/// <summary>
 		/// Gets the amount the mouse has moved since the last tick
 		/// </summary>
 		/// <returns>The movement delta since last tick</returns>
-		Vector2Int GetDelta() const { return _currentState.Position - _previousState.Position; }
+		Vector2Int GetDelta() const noexcept { return _currentState.Position - _previousState.Position; }
 
 		/// <summary>
 		/// Gets the amount the scroll wheel has moved since last tick
 		/// </summary>
 		/// <returns>The scroll wheel delta</returns>
-		Vector2Int GetScrollWheelDelta() const { return _currentState.ScrollDelta; }
+		Vector2Int GetScrollWheelDelta() const noexcept { return _currentState.ScrollDelta; }
 
 	private:
 		/// <summary>
@@ -202,6 +220,6 @@ namespace Coco::Input
 		/// <summary>
 		/// Saves the current state as the previous state
 		/// </summary>
-		void SavePreviousState();
+		void SavePreviousState() noexcept;
 	};
 }

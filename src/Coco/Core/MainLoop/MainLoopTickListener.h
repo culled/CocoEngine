@@ -26,7 +26,7 @@ namespace Coco
 
 	public:
 		template<typename ObjectType>
-		MainLoopTickListener(ObjectType* object, void(ObjectType::* handlerFunction)(double), int priority) : 
+		MainLoopTickListener(ObjectType* object, void(ObjectType::* handlerFunction)(double), int priority) :
 			MainLoopTickListener(std::bind(handlerFunction, object, std::placeholders::_1), priority)
 		{}
 
@@ -37,13 +37,13 @@ namespace Coco
 		/// Sets this listeners as enabled
 		/// </summary>
 		/// <param name="isEnabled">If true, this listener (and its callback) will receive ticks</param>
-		void SetIsEnabled(bool isEnabled) { _isEnabled = isEnabled; }
+		void SetIsEnabled(bool isEnabled) noexcept { _isEnabled = isEnabled; }
 
 		/// <summary>
 		/// Gets if this listener is enabled
 		/// </summary>
 		/// <returns>True if this listener is responding to ticks
-		bool GetIsEnabled() const { return _isEnabled; }
+		bool GetIsEnabled() const noexcept { return _isEnabled; }
 
 	private:
 		friend class MainLoop;

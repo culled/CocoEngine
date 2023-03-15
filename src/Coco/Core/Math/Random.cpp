@@ -11,7 +11,7 @@ namespace Coco
     {
         EnsureSeeded();
 
-        std::uniform_int_distribution<int> distribution(min, max);
+        const std::uniform_int_distribution<int> distribution(min, max);
 
         return distribution(_generator);
     }
@@ -20,7 +20,7 @@ namespace Coco
     {
         EnsureSeeded();
 
-        std::uniform_real_distribution<double> distribution(min, max);
+        const std::uniform_real_distribution<double> distribution(min, max);
 
         return distribution(_generator);
     }
@@ -30,14 +30,15 @@ namespace Coco
         return RandomRange(0.0, 1.0);
     }
 
-    void Random::SetSeed(unsigned int seed)
+    void Random::SetSeed(int seed)
     {
-        _seed = seed;
-        _generator = std::default_random_engine(seed);
+        seed = Math::Abs(seed);
+        _seed = static_cast<uint>(seed);
+        _generator = std::default_random_engine(_seed);
         _isSeeded = true;
     }
 
-    unsigned int Random::GetSeed()
+    uint Random::GetSeed()
     {
         EnsureSeeded();
 
@@ -49,6 +50,8 @@ namespace Coco
         if (_isSeeded)
             return;
 
-        SetSeed(static_cast<unsigned int>(Engine::Get()->GetPlatform()->GetPlatformTimeSeconds()));
+        const double time = Math::Max(Engine::Get()->GetPlatform()->GetPlatformTimeSeconds(), 0.0);
+        const int seed = Math::RoundToInt(time);
+        SetSeed(seed);
     }
 }

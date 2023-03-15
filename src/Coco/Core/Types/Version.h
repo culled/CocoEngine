@@ -10,15 +10,17 @@ namespace Coco
 	/// </summary>
 	struct COCOAPI Version
 	{
-		int Major, Minor, Patch;
+		int Major = 0;
+		int Minor = 0;
+		int Patch = 0;
 
-		Version();
-		Version(int major, int minor, int patch);
+		Version() = default;
+		Version(int major, int minor, int patch) noexcept;
 
 		/// <summary>
 		/// Gets a string representation of this version
 		/// </summary>
 		/// <returns>The string representation of this version</returns>
-		string ToString() const;
+		string ToString() const noexcept;
 	};
 }

@@ -145,13 +145,38 @@ namespace Coco::Rendering
 	/// <returns>The converted VkImageUsageFlags</returns>
 	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags);
 
+	/// <summary>
+	/// Converts a FilterMode to a VkFilter
+	/// </summary>
+	/// <param name="filterMode">The filter mode</param>
+	/// <returns>The converted VkFilter</returns>
 	VkFilter ToVkFilter(FilterMode filterMode);
 
+	/// <summary>
+	/// Converts a FilterMode to a VkSamplerMipmapMode
+	/// </summary>
+	/// <param name="filterMode">The filter mode</param>
+	/// <returns>The converted VkSamplerMipmapMode</returns>
 	VkSamplerMipmapMode ToVkSamplerMipmapMode(FilterMode filterMode);
 
+	/// <summary>
+	/// Converts a RepeatMode to a VkSamplerAddressMode
+	/// </summary>
+	/// <param name="repeatMode">The repeat mode</param>
+	/// <returns>The converted VkSamplerAddressMode</returns>
 	VkSamplerAddressMode ToVkSamplerAddressMode(RepeatMode repeatMode);
 
+	/// <summary>
+	/// Converts an ImageDimensionType to a VkImageType
+	/// </summary>
+	/// <param name="dimensionType">The image dimension type</param>
+	/// <returns>The converted VkImageType</returns>
 	VkImageType ToVkImageType(ImageDimensionType dimensionType);
 
+	/// <summary>
+	/// Converts a ShaderDescriptorType to a VkDescriptorType
+	/// </summary>
+	/// <param name="descriptorType">The descriptor type</param>
+	/// <returns>The converted VkDescriptorType</returns>
 	VkDescriptorType ToVkDescriptorType(ShaderDescriptorType descriptorType);
 }

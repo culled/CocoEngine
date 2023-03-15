@@ -3,10 +3,11 @@
 #include <Coco/Core/Platform/IEnginePlatform.h>
 
 #include "MainLoopTickListener.h"
+#include <Coco/Core/Engine.h>
 
 namespace Coco
 {
-	MainLoop::MainLoop(Platform::IEnginePlatform* platform) :
+	MainLoop::MainLoop(Platform::IEnginePlatform* platform) noexcept :
 		_platform(platform)
 	{
 	}
@@ -78,12 +79,12 @@ namespace Coco
 		}
 	}
 
-	void MainLoop::Stop()
+	void MainLoop::Stop() noexcept
 	{
 		_isRunning = false;
 	}
 
-	void MainLoop::SetIsSuspended(bool isSuspended)
+	void MainLoop::SetIsSuspended(bool isSuspended) noexcept
 	{
 		_isSuspended = isSuspended;
 	}
@@ -94,18 +95,23 @@ namespace Coco
 		_tickListenersNeedSorting = true;
 	}
 
-	void MainLoop::RemoveTickListener(const Ref<MainLoopTickListener>& tickListener)
+	void MainLoop::RemoveTickListener(const Ref<MainLoopTickListener>& tickListener) noexcept
 	{
-		_tickListeners.Remove(tickListener);
+		try
+		{
+			_tickListeners.Remove(tickListener);
+		}
+		catch(...)
+		{ }
 	}
 
-	bool MainLoop::CompareTickListeners(const Ref<MainLoopTickListener>& a, const Ref<MainLoopTickListener>& b)
+	bool MainLoop::CompareTickListeners(const Ref<MainLoopTickListener>& a, const Ref<MainLoopTickListener>& b) noexcept
 	{
 		// If true, a gets placed before b
 		return a->Priority < b->Priority;
 	}
 
-	void MainLoop::SortTickListeners()
+	void MainLoop::SortTickListeners() noexcept
 	{
 		std::sort(_tickListeners.begin(), _tickListeners.end(), CompareTickListeners);
 		_tickListenersNeedSorting = false;
@@ -116,7 +122,7 @@ namespace Coco
 		if (_targetTickRate <= 0)
 			return;
 
-		double nextTickTime = _currentTickTime + (1.0 / _targetTickRate);
+		const double nextTickTime = _currentTickTime + (1.0 / _targetTickRate);
 
 		double timeRemaining = nextTickTime - _platform->GetPlatformTimeSeconds();
 		double estimatedWait = 0;
@@ -125,14 +131,14 @@ namespace Coco
 		// Sleep until we feel like sleeping would overshoot our target time
 		while (timeRemaining > estimatedWait)
 		{
-			double waitStartTime = _platform->GetPlatformTimeSeconds();
+			const double waitStartTime = _platform->GetPlatformTimeSeconds();
 
 			_platform->Sleep(1);
 
-			double waitTime = _platform->GetPlatformTimeSeconds() - waitStartTime;
+			const double waitTime = _platform->GetPlatformTimeSeconds() - waitStartTime;
 			timeRemaining -= waitTime;
 
-			double delta = waitTime - estimatedWait;
+			const double delta = waitTime - estimatedWait;
 
 			estimatedWait += delta / waitCount;
 			waitCount++;

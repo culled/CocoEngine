@@ -12,11 +12,11 @@ namespace Coco
 	const Color Color::Cyan = Color(0.0, 1.0, 1.0, 1.0);
 	const Color Color::Clear = Color(0.0, 0.0, 0.0, 0.0);
 
-	Color::Color() : Color(0.0, 0.0, 0.0, 0.0)
+	Color::Color() noexcept : Color(0.0, 0.0, 0.0, 0.0)
 	{
 	}
 
-	Color::Color(double r, double g, double b, double a) :
+	Color::Color(double r, double g, double b, double a) noexcept :
 		R(r), G(g), B(b), A(a)
 	{
 	}

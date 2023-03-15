@@ -10,7 +10,7 @@ namespace Coco::Platform::Windows
     /// <summary>
     /// Win32 implementation of a window
     /// </summary>
-    class WindowsWindow : public Coco::Windowing::Window
+    class WindowsWindow final : public Coco::Windowing::Window
     {
     private:
         friend EnginePlatformWindows;
@@ -24,15 +24,22 @@ namespace Coco::Platform::Windows
         WindowsWindow(Coco::Windowing::WindowCreateParameters& createParameters, Coco::Windowing::WindowingService* windowingService, EnginePlatformWindows* platform);
         virtual ~WindowsWindow() override;
 
-        virtual void* GetID() const override { return _handle; }
-        virtual SizeInt GetSize() const override { return _size; }
-        virtual void Show() override;
-        virtual void Hide() override;
-        virtual bool GetIsVisible() const override;
+        WindowsWindow() = delete;
+        WindowsWindow(const WindowsWindow&) = delete;
+        WindowsWindow(WindowsWindow&&) = delete;
+
+        WindowsWindow& operator=(const WindowsWindow&) = delete;
+        WindowsWindow& operator=(WindowsWindow&&) = delete;
+
+        void* GetID() const noexcept final { return _handle; }
+        SizeInt GetSize() const noexcept final { return _size; }
+        void Show() noexcept final;
+        void Hide() noexcept final;
+        bool GetIsVisible() const noexcept final;
 
     protected:
-        virtual void SetupPresenterSurface() override;
-        virtual SizeInt GetBackbufferSize() const override { return GetSize(); }
+        void SetupPresenterSurface() final;
+        SizeInt GetBackbufferSize() const noexcept final { return GetSize(); }
 
     private:
         /// <summary>

@@ -15,8 +15,14 @@ namespace Coco
 		List<Managed<EngineService>> _services;
 
 	public:
-		EngineServiceManager() = default;
 		~EngineServiceManager();
+
+		EngineServiceManager() = default;
+		EngineServiceManager(const EngineServiceManager&) = delete;
+		EngineServiceManager(EngineServiceManager&&) = delete;
+
+		EngineServiceManager operator=(const EngineServiceManager&) = delete;
+		EngineServiceManager operator=(EngineServiceManager&&) = delete;
 
 		/// <summary>
 		/// Creates a service and registers it
@@ -44,7 +50,7 @@ namespace Coco
 		/// <param name="servicePtr">A pointer that will be assigned to the service if it is found</param>
 		/// <returns>True if a service of the given type has been registered</returns>
 		template<typename T>
-		bool TryFindService(T** servicePtr) const
+		bool TryFindService(T** servicePtr) const noexcept
 		{
 			for (const Managed<EngineService>& service : _services)
 			{

@@ -17,7 +17,15 @@ namespace Coco
 
 	public:
 		File(const string& path, FileModes openModes);
-		~File();
+		File(File&&) noexcept;
+		virtual ~File();
+
+		File& operator=(File&&) noexcept;
+
+		File() = delete;
+		File(const File&) = delete;
+
+		File& operator=(const File&) = delete;
 
 		/// <summary>
 		/// Checks if a file exists

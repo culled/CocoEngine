@@ -18,12 +18,12 @@ namespace Coco
 		const static ResourceID InvalidID = std::numeric_limits<ResourceID>::max();
 
 	public:
-		Resource();
-		virtual ~Resource() = default;
+		Resource() noexcept;
+		virtual ~Resource() noexcept = default;
 
-		ResourceID GetID() const { return _id; }
+		ResourceID GetID() const noexcept { return _id; }
 
 	private:
-		static ResourceID GetNewID();
+		static ResourceID GetNewID() noexcept;
 	};
 }

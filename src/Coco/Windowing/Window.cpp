@@ -11,7 +11,6 @@ namespace Coco::Windowing
 		WindowingService(windowingService)
 	{
 		Rendering::RenderingService* renderingService;
-
 		if (!Engine::Get()->GetServiceManager()->TryFindService<Rendering::RenderingService>(&renderingService))
 			throw Exception("Could not find an active rendering service. Windowing requires an active rendering service");
 
@@ -23,15 +22,27 @@ namespace Coco::Windowing
 		Presenter.reset();
 	}
 
-	bool Window::Close()
+	bool Window::Close() noexcept
 	{
 		bool cancelClose = false;
-		OnClosing.InvokeEvent(this, cancelClose);
+
+		try
+		{
+			OnClosing.Invoke(this, cancelClose);
+		}
+		catch(...)
+		{ }
 
 		if (cancelClose)
 			return false;
 
-		OnClosed.InvokeEvent(this);
+		try
+		{
+			OnClosed.Invoke(this);
+		}
+		catch (...)
+		{ }
+
 		WindowingService->WindowClosed(this);
 
 		return true;
@@ -45,6 +56,6 @@ namespace Coco::Windowing
 
 		Presenter->SetBackbufferSize(GetBackbufferSize());
 
-		OnResized.InvokeEvent(this, GetSize());
+		OnResized.Invoke(this, GetSize());
 	}
 }
