@@ -10,7 +10,7 @@ namespace Coco::Rendering
 		int mipCount, 
 		Rendering::PixelFormat pixelFormat, 
 		Rendering::ColorSpace colorSpace,
-		ImageUsageFlags usageFlags) :
+		ImageUsageFlags usageFlags) noexcept :
 		ImageDescription(width, height, 1, 1, mipCount, pixelFormat, colorSpace, usageFlags)
 	{}
 
@@ -18,7 +18,7 @@ namespace Coco::Rendering
 		int layers, int mipCount, 
 		Rendering::PixelFormat pixelFormat, 
 		Rendering::ColorSpace colorSpace,
-		ImageUsageFlags usageFlags) :
+		ImageUsageFlags usageFlags) noexcept :
 		Height(std::max(height, 1)),
 		Width(std::max(width, 1)),
 		Depth(std::max(depth, 1)),
@@ -45,7 +45,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	Image::Image(ImageDescription description) : 
+	Image::Image(ImageDescription description) noexcept :
 		Description(description)
 	{}
 }

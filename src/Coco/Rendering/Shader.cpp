@@ -2,11 +2,11 @@
 
 namespace Coco::Rendering
 {
-	ShaderVertexAttribute::ShaderVertexAttribute(BufferDataFormat dataFormat) :
+	ShaderVertexAttribute::ShaderVertexAttribute(BufferDataFormat dataFormat) noexcept :
 		DataFormat(dataFormat), DataOffset(0)
 	{}
 
-	ShaderDescriptor::ShaderDescriptor(const string & name, uint bindingIndex, ShaderDescriptorType type, uint size, ShaderStageType bindingPoint) :
+	ShaderDescriptor::ShaderDescriptor(const string & name, uint bindingIndex, ShaderDescriptorType type, uint size, ShaderStageType bindingPoint) noexcept :
 		Name(name), BindingIndex(bindingIndex), Type(type), Size(size), StageBindingPoint(bindingPoint)
 	{}
 
@@ -15,13 +15,13 @@ namespace Coco::Rendering
 		const Map<ShaderStageType, string>& stageFiles,
 		const GraphicsPipelineState& pipelineState,
 		const List<ShaderVertexAttribute>& attributes,
-		const List<ShaderDescriptor>& descriptors) :
+		const List<ShaderDescriptor>& descriptors) noexcept :
 		PassName(name), StageFiles(stageFiles), PipelineState(pipelineState), Attributes(attributes), Descriptors(descriptors)
 	{
 		UpdateAttributeOffsets();
 	}
 
-	void Subshader::UpdateAttributeOffsets()
+	void Subshader::UpdateAttributeOffsets() noexcept
 	{
 		uint32_t offset = 0;
 
@@ -36,18 +36,17 @@ namespace Coco::Rendering
 		_name(name)
 	{}
 
-	bool Shader::TryGetSubshader(const string & passName, const Subshader** subshader) const
+	bool Shader::TryGetSubshader(const string & passName, const Subshader*& subshader) const noexcept
 	{
 		for (const Subshader& sub : _subshaders)
 		{
 			if (sub.PassName == passName)
 			{
-				*subshader = &sub;
+				subshader = &sub;
 				return true;
 			}
 		}
 
-		subshader = nullptr;
 		return false;
 	}
 

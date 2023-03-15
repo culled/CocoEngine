@@ -63,9 +63,9 @@ namespace Coco::Rendering
 		BlendOperation AlphaBlendOperation = BlendOperation::Add;
 
 		AttachmentDescription() = default;
-		AttachmentDescription(Rendering::PixelFormat pixelFormat, Rendering::ColorSpace colorSpace, bool usesBlending);
+		AttachmentDescription(Rendering::PixelFormat pixelFormat, Rendering::ColorSpace colorSpace, bool usesBlending) noexcept;
 
-		bool operator ==(const AttachmentDescription& other) const;
-		bool operator !=(const AttachmentDescription& other) const;
+		bool operator ==(const AttachmentDescription& other) const noexcept;
+		bool operator !=(const AttachmentDescription& other) const noexcept;
 	};
 }

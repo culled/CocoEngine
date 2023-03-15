@@ -28,7 +28,7 @@ namespace Coco::Windowing
 
 	void WindowingService::Start()
 	{
-		if (!Engine::Get()->GetServiceManager()->TryFindService<Rendering::RenderingService>(&_renderingService))
+		if (!Engine::Get()->GetServiceManager()->TryFindService<Rendering::RenderingService>(_renderingService))
 			throw Exception("Could not find an active rendering service. The windowing service requires an active rendering service");
 
 		Engine::Get()->GetMainLoop()->AddTickListener(_renderTickListener);

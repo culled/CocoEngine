@@ -21,7 +21,7 @@ namespace Coco::Rendering
 		/// </summary>
 		int QueueFamily;
 
-		VulkanQueue(VkQueue queue, int queueFamily);
+		VulkanQueue(VkQueue queue, int queueFamily) noexcept;
 	};
 }
 

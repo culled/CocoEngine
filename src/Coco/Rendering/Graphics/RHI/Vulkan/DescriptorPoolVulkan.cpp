@@ -5,13 +5,13 @@
 
 namespace Coco::Rendering
 {
-	DescriptorPoolVulkan::DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanShaderDescriptorLayout>& descriptorSetLayouts) :
+	DescriptorPoolVulkan::DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanDescriptorLayout>& descriptorSetLayouts) :
 		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice)),
 		_maxDescriptorSets(maxSets), _descriptorSetLayouts(descriptorSetLayouts)
 	{
 		List<VkDescriptorPoolSize> poolSizes;
 
-		for (const VulkanShaderDescriptorLayout& layout : _descriptorSetLayouts)
+		for (const VulkanDescriptorLayout& layout : _descriptorSetLayouts)
 		{
 			for (const VkDescriptorSetLayoutBinding& binding : layout.LayoutBindings)
 			{
@@ -34,7 +34,12 @@ namespace Coco::Rendering
 
 	DescriptorPoolVulkan::~DescriptorPoolVulkan()
 	{
-		FreeSets();
+		try
+		{
+			FreeSets();
+		}
+		catch(...)
+		{ }
 
 		if (_pool != nullptr)
 		{
@@ -43,7 +48,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	VkDescriptorSet DescriptorPoolVulkan::GetOrAllocateSet(const VulkanShaderDescriptorLayout& layout, uint64_t key)
+	VkDescriptorSet DescriptorPoolVulkan::GetOrAllocateSet(const VulkanDescriptorLayout& layout, uint64_t key)
 	{
 		if (_allocatedDescriptorSets.contains(key))
 			return _allocatedDescriptorSets[key];
@@ -65,9 +70,16 @@ namespace Coco::Rendering
 		return set;
 	}
 
-	void DescriptorPoolVulkan::FreeSets()
+	void DescriptorPoolVulkan::FreeSets() noexcept
 	{
-		vkResetDescriptorPool(_device->GetDevice(), _pool, 0);
-		_allocatedDescriptorSets.clear();
+		try
+		{
+			AssertVkResult(vkResetDescriptorPool(_device->GetDevice(), _pool, 0));
+			_allocatedDescriptorSets.clear();
+		}
+		catch (const Exception& ex)
+		{
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to free descriptor sets: {}", ex.what()));
+		}
 	}
 }

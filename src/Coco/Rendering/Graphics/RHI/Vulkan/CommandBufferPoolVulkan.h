@@ -15,7 +15,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Vulkan-implementation of a CommandBufferPool
 	/// </summary>
-	class CommandBufferPoolVulkan : public CommandBufferPool
+	class CommandBufferPoolVulkan final : public CommandBufferPool
 	{
 	private:
 		GraphicsDeviceVulkan* _device;
@@ -26,22 +26,22 @@ namespace Coco::Rendering
 
 	public:
 		CommandBufferPoolVulkan(GraphicsDeviceVulkan* device, Ref<VulkanQueue> queue);
-		virtual ~CommandBufferPoolVulkan() override;
+		~CommandBufferPoolVulkan() final;
 
-		virtual CommandBuffer* Allocate(bool isPrimary) override;
-		virtual void Free(CommandBuffer* buffer) override;
-		virtual void WaitForQueue() override;
+		CommandBuffer* Allocate(bool isPrimary) final;
+		void Free(CommandBuffer* buffer) noexcept final;
+		void WaitForQueue() noexcept final;
 
 		/// <summary>
 		/// Gets the underlying VkCommandPool
 		/// </summary>
 		/// <returns>The underlying pool</returns>
-		VkCommandPool GetPool() const { return _pool; }
+		VkCommandPool GetPool() const noexcept { return _pool; }
 
 		/// <summary>
 		/// Gets the queue that this pool is for
 		/// </summary>
 		/// <returns>The queue that this pool serves</returns>
-		VkQueue GetQueue() const { return _queue->Queue; }
+		VkQueue GetQueue() const noexcept { return _queue->Queue; }
 	};
 }

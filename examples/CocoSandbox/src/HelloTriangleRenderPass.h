@@ -17,7 +17,7 @@ struct ShaderUniformObject
 	ShaderUniformObject();
 };
 
-class HelloTriangleRenderPass : public IRenderPass 
+class HelloTriangleRenderPass final : public IRenderPass 
 {
 private:
 	Ref<Shader> _shader;
@@ -29,7 +29,7 @@ private:
 public:
 	HelloTriangleRenderPass();
 
-	virtual string GetName() const override { return "main"; }
-	virtual List<AttachmentDescription> GetAttachmentDescriptions() override;
-	virtual void Execute(RenderContext* renderContext) override;
+	string GetName() const noexcept final { return "main"; }
+	List<AttachmentDescription> GetAttachmentDescriptions() noexcept final;
+	void Execute(RenderContext* renderContext) final;
 };

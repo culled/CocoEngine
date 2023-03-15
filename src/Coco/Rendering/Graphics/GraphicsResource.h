@@ -14,6 +14,12 @@ namespace Coco::Rendering
 		IGraphicsResource() = default;
 	public:
 		virtual ~IGraphicsResource() = default;
+
+		IGraphicsResource(const IGraphicsResource&) = delete;
+		IGraphicsResource(IGraphicsResource&&) = delete;
+
+		IGraphicsResource& operator=(const IGraphicsResource&) = delete;
+		IGraphicsResource& operator=(IGraphicsResource&&) = delete;
 	};
 
 	template<class ObjectT>

@@ -29,7 +29,7 @@ namespace Coco::Rendering
 	class RenderingService;
 }
 
-class CocoSandboxApplication : public Coco::Application
+class CocoSandboxApplication final : public Coco::Application
 {
 private:
 	Coco::Ref<Coco::MainLoopTickListener> _tickListener;
@@ -43,10 +43,10 @@ private:
 
 public:
 	CocoSandboxApplication(Coco::Engine* engine);
-	virtual ~CocoSandboxApplication() override;
+	~CocoSandboxApplication() final;
 
-	virtual void Start() override;
-	virtual Coco::Ref<Coco::CameraComponent> GetCamera() override { return _camera; }
+	void Start() final;
+	Coco::Ref<Coco::CameraComponent> GetCamera() const noexcept final { return _camera; }
 
 	void Tick(double deltaTime);
 };

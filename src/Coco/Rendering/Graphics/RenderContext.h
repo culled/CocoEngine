@@ -26,8 +26,8 @@ namespace Coco::Rendering
 		float View[4 * 4];			// 64 bytes
 		uint8_t Padding[128];		// 128 bytes - padding
 
-		GlobalUniformObject();
-		GlobalUniformObject(const Ref<RenderView>& renderView);
+		GlobalUniformObject() noexcept;
+		GlobalUniformObject(const RenderView* renderView) noexcept;
 
 	private:
 		/// <summary>
@@ -35,7 +35,7 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="destinationMatrixPtr">The pointer to the first element of the float array</param>
 		/// <param name="sourceMatrix">The matrix</param>
-		void PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix);
+		void PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix) noexcept;
 	};
 
 	/// <summary>
@@ -77,21 +77,27 @@ namespace Coco::Rendering
 	public:
 		virtual ~RenderContext() = default;
 
+		RenderContext(const RenderContext&) = delete;
+		RenderContext(RenderContext&&) = delete;
+
+		RenderContext& operator=(const RenderContext&) = delete;
+		RenderContext& operator=(RenderContext&&) = delete;
+
 		/// <summary>
 		/// Begins rendering for a scene
 		/// </summary>
 		/// <returns>True if the context began rendering successfully</returns>
-		bool Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline>& pipeline);
+		bool Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline) noexcept;
 
 		/// <summary>
 		/// Ends rendering for a scene
 		/// </summary>
-		void End();
+		void End() noexcept;
 
 		/// <summary>
 		/// Resets this context to begin rendering a new scene
 		/// </summary>
-		void Reset();
+		void Reset() noexcept;
 
 		/// <summary>
 		/// Sets the size and offset of the viewport to use
@@ -127,7 +133,7 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="mesh">The mesh to draw</param>
 		/// <param name="modelMatrix">The model matrix</param>
-		virtual void Draw(const Ref<Mesh>& mesh, const Matrix4x4& modelMatrix) = 0;
+		virtual void Draw(const Mesh* mesh, const Matrix4x4& modelMatrix) = 0;
 
 		/// <summary>
 		/// Restores the viewport to the size and offset specified by the RenderView
@@ -138,29 +144,29 @@ namespace Coco::Rendering
 		/// Gets if this render context can be immediately used for rendering
 		/// </summary>
 		/// <returns>True if this render context can immediately be used for rendering</returns>
-		virtual bool IsAvaliableForRendering() = 0;
+		virtual bool IsAvaliableForRendering() noexcept = 0;
 
 		/// <summary>
 		/// Waits for this render context's rendering to complete
 		/// </summary>
-		virtual void WaitForRenderingCompleted() = 0;
+		virtual void WaitForRenderingCompleted() noexcept = 0;
 
 	protected:
 		/// <summary>
 		/// Called when this render context is starting to render a scene
 		/// </summary>
 		/// <returns>True if rendering started successfully</returns>
-		virtual bool BeginImpl() = 0;
+		virtual bool BeginImpl() noexcept = 0;
 
 		/// <summary>
 		/// Ends rendering the current scene 
 		/// </summary>
-		virtual void EndImpl() = 0;
+		virtual void EndImpl() noexcept = 0;
 
 		/// <summary>
 		/// Resets this context
 		/// </summary>
-		virtual void ResetImpl() = 0;
+		virtual void ResetImpl() noexcept = 0;
 
 	private:
 		/// <summary>
@@ -168,6 +174,6 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="renderPass">The render pass</param>
 		/// <param name="passIndex">The index of the pass in the current render pipeline</param>
-		void SetCurrentRenderPass(Ref<IRenderPass> renderPass, uint passIndex);
+		void SetCurrentRenderPass(Ref<IRenderPass> renderPass, uint passIndex) noexcept;
 	};
 }

@@ -9,17 +9,6 @@
 
 namespace Coco::Rendering
 {
-	class Texture;
-
-	struct GeometryRenderData
-	{
-		static const int TextureSlotCount = 16;
-
-		uint64_t ObjectID;
-		Matrix4x4 ModelMatrix;
-		Ref<Texture> Textures[TextureSlotCount];
-	};
-
 	/// <summary>
 	/// Contains all neccessary information to render a scene from a specific view
 	/// </summary>
@@ -50,10 +39,6 @@ namespace Coco::Rendering
 		/// </summary>
 		const Matrix4x4 View;
 
-		List<GeometryRenderData> RenderObjects;
-
-		RenderView(const Vector2Int& offset, const SizeInt& size, const Color& clearColor, const Matrix4x4& projection, const Matrix4x4& view);
-
-		void AddRenderObject(const GeometryRenderData& renderData);
+		RenderView(const Vector2Int& offset, const SizeInt& size, const Color& clearColor, const Matrix4x4& projection, const Matrix4x4& view) noexcept;
 	};
 }

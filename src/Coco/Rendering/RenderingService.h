@@ -25,10 +25,16 @@ namespace Coco::Rendering
 
     public:
         RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
-        virtual ~RenderingService();
+        ~RenderingService() override;
 
-        virtual Logging::Logger* GetLogger() const noexcept override;
-        virtual void Start() override;
+        Logging::Logger* GetLogger() const noexcept override;
+        void Start() noexcept override;
+
+        /// <summary>
+        /// Gets the current graphics platform
+        /// </summary>
+        /// <returns>The current graphics platform</returns>
+        GraphicsPlatform* GetPlatform() const noexcept { return _graphics.get(); }
 
         /// <summary>
         /// Creates a graphics presenter
@@ -37,35 +43,29 @@ namespace Coco::Rendering
         Managed<GraphicsPresenter> CreatePresenter() const { return _graphics->CreatePresenter(); }
 
         /// <summary>
-        /// Gets the current graphics platform
-        /// </summary>
-        /// <returns>The current graphics platform</returns>
-        GraphicsPlatform* GetPlatform() const { return _graphics.get(); }
-
-        /// <summary>
         /// Sets the default render pipeline to use
         /// </summary>
         /// <param name="pipeline">The default render pipeline to use</param>
-        void SetDefaultPipeline(Ref<RenderPipeline> pipeline);
+        void SetDefaultPipeline(Ref<RenderPipeline> pipeline) noexcept { _defaultPipeline = pipeline; }
 
         /// <summary>
         /// Gets the default render pipeline
         /// </summary>
         /// <returns>The default render pipeline</returns>
-        Ref<RenderPipeline> GetDefaultPipeline() const { return _defaultPipeline; }
+        Ref<RenderPipeline> GetDefaultPipeline() const noexcept { return _defaultPipeline; }
 
         /// <summary>
         /// Renders using the default render pipeline for a graphics presenter
         /// </summary>
         /// <param name="presenter">The presenter</param>
-        void Render(GraphicsPresenter* presenter);
+        void Render(GraphicsPresenter* presenter) noexcept;
 
         /// <summary>
         /// Renders using a render pipeline for a graphics presenter
         /// </summary>
         /// <param name="presenter">The presenter</param>
         /// <param name="pipeline">The render pipeline</param>
-        void Render(GraphicsPresenter* presenter, Ref<RenderPipeline>& pipeline, const Ref<CameraComponent>& camera);
+        void Render(GraphicsPresenter* presenter, Ref<RenderPipeline> pipeline, CameraComponent* camera) noexcept;
 
         /// <summary>
         /// Creates a data buffer that can be used to store data on the GPU
@@ -98,7 +98,11 @@ namespace Coco::Rendering
             RepeatMode repeatMode = RepeatMode::Repeat,
             uint anisotropy = 16);
 
-        Ref<Texture> GetDefaultTexture() const { return _defaultTexture; }
+        /// <summary>
+        /// Gets the default texture
+        /// </summary>
+        /// <returns>The default texture</returns>
+        Ref<Texture> GetDefaultTexture() const noexcept { return _defaultTexture; }
 
     private:
         /// <summary>
@@ -106,8 +110,11 @@ namespace Coco::Rendering
         /// </summary>
         /// <param name="pipeline">The render pipeline</param>
         /// <param name="context">The render context</param>
-        void DoRender(const Ref<RenderPipeline>& pipeline, RenderContext* context);
+        bool DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept;
 
+        /// <summary>
+        /// Creates the default texture
+        /// </summary>
         void CreateDefaultTexture();
     };
 }

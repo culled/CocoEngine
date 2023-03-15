@@ -11,7 +11,7 @@ namespace Coco::Rendering
 
 	Mesh::Mesh()
 	{
-		if (!Engine::Get()->GetServiceManager()->TryFindService(&_renderingService))
+		if (!Engine::Get()->GetServiceManager()->TryFindService(_renderingService))
 			throw Exception("Cannot create a mesh without an active rendering service");
 		
 		_vertexBuffer = _renderingService->CreateBuffer(
@@ -49,57 +49,70 @@ namespace Coco::Rendering
 		_isDirty = true;
 	}
 
-	void Mesh::UploadData(bool deleteLocalData)
+	bool Mesh::UploadData(bool deleteLocalData) noexcept
 	{
 		if (!_isDirty)
-			return;
+			return true;
 
-		if (_vertexUV0s.Count() != _vertexPositions.Count())
+		try
+		{
+			if (_vertexUV0s.Count() != _vertexPositions.Count())
+			{
+				const string err = FormattedString(
+					"UV0 count ({}) doesn't match vertex count of {}",
+					_vertexUV0s.Count(),
+					_vertexPositions.Count());
+				throw Exception(err.c_str());
+			}
+
+			GraphicsResourceRef<Buffer> staging = _renderingService->CreateBuffer(
+				VertexBufferSize,
+				BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
+				true);
+
+			List<VertexData> vertexData(_vertexPositions.Count());
+			for (uint64_t i = 0; i < vertexData.Count(); i++)
+			{
+				vertexData[i].Position[0] = static_cast<float>(_vertexPositions[i].X);
+				vertexData[i].Position[1] = static_cast<float>(_vertexPositions[i].Y);
+				vertexData[i].Position[2] = static_cast<float>(_vertexPositions[i].Z);
+
+				vertexData[i].UV0[0] = static_cast<float>(_vertexUV0s[i].X);
+				vertexData[i].UV0[1] = static_cast<float>(_vertexUV0s[i].Y);
+			}
+
+			staging->LoadData(0, vertexData);
+			staging->CopyTo(0, _vertexBuffer.get(), 0, sizeof(VertexData) * vertexData.Count());
+
+			_vertexCount = vertexData.Count();
+
+			staging->Resize(IndexBufferSize);
+
+			staging->LoadData(0, _vertexIndices);
+			staging->CopyTo(0, _indexBuffer.get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
+
+			_indexCount = _vertexIndices.Count();
+
+			staging.reset();
+
+			if (deleteLocalData)
+			{
+				_vertexPositions.Clear();
+				_vertexIndices.Clear();
+			}
+
+			_isDirty = false;
+
+			return true;
+		}
+		catch (const Exception& ex)
 		{
 			LogError(Engine::Get()->GetLogger(), FormattedString(
-				"Failed to upload mesh data: UV0 count ({}) doesn't match vertex count of {}", 
-				_vertexUV0s.Count(), 
-				_vertexPositions.Count()
+				"Failed to upload mesh data: {}",
+				ex.what()
 			));
-			return;
+
+			return false;
 		}
-
-		GraphicsResourceRef<Buffer> staging = _renderingService->CreateBuffer(
-			VertexBufferSize,
-			BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
-			true);
-
-		List<VertexData> vertexData(_vertexPositions.Count());
-		for (uint64_t i = 0; i < vertexData.Count(); i++)
-		{
-			vertexData[i].Position[0] = static_cast<float>(_vertexPositions[i].X);
-			vertexData[i].Position[1] = static_cast<float>(_vertexPositions[i].Y);
-			vertexData[i].Position[2] = static_cast<float>(_vertexPositions[i].Z);
-
-			vertexData[i].UV0[0] = static_cast<float>(_vertexUV0s[i].X);
-			vertexData[i].UV0[1] = static_cast<float>(_vertexUV0s[i].Y);
-		}
-
-		staging->LoadData(0, vertexData);
-		staging->CopyTo(0, _vertexBuffer.get(), 0, sizeof(VertexData) * vertexData.Count());
-
-		_vertexCount = vertexData.Count();
-
-		staging->Resize(IndexBufferSize);
-
-		staging->LoadData(0, _vertexIndices);
-		staging->CopyTo(0, _indexBuffer.get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
-
-		_indexCount = _vertexIndices.Count();
-
-		staging.reset();
-
-		if (deleteLocalData)
-		{
-			_vertexPositions.Clear();
-			_vertexIndices.Clear();
-		}
-
-		_isDirty = false;
 	}
 }

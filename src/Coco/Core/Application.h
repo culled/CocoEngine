@@ -70,7 +70,7 @@ namespace Coco
 		bool Quit() noexcept;
 
 		// TEMPORARY -------------------------------------
-		virtual Ref<CameraComponent> GetCamera() = 0;
+		virtual Ref<CameraComponent> GetCamera() const noexcept = 0;
 		// TEMPORARY -------------------------------------
 	};
 }

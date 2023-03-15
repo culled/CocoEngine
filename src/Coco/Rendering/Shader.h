@@ -26,18 +26,40 @@ namespace Coco::Rendering
 		/// </summary>
 		uint32_t DataOffset;
 
-		ShaderVertexAttribute(BufferDataFormat dataFormat);
+		ShaderVertexAttribute(BufferDataFormat dataFormat) noexcept;
 	};
 
+	/// <summary>
+	/// A descriptor for a shader
+	/// </summary>
 	struct COCOAPI ShaderDescriptor
 	{
+		/// <summary>
+		/// The descriptor name (used for referencing from materials)
+		/// </summary>
 		string Name;
+
+		/// <summary>
+		/// The binding index of the descriptor in the set
+		/// </summary>
 		uint BindingIndex;
+		
+		/// <summary>
+		/// The type of descriptor
+		/// </summary>
 		ShaderDescriptorType Type;
+
+		/// <summary>
+		/// The point in the render pipeline when this descriptor should be bound
+		/// </summary>
 		ShaderStageType StageBindingPoint;
+
+		/// <summary>
+		/// The size of the descriptor container if it is a container type (e.x. struct)
+		/// </summary>
 		uint Size;
 
-		ShaderDescriptor(const string& name, uint bindingIndex, ShaderDescriptorType type, uint size = 0, ShaderStageType bindingPoint = ShaderStageType::Fragment);
+		ShaderDescriptor(const string& name, uint bindingIndex, ShaderDescriptorType type, uint size = 0, ShaderStageType bindingPoint = ShaderStageType::Fragment) noexcept;
 	};
 
 	/// <summary>
@@ -65,6 +87,9 @@ namespace Coco::Rendering
 		/// </summary>
 		List<ShaderVertexAttribute> Attributes;
 
+		/// <summary>
+		/// Descriptors for this subshader
+		/// </summary>
 		List<ShaderDescriptor> Descriptors;
 
 		Subshader(
@@ -72,7 +97,7 @@ namespace Coco::Rendering
 			const Map<ShaderStageType, string>& stageFiles,
 			const GraphicsPipelineState& pipelineState,
 			const List<ShaderVertexAttribute>& attributes,
-			const List<ShaderDescriptor>& descriptors);
+			const List<ShaderDescriptor>& descriptors) noexcept;
 
 	private:
 		friend class Shader;
@@ -80,7 +105,7 @@ namespace Coco::Rendering
 		/// <summary>
 		/// Updates this subshader's vertex attribute offsets
 		/// </summary>
-		void UpdateAttributeOffsets();
+		void UpdateAttributeOffsets() noexcept;
 	};
 
 	/// <summary>
@@ -100,19 +125,19 @@ namespace Coco::Rendering
 		/// Gets this shader's name
 		/// </summary>
 		/// <returns>This shader's name</returns>
-		string GetName() const { return _name; }
+		string GetName() const noexcept { return _name; }
 
 		/// <summary>
 		/// Tries to find a subshader with the given name
 		/// </summary>
 		/// <returns>True if a subshader was found</returns>
-		bool TryGetSubshader(const string& passName, const Subshader** subshader) const;
+		bool TryGetSubshader(const string& passName, const Subshader*& subshader) const noexcept;
 
 		/// <summary>
 		/// Gets a list of all subshaders for this shader
 		/// </summary>
 		/// <returns>The shader's subshaders</returns>
-		List<Subshader> GetSubshaders() const { return _subshaders; }
+		List<Subshader> GetSubshaders() const noexcept { return _subshaders; }
 
 		/// <summary>
 		/// Creates a subshader for this shader

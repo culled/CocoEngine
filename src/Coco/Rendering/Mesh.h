@@ -79,36 +79,37 @@ namespace Coco::Rendering
 		/// Gets if this mesh has changes that haven't been uploaded to the GPU
 		/// </summary>
 		/// <returns>True if this mesh has changes that haven't been uploaded to the GPU</returns>
-		bool GetIsDirty() const { return _isDirty; }
+		bool GetIsDirty() const noexcept { return _isDirty; }
 
 		/// <summary>
 		/// Uploads this mesh's data to the GPU
 		/// </summary>
 		/// <param name="deleteLocalData">If true, the local mesh data will be cleared and will solely live on the GPU</param>
-		void UploadData(bool deleteLocalData = true);
+		/// <returns>True if the data was uploaded successfully</returns>
+		bool UploadData(bool deleteLocalData = true) noexcept;
 
 		/// <summary>
 		/// Gets this mesh's vertex buffer
 		/// </summary>
 		/// <returns>The vertex buffer</returns>
-		GraphicsResourceRef<Buffer> GetVertexBuffer() const { return _vertexBuffer; }
+		GraphicsResourceRef<Buffer> GetVertexBuffer() const noexcept { return _vertexBuffer; }
 
 		/// <summary>
 		/// Gets this mesh's index buffer
 		/// </summary>
 		/// <returns>The index buffer</returns>
-		GraphicsResourceRef<Buffer> GetIndexBuffer() const { return _indexBuffer; }
+		GraphicsResourceRef<Buffer> GetIndexBuffer() const noexcept { return _indexBuffer; }
 
 		/// <summary>
 		/// Gets the number of vertices in this mesh
 		/// </summary>
 		/// <returns>The number of vertices</returns>
-		uint64_t GetVertexCount() const { return _vertexCount; }
+		uint64_t GetVertexCount() const noexcept { return _vertexCount; }
 
 		/// <summary>
 		/// Gets the number of indices in the mesh
 		/// </summary>
 		/// <returns>The number of vertex indices</returns>
-		uint64_t GetIndexCount() const { return _indexCount; }
+		uint64_t GetIndexCount() const noexcept { return _indexCount; }
 	};
 }

@@ -24,7 +24,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	bool GraphicsFenceVulkan::IsSignalled() const
+	bool GraphicsFenceVulkan::IsSignalled() const noexcept
 	{
 		return vkGetFenceStatus(_device->GetDevice(), _fence) == VK_SUCCESS;
 	}

@@ -2,7 +2,7 @@
 
 namespace Coco::Rendering
 {
-	CommandBuffer::CommandBuffer(bool isPrimary) :
+	CommandBuffer::CommandBuffer(bool isPrimary) noexcept :
 		IsPrimary(isPrimary), CurrentState(State::Ready)
 	{
 	}

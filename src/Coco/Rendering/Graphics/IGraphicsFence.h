@@ -16,11 +16,17 @@ namespace Coco::Rendering
 	public:
 		virtual ~IGraphicsFence() = default;
 
+		IGraphicsFence(const IGraphicsFence&) = delete;
+		IGraphicsFence(IGraphicsFence&&) = delete;
+
+		IGraphicsFence& operator=(const IGraphicsFence&) = delete;
+		IGraphicsFence& operator=(IGraphicsFence&&) = delete;
+
 		/// <summary>
 		/// Gets if this fence has been signalled
 		/// </summary>
 		/// <returns>True if this fence has been signalled</returns>
-		virtual bool IsSignalled() const = 0;
+		virtual bool IsSignalled() const noexcept = 0;
 
 		/// <summary>
 		/// Resets this fence

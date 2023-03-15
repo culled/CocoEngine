@@ -28,7 +28,7 @@ namespace Coco::Rendering
         /// </summary>
         int Score;
 
-        PhysicalDeviceRanking(VkPhysicalDevice device, int score);
+        PhysicalDeviceRanking(VkPhysicalDevice device, int score) noexcept;
     };
 
     /// <summary>
@@ -44,7 +44,7 @@ namespace Coco::Rendering
     /// <summary>
     /// Vulkan implementation of a GraphicsDevice
     /// </summary>
-    class GraphicsDeviceVulkan : public GraphicsDevice
+    class GraphicsDeviceVulkan final : public GraphicsDevice
     {
     public:
         /// <summary>
@@ -72,14 +72,14 @@ namespace Coco::Rendering
         Optional<Managed<CommandBufferPoolVulkan>> _computeCommandPool;
 
     public:
-        GraphicsDeviceVulkan(GraphicsPlatformVulkan* platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
-        virtual ~GraphicsDeviceVulkan() override;
+        GraphicsDeviceVulkan(const GraphicsPlatformVulkan& platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
+        ~GraphicsDeviceVulkan() final;
 
-        virtual string GetName() const override { return _name; }
-        virtual GraphicsDeviceType GetType() const override { return _deviceType; }
-        virtual Version GetDriverVersion() const override { return _driverVersion; }
-        virtual Version GetAPIVersion() const override { return _apiVersion; }
-        virtual void WaitForIdle() override;
+       string GetName() const noexcept final { return _name; }
+       GraphicsDeviceType GetType() const noexcept final { return _deviceType; }
+       Version GetDriverVersion() const noexcept final { return _driverVersion; }
+       Version GetAPIVersion() const noexcept final { return _apiVersion; }
+       void WaitForIdle() noexcept final;
 
         /// <summary>
         /// Creates a graphics device with the given parameters
@@ -87,81 +87,88 @@ namespace Coco::Rendering
         /// <param name="platform">The platform creating the device</param>
         /// <param name="createParams">The parameters for creating the device</param>
         /// <returns>A created graphics device</returns>
-        static Managed<GraphicsDeviceVulkan> Create(GraphicsPlatformVulkan* platform, const GraphicsDeviceCreationParameters& createParams);
+        static Managed<GraphicsDeviceVulkan> Create(const GraphicsPlatformVulkan& platform, const GraphicsDeviceCreationParameters& createParams);
 
         /// <summary>
         /// Gets the Vulkan physical device that this graphics device uses
         /// </summary>
         /// <returns>The Vulkan physical device</returns>
-        VkPhysicalDevice GetPhysicalDevice() const { return _physicalDevice; }
+        VkPhysicalDevice GetPhysicalDevice() const noexcept { return _physicalDevice; }
 
         /// <summary>
         /// Gets the Vulkan logical device that this graphics device uses
         /// </summary>
         /// <returns>The Vulkan logical device</returns>
-        VkDevice GetDevice() const { return _device; }
+        VkDevice GetDevice() const noexcept { return _device; }
+
+        /// <summary>
+        /// Gets this device's Vulkan render cache
+        /// </summary>
+        /// <returns>The Vulkan render cache</returns>
+        VulkanRenderCache* GetRenderCache() const noexcept { return _renderCache.get(); }
 
         /// <summary>
         /// Attempts to initialize the present queue with the given surface
         /// </summary>
         /// <param name="surface">The surface to use for initialization</param>
         /// <returns>True if the present queue is initialized</returns>
-        bool InitializePresentQueue(VkSurfaceKHR surface);
+        bool InitializePresentQueue(VkSurfaceKHR surface) noexcept;
 
         /// <summary>
         /// Gets the graphics queue, if the device supports it
         /// </summary>
         /// <param name="graphicsQueue">The queue reference that will be filled out if this device has a graphics queue</param>
         /// <returns>True if this device has a graphics queue</returns>
-        bool GetGraphicsQueue(Ref<VulkanQueue>& graphicsQueue) const;
+        bool GetGraphicsQueue(Ref<VulkanQueue>& graphicsQueue) const noexcept;
 
         /// <summary>
         /// Gets the transfer queue, if the device supports it
         /// </summary>
         /// <param name="transferQueue">The queue reference that will be filled out if this device has a transfer queue</param>
         /// <returns>True if this device has a transfer queue</returns>
-        bool GetTransferQueue(Ref<VulkanQueue>& transferQueue) const;
+        bool GetTransferQueue(Ref<VulkanQueue>& transferQueue) const noexcept;
 
         /// <summary>
         /// Gets the compute queue, if the device supports it
         /// </summary>
         /// <param name="computeQueue">The queue reference that will be filled out if this device has a compute queue</param>
         /// <returns>True if this device has a compute queue</returns>
-        bool GetComputeQueue(Ref<VulkanQueue>& computeQueue) const;
+        bool GetComputeQueue(Ref<VulkanQueue>& computeQueue) const noexcept;
 
         /// <summary>
         /// Gets the present queue, if the device supports it
         /// </summary>
         /// <param name="presentQueue">The queue reference that will be filled out if this device has a present queue</param>
         /// <returns>True if this device has a present queue</returns>
-        bool GetPresentQueue(Ref<VulkanQueue>& presentQueue) const;
-
-        /// <summary>
-        /// Gets this device's Vulkan render cache
-        /// </summary>
-        /// <returns>The Vulkan render cache</returns>
-        VulkanRenderCache* GetRenderCache() const { return _renderCache.get(); }
+        bool GetPresentQueue(Ref<VulkanQueue>& presentQueue) const noexcept;
 
         /// <summary>
         /// Gets this device's command pool for the graphics queue (if a graphics queue has been created)
         /// </summary>
         /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
         /// <returns>True if the graphics command pool exists</returns>
-        bool GetGraphicsCommandPool(CommandBufferPoolVulkan** poolPtr) const;
+        bool GetGraphicsCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
 
         /// <summary>
         /// Gets this device's command pool for the transfer queue (if a transfer queue has been created)
         /// </summary>
         /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
         /// <returns>True if the transfer command pool exists</returns>
-        bool GetTransferCommandPool(CommandBufferPoolVulkan** poolPtr) const;
+        bool GetTransferCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
 
         /// <summary>
         /// Gets this device's command pool for the compute queue (if a compute queue has been created)
         /// </summary>
         /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
         /// <returns>True if the compute command pool exists</returns>
-        bool GetComputeCommandPool(CommandBufferPoolVulkan** poolPtr) const;
+        bool GetComputeCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
+
+        /// <summary>
+        /// Gets this device's command pool for the present queue (if a present queue has been initialized)
+        /// </summary>
+        /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
+        /// <returns>True if the present command pool exists</returns>
+        bool GetPresentCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
 
         /// <summary>
         /// Finds a memory index for a type of memory
@@ -170,7 +177,7 @@ namespace Coco::Rendering
         /// <param name="memoryProperties">Memory properties</param>
         /// <param name="memoryIndex">The memory index</param>
         /// <returns>True if a valid memory index was found, or false if one could not be found</returns>
-        bool FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const;
+        bool FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const noexcept;
 
     private:
         /// <summary>
@@ -202,7 +209,7 @@ namespace Coco::Rendering
         /// <param name="surface">The surface to check with</param>
         /// <param name="queue">The queue to check</param>
         /// <returns>True if the given queue supports surfaces</returns>
-        bool CheckQueuePresentSupport(VkSurfaceKHR surface, const Ref<VulkanQueue>& queue) const ;
+        bool CheckQueuePresentSupport(VkSurfaceKHR surface, const Optional<Ref<VulkanQueue>>& queue) const noexcept;
     };
 }
 

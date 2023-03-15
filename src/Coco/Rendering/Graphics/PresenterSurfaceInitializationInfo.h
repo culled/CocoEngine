@@ -31,7 +31,7 @@ namespace Coco::Rendering
 		/// </summary>
 		void* HInstance;
 
-		PresenterWin32SurfaceInitializationInfo(void* hWnd, void* hInstance) : HWindow(hWnd), HInstance(hInstance) {}
-		virtual ~PresenterWin32SurfaceInitializationInfo() override = default;
+		PresenterWin32SurfaceInitializationInfo(void* hWnd, void* hInstance) noexcept : HWindow(hWnd), HInstance(hInstance) {}
+		~PresenterWin32SurfaceInitializationInfo() final = default;
 	};
 }

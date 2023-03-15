@@ -30,10 +30,16 @@ namespace Coco::Rendering
 		bool IsPrimary;
 
 	protected:
-		CommandBuffer(bool isPrimary);
+		CommandBuffer(bool isPrimary) noexcept;
 
 	public:
 		virtual ~CommandBuffer();
+
+		CommandBuffer(const CommandBuffer&) = delete;
+		CommandBuffer(CommandBuffer&&) = delete;
+
+		CommandBuffer& operator=(const CommandBuffer&) = delete;
+		CommandBuffer& operator=(CommandBuffer&&) = delete;
 
 		/// <summary>
 		/// Begins recording this buffer

@@ -16,7 +16,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Vulkan-implementation of an Image
 	/// </summary>
-	class ImageVulkan : public Image
+	class ImageVulkan final : public Image
 	{
 	private:
 		bool _isManagedInternally;
@@ -29,27 +29,46 @@ namespace Coco::Rendering
 	public:
 		ImageVulkan(GraphicsDevice* device, ImageDescription description, VkImage image);
 		ImageVulkan(GraphicsDevice* device, ImageDescription description);
-		virtual ~ImageVulkan() override;
+		~ImageVulkan() final;
 
-		virtual void SetPixelData(const void* pixelData) override;
+		void SetPixelData(const void* pixelData) final;
 
 		/// <summary>
 		/// Gets the VkImage object
 		/// </summary>
 		/// <returns>The VkImage</returns>
-		VkImage GetImage() const { return _image; }
+		VkImage GetImage() const noexcept { return _image; }
 
 		/// <summary>
 		/// Gets the native view onto the image
 		/// </summary>
 		/// <returns>The native view onto the image</returns>
-		VkImageView GetNativeView() const { return _nativeView; }
+		VkImageView GetNativeView() const noexcept { return _nativeView; }
 
-		void CopyFromBuffer(CommandBufferVulkan* commandBuffer, BufferVulkan* buffer);
-		void TransitionLayout(CommandBufferVulkan* commandBuffer, VkImageLayout from, VkImageLayout to);
+		/// <summary>
+		/// Copies image data from a buffer using a command buffer
+		/// </summary>
+		/// <param name="commandBuffer">The command buffer</param>
+		/// <param name="buffer">The buffer to copy data from</param>
+		void CopyFromBuffer(const CommandBufferVulkan* commandBuffer, BufferVulkan* buffer);
+
+		/// <summary>
+		/// Transitions this image between layouts
+		/// </summary>
+		/// <param name="commandBuffer">The command buffer</param>
+		/// <param name="from">The layout to transition from</param>
+		/// <param name="to">The layout to transition to</param>
+		void TransitionLayout(const CommandBufferVulkan* commandBuffer, VkImageLayout from, VkImageLayout to);
 
 	private:
+		/// <summary>
+		/// Creates an image from the current description
+		/// </summary>
 		void CreateImageFromDescription();
+
+		/// <summary>
+		/// Creates the native image view for the image
+		/// </summary>
 		void CreateNativeImageView();
 	};
 }

@@ -42,7 +42,7 @@ namespace Coco::Rendering
 	void ImageVulkan::SetPixelData(const void* pixelData)
 	{
 		CommandBufferPoolVulkan* pool;
-		if (!_device->GetGraphicsCommandPool(&pool))
+		if (!_device->GetGraphicsCommandPool(pool))
 			throw Exception("A graphics queue is required to upload pixel data");
 
 		uint64_t bufferSize = static_cast<uint64_t>(Description.Width) *
@@ -71,7 +71,7 @@ namespace Coco::Rendering
 		staging.reset();
 	}
 
-	void ImageVulkan::CopyFromBuffer(CommandBufferVulkan* commandBuffer, BufferVulkan* buffer)
+	void ImageVulkan::CopyFromBuffer(const CommandBufferVulkan* commandBuffer, BufferVulkan* buffer)
 	{
 		VkBufferImageCopy region = {};
 		region.bufferOffset = 0;
@@ -90,7 +90,7 @@ namespace Coco::Rendering
 		vkCmdCopyBufferToImage(commandBuffer->GetCmdBuffer(), buffer->GetBuffer(), _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 	}
 
-	void ImageVulkan::TransitionLayout(CommandBufferVulkan* commandBuffer, VkImageLayout from, VkImageLayout to)
+	void ImageVulkan::TransitionLayout(const CommandBufferVulkan* commandBuffer, VkImageLayout from, VkImageLayout to)
 	{
 		Ref<VulkanQueue> graphicsQueue;
 

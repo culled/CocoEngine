@@ -13,7 +13,7 @@ namespace Coco::Rendering
     /// <summary>
     /// Vulkan implementation of a GraphicsPlatform
     /// </summary>
-    class GraphicsPlatformVulkan : public GraphicsPlatform
+    class GraphicsPlatformVulkan final : public GraphicsPlatform
     {
     private:
         static const char* s_debugValidationLayerName;
@@ -28,46 +28,46 @@ namespace Coco::Rendering
 
     public:
         GraphicsPlatformVulkan(Rendering::RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);
-        virtual ~GraphicsPlatformVulkan() override;
+        ~GraphicsPlatformVulkan() final;
 
-        virtual Logging::Logger* GetLogger() const override;
-        virtual RenderingRHI GetRHI() const override { return RenderingRHI::Vulkan; }
-        virtual GraphicsDevice* GetDevice() const override { return _device.get(); }
-        virtual void ResetDevice() override;
-        virtual Managed<GraphicsPresenter> CreatePresenter() override;
-        virtual GraphicsResourceRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) override;
-        virtual GraphicsResourceRef<Image> CreateImage(ImageDescription description) override;
-        virtual GraphicsResourceRef<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) override;
+        Logging::Logger* GetLogger() const noexcept final;
+        RenderingRHI GetRHI() const noexcept final { return RenderingRHI::Vulkan; }
+        GraphicsDevice* GetDevice() const noexcept final { return _device.get(); }
+        void ResetDevice() final;
+        Managed<GraphicsPresenter> CreatePresenter() final;
+        GraphicsResourceRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;
+        GraphicsResourceRef<Image> CreateImage(const ImageDescription& description) final;
+        GraphicsResourceRef<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) final;
 
         /// <summary>
         /// Gets the Vulkan instance
         /// </summary>
         /// <returns>The Vulkan instance</returns>
-        VkInstance GetInstance() const { return _instance; }
+        VkInstance GetInstance() const noexcept { return _instance; }
 
     private:
         /// <summary>
         /// Checks for validation layer support
         /// </summary>
         /// <returns>True if this Vulkan runtime supports validation layers</returns>
-        static bool CheckValidationLayersSupport();
+        static bool CheckValidationLayersSupport() noexcept;
 
         /// <summary>
         /// Constructs a debug messenger create info
         /// </summary>
         /// <returns>A debug messenger create info</returns>
-        VkDebugUtilsMessengerCreateInfoEXT GetDebugCreateInfo() const;
+        VkDebugUtilsMessengerCreateInfoEXT GetDebugCreateInfo() const noexcept;
 
         /// <summary>
         /// Creates a debug messenger for the Vulkan instance
         /// </summary>
         /// <returns>True if the messenger was created</returns>
-        bool CreateDebugMessenger();
+        bool CreateDebugMessenger() noexcept;
 
         /// <summary>
         /// Destroys the active debug messenger for the Vulkan instance
         /// </summary>
-        void DestroyDebugMessenger();
+        void DestroyDebugMessenger() noexcept;
     };
 }
 

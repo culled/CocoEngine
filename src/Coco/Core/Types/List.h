@@ -73,15 +73,12 @@ namespace Coco
 		/// </summary>
 		/// <param name="item">The item to remove</param>
 		/// <returns>True if the item was found and removed</returns>
-		bool Remove(const T& item)
+		bool Remove(const T& item) noexcept
 		{
 			Iterator it = std::find(begin(), end(), item);
 
 			if (it != end())
-			{
-				_list.erase(it);
-				return true;
-			}
+				return Erase(it);
 
 			return false;
 		}
@@ -90,10 +87,28 @@ namespace Coco
 		/// Erases an item at the given iterator
 		/// </summary>
 		/// <param name="it">The iterator</param>
-		void Erase(Iterator it)
+		/// <returns>True if the item was erased successfully</returns>
+		bool Erase(Iterator it) noexcept
 		{
-			if(it != end())
+			try
+			{
 				_list.erase(it);
+				return true;
+			}
+			catch (...)
+			{
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Erases an item at the given iterator and returns the element after the one erased or the list end if the element was the last one erased
+		/// </summary>
+		/// <param name="it">The iterator</param>
+		/// <returns>An iterator to the element after the one erased or the list end if the element was the last one erased</returns>
+		Iterator EraseAndGetNext(Iterator it)
+		{
+			return _list.erase(it);
 		}
 
 		/// <summary>
@@ -126,7 +141,7 @@ namespace Coco
 		/// <returns>The first element of the list</returns>
 		T& First()
 		{
-			return _list.at(0);
+			return _list.front();
 		}
 
 		/// <summary>
@@ -135,7 +150,7 @@ namespace Coco
 		/// <returns>The first element of the list</returns>
 		const T& First() const
 		{
-			return _list.at(0);
+			return _list.front();
 		}
 
 		/// <summary>
@@ -144,7 +159,7 @@ namespace Coco
 		/// <returns>The last element in the list</returns>
 		T& Last()
 		{
-			return _list.at(Count() - 1);
+			return _list.back();
 		}
 
 		/// <summary>
@@ -153,7 +168,7 @@ namespace Coco
 		/// <returns>The last element in the list</returns>
 		const T& Last() const
 		{
-			return _list.at(Count() - 1);
+			return _list.back();
 		}
 
 		/// <summary>

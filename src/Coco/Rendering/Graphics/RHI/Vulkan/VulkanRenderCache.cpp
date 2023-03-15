@@ -25,7 +25,7 @@ namespace Coco::Rendering
 		Invalidate();
 	}
 
-	void VulkanRenderCache::Invalidate()
+	void VulkanRenderCache::Invalidate() noexcept
 	{
 		for (const auto& renderPassKVP : _renderPassCache)
 		{
@@ -50,9 +50,9 @@ namespace Coco::Rendering
 		_shaderCache.clear();
 	}
 
-	VulkanRenderPass VulkanRenderCache::GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline)
+	VulkanRenderPass VulkanRenderCache::GetOrCreateRenderPass(RenderPipeline* renderPipeline)
 	{
-		uint64_t key = _renderPipelineHasher(renderPipeline.get());
+		const uint64_t key = _renderPipelineHasher(renderPipeline);
 
 		if (!_renderPassCache.contains(key))
 		{
@@ -66,12 +66,12 @@ namespace Coco::Rendering
 		VulkanRenderPass renderPass, 
 		const string& subpassName, 
 		uint32_t subpassIndex, 
-		const Ref<Shader>& shader,
+		const Shader* shader,
 		VkDescriptorSetLayout globalDescriptorLayout)
 	{
-		uint64_t rpHash = _renderPassHasher(renderPass.RenderPass);
-		ResourceID shaderID = shader->GetID();
-		uint64_t key = rpHash ^ (shaderID << 1);
+		const uint64_t rpHash = _renderPassHasher(renderPass.RenderPass);
+		const ResourceID shaderID = shader->GetID();
+		const uint64_t key = rpHash ^ (shaderID << 1);
 
 		if (!_pipelineCache.contains(key))
 		{
@@ -81,9 +81,9 @@ namespace Coco::Rendering
 		return _pipelineCache[key];
 	}
 
-	GraphicsResourceRef<VulkanShader> VulkanRenderCache::GetOrCreateVulkanShader(const Ref<Shader>& shader)
+	GraphicsResourceRef<VulkanShader> VulkanRenderCache::GetOrCreateVulkanShader(const Shader* shader)
 	{
-		ResourceID shaderID = shader->GetID();
+		const ResourceID shaderID = shader->GetID();
 
 		if (!_shaderCache.contains(shaderID))
 		{
@@ -93,7 +93,7 @@ namespace Coco::Rendering
 		return _shaderCache[shaderID];
 	}
 
-	VulkanRenderPass VulkanRenderCache::CreateRenderPass(const Ref<RenderPipeline>& renderPipeline)
+	VulkanRenderPass VulkanRenderCache::CreateRenderPass(RenderPipeline* renderPipeline)
 	{
 		List<VkAttachmentDescription> attachments;
 
@@ -102,7 +102,7 @@ namespace Coco::Rendering
 		// Create attachment descriptions for all pipeline attachments
 		for (const RenderPipelineAttachmentDescription& pipelineAttachment : pipelineAttachments)
 		{
-			VkImageLayout imageLayout = IsDepthStencilFormat(pipelineAttachment.Description.PixelFormat) ? 
+			const VkImageLayout imageLayout = IsDepthStencilFormat(pipelineAttachment.Description.PixelFormat) ? 
 				VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 			VkAttachmentDescription description = {};
@@ -138,7 +138,7 @@ namespace Coco::Rendering
 
 			for (int mi = 0; mi < mappedAttachments.Count(); mi++)
 			{
-				uint32_t pipelineAttachmentIndex = static_cast<uint32_t>(mappedAttachments[mi].PipelineAttachmentIndex);
+				const uint32_t pipelineAttachmentIndex = static_cast<uint32_t>(mappedAttachments[mi].PipelineAttachmentIndex);
 
 				VkAttachmentReference attachmentRef = {};
 				attachmentRef.attachment = pipelineAttachmentIndex;
@@ -233,11 +233,11 @@ namespace Coco::Rendering
 		VulkanRenderPass renderPass, 
 		const string& subpassName, 
 		uint32_t subpassIndex, 
-		const Ref<Shader>& shader,
+		const Shader* shader,
 		VkDescriptorSetLayout globalDescriptorLayout)
 	{
 		const Subshader* subshader;
-		if (!shader->TryGetSubshader(subpassName, &subshader))
+		if (!shader->TryGetSubshader(subpassName, subshader))
 		{
 			string err = FormattedString("Could not find a subshader named \"{}\" in the shader \"{}\"", subpassName, shader->GetName());
 			throw Exception(err.c_str());
@@ -358,9 +358,17 @@ namespace Coco::Rendering
 		pushConstants.size = sizeof(float) * 16; // 64 bytes for now
 
 		GraphicsResourceRef<VulkanShader> vulkanShader = GetOrCreateVulkanShader(shader);
+
+		VulkanDescriptorLayout layout;
+		if(!vulkanShader->TryGetDescriptorSetLayout(subpassName, layout))
+		{
+			string err = FormattedString("Could not find a layout for subshader named \"{}\" in the shader \"{}\"", subpassName, shader->GetName());
+			throw Exception(err.c_str());
+		}
+
 		Array<VkDescriptorSetLayout, 2> descriptorSetLayouts = {
 			globalDescriptorLayout,
-			vulkanShader->GetDescriptorSetLayout(subpassName).Layout
+			layout.Layout
 		};
 
 		VkPipelineLayoutCreateInfo layoutInfo = {};
@@ -370,10 +378,16 @@ namespace Coco::Rendering
 		layoutInfo.pushConstantRangeCount = 1;
 		layoutInfo.pPushConstantRanges = &pushConstants;
 
+		List<VulkanShaderStage> shaderStages;
+		if (!vulkanShader->TryGetSubshaderStages(subpassName, shaderStages))
+		{
+			string err = FormattedString("Could not find stages for subshader named \"{}\" in the shader \"{}\"", subpassName, shader->GetName());
+			throw Exception(err.c_str());
+		}
+
 		VulkanPipeline pipeline = {};
 		AssertVkResult(vkCreatePipelineLayout(_device->GetDevice(), &layoutInfo, nullptr, &pipeline.Layout));
 
-		List<VulkanShaderStage> shaderStages = vulkanShader->GetSubshaderStages(subpassName);
 		List<VkPipelineShaderStageCreateInfo> shaderStageInfos;
 
 		for (const VulkanShaderStage& stage : shaderStages)

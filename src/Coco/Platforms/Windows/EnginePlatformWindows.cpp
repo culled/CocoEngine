@@ -39,7 +39,7 @@ namespace Coco::Platform::Windows
 
 	void EnginePlatformWindows::Start()
 	{
-		if (!Engine::Get()->GetServiceManager()->TryFindService<Input::InputService>(&_inputService))
+		if (!Engine::Get()->GetServiceManager()->TryFindService<Input::InputService>(_inputService))
 		{
 			LogWarning(Engine::Get()->GetLogger(), "Could not find an input service. Input will not be handled");
 			_inputService = nullptr;
@@ -284,8 +284,8 @@ namespace Coco::Platform::Windows
 		case WM_CREATE:
 		{
 			// Set our window pointer so we can access it when the window receives messages
-			LPCREATESTRUCT createPtr = reinterpret_cast<LPCREATESTRUCT>(lParam);
-			const WindowsWindow* windowPtr = reinterpret_cast<WindowsWindow*>(createPtr->lpCreateParams);
+			const LPCREATESTRUCT createPtr = reinterpret_cast<LPCREATESTRUCT>(lParam);
+			const WindowsWindow* windowPtr = static_cast<WindowsWindow*>(createPtr->lpCreateParams);
 			SetWindowLongPtr(windowHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(windowPtr));
 			break;
 		}

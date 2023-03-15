@@ -8,17 +8,17 @@
 
 namespace Coco::Rendering
 {
-	PhysicalDeviceRanking::PhysicalDeviceRanking(VkPhysicalDevice device, int score) :
+	PhysicalDeviceRanking::PhysicalDeviceRanking(VkPhysicalDevice device, int score) noexcept :
 		Device(device), Score(score)
 	{}
 
-	GraphicsDeviceVulkan::GraphicsDeviceVulkan(GraphicsPlatformVulkan* platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams) :
-		VulkanPlatform(platform), _physicalDevice(physicalDevice)
+	GraphicsDeviceVulkan::GraphicsDeviceVulkan(const GraphicsPlatformVulkan& platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams) :
+		VulkanPlatform(&platform), _physicalDevice(physicalDevice)
 	{
 		VkPhysicalDeviceProperties deviceProperties;
 		vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
 
-		_name = string(deviceProperties.deviceName);
+		_name = string(&deviceProperties.deviceName[0]);
 		_deviceType = ToGraphicsDeviceType(deviceProperties.deviceType);
 		_driverVersion = ToVersion(deviceProperties.driverVersion);
 		_apiVersion = ToVersion(deviceProperties.apiVersion);
@@ -36,7 +36,7 @@ namespace Coco::Rendering
 		if (queueFamilies.ComputeQueueFamily.has_value())
 			uniqueQueueFamilies.insert(queueFamilies.ComputeQueueFamily.value());
 
-		float queuePriorities = 1.0f;
+		const float queuePriorities = 1.0f;
 
 		List<VkDeviceQueueCreateInfo> queueCreateInfos;
 
@@ -98,7 +98,12 @@ namespace Coco::Rendering
 
 		_renderCache = CreateManaged<VulkanRenderCache>(this);
 
-		LogInfo(platform->GetLogger(), FormattedString("Using Vulkan on {} - Driver version {}, API version {}", _name, _driverVersion.ToString(), _apiVersion.ToString()));
+		LogInfo(VulkanPlatform->GetLogger(), FormattedString(
+			"Using Vulkan on {} - Driver version {}, API version {}",
+			_name, 
+			_driverVersion.ToString(),
+			_apiVersion.ToString()
+		));
 	}
 
 	GraphicsDeviceVulkan::~GraphicsDeviceVulkan()
@@ -136,31 +141,31 @@ namespace Coco::Rendering
 		LogTrace(VulkanPlatform->GetLogger(), "Destroyed Vulkan device");
 	}
 
-	void GraphicsDeviceVulkan::WaitForIdle()
+	void GraphicsDeviceVulkan::WaitForIdle() noexcept
 	{
 		vkDeviceWaitIdle(_device);
 	}
 
-	Managed<GraphicsDeviceVulkan> GraphicsDeviceVulkan::Create(GraphicsPlatformVulkan* platform, const GraphicsDeviceCreationParameters& createParams)
+	Managed<GraphicsDeviceVulkan> GraphicsDeviceVulkan::Create(const GraphicsPlatformVulkan& platform, const GraphicsDeviceCreationParameters& createParams)
 	{
-		VkPhysicalDevice physicalDevice = PickPhysicalDevice(platform->GetInstance(), createParams);
+		VkPhysicalDevice physicalDevice = PickPhysicalDevice(platform.GetInstance(), createParams);
 		return CreateManaged<GraphicsDeviceVulkan>(platform, physicalDevice, createParams);
 	}
 
-	bool GraphicsDeviceVulkan::InitializePresentQueue(VkSurfaceKHR surface)
+	bool GraphicsDeviceVulkan::InitializePresentQueue(VkSurfaceKHR surface) noexcept
 	{
 		if (_presentQueue.has_value())
 			return true;
 
-		if (_graphicsQueue.has_value() && CheckQueuePresentSupport(surface, _graphicsQueue.value()))
+		if (CheckQueuePresentSupport(surface, _graphicsQueue))
 		{
 			_presentQueue = _graphicsQueue.value();
 		}
-		else if (_transferQueue.has_value() && CheckQueuePresentSupport(surface, _transferQueue.value()))
+		else if (CheckQueuePresentSupport(surface, _transferQueue))
 		{
 			_presentQueue = _transferQueue.value();
 		}
-		else if (_computeQueue.has_value() && CheckQueuePresentSupport(surface, _computeQueue.value()))
+		else if (CheckQueuePresentSupport(surface, _computeQueue))
 		{
 			_presentQueue = _computeQueue.value();
 		}
@@ -168,7 +173,7 @@ namespace Coco::Rendering
 		return _presentQueue.has_value();
 	}
 
-	bool GraphicsDeviceVulkan::GetGraphicsQueue(Ref<VulkanQueue>& graphicsQueue) const
+	bool GraphicsDeviceVulkan::GetGraphicsQueue(Ref<VulkanQueue>& graphicsQueue) const noexcept
 	{
 		if (_graphicsQueue.has_value())
 		{
@@ -179,7 +184,7 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::GetTransferQueue(Ref<VulkanQueue>& transferQueue) const
+	bool GraphicsDeviceVulkan::GetTransferQueue(Ref<VulkanQueue>& transferQueue) const noexcept
 	{
 		if (_transferQueue.has_value())
 		{
@@ -190,7 +195,7 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::GetComputeQueue(Ref<VulkanQueue>& computeQueue) const
+	bool GraphicsDeviceVulkan::GetComputeQueue(Ref<VulkanQueue>& computeQueue) const noexcept
 	{
 		if (_computeQueue.has_value())
 		{
@@ -201,7 +206,7 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::GetPresentQueue(Ref<VulkanQueue>& presentQueue) const
+	bool GraphicsDeviceVulkan::GetPresentQueue(Ref<VulkanQueue>& presentQueue) const noexcept
 	{
 		if (_presentQueue.has_value())
 		{
@@ -212,11 +217,11 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::GetGraphicsCommandPool(CommandBufferPoolVulkan** poolPtr) const
+	bool GraphicsDeviceVulkan::GetGraphicsCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept
 	{
 		if (_graphicsCommandPool.has_value())
 		{
-			*poolPtr = _graphicsCommandPool.value().get();
+			poolPtr = _graphicsCommandPool.value().get();
 			return true;
 		}
 
@@ -224,11 +229,11 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::GetTransferCommandPool(CommandBufferPoolVulkan** poolPtr) const
+	bool GraphicsDeviceVulkan::GetTransferCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept
 	{
 		if (_transferCommandPool.has_value())
 		{
-			*poolPtr = _transferCommandPool.value().get();
+			poolPtr = _transferCommandPool.value().get();
 			return true;
 		}
 
@@ -236,11 +241,11 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::GetComputeCommandPool(CommandBufferPoolVulkan** poolPtr) const
+	bool GraphicsDeviceVulkan::GetComputeCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept
 	{
 		if (_computeCommandPool.has_value())
 		{
-			*poolPtr = _computeCommandPool.value().get();
+			poolPtr = _computeCommandPool.value().get();
 			return true;
 		}
 
@@ -248,7 +253,19 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const
+	bool GraphicsDeviceVulkan::GetPresentCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept
+	{
+		if (_computeCommandPool.has_value())
+		{
+			poolPtr = _computeCommandPool.value().get();
+			return true;
+		}
+
+		poolPtr = nullptr;
+		return false;
+	}
+
+	bool GraphicsDeviceVulkan::FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const noexcept
 	{
 		VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
 		vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &deviceMemoryProperties);
@@ -265,7 +282,7 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	bool CompareDeviceRankings(const PhysicalDeviceRanking& a, const PhysicalDeviceRanking& b)
+	bool CompareDeviceRankings(const PhysicalDeviceRanking& a, const PhysicalDeviceRanking& b) noexcept
 	{
 		return a.Score > b.Score;
 	}
@@ -282,8 +299,7 @@ namespace Coco::Rendering
 
 		for (const VkPhysicalDevice& device : devices)
 		{
-			int score = CalculateDeviceScore(device, createParams);
-			deviceRankings.Add(PhysicalDeviceRanking(device, score));
+			deviceRankings.Add(PhysicalDeviceRanking(device, CalculateDeviceScore(device, createParams)));
 		}
 
 		std::sort(deviceRankings.begin(), deviceRankings.end(), CompareDeviceRankings);
@@ -325,7 +341,7 @@ namespace Coco::Rendering
 		}
 
 		// Check device queues
-		PhysicalDeviceQueueFamilyInfo queueFamilies = GetQueueFamilyInfo(device);
+		const PhysicalDeviceQueueFamilyInfo queueFamilies = GetQueueFamilyInfo(device);
 
 		if (createParams.RequireGraphicsCapability)
 		{
@@ -369,7 +385,7 @@ namespace Coco::Rendering
 
 			for (const VkExtensionProperties& properties : deviceExtensions)
 			{
-				if (strcmp(properties.extensionName, requiredExtension.c_str()) == 0)
+				if (strcmp(&properties.extensionName[0], requiredExtension.c_str()) == 0)
 				{
 					score++;
 					found = true;
@@ -403,7 +419,7 @@ namespace Coco::Rendering
 
 		int minimumTransferScore = std::numeric_limits<int>::max();
 
-		for (int i = 0; i < static_cast<int>(queueFamilyCount); i++)
+		for (uint32_t i = 0; i < queueFamilyCount; i++)
 		{
 			int transferScore = 0;
 
@@ -447,11 +463,14 @@ namespace Coco::Rendering
 		return queueFamilyInfos;
 	}
 
-	bool GraphicsDeviceVulkan::CheckQueuePresentSupport(VkSurfaceKHR surface, const Ref<VulkanQueue>& queue) const
+	bool GraphicsDeviceVulkan::CheckQueuePresentSupport(VkSurfaceKHR surface, const Optional<Ref<VulkanQueue>>& queue) const noexcept
 	{
+		if (!queue.has_value())
+			return false;
+
 		VkBool32 supported = VK_FALSE;
 
-		vkGetPhysicalDeviceSurfaceSupportKHR(_physicalDevice, static_cast<uint32_t>(queue->QueueFamily), surface, &supported);
+		vkGetPhysicalDeviceSurfaceSupportKHR(_physicalDevice, static_cast<uint32_t>(queue.value()->QueueFamily), surface, &supported);
 
 		return supported != VK_FALSE;
 	}

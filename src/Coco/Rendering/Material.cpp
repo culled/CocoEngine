@@ -17,7 +17,7 @@ namespace Coco::Rendering
 		return CreateRef<MaterialInstance>(this);
 	}
 
-	Color Material::GetColor(const string& name) const
+	Color Material::GetColor(const string& name) const noexcept
 	{
 		Vector4 value = GetVector4(name);
 		return Color(value.X, value.Y, value.Z, value.W);

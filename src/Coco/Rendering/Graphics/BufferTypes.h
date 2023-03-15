@@ -22,10 +22,10 @@ namespace Coco::Rendering
 		HostVisible			= 1 << 9,
 	};
 
-	COCOAPI BufferUsageFlags operator|(BufferUsageFlags a, BufferUsageFlags b);
-	COCOAPI BufferUsageFlags operator&(BufferUsageFlags a, BufferUsageFlags b);
-	COCOAPI void operator|=(BufferUsageFlags& a, BufferUsageFlags b);
-	COCOAPI void operator&=(BufferUsageFlags& a, BufferUsageFlags b);
+	COCOAPI BufferUsageFlags operator|(BufferUsageFlags a, BufferUsageFlags b) noexcept;
+	COCOAPI BufferUsageFlags operator&(BufferUsageFlags a, BufferUsageFlags b) noexcept;
+	COCOAPI void operator|=(BufferUsageFlags& a, BufferUsageFlags b) noexcept;
+	COCOAPI void operator&=(BufferUsageFlags& a, BufferUsageFlags b) noexcept;
 
 	/// <summary>
 	/// Data types that a buffer can hold and shaders can read
@@ -47,5 +47,24 @@ namespace Coco::Rendering
 	/// </summary>
 	/// <param name="format">The buffer data format</param>
 	/// <returns>The size of the buffer data format (in bytes)</returns>
-	COCOAPI uint32_t GetBufferDataFormatSize(BufferDataFormat format);
+	constexpr uint GetBufferDataFormatSize(BufferDataFormat format) noexcept
+	{
+		switch (format)
+		{
+		case BufferDataFormat::Float:
+		case BufferDataFormat::Int:
+			return 4;
+		case BufferDataFormat::Vector2:
+		case BufferDataFormat::Vector2Int:
+			return 4 * 2;
+		case BufferDataFormat::Vector3:
+		case BufferDataFormat::Vector3Int:
+			return 4 * 3;
+		case BufferDataFormat::Vector4:
+		case BufferDataFormat::Vector4Int:
+			return 4 * 4;
+		default:
+			return 0;
+		}
+	}
 }

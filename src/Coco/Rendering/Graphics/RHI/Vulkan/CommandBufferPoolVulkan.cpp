@@ -27,23 +27,35 @@ namespace Coco::Rendering
 
 	CommandBuffer* CommandBufferPoolVulkan::Allocate(bool isPrimary)
 	{
-		CommandBufferVulkan* buffer = new CommandBufferVulkan(isPrimary, _device, this);
-		_allocatedBuffers.Add(Managed<CommandBufferVulkan>(buffer));
-		return buffer;
+		_allocatedBuffers.Add(CreateManaged<CommandBufferVulkan>(isPrimary, _device, this));
+		Managed<CommandBufferVulkan>& buffer = _allocatedBuffers.Last();
+		return buffer.get();
 	}
 
-	void CommandBufferPoolVulkan::Free(CommandBuffer* buffer)
+	void CommandBufferPoolVulkan::Free(CommandBuffer* buffer) noexcept
 	{
 		auto it = std::find_if(_allocatedBuffers.begin(), _allocatedBuffers.end(), [buffer](const Managed<CommandBufferVulkan>& other) {
 			return buffer == other.get();
 			});
 
-		if (it != _allocatedBuffers.end())
-			_allocatedBuffers.Erase(it);
+		try
+		{
+			if (it != _allocatedBuffers.end())
+				_allocatedBuffers.Erase(it);
+		}
+		catch(...)
+		{ }
 	}
 
-	void CommandBufferPoolVulkan::WaitForQueue()
+	void CommandBufferPoolVulkan::WaitForQueue() noexcept
 	{
-		AssertVkResult(vkQueueWaitIdle(_queue->Queue));
+		try
+		{
+			AssertVkResult(vkQueueWaitIdle(_queue->Queue));
+		}
+		catch (...)
+		{
+			_device->WaitForIdle();
+		}
 	}
 }

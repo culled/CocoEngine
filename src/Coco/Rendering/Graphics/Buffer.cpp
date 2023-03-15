@@ -2,7 +2,7 @@
 
 namespace Coco::Rendering
 {
-	Buffer::Buffer(BufferUsageFlags usageFlags) :
+	Buffer::Buffer(BufferUsageFlags usageFlags) noexcept :
 		UsageFlags(usageFlags)
 	{}
 }

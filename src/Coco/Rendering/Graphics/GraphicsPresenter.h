@@ -42,7 +42,7 @@ namespace Coco::Rendering
 		/// Gets if the window's surface has been intialized
 		/// </summary>
 		/// <returns>True if the window's surface has been initialized</returns>
-		virtual bool IsSurfaceInitialized() const = 0;
+		virtual bool IsSurfaceInitialized() const noexcept = 0;
 
 		/// <summary>
 		/// Sets the size of the backbuffer. Should be called when a window resize occurs
@@ -54,7 +54,7 @@ namespace Coco::Rendering
 		/// Gets the size of the backbuffer
 		/// </summary>
 		/// <returns></returns>
-		virtual SizeInt GetBackbufferSize() const = 0;
+		virtual SizeInt GetBackbufferSize() const noexcept = 0;
 
 		/// <summary>
 		/// Sets the desired vertical sync mode of this presenter.
@@ -73,12 +73,12 @@ namespace Coco::Rendering
 		/// Gets a render context that can be used for rendering
 		/// </summary>
 		/// <returns>A render context</returns>
-		virtual bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) = 0;
+		virtual bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) noexcept = 0;
 
 		/// <summary>
 		/// Queues the given render context for presentation
 		/// </summary>
 		/// <param name="renderContext">The render context</param>
-		virtual void Present(const GraphicsResourceRef<RenderContext>& renderContext) = 0;
+		virtual bool Present(RenderContext* renderContext) noexcept = 0;
 	};
 }

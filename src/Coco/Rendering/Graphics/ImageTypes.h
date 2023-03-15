@@ -47,22 +47,34 @@ namespace Coco::Rendering
 		RenderTarget		= 1 << 3,
 	};
 
-	COCOAPI ImageUsageFlags operator|(ImageUsageFlags a, ImageUsageFlags b);
-	COCOAPI ImageUsageFlags operator&(ImageUsageFlags a, ImageUsageFlags b);
-	COCOAPI void operator|=(ImageUsageFlags& a, ImageUsageFlags b);
-	COCOAPI void operator&=(ImageUsageFlags& a, ImageUsageFlags b);
+	COCOAPI ImageUsageFlags operator|(ImageUsageFlags a, ImageUsageFlags b) noexcept;
+	COCOAPI ImageUsageFlags operator&(ImageUsageFlags a, ImageUsageFlags b) noexcept;
+	COCOAPI void operator|=(ImageUsageFlags& a, ImageUsageFlags b) noexcept;
+	COCOAPI void operator&=(ImageUsageFlags& a, ImageUsageFlags b) noexcept;
 
 	/// <summary>
 	/// Gets if the given pixel format is a depth/stencil format
 	/// </summary>
 	/// <param name="format">The format</param>
 	/// <returns>True if the format is a depth/stencil format</returns>
-	COCOAPI bool IsDepthStencilFormat(PixelFormat format);
+	constexpr bool IsDepthStencilFormat(PixelFormat format) noexcept
+	{
+		return format == PixelFormat::Depth24_Stencil8;
+	}
 
 	/// <summary>
 	/// Gets the number of bytes per pixel for a pixel format
 	/// </summary>
 	/// <param name="format">The pixel format</param>
 	/// <returns>The number of bytes per pixel</returns>
-	COCOAPI int GetPixelFormatSize(PixelFormat format);
+	constexpr uint GetPixelFormatSize(PixelFormat format) noexcept
+	{
+		switch (format)
+		{
+		case PixelFormat::BGRA8:
+			return 4;
+		default:
+			return 0;
+		}
+	}
 }

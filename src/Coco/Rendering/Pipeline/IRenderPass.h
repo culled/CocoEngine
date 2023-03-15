@@ -19,13 +19,13 @@ namespace Coco::Rendering
 		/// Gets the name of the subpass used in shaders for rendering with this pass
 		/// </summary>
 		/// <returns>The pass name</returns>
-		virtual string GetName() const = 0;
+		virtual string GetName() const noexcept = 0;
 
 		/// <summary>
 		/// Gets the attachment descriptions required for this pass
 		/// </summary>
 		/// <returns>The attachment descriptions</returns>
-		virtual List<AttachmentDescription> GetAttachmentDescriptions() = 0;
+		virtual List<AttachmentDescription> GetAttachmentDescriptions() noexcept = 0;
 
 		/// <summary>
 		/// Called to perform rendering operations with a RenderContext

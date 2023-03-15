@@ -62,34 +62,40 @@ namespace Coco::Rendering
 	public:
 		virtual ~GraphicsDevice() = default;
 
+		GraphicsDevice(const GraphicsDevice&) = delete;
+		GraphicsDevice(GraphicsDevice&&) = delete;
+
+		GraphicsDevice& operator=(const GraphicsDevice&) = delete;
+		GraphicsDevice& operator=(GraphicsDevice&&) = delete;
+
 		/// <summary>
 		/// Gets the name of this device
 		/// </summary>
 		/// <returns>This device's name</returns>
-		virtual string GetName() const = 0;
+		virtual string GetName() const noexcept = 0;
 
 		/// <summary>
 		/// Gets the type of this device 
 		/// </summary>
 		/// <returns>This device's type</returns>
-		virtual GraphicsDeviceType GetType() const = 0;
+		virtual GraphicsDeviceType GetType() const noexcept = 0;
 
 		/// <summary>
 		/// Gets the version of this device's driver
 		/// </summary>
 		/// <returns>This device's driver version</returns>
-		virtual Version GetDriverVersion() const = 0;
+		virtual Version GetDriverVersion() const noexcept = 0;
 
 		/// <summary>
 		/// Gets the version of this device's API
 		/// </summary>
 		/// <returns>This device's API version</returns>
-		virtual Version GetAPIVersion() const = 0;
+		virtual Version GetAPIVersion() const noexcept = 0;
 
 		/// <summary>
 		/// Blocks until this device is idle
 		/// </summary>
-		virtual void WaitForIdle() = 0;
+		virtual void WaitForIdle() noexcept = 0;
 
 		/// <summary>
 		/// Creates a graphics resource, adds it to this device's list of managed resources, and returns a handle to it

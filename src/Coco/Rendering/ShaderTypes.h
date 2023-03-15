@@ -14,6 +14,9 @@ namespace Coco::Rendering
 		Compute
 	};
 
+	/// <summary>
+	/// Types of shader descriptors
+	/// </summary>
 	enum class ShaderDescriptorType
 	{
 		UniformStruct,

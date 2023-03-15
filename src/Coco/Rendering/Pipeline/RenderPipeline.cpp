@@ -2,7 +2,7 @@
 
 namespace Coco::Rendering
 {
-	RenderPipelineAttachmentDescription::RenderPipelineAttachmentDescription(const AttachmentDescription& description) :
+	RenderPipelineAttachmentDescription::RenderPipelineAttachmentDescription(const AttachmentDescription& description) noexcept :
 		Description(description)
 	{
 	}
@@ -12,9 +12,14 @@ namespace Coco::Rendering
 		_passesUsed.Clear();
 	}
 
-	void RenderPipelineAttachmentDescription::AddPassUse(int passIndex)
+	void RenderPipelineAttachmentDescription::AddPassUse(int passIndex) noexcept
 	{
-		_passesUsed.Add(passIndex);
+		try
+		{
+			_passesUsed.Add(passIndex);
+		}
+		catch(...)
+		{ }
 
 		if (_passesUsed.Count() == 1)
 		{
@@ -58,7 +63,7 @@ namespace Coco::Rendering
 		return binding;
 	}
 
-	bool RenderPipeline::RemoveRenderPass(RenderPipelineBinding* renderPassBinding)
+	bool RenderPipeline::RemoveRenderPass(RenderPipelineBinding* renderPassBinding) noexcept
 	{
 		auto it = std::find_if(_renderPasses.begin(), _renderPasses.end(), [renderPassBinding](const Managed<RenderPipelineBinding>& other) {
 			return renderPassBinding == other.get();

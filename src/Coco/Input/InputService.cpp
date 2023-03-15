@@ -5,7 +5,7 @@
 
 namespace Coco::Input
 {
-	InputService::InputService() noexcept :
+	InputService::InputService() :
 		_keyboard(CreateManaged<Keyboard>()),
 		_mouse(CreateManaged<Mouse>()),
 		_processListener(CreateRef<MainLoopTickListener>(this, &InputService::Process, ProcessTickPriority)),
@@ -29,7 +29,7 @@ namespace Coco::Input
 		return Engine::Get()->GetLogger();
 	}
 
-	void InputService::Start() noexcept
+	void InputService::Start()
 	{
 		Engine::Get()->GetMainLoop()->AddTickListener(_processListener);
 		Engine::Get()->GetMainLoop()->AddTickListener(_lateProcessListener);
@@ -41,7 +41,7 @@ namespace Coco::Input
 		_mouse->ProcessCurrentState();
 	}
 
-	void InputService::LateProcess(double deltaTime)
+	void InputService::LateProcess(double deltaTime) noexcept
 	{
 		_keyboard->SavePreviousState();
 		_mouse->SavePreviousState();

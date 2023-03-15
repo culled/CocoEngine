@@ -68,13 +68,13 @@ namespace Coco::Rendering
 			int mipCount, 
 			Rendering::PixelFormat pixelFormat, 
 			Rendering::ColorSpace colorSpace, 
-			ImageUsageFlags usageFlags);
+			ImageUsageFlags usageFlags) noexcept;
 		ImageDescription(
 			int width, int height, int depth, 
 			int layers, int mipCount, 
 			Rendering::PixelFormat pixelFormat, 
 			Rendering::ColorSpace colorSpace, 
-			ImageUsageFlags usageFlags);
+			ImageUsageFlags usageFlags) noexcept;
 	};
 
 	/// <summary>
@@ -86,16 +86,22 @@ namespace Coco::Rendering
 		ImageDescription Description;
 
 	protected:
-		Image(ImageDescription description);
+		Image(ImageDescription description) noexcept;
 
 	public:
 		virtual ~Image() = default;
+
+		Image(const Image&) = delete;
+		Image(Image&&) = delete;
+
+		Image& operator=(const Image&) = delete;
+		Image& operator=(Image&&) = delete;
 
 		/// <summary>
 		/// Gets this image's description
 		/// </summary>
 		/// <returns>This image's description</returns>
-		ImageDescription GetDescription() const { return Description; }
+		ImageDescription GetDescription() const noexcept { return Description; }
 
 		/// <summary>
 		/// Sets pixel data to this image.

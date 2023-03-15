@@ -8,7 +8,10 @@ namespace Coco::Rendering
 	class GraphicsDevice;
 	class GraphicsDeviceVulkan;
 
-	class COCOAPI ImageSamplerVulkan : public ImageSampler
+	/// <summary>
+	/// Vulkan-implementation of an image sampler
+	/// </summary>
+	class ImageSamplerVulkan final : public ImageSampler
 	{
 	private:
 		GraphicsDeviceVulkan* _device;
@@ -16,8 +19,12 @@ namespace Coco::Rendering
 
 	public:
 		ImageSamplerVulkan(GraphicsDevice* device, Rendering::FilterMode filterMode, Rendering::RepeatMode repeatMode, uint maxAnisotropy);
-		virtual ~ImageSamplerVulkan() override;
+		~ImageSamplerVulkan() final;
 
-		VkSampler GetSampler() const { return _sampler; }
+		/// <summary>
+		/// Gets the underlying Vulkan sampler
+		/// </summary>
+		/// <returns>The underlying Vulkan sampler</returns>
+		VkSampler GetSampler() const noexcept { return _sampler; }
 	};
 }

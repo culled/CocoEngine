@@ -29,32 +29,38 @@ namespace Coco::Rendering
 	/// <summary>
 	/// A shader that can be used with Vulkan
 	/// </summary>
-	class VulkanShader : public IGraphicsResource
+	class VulkanShader final : public IGraphicsResource
 	{
 	private:
 		GraphicsDeviceVulkan* _device;
 		Map<string, List<VulkanShaderStage>> _shaderStages;
-		Map<string, VulkanShaderDescriptorLayout> _descriptorSetLayouts;
+		Map<string, VulkanDescriptorLayout> _descriptorSetLayouts;
 		GraphicsResourceRef<DescriptorPoolVulkan> _descriptorPool;
 
 	public:
-		VulkanShader(GraphicsDevice* device, const Ref<Shader>& shader);
-		~VulkanShader();
+		VulkanShader(GraphicsDevice* device, const Shader* shader);
+		~VulkanShader() final;
 
 		/// <summary>
 		/// Gets the stages for a subshader
 		/// </summary>
 		/// <param name="subshaderName">The name of the subshader</param>
-		/// <returns>The list of subshader stages</returns>
-		List<VulkanShaderStage> GetSubshaderStages(const string& subshaderName) const;
+		/// <param name="stages">A list reference that will be filled with the subshader stages</param>
+		/// <returns>True if the subshader was found</returns>
+		bool TryGetSubshaderStages(const string& subshaderName, List<VulkanShaderStage>& stages) const noexcept;
 
 		/// <summary>
 		/// Gets the descriptor set layout for a subshader
 		/// </summary>
-		/// <returns>The subshader's descriptor set layout</returns>
-		VulkanShaderDescriptorLayout GetDescriptorSetLayout(const string& subshaderName) const;
+		/// <param name="layout">The layout reference that will be set to the subshader's descriptor layout</param>
+		/// <returns>True if the subshader was found</returns>
+		bool TryGetDescriptorSetLayout(const string& subshaderName, VulkanDescriptorLayout& layout) const noexcept;
 
-		GraphicsResourceRef<DescriptorPoolVulkan> GetDescriptorPool() const { return _descriptorPool; }
+		/// <summary>
+		/// Gets the descriptor pool
+		/// </summary>
+		/// <returns>The descriptor pool</returns>
+		GraphicsResourceRef<DescriptorPoolVulkan> GetDescriptorPool() const noexcept { return _descriptorPool; }
 
 	private:
 		/// <summary>

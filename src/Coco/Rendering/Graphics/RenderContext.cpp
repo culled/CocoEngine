@@ -5,33 +5,26 @@
 
 namespace Coco::Rendering
 {
-	GlobalUniformObject::GlobalUniformObject()
+	GlobalUniformObject::GlobalUniformObject() noexcept :
+		Projection{0.0f}, View{0.0f}, Padding{0}
+	{}
+
+	GlobalUniformObject::GlobalUniformObject(const RenderView* renderView) noexcept :
+		Padding{ 0 }
 	{
-		std::memset(Projection, 0, 16 * sizeof(float));
-		std::memset(View, 0, 16 * sizeof(float));
-		std::memset(Padding, 0, 128 * sizeof(uint8_t));
+		PopulateMatrix(&Projection[0], renderView->Projection);
+		PopulateMatrix(&View[0], renderView->View);
 	}
 
-	GlobalUniformObject::GlobalUniformObject(const Ref<RenderView>& renderView)
+	void GlobalUniformObject::PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix) noexcept
 	{
-		PopulateMatrix(Projection, renderView->Projection);
-		PopulateMatrix(View, renderView->View);
-
-		std::memset(Padding, 0, 128 * sizeof(uint8_t));
-	}
-
-	void GlobalUniformObject::PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix)
-	{
-		const double* sourceMatrixPtr = &sourceMatrix.Data[0];
-
 		for (int i = 0; i < 16; i++)
 		{
-			destinationMatrixPtr[i] = static_cast<float>(*sourceMatrixPtr);
-			sourceMatrixPtr++;
+			destinationMatrixPtr[i] = static_cast<float>(sourceMatrix.Data[i]);
 		}
 	}
 
-	bool RenderContext::Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline>& pipeline)
+	bool RenderContext::Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline) noexcept
 	{
 		if (!IsAvaliableForRendering())
 		{
@@ -42,17 +35,17 @@ namespace Coco::Rendering
 
 		CurrentPipeline = pipeline;
 		RenderView = renderView;
-		GlobalUO = GlobalUniformObject(renderView);
+		GlobalUO = GlobalUniformObject(renderView.get());
 
 		return BeginImpl();
 	}
 
-	void RenderContext::End()
+	void RenderContext::End() noexcept
 	{
 		EndImpl();
 	}
 
-	void RenderContext::Reset()
+	void RenderContext::Reset() noexcept
 	{
 		RenderView.reset();
 		CurrentPipeline.reset();
@@ -67,7 +60,7 @@ namespace Coco::Rendering
 		SetViewport(RenderView->RenderOffset, RenderView->RenderSize);
 	}
 
-	void RenderContext::SetCurrentRenderPass(Ref<IRenderPass> renderPass, uint passIndex)
+	void RenderContext::SetCurrentRenderPass(Ref<IRenderPass> renderPass, uint passIndex) noexcept
 	{
 		CurrentRenderPass = renderPass;
 		CurrentRenderPassIndex = passIndex;

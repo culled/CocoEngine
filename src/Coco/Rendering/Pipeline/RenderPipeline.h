@@ -47,14 +47,14 @@ namespace Coco::Rendering
 
 	public:
 		RenderPipelineAttachmentDescription() = default;
-		RenderPipelineAttachmentDescription(const AttachmentDescription& description);
+		RenderPipelineAttachmentDescription(const AttachmentDescription& description) noexcept;
 		~RenderPipelineAttachmentDescription();
 
 		/// <summary>
 		/// Gets the indices of the render passes in a pipeline that this attachment is used
 		/// </summary>
 		/// <returns>The indices of the pipeline render passes where this attachment is used</returns>
-		const List<int>& GetPassesUsed() const { return _passesUsed; }
+		const List<int>& GetPassesUsed() const noexcept { return _passesUsed; }
 
 	private:
 
@@ -62,7 +62,7 @@ namespace Coco::Rendering
 		/// Marks a pass's index where this attachment is used
 		/// </summary>
 		/// <param name="passIndex"></param>
-		void AddPassUse(int passIndex);
+		void AddPassUse(int passIndex) noexcept;
 	};
 
 	/// <summary>
@@ -101,7 +101,7 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="renderPassBinding">The binding to the renderpass</param>
 		/// <returns>True if the binding was found and removed</returns>
-		bool RemoveRenderPass(RenderPipelineBinding* renderPassBinding);
+		bool RemoveRenderPass(RenderPipelineBinding* renderPassBinding) noexcept;
 
 		/// <summary>
 		/// Gets the list of render passes in this pipeline
@@ -113,13 +113,13 @@ namespace Coco::Rendering
 		/// Sets the clear color of this render pipeline
 		/// </summary>
 		/// <param name="color">The clear color</param>
-		void SetClearColor(const Color& color) { _clearColor = color; }
+		void SetClearColor(const Color& color) noexcept { _clearColor = color; }
 
 		/// <summary>
 		/// Gets the clear color used by this render pipeline
 		/// </summary>
 		/// <returns>The clear color</returns>
-		Color GetClearColor() const { return _clearColor; }
+		Color GetClearColor() const noexcept { return _clearColor; }
 
 		/// <summary>
 		/// Performs rendering operations for this pipeline

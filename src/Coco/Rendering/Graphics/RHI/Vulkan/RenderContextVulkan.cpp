@@ -25,7 +25,10 @@ namespace Coco::Rendering
 	RenderContextVulkan::RenderContextVulkan(GraphicsDevice* device) :
 		_device(static_cast<GraphicsDeviceVulkan*>(device)), _currentState(RenderContextState::Ready)
 	{
-		if (!_device->GetGraphicsCommandPool(&_pool))
+		if (!Engine::Get()->GetServiceManager()->TryFindService(_renderingService))
+			throw Exception("Could not find rendering service");
+
+		if (!_device->GetGraphicsCommandPool(_pool))
 			throw Exception("A graphics command pool needs to be created for rendering");
 
 		_commandBuffer = static_cast<CommandBufferVulkan*>(_pool->Allocate(true));
@@ -120,21 +123,25 @@ namespace Coco::Rendering
 		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), indexCount, instanceCount, indexOffset, vertexOffset, instanceOffset);
 	}
 
-	void RenderContextVulkan::Draw(const Ref<Mesh>& mesh, const Matrix4x4& modelMatrix)
+	void RenderContextVulkan::Draw(const Mesh* mesh, const Matrix4x4& modelMatrix)
 	{
-		FlushStateChanges();
+		if (!FlushStateChanges())
+		{
+			LogError(_renderingService->GetLogger(), "Failed setting up state for rendering mesh. Skipping...");
+			return;
+		}
 
 		// Bind the vertex buffer
-		VkDeviceSize offsets[1] = { 0 };
+		Array<VkDeviceSize, 1> offsets = { 0 };
 
 		GraphicsResourceRef<Buffer> vertexBufferRef = mesh->GetVertexBuffer();
-		BufferVulkan* vertexBuffer = static_cast<BufferVulkan*>(vertexBufferRef.get());
+		const BufferVulkan* vertexBuffer = static_cast<BufferVulkan*>(vertexBufferRef.get());
 		VkBuffer vertexVkBuffer = vertexBuffer->GetBuffer();
-		vkCmdBindVertexBuffers(_commandBuffer->GetCmdBuffer(), 0, 1, &vertexVkBuffer, offsets);
+		vkCmdBindVertexBuffers(_commandBuffer->GetCmdBuffer(), 0, 1, &vertexVkBuffer, offsets.data());
 
 		// Bind the index buffer
 		GraphicsResourceRef<Buffer> indexBufferRef = mesh->GetIndexBuffer();
-		BufferVulkan* indexBuffer = static_cast<BufferVulkan*>(indexBufferRef.get());
+		const BufferVulkan* indexBuffer = static_cast<BufferVulkan*>(indexBufferRef.get());
 		vkCmdBindIndexBuffer(_commandBuffer->GetCmdBuffer(), indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		// Push the model matrix
@@ -144,73 +151,93 @@ namespace Coco::Rendering
 		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), static_cast<uint>(mesh->GetIndexCount()), 1, 0, 0, 0);
 	}
 
-	bool RenderContextVulkan::IsAvaliableForRendering()
+	bool RenderContextVulkan::IsAvaliableForRendering() noexcept
 	{
 		return _renderingCompleteFence->IsSignalled();
 	}
 
-	void RenderContextVulkan::WaitForRenderingCompleted()
+	void RenderContextVulkan::WaitForRenderingCompleted() noexcept
 	{
-		_renderingCompleteFence->Wait(std::numeric_limits<uint64_t>::max());
+		try
+		{
+			_renderingCompleteFence->Wait(std::numeric_limits<uint64_t>::max());
+		}
+		catch(...)
+		{ }
 	}
 
-	bool RenderContextVulkan::BeginImpl()
+	bool RenderContextVulkan::BeginImpl() noexcept
 	{
-		_renderPass = _device->GetRenderCache()->GetOrCreateRenderPass(CurrentPipeline);
+		try
+		{
+			_renderPass = _device->GetRenderCache()->GetOrCreateRenderPass(CurrentPipeline.get());
 
-		_globalUBO->LoadData(0, sizeof(GlobalUniformObject), &GlobalUO);
+			_globalUBO->LoadData(0, sizeof(GlobalUniformObject), &GlobalUO);
 
-		if (_framebuffer == nullptr)
-			CreateFramebuffer();
+			if (_framebuffer == nullptr)
+				CreateFramebuffer();
 
-		_commandBuffer->Begin(true, false);
+			_commandBuffer->Begin(true, false);
 
-		VkRenderPassBeginInfo beginInfo = {};
-		beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		beginInfo.renderPass = _renderPass.RenderPass;
-		beginInfo.framebuffer = _framebuffer;
+			VkRenderPassBeginInfo beginInfo = {};
+			beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			beginInfo.renderPass = _renderPass.RenderPass;
+			beginInfo.framebuffer = _framebuffer;
 
-		beginInfo.renderArea.offset.x = static_cast<uint32_t>(RenderView->RenderOffset.X);
-		beginInfo.renderArea.offset.y = static_cast<uint32_t>(RenderView->RenderOffset.Y);
-		beginInfo.renderArea.extent.width = static_cast<uint32_t>(RenderView->RenderSize.Width);
-		beginInfo.renderArea.extent.height = static_cast<uint32_t>(RenderView->RenderSize.Height);
+			beginInfo.renderArea.offset.x = static_cast<uint32_t>(RenderView->RenderOffset.X);
+			beginInfo.renderArea.offset.y = static_cast<uint32_t>(RenderView->RenderOffset.Y);
+			beginInfo.renderArea.extent.width = static_cast<uint32_t>(RenderView->RenderSize.Width);
+			beginInfo.renderArea.extent.height = static_cast<uint32_t>(RenderView->RenderSize.Height);
 
-		VkClearValue clearValue = { {{
-				static_cast<float>(RenderView->ClearColor.R),
-				static_cast<float>(RenderView->ClearColor.G),
-				static_cast<float>(RenderView->ClearColor.B),
-				static_cast<float>(RenderView->ClearColor.A)
-			}} };
+			const VkClearValue clearValue = { {{
+					static_cast<float>(RenderView->ClearColor.R),
+					static_cast<float>(RenderView->ClearColor.G),
+					static_cast<float>(RenderView->ClearColor.B),
+					static_cast<float>(RenderView->ClearColor.A)
+				}} };
 
-		beginInfo.clearValueCount = 1;
-		beginInfo.pClearValues = &clearValue;
+			beginInfo.clearValueCount = 1;
+			beginInfo.pClearValues = &clearValue;
 
-		vkCmdBeginRenderPass(_commandBuffer->GetCmdBuffer(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+			vkCmdBeginRenderPass(_commandBuffer->GetCmdBuffer(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		_currentState = RenderContextState::CompilingDrawCalls;
+			_currentState = RenderContextState::CompilingDrawCalls;
 
-		return true;
+			return true;
+		}
+		catch (const Exception& ex)
+		{
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to begin VulkanRenderContext: {}", ex.what()));
+			return false;
+		}
 	}
 
-	void RenderContextVulkan::EndImpl()
+	void RenderContextVulkan::EndImpl() noexcept
 	{
-		List<IGraphicsSemaphore*> waitSemaphores;
+		try
+		{
+			List<IGraphicsSemaphore*> waitSemaphores;
 
-		for (GraphicsResourceRef<GraphicsSemaphoreVulkan> semaphore : _waitSemaphores)
-			waitSemaphores.Add(semaphore.get());
+			for (GraphicsResourceRef<GraphicsSemaphoreVulkan> semaphore : _waitSemaphores)
+				waitSemaphores.Add(semaphore.get());
 
-		List<IGraphicsSemaphore*> signalSemaphores;
+			List<IGraphicsSemaphore*> signalSemaphores;
 
-		for (GraphicsResourceRef<GraphicsSemaphoreVulkan> semaphore : _signalSemaphores)
-			signalSemaphores.Add(semaphore.get());
+			for (GraphicsResourceRef<GraphicsSemaphoreVulkan> semaphore : _signalSemaphores)
+				signalSemaphores.Add(semaphore.get());
 
-		vkCmdEndRenderPass(_commandBuffer->GetCmdBuffer());
-		_commandBuffer->EndAndSubmit(waitSemaphores, signalSemaphores, _renderingCompleteFence.get());
+			vkCmdEndRenderPass(_commandBuffer->GetCmdBuffer());
+			_commandBuffer->EndAndSubmit(waitSemaphores, signalSemaphores, _renderingCompleteFence.get());
 
-		_currentState = RenderContextState::DrawCallsSubmitted;
+			_currentState = RenderContextState::DrawCallsSubmitted;
+		}
+		catch(const Exception& ex)
+		{
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to end VulkanRenderContext: {}", ex.what()));
+		}
 	}
 
-	void RenderContextVulkan::ResetImpl()
+	void RenderContextVulkan::ResetImpl() noexcept
 	{
 		// Free all material descriptor sets
 		for (auto& poolKVP : _shaderDescriptorPools)
@@ -232,44 +259,51 @@ namespace Coco::Rendering
 		_signalSemaphores.Clear();
 		_waitSemaphores.Clear();
 
-		_waitSemaphores.Add(_imageAvailableSemaphore);
-		_signalSemaphores.Add(_renderingCompleteSemaphore);
-		_renderingCompleteFence->Reset();
+		try
+		{
+			_waitSemaphores.Add(_imageAvailableSemaphore);
+			_signalSemaphores.Add(_renderingCompleteSemaphore);
+			_renderingCompleteFence->Reset();
 
-		_currentState = RenderContextState::Ready;
+			_currentState = RenderContextState::Ready;
+		}
+		catch(const Exception& ex)
+		{
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to reset VulkanRenderContext: {}", ex.what()));
+		}
 	}
 
-	void RenderContextVulkan::FlushStateChanges()
+	bool RenderContextVulkan::FlushStateChanges() noexcept
 	{
-		if (CurrentRenderPass == nullptr)
-			throw Exception("A render pass was not set before rendering geometry");
-
-		if (_stateChanges.contains(RenderContextStateChange::Shader))
+		try
 		{
-			_currentPipeline = _device->GetRenderCache()->GetOrCreatePipeline(
-				_renderPass, 
-				CurrentRenderPass->GetName(), 
-				CurrentRenderPassIndex, 
-				_currentShader, 
-				_globalDescriptor.Layout);
+			if (CurrentRenderPass == nullptr)
+				throw Exception("A render pass was not set before rendering geometry");
 
-			vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, _currentPipeline.Pipeline);
-
-			// Bind the descriptor sets
-			vkCmdBindDescriptorSets(
-				_commandBuffer->GetCmdBuffer(),
-				VK_PIPELINE_BIND_POINT_GRAPHICS,
-				_currentPipeline.Layout,
-				0, 1, &_globalDescriptorSet,
-				0, 0);
-		}
-
-		if (_stateChanges.contains(RenderContextStateChange::Material))
-		{
-			VkDescriptorSet set = GetOrAllocateMaterialDescriptorSet();
-
-			if (set != nullptr)
+			if (_stateChanges.contains(RenderContextStateChange::Shader))
 			{
+				_currentPipeline = _device->GetRenderCache()->GetOrCreatePipeline(
+					_renderPass,
+					CurrentRenderPass->GetName(),
+					CurrentRenderPassIndex,
+					_currentShader.get(),
+					_globalDescriptor.Layout);
+
+				vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, _currentPipeline.Pipeline);
+
+				// Bind the descriptor sets
+				vkCmdBindDescriptorSets(
+					_commandBuffer->GetCmdBuffer(),
+					VK_PIPELINE_BIND_POINT_GRAPHICS,
+					_currentPipeline.Layout,
+					0, 1, &_globalDescriptorSet,
+					0, 0);
+			}
+
+			if (_stateChanges.contains(RenderContextStateChange::Material))
+			{
+				VkDescriptorSet set = GetOrAllocateMaterialDescriptorSet();
+
 				// Bind the descriptor sets
 				vkCmdBindDescriptorSets(
 					_commandBuffer->GetCmdBuffer(),
@@ -277,10 +311,24 @@ namespace Coco::Rendering
 					_currentPipeline.Layout,
 					1, 1, &set,
 					0, 0);
-			}			
-		}
+			}
 
-		_stateChanges.clear();
+			_stateChanges.clear();
+
+			return true;
+		}
+		catch (const Exception& ex)
+		{
+			_stateChanges.clear();
+			LogError(_renderingService->GetLogger(), ex.what());
+			return false;
+		}
+		catch (...)
+		{
+			_stateChanges.clear();
+			LogError(_renderingService->GetLogger(), "Failed binding pipeline state");
+			return false;
+		}
 	}
 
 	void RenderContextVulkan::CreateFramebuffer()
@@ -294,27 +342,19 @@ namespace Coco::Rendering
 		framebufferInfo.height = static_cast<uint32_t>(RenderView->RenderSize.Height);
 		framebufferInfo.layers = 1;
 
-		try
+		List<VkImageView> renderTargets;
+		for (const GraphicsResourceRef<ImageVulkan> renderTarget : _renderTargets)
 		{
-			List<VkImageView> renderTargets;
-			for (const GraphicsResourceRef<ImageVulkan> renderTarget : _renderTargets)
-			{
-				renderTargets.Add(renderTarget->GetNativeView());
-			}
-
-			framebufferInfo.attachmentCount = static_cast<uint32_t>(renderTargets.Count());
-			framebufferInfo.pAttachments = renderTargets.Data();
-
-			AssertVkResult(vkCreateFramebuffer(_device->GetDevice(), &framebufferInfo, nullptr, &_framebuffer));
+			renderTargets.Add(renderTarget->GetNativeView());
 		}
-		catch (Exception& ex)
-		{
-			string err = FormattedString("Failed to create framebuffers: {}", ex.what());
-			throw Exception(err.c_str());
-		}
+
+		framebufferInfo.attachmentCount = static_cast<uint32_t>(renderTargets.Count());
+		framebufferInfo.pAttachments = renderTargets.Data();
+
+		AssertVkResult(vkCreateFramebuffer(_device->GetDevice(), &framebufferInfo, nullptr, &_framebuffer));
 	}
 
-	void RenderContextVulkan::DestroyFramebuffer()
+	void RenderContextVulkan::DestroyFramebuffer() noexcept
 	{
 		_device->WaitForIdle();
 
@@ -339,7 +379,7 @@ namespace Coco::Rendering
 
 		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &layoutCreateInfo, nullptr, &_globalDescriptor.Layout));
 
-		_globalDescriptorPool = _device->CreateResource<DescriptorPoolVulkan>(1, List<VulkanShaderDescriptorLayout>({ _globalDescriptor }));
+		_globalDescriptorPool = _device->CreateResource<DescriptorPoolVulkan>(1, List<VulkanDescriptorLayout>({ _globalDescriptor }));
 		_globalDescriptorSet = _globalDescriptorPool->GetOrAllocateSet(_globalDescriptor, 0);
 
 		// Update the descriptor sets
@@ -365,10 +405,10 @@ namespace Coco::Rendering
 		const string subshaderName = CurrentRenderPass->GetName();
 
 		GraphicsResourceRef<DescriptorPoolVulkan> pool;
-		ResourceID shaderID = _currentShader->GetID();
-		ResourceID materialID = _currentMaterial->GetID();
+		const ResourceID shaderID = _currentShader->GetID();
+		const ResourceID materialID = _currentMaterial->GetID();
 
-		GraphicsResourceRef<VulkanShader> vulkanShader = _device->GetRenderCache()->GetOrCreateVulkanShader(_currentShader);
+		GraphicsResourceRef<VulkanShader> vulkanShader = _device->GetRenderCache()->GetOrCreateVulkanShader(_currentShader.get());
 		pool = vulkanShader->GetDescriptorPool();
 
 		if (!_shaderDescriptorPools.contains(shaderID))
@@ -380,18 +420,25 @@ namespace Coco::Rendering
 			return _materialDescriptorSets[materialID];
 		}
 
-		RenderingService* rendering;
-		if (!Engine::Get()->GetServiceManager()->TryFindService(&rendering))
-			throw Exception("Could not find rendering service");
-
-		VkDescriptorSet set = pool->GetOrAllocateSet(vulkanShader->GetDescriptorSetLayout(subshaderName), materialID);
-
 		const Subshader* subshader;
-		if (!_currentShader->TryGetSubshader(subshaderName, &subshader))
+		if (!_currentShader->TryGetSubshader(subshaderName, subshader))
 		{
-			LogError(rendering->GetLogger(), FormattedString("Could not find a subshader for pass {}", subshaderName));
-			return nullptr;
+			const string err = FormattedString("Could not find a subshader for pass {}", subshaderName,
+				subshaderName,
+				_currentShader->GetName());
+			throw Exception(err.c_str());
 		}
+
+		VulkanDescriptorLayout layout;
+		if (!vulkanShader->TryGetDescriptorSetLayout(subshaderName, layout))
+		{
+			const string err = FormattedString("Could not find a descriptor layout for subshader {} in shader {}",
+				subshaderName,
+				_currentShader->GetName());
+			throw Exception(err.c_str());
+		}
+
+		VkDescriptorSet set = pool->GetOrAllocateSet(layout, materialID);
 
 		List<VkWriteDescriptorSet> descriptorWrites(subshader->Descriptors.Count());
 		List<VkDescriptorBufferInfo> bufferInfos(subshader->Descriptors.Count());
@@ -415,7 +462,7 @@ namespace Coco::Rendering
 				List<uint8_t> data = _currentMaterial->GetStructData(descriptor.Name);
 				if (data.Count() == 0)
 				{
-					LogError(rendering->GetLogger(), FormattedString("No data was set for material descriptor {}", descriptor.Name));
+					LogError(_renderingService->GetLogger(), FormattedString("No data was set for material descriptor {}", descriptor.Name));
 					continue;
 				}
 
@@ -439,13 +486,13 @@ namespace Coco::Rendering
 
 				if (!texture)
 				{
-					texture = rendering->GetDefaultTexture();
+					texture = _renderingService->GetDefaultTexture();
 				}
 
 				GraphicsResourceRef<Image> image = texture->GetImage();
-				ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.get());
+				const ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.get());
 				GraphicsResourceRef<ImageSampler> sampler = texture->GetSampler();
-				ImageSamplerVulkan* vulkanSampler = static_cast<ImageSamplerVulkan*>(sampler.get());
+				const ImageSamplerVulkan* vulkanSampler = static_cast<ImageSamplerVulkan*>(sampler.get());
 
 				// Texture data
 				VkDescriptorImageInfo& imageInfo = imageInfos[i];

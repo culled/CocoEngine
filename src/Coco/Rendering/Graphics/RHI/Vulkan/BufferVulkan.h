@@ -13,7 +13,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Vulkan-implementation of a Buffer
 	/// </summary>
-	class BufferVulkan : public Buffer
+	class BufferVulkan final : public Buffer
 	{
 	private:
 		GraphicsDeviceVulkan* _device;
@@ -28,20 +28,20 @@ namespace Coco::Rendering
 
 	public:
 		BufferVulkan(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags, uint64_t size, bool createBound);
-		virtual ~BufferVulkan() override;
+		~BufferVulkan() final;
 
-		virtual void Resize(uint64_t newSize) override;
-		virtual void CopyTo(uint64_t sourceOffset, Buffer* destination, uint64_t destinationOffset, uint64_t size) override;
-		virtual void Bind(uint64_t offset) override;
-		virtual uint64_t GetSize() const override { return _size; }
-		virtual void* Lock(uint64_t offset, uint64_t size) override;
-		virtual void Unlock() override;
+		void Resize(uint64_t newSize) final;
+		void CopyTo(uint64_t sourceOffset, Buffer* destination, uint64_t destinationOffset, uint64_t size) final;
+		void Bind(uint64_t offset) final;
+		uint64_t GetSize() const noexcept final { return _size; }
+		void* Lock(uint64_t offset, uint64_t size) final;
+		void Unlock() final;
 
 		/// <summary>
 		/// Gets the underlying Vulkan buffer
 		/// </summary>
 		/// <returns>The underlying Vulkan buffer</returns>
-		VkBuffer GetBuffer() const { return _buffer; }
+		VkBuffer GetBuffer() const noexcept { return _buffer; }
 
 	private:
 		/// <summary>
@@ -51,7 +51,7 @@ namespace Coco::Rendering
 		/// <param name="buffer">The buffer</param>
 		/// <param name="bufferMemory">The buffer memory</param>
 		/// <param name="bufferMemoryIndex">The index of memory used for the buffer</param>
-		void CreateBuffer(uint64_t size, VkBuffer* buffer, VkDeviceMemory* bufferMemory, uint32_t& bufferMemoryIndex);
+		void CreateBuffer(uint64_t size, VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t& bufferMemoryIndex);
 
 		/// <summary>
 		/// Destroys a buffer

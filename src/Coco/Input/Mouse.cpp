@@ -4,7 +4,7 @@ namespace Coco::Input
 {
 	void Mouse::UpdateButtonState(MouseButton button, bool isPressed)
 	{
-		int index = static_cast<int>(button);
+		const int index = static_cast<int>(button);
 		if (_preProcessState.ButtonStates[index] == isPressed)
 			return;
 

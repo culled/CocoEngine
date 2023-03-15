@@ -8,11 +8,11 @@ namespace Coco::Rendering
 {
 	#define MAX_SETS 10
 
-	VulkanShader::VulkanShader(GraphicsDevice* device, const Ref<Shader>& shader) :
+	VulkanShader::VulkanShader(GraphicsDevice* device, const Shader* shader) :
 		_device(static_cast<GraphicsDeviceVulkan*>(device))
 	{
 		List<Subshader> subshaders = shader->GetSubshaders();
-		List<VulkanShaderDescriptorLayout> descriptorSetlayouts;
+		List<VulkanDescriptorLayout> descriptorSetlayouts;
 
 		for (const Subshader& subshader : subshaders)
 		{
@@ -23,7 +23,7 @@ namespace Coco::Rendering
 					VulkanShaderStage stage = CreateShaderStage(subshaderStagesKVP.first, subshader.PassName, subshaderStagesKVP.second);
 					_shaderStages[subshader.PassName].Add(stage);
 				}
-				catch (Exception& ex)
+				catch (const Exception& ex)
 				{
 					string err = FormattedString("Unable to create shader module for \"{}:{}\": {}", shader->GetName(), subshader.PassName, ex.what());
 					throw Exception(err.c_str());
@@ -31,7 +31,7 @@ namespace Coco::Rendering
 			}
 
 
-			VulkanShaderDescriptorLayout layout = {};
+			VulkanDescriptorLayout layout = {};
 			layout.LayoutBindings.Resize(subshader.Descriptors.Count());
 
 			for (uint32_t i = 0; i < subshader.Descriptors.Count(); i++)
@@ -84,20 +84,22 @@ namespace Coco::Rendering
 		_shaderStages.clear();
 	}
 
-	List<VulkanShaderStage> VulkanShader::GetSubshaderStages(const string& subshaderName) const
+	bool VulkanShader::TryGetSubshaderStages(const string& subshaderName, List<VulkanShaderStage>& stages) const noexcept
 	{
 		if (!_shaderStages.contains(subshaderName))
-			return List<VulkanShaderStage>();
+			return false;
 
-		return _shaderStages.at(subshaderName);
+		stages = _shaderStages.at(subshaderName);
+		return true;
 	}
 
-	VulkanShaderDescriptorLayout VulkanShader::GetDescriptorSetLayout(const string& subshaderName) const
+	bool VulkanShader::TryGetDescriptorSetLayout(const string& subshaderName, VulkanDescriptorLayout& layout) const noexcept
 	{
 		if (!_descriptorSetLayouts.contains(subshaderName))
-			throw Exception("No layout was created for subshader");
+			return false;
 
-		return _descriptorSetLayouts.at(subshaderName);
+		layout = _descriptorSetLayouts.at(subshaderName);
+		return true;
 	}
 
 	VulkanShaderStage VulkanShader::CreateShaderStage(ShaderStageType stage, const string& subshaderName, const string& file)
@@ -115,7 +117,7 @@ namespace Coco::Rendering
 		{
 			byteCode = File::ReadAllBytes(file);
 		}
-		catch (Exception& ex)
+		catch (const Exception& ex)
 		{
 			string err = FormattedString("Unable to read shader file: {}", ex.what());
 			throw Exception(err.c_str());

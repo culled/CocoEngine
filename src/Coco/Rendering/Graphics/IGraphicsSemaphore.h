@@ -15,5 +15,11 @@ namespace Coco::Rendering
 
 	public:
 		virtual ~IGraphicsSemaphore() = default;
+
+		IGraphicsSemaphore(const IGraphicsSemaphore&) = delete;
+		IGraphicsSemaphore(IGraphicsSemaphore&&) = delete;
+
+		IGraphicsSemaphore& operator=(const IGraphicsSemaphore&) = delete;
+		IGraphicsSemaphore& operator=(IGraphicsSemaphore&&) = delete;
 	};
 }

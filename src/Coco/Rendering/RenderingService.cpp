@@ -25,50 +25,61 @@ namespace Coco::Rendering
 		return Engine::Get()->GetLogger();
 	}
 
-	void RenderingService::Start()
+	void RenderingService::Start() noexcept
 	{}
 
-	void RenderingService::SetDefaultPipeline(Ref<RenderPipeline> pipeline)
-	{
-		_defaultPipeline = pipeline;
-	}
-
-	void RenderingService::Render(GraphicsPresenter* presenter)
+	void RenderingService::Render(GraphicsPresenter* presenter) noexcept
 	{
 		if (_defaultPipeline)
 		{
-			Render(presenter, _defaultPipeline, Engine::Get()->GetApplication()->GetCamera());
+			Render(presenter, _defaultPipeline, Engine::Get()->GetApplication()->GetCamera().get());
+		}
+		else
+		{
+			LogError(GetLogger(), "Failed to render presenter: No render pipeline was given and no default render pipeline has been set");
 		}
 	}
 
-	void RenderingService::Render(GraphicsPresenter* presenter, Ref<RenderPipeline>& pipeline, const Ref<CameraComponent>& camera)
+	void RenderingService::Render(GraphicsPresenter* presenter, Ref<RenderPipeline> pipeline, CameraComponent* camera) noexcept
 	{
 		SizeInt size = presenter->GetBackbufferSize();
 
 		// Make sure the camera matches our rendering aspect ratio
 		camera->SetAspectRatio(static_cast<double>(size.Width) / size.Height);
 
-		//Matrix4x4 viewMat = _graphics->AdjustViewMatrix(camera->GetViewMatrix());
-
-		// TODO: create this from the scene graph
-		Ref<RenderView> view = CreateRef<RenderView>(Vector2Int::Zero, size, pipeline->GetClearColor(), camera->GetProjectionMatrix(), camera->GetViewMatrix());
+		Ref<RenderView> view;
+		try
+		{
+			// TODO: create this from the scene graph
+			view = CreateRef<RenderView>(Vector2Int::Zero, size, pipeline->GetClearColor(), camera->GetProjectionMatrix(), camera->GetViewMatrix());
+		}
+		catch (...)
+		{
+			LogError(GetLogger(), "Failed to create RenderView");
+			return;
+		}
 
 		// Acquire the render context that we'll be using
 		GraphicsResourceRef<RenderContext> renderContext;
-
 		if (!presenter->GetRenderContext(renderContext))
 		{
-			LogError(GetLogger(), "Failed to get RenderContext to render presenter");
+			LogError(GetLogger(), "Failed to get RenderContext from render presenter");
 			return;
 		}
 
 		// Actually render with the pipeline
 		renderContext->Begin(view, pipeline);
-		DoRender(pipeline, renderContext.get());
+
+		if (!DoRender(pipeline.get(), renderContext.get()))
+			return;
+
 		renderContext->End();
 
 		// Submit the render data to the gpu and present
-		presenter->Present(renderContext);
+		if (!presenter->Present(renderContext.get()))
+		{
+			LogError(GetLogger(), "Failed to present");
+		}
 	}
 
 	Ref<Texture> RenderingService::CreateTexture(
@@ -84,20 +95,30 @@ namespace Coco::Rendering
 		return CreateRef<Texture>(width, height, pixelFormat, colorSpace, usageFlags, filterMode, repeatMode, anisotropy, _graphics.get());
 	}
 
-	void RenderingService::DoRender(const Ref<RenderPipeline>& pipeline, RenderContext* context)
+	bool RenderingService::DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept
 	{
-		context->RestoreViewport();
+		try
+		{
+			context->RestoreViewport();
 
-		// Do render!
-		pipeline->Execute(context);
+			// Do render!
+			pipeline->Execute(context);
+
+			return true;
+		}
+		catch (const Exception& ex)
+		{
+			LogError(GetLogger(), FormattedString("Rendering failed: {}", ex.what()));
+			return false;
+		}
 	}
 
 	void RenderingService::CreateDefaultTexture()
 	{
 		LogInfo(GetLogger(), "Creating default texture...");
 
-		const int size = 32;
-		const int channels = 4;
+		constexpr int size = 32;
+		constexpr int channels = 4;
 
 		_defaultTexture = CreateTexture(
 			size, size, 

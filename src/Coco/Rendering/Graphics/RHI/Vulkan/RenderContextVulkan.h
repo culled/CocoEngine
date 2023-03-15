@@ -16,6 +16,7 @@
 
 namespace Coco::Rendering
 {
+	class RenderingService;
 	class RenderPipeline;
 	class GraphicsDeviceVulkan;
 	class ImageVulkan;
@@ -23,9 +24,10 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Vulkan-implementation of a RenderContext
 	/// </summary>
-	class RenderContextVulkan : public RenderContext
+	class RenderContextVulkan final : public RenderContext
 	{
 	private:
+		RenderingService* _renderingService;
 		GraphicsDeviceVulkan* _device;
 		CommandBufferPoolVulkan* _pool;
 		CommandBufferVulkan* _commandBuffer;
@@ -48,7 +50,7 @@ namespace Coco::Rendering
 		Ref<Shader> _currentShader;
 		Ref<Material> _currentMaterial;
 
-		VulkanShaderDescriptorLayout _globalDescriptor;
+		VulkanDescriptorLayout _globalDescriptor;
 		GraphicsResourceRef<DescriptorPoolVulkan> _globalDescriptorPool;
 		VkDescriptorSet _globalDescriptorSet;
 
@@ -59,15 +61,15 @@ namespace Coco::Rendering
 
 	public:
 		RenderContextVulkan(GraphicsDevice* owningDevice);
-		virtual ~RenderContextVulkan() override;
+		~RenderContextVulkan() final;
 
-		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) override;
-		virtual void UseShader(Ref<Shader> shader) override;
-		virtual void UseMaterial(Ref<Material> material) override;
-		virtual void DrawIndexed(uint indexCount, uint indexOffset, uint vertexOffset, uint instanceCount, uint instanceOffset) override;
-		virtual void Draw(const Ref<Mesh>& mesh, const Matrix4x4& modelMatrix) override;
-		virtual bool IsAvaliableForRendering() override;
-		virtual void WaitForRenderingCompleted() override;
+		void SetViewport(const Vector2Int& offset, const SizeInt& size) final;
+		void UseShader(Ref<Shader> shader) final;
+		void UseMaterial(Ref<Material> material) final;
+		void DrawIndexed(uint indexCount, uint indexOffset, uint vertexOffset, uint instanceCount, uint instanceOffset) final;
+		void Draw(const Mesh* mesh, const Matrix4x4& modelMatrix) final;
+		bool IsAvaliableForRendering() noexcept final;
+		void WaitForRenderingCompleted() noexcept final;
 
 		/// <summary>
 		/// Sets the render targets for this render context to use
@@ -75,27 +77,40 @@ namespace Coco::Rendering
 		/// <param name="renderTargets">The render targets to use</param>
 		void SetRenderTargets(const List<GraphicsResourceRef<ImageVulkan>>& renderTargets);
 
-		List<GraphicsResourceRef<ImageVulkan>> GetRenderTargets() const { return _renderTargets; }
+		/// <summary>
+		/// Gets the render targets that this context is using
+		/// </summary>
+		/// <returns>The render targets that this context is using</returns>
+		List<GraphicsResourceRef<ImageVulkan>> GetRenderTargets() const noexcept { return _renderTargets; }
 
 		/// <summary>
 		/// Gets the render pass being used for this context
 		/// </summary>
 		/// <returns>The render pass being used</returns>
-		VulkanRenderPass GetRenderPass() const { return _renderPass; }
+		VulkanRenderPass GetRenderPass() const noexcept { return _renderPass; }
 
-		VkSemaphore GetImageAvailableSemaphore() const { return _imageAvailableSemaphore->GetSemaphore(); }
-		VkSemaphore GetRenderCompleteSemaphore() const { return _renderingCompleteSemaphore->GetSemaphore(); }
+		/// <summary>
+		/// Gets the Vulkan semaphore that should be used to signal when the backbuffer is available
+		/// </summary>
+		/// <returns>The image available semaphore</returns>
+		VkSemaphore GetImageAvailableSemaphore() const noexcept { return _imageAvailableSemaphore->GetSemaphore(); }
+
+		/// <summary>
+		/// Gets the Vulkan semaphore that is signaled when rendering has completed
+		/// </summary>
+		/// <returns>The render complete semaphore</returns>
+		VkSemaphore GetRenderCompleteSemaphore() const noexcept { return _renderingCompleteSemaphore->GetSemaphore(); }
 
 	protected:
-		virtual bool BeginImpl() override;
-		virtual void EndImpl() override;
-		virtual void ResetImpl() override;
+		virtual bool BeginImpl() noexcept final;
+		virtual void EndImpl() noexcept final;
+		virtual void ResetImpl() noexcept final;
 
 	private:
 		/// <summary>
-		/// Flushes all state changes and binds the current state
+		/// Attempts to flush all state changes and bind the current state
 		/// </summary>
-		void FlushStateChanges();
+		bool FlushStateChanges() noexcept;
 
 		/// <summary>
 		/// Creates the framebuffer from the current renderpass and render view
@@ -105,7 +120,7 @@ namespace Coco::Rendering
 		/// <summary>
 		/// Destroys the current framebuffer
 		/// </summary>
-		void DestroyFramebuffer();
+		void DestroyFramebuffer() noexcept;
 
 		/// <summary>
 		/// Creates the global descriptor set

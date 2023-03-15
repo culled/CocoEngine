@@ -115,7 +115,7 @@ namespace Coco::Rendering
 		if (_usingValidationLayers)
 			CreateDebugMessenger();
 
-		_device = GraphicsDeviceVulkan::Create(this, creationParams.DeviceCreateParams);
+		_device = GraphicsDeviceVulkan::Create(*this, creationParams.DeviceCreateParams);
 
 		LogTrace(GetLogger(), "Created Vulkan graphics platform");
 	}
@@ -138,15 +138,16 @@ namespace Coco::Rendering
 		LogTrace(GetLogger(), "Destroyed Vulkan graphics platform");
 	}
 
-	Logging::Logger* GraphicsPlatformVulkan::GetLogger() const
+	Logging::Logger* GraphicsPlatformVulkan::GetLogger() const noexcept
 	{
 		return RenderService->GetLogger();
 	}
 
 	void GraphicsPlatformVulkan::ResetDevice()
 	{
+		// TODO: handle how to reinitialize resources!
 		LogInfo(GetLogger(), "Resetting graphics device...");
-		_device = GraphicsDeviceVulkan::Create(this, _deviceCreationParams);
+		_device = GraphicsDeviceVulkan::Create(*this, _deviceCreationParams);
 		LogInfo(GetLogger(), "Graphics device reset");
 	}
 
@@ -160,7 +161,7 @@ namespace Coco::Rendering
 		return _device->CreateResource<BufferVulkan>(usageFlags, size, bindOnCreate);
 	}
 
-	GraphicsResourceRef<Image> GraphicsPlatformVulkan::CreateImage(ImageDescription description)
+	GraphicsResourceRef<Image> GraphicsPlatformVulkan::CreateImage(const ImageDescription& description)
 	{
 		return _device->CreateResource<ImageVulkan>(description);
 	}
@@ -170,26 +171,31 @@ namespace Coco::Rendering
 		return _device->CreateResource<ImageSamplerVulkan>(filterMode, repeatMode, maxAnisotropy);
 	}
 
-	bool GraphicsPlatformVulkan::CheckValidationLayersSupport()
+	bool GraphicsPlatformVulkan::CheckValidationLayersSupport() noexcept
 	{
-		uint32_t layerCount;
-		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-		List<VkLayerProperties> availableLayers(layerCount);
-		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.Data());
-
-		for (const VkLayerProperties& layerProperties : availableLayers)
+		try
 		{
-			if (strcmp(s_debugValidationLayerName, layerProperties.layerName) == 0)
+			uint32_t layerCount;
+			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+			List<VkLayerProperties> availableLayers(layerCount);
+			vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.Data());
+
+			for (const VkLayerProperties& layerProperties : availableLayers)
 			{
-				return true;
+				if (strcmp(&s_debugValidationLayerName[0], layerProperties.layerName) == 0)
+				{
+					return true;
+				}
 			}
 		}
+		catch(...)
+		{ }
 
 		return false;
 	}
 
-	VkDebugUtilsMessengerCreateInfoEXT GraphicsPlatformVulkan::GetDebugCreateInfo() const
+	VkDebugUtilsMessengerCreateInfoEXT GraphicsPlatformVulkan::GetDebugCreateInfo() const noexcept
 	{
 		VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -197,19 +203,19 @@ namespace Coco::Rendering
 			VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
 		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
 			VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		createInfo.pfnUserCallback = VulkanDebugCallback;
+		createInfo.pfnUserCallback = &VulkanDebugCallback;
 		createInfo.pUserData = GetLogger();
 
 		return createInfo;
 	}
 
-	bool GraphicsPlatformVulkan::CreateDebugMessenger()
+	bool GraphicsPlatformVulkan::CreateDebugMessenger() noexcept
 	{
-		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_instance, "vkCreateDebugUtilsMessengerEXT");
+		PFN_vkCreateDebugUtilsMessengerEXT func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(_instance, "vkCreateDebugUtilsMessengerEXT"));
 
 		if (func != nullptr)
 		{
-			VkDebugUtilsMessengerCreateInfoEXT createInfo = GetDebugCreateInfo();
+			const VkDebugUtilsMessengerCreateInfoEXT createInfo = GetDebugCreateInfo();
 			return func(_instance, &createInfo, nullptr, &_debugMessenger) == VK_SUCCESS;
 		}
 		else
@@ -219,9 +225,9 @@ namespace Coco::Rendering
 		}
 	}
 
-	void GraphicsPlatformVulkan::DestroyDebugMessenger()
+	void GraphicsPlatformVulkan::DestroyDebugMessenger() noexcept
 	{
-		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT");
+		PFN_vkDestroyDebugUtilsMessengerEXT func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT"));
 
 		if (func != nullptr)
 		{

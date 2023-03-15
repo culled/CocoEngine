@@ -2,15 +2,13 @@
 
 namespace Coco::Rendering
 {
-    uint VulkanShaderDescriptorLayout::GetTypeCount(VkDescriptorType descriptorType) const
+    uint VulkanDescriptorLayout::GetTypeCount(VkDescriptorType descriptorType) const noexcept
     {
         uint count = 0;
 
-        for (uint i = 0; i < LayoutBindings.Count(); i++)
-        {
-            if (LayoutBindings[i].descriptorType == descriptorType)
+        for(const VkDescriptorSetLayoutBinding& binding : LayoutBindings)
+            if (binding.descriptorType == descriptorType)
                 count++;
-        }
 
         return count;
     }

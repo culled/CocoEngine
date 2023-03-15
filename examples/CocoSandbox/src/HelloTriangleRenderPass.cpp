@@ -60,7 +60,7 @@ HelloTriangleRenderPass::HelloTriangleRenderPass()
 	_meshTransform = Matrix4x4::CreateWithTranslation(Vector3(0.0, 0.0, -10.0));
 }
 
-List<AttachmentDescription> HelloTriangleRenderPass::GetAttachmentDescriptions()
+List<AttachmentDescription> HelloTriangleRenderPass::GetAttachmentDescriptions() noexcept
 {
     List<AttachmentDescription> attachments;
     attachments.Add(AttachmentDescription(PixelFormat::BGRA8, ColorSpace::sRGB, false));
@@ -75,7 +75,7 @@ void HelloTriangleRenderPass::Execute(RenderContext* renderContext)
 
 	// Draw the mesh
 	renderContext->UseMaterial(_material);
-	renderContext->Draw(_mesh, _meshTransform);
+	renderContext->Draw(_mesh.get(), _meshTransform);
 
 	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
 	const double a = Math::Sin(t) * 0.5 + 0.5;

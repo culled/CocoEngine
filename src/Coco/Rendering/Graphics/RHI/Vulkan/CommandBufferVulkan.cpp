@@ -62,30 +62,30 @@ namespace Coco::Rendering
 
 		for (int i = 0; i < waitSemaphores.Count(); i++)
 		{
-			if (GraphicsSemaphoreVulkan* vulkanSemaphore = dynamic_cast<GraphicsSemaphoreVulkan*>(waitSemaphores[i]))
-				vulkanWaitSemaphores.Add(vulkanSemaphore->GetSemaphore());
+			const GraphicsSemaphoreVulkan* vulkanSemaphore = static_cast<GraphicsSemaphoreVulkan*>(waitSemaphores[i]);
+			vulkanWaitSemaphores.Add(vulkanSemaphore->GetSemaphore());
 		}
 
 		List<VkSemaphore> vulkanSignalSemaphores;
 
 		for (int i = 0; i < signalSemaphores.Count(); i++)
 		{
-			if (GraphicsSemaphoreVulkan* vulkanSemaphore = dynamic_cast<GraphicsSemaphoreVulkan*>(signalSemaphores[i]))
-				vulkanSignalSemaphores.Add(vulkanSemaphore->GetSemaphore());
+			const GraphicsSemaphoreVulkan* vulkanSemaphore = static_cast<GraphicsSemaphoreVulkan*>(signalSemaphores[i]);
+			vulkanSignalSemaphores.Add(vulkanSemaphore->GetSemaphore());
 		}
 
 		VkFence vulkanSignalFence = VK_NULL_HANDLE;
 
-		if (GraphicsFenceVulkan* vulkanFence = dynamic_cast<GraphicsFenceVulkan*>(signalFence))
+		if (const GraphicsFenceVulkan* vulkanFence = dynamic_cast<GraphicsFenceVulkan*>(signalFence))
 			vulkanSignalFence = vulkanFence->GetFence();
 
 		// TODO: make this configurable?
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		const VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pWaitDstStageMask = waitStages;
+		submitInfo.pWaitDstStageMask = &waitStages[0];
 		submitInfo.pCommandBuffers = &_commandBuffer;
 		submitInfo.waitSemaphoreCount = static_cast<uint32_t>(vulkanWaitSemaphores.Count());
 		submitInfo.pWaitSemaphores = vulkanWaitSemaphores.Data();

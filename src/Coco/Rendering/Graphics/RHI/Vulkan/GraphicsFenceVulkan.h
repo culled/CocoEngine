@@ -14,7 +14,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Vulkan-implementation of a GraphicsFence
 	/// </summary>
-	class GraphicsFenceVulkan : public IGraphicsFence
+	class GraphicsFenceVulkan final : public IGraphicsFence
 	{
 	private:
 		VkFence _fence = nullptr;
@@ -22,11 +22,11 @@ namespace Coco::Rendering
 
 	public:
 		GraphicsFenceVulkan(GraphicsDevice* device, bool startSignalled);
-		virtual ~GraphicsFenceVulkan() override;
+		~GraphicsFenceVulkan() final;
 
-		virtual bool IsSignalled() const override;
-		virtual void Reset() override;
-		virtual void Wait(uint64_t timeoutNs) override;
+		bool IsSignalled() const noexcept final;
+		void Reset() final;
+		void Wait(uint64_t timeoutNs) final;
 
 		/// <summary>
 		/// Gets the underlying VkFence

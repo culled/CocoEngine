@@ -30,12 +30,18 @@ namespace Coco::Rendering
 		VkSubpassDescription SubpassDescription = {};
 	};
 
+	/// <summary>
+	/// Information for a Vulkan renderpass
+	/// </summary>
 	struct VulkanRenderPass
 	{
 		List<SubpassInfo> Subpasses;
 		VkRenderPass RenderPass = nullptr;
 	};
 
+	/// <summary>
+	/// Information for a Vulkan pipeline
+	/// </summary>
 	struct VulkanPipeline
 	{
 		static const VulkanPipeline None;
@@ -52,7 +58,7 @@ namespace Coco::Rendering
 	private:
 		GraphicsDeviceVulkan* _device;
 
-		std::hash<RenderPipeline*> _renderPipelineHasher;
+		std::hash<const RenderPipeline*> _renderPipelineHasher;
 		std::hash<VkRenderPass> _renderPassHasher;
 
 		Map<uint64_t, VulkanRenderPass> _renderPassCache;
@@ -66,14 +72,14 @@ namespace Coco::Rendering
 		/// <summary>
 		/// Clears all cached objects
 		/// </summary>
-		void Invalidate();
+		void Invalidate() noexcept;
 
 		/// <summary>
 		/// Gets or creates a VulkanRenderPass for a RenderPipeline
 		/// </summary>
 		/// <param name="renderPipeline">The render pipeline</param>
 		/// <returns>The VulkanRenderPass for the pipeline</returns>
-		VulkanRenderPass GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline);
+		VulkanRenderPass GetOrCreateRenderPass(RenderPipeline* renderPipeline);
 
 		/// <summary>
 		/// Gets or creates a VulkanPipeline for a render pass and shader combination
@@ -87,7 +93,7 @@ namespace Coco::Rendering
 			VulkanRenderPass renderPass, 
 			const string& subpassName,
 			uint32_t subpassIndex, 
-			const Ref<Shader>& shader, 
+			const Shader* shader,
 			VkDescriptorSetLayout globalDescriptorLayout);
 
 		/// <summary>
@@ -95,7 +101,7 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="shader">The shader</param>
 		/// <returns>The Vulkan-ready shader</returns>
-		GraphicsResourceRef<VulkanShader> GetOrCreateVulkanShader(const Ref<Shader>& shader);
+		GraphicsResourceRef<VulkanShader> GetOrCreateVulkanShader(const Shader* shader);
 
 	private:
 		/// <summary>
@@ -103,7 +109,7 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="renderPipeline">The render pipeline</param>
 		/// <returns>The VulkanRenderPass for the pipeline</returns>
-		VulkanRenderPass CreateRenderPass(const Ref<RenderPipeline>& renderPipeline);
+		VulkanRenderPass CreateRenderPass(RenderPipeline* renderPipeline);
 
 		/// <summary>
 		/// Creates a VulkanPipeline for a render pass and shader combination
@@ -117,7 +123,7 @@ namespace Coco::Rendering
 			VulkanRenderPass renderPass, 
 			const string& subpassName, 
 			uint32_t subpassIndex, 
-			const Ref<Shader>& shader,
+			const Shader* shader,
 			VkDescriptorSetLayout globalDescriptorLayout);
 	};
 }

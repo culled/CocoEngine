@@ -15,31 +15,31 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Manages a set pool of descriptor sets
 	/// </summary>
-	class DescriptorPoolVulkan : public IGraphicsResource
+	class DescriptorPoolVulkan final : public IGraphicsResource
 	{
 	private:
 		GraphicsDeviceVulkan* _device;
 
 		uint _maxDescriptorSets;
 		Map<uint64_t, VkDescriptorSet> _allocatedDescriptorSets;
-		List<VulkanShaderDescriptorLayout> _descriptorSetLayouts;
+		List<VulkanDescriptorLayout> _descriptorSetLayouts;
 
 		VkDescriptorPool _pool;
 
 	public:
-		DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanShaderDescriptorLayout>& descriptorSetLayouts);
-		virtual ~DescriptorPoolVulkan();
+		DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanDescriptorLayout>& descriptorSetLayouts);
+		~DescriptorPoolVulkan() final;
 
 		/// <summary>
 		/// Gets or allocates a descriptor set linked to the given unique key
 		/// </summary>
 		/// <param name="key">The key for the set</param>
 		/// <returns></returns>
-		VkDescriptorSet GetOrAllocateSet(const VulkanShaderDescriptorLayout& layout, uint64_t key);
+		VkDescriptorSet GetOrAllocateSet(const VulkanDescriptorLayout& layout, uint64_t key);
 
 		/// <summary>
 		/// Frees all allocated descriptor sets
 		/// </summary>
-		void FreeSets();
+		void FreeSets() noexcept;
 	};
 }

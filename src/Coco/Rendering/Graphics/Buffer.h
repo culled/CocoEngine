@@ -20,10 +20,17 @@ namespace Coco::Rendering
 		BufferUsageFlags UsageFlags;
 
 	protected:
-		Buffer(BufferUsageFlags usageFlags);
+		Buffer(BufferUsageFlags usageFlags) noexcept;
 
 	public:
 		virtual ~Buffer() = default;
+
+		Buffer() = delete;
+		Buffer(const Buffer&) = delete;
+		Buffer(Buffer&&) = delete;
+
+		Buffer& operator=(const Buffer&) = delete;
+		Buffer& operator=(Buffer&&) = delete;
 
 		/// <summary>
 		/// Resizes this buffer to a new size, retaining its data (as long as it isn't culled by shrinking).
@@ -52,7 +59,7 @@ namespace Coco::Rendering
 		/// Gets the size of this buffer
 		/// </summary>
 		/// <returns>This buffer's size (in bytes)</returns>
-		virtual uint64_t GetSize() const = 0;
+		virtual uint64_t GetSize() const noexcept = 0;
 
 		/// <summary>
 		/// Makes this buffer accessible for copying to/from the host.

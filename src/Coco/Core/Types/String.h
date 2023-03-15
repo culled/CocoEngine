@@ -19,7 +19,7 @@ namespace Coco
 	/// <param name="...args">The arguments that correspond to places in the format string</param>
 	/// <returns>A formatted string</returns>
 	template<typename ... Args>
-	string COCOAPI FormattedString(const string str, Args&& ... args) noexcept
+	string COCOAPI FormattedString(const string str, Args&& ... args)
 	{
 		return std::vformat(str, std::make_format_args(std::forward<Args>(args)...));
 	}

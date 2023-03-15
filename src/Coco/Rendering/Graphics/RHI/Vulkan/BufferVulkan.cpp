@@ -18,7 +18,7 @@ namespace Coco::Rendering
 
 		_usageFlags = ToVkBufferUsageFlags(usageFlags);
 
-		CreateBuffer(size, &_buffer, &_bufferMemory, _memoryIndex);
+		CreateBuffer(size, _buffer, _bufferMemory, _memoryIndex);
 
 		if (createBound)
 			Bind(0);
@@ -26,7 +26,13 @@ namespace Coco::Rendering
 
 	BufferVulkan::~BufferVulkan()
 	{
-		DestroyBuffer(_buffer, _bufferMemory);
+		try
+		{
+			DestroyBuffer(_buffer, _bufferMemory);
+		}
+		catch(...)
+		{ }
+
 		_buffer = nullptr;
 		_bufferMemory = nullptr;
 		_size = 0;
@@ -38,7 +44,7 @@ namespace Coco::Rendering
 		VkBuffer newBuffer;
 		VkDeviceMemory newBufferMemory;
 		uint32_t newBufferMemoryIndex;
-		CreateBuffer(newSize, &newBuffer, &newBufferMemory, newBufferMemoryIndex);
+		CreateBuffer(newSize, newBuffer, newBufferMemory, newBufferMemoryIndex);
 
 		// Bind the new buffer
 		AssertVkResult(vkBindBufferMemory(_device->GetDevice(), newBuffer, newBufferMemory, 0));
@@ -87,7 +93,7 @@ namespace Coco::Rendering
 		_isLocked = false;
 	}
 
-	void BufferVulkan::CreateBuffer(uint64_t size, VkBuffer* buffer, VkDeviceMemory* bufferMemory, uint32_t& bufferMemoryIndex)
+	void BufferVulkan::CreateBuffer(uint64_t size, VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t& bufferMemoryIndex)
 	{
 		VkBufferCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -95,11 +101,11 @@ namespace Coco::Rendering
 		createInfo.usage = _usageFlags;
 		createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		AssertVkResult(vkCreateBuffer(_device->GetDevice(), &createInfo, nullptr, buffer));
+		AssertVkResult(vkCreateBuffer(_device->GetDevice(), &createInfo, nullptr, &buffer));
 
 		// Get the memory requirements for the buffer
 		VkMemoryRequirements memoryRequirements;
-		vkGetBufferMemoryRequirements(_device->GetDevice(), *buffer, &memoryRequirements);
+		vkGetBufferMemoryRequirements(_device->GetDevice(), buffer, &memoryRequirements);
 
 		if (!_device->FindMemoryIndex(memoryRequirements.memoryTypeBits, _memoryPropertyFlags, bufferMemoryIndex))
 			throw Exception("Unable to create Vulkan buffer because the required memory type could not be found");
@@ -110,7 +116,7 @@ namespace Coco::Rendering
 		allocateInfo.allocationSize = memoryRequirements.size;
 		allocateInfo.memoryTypeIndex = static_cast<uint32_t>(bufferMemoryIndex);
 
-		AssertVkResult(vkAllocateMemory(_device->GetDevice(), &allocateInfo, nullptr, bufferMemory));
+		AssertVkResult(vkAllocateMemory(_device->GetDevice(), &allocateInfo, nullptr, &bufferMemory));
 	}
 
 	void BufferVulkan::DestroyBuffer(VkBuffer buffer, VkDeviceMemory bufferMemory)
@@ -133,7 +139,7 @@ namespace Coco::Rendering
 	{
 		CommandBufferPoolVulkan* pool;
 
-		if (!_device->GetTransferCommandPool(&pool))
+		if (!_device->GetTransferCommandPool(pool))
 			throw new Exception("Cannot copy buffer without a transfer queue");
 
 		// Start a command buffer for copying the data

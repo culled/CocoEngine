@@ -30,7 +30,7 @@ namespace Coco::Rendering
     /// <summary>
     /// Vulkan implentation of a GraphicsPresenter
     /// </summary>
-    class GraphicsPresenterVulkan : public GraphicsPresenter
+    class GraphicsPresenterVulkan final : public GraphicsPresenter
     {
 	private:
 		GraphicsDeviceVulkan* _device;
@@ -51,19 +51,19 @@ namespace Coco::Rendering
 
 	public:
 		GraphicsPresenterVulkan(GraphicsDeviceVulkan* device);
-		virtual ~GraphicsPresenterVulkan() override;
+		~GraphicsPresenterVulkan() final;
 
-		virtual void InitializeSurface(PresenterSurfaceInitializationInfo* surfaceInitInfo) override;
-		virtual bool IsSurfaceInitialized() const override { return _surface != nullptr; }
+		void InitializeSurface(PresenterSurfaceInitializationInfo* surfaceInitInfo) final;
+		bool IsSurfaceInitialized() const noexcept final { return _surface != nullptr; }
 
-		virtual void SetBackbufferSize(const SizeInt& backbufferSize) override;
-		virtual SizeInt GetBackbufferSize() const override { return _backbufferSize; }
+		void SetBackbufferSize(const SizeInt& backbufferSize) noexcept final;
+		SizeInt GetBackbufferSize() const noexcept final { return _backbufferSize; }
 
-		virtual void SetVSyncMode(VerticalSyncMode mode) override;
-		virtual VerticalSyncMode GetVSyncMode() const override { return _vsyncMode; }
+		void SetVSyncMode(VerticalSyncMode mode) noexcept final;
+		VerticalSyncMode GetVSyncMode() const noexcept final { return _vsyncMode; }
 
-		virtual bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) override;
-		virtual void Present(const GraphicsResourceRef<RenderContext>& renderContext) override;
+		bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) noexcept final;
+		bool Present(RenderContext* renderContext) noexcept final;
 
 	private:
 		/// <summary>
@@ -72,14 +72,14 @@ namespace Coco::Rendering
 		/// <param name="preferredVSyncMode">The desired vsync mode</param>
 		/// <param name="supportDetails">Swapchain support details</param>
 		/// <returns>The present mode to use</returns>
-		static VkPresentModeKHR PickPresentMode(VerticalSyncMode preferredVSyncMode, const SwapchainSupportDetails& supportDetails);
+		static VkPresentModeKHR PickPresentMode(VerticalSyncMode preferredVSyncMode, const SwapchainSupportDetails& supportDetails) noexcept;
 
 		/// <summary>
 		/// Picks a surface format to use from the supported formats
 		/// </summary>
 		/// <param name="supportDetails">Swapchain support details</param>
 		/// <returns>The surface format to use</returns>
-		static VkSurfaceFormatKHR PickSurfaceFormat(const SwapchainSupportDetails& supportDetails);
+		static VkSurfaceFormatKHR PickSurfaceFormat(const SwapchainSupportDetails& supportDetails) noexcept;
 
 		/// <summary>
 		/// Picks an extent for the backbuffer to use from the supported capabilities
@@ -87,7 +87,7 @@ namespace Coco::Rendering
 		/// <param name="preferredSize">The desired size of the backbuffer</param>
 		/// <param name="supportDetails">Swapchain support details</param>
 		/// <returns>The extent to use</returns>
-		static VkExtent2D PickBackbufferExtent(const SizeInt& preferredSize, const SwapchainSupportDetails& supportDetails);
+		static VkExtent2D PickBackbufferExtent(const SizeInt& preferredSize, const SwapchainSupportDetails& supportDetails) noexcept;
 
 		/// <summary>
 		/// Picks the number of backbuffers to use from the supported capabilities
@@ -95,7 +95,7 @@ namespace Coco::Rendering
 		/// <param name="preferredCount">The desired number of images</param>
 		/// <param name="supportDetails">Swapchain support details</param>
 		/// <returns>The number of images to use</returns>
-		static uint32_t PickBackbufferCount(int preferredCount, const SwapchainSupportDetails& supportDetails);
+		static uint32_t PickBackbufferCount(int preferredCount, const SwapchainSupportDetails& supportDetails) noexcept;
 
 		/// <summary>
 		/// Gets details about what the swapchain supports
@@ -103,12 +103,12 @@ namespace Coco::Rendering
 		/// <param name="device">The physical device</param>
 		/// <param name="surface">The surface</param>
 		/// <returns>The swapchain support details</returns>
-		static SwapchainSupportDetails GetSwapchainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface);
+		static SwapchainSupportDetails GetSwapchainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface) noexcept;
 
 		/// <summary>
 		/// Creates or recreates the swapchain using the currently set parameters
 		/// </summary>
-		void EnsureSwapchainIsUpdated();
+		bool EnsureSwapchainIsUpdated() noexcept;
 
 		/// <summary>
 		/// Creates/recreates the swapchain
@@ -117,27 +117,27 @@ namespace Coco::Rendering
 		/// <param name="backbufferSize">The size of the backbuffers to use</param>
 		/// <param name="backbufferCount">The number of backbuffers to create</param>
 		/// <returns>True if the swapchain was created</returns>
-		bool CreateSwapchain(VerticalSyncMode vsyncMode, const SizeInt& backbufferSize, int backbufferCount);
+		bool CreateSwapchain(VerticalSyncMode vsyncMode, const SizeInt& backbufferSize, int backbufferCount) noexcept;
 
 		/// <summary>
 		/// Destroys all objects created from a swapchain
 		/// </summary>
-		void DestroySwapchainObjects();
+		void DestroySwapchainObjects() noexcept;
 
 		/// <summary>
 		/// Gets the backbuffer images from the swapchain
 		/// </summary>
 		/// <returns>True if the images were obtained</returns>
-		bool GetBackbufferImages();
+		bool GetBackbufferImages() noexcept;
 
 		/// <summary>
 		/// Creates/recreates the render contexts used for rendering frames
 		/// </summary>
-		void RecreateRenderContexts();
+		bool RecreateRenderContexts() noexcept;
 
 		/// <summary>
 		/// Destroys the current render contexts
 		/// </summary>
-		void DestroyRenderContexts();
+		void DestroyRenderContexts() noexcept;
     };
 }

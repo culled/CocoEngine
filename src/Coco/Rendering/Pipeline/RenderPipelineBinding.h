@@ -42,14 +42,14 @@ namespace Coco::Rendering
 		/// Gets the mapping between the pipeline attachments and this render pass's attachments
 		/// </summary>
 		/// <returns>The list of attachment mappings</returns>
-		List<MappedAttachmentDescription> GetMappedAttachmentDescriptions() const { return _mappedAttachmentDescriptions; }
+		List<MappedAttachmentDescription> GetMappedAttachmentDescriptions() const noexcept { return _mappedAttachmentDescriptions; }
 
 		/// <summary>
 		/// Gets the bound render pass
 		/// </summary>
 		/// <returns>The render pass</returns>
-		Ref<IRenderPass> GetRenderPass() { return _renderPass; }
+		Ref<IRenderPass> GetRenderPass() noexcept { return _renderPass; }
 
-		Ref<IRenderPass> operator()() { return _renderPass; }
+		Ref<IRenderPass> operator()() noexcept { return _renderPass; }
 	};
 }

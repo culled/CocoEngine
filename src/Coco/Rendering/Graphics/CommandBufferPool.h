@@ -28,11 +28,11 @@ namespace Coco::Rendering
 		/// NOTE: this will invalidate the buffer's handle
 		/// </summary>
 		/// <param name="buffer">The buffer to free</param>
-		virtual void Free(CommandBuffer* buffer) = 0;
+		virtual void Free(CommandBuffer* buffer) noexcept = 0;
 
 		/// <summary>
 		/// Waits for this pool's queue to finish any asyncronous work
 		/// </summary>
-		virtual void WaitForQueue() = 0;
+		virtual void WaitForQueue() noexcept = 0;
 	};
 }

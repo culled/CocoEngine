@@ -25,7 +25,7 @@ namespace Coco::Input
         Ref<MainLoopTickListener> _lateProcessListener;
 
     public:
-        InputService() noexcept;
+        InputService();
         virtual ~InputService() override;
 
         InputService(const InputService&) = delete;
@@ -34,8 +34,8 @@ namespace Coco::Input
         InputService& operator=(const InputService&) = delete;
         InputService& operator=(InputService&&) = delete;
 
-        virtual Logging::Logger* GetLogger() const noexcept override;
-        virtual void Start() noexcept override;
+        Logging::Logger* GetLogger() const noexcept override;
+        void Start() override;
 
         /// <summary>
         /// Gets the current keyboard
@@ -60,7 +60,7 @@ namespace Coco::Input
         /// Tick for updating the previous state of the peripherals
         /// </summary>
         /// <param name="deltaTime">The number of seconds since the last tick</param>
-        void LateProcess(double deltaTime);
+        void LateProcess(double deltaTime) noexcept;
     };
 }
 

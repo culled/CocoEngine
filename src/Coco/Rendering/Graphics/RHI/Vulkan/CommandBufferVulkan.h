@@ -15,7 +15,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Vulkan-implementation of a CommandBuffer
 	/// </summary>
-	class CommandBufferVulkan : public CommandBuffer
+	class CommandBufferVulkan final : public CommandBuffer
 	{
 	private:
 		VkCommandBuffer _commandBuffer = nullptr;
@@ -24,20 +24,20 @@ namespace Coco::Rendering
 
 	public:
 		CommandBufferVulkan(bool isPrimary, GraphicsDeviceVulkan* device, CommandBufferPoolVulkan* pool);
-		virtual ~CommandBufferVulkan() override;
+		~CommandBufferVulkan() final;
 
-		virtual void Begin(bool isSingleUse, bool isSimultaneousUse) override;
-		virtual void End() override;
-		virtual void Submit(
+		void Begin(bool isSingleUse, bool isSimultaneousUse) final;
+		void End() override;
+		void Submit(
 			const List<IGraphicsSemaphore*>& waitSemaphores = {},
 			const List<IGraphicsSemaphore*>& signalSemaphores = {},
-			IGraphicsFence* signalFence = nullptr) override;
-		virtual void Reset() override;
+			IGraphicsFence* signalFence = nullptr) final;
+		void Reset() final;
 
 		/// <summary>
 		/// Gets the underlying Vulkan command buffer
 		/// </summary>
 		/// <returns>The underlying Vulkan command buffer</returns>
-		VkCommandBuffer GetCmdBuffer() const { return _commandBuffer; }
+		VkCommandBuffer GetCmdBuffer() const noexcept { return _commandBuffer; }
 	};
 }

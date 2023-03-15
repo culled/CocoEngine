@@ -12,9 +12,9 @@ namespace Coco::Rendering
 		ImageUsageFlags usageFlags,
 		FilterMode filterMode,
 		RepeatMode repeatMode,
-		uint anisotropy,
+		uint maxAnisotropy,
 		GraphicsPlatform* platform) :
-		_platform(platform), _refreshCount(0), _filterMode(filterMode), _repeatMode(repeatMode), _anisotropy(anisotropy)
+		_platform(platform), _refreshCount(0), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
 	{
 		_description.Width = width;
 		_description.Height = height;
@@ -36,11 +36,11 @@ namespace Coco::Rendering
 		_image->SetPixelData(pixelData);
 	}
 
-	void Texture::SetSamplerProperties(RepeatMode repeatMode, FilterMode filterMode, uint anisotropy)
+	void Texture::SetSamplerProperties(RepeatMode repeatMode, FilterMode filterMode, uint maxAnisotropy)
 	{
 		_repeatMode = repeatMode;
 		_filterMode = filterMode;
-		_anisotropy = anisotropy;
+		_maxAnisotropy = maxAnisotropy;
 
 		RecreateInternalSampler();
 	}
@@ -53,7 +53,7 @@ namespace Coco::Rendering
 
 	void Texture::RecreateInternalSampler()
 	{
-		_sampler = _platform->CreateImageSampler(_filterMode, _repeatMode, _anisotropy);
+		_sampler = _platform->CreateImageSampler(_filterMode, _repeatMode, _maxAnisotropy);
 		_refreshCount++;
 	}
 }
