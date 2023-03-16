@@ -7,6 +7,7 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/RenderingService.h>
+#include <Coco/Rendering/MeshPrimitives.h>
 
 MainApplication(CocoSandboxApplication)
 
@@ -75,26 +76,22 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	_material->SetTexture("_MainTex", _texture);
 
 	// Setup our basic mesh
-	double size = 10.0;
-	_mesh = CreateRef<Mesh>();
+	const double size = 30.0;
+	
+	List<Vector3> vertexPositions;
+	List<Vector2> vertexUVs;
+	List<uint> vertexIndices;
 
-	_mesh->SetPositions({
-		Vector3(-0.5, 0.5, 0.0) * size, Vector3(-0.5, 1.5, 0.0) * size, Vector3(0.5, 1.5, 0.0) * size, Vector3(0.5, 0.5, 0.0) * size, // Forward (+Y)
-		Vector3(0.5, 0.5, 0.0) * size, Vector3(1.5, 0.5, 0.0) * size, Vector3(1.5, -0.5, 0.0) * size, Vector3(0.5, -0.5, 0.0) * size, // Right (+X)
-		Vector3(-0.5, 1.5, 0.0) * size, Vector3(-0.5, 1.5, 1.0) * size, Vector3(0.5, 1.5, 1.0) * size, Vector3(0.5, 1.5, 0.0) * size }); // Up (+Z)
+	MeshPrimitives::CreateXYGrid(Vector2(size, size), Vector3(0.0, 0.0, -size * 0.5), vertexPositions, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateXZGrid(Vector2(size, size), Vector3(0.0, -size * 0.5, 0.0), vertexPositions, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateYZGrid(Vector2(size, size), Vector3(-size * 0.5, 0.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateBox(Vector3::One, Vector3(0.0, 5.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
 
-	_mesh->SetUVs({
-		Vector2(0.0, 0.0), Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0),
-		Vector2(0.0, 0.0), Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0),
-		Vector2(0.0, 0.0), Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0),
-		});
+	_mesh = MeshPrimitives::CreateFromVertices(vertexPositions, vertexUVs, vertexIndices);
 
-	_mesh->SetIndices({
-		0, 1, 2, 2, 3, 0,
-		4, 5, 6, 6, 7, 4,
-		8, 9, 10, 10, 11, 8 });
+	//_mesh = MeshPrimitives::CreateBox(Vector3::One * size);
 
-	_meshTransform = Matrix4x4::CreateWithTranslation(Vector3(0.0, 0.0, -10.0));
+	_meshTransform = Matrix4x4::CreateWithTranslation(Vector3(0.0, 0.0, 0.0));
 
 	List<int> attachmentMapping;
 	attachmentMapping.Add(0);
@@ -181,7 +178,7 @@ void CocoSandboxApplication::Tick(double deltaTime)
 
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{
-		_textureIndex = (_textureIndex + 1) % s_textureFiles.size();
+		_textureIndex = (_textureIndex + 1) % static_cast<uint>(s_textureFiles.size());
 		_texture->LoadFromFile(s_textureFiles.at(_textureIndex));
 	}
 

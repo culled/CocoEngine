@@ -4,8 +4,6 @@
 #include "GraphicsPlatformVulkan.h"
 #include "VulkanUtilities.h"
 
-#include <limits>
-
 namespace Coco::Rendering
 {
 	PhysicalDeviceRanking::PhysicalDeviceRanking(VkPhysicalDevice device, int score) noexcept :

@@ -75,7 +75,7 @@ namespace Coco::Rendering
 
 		/// <summary>
 		/// Sets the indices for this mesh.
-		/// NOTE: must be a multiple of <vertex count * 3>
+		/// NOTE: must be a multiple of [vertex count * 3]
 		/// </summary>
 		/// <param name="indices">The list of vertex indices</param>
 		void SetIndices(const List<uint32_t>& indices);
