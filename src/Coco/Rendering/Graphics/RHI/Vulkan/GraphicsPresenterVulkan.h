@@ -27,6 +27,11 @@ namespace Coco::Rendering
 		List<VkPresentModeKHR> PresentModes;
 	};
 
+	/// <summary>
+	/// An exception when a swapchain fatally fails to create
+	/// </summary>
+	using FatalSwapchainInitializeException = Exception;
+
     /// <summary>
     /// Vulkan implentation of a GraphicsPresenter
     /// </summary>
@@ -62,8 +67,8 @@ namespace Coco::Rendering
 		void SetVSyncMode(VerticalSyncMode mode) noexcept final;
 		VerticalSyncMode GetVSyncMode() const noexcept final { return _vsyncMode; }
 
-		bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) noexcept final;
-		bool Present(RenderContext* renderContext) noexcept final;
+		bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) final;
+		bool Present(RenderContext* renderContext) final;
 
 	private:
 		/// <summary>
@@ -103,12 +108,12 @@ namespace Coco::Rendering
 		/// <param name="device">The physical device</param>
 		/// <param name="surface">The surface</param>
 		/// <returns>The swapchain support details</returns>
-		static SwapchainSupportDetails GetSwapchainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface) noexcept;
+		static SwapchainSupportDetails GetSwapchainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface);
 
 		/// <summary>
 		/// Creates or recreates the swapchain using the currently set parameters
 		/// </summary>
-		bool EnsureSwapchainIsUpdated() noexcept;
+		bool EnsureSwapchainIsUpdated();
 
 		/// <summary>
 		/// Creates/recreates the swapchain
@@ -117,7 +122,7 @@ namespace Coco::Rendering
 		/// <param name="backbufferSize">The size of the backbuffers to use</param>
 		/// <param name="backbufferCount">The number of backbuffers to create</param>
 		/// <returns>True if the swapchain was created</returns>
-		bool CreateSwapchain(VerticalSyncMode vsyncMode, const SizeInt& backbufferSize, int backbufferCount) noexcept;
+		bool CreateSwapchain(VerticalSyncMode vsyncMode, const SizeInt& backbufferSize, int backbufferCount);
 
 		/// <summary>
 		/// Destroys all objects created from a swapchain
@@ -125,15 +130,9 @@ namespace Coco::Rendering
 		void DestroySwapchainObjects() noexcept;
 
 		/// <summary>
-		/// Gets the backbuffer images from the swapchain
-		/// </summary>
-		/// <returns>True if the images were obtained</returns>
-		bool GetBackbufferImages() noexcept;
-
-		/// <summary>
 		/// Creates/recreates the render contexts used for rendering frames
 		/// </summary>
-		bool RecreateRenderContexts() noexcept;
+		void RecreateRenderContexts();
 
 		/// <summary>
 		/// Destroys the current render contexts

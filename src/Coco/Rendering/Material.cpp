@@ -23,6 +23,26 @@ namespace Coco::Rendering
 		return Color(value.X, value.Y, value.Z, value.W);
 	}
 
+	void Material::ClearVector4(const string& name) noexcept
+	{
+		try
+		{
+			Vector4Parameters.erase(name);
+		}
+		catch (...)
+		{}
+	}
+
+	void Material::ClearTexture(const string& name) noexcept
+	{
+		try
+		{
+			TextureParameters.erase(name);
+		}
+		catch (...)
+		{}
+	}
+
 	MaterialInstance::MaterialInstance(const Material* material) : Material(material->Shader)
 	{
 	}

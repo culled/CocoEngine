@@ -18,14 +18,20 @@ namespace Coco
 			Array<int, 12>({ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 })
 		};
 
+		static constexpr int64_t MSecsPerSecond = 1000;
+		static constexpr int64_t MSecsPerMinute = 60000;
+		static constexpr int64_t MSecsPerHour = 3600000;
+		static constexpr int64_t MSecsPerDay = 86400000;
+
 		static constexpr int UnixEpochYear = 1970;
 
 		int64_t _unixMilliseconds = 0;
 
 	public:
-		DateTime() = default;
+		DateTime() noexcept = default;
 		DateTime(int64_t unixMilliseconds) noexcept;
 		DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond) noexcept;
+		virtual ~DateTime() = default;
 
 		/// <summary>
 		/// Gets if the given year is a leap year
@@ -56,43 +62,43 @@ namespace Coco
 		/// Gets the hour this DateTime represents
 		/// </summary>
 		/// <returns>The hour</returns>
-		int GetHour() const noexcept;
+		int GetHour() const noexcept { return static_cast<int>(_unixMilliseconds / MSecsPerHour % 24); }
 
 		/// <summary>
 		/// Gets the minute this DateTime represents
 		/// </summary>
 		/// <returns>The minute</returns>
-		int GetMinute() const noexcept;
+		int GetMinute() const noexcept { return static_cast<int>(_unixMilliseconds / MSecsPerMinute % 60); }
 
 		/// <summary>
 		/// Gets the second this DateTime represents
 		/// </summary>
 		/// <returns>The second</returns>
-		int GetSecond() const noexcept;
+		int GetSecond() const noexcept { return static_cast<int>(_unixMilliseconds / MSecsPerSecond % 60); }
 
 		/// <summary>
 		/// Gets the millisecond this DateTime represents
 		/// </summary>
 		/// <returns>The millisecond</returns>
-		int GetMillisecond() const noexcept;
+		int GetMillisecond() const noexcept { return static_cast<int>(_unixMilliseconds % 1000); }
 
 		/// <summary>
 		/// Gets the number of hours since unix epoch
 		/// </summary>
 		/// <returns>The hours since unix epoch</returns>
-		double GetTotalHours() const noexcept;
+		double GetTotalHours() const noexcept { return static_cast<double>(_unixMilliseconds) / MSecsPerHour; }
 
 		/// <summary>
 		/// Gets the number of minutes since unix epoch
 		/// </summary>
 		/// <returns>The minutes since unix epoch</returns>
-		double GetTotalMinutes() const noexcept;
+		double GetTotalMinutes() const noexcept { return static_cast<double>(_unixMilliseconds) / MSecsPerMinute; }
 
 		/// <summary>
 		/// Gets the number of seconds since unix epoch
 		/// </summary>
 		/// <returns>The seconds since unix epoch</returns>
-		double GetTotalSeconds() const noexcept;
+		double GetTotalSeconds() const noexcept { return static_cast<double>(_unixMilliseconds) / MSecsPerSecond; }
 
 		/// <summary>
 		/// Gets the number of milliseconds since unix epoch
@@ -101,16 +107,16 @@ namespace Coco
 		int64_t GetTotalMilliseconds() const noexcept { return _unixMilliseconds; }
 
 		TimeSpan operator -(const DateTime& other) const noexcept;
-		DateTime operator +(const TimeSpan& other) const noexcept;
-		void operator+=(const TimeSpan& other) noexcept;
-		void operator-=(const TimeSpan& other) noexcept;
+		DateTime operator +(const TimeSpan& timeSpan) const noexcept;
+		void operator+=(const TimeSpan& timeSpan) noexcept;
+		void operator-=(const TimeSpan& timeSpan) noexcept;
 
-		bool operator <(const DateTime& other) const noexcept;
-		bool operator <=(const DateTime& other) const noexcept;
-		bool operator >(const DateTime& other) const noexcept;
-		bool operator >=(const DateTime& other) const noexcept;
-		bool operator ==(const DateTime& other) const noexcept;
-		bool operator !=(const DateTime& other) const noexcept;
+		bool operator <(const DateTime& other) const noexcept {	return _unixMilliseconds < other._unixMilliseconds; }
+		bool operator <=(const DateTime& other) const noexcept { return _unixMilliseconds <= other._unixMilliseconds; }
+		bool operator >(const DateTime& other) const noexcept { return _unixMilliseconds > other._unixMilliseconds; }
+		bool operator >=(const DateTime& other) const noexcept { return _unixMilliseconds >= other._unixMilliseconds; }
+		bool operator ==(const DateTime& other) const noexcept { return _unixMilliseconds == other._unixMilliseconds; }
+		bool operator !=(const DateTime& other) const noexcept { return _unixMilliseconds != other._unixMilliseconds; }
 
 	private:
 		/// <summary>

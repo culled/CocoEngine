@@ -66,6 +66,6 @@ namespace Coco::Rendering
 		AttachmentDescription(Rendering::PixelFormat pixelFormat, Rendering::ColorSpace colorSpace, bool usesBlending) noexcept;
 
 		bool operator ==(const AttachmentDescription& other) const noexcept;
-		bool operator !=(const AttachmentDescription& other) const noexcept;
+		bool operator !=(const AttachmentDescription& other) const noexcept { return !(*this == other); }
 	};
 }

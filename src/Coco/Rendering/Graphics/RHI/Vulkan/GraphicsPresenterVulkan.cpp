@@ -10,12 +10,13 @@
 #include "CommandBufferVulkan.h"
 #include "BufferVulkan.h"
 
+#include <vulkan/vk_enum_string_helper.h>
+
 namespace Coco::Rendering
 {
 	GraphicsPresenterVulkan::GraphicsPresenterVulkan(GraphicsDeviceVulkan* device) :
 		_device(device)
-	{
-	}
+	{}
 
 	GraphicsPresenterVulkan::~GraphicsPresenterVulkan()
 	{
@@ -40,7 +41,7 @@ namespace Coco::Rendering
 	void GraphicsPresenterVulkan::InitializeSurface(PresenterSurfaceInitializationInfo* surfaceInitInfo)
 	{
 		if (_surface != nullptr)
-			return;
+			throw GraphicsPresenterException("No surface was given to initialize");
 
 		if (PresenterWin32SurfaceInitializationInfo* win32SurfaceInitInfo = dynamic_cast<PresenterWin32SurfaceInitializationInfo*>(surfaceInitInfo))
 		{
@@ -57,7 +58,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			throw Exception("Unsupported surface type");
+			throw GraphicsPresenterException("Unsupported surface type");
 		}
 	}
 
@@ -79,7 +80,7 @@ namespace Coco::Rendering
 		_isSwapchainDirty = true;
 	}
 
-	bool GraphicsPresenterVulkan::GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) noexcept
+	bool GraphicsPresenterVulkan::GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext)
 	{
 		if (!EnsureSwapchainIsUpdated())
 			return false;
@@ -107,33 +108,20 @@ namespace Coco::Rendering
 			return false;
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-		{
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Failed to acquire backbuffer image index: {}", string_VkResult(result)));
-			return false;
-		}
+			throw VulkanOperationException(result, "Failed to acquire backbuffer image index: {}");
 
-		try
-		{
-			currentContext->SetRenderTargets({ _backbuffers[imageIndex] });
-		}
-		catch (...)
-		{
-			return false;
-		}
+		currentContext->SetRenderTargets({ _backbuffers[imageIndex] });
 
 		renderContext = currentContext;
 		return true;
 	}
 
-	bool GraphicsPresenterVulkan::Present(RenderContext* renderContext) noexcept
+	bool GraphicsPresenterVulkan::Present(RenderContext* renderContext)
 	{
 		Ref<VulkanQueue> presentQueue;
 
 		if (!_device->GetPresentQueue(presentQueue))
-		{
-			LogError(_device->VulkanPlatform->GetLogger(), "Device must have a valid present queue");
-			return false;
-		}
+			throw GraphicsPresenterException("Device must have a valid present queue to present");
 
 		RenderContextVulkan* vulkanRenderContext = static_cast<RenderContextVulkan*>(renderContext);
 		uint imageIndex = 0;
@@ -175,10 +163,7 @@ namespace Coco::Rendering
 			return false;
 		}
 		else if (result != VK_SUCCESS)
-		{
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Failed to queue present: {}", string_VkResult(result)));
-			return false;
-		}
+			throw VulkanOperationException(result, "Failed to queue the image for presentation: {}");
 
 		return true;
 	}
@@ -200,10 +185,8 @@ namespace Coco::Rendering
 	{
 		for (const VkSurfaceFormatKHR& format : supportDetails.SurfaceFormats)
 		{
-			if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR)
-			{
+			if (ToPixelFormat(format.format) == PixelFormat::BGRA8 && ToColorSpace(format.colorSpace) == ColorSpace::sRGB)
 				return format;
-			}
 		}
 
 		return supportDetails.SurfaceFormats.First();
@@ -211,14 +194,14 @@ namespace Coco::Rendering
 
 	VkExtent2D GraphicsPresenterVulkan::PickBackbufferExtent(const SizeInt& preferredSize, const SwapchainSupportDetails& supportDetails) noexcept
 	{
-		if (supportDetails.SurfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+		if (supportDetails.SurfaceCapabilities.currentExtent.width != Math::MaxValue<uint32_t>())
 			return supportDetails.SurfaceCapabilities.currentExtent;
 
 		VkExtent2D extent = { 
-			std::clamp(static_cast<uint32_t>(preferredSize.Width), 
+			Math::Clamp(static_cast<uint32_t>(preferredSize.Width), 
 				supportDetails.SurfaceCapabilities.minImageExtent.width, 
 				supportDetails.SurfaceCapabilities.maxImageExtent.width),
-			std::clamp(static_cast<uint32_t>(preferredSize.Height),
+			Math::Clamp(static_cast<uint32_t>(preferredSize.Height),
 				supportDetails.SurfaceCapabilities.minImageExtent.height,
 				supportDetails.SurfaceCapabilities.maxImageExtent.height)
 		};
@@ -228,41 +211,36 @@ namespace Coco::Rendering
 
 	uint32_t GraphicsPresenterVulkan::PickBackbufferCount(int preferredCount, const SwapchainSupportDetails& supportDetails) noexcept
 	{
-		uint32_t imageCount = std::max(static_cast<uint32_t>(preferredCount), supportDetails.SurfaceCapabilities.minImageCount);
+		uint32_t imageCount = Math::Max(static_cast<uint32_t>(preferredCount), supportDetails.SurfaceCapabilities.minImageCount);
 
 		if (supportDetails.SurfaceCapabilities.maxImageCount > 0)
-			imageCount = std::min(imageCount, supportDetails.SurfaceCapabilities.maxImageCount);
+			imageCount = Math::Min(imageCount, supportDetails.SurfaceCapabilities.maxImageCount);
 
 		return imageCount;
 	}
 
-	SwapchainSupportDetails GraphicsPresenterVulkan::GetSwapchainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface) noexcept
+	SwapchainSupportDetails GraphicsPresenterVulkan::GetSwapchainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface)
 	{
 		SwapchainSupportDetails details = {};
 
-		try
-		{
-			AssertVkResult(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.SurfaceCapabilities));
+		AssertVkResult(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.SurfaceCapabilities));
 
-			uint32_t formatCount;
-			AssertVkResult(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr));
+		uint32_t formatCount;
+		AssertVkResult(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr));
 
-			details.SurfaceFormats.Resize(formatCount);
-			AssertVkResult(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.SurfaceFormats.Data()));
+		details.SurfaceFormats.Resize(formatCount);
+		AssertVkResult(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.SurfaceFormats.Data()));
 
-			uint32_t presentModeCount;
-			AssertVkResult(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr));
+		uint32_t presentModeCount;
+		AssertVkResult(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr));
 
-			details.PresentModes.Resize(presentModeCount);
-			AssertVkResult(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.PresentModes.Data()));
-		}
-		catch(...)
-		{ }
+		details.PresentModes.Resize(presentModeCount);
+		AssertVkResult(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.PresentModes.Data()));
 
 		return details;
 	}
 
-	bool GraphicsPresenterVulkan::EnsureSwapchainIsUpdated() noexcept
+	bool GraphicsPresenterVulkan::EnsureSwapchainIsUpdated()
 	{
 		// TODO: configurable frames in flight
 		if (_isSwapchainDirty)
@@ -271,7 +249,7 @@ namespace Coco::Rendering
 			return true;
 	}
 
-	bool GraphicsPresenterVulkan::CreateSwapchain(VerticalSyncMode vsyncMode, const SizeInt& backbufferSize, int backbufferCount) noexcept
+	bool GraphicsPresenterVulkan::CreateSwapchain(VerticalSyncMode vsyncMode, const SizeInt& backbufferSize, int backbufferCount)
 	{
 		if (_surface == nullptr)
 		{
@@ -284,29 +262,19 @@ namespace Coco::Rendering
 		// If we can't get the present queue, try to initialize it and then get it.
 		// If all that fails, we have no present queue
 		if (!_device->GetPresentQueue(presentQueue) && (!_device->InitializePresentQueue(_surface) || !_device->GetPresentQueue(presentQueue)))
-		{
-			LogError(_device->VulkanPlatform->GetLogger(), "Device doesn't support presentation");
-			return false;
-		}
+			throw FatalSwapchainInitializeException("Swapchain requires a device that supports presentation");
 
 		Ref<VulkanQueue> graphicsQueue;
-
 		if (!_device->GetGraphicsQueue(graphicsQueue))
-		{
-			LogError(_device->VulkanPlatform->GetLogger(), "Device doesn't support graphics operations");
-			return false;
-		}
-
-		// Only recreate when all async work has finished
-		_device->WaitForIdle();
+			throw FatalSwapchainInitializeException("Swapchain requires a device that supports graphics operations");
 
 		SwapchainSupportDetails swapchainSupportDetails = GetSwapchainSupportDetails(_device->GetPhysicalDevice(), _surface);
 
 		if (swapchainSupportDetails.PresentModes.Count() == 0 || swapchainSupportDetails.SurfaceFormats.Count() == 0)
-		{
-			LogError(_device->VulkanPlatform->GetLogger(), "Device has inadequate swapchain support");
-			return false;
-		}
+			throw FatalSwapchainInitializeException("Device has inadequate swapchain support");
+
+		// Only recreate when all async work has finished
+		_device->WaitForIdle();
 
 		DestroySwapchainObjects();
 
@@ -334,69 +302,86 @@ namespace Coco::Rendering
 
 		List<uint32_t> queueFamilyIndices;
 
-		try
+		if (presentQueue->QueueFamily != graphicsQueue->QueueFamily)
 		{
-			if (presentQueue->QueueFamily != graphicsQueue->QueueFamily)
-			{
-				createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 
-				queueFamilyIndices.Add(static_cast<uint32_t>(presentQueue->QueueFamily));
-				queueFamilyIndices.Add(static_cast<uint32_t>(graphicsQueue->QueueFamily));
-			}
-			else
-			{
-				createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-				queueFamilyIndices.Add(static_cast<uint32_t>(presentQueue->QueueFamily));
-			}
+			queueFamilyIndices.Add(static_cast<uint32_t>(presentQueue->QueueFamily));
+			queueFamilyIndices.Add(static_cast<uint32_t>(graphicsQueue->QueueFamily));
 		}
-		catch (const Exception& ex)
+		else
 		{
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Failed to create swapchain: Couldn't get queue family indicies", ex.what()));
-			return false;
+			createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+			queueFamilyIndices.Add(static_cast<uint32_t>(presentQueue->QueueFamily));
 		}
 
 		createInfo.queueFamilyIndexCount = static_cast<uint32_t>(queueFamilyIndices.Count());
 		createInfo.pQueueFamilyIndices = queueFamilyIndices.Data();
 
-		const VkResult result = vkCreateSwapchainKHR(_device->GetDevice(), &createInfo, nullptr, &_swapchain);
 
-		if (result != VK_SUCCESS)
+		try
 		{
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Failed to create swapchain: {}", string_VkResult(result)));
-			_swapchain = nullptr;
+			const VkResult result = vkCreateSwapchainKHR(_device->GetDevice(), &createInfo, nullptr, &_swapchain);
+
+			if (oldSwapchain != VK_NULL_HANDLE)
+				vkDestroySwapchainKHR(_device->GetDevice(), oldSwapchain, nullptr);
+
+			if (result != VK_SUCCESS)
+			{
+				_swapchain = nullptr;
+				throw VulkanOperationException(result);
+			}
+
+			_backbufferSize = SizeInt(static_cast<int>(extent.width), static_cast<int>(extent.height));
+			_vsyncMode = ToVerticalSyncMode(presentMode);
+
+			_backbufferDescription = ImageDescription(
+				_backbufferSize.Width,
+				_backbufferSize.Height,
+				1,
+				ToPixelFormat(surfaceFormat.format),
+				ToColorSpace(surfaceFormat.colorSpace),
+				ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled);
+
+			// Get backbuffer images
+			uint32_t backbufferImageCount;
+			AssertVkResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &backbufferImageCount, nullptr));
+
+			List<VkImage> images(backbufferImageCount);
+			AssertVkResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &backbufferImageCount, images.Data()));
+
+			for (int i = 0; i < images.Count(); i++)
+			{
+				_backbuffers.Add(_device->CreateResource<ImageVulkan>(_backbufferDescription, images[i]));
+			}
+
+			RecreateRenderContexts();
+
+			_isSwapchainDirty = false;
+			_currentFrame = 0;
+
+			LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString(
+				"Created Vulkan swapchain with {} backbuffers at ({}, {})",
+				imageCount,
+				_backbufferSize.Width,
+				_backbufferSize.Height));
+
+			return true;
 		}
+		catch (const Exception& ex)
+		{
+			// Cleanup the malformed swapchain objects
+			DestroyRenderContexts();
+			DestroySwapchainObjects();
 
-		if(oldSwapchain != VK_NULL_HANDLE)
-			vkDestroySwapchainKHR(_device->GetDevice(), oldSwapchain, nullptr);
+			if(_swapchain != nullptr)
+				vkDestroySwapchainKHR(_device->GetDevice(), _swapchain, nullptr);
 
-		if (_swapchain == nullptr)
-			return false;
+			_isSwapchainDirty = true;
 
-		_backbufferSize = SizeInt(static_cast<int>(extent.width), static_cast<int>(extent.height));
-		_vsyncMode = ToVerticalSyncMode(presentMode);
-
-		_backbufferDescription = ImageDescription(
-			_backbufferSize.Width, 
-			_backbufferSize.Height, 
-			1, 
-			ToPixelFormat(surfaceFormat.format), 
-			ToColorSpace(surfaceFormat.colorSpace),
-			ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled);
-
-		if (!GetBackbufferImages() || !RecreateRenderContexts())
-			return false;
-
-		_isSwapchainDirty = false;
-		_currentFrame = 0;
-
-		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString(
-			"Created Vulkan swapchain with {} backbuffers at ({}, {})",
-			imageCount,
-			_backbufferSize.Width,
-			_backbufferSize.Height));
-
-		return true;
+			throw FatalSwapchainInitializeException(FormattedString("Failed to create swapchain: {}", ex.what()));
+		}
 	}
 
 	void GraphicsPresenterVulkan::DestroySwapchainObjects() noexcept
@@ -416,53 +401,19 @@ namespace Coco::Rendering
 		_isSwapchainDirty = true;
 	}
 
-	bool GraphicsPresenterVulkan::GetBackbufferImages() noexcept
-	{
-		try
-		{
-			uint32_t imageCount;
-			AssertVkResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &imageCount, nullptr));
-
-			List<VkImage> images(imageCount);
-			AssertVkResult(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &imageCount, images.Data()));
-
-			for (int i = 0; i < images.Count(); i++)
-			{
-				_backbuffers.Add(_device->CreateResource<ImageVulkan>(_backbufferDescription, images[i]));
-			}
-
-			return true;
-		}
-		catch (const Exception& ex)
-		{
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to get swapchain images: {}", ex.what()));
-			return false;
-		}
-	}
-
-	bool GraphicsPresenterVulkan::RecreateRenderContexts() noexcept
+	void GraphicsPresenterVulkan::RecreateRenderContexts()
 	{
 		if (_renderContexts.Count() == _backbuffers.Count())
-			return true;
+			return;
 
 		DestroyRenderContexts();
 
-		try
+		for (int i = 0; i < _backbuffers.Count(); i++)
 		{
-			for (int i = 0; i < _backbuffers.Count(); i++)
-			{
-				_renderContexts.Add(_device->CreateResource<RenderContextVulkan>());
-			}
-
-			LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString("Created {} render contexts", _renderContexts.Count()));
-
-			return true;
+			_renderContexts.Add(_device->CreateResource<RenderContextVulkan>());
 		}
-		catch(...)
-		{ 
-			LogError(_device->VulkanPlatform->GetLogger(), "Failed to create render contexts");
-			return false;
-		}
+
+		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString("Created {} render contexts", _renderContexts.Count()));
 	}
 
 	void GraphicsPresenterVulkan::DestroyRenderContexts() noexcept

@@ -3,13 +3,32 @@
 namespace Coco::Rendering
 {
 	CommandBuffer::CommandBuffer(bool isPrimary) noexcept :
-		IsPrimary(isPrimary), CurrentState(State::Ready)
+		IsPrimary(isPrimary), CurrentState(CommandBufferState::Ready)
 	{
 	}
 
-	CommandBuffer::~CommandBuffer()
+	void CommandBuffer::Begin(bool isSingleUse, bool isSimultaneousUse)
 	{
-		CurrentState = State::NotAllocated;
+		BeginImpl(isSingleUse, isSimultaneousUse);
+		CurrentState = CommandBufferState::Recording;
+	}
+
+	void CommandBuffer::End()
+	{
+		EndImpl();
+		CurrentState = CommandBufferState::RecordingEnded;
+	}
+
+	void CommandBuffer::Submit(const List<IGraphicsSemaphore*>& waitSemaphores, const List<IGraphicsSemaphore*>& signalSemaphores, IGraphicsFence* signalFence)
+	{
+		SubmitImpl(waitSemaphores, signalSemaphores, signalFence);
+		CurrentState = CommandBufferState::Submitted;
+	}
+
+	void CommandBuffer::Reset()
+	{
+		ResetImpl();
+		CurrentState = CommandBufferState::Ready;
 	}
 
 	void CommandBuffer::EndAndSubmit(

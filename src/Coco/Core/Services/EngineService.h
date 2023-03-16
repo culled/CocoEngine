@@ -6,6 +6,11 @@
 namespace Coco
 {
 	/// <summary>
+	/// An exception thrown when an engine service fails to start
+	/// </summary>
+	using EngineServiceStartException = Exception;
+
+	/// <summary>
 	/// A class that provides a service to the engine
 	/// </summary>
 	class COCOAPI EngineService

@@ -19,6 +19,8 @@ namespace Coco::Rendering
     class COCOAPI RenderingService : public EngineService
     {
     private:
+        static RenderingService* s_instance;
+
         Managed<GraphicsPlatform> _graphics;
         Ref<RenderPipeline> _defaultPipeline;
         Ref<Texture> _defaultTexture;
@@ -29,6 +31,12 @@ namespace Coco::Rendering
 
         Logging::Logger* GetLogger() const noexcept override;
         void Start() noexcept override;
+
+        /// <summary>
+        /// Gets the active rendering service
+        /// </summary>
+        /// <returns>The active rendering service</returns>
+        static RenderingService* Get() noexcept { return s_instance; }
 
         /// <summary>
         /// Gets the current graphics platform
@@ -58,14 +66,14 @@ namespace Coco::Rendering
         /// Renders using the default render pipeline for a graphics presenter
         /// </summary>
         /// <param name="presenter">The presenter</param>
-        void Render(GraphicsPresenter* presenter) noexcept;
+        void Render(GraphicsPresenter* presenter);
 
         /// <summary>
         /// Renders using a render pipeline for a graphics presenter
         /// </summary>
         /// <param name="presenter">The presenter</param>
         /// <param name="pipeline">The render pipeline</param>
-        void Render(GraphicsPresenter* presenter, Ref<RenderPipeline> pipeline, CameraComponent* camera) noexcept;
+        void Render(GraphicsPresenter* presenter, Ref<RenderPipeline> pipeline, CameraComponent* camera);
 
         /// <summary>
         /// Creates a data buffer that can be used to store data on the GPU

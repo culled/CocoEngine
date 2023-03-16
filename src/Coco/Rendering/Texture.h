@@ -40,7 +40,7 @@ namespace Coco::Rendering
 		/// Sets the pixel data for this texture
 		/// </summary>
 		/// <param name="pixelData">The pixel data</param>
-		void SetPixels(const void* pixelData);
+		void SetPixels(const void* pixelData) { _image->SetPixelData(pixelData); }
 
 		/// <summary>
 		/// Sets the properties for sampling this texture

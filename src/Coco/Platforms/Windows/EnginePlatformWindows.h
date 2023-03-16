@@ -36,18 +36,17 @@ namespace Coco::Platform::Windows
 
         EnginePlatformWindows() = delete;
         EnginePlatformWindows(const EnginePlatformWindows&) = delete;
-        EnginePlatformWindows(EnginePlatformWindows&&) = delete;
-
         EnginePlatformWindows& operator=(const EnginePlatformWindows&) = delete;
+        EnginePlatformWindows(EnginePlatformWindows&&) = delete;
         EnginePlatformWindows& operator=(EnginePlatformWindows&&) = delete;
 
         void Start() final;
         void GetPlatformCommandLineArguments(List<string>& arguments) const noexcept final;
         void HandlePlatformMessages() noexcept final;
         void GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept final;
-        DateTime GetPlatformUtcTime() const noexcept final;
-        DateTime GetPlatformLocalTime() const noexcept final;
-        double GetPlatformTimeSeconds() const noexcept final;
+        DateTime GetPlatformUtcTime() const final;
+        DateTime GetPlatformLocalTime() const final;
+        double GetPlatformTimeSeconds() const final;
         void WriteToPlatformConsole(const string& message, ConsoleColor color, bool isError) final;
         void SetPlatformConsoleVisible(bool isVisible) noexcept final;
         void Sleep(unsigned long milliseconds) noexcept final;

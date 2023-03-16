@@ -71,7 +71,7 @@ namespace Coco::Rendering
 		/// Clears a vector4 property
 		/// </summary>
 		/// <param name="name">The name of the vector4 property</param>
-		void ClearVector4(const string& name) noexcept { try { Vector4Parameters.erase(name); } catch (...) {} }
+		void ClearVector4(const string& name) noexcept;
 
 		/// <summary>
 		/// Gets a vector4 property
@@ -91,7 +91,7 @@ namespace Coco::Rendering
 		/// Clears a texture property
 		/// </summary>
 		/// <param name="name">The name of the texture property</param>
-		void ClearTexture(const string& name) noexcept { try { TextureParameters.erase(name); } catch (...) {} }
+		void ClearTexture(const string& name) noexcept;
 
 		/// <summary>
 		/// Gets a texture property

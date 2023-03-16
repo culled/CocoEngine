@@ -8,6 +8,9 @@
 
 namespace Coco
 {
+	/// <summary>
+	/// A camera component
+	/// </summary>
 	class COCOAPI CameraComponent
 	{
 	private:

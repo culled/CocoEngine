@@ -8,6 +8,16 @@
 namespace Coco::Platform
 {
 	/// <summary>
+	/// Thrown when the platform fails to initialize
+	/// </summary>
+	using PlatformInitializeException = Exception;
+
+	/// <summary>
+	/// Thrown when a platform operation fails
+	/// </summary>
+	using PlatformOperationException = Exception;
+
+	/// <summary>
 	/// An interface for communicating with the underlying platform the engine is running on
 	/// </summary>
 	class COCOAPI IEnginePlatform
@@ -43,19 +53,19 @@ namespace Coco::Platform
 		/// Gets the current UTC time from the platform
 		/// </summary>
 		/// <returns>The current UTC time</returns>
-		virtual DateTime GetPlatformUtcTime() const noexcept = 0;
+		virtual DateTime GetPlatformUtcTime() const = 0;
 
 		/// <summary>
 		/// Gets the current local time from the platform
 		/// </summary>
 		/// <returns>The current local time</returns>
-		virtual DateTime GetPlatformLocalTime() const noexcept = 0;
+		virtual DateTime GetPlatformLocalTime() const = 0;
 
 		/// <summary>
 		/// Gets the amount of time the machine has been running
 		/// </summary>
 		/// <returns>The number of seconds the machine has been running</returns>
-		virtual double GetPlatformTimeSeconds() const noexcept = 0;
+		virtual double GetPlatformTimeSeconds() const = 0;
 
 		/// <summary>
 		/// Writes a message to the platform's console output

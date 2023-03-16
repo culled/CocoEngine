@@ -15,14 +15,21 @@ namespace Coco
 		Logger = CreateManaged<Logging::Logger>(name);
 	}
 
-	Managed<Application> Application::Create(Coco::Engine* engine)
-	{
-		return CreateApplication(engine);
-	}
-
 	Application::~Application()
 	{
 		Logger.reset();
+	}
+
+
+	/// <summary>
+	/// Creates an application for a given engine
+	/// </summary>
+	/// <param name="engine">The engine</param>
+	/// <returns>The created application</returns>
+
+	Managed<Application> Application::Create(Coco::Engine* engine)
+	{
+		return CreateApplication(engine);
 	}
 
 	bool Application::Quit() noexcept

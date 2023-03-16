@@ -71,10 +71,7 @@ namespace Coco::Platform::Windows
 			this);
 
 		if (_handle == NULL)
-		{
-			string error = FormattedString("Failed to create window: {}", GetLastError());
-			throw Exception(error.c_str());
-		}
+			throw Windowing::WindowCreateException(FormattedString("Failed to create window: {}", GetLastError()));
 
 		LogTrace(WindowingService->GetLogger(), "Created Windows window");
 	}
@@ -97,9 +94,11 @@ namespace Coco::Platform::Windows
 		ShowWindow(_handle, SW_SHOW);
 	}
 
-	void WindowsWindow::Hide() noexcept
+	void WindowsWindow::Minimize() noexcept
 	{
 		CheckWindowHandle();
+
+		ShowWindow(_handle, SW_MINIMIZE);
 	}
 
 	bool WindowsWindow::GetIsVisible() const noexcept

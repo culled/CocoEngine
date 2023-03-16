@@ -10,8 +10,9 @@
 
 namespace Coco::Windowing
 {
-	WindowingService::WindowingService() noexcept :
-		_mainWindow(nullptr), _renderTickListener(CreateRef<MainLoopTickListener>(this, &WindowingService::RenderTick, WindowRenderPriority))
+	WindowingService::WindowingService() :
+		_mainWindow(nullptr), 
+		_renderTickListener(CreateRef<MainLoopTickListener>(this, &WindowingService::RenderTick, WindowRenderPriority))
 	{}
 
 	WindowingService::~WindowingService()
@@ -29,7 +30,7 @@ namespace Coco::Windowing
 	void WindowingService::Start()
 	{
 		if (!Engine::Get()->GetServiceManager()->TryFindService<Rendering::RenderingService>(_renderingService))
-			throw Exception("Could not find an active rendering service. The windowing service requires an active rendering service");
+			throw EngineServiceStartException("Could not find an active rendering service. The windowing service requires an active rendering service");
 
 		Engine::Get()->GetMainLoop()->AddTickListener(_renderTickListener);
 	}
@@ -48,18 +49,18 @@ namespace Coco::Windowing
 			return windowPtr;
 		}
 
-		throw Exception("Current platform does not support windows");
+		throw WindowCreateException("Current platform does not support windows");
 	}
 
-	bool WindowingService::TryFindWindow(void* windowId, Window** window) const noexcept
+	bool WindowingService::TryFindWindow(void* windowId, Window*& window) const noexcept
 	{
-		const auto it = std::find_if(_windows.cbegin(), _windows.cend(), [windowId](const Managed<Window>& other) {
+		const auto it = std::find_if(_windows.cbegin(), _windows.cend(), [windowId](const Managed<Window>& other) noexcept {
 			return windowId == other->GetID();
 			});
 
 		if (it != _windows.cend())
 		{
-			*window = (*it).get();
+			window = (*it).get();
 			return true;
 		}
 
@@ -83,7 +84,7 @@ namespace Coco::Windowing
 		try
 		{
 			if (it != _windows.end())
-				_windows.Erase(it);
+				_windows.Remove(it);
 		}
 		catch(...)
 		{ }
@@ -100,7 +101,7 @@ namespace Coco::Windowing
 			if (!window->GetIsVisible())
 				continue;
 
-			// TODO: which camera should each window use?
+			// TODO: which camera and render pipeline should each window use?
 			_renderingService->Render(window->GetPresenter());
 		}
 	}

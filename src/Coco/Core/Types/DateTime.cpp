@@ -4,15 +4,10 @@
 
 namespace Coco
 {
-	constexpr int64_t MSecsPerSecond = 1000;
-	constexpr int64_t MSecsPerMinute = 60000;
-	constexpr int64_t MSecsPerHour = 3600000;
-	constexpr int64_t MSecsPerDay = 86400000;
 
 	DateTime::DateTime(int64_t unixMilliseconds) noexcept :
 		_unixMilliseconds(unixMilliseconds)
-	{
-	}
+	{}
 
 	DateTime::DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond) noexcept
 	{
@@ -58,90 +53,10 @@ namespace Coco
 		return day;
 	}
 
-	int DateTime::GetHour() const noexcept
-	{
-		return static_cast<int>(_unixMilliseconds / MSecsPerHour % 24);
-	}
-
-	int DateTime::GetMinute() const noexcept
-	{
-		return static_cast<int>(_unixMilliseconds / MSecsPerMinute % 60);
-	}
-
-	int DateTime::GetSecond() const noexcept
-	{
-		return static_cast<int>(_unixMilliseconds / MSecsPerSecond % 60);
-	}
-
-	int DateTime::GetMillisecond() const noexcept
-	{
-		return static_cast<int>(_unixMilliseconds % 1000);
-	}
-
-	double DateTime::GetTotalHours() const noexcept
-	{
-		return static_cast<double>(_unixMilliseconds) / MSecsPerHour;
-	}
-
-	double DateTime::GetTotalMinutes() const noexcept
-	{
-		return static_cast<double>(_unixMilliseconds) / MSecsPerMinute;
-	}
-
-	double DateTime::GetTotalSeconds() const noexcept
-	{
-		return static_cast<double>(_unixMilliseconds) / MSecsPerSecond;
-	}
-
-	TimeSpan DateTime::operator-(const DateTime& other) const noexcept
-	{
-		return TimeSpan(_unixMilliseconds * 1000 - other._unixMilliseconds * 1000);
-	}
-
-	DateTime DateTime::operator+(const TimeSpan& other) const noexcept
-	{
-		return DateTime(this->_unixMilliseconds + static_cast<long long>(other.GetTotalMilliseconds()));
-	}
-
-	void DateTime::operator+=(const TimeSpan& other) noexcept
-	{
-		_unixMilliseconds += static_cast<long long>(other.GetMilliseconds());
-	}
-
-	void DateTime::operator-=(const TimeSpan& other) noexcept
-	{
-		_unixMilliseconds -= static_cast<long long>(other.GetMilliseconds());
-	}
-
-	bool DateTime::operator<(const DateTime& other) const noexcept
-	{
-		return this->_unixMilliseconds < other._unixMilliseconds;
-	}
-
-	bool DateTime::operator<=(const DateTime& other) const noexcept
-	{
-		return this->_unixMilliseconds <= other._unixMilliseconds;
-	}
-	
-	bool DateTime::operator>(const DateTime& other) const noexcept
-	{
-		return this->_unixMilliseconds > other._unixMilliseconds;
-	}
-
-	bool DateTime::operator>=(const DateTime& other) const noexcept
-	{
-		return this->_unixMilliseconds >= other._unixMilliseconds;
-	}
-
-	bool DateTime::operator==(const DateTime& other) const noexcept
-	{
-		return this->_unixMilliseconds == other._unixMilliseconds;
-	}
-
-	bool DateTime::operator!=(const DateTime& other) const noexcept
-	{
-		return !(*this == other);
-	}
+	TimeSpan DateTime::operator -(const DateTime& other) const noexcept { return TimeSpan((_unixMilliseconds - other._unixMilliseconds) * 1000); }
+	DateTime DateTime::operator +(const TimeSpan& timeSpan) const noexcept { return DateTime(_unixMilliseconds + static_cast<int64_t>(timeSpan.GetTotalMilliseconds())); }
+	void DateTime::operator+=(const TimeSpan& timeSpan) noexcept { _unixMilliseconds += static_cast<int64_t>(timeSpan.GetTotalMilliseconds()); }
+	void DateTime::operator-=(const TimeSpan& timeSpan) noexcept { _unixMilliseconds -= static_cast<int64_t>(timeSpan.GetTotalMilliseconds()); }
 
 	int DateTime::DaysSinceEpoch(int year, int month, int day) noexcept
 	{

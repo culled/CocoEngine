@@ -34,12 +34,7 @@ namespace Coco::Rendering
 
 	DescriptorPoolVulkan::~DescriptorPoolVulkan()
 	{
-		try
-		{
-			FreeSets();
-		}
-		catch(...)
-		{ }
+		FreeSets();
 
 		if (_pool != nullptr)
 		{
@@ -54,7 +49,7 @@ namespace Coco::Rendering
 			return _allocatedDescriptorSets[key];
 
 		if (_allocatedDescriptorSets.size() >= _maxDescriptorSets)
-			throw Exception("Already allocated the maximum number of descriptor sets");
+			throw DescriptorSetAllocateException("Already allocated the maximum number of descriptor sets");
 
 		VkDescriptorSetAllocateInfo setAllocate = {};
 		setAllocate.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -75,11 +70,12 @@ namespace Coco::Rendering
 		try
 		{
 			AssertVkResult(vkResetDescriptorPool(_device->GetDevice(), _pool, 0));
-			_allocatedDescriptorSets.clear();
 		}
 		catch (const Exception& ex)
 		{
 			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to free descriptor sets: {}", ex.what()));
 		}
+
+		_allocatedDescriptorSets.clear();
 	}
 }

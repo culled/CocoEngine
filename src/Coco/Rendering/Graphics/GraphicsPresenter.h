@@ -12,14 +12,9 @@
 namespace Coco::Rendering
 {
 	/// <summary>
-	/// A result from a GraphicsPresenter operation
+	/// A generic exception thrown by a GraphicsPresenter
 	/// </summary>
-	enum class GraphicsPresenterResult
-	{
-		Success,
-		NeedsReinitialization,
-		Failure
-	};
+	using GraphicsPresenterException = Exception;
 
 	/// <summary>
 	/// A presenter that can be used with a window for displaying rendered images
@@ -73,12 +68,12 @@ namespace Coco::Rendering
 		/// Gets a render context that can be used for rendering
 		/// </summary>
 		/// <returns>A render context</returns>
-		virtual bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) noexcept = 0;
+		virtual bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) = 0;
 
 		/// <summary>
 		/// Queues the given render context for presentation
 		/// </summary>
 		/// <param name="renderContext">The render context</param>
-		virtual bool Present(RenderContext* renderContext) noexcept = 0;
+		virtual bool Present(RenderContext* renderContext) = 0;
 	};
 }

@@ -32,11 +32,6 @@ namespace Coco
 		*this *= Quaternion(Vector3::Forwards, eulerAngles.Y, normalize);	
 	}
 
-	double Quaternion::Dot(const Quaternion& a, const Quaternion& b) noexcept
-	{
-		return a.Dot(b);
-	}
-
 	Quaternion Quaternion::Slerp(const Quaternion& from, const Quaternion& to, double alpha) noexcept
 	{
 		Quaternion out;
@@ -85,12 +80,6 @@ namespace Coco
 		return out.Normalized();
 	}
 
-	double Quaternion::Normal() const noexcept
-	{
-
-		return Math::Sqrt(X * X + Y * Y + Z * Z + W * W);
-	}
-
 	void Quaternion::Normalize(bool safe) noexcept
 	{
 		if (safe &&
@@ -112,11 +101,6 @@ namespace Coco
 		Quaternion copy = *this;
 		copy.Normalize(safe);
 		return copy;
-	}
-
-	Quaternion Quaternion::Conjugate() const noexcept
-	{
-		return Quaternion(-X, -Y, -Z, W);
 	}
 
 	Quaternion Quaternion::Inverted() const noexcept
@@ -181,11 +165,6 @@ namespace Coco
 			W * other.W;
 
 		return result;
-	}
-
-	void Quaternion::operator*=(const Quaternion& other) noexcept
-	{
-		*this = *this * other;
 	}
 
 	Vector3 Quaternion::operator*(const Vector3& direction) const noexcept

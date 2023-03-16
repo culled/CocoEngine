@@ -19,7 +19,7 @@ namespace Coco
 		double Z = 0.0;
 		double W = 1.0;
 
-		Quaternion() = default;
+		Quaternion() noexcept = default;
 		Quaternion(double x, double y, double z, double w) noexcept;
 		Quaternion(const Vector3& axis, double angleRadians, bool normalize = true) noexcept;
 		Quaternion(const Vector3& eulerAngles, bool normalize = true) noexcept;
@@ -30,7 +30,7 @@ namespace Coco
 		/// <param name="a">The first quaternion</param>
 		/// <param name="b">The second quaternion</param>
 		/// <returns>The dot product</returns>
-		static double Dot(const Quaternion& a, const Quaternion& b) noexcept;
+		static double Dot(const Quaternion& a, const Quaternion& b) noexcept { return a.Dot(b); }
 
 		/// <summary>
 		/// Spherically lerps from one rotation to another
@@ -45,7 +45,7 @@ namespace Coco
 		/// Gets the normal of this quaternion
 		/// </summary>
 		/// <returns>The normal</returns>
-		double Normal() const noexcept;
+		double Normal() const noexcept { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
 
 		/// <summary>
 		/// Normalizes this quaternion
@@ -64,7 +64,7 @@ namespace Coco
 		/// Gets the conjugate quaternion
 		/// </summary>
 		/// <returns>The conjugate quaternion</returns>
-		Quaternion Conjugate() const noexcept;
+		Quaternion Conjugate() const noexcept { return Quaternion(-X, -Y, -Z, W); }
 
 		/// <summary>
 		/// Gets the inverse of this quaternion
@@ -86,7 +86,7 @@ namespace Coco
 		Matrix4x4 ToRotationMatrix() const noexcept;
 
 		Quaternion operator*(const Quaternion& other) const noexcept;
-		void operator*=(const Quaternion& other) noexcept;
+		void operator*=(const Quaternion& other) noexcept { *this = *this * other; }
 
 		Vector3 operator*(const Vector3& direction) const noexcept;
 	};

@@ -11,7 +11,6 @@
 #include "ImageSamplerVulkan.h"
 #include <Coco/Rendering/Graphics/GraphicsResource.h>
 #include <Coco/Core/Types/Array.h>
-#include <Coco/Core/Engine.h>
 #include <Coco/Rendering/RenderingService.h>
 
 #include "VulkanUtilities.h"
@@ -25,11 +24,12 @@ namespace Coco::Rendering
 	RenderContextVulkan::RenderContextVulkan(GraphicsDevice* device) :
 		_device(static_cast<GraphicsDeviceVulkan*>(device)), _currentState(RenderContextState::Ready)
 	{
-		if (!Engine::Get()->GetServiceManager()->TryFindService(_renderingService))
-			throw Exception("Could not find rendering service");
+		_renderingService = RenderingService::Get();
+		if (_renderingService == nullptr)
+			throw RenderContextCreateException("Could not find an active rendering service");
 
 		if (!_device->GetGraphicsCommandPool(_pool))
-			throw Exception("A graphics command pool needs to be created for rendering");
+			throw RenderContextCreateException("A graphics command pool needs to be created for rendering");
 
 		_commandBuffer = static_cast<CommandBufferVulkan*>(_pool->Allocate(true));
 
@@ -116,13 +116,6 @@ namespace Coco::Rendering
 		_renderTargets = renderTargets;
 	}
 
-	void RenderContextVulkan::DrawIndexed(uint indexCount, uint indexOffset, uint vertexOffset, uint instanceCount, uint instanceOffset)
-	{
-		FlushStateChanges();
-
-		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), indexCount, instanceCount, indexOffset, vertexOffset, instanceOffset);
-	}
-
 	void RenderContextVulkan::Draw(const Mesh* mesh, const Matrix4x4& modelMatrix)
 	{
 		if (!FlushStateChanges())
@@ -149,11 +142,6 @@ namespace Coco::Rendering
 		vkCmdPushConstants(_commandBuffer->GetCmdBuffer(), _currentPipeline.Layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * Matrix4x4::CellCount, modelMat.data());
 
 		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), static_cast<uint>(mesh->GetIndexCount()), 1, 0, 0, 0);
-	}
-
-	bool RenderContextVulkan::IsAvaliableForRendering() noexcept
-	{
-		return _renderingCompleteFence->IsSignalled();
 	}
 
 	void RenderContextVulkan::WaitForRenderingCompleted() noexcept
@@ -422,21 +410,18 @@ namespace Coco::Rendering
 
 		const Subshader* subshader;
 		if (!_currentShader->TryGetSubshader(subshaderName, subshader))
-		{
-			const string err = FormattedString("Could not find a subshader for pass {}", subshaderName,
+			throw Exception(FormattedString("Could not find a subshader in \"{}\" for pass {}", 
+				_currentShader->GetName(),
 				subshaderName,
-				_currentShader->GetName());
-			throw Exception(err.c_str());
-		}
+				_currentShader->GetName()
+			));
 
 		VulkanDescriptorLayout layout;
 		if (!vulkanShader->TryGetDescriptorSetLayout(subshaderName, layout))
-		{
-			const string err = FormattedString("Could not find a descriptor layout for subshader {} in shader {}",
+			throw Exception(FormattedString("Could not find a descriptor layout for subshader \"{}\" in shader \"{}\"",
 				subshaderName,
-				_currentShader->GetName());
-			throw Exception(err.c_str());
-		}
+				_currentShader->GetName()
+			));
 
 		VkDescriptorSet set = pool->GetOrAllocateSet(layout, materialID);
 
@@ -462,7 +447,7 @@ namespace Coco::Rendering
 				List<uint8_t> data = _currentMaterial->GetStructData(descriptor.Name);
 				if (data.Count() == 0)
 				{
-					LogError(_renderingService->GetLogger(), FormattedString("No data was set for material descriptor {}", descriptor.Name));
+					LogError(_renderingService->GetLogger(), FormattedString("No data was set for material descriptor \"{}\"", descriptor.Name));
 					continue;
 				}
 
@@ -485,9 +470,7 @@ namespace Coco::Rendering
 				Ref<Texture> texture = _currentMaterial->GetTexture(descriptor.Name);
 
 				if (!texture)
-				{
 					texture = _renderingService->GetDefaultTexture();
-				}
 
 				GraphicsResourceRef<Image> image = texture->GetImage();
 				const ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.get());

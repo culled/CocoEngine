@@ -68,7 +68,8 @@ namespace Coco::Rendering
 			int mipCount, 
 			Rendering::PixelFormat pixelFormat, 
 			Rendering::ColorSpace colorSpace, 
-			ImageUsageFlags usageFlags) noexcept;
+			ImageUsageFlags usageFlags) noexcept :
+			ImageDescription(width, height, 1, 1, mipCount, pixelFormat, colorSpace, usageFlags) {}
 		ImageDescription(
 			int width, int height, int depth, 
 			int layers, int mipCount, 
@@ -76,6 +77,16 @@ namespace Coco::Rendering
 			Rendering::ColorSpace colorSpace, 
 			ImageUsageFlags usageFlags) noexcept;
 	};
+
+	/// <summary>
+	/// A generic exception thrown by an image
+	/// </summary>
+	using ImageException = Exception;
+
+	/// <summary>
+	/// An exception throw when tranfering data to an image fails
+	/// </summary>
+	using ImageDataTransferException = ImageException;
 
 	/// <summary>
 	/// A representation of an image on the GPU

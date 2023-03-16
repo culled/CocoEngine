@@ -8,6 +8,19 @@
 
 namespace Coco
 {
+	/// <summary>
+	/// A generic file exception
+	/// </summary>
+	using FileException = Exception;
+
+	/// <summary>
+	/// An exception when a file failes to open
+	/// </summary>
+	using FileOpenException = FileException;
+
+	/// <summary>
+	/// A file that can read and write data
+	/// </summary>
 	class COCOAPI File
 	{
 	private:
@@ -17,14 +30,13 @@ namespace Coco
 
 	public:
 		File(const string& path, FileModes openModes);
-		File(File&&) noexcept;
 		virtual ~File();
 
+		File(File&&) noexcept;
 		File& operator=(File&&) noexcept;
 
 		File() = delete;
 		File(const File&) = delete;
-
 		File& operator=(const File&) = delete;
 
 		/// <summary>

@@ -38,13 +38,8 @@ namespace Coco::Rendering
 			return buffer == other.get();
 			});
 
-		try
-		{
-			if (it != _allocatedBuffers.end())
-				_allocatedBuffers.Erase(it);
-		}
-		catch(...)
-		{ }
+		if (it != _allocatedBuffers.end())
+			_allocatedBuffers.Remove(it);
 	}
 
 	void CommandBufferPoolVulkan::WaitForQueue() noexcept

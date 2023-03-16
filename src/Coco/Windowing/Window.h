@@ -14,6 +14,16 @@ namespace Coco::Windowing
 	class WindowingService;
 
 	/// <summary>
+	/// A generic window exception
+	/// </summary>
+	using WindowException = Exception;
+
+	/// <summary>
+	/// An exception thrown when a window fails to create
+	/// </summary>
+	using WindowCreateException = Exception;
+
+	/// <summary>
 	/// Parameters for creating a window
 	/// </summary>
 	struct COCOAPI WindowCreateParameters
@@ -118,15 +128,15 @@ namespace Coco::Windowing
 		virtual void Show() = 0;
 
 		/// <summary>
-		/// Hides this window
+		/// Minimizes this window
 		/// </summary>
-		virtual void Hide() = 0;
+		virtual void Minimize() = 0;
 
 		/// <summary>
 		/// Gets if this window is visible (shown and not minimized)
 		/// </summary>
 		/// <returns>True if this window is visible</returns>
-		virtual bool GetIsVisible() const = 0;
+		virtual bool GetIsVisible() const noexcept = 0;
 
 		/// <summary>
 		/// Requests this window to close

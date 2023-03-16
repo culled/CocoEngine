@@ -4,7 +4,7 @@
 
 namespace Coco::Rendering
 {
-	void GraphicsDevice::DestroyResource(const IGraphicsResource* resource)
+	void GraphicsDevice::DestroyResource(const IGraphicsResource* resource) noexcept
 	{
 		WaitForIdle();
 
@@ -15,7 +15,7 @@ namespace Coco::Rendering
 		// Erasing will cause the resource to be destroyed
 		if (it != Resources.end())
 		{
-			Resources.Erase(it);
+			Resources.Remove(it);
 		}
 	}
 }

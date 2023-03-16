@@ -17,30 +17,23 @@ namespace Coco
 		using Iterator = std::vector<T>::iterator;
 		using ConstIterator = std::vector<T>::const_iterator;
 
-		List() = default;
+		List() noexcept = default;
 		virtual ~List() = default;
 
 		List(uint64_t initialSize) : _list(initialSize) {}
 		List(std::initializer_list<T>&& items) : _list(items) {}
 
+		/// <summary>
+		/// Adds an item to this list
+		/// </summary>
+		/// <param name="item">The item to add</param>
+		void Add(T&& item) { _list.push_back(std::forward<T>(item)); }
 
 		/// <summary>
 		/// Adds an item to this list
 		/// </summary>
 		/// <param name="item">The item to add</param>
-		void Add(T&& item)
-		{
-			_list.push_back(std::forward<T>(item));
-		}
-
-		/// <summary>
-		/// Adds an item to this list
-		/// </summary>
-		/// <param name="item">The item to add</param>
-		void Add(const T& item)
-		{
-			_list.push_back(item);
-		}
+		void Add(const T& item) { _list.push_back(item); }
 
 		/// <summary>
 		/// Inserts an item at the specified index
@@ -78,17 +71,17 @@ namespace Coco
 			Iterator it = std::find(begin(), end(), item);
 
 			if (it != end())
-				return Erase(it);
+				return Remove(it);
 
 			return false;
 		}
 
 		/// <summary>
-		/// Erases an item at the given iterator
+		/// Remove an item at the given iterator
 		/// </summary>
 		/// <param name="it">The iterator</param>
 		/// <returns>True if the item was erased successfully</returns>
-		bool Erase(Iterator it) noexcept
+		bool Remove(Iterator it) noexcept
 		{
 			try
 			{
@@ -106,18 +99,12 @@ namespace Coco
 		/// </summary>
 		/// <param name="it">The iterator</param>
 		/// <returns>An iterator to the element after the one erased or the list end if the element was the last one erased</returns>
-		Iterator EraseAndGetNext(Iterator it)
-		{
-			return _list.erase(it);
-		}
+		Iterator EraseAndGetNext(Iterator it) { return _list.erase(it); }
 
 		/// <summary>
 		/// Removes all items from this list
 		/// </summary>
-		void Clear() noexcept
-		{
-			_list.clear();
-		}
+		void Clear() noexcept { _list.clear(); }
 
 		/// <summary>
 		/// Gets the number of items in this list
@@ -125,78 +112,47 @@ namespace Coco
 		/// <returns>The number of items in this list</returns>
 		uint64_t Count() const noexcept { return _list.size(); }
 
-		T& operator[](uint64_t index)
-		{
-			return _list.at(index);
-		}
-
-		const T& operator[](uint64_t index) const
-		{
-			return _list.at(index);
-		}
+		/// <summary>
+		/// Gets the first element in the list
+		/// </summary>
+		/// <returns>The first element of the list</returns>
+		T& First() noexcept { return _list.front(); }
 
 		/// <summary>
 		/// Gets the first element in the list
 		/// </summary>
 		/// <returns>The first element of the list</returns>
-		T& First()
-		{
-			return _list.front();
-		}
-
-		/// <summary>
-		/// Gets the first element in the list
-		/// </summary>
-		/// <returns>The first element of the list</returns>
-		const T& First() const
-		{
-			return _list.front();
-		}
+		const T& First() const noexcept { return _list.front(); }
 
 		/// <summary>
 		/// Gets the last element in the list
 		/// </summary>
 		/// <returns>The last element in the list</returns>
-		T& Last()
-		{
-			return _list.back();
-		}
+		T& Last() noexcept { return _list.back(); }
 
 		/// <summary>
 		/// Gets the last element in the list
 		/// </summary>
 		/// <returns>The last element in the list</returns>
-		const T& Last() const
-		{
-			return _list.back();
-		}
+		const T& Last() const noexcept { return _list.back(); }
 
 		/// <summary>
 		/// Resizes this list to be the given size
 		/// </summary>
 		/// <param name="newSize">The new size of this list</param>
-		void Resize(uint64_t newSize)
-		{
-			_list.resize(newSize);
-		}
+		void Resize(uint64_t newSize) { _list.resize(newSize); }
 
 		/// <summary>
 		/// Gets a pointer to this list's first item
 		/// </summary>
 		/// <returns>A pointer to this list's first item</returns>
-		const T* Data() const noexcept
-		{
-			return _list.data();
-		}
+		const T* Data() const noexcept { return _list.data(); }
 
 		/// <summary>
 		/// Gets a pointer to this list's first item
 		/// </summary>
 		/// <returns>A pointer to this list's first item</returns>
-		T* Data() noexcept
-		{
-			return _list.data();
-		}
+		T* Data() noexcept { return _list.data(); }
 
 		/// <summary>
 		/// Determines if a given element exists in this list
@@ -250,5 +206,8 @@ namespace Coco
 		/// </summary>
 		/// <returns>An iterator for the end of this list</returns>
 		ConstIterator cend() const noexcept { return _list.cend(); }
+
+		T& operator[](uint64_t index) { return _list.at(index); }
+		const T& operator[](uint64_t index) const { return _list.at(index); }
 	};
 }

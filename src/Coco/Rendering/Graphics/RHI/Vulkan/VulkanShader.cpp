@@ -6,6 +6,7 @@
 
 namespace Coco::Rendering
 {
+	// TODO: how to calculate this?
 	#define MAX_SETS 10
 
 	VulkanShader::VulkanShader(GraphicsDevice* device, const Shader* shader) :
@@ -25,11 +26,9 @@ namespace Coco::Rendering
 				}
 				catch (const Exception& ex)
 				{
-					string err = FormattedString("Unable to create shader module for \"{}:{}\": {}", shader->GetName(), subshader.PassName, ex.what());
-					throw Exception(err.c_str());
+					throw ObjectCreateException(FormattedString("Unable to create shader module for pass \"{}\": {}", subshader.PassName, ex.what()));
 				}
 			}
-
 
 			VulkanDescriptorLayout layout = {};
 			layout.LayoutBindings.Resize(subshader.Descriptors.Count());
@@ -111,17 +110,7 @@ namespace Coco::Rendering
 		shaderStage.ShaderModuleCreateInfo = {};
 		shaderStage.ShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 
-		List<uint8_t> byteCode;
-
-		try
-		{
-			byteCode = File::ReadAllBytes(file);
-		}
-		catch (const Exception& ex)
-		{
-			string err = FormattedString("Unable to read shader file: {}", ex.what());
-			throw Exception(err.c_str());
-		}
+		List<uint8_t> byteCode = File::ReadAllBytes(file);
 
 		shaderStage.ShaderModuleCreateInfo.codeSize = byteCode.Count();
 		shaderStage.ShaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(byteCode.Data());

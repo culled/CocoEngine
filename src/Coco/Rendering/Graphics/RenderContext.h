@@ -39,6 +39,11 @@ namespace Coco::Rendering
 	};
 
 	/// <summary>
+	/// A generic exception thrown when there's an error creating a RenderContext
+	/// </summary>
+	using RenderContextCreateException = Exception;
+
+	/// <summary>
 	/// A context that can be used for rendering
 	/// </summary>
 	class COCOAPI RenderContext : public IGraphicsResource
@@ -117,16 +122,6 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="material">The material to use</param>
 		virtual void UseMaterial(Ref<Material> material) = 0;
-
-		/// <summary>
-		/// Draws a number of triangles
-		/// </summary>
-		/// <param name="indexCount">The number of triangle indices to draw</param>
-		/// <param name="indexOffset">The offset of the index to start drawing</param>
-		/// <param name="vertexOffset">The offset of the vertex to start drawing</param>
-		/// <param name="instanceCount">The number of instances to draw</param>
-		/// <param name="instanceOffset">The offset of the instance to start drawing</param>
-		virtual void DrawIndexed(uint indexCount, uint indexOffset, uint vertexOffset, uint instanceCount, uint instanceOffset) = 0;
 
 		/// <summary>
 		/// Draws a mesh

@@ -20,11 +20,7 @@ namespace Coco
 	// [2	m31,	6	m32,	10	m33,	14	m34]
 	// [3	m41,	7	m42,	11	m43,	15	m44]
 
-	Matrix4x4::Matrix4x4() noexcept : Matrix4x4(false)
-	{}
-
-	Matrix4x4::Matrix4x4(bool isIdentity) noexcept :
-		Data {0.0}
+	Matrix4x4::Matrix4x4(bool isIdentity) noexcept
 	{
 		if (isIdentity)
 		{
@@ -200,12 +196,7 @@ namespace Coco
 
 	Matrix4x4 Matrix4x4::CreateWithEulerRotation(double xRadians, double yRadians, double zRadians) noexcept
 	{
-		const Matrix4x4 rX = CreateWithRotationEulerX(xRadians);
-		const Matrix4x4 rY = CreateWithRotationEulerY(yRadians);
-		const Matrix4x4 rZ = CreateWithRotationEulerZ(zRadians);
-
-		const Matrix4x4 mat = rX * rY;
-		return mat * rZ;
+		return CreateWithRotationEulerX(xRadians) * CreateWithRotationEulerY(yRadians) * CreateWithRotationEulerZ(zRadians);
 	}
 
 	Matrix4x4 Matrix4x4::CreateWithEulerRotation(const Vector3& eulerAnglesRadians) noexcept
@@ -318,7 +309,7 @@ namespace Coco
 		Array<float, Matrix4x4::CellCount> data = {};
 
 		for (int i = 0; i < CellCount; i++)
-			data.at(i) = static_cast<float>(Data.at(i));
+			data[i] = static_cast<float>(Data[i]);
 
 		return std::move(data);
 	}

@@ -11,7 +11,7 @@ namespace Coco
 		int mode = 0;
 
 		if (openModes == FileModes::None)
-			throw Exception("Invalid open mode");
+			throw FileOpenException("Invalid open mode");
 
 		if ((openModes & FileModes::Read) == FileModes::Read)
 			mode |= std::ios::in;
@@ -25,10 +25,7 @@ namespace Coco
 		_handle.open(path, mode);
 
 		if (!_handle.is_open())
-		{
-			string err = FormattedString("Failed to open file {}", path);
-			throw Exception(err.c_str());
-		}
+			throw FileOpenException(FormattedString("Failed to open file  \"{}\"", path));
 
 		// By default, have all operations start at the beginning of the file
 		_handle.seekg(0, std::ios::beg);
@@ -232,6 +229,6 @@ namespace Coco
 	void File::CheckHandle() const
 	{
 		if (!_handle.is_open())
-			throw Exception("File is not opened");
+			throw FileException("File operations require an openned file");
 	}
 }

@@ -10,24 +10,24 @@ namespace Coco
 	class COCOAPI Math
 	{
 	public:
-		static const double PI;
-		static const double DoublePI;
-		static const double HalfPI;
-		static const double QuarterPI;
-		static const double OneOverPI;
-		static const double OneOverDoublePI;
-		static const double SqrtTwo;
-		static const double SqrtThree;
-		static const double SqrtOneOverTwo;
-		static const double SqrtOneOverThree;
-		static const double Deg2RadMultiplier;
-		static const double Rad2DegMultiplier;
+		static constexpr double PI = 3.1415926535897932384626433832795;
+		static constexpr double DoublePI = PI * 2.0;
+		static constexpr double HalfPI = PI * 0.5;
+		static constexpr double QuarterPI = PI * 0.25;
+		static constexpr double OneOverPI = 1.0 / PI;
+		static constexpr double OneOverDoublePI = 1.0 / DoublePI;
+		static constexpr double SqrtTwo = 1.4142135623730950488016887242097;
+		static constexpr double SqrtThree = 1.7320508075688772935274463415059;
+		static constexpr double SqrtOneOverTwo = 0.70710678118654752440084436210485;
+		static constexpr double SqrtOneOverThree = 0.57735026918962576450914878050196;
+		static constexpr double Deg2RadMultiplier = PI / 180.0;
+		static constexpr double Rad2DegMultiplier = 180.0 / PI;
 
-		static const double SecondsToMillisecondsMultiplier;
-		static const double MillisecondsToSecondsMultiplier;
+		static constexpr double SecondsToMillisecondsMultiplier = 1000.0;
+		static constexpr double MillisecondsToSecondsMultiplier = 1.0 / SecondsToMillisecondsMultiplier;
 
-		static const double Infinity;
-		static const double Epsilon;
+		static constexpr double Infinity = std::numeric_limits<double>::max();
+		static constexpr double Epsilon = std::numeric_limits<double>::epsilon();
 
 	public:
 		/// <summary>
@@ -166,5 +166,19 @@ namespace Coco
 		/// <returns>The rounded integer</returns>
 		template<typename T>
 		static int RoundToInt(const T value) noexcept { return static_cast<int>(Round(value)); }
+
+		/// <summary>
+		/// Gets the largest value of a type
+		/// </summary>
+		/// <returns>The largest value of the type</returns>
+		template<typename T>
+		static constexpr T MaxValue() noexcept { return std::numeric_limits<T>::max(); }
+
+		/// <summary>
+		/// Gets the smallest value of a type
+		/// </summary>
+		/// <returns>The smallest value of the type</returns>
+		template<typename T>
+		static constexpr T MinValue() noexcept { return std::numeric_limits<T>::min(); }
 	};
 }

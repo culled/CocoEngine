@@ -16,11 +16,12 @@ namespace Coco
 
 		Version() = default;
 		Version(int major, int minor, int patch) noexcept;
+		virtual ~Version() = default;
 
 		/// <summary>
 		/// Gets a string representation of this version
 		/// </summary>
 		/// <returns>The string representation of this version</returns>
-		string ToString() const noexcept;
+		string ToString() const noexcept { return FormattedString("{}.{}.{}", Major, Minor, Patch); }
 	};
 }

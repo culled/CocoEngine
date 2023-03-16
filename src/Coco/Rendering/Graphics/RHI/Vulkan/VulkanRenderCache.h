@@ -51,6 +51,21 @@ namespace Coco::Rendering
 	};
 
 	/// <summary>
+	/// An exception thrown when a Vulkan pipeline cannot be created
+	/// </summary>
+	using VulkanPipelineCreateException = Exception;
+
+	/// <summary>
+	/// An exception thrown when a Vulkan renderpass cannot be created
+	/// </summary>
+	using VulkanRenderPassCreateException = Exception;
+
+	/// <summary>
+	/// An exception thrown when a Vulkan shader cannot be created
+	/// </summary>
+	using VulkanShaderCreateException = Exception;
+
+	/// <summary>
 	/// A cache for Vulkan pipeline objects
 	/// </summary>
 	class VulkanRenderCache

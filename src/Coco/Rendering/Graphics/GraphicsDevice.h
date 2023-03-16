@@ -119,7 +119,7 @@ namespace Coco::Rendering
 		/// Destroys a managed graphics resource
 		/// </summary>
 		/// <param name="resource">The resource to destroy</param>
-		void DestroyResource(const IGraphicsResource* resource);
+		void DestroyResource(const IGraphicsResource* resource) noexcept;
 	};
 }
 

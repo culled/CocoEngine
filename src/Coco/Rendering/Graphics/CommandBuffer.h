@@ -16,24 +16,23 @@ namespace Coco::Rendering
 		/// <summary>
 		/// States of a command buffer
 		/// </summary>
-		enum class State
+		enum class CommandBufferState
 		{
 			Ready,
 			Recording,
 			RecordingEnded,
-			Submitted,
-			NotAllocated
+			Submitted
 		};
 
 	protected:
-		State CurrentState;
+		CommandBufferState CurrentState;
 		bool IsPrimary;
 
 	protected:
 		CommandBuffer(bool isPrimary) noexcept;
 
 	public:
-		virtual ~CommandBuffer();
+		virtual ~CommandBuffer() = default;
 
 		CommandBuffer(const CommandBuffer&) = delete;
 		CommandBuffer(CommandBuffer&&) = delete;
@@ -42,19 +41,19 @@ namespace Coco::Rendering
 		CommandBuffer& operator=(CommandBuffer&&) = delete;
 
 		/// <summary>
-		/// Begins recording this buffer
+		/// Begins recording to this command buffer
 		/// </summary>
 		/// <param name="isSingleUse">If true, this buffer will only be submitted once</param>
 		/// <param name="isSimultaneousUse">If true, this buffer can be submitted to multiple queues</param>
-		virtual void Begin(bool isSingleUse, bool isSimultaneousUse) = 0;
+		virtual void Begin(bool isSingleUse, bool isSimultaneousUse);
 
 		/// <summary>
-		/// Ends recording this buffer
+		/// Ends recording to this command buffer
 		/// </summary>
-		virtual void End() = 0;
+		virtual void End();
 
 		/// <summary>
-		/// Submits this buffer
+		/// Submits this command buffer
 		/// </summary>
 		/// <param name="waitSemaphores">Semaphores to wait on before performing this buffer's work</param>
 		/// <param name="signalSemaphores">Semaphores to signal once this buffer's work has been completed</param>
@@ -62,12 +61,12 @@ namespace Coco::Rendering
 		virtual void Submit(
 			const List<IGraphicsSemaphore*>& waitSemaphores = {},
 			const List<IGraphicsSemaphore*>& signalSemaphores = {},
-			IGraphicsFence* signalFence = nullptr) = 0;
+			IGraphicsFence* signalFence = nullptr);
 
 		/// <summary>
-		/// Resets this buffer
+		/// Resets this command buffer
 		/// </summary>
-		virtual void Reset() = 0;
+		virtual void Reset();
 
 		/// <summary>
 		/// Ends and submits this buffer
@@ -79,5 +78,34 @@ namespace Coco::Rendering
 			const List<IGraphicsSemaphore*>& waitSemaphores = {},
 			const List<IGraphicsSemaphore*>& signalSemaphores = {},
 			IGraphicsFence* signalFence = nullptr);
+
+	protected:
+		/// <summary>
+		/// Implementation to begin recording this command buffer
+		/// </summary>
+		/// <param name="isSingleUse">If true, this buffer will only be submitted once</param>
+		/// <param name="isSimultaneousUse">If true, this buffer can be submitted to multiple queues</param>
+		virtual void BeginImpl(bool isSingleUse, bool isSimultaneousUse) = 0;
+
+		/// <summary>
+		/// Implementation to end recording this command buffer
+		/// </summary>
+		virtual void EndImpl() = 0;
+
+		/// <summary>
+		/// Implementation to submit this command buffer
+		/// </summary>
+		/// <param name="waitSemaphores">Semaphores to wait on before performing this buffer's work</param>
+		/// <param name="signalSemaphores">Semaphores to signal once this buffer's work has been completed</param>
+		/// <param name="signalFence">A fence to signal once this buffer's work has been completed</param>
+		virtual void SubmitImpl(
+			const List<IGraphicsSemaphore*>& waitSemaphores,
+			const List<IGraphicsSemaphore*>& signalSemaphores,
+			IGraphicsFence* signalFence) = 0;
+
+		/// <summary>
+		/// Implementation to reset this command buffer
+		/// </summary>
+		virtual void ResetImpl() = 0;
 	};
 }

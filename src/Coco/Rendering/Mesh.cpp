@@ -1,7 +1,6 @@
 #include "Mesh.h"
 
 #include "RenderingService.h"
-#include <Coco/Core/Engine.h>
 #include "Graphics/BufferTypes.h"
 
 namespace Coco::Rendering
@@ -11,8 +10,10 @@ namespace Coco::Rendering
 
 	Mesh::Mesh()
 	{
-		if (!Engine::Get()->GetServiceManager()->TryFindService(_renderingService))
-			throw Exception("Cannot create a mesh without an active rendering service");
+		_renderingService = RenderingService::Get();
+
+		if (_renderingService == nullptr)
+			throw ObjectCreateException("Cannot create a mesh without an active rendering service");
 		
 		_vertexBuffer = _renderingService->CreateBuffer(
 			VertexBufferSize, 
@@ -58,11 +59,10 @@ namespace Coco::Rendering
 		{
 			if (_vertexUV0s.Count() != _vertexPositions.Count())
 			{
-				const string err = FormattedString(
+				throw MeshUploadException(FormattedString(
 					"UV0 count ({}) doesn't match vertex count of {}",
 					_vertexUV0s.Count(),
-					_vertexPositions.Count());
-				throw Exception(err.c_str());
+					_vertexPositions.Count()));
 			}
 
 			GraphicsResourceRef<Buffer> staging = _renderingService->CreateBuffer(
@@ -70,6 +70,7 @@ namespace Coco::Rendering
 				BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
 				true);
 
+			// Build the vertex data
 			List<VertexData> vertexData(_vertexPositions.Count());
 			for (uint64_t i = 0; i < vertexData.Count(); i++)
 			{
@@ -81,16 +82,17 @@ namespace Coco::Rendering
 				vertexData[i].UV0[1] = static_cast<float>(_vertexUV0s[i].Y);
 			}
 
+			// Upload vertex data
 			staging->LoadData(0, vertexData);
 			staging->CopyTo(0, _vertexBuffer.get(), 0, sizeof(VertexData) * vertexData.Count());
-
 			_vertexCount = vertexData.Count();
 
+			// Resize for index data
 			staging->Resize(IndexBufferSize);
 
+			// Upload index data
 			staging->LoadData(0, _vertexIndices);
 			staging->CopyTo(0, _indexBuffer.get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
-
 			_indexCount = _vertexIndices.Count();
 
 			staging.reset();
@@ -98,6 +100,7 @@ namespace Coco::Rendering
 			if (deleteLocalData)
 			{
 				_vertexPositions.Clear();
+				_vertexUV0s.Clear();
 				_vertexIndices.Clear();
 			}
 
@@ -107,11 +110,16 @@ namespace Coco::Rendering
 		}
 		catch (const Exception& ex)
 		{
-			LogError(Engine::Get()->GetLogger(), FormattedString(
+			LogError(_renderingService->GetLogger(), FormattedString(
 				"Failed to upload mesh data: {}",
 				ex.what()
 			));
 
+			return false;
+		}
+		catch (...)
+		{
+			LogError(_renderingService->GetLogger(), "Failed to upload mesh data");
 			return false;
 		}
 	}

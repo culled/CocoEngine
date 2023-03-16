@@ -7,6 +7,8 @@
 
 #include "VulkanUtilities.h"
 
+#include <vulkan/vk_enum_string_helper.h>
+
 namespace Coco::Rendering
 {
 	ImageVulkan::ImageVulkan(GraphicsDevice* device, ImageDescription description, VkImage image) : 
@@ -43,7 +45,7 @@ namespace Coco::Rendering
 	{
 		CommandBufferPoolVulkan* pool;
 		if (!_device->GetGraphicsCommandPool(pool))
-			throw Exception("A graphics queue is required to upload pixel data");
+			throw ImageDataTransferException("A graphics queue is required to transfer pixel data");
 
 		uint64_t bufferSize = static_cast<uint64_t>(Description.Width) *
 			static_cast<uint64_t>(Description.Height) *
@@ -95,7 +97,7 @@ namespace Coco::Rendering
 		Ref<VulkanQueue> graphicsQueue;
 
 		if (!_device->GetComputeQueue(graphicsQueue))
-			throw Exception("Device needs a graphics queue to transition image layouts");
+			throw ImageException("Device needs a graphics queue to transition image layouts");
 
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -136,8 +138,8 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(_device->VulkanPlatform->GetLogger(), 
-				FormattedString("Transitioning from {} to {} is unsupported currently", 
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString(
+				"Transitioning from {} to {} is unsupported currently", 
 					string_VkImageLayout(from), 
 					string_VkImageLayout(to)
 				));
@@ -179,7 +181,7 @@ namespace Coco::Rendering
 		vkGetImageMemoryRequirements(_device->GetDevice(), _image, &memoryRequirements);
 
 		if (!_device->FindMemoryIndex(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _memoryIndex))
-			throw Exception("Unable to find memory type for image");
+			throw ImageException("Unable to find local memory for image");
 
 		// Allocate memory
 		VkMemoryAllocateInfo allocateInfo = {};

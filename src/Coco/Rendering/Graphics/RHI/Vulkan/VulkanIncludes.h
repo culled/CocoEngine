@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <vulkan/vk_enum_string_helper.h>
+#include "VulkanExceptions.h"
 
 // Windows-specific includes (mainly for surface creation)
 #ifdef COCO_PLATFORM_WINDOWS
@@ -30,7 +30,6 @@
 #define AssertVkResult(Expression) {														\
 const VkResult result = Expression;															\
 if(result != VK_SUCCESS) {																	\
-	string error = FormattedString("Vulkan operation failed: {}", string_VkResult(result));	\
-	throw Exception(error.c_str());															\
+	throw VulkanOperationException(result);													\
 }																							\
 }

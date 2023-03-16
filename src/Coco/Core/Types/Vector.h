@@ -5,26 +5,53 @@
 namespace Coco
 {
 	struct Vector2;
+	struct Vector3;
+	struct Vector4;
 
 	/// <summary>
 	/// Represents a 2D vector using integers
 	/// </summary>
 	struct COCOAPI Vector2Int
 	{
+		/// <summary>
+		/// A zero vector2int (0, 0)
+		/// </summary>
 		static const Vector2Int Zero;
+
+		/// <summary>
+		/// A vector2int with 1 for each axis (1, 1)
+		/// </summary>
 		static const Vector2Int One;
 
 		int X = 0;
 		int Y = 0;
 
-		Vector2Int() = default;
+		Vector2Int() noexcept = default;
 		Vector2Int(int x, int y) noexcept;
+		virtual ~Vector2Int() = default;
 
-		Vector2Int operator+(const Vector2Int& other) const noexcept;
-		Vector2Int operator-(const Vector2Int& other) const noexcept;
-		Vector2Int operator*(int scalar) const noexcept;
-		bool operator==(const Vector2Int& other) const noexcept;
-		bool operator!= (const Vector2Int& other) const noexcept;
+		Vector2Int operator+(const Vector2Int& other) const noexcept { return Vector2Int(X + other.X, Y + other.Y); }
+		void operator+=(const Vector2Int& other) noexcept { X += other.X; Y += other.Y; }
+
+		Vector2Int operator-(const Vector2Int& other) const noexcept { return Vector2Int(X - other.X, Y - other.Y); }
+		void operator-=(const Vector2Int& other) noexcept { X -= other.X; Y -= other.Y; }
+
+		Vector2Int operator*(const Vector2Int& other) const noexcept { return Vector2Int(X * other.X, Y * other.Y); }
+		void operator*=(const Vector2Int& other) noexcept { X *= other.X; Y *= other.Y; }
+
+		Vector2Int operator*(int scalar) const noexcept { return Vector2Int(X * scalar, Y * scalar); }
+		void operator*=(int scalar) noexcept { X *= scalar; Y *= scalar; }
+
+		Vector2Int operator/(const Vector2Int& other) const noexcept { return Vector2Int(X / other.X, Y / other.Y); }
+		void operator/=(const Vector2Int& other) noexcept { X /= other.X; Y /= other.Y; }
+
+		Vector2Int operator/(int divisor) const noexcept { return Vector2Int(X / divisor, Y / divisor); }
+		void operator/=(int divisor) noexcept { X /= divisor; Y /= divisor; }
+
+		Vector2Int operator-() const noexcept { return Vector2Int(-X, -Y); }
+
+		bool operator==(const Vector2Int& other) const noexcept { return X == other.X && Y == other.Y; }
+		bool operator!= (const Vector2Int& other) const noexcept { return X != other.X || Y != other.Y; }
 
 		operator Vector2() const noexcept;
 	};
@@ -34,12 +61,34 @@ namespace Coco
 	/// </summary>
 	struct COCOAPI Vector2
 	{
+		/// <summary>
+		/// A zero vector2 (0, 0)
+		/// </summary>
 		static const Vector2 Zero;
+
+		/// <summary>
+		/// A vector2 with 1 for each axis (1, 1)
+		/// </summary>
 		static const Vector2 One;
 
+		/// <summary>
+		/// A vector2 pointing to the right (1, 0)
+		/// </summary>
 		static const Vector2 Right;
+
+		/// <summary>
+		/// A vector2 pointing to the left (-1, 0)
+		/// </summary>
 		static const Vector2 Left;
+
+		/// <summary>
+		/// A vector2 pointing up (0, 1)
+		/// </summary>
 		static const Vector2 Up;
+
+		/// <summary>
+		/// A vector2 pointing down (0, -1)
+		/// </summary>
 		static const Vector2 Down;
 
 		double X = 0.0;
@@ -47,6 +96,8 @@ namespace Coco
 
 		Vector2() = default;
 		Vector2(double x, double y) noexcept;
+		Vector2(const Vector3& vec) noexcept;
+		virtual ~Vector2() = default;
 
 		/// <summary>
 		/// Returns the distance between two vectors
@@ -62,19 +113,19 @@ namespace Coco
 		/// <param name="a">The first vector</param>
 		/// <param name="b">The second vector</param>
 		/// <returns>The dot product</returns>
-		static double Dot(const Vector2& a, const Vector2& b) noexcept;
+		static double Dot(const Vector2& a, const Vector2& b) noexcept { return a.Dot(b); }
 
 		/// <summary>
 		/// Gets the squared length of this vector
 		/// </summary>
 		/// <returns>The squared length</returns>
-		double GetLengthSquared() const noexcept;
+		double GetLengthSquared() const noexcept { return X * X + Y * Y; }
 
 		/// <summary>
 		/// Gets the length of this vector
 		/// </summary>
 		/// <returns>The length</returns>
-		double GetLength() const noexcept;
+		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y); }
 
 		/// <summary>
 		/// Normalizes this vector
@@ -95,21 +146,37 @@ namespace Coco
 		/// <param name="other">The other vector</param>
 		/// <param name="tolerance">The difference tolerance</param>
 		/// <returns>True if the two vectors are within the tolerance of each other</returns>
-		bool Equals(const Vector2& other, double tolerance) const noexcept;
+		bool Equals(const Vector2& other, double tolerance = Math::Epsilon) const noexcept 
+		{ return Math::Approximately(X, other.X, tolerance) && Math::Approximately(Y, other.Y, tolerance); }
 
 		/// <summary>
 		/// Calculates the dot product of this vector with another vector
 		/// </summary>
 		/// <param name="other">The other vector</param>
 		/// <returns>The dot product of this vector and the other vector</returns>
-		double Dot(const Vector2& other) const noexcept;
+		double Dot(const Vector2& other) const noexcept { return X * other.X + Y * other.Y; }
 
-		Vector2 operator+(const Vector2& other) const noexcept;
-		Vector2 operator-(const Vector2& other) const noexcept;
-		Vector2 operator*(double scalar) const noexcept;
-		Vector2 operator*(const Vector2& other) const noexcept;
-		Vector2 operator/(double divisor) const noexcept;
-		Vector2 operator/(const Vector2& other) const noexcept;
+		Vector2 operator+(const Vector2& other) const noexcept { return Vector2(X + other.X, Y + other.Y); }
+		void operator+=(const Vector2& other) noexcept { X += other.X; Y += other.Y; }
+
+		Vector2 operator-(const Vector2& other) const noexcept { return Vector2(X - other.X, Y - other.Y); }
+		void operator-=(const Vector2& other) noexcept { X -= other.X; Y -= other.Y; }
+
+		Vector2 operator*(const Vector2& other) const noexcept { return Vector2(X * other.X, Y * other.Y); }
+		void operator*=(const Vector2& other) noexcept { X *= other.X; Y *= other.Y; }
+
+		Vector2 operator*(double scalar) const noexcept { return Vector2(X * scalar, Y * scalar); }
+		void operator*=(double scalar) noexcept { X *= scalar; Y *= scalar; }
+
+		Vector2 operator/(double divisor) const noexcept { return Vector2(X / divisor, Y / divisor); }
+		void operator/=(double divisor) noexcept { X /= divisor; Y /= divisor; }
+
+		Vector2 operator-() const noexcept { return Vector2(-X, -Y); }
+
+		operator Vector3() const noexcept;
+
+		bool operator==(const Vector2& other) { return Equals(other); }
+		bool operator!=(const Vector2& other) { return !Equals(other); }
 	};
 
 	/// <summary>
@@ -117,36 +184,43 @@ namespace Coco
 	/// </summary>
 	struct COCOAPI Vector3
 	{
+		/// <summary>
+		/// A zero vector3 (0, 0, 0)
+		/// </summary>
 		static const Vector3 Zero;
+
+		/// <summary>
+		/// A vector3 with 1 for each axis (1, 1, 1)
+		/// </summary>
 		static const Vector3 One;
 
 		/// <summary>
-		/// A vector pointing to the right (+X axis)
+		/// A vector3 pointing to the right (1, 0, 0)
 		/// </summary>
 		static const Vector3 Right;
 
 		/// <summary>
-		/// A vector pointing to the left (-X axis)
+		/// A vector3 pointing to the left (-1, 0, 0)
 		/// </summary>
 		static const Vector3 Left;
 
 		/// <summary>
-		/// A vector pointing up (+Z axis)
+		/// A vector3 pointing up (0, 0, 1)
 		/// </summary>
 		static const Vector3 Up;
 
 		/// <summary>
-		/// A vector pointing down (-Z axis)
+		/// A vector3 pointing down (0, 0, -1)
 		/// </summary>
 		static const Vector3 Down;
 
 		/// <summary>
-		/// A vector pointing forward (+Y axis)
+		/// A vector3 pointing forward (0, 1, 0)
 		/// </summary>
 		static const Vector3 Forwards;
 
 		/// <summary>
-		/// A vector pointing backward (-Y axis)
+		/// A vector3 pointing backward (0, -1, 0)
 		/// </summary>
 		static const Vector3 Backwards;
 
@@ -158,6 +232,7 @@ namespace Coco
 		Vector3(double x, double y, double z) noexcept;
 		Vector3(const Vector2& vec2, double z = 0.0) noexcept;
 		Vector3(const struct Vector4& vec4) noexcept;
+		virtual ~Vector3() = default;
 
 		/// <summary>
 		/// Returns the distance between two vectors
@@ -173,7 +248,7 @@ namespace Coco
 		/// <param name="a">The first vector</param>
 		/// <param name="b">The second vector</param>
 		/// <returns>The dot product</returns>
-		static double Dot(const Vector3& a, const Vector3& b) noexcept;
+		static double Dot(const Vector3& a, const Vector3& b) noexcept { return a.Dot(b); }
 
 		/// <summary>
 		/// Calculates the cross product of A and B.
@@ -182,19 +257,19 @@ namespace Coco
 		/// <param name="a">The first vector</param>
 		/// <param name="b">The second vector</param>
 		/// <returns>The cross product</returns>
-		static Vector3 Cross(const Vector3& a, const Vector3& b) noexcept;
+		static Vector3 Cross(const Vector3& a, const Vector3& b) noexcept { return a.Cross(b); }
 
 		/// <summary>
 		/// Gets the squared length of this vector
 		/// </summary>
 		/// <returns>The squared length</returns>
-		double GetLengthSquared() const noexcept;
+		double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z; }
 
 		/// <summary>
 		/// Gets the length of this vector
 		/// </summary>
 		/// <returns>The length</returns>
-		double GetLength() const noexcept;
+		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y + Z * Z); }
 
 		/// <summary>
 		/// Normalizes this vector
@@ -215,14 +290,17 @@ namespace Coco
 		/// <param name="other">The other vector</param>
 		/// <param name="tolerance">The difference tolerance</param>
 		/// <returns>True if the two vectors are within the tolerance of each other</returns>
-		bool Equals(const Vector3& other, double tolerance) const noexcept;
+		bool Equals(const Vector3& other, double tolerance = Math::Epsilon) const noexcept
+		{
+			return Math::Approximately(X, other.X, tolerance) && Math::Approximately(Y, other.Y, tolerance) && Math::Approximately(Z, other.Z, tolerance);
+		}
 
 		/// <summary>
 		/// Calculates the dot product of this vector with another vector
 		/// </summary>
 		/// <param name="other">The other vector</param>
 		/// <returns>The dot product of this vector and the other vector</returns>
-		double Dot(const Vector3& other) const noexcept;
+		double Dot(const Vector3& other) const noexcept { return X * other.X + Y * other.Y + Z * other.Z; }
 
 		/// <summary>
 		/// Calculates the cross product of this vector with another vector.
@@ -230,27 +308,32 @@ namespace Coco
 		/// </summary>
 		/// <param name="other">The other vector</param>
 		/// <returns>The cross product</returns>
-		Vector3 Cross(const Vector3& other) const noexcept;
+		Vector3 Cross(const Vector3& other) const noexcept { return Vector3( Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X); }
 
-		Vector3 operator+(const Vector3& other) const noexcept;
-		void operator+=(const Vector3& other) noexcept;
+		Vector3 operator+(const Vector3& other) const noexcept { return Vector3(X + other.X, Y + other.Y, Z + other.Z); }
+		void operator+=(const Vector3& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; }
 
-		Vector3 operator-(const Vector3& other) const noexcept;
-		void operator-=(const Vector3& other) noexcept;
+		Vector3 operator-(const Vector3& other) const noexcept { return Vector3(X - other.X, Y - other.Y, Z - other.Z); }
+		void operator-=(const Vector3& other) noexcept { X -= other.X; Y -= other.Y; Z -= other.Z; }
 
-		Vector3 operator*(double scalar) const noexcept;
-		void operator*=(double scalar) noexcept;
+		Vector3 operator*(const Vector3& other) const noexcept { return Vector3(X * other.X, Y * other.Y, Z * other.Z); }
+		void operator*=(const Vector3& other) noexcept { X *= other.X; Y *= other.Y; Z *= other.Z; }
 
-		Vector3 operator*(const Vector3& other) const noexcept;
-		void operator*=(const Vector3& other) noexcept;
+		Vector3 operator*(double scalar) const noexcept { return Vector3(X * scalar, Y * scalar, Z * scalar); }
+		void operator*=(double scalar) noexcept { X *= scalar; Y *= scalar; Z *= scalar; }
 
-		Vector3 operator/(double divisor) const noexcept;
-		void operator/=(double divisor) noexcept;
+		Vector3 operator/(const Vector3& other) const noexcept { return Vector3(X / other.X, Y / other.Y, Z / other.Z); }
+		void operator/=(const Vector3& other) noexcept { X /= other.X; Y /= other.Y; Z /= other.Z; }
 
-		Vector3 operator/(const Vector3& other) const noexcept;
-		void operator/=(const Vector3& other) noexcept;
+		Vector3 operator/(double divisor) const noexcept { return Vector3(X / divisor, Y / divisor, Z / divisor); }
+		void operator/=(double divisor) noexcept { X /= divisor; Y /= divisor; Z /= divisor; }
 
-		Vector3 operator-() const noexcept;
+		Vector3 operator-() const noexcept { return Vector3(-X, -Y, -Z); }
+
+		operator Vector4() const noexcept;
+
+		bool operator==(const Vector3& other) noexcept { return Equals(other); }
+		bool operator!=(const Vector3& other) noexcept { return !Equals(other); }
 	};
 
 	/// <summary>
@@ -258,7 +341,14 @@ namespace Coco
 	/// </summary>
 	struct COCOAPI Vector4
 	{
+		/// <summary>
+		/// A zero vector4 (0, 0, 0, 0)
+		/// </summary>
 		static const Vector4 Zero;
+
+		/// <summary>
+		/// A vector4 with 1 for each axis (1, 1, 1, 1)
+		/// </summary>
 		static const Vector4 One;
 
 		double X = 0.0;
@@ -270,6 +360,7 @@ namespace Coco
 		Vector4(double x, double y, double z, double w) noexcept;
 		Vector4(const Vector2& vec2, double z = 0.0, double w = 0.0) noexcept;
 		Vector4(const Vector3& vec3, double w = 0.0) noexcept;
+		virtual ~Vector4() = default;
 
 		/// <summary>
 		/// Calculates the dot product of A and B
@@ -277,19 +368,19 @@ namespace Coco
 		/// <param name="a">The first vector</param>
 		/// <param name="b">The second vector</param>
 		/// <returns>The dot product</returns>
-		static double Dot(const Vector4& a, const Vector4& b) noexcept;
+		static double Dot(const Vector4& a, const Vector4& b) noexcept { return a.Dot(b); }
 
 		/// <summary>
 		/// Gets the squared length of this vector
 		/// </summary>
 		/// <returns>The squared length</returns>
-		double GetLengthSquared() const noexcept;
+		double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z + W * W; }
 
 		/// <summary>
 		/// Gets the length of this vector
 		/// </summary>
 		/// <returns>The length</returns>
-		double GetLength() const noexcept;
+		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
 
 		/// <summary>
 		/// Normalizes this vector
@@ -305,17 +396,47 @@ namespace Coco
 		Vector4 Normalized(bool safe = true) const noexcept;
 
 		/// <summary>
+		/// Compares if this vector equals another vector
+		/// </summary>
+		/// <param name="other">The other vector</param>
+		/// <param name="tolerance">The difference tolerance</param>
+		/// <returns>True if the two vectors are within the tolerance of each other</returns>
+		bool Equals(const Vector4& other, double tolerance = Math::Epsilon) const noexcept
+		{
+			return Math::Approximately(X, other.X, tolerance) && 
+				Math::Approximately(Y, other.Y, tolerance) && 
+				Math::Approximately(Z, other.Z, tolerance) && 
+				Math::Approximately(W, other.W, tolerance);
+		}
+
+		/// <summary>
 		/// Calculates the dot product of this vector with another vector
 		/// </summary>
 		/// <param name="other">The other vector</param>
 		/// <returns>The dot product of this vector and the other vector</returns>
-		double Dot(const Vector4& other) const noexcept;
+		double Dot(const Vector4& other) const noexcept { return X * other.X + Y * other.Y + Z * other.Z + W * other.W; }
 
-		Vector4 operator+(const Vector4& other) const noexcept;
-		Vector4 operator-(const Vector4& other) const noexcept;
-		Vector4 operator*(double scalar) const noexcept;
-		Vector4 operator*(const Vector4& other) const noexcept;
-		Vector4 operator/(double divisor) const noexcept;
-		Vector4 operator/(const Vector4& other) const noexcept;
+		Vector4 operator+(const Vector4& other) const noexcept { return Vector4(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
+		void operator+=(const Vector4& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; W += other.W; }
+
+		Vector4 operator-(const Vector4& other) const noexcept { return Vector4(X - other.X, Y - other.Y, Z - other.Z, W - other.W); }
+		void operator-=(const Vector4& other) noexcept { X -= other.X; Y -= other.Y; Z -= other.Z; W -= other.W; }
+
+		Vector4 operator*(const Vector4& other) const noexcept { return Vector4(X * other.X, Y * other.Y, Z * other.Z, W * other.W); }
+		void operator*=(const Vector4& other) noexcept { X *= other.X; Y *= other.Y; Z *= other.Z; W *= other.W; }
+
+		Vector4 operator*(double scalar) const noexcept { return Vector4(X * scalar, Y * scalar, Z * scalar, W * scalar); }
+		void operator*=(double scalar) noexcept { X *= scalar; Y *= scalar; Z *= scalar; W *= scalar; }
+
+		Vector4 operator/(const Vector4& other) const noexcept { return Vector4(X / other.X, Y / other.Y, Z / other.Z, W / other.W); }
+		void operator/=(const Vector4& other) noexcept { X /= other.X; Y /= other.Y; Z /= other.Z; W /= other.W; }
+
+		Vector4 operator/(double divisor) const noexcept { return Vector4(X / divisor, Y / divisor, Z / divisor, W / divisor); }
+		void operator/=(double divisor) noexcept { X /= divisor; Y /= divisor; Z /= divisor; W /= divisor; }
+
+		Vector4 operator-() const noexcept { return Vector4(-X, -Y, -Z, -W); }
+
+		bool operator==(const Vector4& other) { return Equals(other); }
+		bool operator!=(const Vector4& other) { return !Equals(other); }
 	};
 }

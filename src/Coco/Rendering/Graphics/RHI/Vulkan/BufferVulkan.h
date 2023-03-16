@@ -58,7 +58,7 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="buffer">The buffer</param>
 		/// <param name="bufferMemory">The buffer's memory</param>
-		void DestroyBuffer(VkBuffer buffer, VkDeviceMemory bufferMemory);
+		void DestroyBuffer(VkBuffer buffer, VkDeviceMemory bufferMemory) noexcept;
 
 		/// <summary>
 		/// Copies data between buffers

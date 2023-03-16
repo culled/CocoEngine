@@ -26,18 +26,19 @@ namespace Coco::Rendering
 		CommandBufferVulkan(bool isPrimary, GraphicsDeviceVulkan* device, CommandBufferPoolVulkan* pool);
 		~CommandBufferVulkan() final;
 
-		void Begin(bool isSingleUse, bool isSimultaneousUse) final;
-		void End() override;
-		void Submit(
-			const List<IGraphicsSemaphore*>& waitSemaphores = {},
-			const List<IGraphicsSemaphore*>& signalSemaphores = {},
-			IGraphicsFence* signalFence = nullptr) final;
-		void Reset() final;
-
 		/// <summary>
 		/// Gets the underlying Vulkan command buffer
 		/// </summary>
 		/// <returns>The underlying Vulkan command buffer</returns>
 		VkCommandBuffer GetCmdBuffer() const noexcept { return _commandBuffer; }
+
+	protected:
+		void BeginImpl(bool isSingleUse, bool isSimultaneousUse) final;
+		void EndImpl() override;
+		void SubmitImpl(
+			const List<IGraphicsSemaphore*>& waitSemaphores,
+			const List<IGraphicsSemaphore*>& signalSemaphores,
+			IGraphicsFence* signalFence) final;
+		void ResetImpl() final;
 	};
 }

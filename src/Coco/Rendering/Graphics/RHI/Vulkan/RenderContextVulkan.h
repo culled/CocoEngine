@@ -66,9 +66,8 @@ namespace Coco::Rendering
 		void SetViewport(const Vector2Int& offset, const SizeInt& size) final;
 		void UseShader(Ref<Shader> shader) final;
 		void UseMaterial(Ref<Material> material) final;
-		void DrawIndexed(uint indexCount, uint indexOffset, uint vertexOffset, uint instanceCount, uint instanceOffset) final;
 		void Draw(const Mesh* mesh, const Matrix4x4& modelMatrix) final;
-		bool IsAvaliableForRendering() noexcept final;
+		bool IsAvaliableForRendering() noexcept final { return _renderingCompleteFence->IsSignalled(); }
 		void WaitForRenderingCompleted() noexcept final;
 
 		/// <summary>

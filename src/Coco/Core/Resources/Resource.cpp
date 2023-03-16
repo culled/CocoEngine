@@ -4,10 +4,9 @@ namespace Coco
 {
 	std::atomic<ResourceID> Resource::s_ResourceIndex = 0;
 
-	Resource::Resource() noexcept
-	{
-		_id = GetNewID();
-	}
+	Resource::Resource() noexcept :
+		_id(GetNewID())
+	{}
 
 	ResourceID Resource::GetNewID() noexcept
 	{

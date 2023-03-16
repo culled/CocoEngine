@@ -22,19 +22,18 @@ namespace Coco::Platform::Windows
 
     public:
         WindowsWindow(Coco::Windowing::WindowCreateParameters& createParameters, Coco::Windowing::WindowingService* windowingService, EnginePlatformWindows* platform);
-        virtual ~WindowsWindow() override;
+        ~WindowsWindow() final;
 
         WindowsWindow() = delete;
         WindowsWindow(const WindowsWindow&) = delete;
-        WindowsWindow(WindowsWindow&&) = delete;
-
         WindowsWindow& operator=(const WindowsWindow&) = delete;
+        WindowsWindow(WindowsWindow&&) = delete;
         WindowsWindow& operator=(WindowsWindow&&) = delete;
 
         void* GetID() const noexcept final { return _handle; }
         SizeInt GetSize() const noexcept final { return _size; }
         void Show() noexcept final;
-        void Hide() noexcept final;
+        void Minimize() noexcept final;
         bool GetIsVisible() const noexcept final;
 
     protected:

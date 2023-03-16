@@ -17,8 +17,6 @@ namespace Coco::Rendering
 		allocateInfo.commandBufferCount = 1;
 
 		AssertVkResult(vkAllocateCommandBuffers(_device->GetDevice(), &allocateInfo, &_commandBuffer));
-
-		CurrentState = State::Ready;
 	}
 
 	CommandBufferVulkan::~CommandBufferVulkan()
@@ -30,7 +28,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void CommandBufferVulkan::Begin(bool isSingleUse, bool isSimultaneousUse)
+	void CommandBufferVulkan::BeginImpl(bool isSingleUse, bool isSimultaneousUse)
 	{
 		VkCommandBufferBeginInfo beginInfo = {};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -44,16 +42,14 @@ namespace Coco::Rendering
 			beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
 		AssertVkResult(vkBeginCommandBuffer(_commandBuffer, &beginInfo));
-		CurrentState = State::Recording;
 	}
 
-	void CommandBufferVulkan::End()
+	void CommandBufferVulkan::EndImpl()
 	{
 		AssertVkResult(vkEndCommandBuffer(_commandBuffer));
-		CurrentState = State::RecordingEnded;
 	}
 
-	void CommandBufferVulkan::Submit(
+	void CommandBufferVulkan::SubmitImpl(
 		const List<IGraphicsSemaphore*>& waitSemaphores,
 		const List<IGraphicsSemaphore*>& signalSemaphores,
 		IGraphicsFence* signalFence)
@@ -93,13 +89,10 @@ namespace Coco::Rendering
 		submitInfo.pSignalSemaphores = vulkanSignalSemaphores.Data();
 
 		AssertVkResult(vkQueueSubmit(_pool->GetQueue(), 1, &submitInfo, vulkanSignalFence));
-
-		CurrentState = State::Submitted;
 	}
 
-	void CommandBufferVulkan::Reset()
+	void CommandBufferVulkan::ResetImpl()
 	{
 		AssertVkResult(vkResetCommandBuffer(_commandBuffer, 0));
-		CurrentState = State::Ready;
 	}
 }

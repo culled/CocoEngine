@@ -7,8 +7,11 @@
 
 namespace Coco::Rendering
 {
+	RenderingService* RenderingService::s_instance = nullptr;
+
 	RenderingService::RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams)
 	{
+		s_instance = this;
 		_graphics = GraphicsPlatform::CreatePlatform(this, backendCreateParams);
 		CreateDefaultTexture();
 	}
@@ -28,7 +31,7 @@ namespace Coco::Rendering
 	void RenderingService::Start() noexcept
 	{}
 
-	void RenderingService::Render(GraphicsPresenter* presenter) noexcept
+	void RenderingService::Render(GraphicsPresenter* presenter)
 	{
 		if (_defaultPipeline)
 		{
@@ -40,24 +43,15 @@ namespace Coco::Rendering
 		}
 	}
 
-	void RenderingService::Render(GraphicsPresenter* presenter, Ref<RenderPipeline> pipeline, CameraComponent* camera) noexcept
+	void RenderingService::Render(GraphicsPresenter* presenter, Ref<RenderPipeline> pipeline, CameraComponent* camera)
 	{
 		SizeInt size = presenter->GetBackbufferSize();
 
 		// Make sure the camera matches our rendering aspect ratio
 		camera->SetAspectRatio(static_cast<double>(size.Width) / size.Height);
 
-		Ref<RenderView> view;
-		try
-		{
-			// TODO: create this from the scene graph
-			view = CreateRef<RenderView>(Vector2Int::Zero, size, pipeline->GetClearColor(), camera->GetProjectionMatrix(), camera->GetViewMatrix());
-		}
-		catch (...)
-		{
-			LogError(GetLogger(), "Failed to create RenderView");
-			return;
-		}
+		// TODO: create this from the scene graph
+		Ref<RenderView> view = CreateRef<RenderView>(Vector2Int::Zero, size, pipeline->GetClearColor(), camera->GetProjectionMatrix(), camera->GetViewMatrix());
 
 		// Acquire the render context that we'll be using
 		GraphicsResourceRef<RenderContext> renderContext;

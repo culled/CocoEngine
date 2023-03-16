@@ -26,6 +26,11 @@ namespace Coco::Rendering
 	};
 
 	/// <summary>
+	/// An exception thrown when an IRenderPass cannot be bound to a RenderPipeline
+	/// </summary>
+	using RenderPipelineBindException = Exception;
+
+	/// <summary>
 	/// A binding between an IRenderPass and a RenderPipeline
 	/// </summary>
 	class COCOAPI RenderPipelineBinding
@@ -49,7 +54,5 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>The render pass</returns>
 		Ref<IRenderPass> GetRenderPass() noexcept { return _renderPass; }
-
-		Ref<IRenderPass> operator()() noexcept { return _renderPass; }
 	};
 }

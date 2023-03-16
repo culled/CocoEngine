@@ -12,6 +12,11 @@ namespace Coco::Rendering
 	class RenderingService;
 
 	/// <summary>
+	/// An exception thrown when mesh data fails to upload
+	/// </summary>
+	using MeshUploadException = Exception;
+
+	/// <summary>
 	/// Vertex data that can be sent to the GPU
 	/// </summary>
 	struct VertexData

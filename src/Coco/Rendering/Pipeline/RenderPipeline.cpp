@@ -1,5 +1,7 @@
 #include "RenderPipeline.h"
 
+#include <Coco/Rendering/RenderingService.h>
+
 namespace Coco::Rendering
 {
 	RenderPipelineAttachmentDescription::RenderPipelineAttachmentDescription(const AttachmentDescription& description) noexcept :
@@ -29,8 +31,8 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			FirstUsePassIndex = std::min(FirstUsePassIndex, passIndex);
-			LastUsePassIndex = std::max(LastUsePassIndex, passIndex);
+			FirstUsePassIndex = Math::Min(FirstUsePassIndex, passIndex);
+			LastUsePassIndex = Math::Max(LastUsePassIndex, passIndex);
 			IsUsedInSinglePass = false;
 		}
 
@@ -71,7 +73,7 @@ namespace Coco::Rendering
 
 		if (it != _renderPasses.end())
 		{
-			_renderPasses.Erase(it);
+			_renderPasses.Remove(it);
 			_attachmentDescriptionsDirty = true;
 			return true;
 		}
@@ -98,7 +100,15 @@ namespace Coco::Rendering
 			Ref<IRenderPass> renderPass = _renderPasses[i]->GetRenderPass();
 
 			renderContext->SetCurrentRenderPass(renderPass, i);
-			renderPass->Execute(renderContext);
+
+			try
+			{
+				renderPass->Execute(renderContext);
+			}
+			catch (const Exception& ex)
+			{
+				LogError(RenderingService::Get()->GetLogger(), FormattedString("Failed to execute {}: {}", renderPass->GetName(), ex.what()));
+			}
 		}
 	}
 
@@ -124,7 +134,7 @@ namespace Coco::Rendering
 					pipelineAttachment.Description = attachmentDescription.AttachmentDescription;
 
 				if (pipelineAttachment.Description != attachmentDescription.AttachmentDescription)
-					throw Exception("Conflicting render pipeline attachment binding");
+					throw RenderPipelineBindException("Conflicting render pipeline attachment binding");
 
 				pipelineAttachment.AddPassUse(rpI);
 			}
@@ -133,7 +143,7 @@ namespace Coco::Rendering
 		for (int i = 0; i < _attachmentDescriptions.Count(); i++)
 		{
 			if (_attachmentDescriptions[i].Description == AttachmentDescription::Empty)
-				throw Exception("Pipeline attachments must be contiguous");
+				throw RenderPipelineBindException("Pipeline attachments must be contiguous");
 		}
 
 		_attachmentDescriptionsDirty = false;

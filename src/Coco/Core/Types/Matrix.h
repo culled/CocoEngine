@@ -14,7 +14,14 @@ namespace Coco
 	/// </summary>
 	struct COCOAPI Matrix4x4
 	{
+		/// <summary>
+		/// The number of cells in a 4x4 matrix
+		/// </summary>
 		static constexpr int CellCount = 16;
+
+		/// <summary>
+		/// An identity matrix
+		/// </summary>
 		static const Matrix4x4 Identity;
 
 		// First row, first column
@@ -68,15 +75,15 @@ namespace Coco
 		/// <summary>
 		/// The matrix data, stored in column-major order
 		/// </summary>
-		Array<double, CellCount> Data;
+		Array<double, CellCount> Data = { 0.0 };
 
-		Matrix4x4() noexcept;
+		Matrix4x4() noexcept = default;
 		Matrix4x4(bool isIdentity) noexcept;
 		Matrix4x4(const Array<double, CellCount>& data) noexcept;
 		Matrix4x4(const Matrix4x4& other) noexcept;
 		Matrix4x4(Matrix4x4&& other) noexcept;
 
-		~Matrix4x4() = default;
+		virtual ~Matrix4x4() = default;
 
 		Matrix4x4& operator=(const Matrix4x4& other) noexcept;
 		Matrix4x4& operator=(Matrix4x4&& other) noexcept;

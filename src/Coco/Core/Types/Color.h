@@ -22,24 +22,25 @@ namespace Coco
 		/// <summary>
 		/// The normalized red component
 		/// </summary>
-		double R;
+		double R = 0.0;
 
 		/// <summary>
 		/// The normalized green component
 		/// </summary>
-		double G;
+		double G = 0.0;
 
 		/// <summary>
 		/// The normalized blue component
 		/// </summary>
-		double B;
+		double B = 0.0;
 
 		/// <summary>
 		/// The normalized alpha component
 		/// </summary>
-		double A;
+		double A = 1.0;
 
-		Color() noexcept;
+		Color() noexcept = default;
 		Color(double r, double g, double b, double a = 1.0) noexcept;
+		virtual ~Color() = default;
 	};
 }

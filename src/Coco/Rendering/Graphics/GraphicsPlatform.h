@@ -39,6 +39,16 @@ namespace Coco::Rendering
 	};
 
 	/// <summary>
+	/// A generic exception for a GraphicsPlatform
+	/// </summary>
+	using GraphicsPlatformException = Exception;
+
+	/// <summary>
+	/// An exception thrown when a GraphicsPlatform cannot be created
+	/// </summary>
+	using GraphicsPlatformCreateException = GraphicsPlatformException;
+
+	/// <summary>
 	/// A platform that interfaces with low-level rendering hardware
 	/// </summary>
 	class COCOAPI GraphicsPlatform

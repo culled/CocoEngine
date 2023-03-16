@@ -21,10 +21,7 @@ namespace Coco::Platform::Windows
 		_instance(hInstance)
 	{
 		if (!QueryPerformanceFrequency(&_clockFrequency))
-		{
-			string err = FormattedString("Unable to query performance frequency: {}", GetLastError());
-			throw Exception(err.c_str());
-		}
+			throw PlatformInitializeException(FormattedString("Unable to query performance frequency: {}", GetLastError()));
 
 		_secondsPerCycle = 1.0 / static_cast<double>(_clockFrequency.QuadPart);
 
@@ -102,56 +99,29 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	DateTime EnginePlatformWindows::GetPlatformUtcTime() const noexcept
+	DateTime EnginePlatformWindows::GetPlatformUtcTime() const
 	{
-		try
-		{
-			SYSTEMTIME systemTime = {};
-			GetSystemTime(&systemTime);
+		SYSTEMTIME systemTime = {};
+		GetSystemTime(&systemTime);
 
-			return DateTime(systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds);
-		}
-		catch (const Exception& ex)
-		{
-			LogError(Engine::Get()->GetLogger(), FormattedString("Could not retreive platform UTC time: {}", ex.what()));
-			return DateTime(0);
-		}
+		return DateTime(systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds);
 	}
 
-	DateTime EnginePlatformWindows::GetPlatformLocalTime() const noexcept
+	DateTime EnginePlatformWindows::GetPlatformLocalTime() const
 	{
-		try
-		{
-			SYSTEMTIME localTime = {};
-			GetLocalTime(&localTime);
+		SYSTEMTIME localTime = {};
+		GetLocalTime(&localTime);
 
-			return DateTime(localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds);
-		}
-		catch (const Exception& ex)
-		{
-			LogError(Engine::Get()->GetLogger(), FormattedString("Could not retreive platform local time: {}", ex.what()));
-			return DateTime(0);
-		}
+		return DateTime(localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds);
 	}
 
-	double EnginePlatformWindows::GetPlatformTimeSeconds() const noexcept
+	double EnginePlatformWindows::GetPlatformTimeSeconds() const
 	{
-		try
-		{
-			LARGE_INTEGER cycles = {};
-			if (!QueryPerformanceCounter(&cycles))
-			{
-				string err = FormattedString("Unable to query performance counter: {}", GetLastError());
-				throw Exception(err.c_str());
-			}
+		LARGE_INTEGER cycles = {};
+		if (!QueryPerformanceCounter(&cycles))
+			throw PlatformOperationException(FormattedString("Unable to query performance counter: {}", GetLastError()));
 
-			return static_cast<double>(cycles.QuadPart) * _secondsPerCycle;
-		}
-		catch (const Exception& ex)
-		{
-			LogError(Engine::Get()->GetLogger(), FormattedString("Could not retreive platform counter time: {}", ex.what()));
-			return 0.0;
-		}
+		return static_cast<double>(cycles.QuadPart) * _secondsPerCycle;
 	}
 
 	void EnginePlatformWindows::WriteToPlatformConsole(const string& message, ConsoleColor color, bool isError)
@@ -441,9 +411,7 @@ namespace Coco::Platform::Windows
 		windowClass.style = CS_DBLCLKS; // Get doubleclicks
 
 		if (!RegisterClass(&windowClass))
-		{
 			throw PlatformInitializeException("Could not register window class");
-		}
 	}
 
 	void EnginePlatformWindows::ShowConsole() noexcept

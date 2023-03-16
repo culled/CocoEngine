@@ -307,7 +307,7 @@ namespace Coco::Rendering
 		const PhysicalDeviceRanking& firstRank = deviceRankings[0];
 
 		if (firstRank.Score == -1)
-			throw Exception("No GPUs found that satisfy the creation requirements");
+			throw GraphicsPlatformCreateException("No GPUs found that satisfy the creation requirements");
 
 		return firstRank.Device;
 	}

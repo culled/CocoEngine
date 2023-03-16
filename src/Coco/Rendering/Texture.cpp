@@ -31,11 +31,6 @@ namespace Coco::Rendering
 		_image.reset();
 	}
 
-	void Texture::SetPixels(const void* pixelData)
-	{
-		_image->SetPixelData(pixelData);
-	}
-
 	void Texture::SetSamplerProperties(RepeatMode repeatMode, FilterMode filterMode, uint maxAnisotropy)
 	{
 		_repeatMode = repeatMode;

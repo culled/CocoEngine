@@ -6,14 +6,6 @@ namespace Coco::Rendering
 {
 	const ImageDescription ImageDescription::Empty = ImageDescription();
 
-	ImageDescription::ImageDescription(int width, int height, 
-		int mipCount, 
-		Rendering::PixelFormat pixelFormat, 
-		Rendering::ColorSpace colorSpace,
-		ImageUsageFlags usageFlags) noexcept :
-		ImageDescription(width, height, 1, 1, mipCount, pixelFormat, colorSpace, usageFlags)
-	{}
-
 	ImageDescription::ImageDescription(int width, int height, int depth, 
 		int layers, int mipCount, 
 		Rendering::PixelFormat pixelFormat, 

@@ -9,10 +9,11 @@ namespace Coco::Rendering
 
 		if (passAttachments.Count() != passToPipelineAttachmentMapping.Count())
 		{
-			string err = FormattedString("Attachment mappings count must match the number of attachment descriptions for the render pass. Expected {}, got {}",
+			throw RenderPipelineBindException(FormattedString(
+				"Attachment mappings count must match the number of attachment descriptions for the render pass. Expected {}, got {}",
 				passAttachments.Count(),
-				passToPipelineAttachmentMapping.Count());
-			throw Exception(err.c_str());
+				passToPipelineAttachmentMapping.Count()
+			));
 		}
 
 		_mappedAttachmentDescriptions.Resize(passAttachments.Count());

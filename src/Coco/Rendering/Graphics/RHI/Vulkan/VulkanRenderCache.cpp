@@ -56,7 +56,14 @@ namespace Coco::Rendering
 
 		if (!_renderPassCache.contains(key))
 		{
-			_renderPassCache[key] = CreateRenderPass(renderPipeline);
+			try
+			{
+				_renderPassCache[key] = CreateRenderPass(renderPipeline);
+			}
+			catch (const Exception& ex)
+			{
+				throw VulkanRenderPassCreateException(FormattedString("Failed to create renderpass for pipeline: {}", ex.what()));
+			}
 		}
 
 		return _renderPassCache[key];
@@ -75,7 +82,19 @@ namespace Coco::Rendering
 
 		if (!_pipelineCache.contains(key))
 		{
-			_pipelineCache[key] = CreatePipeline(renderPass, subpassName, subpassIndex, shader, globalDescriptorLayout);
+			try
+			{
+				_pipelineCache[key] = CreatePipeline(renderPass, subpassName, subpassIndex, shader, globalDescriptorLayout);
+			}
+			catch (const Exception& ex)
+			{
+				throw VulkanPipelineCreateException(FormattedString(
+					"Failed to create pipeline for pass \"{}\" using shader \"{}\": {}",
+					subpassName,
+					shader->GetName(),
+					ex.what()
+				));
+			}
 		}
 
 		return _pipelineCache[key];
@@ -87,7 +106,17 @@ namespace Coco::Rendering
 
 		if (!_shaderCache.contains(shaderID))
 		{
-			_shaderCache[shaderID] = _device->CreateResource<VulkanShader>(shader);
+			try
+			{
+				_shaderCache[shaderID] = _device->CreateResource<VulkanShader>(shader);
+			}
+			catch (const Exception& ex)
+			{
+				throw VulkanShaderCreateException(FormattedString("Failed to create an internal shader for the shader \"{}\": {}",
+					shader->GetName(),
+					ex.what()
+				));
+			}
 		}
 
 		return _shaderCache[shaderID];
@@ -238,10 +267,7 @@ namespace Coco::Rendering
 	{
 		const Subshader* subshader;
 		if (!shader->TryGetSubshader(subpassName, subshader))
-		{
-			string err = FormattedString("Could not find a subshader named \"{}\" in the shader \"{}\"", subpassName, shader->GetName());
-			throw Exception(err.c_str());
-		}
+			throw VulkanPipelineCreateException(FormattedString("Could not find a subshader named \"{}\"", subpassName));
 
 		List<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH };
 
@@ -361,10 +387,7 @@ namespace Coco::Rendering
 
 		VulkanDescriptorLayout layout;
 		if(!vulkanShader->TryGetDescriptorSetLayout(subpassName, layout))
-		{
-			string err = FormattedString("Could not find a layout for subshader named \"{}\" in the shader \"{}\"", subpassName, shader->GetName());
-			throw Exception(err.c_str());
-		}
+			throw VulkanPipelineCreateException("Could not find a descriptor layout for subshader");
 
 		Array<VkDescriptorSetLayout, 2> descriptorSetLayouts = {
 			globalDescriptorLayout,
@@ -380,10 +403,7 @@ namespace Coco::Rendering
 
 		List<VulkanShaderStage> shaderStages;
 		if (!vulkanShader->TryGetSubshaderStages(subpassName, shaderStages))
-		{
-			string err = FormattedString("Could not find stages for subshader named \"{}\" in the shader \"{}\"", subpassName, shader->GetName());
-			throw Exception(err.c_str());
-		}
+			throw VulkanPipelineCreateException("Could not find subshader stages");
 
 		VulkanPipeline pipeline = {};
 		AssertVkResult(vkCreatePipelineLayout(_device->GetDevice(), &layoutInfo, nullptr, &pipeline.Layout));

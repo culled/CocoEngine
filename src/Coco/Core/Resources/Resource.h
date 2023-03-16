@@ -6,7 +6,15 @@
 
 namespace Coco
 {
+	/// <summary>
+	/// A resource ID
+	/// </summary>
 	using ResourceID = uint64_t;
+
+	/// <summary>
+	/// A resource version number
+	/// </summary>
+	using ResourceVersion = uint64_t;
 
 	/// <summary>
 	/// A generic resource for the engine
@@ -16,6 +24,7 @@ namespace Coco
 	private:
 		static std::atomic<ResourceID> s_ResourceIndex;
 		ResourceID _id = InvalidID;
+		std::atomic<ResourceVersion> _version = 0;
 
 	public:
 		/// <summary>
@@ -28,9 +37,8 @@ namespace Coco
 		virtual ~Resource() noexcept = default;
 
 		Resource(const Resource&) = delete;
-		Resource(Resource&&) = delete;
-
 		Resource& operator=(const Resource&) = delete;
+		Resource(Resource&&) = delete;
 		Resource& operator=(Resource&&) = delete;
 
 		/// <summary>
@@ -38,6 +46,24 @@ namespace Coco
 		/// </summary>
 		/// <returns>This resource's unique ID</returns>
 		ResourceID GetID() const noexcept { return _id; }
+
+		/// <summary>
+		/// Gets this resource's version number
+		/// </summary>
+		/// <returns>This resource's version number</returns>
+		ResourceVersion GetVersion() const noexcept { return _version; }
+
+	protected:
+		/// <summary>
+		/// Increments this resource's version number
+		/// </summary>
+		void IncrementVersion() noexcept { _version++; }
+
+		/// <summary>
+		/// Sets this resource's version number
+		/// </summary>
+		/// <param name="version">The new version number</param>
+		void SetVersion(ResourceVersion version) noexcept { _version.store(version); }
 
 	private:
 		/// <summary>
