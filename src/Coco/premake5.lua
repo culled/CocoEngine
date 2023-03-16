@@ -29,6 +29,7 @@ project "Coco"
     includedirs
     {
         "%{IncludeDir.Coco}",
+        "%{IncludeDir.stb}",
     }
 
     links

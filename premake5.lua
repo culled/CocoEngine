@@ -31,7 +31,7 @@ OutputDir["obj"] = "%{wks.location}\\build\\obj\\" .. outputdir
 -- Include directories relative to the workspace
 IncludeDir = {}
 IncludeDir["Coco"] = "%{wks.location}\\src\\"
---IncludeDir["imgui"] = "%{wks.location}\\vendor\\ImGui\\"
+IncludeDir["stb"] = "%{wks.location}\\src\\Vendor\\stb"
 
 -- Assets directory
 AssetsDir = "%{wks.location}\\assets\\"
