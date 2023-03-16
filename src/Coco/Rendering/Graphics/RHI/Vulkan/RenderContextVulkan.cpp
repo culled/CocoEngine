@@ -148,7 +148,7 @@ namespace Coco::Rendering
 	{
 		try
 		{
-			_renderingCompleteFence->Wait(std::numeric_limits<uint64_t>::max());
+			_renderingCompleteFence->Wait(Math::MaxValue<uint64_t>());
 		}
 		catch(...)
 		{ }

@@ -11,11 +11,11 @@ namespace Coco::Rendering
 		Rendering::PixelFormat pixelFormat, 
 		Rendering::ColorSpace colorSpace,
 		ImageUsageFlags usageFlags) noexcept :
-		Height(std::max(height, 1)),
-		Width(std::max(width, 1)),
-		Depth(std::max(depth, 1)),
-		Layers(std::max(layers, 1)),
-		MipCount(std::max(mipCount, 1)),
+		Height(Math::Max(height, 1)),
+		Width(Math::Max(width, 1)),
+		Depth(Math::Max(depth, 1)),
+		Layers(Math::Max(layers, 1)),
+		MipCount(Math::Max(mipCount, 1)),
 		PixelFormat(pixelFormat),
 		ColorSpace(colorSpace),
 		UsageFlags(usageFlags)

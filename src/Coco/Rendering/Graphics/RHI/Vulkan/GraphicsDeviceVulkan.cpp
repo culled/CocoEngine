@@ -420,7 +420,7 @@ namespace Coco::Rendering
 		int transferIndex = -1;
 		int computeIndex = -1;
 
-		int minimumTransferScore = std::numeric_limits<int>::max();
+		int minimumTransferScore = Math::MaxValue<int>();
 
 		for (uint32_t i = 0; i < queueFamilyCount; i++)
 		{

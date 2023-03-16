@@ -3,7 +3,6 @@
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Types/Array.h>
 #include "Graphics/RenderContext.h"
-#include <limits>
 
 namespace Coco::Rendering
 {

@@ -97,7 +97,7 @@ namespace Coco::Rendering
 		const VkResult result = vkAcquireNextImageKHR(
 			_device->GetDevice(),
 			_swapchain,
-			std::numeric_limits<uint64_t>::max(),
+			Math::MaxValue<uint64_t>(),
 			currentContext->GetImageAvailableSemaphore(),
 			VK_NULL_HANDLE,
 			&imageIndex);
