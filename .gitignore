@@ -354,3 +354,6 @@ MigrationBackup/
 *.sln
 *.vcxproj
 *.filters
+
+# Generated documentation
+docs/generated/
