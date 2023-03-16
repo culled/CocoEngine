@@ -18,6 +18,8 @@ project "Coco"
         "Windowing/**.cpp",
         "Input/*.h",
         "Input/*.cpp",
+        "Vendor/*.h",
+        "Vendor/*.cpp",
         "Rendering/*.h",
         "Rendering/*.cpp",
         "Rendering/Graphics/*.h",
