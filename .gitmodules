@@ -1,3 +1,3 @@
-[submodule "vendor/stb"]
-	path = vendor/stb
+[submodule "src/Vendor/stb"]
+	path = src/Vendor/stb
 	url = https://github.com/nothings/stb.git
