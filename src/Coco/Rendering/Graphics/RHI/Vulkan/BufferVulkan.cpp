@@ -11,10 +11,12 @@ namespace Coco::Rendering
 		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice)), _size(size)
 	{
 		// TODO: configurable memory properties?
-		_memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		uint localHostMemory = _device->GetMemoryFeatures().SupportsLocalHostBufferMemory ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0;
 
 		if ((usageFlags & BufferUsageFlags::HostVisible) == BufferUsageFlags::HostVisible)
-			_memoryPropertyFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+			_memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | localHostMemory;
+		else
+			_memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
 		_usageFlags = ToVkBufferUsageFlags(usageFlags);
 

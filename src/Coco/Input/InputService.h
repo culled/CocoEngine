@@ -15,8 +15,8 @@ namespace Coco::Input
     class COCOAPI InputService : public EngineService
     {
     public:
-        const static int ProcessTickPriority = -1000;
-        const static int LateProcessTickPriority = 1000;
+        const static int ProcessTickPriority = -10000;
+        const static int LateProcessTickPriority = 10000;
 
     private:
         Managed<Keyboard> _keyboard;

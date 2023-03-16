@@ -16,7 +16,7 @@ namespace Coco::Input
 
 	bool Keyboard::IsKeyPressed(KeyboardKey key) const noexcept
 	{
-		return _currentState.KeyState.at(static_cast<int>(key));
+		return _currentState.KeyState[static_cast<int>(key)];
 	}
 
 	bool Keyboard::WasKeyJustPressed(KeyboardKey key) const noexcept

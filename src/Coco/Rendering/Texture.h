@@ -6,7 +6,7 @@
 
 namespace Coco::Rendering
 {
-	class GraphicsPlatform;
+	class RenderingService;
 
 	/// <summary>
 	/// A texture that can be used for rendering
@@ -14,14 +14,12 @@ namespace Coco::Rendering
 	class COCOAPI Texture : public Resource
 	{
 	private:
-		GraphicsPlatform* _platform;
-		GraphicsResourceRef<Image> _image;
-		GraphicsResourceRef<ImageSampler> _sampler;
-		uint32_t _refreshCount = 0;
-		ImageDescription _description;
-		FilterMode _filterMode;
-		RepeatMode _repeatMode;
-		uint _maxAnisotropy;
+		GraphicsResourceRef<Image> _image = nullptr;
+		GraphicsResourceRef<ImageSampler> _sampler = nullptr;
+		ImageDescription _description = {};
+		FilterMode _filterMode = FilterMode::Linear;
+		RepeatMode _repeatMode = RepeatMode::Repeat;
+		uint _maxAnisotropy = 0;
 
 	public:
 		Texture(
@@ -30,17 +28,29 @@ namespace Coco::Rendering
 			PixelFormat pixelFormat, 
 			ColorSpace colorSpace, 
 			ImageUsageFlags usageFlags, 
-			FilterMode filterMode,
-			RepeatMode repeatMode,
-			uint maxAnisotropy,
-			GraphicsPlatform* platform);
+			FilterMode filterMode = FilterMode::Linear,
+			RepeatMode repeatMode = RepeatMode::Repeat,
+			uint maxAnisotropy = 16);
+
+		Texture(const ImageDescription& description,
+			FilterMode filterMode = FilterMode::Linear,
+			RepeatMode repeatMode = RepeatMode::Repeat,
+			uint maxAnisotropy = 16);
+
+		Texture(const string& filePath,
+			ImageUsageFlags usageFlags,
+			FilterMode filterMode = FilterMode::Linear,
+			RepeatMode repeatMode = RepeatMode::Repeat,
+			uint maxAnisotropy = 16,
+			int channelCount = 4);
+
 		virtual ~Texture();
 
 		/// <summary>
 		/// Sets the pixel data for this texture
 		/// </summary>
 		/// <param name="pixelData">The pixel data</param>
-		void SetPixels(const void* pixelData) { _image->SetPixelData(pixelData); }
+		void SetPixels(const void* pixelData);
 
 		/// <summary>
 		/// Sets the properties for sampling this texture
@@ -80,7 +90,21 @@ namespace Coco::Rendering
 		/// <returns>This texture's sampler</returns>
 		GraphicsResourceRef<ImageSampler> GetSampler() const noexcept { return _sampler; }
 
+		/// <summary>
+		/// Loads image data from a file into this texture
+		/// </summary>
+		/// <param name="filePath">The path of the image file</param>
+		/// <param name="channelCount">The desired number of channels to load</param>
+		/// <returns>True if the image was loaded successfully</returns>
+		bool LoadFromFile(const string& filePath, int channelCount = 4);
+
 	private:
+		/// <summary>
+		/// Recreates the internal image to use a given description
+		/// </summary>
+		/// <param name="newDescription">The new image description</param>
+		void RecreateFromDescription(const ImageDescription& newDescription);
+
 		/// <summary>
 		/// Recreates the internal image
 		/// </summary>
@@ -90,5 +114,11 @@ namespace Coco::Rendering
 		/// Recreates the internal sampler
 		/// </summary>
 		void RecreateInternalSampler();
+
+		/// <summary>
+		/// Ensures that there is an active rendering service and returns it
+		/// </summary>
+		/// <returns>The active rendering service</returns>
+		RenderingService* EnsureRenderingService();
 	};
 }

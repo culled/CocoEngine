@@ -15,13 +15,16 @@ namespace Coco::Rendering
 	GraphicsDeviceVulkan::GraphicsDeviceVulkan(const GraphicsPlatformVulkan& platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams) :
 		VulkanPlatform(&platform), _physicalDevice(physicalDevice)
 	{
-		VkPhysicalDeviceProperties deviceProperties;
+		// Get basic device info
+		VkPhysicalDeviceProperties deviceProperties = {};
 		vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
 
 		_name = string(&deviceProperties.deviceName[0]);
 		_deviceType = ToGraphicsDeviceType(deviceProperties.deviceType);
 		_driverVersion = ToVersion(deviceProperties.driverVersion);
 		_apiVersion = ToVersion(deviceProperties.apiVersion);
+
+		_memoryFeatures = GetDeviceMemoryFeatures(physicalDevice);
 
 		// Create unique queues
 		PhysicalDeviceQueueFamilyInfo queueFamilies = GetQueueFamilyInfo(physicalDevice);
@@ -60,6 +63,7 @@ namespace Coco::Rendering
 		VkPhysicalDeviceFeatures deviceFeatures = {};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 
+		// Create the logical device
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		createInfo.pQueueCreateInfos = queueCreateInfos.Data();
@@ -71,6 +75,7 @@ namespace Coco::Rendering
 		
 		AssertVkResult(vkCreateDevice(physicalDevice, &createInfo, nullptr, &_device));
 
+		// Obtain queues from the device
 		for (const int& queueFamily : uniqueQueueFamilies)
 		{
 			VkQueue queue;
@@ -461,6 +466,27 @@ namespace Coco::Rendering
 			queueFamilyInfos.ComputeQueueFamily = computeIndex;
 
 		return queueFamilyInfos;
+	}
+
+	GraphicsDeviceMemoryFeatures GraphicsDeviceVulkan::GetDeviceMemoryFeatures(VkPhysicalDevice device)
+	{
+		GraphicsDeviceMemoryFeatures memoryFeatures = {};
+
+		// Get the memory features of the physical device
+		VkPhysicalDeviceMemoryProperties memoryProperties = {};
+		vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
+
+		for (uint i = 0; i < memoryProperties.memoryTypeCount; i++)
+		{
+			if ((memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0 &&
+				(memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
+			{
+				memoryFeatures.SupportsLocalHostBufferMemory = true;
+				break;
+			}
+		}
+
+		return memoryFeatures;
 	}
 
 	bool GraphicsDeviceVulkan::CheckQueuePresentSupport(VkSurfaceKHR surface, const Optional<Ref<VulkanQueue>>& queue) const noexcept

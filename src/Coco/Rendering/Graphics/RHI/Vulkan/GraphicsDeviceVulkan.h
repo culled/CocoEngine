@@ -60,6 +60,7 @@ namespace Coco::Rendering
         GraphicsDeviceType _deviceType;
         Version _driverVersion;
         Version _apiVersion;
+        GraphicsDeviceMemoryFeatures _memoryFeatures = {};
 
         Optional<Ref<VulkanQueue>> _graphicsQueue;
         Optional<Ref<VulkanQueue>> _transferQueue;
@@ -80,6 +81,7 @@ namespace Coco::Rendering
        Version GetDriverVersion() const noexcept final { return _driverVersion; }
        Version GetAPIVersion() const noexcept final { return _apiVersion; }
        void WaitForIdle() noexcept final;
+       const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const noexcept final { return _memoryFeatures; };
 
         /// <summary>
         /// Creates a graphics device with the given parameters
@@ -202,6 +204,13 @@ namespace Coco::Rendering
         /// <param name="device">The device</param>
         /// <returns>Information about the device's queue families</returns>
         static PhysicalDeviceQueueFamilyInfo GetQueueFamilyInfo(VkPhysicalDevice device);
+
+        /// <summary>
+        /// Gets the memory features for a physical device
+        /// </summary>
+        /// <param name="device">The physical device</param>
+        /// <returns>The device's memory features</returns>
+        static GraphicsDeviceMemoryFeatures GetDeviceMemoryFeatures(VkPhysicalDevice device);
 
         /// <summary>
         /// Checks if a queue supports surfaces

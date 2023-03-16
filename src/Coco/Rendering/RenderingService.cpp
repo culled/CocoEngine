@@ -13,13 +13,17 @@ namespace Coco::Rendering
 	{
 		s_instance = this;
 		_graphics = GraphicsPlatform::CreatePlatform(this, backendCreateParams);
-		CreateDefaultTexture();
+		
+		// Create default textures
+		CreateDefaultDiffuseTexture();
+		CreateDefaultCheckerTexture();
 	}
 
 	RenderingService::~RenderingService()
 	{
 		_defaultPipeline.reset();
-		_defaultTexture.reset();
+		_defaultDiffuseTexture.reset();
+		_defaultCheckerTexture.reset();
 		_graphics.reset();
 	}
 
@@ -73,19 +77,6 @@ namespace Coco::Rendering
 		}
 	}
 
-	Ref<Texture> RenderingService::CreateTexture(
-		int width,
-		int height,
-		PixelFormat pixelFormat,
-		ColorSpace colorSpace,
-		ImageUsageFlags usageFlags,
-		FilterMode filterMode,
-		RepeatMode repeatMode,
-		uint anisotropy)
-	{
-		return CreateRef<Texture>(width, height, pixelFormat, colorSpace, usageFlags, filterMode, repeatMode, anisotropy, _graphics.get());
-	}
-
 	void RenderingService::DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept
 	{
 		try
@@ -101,16 +92,38 @@ namespace Coco::Rendering
 		}
 	}
 
-	void RenderingService::CreateDefaultTexture()
+	void RenderingService::CreateDefaultDiffuseTexture()
 	{
-		LogInfo(GetLogger(), "Creating default texture...");
+		LogInfo(GetLogger(), "Creating default diffuse texture...");
 
 		constexpr int size = 32;
 		constexpr int channels = 4;
 
-		_defaultTexture = CreateTexture(
-			size, size, 
-			PixelFormat::BGRA8, ColorSpace::sRGB, 
+		_defaultDiffuseTexture = CreateRef<Texture>(
+			size, size,
+			PixelFormat::RGBA8, ColorSpace::sRGB,
+			ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
+
+		List<uint8_t> pixelData(size * size * channels);
+
+		for (uint64_t i = 0; i < pixelData.Count(); i++)
+		{
+			pixelData[i] = 255;
+		}
+
+		_defaultDiffuseTexture->SetPixels(pixelData.Data());
+	}
+
+	void RenderingService::CreateDefaultCheckerTexture()
+	{
+		LogInfo(GetLogger(), "Creating default checker texture...");
+
+		constexpr int size = 32;
+		constexpr int channels = 4;
+
+		_defaultCheckerTexture = CreateRef<Texture>(
+			size, size,
+			PixelFormat::RGBA8, ColorSpace::sRGB,
 			ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled,
 			FilterMode::Nearest);
 
@@ -134,6 +147,6 @@ namespace Coco::Rendering
 			}
 		}
 
-		_defaultTexture->SetPixels(pixelData.Data());
+		_defaultCheckerTexture->SetPixels(pixelData.Data());
 	}
 }

@@ -116,5 +116,11 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <returns>The number of vertex indices</returns>
 		uint64_t GetIndexCount() const noexcept { return _indexCount; }
+
+	private:
+		/// <summary>
+		/// Marks this mesh as dirty and needing a re-upload of data
+		/// </summary>
+		void MarkDirty() noexcept;
 	};
 }

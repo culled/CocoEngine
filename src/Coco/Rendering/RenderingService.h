@@ -23,7 +23,8 @@ namespace Coco::Rendering
 
         Managed<GraphicsPlatform> _graphics;
         Ref<RenderPipeline> _defaultPipeline;
-        Ref<Texture> _defaultTexture;
+        Ref<Texture> _defaultDiffuseTexture;
+        Ref<Texture> _defaultCheckerTexture;
 
     public:
         RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
@@ -63,6 +64,18 @@ namespace Coco::Rendering
         Ref<RenderPipeline> GetDefaultPipeline() const noexcept { return _defaultPipeline; }
 
         /// <summary>
+        /// Gets the default diffuse texture
+        /// </summary>
+        /// <returns>The default diffuse texture</returns>
+        Ref<Texture> GetDefaultDiffuseTexture() const noexcept { return _defaultDiffuseTexture; }
+
+        /// <summary>
+        /// Gets the default checker texture
+        /// </summary>
+        /// <returns>The default checker texture</returns>
+        Ref<Texture> GetDefaultCheckerTexture() const noexcept { return _defaultCheckerTexture; }
+
+        /// <summary>
         /// Renders using the default render pipeline for a graphics presenter
         /// </summary>
         /// <param name="presenter">The presenter</param>
@@ -87,31 +100,6 @@ namespace Coco::Rendering
             return _graphics->CreateBuffer(size, usageFlags, bindOnCreate);
         }
 
-        /// <summary>
-        /// Creates a two-dimensional texture
-        /// </summary>
-        /// <param name="width">The texture width</param>
-        /// <param name="height">The texture height</param>
-        /// <param name="pixelFormat">The pixel format for the texture</param>
-        /// <param name="colorSpace">The color space for the texture</param>
-        /// <param name="usageFlags">The usage flags for the texture</param>
-        /// <returns>The created texture</returns>
-        Ref<Texture> CreateTexture(
-            int width, 
-            int height, 
-            PixelFormat pixelFormat, 
-            ColorSpace colorSpace, 
-            ImageUsageFlags usageFlags,
-            FilterMode filterMode = FilterMode::Linear,
-            RepeatMode repeatMode = RepeatMode::Repeat,
-            uint anisotropy = 16);
-
-        /// <summary>
-        /// Gets the default texture
-        /// </summary>
-        /// <returns>The default texture</returns>
-        Ref<Texture> GetDefaultTexture() const noexcept { return _defaultTexture; }
-
     private:
         /// <summary>
         /// Performs rendering using a render pipeline
@@ -121,9 +109,14 @@ namespace Coco::Rendering
         void DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept;
 
         /// <summary>
-        /// Creates the default texture
+        /// Creates the default diffuse texture
         /// </summary>
-        void CreateDefaultTexture();
+        void CreateDefaultDiffuseTexture();
+
+        /// <summary>
+        /// Creates the default checker texture
+        /// </summary>
+        void CreateDefaultCheckerTexture();
     };
 }
 

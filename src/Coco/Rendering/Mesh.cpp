@@ -35,19 +35,19 @@ namespace Coco::Rendering
 	void Mesh::SetPositions(const List<Vector3>& positions)
 	{
 		_vertexPositions = positions;
-		_isDirty = true;
+		MarkDirty();
 	}
 
 	void Mesh::SetUVs(const List<Vector2>& uvs)
 	{
 		_vertexUV0s = uvs;
-		_isDirty = true;
+		MarkDirty();
 	}
 
 	void Mesh::SetIndices(const List<uint32_t>& indices)
 	{
 		_vertexIndices = indices;
-		_isDirty = true;
+		MarkDirty();
 	}
 
 	bool Mesh::UploadData(bool deleteLocalData) noexcept
@@ -122,5 +122,14 @@ namespace Coco::Rendering
 			LogError(_renderingService->GetLogger(), "Failed to upload mesh data");
 			return false;
 		}
+	}
+
+	void Mesh::MarkDirty() noexcept
+	{
+		if (_isDirty)
+			return;
+
+		IncrementVersion();
+		_isDirty = true;
 	}
 }

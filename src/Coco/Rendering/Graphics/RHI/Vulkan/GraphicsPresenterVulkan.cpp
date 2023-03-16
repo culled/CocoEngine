@@ -185,7 +185,7 @@ namespace Coco::Rendering
 	{
 		for (const VkSurfaceFormatKHR& format : supportDetails.SurfaceFormats)
 		{
-			if (ToPixelFormat(format.format) == PixelFormat::BGRA8 && ToColorSpace(format.colorSpace) == ColorSpace::sRGB)
+			if (ToPixelFormat(format.format) == PixelFormat::RGBA8 && ToColorSpace(format.colorSpace) == ColorSpace::sRGB)
 				return format;
 		}
 

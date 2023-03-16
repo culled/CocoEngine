@@ -470,7 +470,7 @@ namespace Coco::Rendering
 				Ref<Texture> texture = _currentMaterial->GetTexture(descriptor.Name);
 
 				if (!texture)
-					texture = _renderingService->GetDefaultTexture();
+					texture = _renderingService->GetDefaultCheckerTexture();
 
 				GraphicsResourceRef<Image> image = texture->GetImage();
 				const ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.get());

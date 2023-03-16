@@ -15,6 +15,17 @@ namespace Coco::Rendering
 	class IGraphicsResource;
 
 	/// <summary>
+	/// Memory features for a GraphicsDevice
+	/// </summary>
+	struct COCOAPI GraphicsDeviceMemoryFeatures
+	{
+		/// <summary>
+		/// If true, this device support host visible local memory
+		/// </summary>
+		bool SupportsLocalHostBufferMemory = false;
+	};
+
+	/// <summary>
 	/// Parameters for choosing and creating a graphics device
 	/// </summary>
 	struct COCOAPI GraphicsDeviceCreationParameters
@@ -96,6 +107,12 @@ namespace Coco::Rendering
 		/// Blocks until this device is idle
 		/// </summary>
 		virtual void WaitForIdle() noexcept = 0;
+
+		/// <summary>
+		/// Gets memory features for the device
+		/// </summary>
+		/// <returns>The device's memory features</returns>
+		virtual const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const noexcept = 0;
 
 		/// <summary>
 		/// Creates a graphics resource, adds it to this device's list of managed resources, and returns a handle to it

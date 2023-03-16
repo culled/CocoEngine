@@ -9,7 +9,7 @@ namespace Coco::Rendering
 	/// </summary>
 	enum class PixelFormat
 	{
-		BGRA8,
+		RGBA8,
 		Depth24_Stencil8,
 		Unknown
 	};
@@ -71,7 +71,7 @@ namespace Coco::Rendering
 	{
 		switch (format)
 		{
-		case PixelFormat::BGRA8:
+		case PixelFormat::RGBA8:
 			return 4;
 		default:
 			return 0;

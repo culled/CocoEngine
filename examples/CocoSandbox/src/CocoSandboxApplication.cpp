@@ -8,11 +8,17 @@
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/RenderingService.h>
 
-#include "HelloTriangleRenderPass.h"
-
 MainApplication(CocoSandboxApplication)
 
 using namespace Coco;
+
+ShaderUniformObject::ShaderUniformObject() : Padding{ 0 }
+{
+	BaseColor[0] = 0.0f;
+	BaseColor[1] = 0.0f;
+	BaseColor[2] = 0.0f;
+	BaseColor[3] = 1.0f;
+}
 
 CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) : 
 	Coco::Application(engine, "Coco Sandbox"),
@@ -34,12 +40,6 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	Ref<Rendering::RenderPipeline> pipeline = CreateRef<Rendering::RenderPipeline>();
 	pipeline->SetClearColor(Color(0.1, 0.2, 0.3));
 
-	List<int> attachmentMapping;
-	attachmentMapping.Add(0);
-
-	pipeline->AddRenderPass(CreateRef<HelloTriangleRenderPass>(), attachmentMapping);
-	_renderService->SetDefaultPipeline(pipeline);
-
 	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
 
 	_camera = CreateRef<CameraComponent>();
@@ -48,6 +48,60 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	_cameraPosition = Vector3(0.0, 0.0, 0.0);
 
 	//engine->GetMainLoop()->SetTargetTickRate(2);
+
+	// Setup our basic shader
+	GraphicsPipelineState pipelineState;
+	//pipelineState.CullingMode = CullMode::None;
+	_shader = CreateRef<Shader>("HelloTriangle");
+	_shader->CreateSubshader("main",
+		{
+			{ShaderStageType::Vertex, "assets/shaders/built-in/ObjectShader.vert.spv"},
+			{ShaderStageType::Fragment, "assets/shaders/built-in/ObjectShader.frag.spv"}
+		},
+		pipelineState,
+		{
+			ShaderVertexAttribute(BufferDataFormat::Vector3),
+			ShaderVertexAttribute(BufferDataFormat::Vector2)
+		},
+		{
+			ShaderDescriptor("_MaterialInfo", 0, ShaderDescriptorType::UniformStruct, sizeof(ShaderUniformObject)),
+			ShaderDescriptor("_MainTex", 1, ShaderDescriptorType::UniformSampler)
+		});
+
+	_texture = CreateRef<Texture>(s_textureFiles.at(0), ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
+
+	_material = CreateRef<Material>(_shader);
+	_material->SetStruct("_MaterialInfo", _shaderUO);
+	_material->SetTexture("_MainTex", _texture);
+
+	// Setup our basic mesh
+	double size = 10.0;
+	_mesh = CreateRef<Mesh>();
+
+	_mesh->SetPositions({
+		Vector3(-0.5, 0.5, 0.0) * size, Vector3(-0.5, 1.5, 0.0) * size, Vector3(0.5, 1.5, 0.0) * size, Vector3(0.5, 0.5, 0.0) * size, // Forward (+Y)
+		Vector3(0.5, 0.5, 0.0) * size, Vector3(1.5, 0.5, 0.0) * size, Vector3(1.5, -0.5, 0.0) * size, Vector3(0.5, -0.5, 0.0) * size, // Right (+X)
+		Vector3(-0.5, 1.5, 0.0) * size, Vector3(-0.5, 1.5, 1.0) * size, Vector3(0.5, 1.5, 1.0) * size, Vector3(0.5, 1.5, 0.0) * size }); // Up (+Z)
+
+	_mesh->SetUVs({
+		Vector2(0.0, 0.0), Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0),
+		Vector2(0.0, 0.0), Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0),
+		Vector2(0.0, 0.0), Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0),
+		});
+
+	_mesh->SetIndices({
+		0, 1, 2, 2, 3, 0,
+		4, 5, 6, 6, 7, 4,
+		8, 9, 10, 10, 11, 8 });
+
+	_meshTransform = Matrix4x4::CreateWithTranslation(Vector3(0.0, 0.0, -10.0));
+
+	List<int> attachmentMapping;
+	attachmentMapping.Add(0);
+
+	_rp = CreateRef<HelloTriangleRenderPass>(_mesh, _meshTransform, _material);
+	pipeline->AddRenderPass(_rp, attachmentMapping);
+	_renderService->SetDefaultPipeline(pipeline);
 
 	LogInfo(Logger, "Sandbox application created");
 }
@@ -89,9 +143,6 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	_cameraEulerAngles.Z -= mouseDelta.X * 0.005;
 	_cameraEulerAngles.X = Math::Clamp(_cameraEulerAngles.X - mouseDelta.Y * 0.005, Math::Deg2Rad(-90.0), Math::Deg2Rad(90.0));
 
-	//if (mouseDelta.GetLength() > 0.5)
-	//	LogInfo(Logger, FormattedString("Tilt: {}, Yaw: {}", Math::Rad2Deg(_cameraEulerAngles.X), Math::Rad2Deg(_cameraEulerAngles.Z)));
-
 	Quaternion orientation = Quaternion(_cameraEulerAngles);
 
 	Input::Keyboard* keyboard = _inputService->GetKeyboard();
@@ -120,5 +171,19 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	Matrix4x4 transform = Matrix4x4::CreateTransform(_cameraPosition, orientation, Vector3::One);
 
 	_camera->SetViewMatrix(transform.Inverted());
-	//_camera->SetViewMatrix(Matrix4x4::CreateLookAtMatrix(_cameraPosition, _cameraPosition + transform.GetForwardVector(), transform.GetUpVector()));
+
+	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
+	const double a = Math::Sin(t) * 0.5 + 0.5;
+	_shaderUO.BaseColor[0] = static_cast<float>(a);
+	_shaderUO.BaseColor[1] = static_cast<float>(a);
+	_shaderUO.BaseColor[2] = static_cast<float>(a);
+	_material->SetStruct("_MaterialInfo", _shaderUO);
+
+	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
+	{
+		_textureIndex = (_textureIndex + 1) % s_textureFiles.size();
+		_texture->LoadFromFile(s_textureFiles.at(_textureIndex));
+	}
+
+	_rp->UpdateMeshTransform(_meshTransform);
 }
