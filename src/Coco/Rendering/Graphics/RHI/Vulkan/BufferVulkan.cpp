@@ -4,7 +4,7 @@
 #include "CommandBufferVulkan.h"
 #include "VulkanUtilities.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	BufferVulkan::BufferVulkan(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags, uint64_t size, bool createBound) : 
 		Buffer(usageFlags),

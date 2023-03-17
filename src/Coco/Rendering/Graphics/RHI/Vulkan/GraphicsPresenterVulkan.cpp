@@ -12,7 +12,7 @@
 
 #include <vulkan/vk_enum_string_helper.h>
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	GraphicsPresenterVulkan::GraphicsPresenterVulkan(GraphicsDeviceVulkan* device) :
 		_device(device)

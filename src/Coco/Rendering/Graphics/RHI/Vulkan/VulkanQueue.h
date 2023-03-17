@@ -4,7 +4,7 @@
 
 #include "VulkanIncludes.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	/// <summary>
 	/// A wrapper for a Vulkan queue

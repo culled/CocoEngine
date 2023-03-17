@@ -5,7 +5,7 @@
 #include "GraphicsSemaphoreVulkan.h"
 #include "GraphicsFenceVulkan.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	CommandBufferVulkan::CommandBufferVulkan(bool isPrimary, GraphicsDeviceVulkan* device, CommandBufferPoolVulkan* pool) : CommandBuffer(isPrimary),
 		_device(device), _pool(pool)

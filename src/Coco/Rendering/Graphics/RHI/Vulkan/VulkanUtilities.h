@@ -10,7 +10,7 @@
 #include <Coco/Rendering/Graphics/ImageSamplerTypes.h>
 #include "VulkanIncludes.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	/// <summary>
 	/// Converts a VkPhysicalDeviceType to a GraphicsDeviceType

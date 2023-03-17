@@ -2,7 +2,7 @@
 
 #include "GraphicsDeviceVulkan.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	GraphicsSemaphoreVulkan::GraphicsSemaphoreVulkan(GraphicsDevice* device) :
 		_device(static_cast<GraphicsDeviceVulkan*>(device))

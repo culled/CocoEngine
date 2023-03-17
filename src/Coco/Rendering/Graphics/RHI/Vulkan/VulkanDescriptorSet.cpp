@@ -1,6 +1,6 @@
 #include "VulkanDescriptorSet.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
     uint VulkanDescriptorLayout::GetTypeCount(VkDescriptorType descriptorType) const noexcept
     {

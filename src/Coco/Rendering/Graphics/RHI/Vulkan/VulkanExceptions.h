@@ -3,7 +3,7 @@
 #include <Coco/Core/Core.h>
 #include <vulkan/vulkan.h>
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	/// <summary>
 	/// An exception when a Vulkan operation fails

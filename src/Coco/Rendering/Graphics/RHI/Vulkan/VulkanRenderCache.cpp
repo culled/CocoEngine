@@ -11,7 +11,7 @@
 #include "VulkanShader.h"
 #include <Coco/Rendering/Graphics/GraphicsPipelineState.h>
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	const VulkanPipeline VulkanPipeline::None = VulkanPipeline();
 

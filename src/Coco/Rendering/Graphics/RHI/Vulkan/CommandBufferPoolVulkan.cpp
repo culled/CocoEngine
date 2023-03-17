@@ -3,7 +3,7 @@
 #include "GraphicsDeviceVulkan.h"
 #include "CommandBufferVulkan.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	CommandBufferPoolVulkan::CommandBufferPoolVulkan(GraphicsDeviceVulkan* device, Ref<VulkanQueue> queue) :
 		_device(device), _queue(queue)

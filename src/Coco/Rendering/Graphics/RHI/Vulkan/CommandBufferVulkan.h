@@ -6,9 +6,8 @@
 
 #include "VulkanIncludes.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
-	struct RenderView;
 	class CommandBufferPoolVulkan;
 	class GraphicsDeviceVulkan;
 

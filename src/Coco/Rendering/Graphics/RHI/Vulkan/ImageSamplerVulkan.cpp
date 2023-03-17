@@ -3,7 +3,7 @@
 #include "GraphicsDeviceVulkan.h"
 #include "VulkanUtilities.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	ImageSamplerVulkan::ImageSamplerVulkan(GraphicsDevice* device, Rendering::FilterMode filterMode, Rendering::RepeatMode repeatMode, uint maxAnisotropy) : 
 		ImageSampler(filterMode, repeatMode, maxAnisotropy), _device(static_cast<GraphicsDeviceVulkan*>(device))

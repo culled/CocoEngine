@@ -19,7 +19,7 @@
 #define MAX_OBJECT_COUNT 1024
 #define MAX_MATERIAL_SIZE 256
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	RenderContextVulkan::RenderContextVulkan(GraphicsDevice* device) :
 		_device(static_cast<GraphicsDeviceVulkan*>(device)), _currentState(RenderContextState::Ready)

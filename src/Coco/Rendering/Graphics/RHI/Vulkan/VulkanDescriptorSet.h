@@ -4,7 +4,7 @@
 #include <Coco/Core/Types/List.h>
 #include "VulkanIncludes.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	/// <summary>
 	/// Layout for a Vulkan descriptor set

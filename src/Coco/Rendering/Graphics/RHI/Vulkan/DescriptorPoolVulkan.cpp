@@ -3,7 +3,7 @@
 #include "GraphicsDeviceVulkan.h"
 #include "GraphicsPlatformVulkan.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	DescriptorPoolVulkan::DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanDescriptorLayout>& descriptorSetLayouts) :
 		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice)),

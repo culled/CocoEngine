@@ -18,7 +18,7 @@ namespace Coco::Rendering
 		{
 #if COCO_RENDERING_VULKAN
 		case RenderingRHI::Vulkan:
-			return CreateManaged<GraphicsPlatformVulkan>(renderingService, creationParams);
+			return CreateManaged<Vulkan::GraphicsPlatformVulkan>(renderingService, creationParams);
 #endif
 		default:
 			break;

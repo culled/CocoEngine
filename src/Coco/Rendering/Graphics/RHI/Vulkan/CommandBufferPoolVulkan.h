@@ -8,7 +8,7 @@
 #include "VulkanIncludes.h"
 #include "CommandBufferVulkan.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 

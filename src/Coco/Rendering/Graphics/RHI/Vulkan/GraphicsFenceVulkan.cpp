@@ -1,7 +1,7 @@
 #include "GraphicsFenceVulkan.h"
 #include "GraphicsDeviceVulkan.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	GraphicsFenceVulkan::GraphicsFenceVulkan(GraphicsDevice* device, bool startSignalled) :
 		_device(static_cast<GraphicsDeviceVulkan*>(device))

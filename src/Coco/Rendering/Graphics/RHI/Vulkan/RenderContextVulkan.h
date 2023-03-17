@@ -18,6 +18,10 @@ namespace Coco::Rendering
 {
 	class RenderingService;
 	class RenderPipeline;
+}
+
+namespace Coco::Rendering::Vulkan
+{
 	class GraphicsDeviceVulkan;
 	class ImageVulkan;
 

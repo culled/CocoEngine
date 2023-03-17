@@ -9,7 +9,10 @@
 namespace Coco::Rendering
 {
     class RenderingService;
+}
 
+namespace Coco::Rendering::Vulkan
+{
     /// <summary>
     /// Vulkan implementation of a GraphicsPlatform
     /// </summary>

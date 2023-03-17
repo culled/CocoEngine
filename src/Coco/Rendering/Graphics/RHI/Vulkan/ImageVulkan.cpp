@@ -9,7 +9,7 @@
 
 #include <vulkan/vk_enum_string_helper.h>
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	ImageVulkan::ImageVulkan(GraphicsDevice* device, ImageDescription description, VkImage image) : 
 		Image(description),

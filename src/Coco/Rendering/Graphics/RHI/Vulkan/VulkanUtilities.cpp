@@ -1,6 +1,6 @@
 #include "VulkanUtilities.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	Version ToVersion(uint32_t version) noexcept
 	{

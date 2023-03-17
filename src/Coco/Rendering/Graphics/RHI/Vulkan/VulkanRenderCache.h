@@ -11,10 +11,12 @@
 
 namespace Coco::Rendering
 {
+	class RenderPipeline;
+}
+
+namespace Coco::Rendering::Vulkan
+{
 	class GraphicsDeviceVulkan;
-	class RenderPipeline;
-	class Shader;
-	class RenderPipeline;
 
 	/// <summary>
 	/// Information for a RenderPass Subpass

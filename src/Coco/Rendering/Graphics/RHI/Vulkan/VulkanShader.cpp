@@ -4,7 +4,7 @@
 #include <Coco/Core/IO/File.h>
 #include "VulkanUtilities.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	// TODO: how to calculate this?
 	#define MAX_SETS 10

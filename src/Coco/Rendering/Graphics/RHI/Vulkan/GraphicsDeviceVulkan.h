@@ -9,7 +9,7 @@
 #include "VulkanIncludes.h"
 #include "CommandBufferPoolVulkan.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
     class GraphicsPlatformVulkan;
 

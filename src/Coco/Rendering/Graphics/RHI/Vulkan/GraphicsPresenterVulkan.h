@@ -9,7 +9,7 @@
 
 #include "VulkanIncludes.h"
 
-namespace Coco::Rendering
+namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 	class GraphicsFenceVulkan;

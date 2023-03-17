@@ -13,6 +13,10 @@
 namespace Coco::Rendering
 {
 	class GraphicsDevice;
+}
+
+namespace Coco::Rendering::Vulkan
+{
 	class GraphicsDeviceVulkan;
 
 	/// <summary>
