@@ -24,7 +24,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	bool RenderContext::Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline) noexcept
+	bool RenderContext::Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline)
 	{
 		if (!IsAvaliableForRendering())
 		{
@@ -40,12 +40,12 @@ namespace Coco::Rendering
 		return BeginImpl();
 	}
 
-	void RenderContext::End() noexcept
+	void RenderContext::End()
 	{
 		EndImpl();
 	}
 
-	void RenderContext::Reset() noexcept
+	void RenderContext::Reset()
 	{
 		RenderView.reset();
 		CurrentPipeline.reset();

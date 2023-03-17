@@ -8,7 +8,7 @@ namespace Coco::Rendering
 	{
 		WaitForIdle();
 
-		auto it = std::find_if(Resources.begin(), Resources.end(), [resource](const Managed<IGraphicsResource>& other) noexcept {
+		auto it = Resources.Find([resource](const Managed<IGraphicsResource>& other) noexcept {
 			return resource == other.get();
 			});
 

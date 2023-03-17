@@ -26,7 +26,7 @@ namespace Coco::Rendering::Vulkan
 				}
 				catch (const Exception& ex)
 				{
-					throw ObjectCreateException(FormattedString("Unable to create shader module for pass \"{}\": {}", subshader.PassName, ex.what()));
+					throw VulkanRenderingException(FormattedString("Unable to create shader module for pass \"{}\": {}", subshader.PassName, ex.what()));
 				}
 			}
 

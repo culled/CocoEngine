@@ -1,4 +1,5 @@
 #include "File.h"
+#include "FileExceptions.h"
 
 #include <filesystem>
 #include <stdio.h>
@@ -229,6 +230,6 @@ namespace Coco
 	void File::CheckHandle() const
 	{
 		if (!_handle.is_open())
-			throw FileException("File operations require an openned file");
+			throw FileException("File operations require an opened file");
 	}
 }

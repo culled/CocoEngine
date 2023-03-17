@@ -21,7 +21,7 @@ namespace Coco::Platform::Windows
 		_instance(hInstance)
 	{
 		if (!QueryPerformanceFrequency(&_clockFrequency))
-			throw PlatformInitializeException(FormattedString("Unable to query performance frequency: {}", GetLastError()));
+			throw EnginePlatformInitializeException(FormattedString("Unable to query performance frequency: {}", GetLastError()));
 
 		_secondsPerCycle = 1.0 / static_cast<double>(_clockFrequency.QuadPart);
 
@@ -119,7 +119,7 @@ namespace Coco::Platform::Windows
 	{
 		LARGE_INTEGER cycles = {};
 		if (!QueryPerformanceCounter(&cycles))
-			throw PlatformOperationException(FormattedString("Unable to query performance counter: {}", GetLastError()));
+			throw EnginePlatformOperationException(FormattedString("Unable to query performance counter: {}", GetLastError()));
 
 		return static_cast<double>(cycles.QuadPart) * _secondsPerCycle;
 	}
@@ -411,7 +411,7 @@ namespace Coco::Platform::Windows
 		windowClass.style = CS_DBLCLKS; // Get doubleclicks
 
 		if (!RegisterClass(&windowClass))
-			throw PlatformInitializeException("Could not register window class");
+			throw EnginePlatformInitializeException("Could not register window class");
 	}
 
 	void EnginePlatformWindows::ShowConsole() noexcept

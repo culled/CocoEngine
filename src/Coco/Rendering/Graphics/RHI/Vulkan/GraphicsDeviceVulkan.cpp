@@ -310,12 +310,12 @@ namespace Coco::Rendering::Vulkan
 		const PhysicalDeviceRanking& firstRank = deviceRankings[0];
 
 		if (firstRank.Score == -1)
-			throw GraphicsPlatformCreateException("No GPUs found that satisfy the creation requirements");
+			throw GraphicsPlatformInitializeException("No GPUs found that satisfy the creation requirements");
 
 		return firstRank.Device;
 	}
 
-	int GraphicsDeviceVulkan::CalculateDeviceScore(VkPhysicalDevice device, const GraphicsDeviceCreationParameters& createParams)
+	int GraphicsDeviceVulkan::CalculateDeviceScore(VkPhysicalDevice device, const GraphicsDeviceCreationParameters& createParams) noexcept
 	{
 		int score = 0;
 		bool isMissingCriticalRequirement = false;
@@ -406,7 +406,7 @@ namespace Coco::Rendering::Vulkan
 		return isMissingCriticalRequirement ? -1 : score;
 	}
 
-	PhysicalDeviceQueueFamilyInfo GraphicsDeviceVulkan::GetQueueFamilyInfo(VkPhysicalDevice device)
+	PhysicalDeviceQueueFamilyInfo GraphicsDeviceVulkan::GetQueueFamilyInfo(VkPhysicalDevice device) noexcept
 	{
 		PhysicalDeviceQueueFamilyInfo queueFamilyInfos = {};
 
@@ -466,7 +466,7 @@ namespace Coco::Rendering::Vulkan
 		return queueFamilyInfos;
 	}
 
-	GraphicsDeviceMemoryFeatures GraphicsDeviceVulkan::GetDeviceMemoryFeatures(VkPhysicalDevice device)
+	GraphicsDeviceMemoryFeatures GraphicsDeviceVulkan::GetDeviceMemoryFeatures(VkPhysicalDevice device) noexcept
 	{
 		GraphicsDeviceMemoryFeatures memoryFeatures = {};
 

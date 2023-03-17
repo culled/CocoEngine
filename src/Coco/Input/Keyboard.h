@@ -47,7 +47,7 @@ namespace Coco::Input
         /// <param name="key">The key</param>
         /// <param name="isPressed">True if the key was pressed, false if it was released</param>
         /// <returns>A state change</returns>
-        static constexpr KeyboardStateChange KeyStateChange(KeyboardKey key, bool isPressed) noexcept
+        static KeyboardStateChange KeyStateChange(KeyboardKey key, bool isPressed) noexcept
         {
             KeyboardStateChange state = {};
             state.Key = key;

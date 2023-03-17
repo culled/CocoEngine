@@ -73,7 +73,7 @@ namespace Coco::Input
 		/// <param name="newPosition">The new mouse position</param>
 		/// <param name="delta">The delta between the new mouse position and the last position</param>
 		/// <returns>A mouse state change</returns>
-		static constexpr MouseStateChange MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta) noexcept
+		static MouseStateChange MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta) noexcept
 		{
 			MouseStateChange state = {};
 			state.Position = newPosition;
@@ -86,7 +86,7 @@ namespace Coco::Input
 		/// </summary>
 		/// <param name="scrollDelta">The amount the mouse was scrolled</param>
 		/// <returns>A mouse state change</returns>
-		static constexpr MouseStateChange ScrollStateChange(const Vector2Int& scrollDelta) noexcept
+		static MouseStateChange ScrollStateChange(const Vector2Int& scrollDelta) noexcept
 		{
 			MouseStateChange state = {};
 			state.ScrollDelta = scrollDelta;
@@ -99,7 +99,7 @@ namespace Coco::Input
 		/// <param name="button">The mouse button</param>
 		/// <param name="isPressed">True if the button was pressed, false if it was released</param>
 		/// <returns>A mouse state change</returns>
-		static constexpr MouseStateChange ButtonStateChange(MouseButton button, bool isPressed) noexcept
+		static MouseStateChange ButtonStateChange(MouseButton button, bool isPressed) noexcept
 		{
 			MouseStateChange state = {};
 			state.Button = button;

@@ -54,7 +54,7 @@ namespace Coco::Windowing
 
 	bool WindowingService::TryFindWindow(void* windowId, Window*& window) const noexcept
 	{
-		const auto it = std::find_if(_windows.cbegin(), _windows.cend(), [windowId](const Managed<Window>& other) noexcept {
+		const auto it = _windows.Find([windowId](const Managed<Window>& other) noexcept {
 			return windowId == other->GetID();
 			});
 
@@ -77,17 +77,12 @@ namespace Coco::Windowing
 			return;
 		}
 
-		auto it = std::find_if(_windows.begin(), _windows.end(), [window](const Managed<Window>& other) noexcept {
+		auto it = _windows.Find([window](const Managed<Window>& other) noexcept {
 			return window == other.get();
 			});
 
-		try
-		{
-			if (it != _windows.end())
-				_windows.Remove(it);
-		}
-		catch(...)
-		{ }
+		if (it != _windows.end())
+			_windows.Remove(it);
 	}
 
 	void WindowingService::RenderTick(double deltaTime)

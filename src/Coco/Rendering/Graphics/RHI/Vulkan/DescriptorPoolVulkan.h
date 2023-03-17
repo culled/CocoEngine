@@ -17,11 +17,6 @@ namespace Coco::Rendering::Vulkan
 	class GraphicsDeviceVulkan;
 
 	/// <summary>
-	/// An exception thrown when this pool can no longer allocate descriptor sets
-	/// </summary>
-	using DescriptorSetAllocateException = Exception;
-
-	/// <summary>
 	/// Manages a set pool of descriptor sets
 	/// </summary>
 	class DescriptorPoolVulkan final : public IGraphicsResource

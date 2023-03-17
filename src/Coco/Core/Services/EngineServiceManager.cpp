@@ -5,16 +5,8 @@ namespace Coco
 {
 	EngineServiceManager::~EngineServiceManager()
 	{
-		try
-		{
-			// Destroy services in reverse order that they were added
-			for (int64_t i = _services.Count() - 1; i >= 0; i--)
-			{
-				_services[i].reset();
-			}
-		}
-		catch(...)
-		{ }
+		// Destroy services in reverse order that they were added
+		std::for_each(_services.rbegin(), _services.rend(), [](Managed<EngineService>& service) { service.reset(); });
 
 		_services.Clear();
 	}

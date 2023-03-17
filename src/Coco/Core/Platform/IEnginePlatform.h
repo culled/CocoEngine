@@ -4,24 +4,18 @@
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/DateTime.h>
 #include "EnginePlatformTypes.h"
+#include "EnginePlatformExceptions.h"
 
 namespace Coco::Platform
 {
-	/// <summary>
-	/// Thrown when the platform fails to initialize
-	/// </summary>
-	using PlatformInitializeException = Exception;
-
-	/// <summary>
-	/// Thrown when a platform operation fails
-	/// </summary>
-	using PlatformOperationException = Exception;
-
 	/// <summary>
 	/// An interface for communicating with the underlying platform the engine is running on
 	/// </summary>
 	class COCOAPI IEnginePlatform
 	{
+	protected:
+		IEnginePlatform() = default;
+
 	public:
 		virtual ~IEnginePlatform() = default;
 
@@ -94,8 +88,5 @@ namespace Coco::Platform
 		/// <param name="message">The message</param>
 		/// <param name="isError">If true, the message box will display for an error</param>
 		virtual void ShowPlatformMessageBox(const string& title, const string& message, bool isError) = 0;
-
-	protected:
-		IEnginePlatform() = default;
 	};
 }

@@ -26,10 +26,10 @@ namespace Coco::Rendering::Vulkan
 	{
 		_renderingService = RenderingService::Get();
 		if (_renderingService == nullptr)
-			throw RenderContextCreateException("Could not find an active rendering service");
+			throw RenderingException("Could not find an active rendering service");
 
 		if (!_device->GetGraphicsCommandPool(_pool))
-			throw RenderContextCreateException("A graphics command pool needs to be created for rendering");
+			throw VulkanRenderingException("A graphics command pool needs to be created for rendering");
 
 		_commandBuffer = static_cast<CommandBufferVulkan*>(_pool->Allocate(true));
 
@@ -144,17 +144,12 @@ namespace Coco::Rendering::Vulkan
 		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), static_cast<uint>(mesh->GetIndexCount()), 1, 0, 0, 0);
 	}
 
-	void RenderContextVulkan::WaitForRenderingCompleted() noexcept
+	void RenderContextVulkan::WaitForRenderingCompleted()
 	{
-		try
-		{
-			_renderingCompleteFence->Wait(Math::MaxValue<uint64_t>());
-		}
-		catch(...)
-		{ }
+		_renderingCompleteFence->Wait(Math::MaxValue<uint64_t>());
 	}
 
-	bool RenderContextVulkan::BeginImpl() noexcept
+	bool RenderContextVulkan::BeginImpl()
 	{
 		try
 		{
@@ -193,14 +188,14 @@ namespace Coco::Rendering::Vulkan
 
 			return true;
 		}
-		catch (const Exception& ex)
+		catch (const RenderingException& ex)
 		{
 			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to begin VulkanRenderContext: {}", ex.what()));
 			return false;
 		}
 	}
 
-	void RenderContextVulkan::EndImpl() noexcept
+	void RenderContextVulkan::EndImpl()
 	{
 		try
 		{
@@ -219,13 +214,13 @@ namespace Coco::Rendering::Vulkan
 
 			_currentState = RenderContextState::DrawCallsSubmitted;
 		}
-		catch(const Exception& ex)
+		catch(const RenderingException& ex)
 		{
 			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to end VulkanRenderContext: {}", ex.what()));
 		}
 	}
 
-	void RenderContextVulkan::ResetImpl() noexcept
+	void RenderContextVulkan::ResetImpl()
 	{
 		// Free all material descriptor sets
 		for (auto& poolKVP : _shaderDescriptorPools)
@@ -247,26 +242,19 @@ namespace Coco::Rendering::Vulkan
 		_signalSemaphores.Clear();
 		_waitSemaphores.Clear();
 
-		try
-		{
-			_waitSemaphores.Add(_imageAvailableSemaphore);
-			_signalSemaphores.Add(_renderingCompleteSemaphore);
-			_renderingCompleteFence->Reset();
+		_waitSemaphores.Add(_imageAvailableSemaphore);
+		_signalSemaphores.Add(_renderingCompleteSemaphore);
+		_renderingCompleteFence->Reset();
 
-			_currentState = RenderContextState::Ready;
-		}
-		catch(const Exception& ex)
-		{
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to reset VulkanRenderContext: {}", ex.what()));
-		}
+		_currentState = RenderContextState::Ready;
 	}
 
-	bool RenderContextVulkan::FlushStateChanges() noexcept
+	bool RenderContextVulkan::FlushStateChanges()
 	{
 		try
 		{
 			if (CurrentRenderPass == nullptr)
-				throw Exception("A render pass was not set before rendering geometry");
+				throw RenderingException("A render pass was not set before rendering geometry");
 
 			if (_stateChanges.contains(RenderContextStateChange::Shader))
 			{
@@ -305,16 +293,10 @@ namespace Coco::Rendering::Vulkan
 
 			return true;
 		}
-		catch (const Exception& ex)
+		catch (const RenderingException& ex)
 		{
 			_stateChanges.clear();
-			LogError(_renderingService->GetLogger(), ex.what());
-			return false;
-		}
-		catch (...)
-		{
-			_stateChanges.clear();
-			LogError(_renderingService->GetLogger(), "Failed binding pipeline state");
+			LogError(_renderingService->GetLogger(), FormattedString("Failed binding pipeline state: {}", ex.what()));
 			return false;
 		}
 	}
@@ -410,7 +392,7 @@ namespace Coco::Rendering::Vulkan
 
 		const Subshader* subshader;
 		if (!_currentShader->TryGetSubshader(subshaderName, subshader))
-			throw Exception(FormattedString("Could not find a subshader in \"{}\" for pass {}", 
+			throw RenderingException(FormattedString("Could not find a subshader in \"{}\" for pass {}", 
 				_currentShader->GetName(),
 				subshaderName,
 				_currentShader->GetName()
@@ -418,7 +400,7 @@ namespace Coco::Rendering::Vulkan
 
 		VulkanDescriptorLayout layout;
 		if (!vulkanShader->TryGetDescriptorSetLayout(subshaderName, layout))
-			throw Exception(FormattedString("Could not find a descriptor layout for subshader \"{}\" in shader \"{}\"",
+			throw RenderingException(FormattedString("Could not find a descriptor layout for subshader \"{}\" in shader \"{}\"",
 				subshaderName,
 				_currentShader->GetName()
 			));

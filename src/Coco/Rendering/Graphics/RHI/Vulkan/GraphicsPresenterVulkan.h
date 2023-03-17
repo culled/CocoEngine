@@ -27,11 +27,6 @@ namespace Coco::Rendering::Vulkan
 		List<VkPresentModeKHR> PresentModes;
 	};
 
-	/// <summary>
-	/// An exception when a swapchain fatally fails to create
-	/// </summary>
-	using FatalSwapchainInitializeException = Exception;
-
     /// <summary>
     /// Vulkan implentation of a GraphicsPresenter
     /// </summary>

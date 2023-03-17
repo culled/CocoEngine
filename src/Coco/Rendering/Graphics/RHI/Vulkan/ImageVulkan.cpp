@@ -45,7 +45,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		CommandBufferPoolVulkan* pool;
 		if (!_device->GetGraphicsCommandPool(pool))
-			throw ImageDataTransferException("A graphics queue is required to transfer pixel data");
+			throw VulkanRenderingException("A graphics queue is required to transfer pixel data");
 
 		uint64_t bufferSize = static_cast<uint64_t>(Description.Width) *
 			static_cast<uint64_t>(Description.Height) *
@@ -97,7 +97,7 @@ namespace Coco::Rendering::Vulkan
 		Ref<VulkanQueue> graphicsQueue;
 
 		if (!_device->GetComputeQueue(graphicsQueue))
-			throw ImageException("Device needs a graphics queue to transition image layouts");
+			throw VulkanRenderingException("Device needs a graphics queue to transition image layouts");
 
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -181,7 +181,7 @@ namespace Coco::Rendering::Vulkan
 		vkGetImageMemoryRequirements(_device->GetDevice(), _image, &memoryRequirements);
 
 		if (!_device->FindMemoryIndex(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _memoryIndex))
-			throw ImageException("Unable to find local memory for image");
+			throw VulkanRenderingException("Unable to find local memory for image");
 
 		// Allocate memory
 		VkMemoryAllocateInfo allocateInfo = {};

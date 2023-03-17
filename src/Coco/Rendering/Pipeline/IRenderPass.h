@@ -4,6 +4,7 @@
 #include <Coco/Core/Types/List.h>
 #include <Coco/Rendering/Graphics/RenderContext.h>
 #include <Coco/Rendering/Graphics/AttachmentDescription.h>
+#include <Coco/Rendering/RenderingExceptions.h>
 
 namespace Coco::Rendering
 {

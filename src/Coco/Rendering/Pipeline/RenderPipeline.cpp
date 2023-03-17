@@ -14,14 +14,9 @@ namespace Coco::Rendering
 		_passesUsed.Clear();
 	}
 
-	void RenderPipelineAttachmentDescription::AddPassUse(int passIndex) noexcept
+	void RenderPipelineAttachmentDescription::AddPassUse(int passIndex)
 	{
-		try
-		{
-			_passesUsed.Add(passIndex);
-		}
-		catch(...)
-		{ }
+		_passesUsed.Add(passIndex);
 
 		if (_passesUsed.Count() == 1)
 		{
@@ -67,16 +62,21 @@ namespace Coco::Rendering
 
 	bool RenderPipeline::RemoveRenderPass(RenderPipelineBinding* renderPassBinding) noexcept
 	{
-		auto it = std::find_if(_renderPasses.begin(), _renderPasses.end(), [renderPassBinding](const Managed<RenderPipelineBinding>& other) {
-			return renderPassBinding == other.get();
-			});
-
-		if (it != _renderPasses.end())
+		try
 		{
-			_renderPasses.Remove(it);
-			_attachmentDescriptionsDirty = true;
-			return true;
+			auto it = _renderPasses.Find([renderPassBinding](const Managed<RenderPipelineBinding>& other) {
+				return renderPassBinding == other.get();
+				});
+
+			if (it != _renderPasses.end())
+			{
+				_renderPasses.Remove(it);
+				_attachmentDescriptionsDirty = true;
+				return true;
+			}
 		}
+		catch(...)
+		{ }
 
 		return false;
 	}
@@ -107,7 +107,7 @@ namespace Coco::Rendering
 			}
 			catch (const Exception& ex)
 			{
-				LogError(RenderingService::Get()->GetLogger(), FormattedString("Failed to execute {}: {}", renderPass->GetName(), ex.what()));
+				LogError(RenderingService::Get()->GetLogger(), FormattedString("Failed to execute \"{}\": {}", renderPass->GetName(), ex.what()));
 			}
 		}
 	}
@@ -134,7 +134,7 @@ namespace Coco::Rendering
 					pipelineAttachment.Description = attachmentDescription.AttachmentDescription;
 
 				if (pipelineAttachment.Description != attachmentDescription.AttachmentDescription)
-					throw RenderPipelineBindException("Conflicting render pipeline attachment binding");
+					throw RenderingOperationException("Conflicting render pipeline attachment binding");
 
 				pipelineAttachment.AddPassUse(rpI);
 			}
@@ -143,7 +143,7 @@ namespace Coco::Rendering
 		for (int i = 0; i < _attachmentDescriptions.Count(); i++)
 		{
 			if (_attachmentDescriptions[i].Description == AttachmentDescription::Empty)
-				throw RenderPipelineBindException("Pipeline attachments must be contiguous");
+				throw RenderingOperationException("Pipeline attachments must be contiguous");
 		}
 
 		_attachmentDescriptionsDirty = false;

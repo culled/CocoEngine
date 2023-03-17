@@ -9,11 +9,6 @@
 namespace Coco::Rendering
 {
 	/// <summary>
-	/// A generic exception thrown by a buffer
-	/// </summary>
-	using BufferException = Exception;
-
-	/// <summary>
 	/// A buffer that holds contiguous data for a graphics device
 	/// </summary>
 	class COCOAPI Buffer : public IGraphicsResource

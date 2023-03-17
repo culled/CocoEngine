@@ -72,7 +72,7 @@ namespace Coco::Rendering::Vulkan
 		void UseMaterial(Ref<Material> material) final;
 		void Draw(const Mesh* mesh, const Matrix4x4& modelMatrix) final;
 		bool IsAvaliableForRendering() noexcept final { return _renderingCompleteFence->IsSignalled(); }
-		void WaitForRenderingCompleted() noexcept final;
+		void WaitForRenderingCompleted() final;
 
 		/// <summary>
 		/// Sets the render targets for this render context to use
@@ -105,15 +105,15 @@ namespace Coco::Rendering::Vulkan
 		VkSemaphore GetRenderCompleteSemaphore() const noexcept { return _renderingCompleteSemaphore->GetSemaphore(); }
 
 	protected:
-		virtual bool BeginImpl() noexcept final;
-		virtual void EndImpl() noexcept final;
-		virtual void ResetImpl() noexcept final;
+		virtual bool BeginImpl() final;
+		virtual void EndImpl() final;
+		virtual void ResetImpl() final;
 
 	private:
 		/// <summary>
 		/// Attempts to flush all state changes and bind the current state
 		/// </summary>
-		bool FlushStateChanges() noexcept;
+		bool FlushStateChanges();
 
 		/// <summary>
 		/// Creates the framebuffer from the current renderpass and render view

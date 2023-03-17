@@ -80,7 +80,7 @@ namespace Coco
 		{
 			ObjectQueryHandler<ObjectType, ReturnType, Args...> handler(object, function);
 
-			auto it = std::find_if(_handlers.begin(), _handlers.end(), [handler](const Ref<HandlerType>& other) {
+			auto it = _handlers.Find([handler](const Ref<HandlerType>& other) {
 				return handler == other.get();
 				});
 
@@ -100,7 +100,7 @@ namespace Coco
 		/// <returns>True if the handler was found and removed</returns>
 		bool RemoveHandler(HandlerID handlerId)
 		{
-			auto it = std::find_if(_handlers.begin(), _handlers.end(), [handlerId](const Ref<HandlerType>& other) {
+			auto it = _handlers.Find([handlerId](const Ref<HandlerType>& other) {
 				return other->GetID() == handlerId;
 				});
 

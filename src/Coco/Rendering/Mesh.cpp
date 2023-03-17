@@ -13,7 +13,7 @@ namespace Coco::Rendering
 		_renderingService = RenderingService::Get();
 
 		if (_renderingService == nullptr)
-			throw ObjectCreateException("Cannot create a mesh without an active rendering service");
+			throw RenderingException("Cannot create a mesh without an active rendering service");
 		
 		_vertexBuffer = _renderingService->CreateBuffer(
 			VertexBufferSize, 
@@ -59,10 +59,17 @@ namespace Coco::Rendering
 		{
 			if (_vertexUV0s.Count() != _vertexPositions.Count())
 			{
-				throw MeshUploadException(FormattedString(
+				throw InvalidOperationException(FormattedString(
 					"UV0 count ({}) doesn't match vertex count of {}",
 					_vertexUV0s.Count(),
 					_vertexPositions.Count()));
+			}
+
+			if (_vertexIndices.Count() % 3 != 0)
+			{
+				throw InvalidOperationException(FormattedString(
+					"Index count must be a multiple of 3: {} % 3 != 0",
+					_vertexIndices.Count()));
 			}
 
 			GraphicsResourceRef<Buffer> staging = _renderingService->CreateBuffer(

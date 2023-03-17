@@ -20,10 +20,20 @@ namespace Coco
 	/// <summary>
 	/// An exception thrown when an index is out of an expected range
 	/// </summary>
-	using IndexOutOfRangeException = Exception;
+	class COCOAPI IndexOutOfRangeException : public Exception
+	{
+	public:
+		IndexOutOfRangeException(const string& message);
+		virtual ~IndexOutOfRangeException() = default;
+	};
 
 	/// <summary>
-	/// A generic exception thrown when an object fails to create
+	/// An exception thrown when an operation is invalid for an object's current state
 	/// </summary>
-	using ObjectCreateException = Exception;
+	class COCOAPI InvalidOperationException : public Exception
+	{
+	public:
+		InvalidOperationException(const string& message);
+		virtual ~InvalidOperationException() = default;
+	};
 }

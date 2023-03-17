@@ -79,16 +79,6 @@ namespace Coco::Rendering
 	};
 
 	/// <summary>
-	/// A generic exception thrown by an image
-	/// </summary>
-	using ImageException = Exception;
-
-	/// <summary>
-	/// An exception throw when tranfering data to an image fails
-	/// </summary>
-	using ImageDataTransferException = ImageException;
-
-	/// <summary>
 	/// A representation of an image on the GPU
 	/// </summary>
 	class COCOAPI Image : public IGraphicsResource

@@ -105,7 +105,7 @@ namespace Coco::Rendering::Vulkan
 		vkGetBufferMemoryRequirements(_device->GetDevice(), buffer, &memoryRequirements);
 
 		if (!_device->FindMemoryIndex(memoryRequirements.memoryTypeBits, _memoryPropertyFlags, bufferMemoryIndex))
-			throw Exception("Unable to create Vulkan buffer because the required memory type could not be found");
+			throw VulkanRenderingException("Unable to create Vulkan buffer because the required memory type could not be found");
 
 		// Allocate memory for the buffer
 		VkMemoryAllocateInfo allocateInfo = {};
@@ -137,7 +137,7 @@ namespace Coco::Rendering::Vulkan
 		CommandBufferPoolVulkan* pool;
 
 		if (!_device->GetTransferCommandPool(pool))
-			throw BufferException("Cannot copy buffer without a transfer queue");
+			throw BufferTransferException("Cannot copy buffer without a transfer queue");
 
 		// Start a command buffer for copying the data
 		CommandBufferVulkan* buffer = static_cast<CommandBufferVulkan*>(pool->Allocate(true));

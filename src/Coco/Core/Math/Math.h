@@ -7,6 +7,9 @@
 
 namespace Coco
 {
+	/// <summary>
+	/// Class with many math functions
+	/// </summary>
 	class COCOAPI Math
 	{
 	public:
@@ -180,5 +183,14 @@ namespace Coco
 		/// <returns>The smallest value of the type</returns>
 		template<typename T>
 		static constexpr T MinValue() noexcept { return std::numeric_limits<T>::min(); }
+
+		/// <summary>
+		/// Raises the base to the power of the exponent
+		/// </summary>
+		/// <param name="base">The base number</param>
+		/// <param name="exponent">The exponent</param>
+		/// <returns>The base raised by the exponent</returns>
+		template<typename T>
+		static constexpr T Pow(T base, T exponent) noexcept { return std::pow(base, exponent); }
 	};
 }

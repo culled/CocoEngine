@@ -9,7 +9,7 @@ namespace Coco::Rendering
 
 		if (passAttachments.Count() != passToPipelineAttachmentMapping.Count())
 		{
-			throw RenderPipelineBindException(FormattedString(
+			throw InvalidOperationException(FormattedString(
 				"Attachment mappings count must match the number of attachment descriptions for the render pass. Expected {}, got {}",
 				passAttachments.Count(),
 				passToPipelineAttachmentMapping.Count()

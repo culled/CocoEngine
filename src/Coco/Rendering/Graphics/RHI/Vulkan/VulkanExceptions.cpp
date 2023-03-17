@@ -4,7 +4,13 @@
 
 namespace Coco::Rendering::Vulkan
 {
+	VulkanRenderingException::VulkanRenderingException(const string& message) : RenderingException(message)
+	{}
+
 	VulkanOperationException::VulkanOperationException(VkResult result, const char* messageFormat) :
-		Exception(FormattedString(messageFormat, string_VkResult(result)))
+		VulkanRenderingException(FormattedString(messageFormat, string_VkResult(result)))
+	{}
+
+	DescriptorSetAllocateException::DescriptorSetAllocateException(const string& message) : VulkanRenderingException(message)
 	{}
 }

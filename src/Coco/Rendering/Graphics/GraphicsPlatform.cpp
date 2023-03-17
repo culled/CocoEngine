@@ -24,6 +24,6 @@ namespace Coco::Rendering
 			break;
 		}
 
-		throw GraphicsPlatformCreateException(FormattedString("{} RHI is not supported", PlatformRHIToString(creationParams.RHI)));
+		throw GraphicsPlatformInitializeException(FormattedString("{} RHI is not supported", PlatformRHIToString(creationParams.RHI)));
 	}
 }

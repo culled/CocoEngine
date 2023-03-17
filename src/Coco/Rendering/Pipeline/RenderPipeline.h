@@ -62,7 +62,7 @@ namespace Coco::Rendering
 		/// Marks a pass's index where this attachment is used
 		/// </summary>
 		/// <param name="passIndex"></param>
-		void AddPassUse(int passIndex) noexcept;
+		void AddPassUse(int passIndex);
 	};
 
 	/// <summary>

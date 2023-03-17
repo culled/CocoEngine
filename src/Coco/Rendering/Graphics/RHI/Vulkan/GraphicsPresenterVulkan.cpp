@@ -41,7 +41,7 @@ namespace Coco::Rendering::Vulkan
 	void GraphicsPresenterVulkan::InitializeSurface(PresenterSurfaceInitializationInfo* surfaceInitInfo)
 	{
 		if (_surface != nullptr)
-			throw GraphicsPresenterException("No surface was given to initialize");
+			throw SurfaceInitializationException("No surface was given to initialize");
 
 		if (PresenterWin32SurfaceInitializationInfo* win32SurfaceInitInfo = dynamic_cast<PresenterWin32SurfaceInitializationInfo*>(surfaceInitInfo))
 		{
@@ -58,7 +58,7 @@ namespace Coco::Rendering::Vulkan
 		}
 		else
 		{
-			throw GraphicsPresenterException("Unsupported surface type");
+			throw SurfaceInitializationException("Unsupported surface type");
 		}
 	}
 
@@ -121,7 +121,7 @@ namespace Coco::Rendering::Vulkan
 		Ref<VulkanQueue> presentQueue;
 
 		if (!_device->GetPresentQueue(presentQueue))
-			throw GraphicsPresenterException("Device must have a valid present queue to present");
+			throw VulkanRenderingException("Device must have a valid present queue to present");
 
 		RenderContextVulkan* vulkanRenderContext = static_cast<RenderContextVulkan*>(renderContext);
 		uint imageIndex = 0;
@@ -262,16 +262,16 @@ namespace Coco::Rendering::Vulkan
 		// If we can't get the present queue, try to initialize it and then get it.
 		// If all that fails, we have no present queue
 		if (!_device->GetPresentQueue(presentQueue) && (!_device->InitializePresentQueue(_surface) || !_device->GetPresentQueue(presentQueue)))
-			throw FatalSwapchainInitializeException("Swapchain requires a device that supports presentation");
+			throw VulkanRenderingException("Swapchain requires a device that supports presentation");
 
 		Ref<VulkanQueue> graphicsQueue;
 		if (!_device->GetGraphicsQueue(graphicsQueue))
-			throw FatalSwapchainInitializeException("Swapchain requires a device that supports graphics operations");
+			throw VulkanRenderingException("Swapchain requires a device that supports graphics operations");
 
 		SwapchainSupportDetails swapchainSupportDetails = GetSwapchainSupportDetails(_device->GetPhysicalDevice(), _surface);
 
 		if (swapchainSupportDetails.PresentModes.Count() == 0 || swapchainSupportDetails.SurfaceFormats.Count() == 0)
-			throw FatalSwapchainInitializeException("Device has inadequate swapchain support");
+			throw VulkanRenderingException("Device has inadequate swapchain support");
 
 		// Only recreate when all async work has finished
 		_device->WaitForIdle();
@@ -380,7 +380,7 @@ namespace Coco::Rendering::Vulkan
 
 			_isSwapchainDirty = true;
 
-			throw FatalSwapchainInitializeException(FormattedString("Failed to create swapchain: {}", ex.what()));
+			throw VulkanRenderingException(FormattedString("Failed to create swapchain: {}", ex.what()));
 		}
 	}
 
@@ -420,18 +420,13 @@ namespace Coco::Rendering::Vulkan
 	{
 		_device->WaitForIdle();
 
-		try
+		for (GraphicsResourceRef<RenderContextVulkan>& renderContext : _renderContexts)
 		{
-			for (GraphicsResourceRef<RenderContextVulkan>& renderContext : _renderContexts)
-			{
-				renderContext.reset();
-			}
-
-			LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString("Destroyed {} render contexts", _renderContexts.Count()));
-
-			_renderContexts.Clear();
+			renderContext.reset();
 		}
-		catch(...)
-		{ }
+
+		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString("Destroyed {} render contexts", _renderContexts.Count()));
+
+		_renderContexts.Clear();
 	}
 }

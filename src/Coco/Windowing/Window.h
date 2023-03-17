@@ -6,22 +6,13 @@
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Events/Event.h>
 #include <Coco/Rendering/Graphics/GraphicsPresenter.h>
+#include "WindowExceptions.h"
 
 #include "WindowTypes.h"
 
 namespace Coco::Windowing
 {
 	class WindowingService;
-
-	/// <summary>
-	/// A generic window exception
-	/// </summary>
-	using WindowException = Exception;
-
-	/// <summary>
-	/// An exception thrown when a window fails to create
-	/// </summary>
-	using WindowCreateException = Exception;
 
 	/// <summary>
 	/// Parameters for creating a window

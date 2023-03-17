@@ -196,21 +196,21 @@ namespace Coco::Rendering::Vulkan
         /// <param name="device">The device</param>
         /// <param name="createParams">Parameters that the device should satisfy</param>
         /// <returns>The device's score, or -1 if the device doesn't meet a neccessary requirment</returns>
-        static int CalculateDeviceScore(VkPhysicalDevice device, const GraphicsDeviceCreationParameters& createParams);
+        static int CalculateDeviceScore(VkPhysicalDevice device, const GraphicsDeviceCreationParameters& createParams) noexcept;
 
         /// <summary>
         /// Gets the information about a device's queue families
         /// </summary>
         /// <param name="device">The device</param>
         /// <returns>Information about the device's queue families</returns>
-        static PhysicalDeviceQueueFamilyInfo GetQueueFamilyInfo(VkPhysicalDevice device);
+        static PhysicalDeviceQueueFamilyInfo GetQueueFamilyInfo(VkPhysicalDevice device) noexcept;
 
         /// <summary>
         /// Gets the memory features for a physical device
         /// </summary>
         /// <param name="device">The physical device</param>
         /// <returns>The device's memory features</returns>
-        static GraphicsDeviceMemoryFeatures GetDeviceMemoryFeatures(VkPhysicalDevice device);
+        static GraphicsDeviceMemoryFeatures GetDeviceMemoryFeatures(VkPhysicalDevice device) noexcept;
 
         /// <summary>
         /// Checks if a queue supports surfaces

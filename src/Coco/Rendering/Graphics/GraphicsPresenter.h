@@ -12,11 +12,6 @@
 namespace Coco::Rendering
 {
 	/// <summary>
-	/// A generic exception thrown by a GraphicsPresenter
-	/// </summary>
-	using GraphicsPresenterException = Exception;
-
-	/// <summary>
 	/// A presenter that can be used with a window for displaying rendered images
 	/// </summary>
 	class COCOAPI GraphicsPresenter

@@ -30,7 +30,7 @@ namespace Coco
 		/// <summary>
 		/// An invalid ID
 		/// </summary>
-		const static ResourceID InvalidID = std::numeric_limits<ResourceID>::max();
+		const static ResourceID InvalidID = Math::MaxValue<ResourceID>();
 
 	public:
 		Resource() noexcept;

@@ -2,6 +2,7 @@
 
 #include "GraphicsDeviceVulkan.h"
 #include "CommandBufferVulkan.h"
+#include "GraphicsPlatformVulkan.h"
 
 namespace Coco::Rendering::Vulkan
 {
@@ -34,7 +35,7 @@ namespace Coco::Rendering::Vulkan
 
 	void CommandBufferPoolVulkan::Free(CommandBuffer* buffer) noexcept
 	{
-		auto it = std::find_if(_allocatedBuffers.begin(), _allocatedBuffers.end(), [buffer](const Managed<CommandBufferVulkan>& other) {
+		auto it = _allocatedBuffers.Find([buffer](const Managed<CommandBufferVulkan>& other) {
 			return buffer == other.get();
 			});
 
@@ -48,8 +49,14 @@ namespace Coco::Rendering::Vulkan
 		{
 			AssertVkResult(vkQueueWaitIdle(_queue->Queue));
 		}
+		catch (const VulkanOperationException& ex)
+		{
+			LogWarning(_device->VulkanPlatform->GetLogger(), FormattedString("Failed to wait for queue idle. Falling back to device idle: {}", ex.what()));
+			_device->WaitForIdle();
+		}
 		catch (...)
 		{
+			LogWarning(_device->VulkanPlatform->GetLogger(), "Failed to wait for queue idle. Falling back to device idle");
 			_device->WaitForIdle();
 		}
 	}

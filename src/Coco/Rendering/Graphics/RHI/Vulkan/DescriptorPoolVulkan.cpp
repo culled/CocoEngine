@@ -75,6 +75,10 @@ namespace Coco::Rendering::Vulkan
 		{
 			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to free descriptor sets: {}", ex.what()));
 		}
+		catch(...)
+		{
+			LogError(_device->VulkanPlatform->GetLogger(), "Unable to free descriptor sets: {}");
+		}
 
 		_allocatedDescriptorSets.clear();
 	}

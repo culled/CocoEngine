@@ -39,11 +39,6 @@ namespace Coco::Rendering
 	};
 
 	/// <summary>
-	/// A generic exception thrown when there's an error creating a RenderContext
-	/// </summary>
-	using RenderContextCreateException = Exception;
-
-	/// <summary>
 	/// A context that can be used for rendering
 	/// </summary>
 	class COCOAPI RenderContext : public IGraphicsResource
@@ -92,17 +87,17 @@ namespace Coco::Rendering
 		/// Begins rendering for a scene
 		/// </summary>
 		/// <returns>True if the context began rendering successfully</returns>
-		bool Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline) noexcept;
+		bool Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline);
 
 		/// <summary>
 		/// Ends rendering for a scene
 		/// </summary>
-		void End() noexcept;
+		void End();
 
 		/// <summary>
 		/// Resets this context to begin rendering a new scene
 		/// </summary>
-		void Reset() noexcept;
+		void Reset();
 
 		/// <summary>
 		/// Sets the size and offset of the viewport to use
@@ -144,24 +139,24 @@ namespace Coco::Rendering
 		/// <summary>
 		/// Waits for this render context's rendering to complete
 		/// </summary>
-		virtual void WaitForRenderingCompleted() noexcept = 0;
+		virtual void WaitForRenderingCompleted() = 0;
 
 	protected:
 		/// <summary>
 		/// Called when this render context is starting to render a scene
 		/// </summary>
 		/// <returns>True if rendering started successfully</returns>
-		virtual bool BeginImpl() noexcept = 0;
+		virtual bool BeginImpl() = 0;
 
 		/// <summary>
 		/// Ends rendering the current scene 
 		/// </summary>
-		virtual void EndImpl() noexcept = 0;
+		virtual void EndImpl() = 0;
 
 		/// <summary>
 		/// Resets this context
 		/// </summary>
-		virtual void ResetImpl() noexcept = 0;
+		virtual void ResetImpl() = 0;
 
 	private:
 		/// <summary>

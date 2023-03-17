@@ -6,15 +6,11 @@
 #include <Coco/Core/Resources/Resource.h>
 #include "Graphics/GraphicsResource.h"
 #include "Graphics/Buffer.h"
+#include "RenderingExceptions.h"
 
 namespace Coco::Rendering
 {
 	class RenderingService;
-
-	/// <summary>
-	/// An exception thrown when mesh data fails to upload
-	/// </summary>
-	using MeshUploadException = Exception;
 
 	/// <summary>
 	/// Vertex data that can be sent to the GPU
