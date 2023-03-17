@@ -56,7 +56,7 @@ private:
 	Coco::Rendering::RenderingService* _renderService;
 	Coco::Windowing::WindowingService* _windowService;
 	Coco::Windowing::Window* _window = nullptr;
-	Coco::Ref<Coco::CameraComponent> _camera;
+	Coco::Ref<Coco::Rendering::CameraComponent> _camera;
 	Coco::Vector3 _cameraPosition;
 	Coco::Vector3 _cameraEulerAngles;
 
@@ -76,7 +76,7 @@ public:
 	~CocoSandboxApplication() final;
 
 	void Start() final;
-	Coco::Ref<Coco::CameraComponent> GetCamera() const noexcept final { return _camera; }
+	Coco::Ref<Coco::Rendering::CameraComponent> GetCamera() const noexcept final { return _camera; }
 
 	void Tick(double deltaTime);
 };

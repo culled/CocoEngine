@@ -1,17 +1,17 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/Scene/Components/EntityComponent.h>
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/Size.h>
 
 #include "CameraComponentTypes.h"
 
-namespace Coco
+namespace Coco::Rendering
 {
 	/// <summary>
 	/// A camera component
 	/// </summary>
-	class COCOAPI CameraComponent
+	class COCOAPI CameraComponent : public EntityComponent
 	{
 	private:
 		ProjectionType _projectionType = ProjectionType::Custom;

@@ -1,6 +1,6 @@
 #include "CameraComponent.h"
 
-namespace Coco
+namespace Coco::Rendering
 {
 	void CameraComponent::SetPerspectiveProjection(double fieldOfView, double aspectRatio, double nearClipDistance, double farClipDistance) noexcept
 	{

@@ -5,7 +5,7 @@
 #include <Coco/Core/Events/Event.h>
 
 // TEMPORARY -----------------------------------------------
-#include <Coco/Core/Scene/Components/CameraComponent.h>
+#include <Coco/Rendering/Components/CameraComponent.h>
 // TEMPORARY -----------------------------------------------
 
 namespace Coco
@@ -70,7 +70,7 @@ namespace Coco
 		bool Quit() noexcept;
 
 		// TEMPORARY -------------------------------------
-		virtual Ref<CameraComponent> GetCamera() const noexcept = 0;
+		virtual Ref<Rendering::CameraComponent> GetCamera() const noexcept = 0;
 		// TEMPORARY -------------------------------------
 	};
 }

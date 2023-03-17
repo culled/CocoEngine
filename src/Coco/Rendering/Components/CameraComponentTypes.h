@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Coco
+namespace Coco::Rendering
 {
 	/// <summary>
 	/// Types of camera projections

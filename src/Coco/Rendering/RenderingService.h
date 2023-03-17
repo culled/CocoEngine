@@ -8,7 +8,7 @@
 #include "Pipeline/RenderPipeline.h"
 #include "Graphics/Buffer.h"
 #include "Graphics/GraphicsResource.h"
-#include <Coco/Core/Scene/Components/CameraComponent.h>
+#include "Components/CameraComponent.h"
 #include "Texture.h"
 
 namespace Coco::Rendering
