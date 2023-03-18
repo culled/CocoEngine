@@ -22,6 +22,8 @@ project "Coco"
         "Vendor/**.cpp",
         "Rendering/*.h",
         "Rendering/*.cpp",
+        "Rendering/Components/**.h",
+        "Rendering/Components/**.cpp",
         "Rendering/Graphics/*.h",
         "Rendering/Graphics/*.cpp",
         "Rendering/Pipeline/**.h",
