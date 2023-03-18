@@ -10,7 +10,7 @@ layout(set = 0, binding = 0) uniform globalUniformObject {
 } globalUBO;
 
 layout(push_constant) uniform pushConstants {
-    // On guaranteed to be 128 bytes total
+    // Only guaranteed to be 128 bytes total
     mat4 model; // 64 bytes
 } constants;
 

@@ -66,7 +66,7 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		return _renderPassCache[key];
+		return _renderPassCache.at(key);
 	}
 
 	VulkanPipeline VulkanRenderCache::GetOrCreatePipeline(
@@ -97,14 +97,15 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		return _pipelineCache[key];
+		return _pipelineCache.at(key);
 	}
 
 	GraphicsResourceRef<VulkanShader> VulkanRenderCache::GetOrCreateVulkanShader(const Shader* shader)
 	{
 		const ResourceID shaderID = shader->GetID();
+		bool needsUpdate = !_shaderCache.contains(shaderID) || _shaderCache.at(shaderID)->ShaderVersion != shader->GetVersion();
 
-		if (!_shaderCache.contains(shaderID))
+		if (needsUpdate)
 		{
 			try
 			{
@@ -119,7 +120,7 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		return _shaderCache[shaderID];
+		return _shaderCache.at(shaderID);
 	}
 
 	VulkanRenderPass VulkanRenderCache::CreateRenderPass(RenderPipeline* renderPipeline)

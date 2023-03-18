@@ -6,8 +6,12 @@ namespace Coco::Rendering
 		DataFormat(dataFormat), DataOffset(0)
 	{}
 
-	ShaderDescriptor::ShaderDescriptor(const string & name, uint bindingIndex, ShaderDescriptorType type, uint size, ShaderStageType bindingPoint) noexcept :
-		Name(name), BindingIndex(bindingIndex), Type(type), Size(size), StageBindingPoint(bindingPoint)
+	ShaderDescriptor::ShaderDescriptor(const string & name, BufferDataFormat type) noexcept :
+		Name(name), Type(type)
+	{}
+
+	ShaderTextureSampler::ShaderTextureSampler(const string & name) noexcept :
+		Name(name)
 	{}
 
 	Subshader::Subshader(
@@ -15,8 +19,16 @@ namespace Coco::Rendering
 		const Map<ShaderStageType, string>& stageFiles,
 		const GraphicsPipelineState& pipelineState,
 		const List<ShaderVertexAttribute>& attributes,
-		const List<ShaderDescriptor>& descriptors) noexcept :
-		PassName(name), StageFiles(stageFiles), PipelineState(pipelineState), Attributes(attributes), Descriptors(descriptors)
+		const List<ShaderDescriptor>& descriptors,
+		const List<ShaderTextureSampler>& samplers,
+		ShaderStageType bindPoint) noexcept :
+		PassName(name), 
+		StageFiles(stageFiles), 
+		PipelineState(pipelineState), 
+		Attributes(attributes), 
+		Descriptors(descriptors), 
+		Samplers(samplers), 
+		DescriptorBindingPoint(bindPoint)
 	{
 		UpdateAttributeOffsets();
 	}
@@ -55,8 +67,10 @@ namespace Coco::Rendering
 		const Map<ShaderStageType, string>& stageFiles, 
 		const GraphicsPipelineState& pipelineState, 
 		const List<ShaderVertexAttribute>& attributes,
-		const List<ShaderDescriptor>& descriptors)
+		const List<ShaderDescriptor>& descriptors,
+		const List<ShaderTextureSampler>& samplers,
+		ShaderStageType bindPoint)
 	{
-		_subshaders.Add(Subshader(name, stageFiles, pipelineState, attributes, descriptors));
+		_subshaders.Add(Subshader(name, stageFiles, pipelineState, attributes, descriptors, samplers, bindPoint));
 	}
 }

@@ -171,6 +171,19 @@ namespace Coco
 		}
 
 		/// <summary>
+		/// Determines if a given element exists in this list by using a predicate function
+		/// </summary>
+		/// <param name="predicate">The function to test if the item is found</param>
+		/// <returns>True if the item is found in this list</returns>
+		bool Contains(std::function<bool(const T&)> predicate) const noexcept
+		{
+			if (Find(predicate) != end())
+				return true;
+
+			return false;
+		}
+
+		/// <summary>
 		/// Tries to find the given item in this list
 		/// </summary>
 		/// <param name="item">The item to find</param>

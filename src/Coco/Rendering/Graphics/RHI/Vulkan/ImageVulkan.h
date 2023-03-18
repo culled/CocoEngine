@@ -35,7 +35,13 @@ namespace Coco::Rendering::Vulkan
 		ImageVulkan(GraphicsDevice* device, ImageDescription description);
 		~ImageVulkan() final;
 
-		void SetPixelData(const void* pixelData) final;
+		/// <summary>
+		/// Sets raw pixel data for this image
+		/// </summary>
+		/// <param name="offset">The offset in the buffer to start placing pixel data</param>
+		/// <param name="size">The size of the pixel data</param>
+		/// <param name="pixelData">The raw pixel data</param>
+		void SetPixelData(uint64_t offset, uint64_t size, const void* pixelData) final;
 
 		/// <summary>
 		/// Gets the VkImage object

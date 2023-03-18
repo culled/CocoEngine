@@ -41,23 +41,26 @@ namespace Coco::Rendering::Vulkan
 		_imageMemory = nullptr;
 	}
 
-	void ImageVulkan::SetPixelData(const void* pixelData)
+	void ImageVulkan::SetPixelData(uint64_t offset, uint64_t size, const void* pixelData)
 	{
 		CommandBufferPoolVulkan* pool;
 		if (!_device->GetGraphicsCommandPool(pool))
 			throw VulkanRenderingException("A graphics queue is required to transfer pixel data");
 
-		uint64_t bufferSize = static_cast<uint64_t>(Description.Width) *
-			static_cast<uint64_t>(Description.Height) *
-			static_cast<uint64_t>(Description.Depth) *
-			static_cast<uint64_t>(GetPixelFormatSize(Description.PixelFormat));
+		const uint64_t imageSize = GetSize();
+
+		if (offset + size > imageSize)
+			throw IndexOutOfRangeException(FormattedString("The combination of offset and size must fall within the image memory. 0 < {} <= {}",
+				offset + size,
+				imageSize
+			));
 
 		GraphicsResourceRef<BufferVulkan> staging = _device->CreateResource<BufferVulkan>(
 			BufferUsageFlags::HostVisible | BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination,
-			bufferSize,
+			imageSize,
 			true);
 
-		staging->LoadData(0, bufferSize, pixelData);
+		staging->LoadData(offset, size, pixelData);
 
 		CommandBufferVulkan* commandBuffer = static_cast<CommandBufferVulkan*>(pool->Allocate(true));
 		commandBuffer->Begin(true, false);
@@ -87,7 +90,7 @@ namespace Coco::Rendering::Vulkan
 
 		region.imageExtent.width = static_cast<uint32_t>(Description.Width);
 		region.imageExtent.height = static_cast<uint32_t>(Description.Height);
-		region.imageExtent.depth = 1;
+		region.imageExtent.depth = static_cast<uint32_t>(Description.Depth);
 
 		vkCmdCopyBufferToImage(commandBuffer->GetCmdBuffer(), buffer->GetBuffer(), _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 	}

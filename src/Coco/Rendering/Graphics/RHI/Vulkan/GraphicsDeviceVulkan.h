@@ -61,6 +61,7 @@ namespace Coco::Rendering::Vulkan
         Version _driverVersion;
         Version _apiVersion;
         GraphicsDeviceMemoryFeatures _memoryFeatures = {};
+        uint _minUniformBufferAlignment;
 
         Optional<Ref<VulkanQueue>> _graphicsQueue;
         Optional<Ref<VulkanQueue>> _transferQueue;
@@ -82,6 +83,7 @@ namespace Coco::Rendering::Vulkan
        Version GetAPIVersion() const noexcept final { return _apiVersion; }
        void WaitForIdle() noexcept final;
        const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const noexcept final { return _memoryFeatures; };
+       uint GetMinimumBufferAlignment() const noexcept final { return _minUniformBufferAlignment; }
 
         /// <summary>
         /// Creates a graphics device with the given parameters
@@ -180,6 +182,13 @@ namespace Coco::Rendering::Vulkan
         /// <param name="memoryIndex">The memory index</param>
         /// <returns>True if a valid memory index was found, or false if one could not be found</returns>
         bool FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const noexcept;
+
+        /// <summary>
+        /// Pads out an offset to align with this device's minimum uniform buffer alignment
+        /// </summary>
+        /// <param name="originalOffset">The original offset</param>
+        /// <returns>An adjusted offset that respects this device's minimum uniform buffer alignment
+        uint64_t GetPaddedUniformBufferAlignment(uint64_t originalOffset) const noexcept;
 
     private:
         /// <summary>

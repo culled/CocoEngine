@@ -35,14 +35,6 @@ namespace Coco::Rendering
 	class RenderingService;
 }
 
-struct ShaderUniformObject
-{
-	float BaseColor[4];
-	uint8_t Padding[128];
-
-	ShaderUniformObject();
-};
-
 class CocoSandboxApplication final : public Coco::Application
 {
 private:
@@ -61,7 +53,6 @@ private:
 	Coco::Vector3 _cameraEulerAngles;
 
 	Coco::Ref<Coco::Rendering::Shader> _shader;
-	ShaderUniformObject _shaderUO;
 	Coco::Ref<Coco::Rendering::Material> _material;
 	Coco::Ref<Coco::Rendering::Texture> _texture;
 	uint _textureIndex = 0;

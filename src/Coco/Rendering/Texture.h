@@ -49,8 +49,10 @@ namespace Coco::Rendering
 		/// <summary>
 		/// Sets the pixel data for this texture
 		/// </summary>
+		/// <param name="offset">The offset in the texture memory to start loading pixel data into</param>
+		/// <param name="size">The size of the pixel data being loaded</param>
 		/// <param name="pixelData">The pixel data</param>
-		void SetPixels(const void* pixelData);
+		void SetPixels(uint64_t offset, uint64_t size, const void* pixelData);
 
 		/// <summary>
 		/// Sets the properties for sampling this texture

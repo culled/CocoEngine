@@ -1,2 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include <Vendor/stb/stb_image.h>
+#include "stb_image.h"
+
+void stbi_clear_error()
+{
+	stbi__err(0, 0);
+}

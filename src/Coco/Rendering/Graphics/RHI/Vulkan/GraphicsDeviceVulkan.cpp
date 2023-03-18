@@ -3,6 +3,7 @@
 #include <Coco/Core/Types/Set.h>
 #include "GraphicsPlatformVulkan.h"
 #include "VulkanUtilities.h"
+#include <Coco/Rendering/RenderingUtilities.h>
 
 namespace Coco::Rendering::Vulkan
 {
@@ -21,6 +22,7 @@ namespace Coco::Rendering::Vulkan
 		_deviceType = ToGraphicsDeviceType(deviceProperties.deviceType);
 		_driverVersion = ToVersion(deviceProperties.driverVersion);
 		_apiVersion = ToVersion(deviceProperties.apiVersion);
+		_minUniformBufferAlignment = static_cast<uint>(deviceProperties.limits.minUniformBufferOffsetAlignment);
 
 		_memoryFeatures = GetDeviceMemoryFeatures(physicalDevice);
 
@@ -283,6 +285,11 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		return false;
+	}
+
+	uint64_t GraphicsDeviceVulkan::GetPaddedUniformBufferAlignment(uint64_t originalOffset) const noexcept
+	{
+		return RenderingUtilities::GetOffsetForAlignment(originalOffset, _minUniformBufferAlignment);
 	}
 
 	bool CompareDeviceRankings(const PhysicalDeviceRanking& a, const PhysicalDeviceRanking& b) noexcept

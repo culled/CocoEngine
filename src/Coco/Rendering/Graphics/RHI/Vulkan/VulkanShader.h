@@ -7,7 +7,7 @@
 #include <Coco/Rendering/ShaderTypes.h>
 #include <Coco/Rendering/Graphics/GraphicsResource.h>
 #include "VulkanDescriptorSet.h"
-#include "DescriptorPoolVulkan.h"
+#include "VulkanDescriptorPool.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -35,11 +35,14 @@ namespace Coco::Rendering::Vulkan
 	/// </summary>
 	class VulkanShader final : public IGraphicsResource
 	{
+	public:
+		const ResourceID ShaderID;
+		const ResourceVersion ShaderVersion;
+
 	private:
 		GraphicsDeviceVulkan* _device;
 		Map<string, List<VulkanShaderStage>> _shaderStages;
 		Map<string, VulkanDescriptorLayout> _descriptorSetLayouts;
-		GraphicsResourceRef<DescriptorPoolVulkan> _descriptorPool;
 
 	public:
 		VulkanShader(GraphicsDevice* device, const Shader* shader);
@@ -61,10 +64,10 @@ namespace Coco::Rendering::Vulkan
 		bool TryGetDescriptorSetLayout(const string& subshaderName, VulkanDescriptorLayout& layout) const noexcept;
 
 		/// <summary>
-		/// Gets the descriptor pool
+		/// Gets the descriptor layouts for this shader
 		/// </summary>
-		/// <returns>The descriptor pool</returns>
-		GraphicsResourceRef<DescriptorPoolVulkan> GetDescriptorPool() const noexcept { return _descriptorPool; }
+		/// <returns>The descriptor layouts for this shader</returns>
+		List<VulkanDescriptorLayout> GetDescriptorLayouts() const noexcept;
 
 	private:
 		/// <summary>

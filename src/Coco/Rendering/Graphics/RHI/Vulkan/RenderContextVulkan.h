@@ -8,8 +8,9 @@
 #include "GraphicsSemaphoreVulkan.h"
 #include "CommandBufferVulkan.h"
 #include "VulkanRenderCache.h"
-#include "DescriptorPoolVulkan.h"
+#include "VulkanDescriptorPool.h"
 #include "BufferVulkan.h"
+#include "RenderContextVulkanCache.h"
 
 #include <Coco/Rendering/Graphics/RenderContextTypes.h>
 #include "VulkanIncludes.h"
@@ -31,6 +32,8 @@ namespace Coco::Rendering::Vulkan
 	class RenderContextVulkan final : public RenderContext
 	{
 	private:
+		static constexpr uint s_materialBufferSize = 1024 * 1024 * 10; // 10 MiB
+
 		RenderingService* _renderingService;
 		GraphicsDeviceVulkan* _device;
 		CommandBufferPoolVulkan* _pool;
@@ -55,13 +58,15 @@ namespace Coco::Rendering::Vulkan
 		Ref<Material> _currentMaterial;
 
 		VulkanDescriptorLayout _globalDescriptor;
-		GraphicsResourceRef<DescriptorPoolVulkan> _globalDescriptorPool;
+		GraphicsResourceRef<VulkanDescriptorPool> _globalDescriptorPool;
 		VkDescriptorSet _globalDescriptorSet;
 
-		GraphicsResourceRef<BufferVulkan> _objectUBO;
-		uint64_t _currentObjectUBOOffset = 0;
-		Map<ResourceID, GraphicsResourceRef<DescriptorPoolVulkan>> _shaderDescriptorPools;
+		GraphicsResourceRef<BufferVulkan> _materialUBO;
+		uint64_t _currentMaterialUBOOffset = 0;
+		void* _mappedMaterialUBOMemory = nullptr;
 		Map<ResourceID, VkDescriptorSet> _materialDescriptorSets;
+
+		Managed<RenderContextVulkanCache> _renderCache;
 
 	public:
 		RenderContextVulkan(GraphicsDevice* owningDevice);
@@ -133,6 +138,8 @@ namespace Coco::Rendering::Vulkan
 		/// <summary>
 		/// Creates a descriptor set for the currently bound material instance
 		/// </summary>
-		VkDescriptorSet GetOrAllocateMaterialDescriptorSet();
+		/// <param name="set">The descriptor set for the currently bound material</param>
+		/// <returns>True if the descriptor set was successfully retrieved</param>
+		bool GetOrAllocateMaterialDescriptorSet(VkDescriptorSet& set);
 	};
 }

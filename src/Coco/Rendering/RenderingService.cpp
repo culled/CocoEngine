@@ -110,7 +110,7 @@ namespace Coco::Rendering
 			pixelData[i] = 255;
 		}
 
-		_defaultDiffuseTexture->SetPixels(pixelData.Data());
+		_defaultDiffuseTexture->SetPixels(0, pixelData.Count(), pixelData.Data());
 	}
 
 	void RenderingService::CreateDefaultCheckerTexture()
@@ -146,6 +146,6 @@ namespace Coco::Rendering
 			}
 		}
 
-		_defaultCheckerTexture->SetPixels(pixelData.Data());
+		_defaultCheckerTexture->SetPixels(0, pixelData.Count(), pixelData.Data());
 	}
 }

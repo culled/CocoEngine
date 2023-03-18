@@ -452,22 +452,4 @@ namespace Coco::Rendering::Vulkan
 			return VK_IMAGE_TYPE_2D;
 		}
 	}
-
-	/// <summary>
-	/// Converts a ShaderDescriptorType to a VkDescriptorType
-	/// </summary>
-	/// <param name="descriptorType">The descriptor type</param>
-	/// <returns>The converted VkDescriptorType</returns>
-	constexpr VkDescriptorType ToVkDescriptorType(ShaderDescriptorType descriptorType) noexcept
-	{
-		switch (descriptorType)
-		{
-		case ShaderDescriptorType::UniformStruct:
-			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		case ShaderDescriptorType::UniformSampler:
-			return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		default:
-			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		}
-	}
 }

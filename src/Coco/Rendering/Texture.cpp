@@ -3,7 +3,7 @@
 #include "Graphics/GraphicsPlatform.h"
 #include "RenderingService.h"
 
-#include <Vendor/stb/stb_image.h>
+#include <Coco/Vendor/stb/stb_image.h>
 
 namespace Coco::Rendering
 {
@@ -50,9 +50,9 @@ namespace Coco::Rendering
 		_image.reset();
 	}
 
-	void Texture::SetPixels(const void* pixelData)
+	void Texture::SetPixels(uint64_t offset, uint64_t size, const void* pixelData)
 	{
-		_image->SetPixelData(pixelData);
+		_image->SetPixelData(offset, size, pixelData);
 		IncrementVersion();
 	}
 
@@ -89,19 +89,26 @@ namespace Coco::Rendering
 			if (rawImageData != nullptr)
 				stbi_image_free(rawImageData);
 
+			// Clears any error so it won't cause subsequent false failures
+			stbi_clear_error();
+
 			return false;
 		}
 
-		uint64_t byteSize = static_cast<uint64_t>(description.Width) * description.Height * actualChannelCount;
+		uint64_t byteSize = static_cast<uint64_t>(description.Width) * description.Height * imageChannelCount;
 
 		// Check if there is any transparency in the image
 		bool hasTransparency = false;
-		for (uint64_t i = 0; i < byteSize; i += actualChannelCount)
+
+		if (imageChannelCount > 3)
 		{
-			if (rawImageData[i + 3] < 255)
+			for (uint64_t i = 0; i < byteSize; i += imageChannelCount)
 			{
-				hasTransparency = true;
-				break;
+				if (rawImageData[i + 3] < 255)
+				{
+					hasTransparency = true;
+					break;
+				}
 			}
 		}
 
@@ -119,7 +126,7 @@ namespace Coco::Rendering
 		{
 			// Load the image data into this texture
 			RecreateFromDescription(description);
-			SetPixels(rawImageData);
+			SetPixels(0, byteSize, rawImageData);
 		}
 		catch (const Exception& ex)
 		{

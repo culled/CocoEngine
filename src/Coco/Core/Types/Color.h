@@ -4,6 +4,9 @@
 
 namespace Coco
 {
+	struct Vector3;
+	struct Vector4;
+
 	/// <summary>
 	/// Holds a color composed of R, G, B, and A decimal values
 	/// </summary>
@@ -42,5 +45,8 @@ namespace Coco
 		Color() noexcept = default;
 		Color(double r, double g, double b, double a = 1.0) noexcept;
 		virtual ~Color() = default;
+
+		operator Vector3() const noexcept;
+		operator Vector4() const noexcept;
 	};
 }

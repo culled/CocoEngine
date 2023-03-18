@@ -7,9 +7,23 @@
 #include <Coco/Core/Types/Map.h>
 #include "Texture.h"
 
+#include "Graphics/BufferTypes.h"
+
 namespace Coco::Rendering
 {
 	class MaterialInstance;
+
+	/// <summary>
+	/// A binding for a subshader to a material
+	/// </summary>
+	struct SubshaderUniformBinding
+	{
+		uint64_t Offset;
+		uint64_t Size = 0;
+
+		SubshaderUniformBinding(uint64_t offset) :
+			Offset(offset), Size(0) {}
+	};
 
 	/// <summary>
 	/// A material that can be used to modify the look of rendered geometry
@@ -18,11 +32,19 @@ namespace Coco::Rendering
 	{
 		friend MaterialInstance;
 
+	public:
+		static constexpr uint Vector4Size = GetBufferDataFormatSize(BufferDataFormat::Vector4);
+
 	protected:
+		ResourceVersion PropertyMapVersion = 0;
 		Ref<Shader> Shader;
 		Map<string, Vector4> Vector4Parameters;
 		Map<string, Ref<Texture>> TextureParameters;
-		Map<string, List<uint8_t>> StructParameters;
+
+	private:
+		Map<string, SubshaderUniformBinding> _subshaderBindings;
+		List<uint8_t> _bufferData;
+		bool _isBufferDataDirty = true;
 
 	public:
 		Material(Ref<Rendering::Shader> shader);
@@ -41,115 +63,59 @@ namespace Coco::Rendering
 		Ref<Rendering::Shader> GetShader() const noexcept { return Shader; }
 
 		/// <summary>
-		/// Sets a color property as a vector4 property
-		/// </summary>
-		/// <param name="name">The name of the color property</param>
-		/// <param name="value">The color</param>
-		void SetColor(const string& name, const Color& value) { SetVector4(name, Vector4(value.R, value.G, value.B, value.A)); }
-
-		/// <summary>
-		/// Clears a color property
-		/// </summary>
-		/// <param name="name">The name of the color property</param>
-		void ClearColor(const string& name) noexcept { ClearVector4(name); }
-
-		/// <summary>
-		/// Gets a color property
-		/// </summary>
-		/// <param name="name">The name of the color property</param>
-		/// <returns>The color, or a default color if no property was found</returns>
-		Color GetColor(const string& name) const noexcept;
-
-		/// <summary>
 		/// Sets a vector4 property
 		/// </summary>
 		/// <param name="name">The name of the vector4 property</param>
 		/// <param name="value">The vector4</param>
-		void SetVector4(const string& name, const Vector4& value) { Vector4Parameters[name] = value; }
-
-		/// <summary>
-		/// Clears a vector4 property
-		/// </summary>
-		/// <param name="name">The name of the vector4 property</param>
-		void ClearVector4(const string& name) noexcept;
+		void SetVector4(const string& name, const Vector4& value);
 
 		/// <summary>
 		/// Gets a vector4 property
 		/// </summary>
 		/// <param name="name">The name of the vector4 property</param>
 		/// <returns>The vector4, or a default vector4 if no property was found</returns>
-		Vector4 GetVector4(const string& name) const noexcept { return GetFromMap(name, Vector4Parameters); }
+		Vector4 GetVector4(const string& name) const noexcept;
 
 		/// <summary>
 		/// Sets a texture property
 		/// </summary>
 		/// <param name="name">The name of the texture property</param>
 		/// <param name="texture">The texture</param>
-		void SetTexture(const string& name, Ref<Texture> texture) { TextureParameters[name] = texture; }
-
-		/// <summary>
-		/// Clears a texture property
-		/// </summary>
-		/// <param name="name">The name of the texture property</param>
-		void ClearTexture(const string& name) noexcept;
+		void SetTexture(const string& name, Ref<Texture> texture);
 
 		/// <summary>
 		/// Gets a texture property
 		/// </summary>
 		/// <param name="name">The name of the texture property</param>
 		/// <returns>The texture, or a null reference if no property was found</returns>
-		Ref<Texture> GetTexture(const string& name) const noexcept { return GetFromMap(name, TextureParameters); }
+		Ref<Texture> GetTexture(const string& name) const noexcept;
 
 		/// <summary>
-		/// Sets a struct property
+		/// Gets uniform buffer data from this material's currently set properties
 		/// </summary>
-		/// <param name="name">The name of the struct property</param>
-		/// <param name="data">The struct data</param>
-		template<typename StructT>
-		void SetStruct(const string& name, const StructT& data)
-		{
-			List<uint8_t> rawData(sizeof(data));
-			std::memcpy(rawData.Data(), &data, rawData.Count());
-			StructParameters[name] = rawData;
-		}
+		/// <returns>This material's properties as a byte array</returns>
+		const List<uint8_t>& GetBufferData();
 
-		/// <summary>
-		/// Clears a struct property
-		/// </summary>
-		/// <param name="name">The name of the struct property</param>
-		void ClearStruct(const string& name) { StructParameters.erase(name); }
+		bool TryGetSubshaderBinding(const string& subshaderName, SubshaderUniformBinding*& binding);
 
+	protected:
 		/// <summary>
-		/// Gets a struct property's data
+		/// Ensures that there is an active rendering service and returns it
 		/// </summary>
-		/// <param name="name">The name of the struct property</param>
-		/// <returns>The byte data of the struct, or an empty list if no property was found</returns>
-		List<uint8_t> GetStructData(const string& name) { return StructParameters[name]; }
+		/// <returns>The active rendering service</returns>
+		RenderingService* EnsureRenderingService() const;
 
 	private:
 		/// <summary>
-		/// Attempts to find an element via name in a map
+		/// Updates the property maps from this material's shader
 		/// </summary>
-		/// <param name="name">The name of the element to find</param>
-		/// <param name="map">The map to search in</param>
-		/// <returns>The found element, or a default object if none was found</returns>
-		template<typename ObjectT>
-		ObjectT GetFromMap(const string& name, const Map<string, ObjectT>& map) const noexcept
-		{
-			try
-			{
-				auto it = map.find(name);
+		/// <param name="forceUpdate">If true, the map will be updated regardless if it matches the version of the shader</param>
+		void UpdatePropertyMaps(bool forceUpdate);
 
-				if (it == map.end())
-					return ObjectT();
-
-				return (*it).second;
-			}
-			catch (...)
-			{
-				return ObjectT();
-			}
-		}
+		/// <summary>
+		/// Updates this material's buffer data from its currently set properties
+		/// </summary>
+		void UpdateBufferData();
 	};
 
 	// TODO: make this actually reference the parent material and override its properties

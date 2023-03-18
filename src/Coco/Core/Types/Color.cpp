@@ -1,5 +1,7 @@
 #include "Color.h"
 
+#include "Vector.h"
+
 namespace Coco
 {
 	const Color Color::Black = Color(0.0, 0.0, 0.0, 1.0);
@@ -15,4 +17,14 @@ namespace Coco
 	Color::Color(double r, double g, double b, double a) noexcept :
 		R(r), G(g), B(b), A(a)
 	{}
+
+	Color::operator Vector3() const noexcept
+	{
+		return Vector3(R, G, B);
+	}
+
+	Color::operator Vector4() const noexcept
+	{
+		return Vector4(R, G, B, A);
+	}
 }

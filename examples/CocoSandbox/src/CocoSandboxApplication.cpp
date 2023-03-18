@@ -13,14 +13,6 @@ MainApplication(CocoSandboxApplication)
 
 using namespace Coco;
 
-ShaderUniformObject::ShaderUniformObject() : Padding{ 0 }
-{
-	BaseColor[0] = 0.0f;
-	BaseColor[1] = 0.0f;
-	BaseColor[2] = 0.0f;
-	BaseColor[3] = 1.0f;
-}
-
 CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) : 
 	Coco::Application(engine, "Coco Sandbox"),
 	_tickListener(new Coco::MainLoopTickListener(this, &CocoSandboxApplication::Tick, 0))
@@ -65,14 +57,17 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 			ShaderVertexAttribute(BufferDataFormat::Vector2)
 		},
 		{
-			ShaderDescriptor("_MaterialInfo", 0, ShaderDescriptorType::UniformStruct, sizeof(ShaderUniformObject)),
-			ShaderDescriptor("_MainTex", 1, ShaderDescriptorType::UniformSampler)
-		});
+			ShaderDescriptor("_BaseColor", BufferDataFormat::Vector4)
+		},
+		{
+			ShaderTextureSampler("_MainTex")
+		},
+		ShaderStageType::Fragment);
 
 	_texture = CreateRef<Texture>(s_textureFiles.at(0), ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
 
 	_material = CreateRef<Material>(_shader);
-	_material->SetStruct("_MaterialInfo", _shaderUO);
+	_material->SetVector4("_BaseColor", Color::White);
 	_material->SetTexture("_MainTex", _texture);
 
 	// Setup our basic mesh
@@ -171,10 +166,7 @@ void CocoSandboxApplication::Tick(double deltaTime)
 
 	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
 	const double a = Math::Sin(t) * 0.5 + 0.5;
-	_shaderUO.BaseColor[0] = static_cast<float>(a);
-	_shaderUO.BaseColor[1] = static_cast<float>(a);
-	_shaderUO.BaseColor[2] = static_cast<float>(a);
-	_material->SetStruct("_MaterialInfo", _shaderUO);
+	_material->SetVector4("_BaseColor", Color(a, a, a, 1.0));
 
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{

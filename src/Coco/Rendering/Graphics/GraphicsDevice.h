@@ -115,6 +115,12 @@ namespace Coco::Rendering
 		virtual const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const noexcept = 0;
 
 		/// <summary>
+		/// Gets the minimum alignment for a buffer that this device supports
+		/// </summary>
+		/// <returns>The minimum buffer alignment for this device</returns>
+		virtual uint GetMinimumBufferAlignment() const noexcept = 0;
+
+		/// <summary>
 		/// Creates a graphics resource, adds it to this device's list of managed resources, and returns a handle to it
 		/// </summary>
 		/// <typeparam name="T">The type of resource being created</typeparam>

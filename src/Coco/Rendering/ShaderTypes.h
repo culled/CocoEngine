@@ -19,7 +19,6 @@ namespace Coco::Rendering
 	/// </summary>
 	enum class ShaderDescriptorType
 	{
-		UniformStruct,
-		UniformSampler
+		UniformVector4
 	};
 }

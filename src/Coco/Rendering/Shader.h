@@ -40,26 +40,24 @@ namespace Coco::Rendering
 		string Name;
 
 		/// <summary>
-		/// The binding index of the descriptor in the set
-		/// </summary>
-		uint BindingIndex;
-		
-		/// <summary>
 		/// The type of descriptor
 		/// </summary>
-		ShaderDescriptorType Type;
+		BufferDataFormat Type;
 
+		ShaderDescriptor(const string& name, BufferDataFormat type) noexcept;
+	};
+
+	/// <summary>
+	/// A texture sampler for a shader
+	/// </summary>
+	struct COCOAPI ShaderTextureSampler
+	{
 		/// <summary>
-		/// The point in the render pipeline when this descriptor should be bound
+		/// The descriptor name (used for referencing from materials)
 		/// </summary>
-		ShaderStageType StageBindingPoint;
+		string Name;
 
-		/// <summary>
-		/// The size of the descriptor container if it is a container type (e.x. struct)
-		/// </summary>
-		uint Size;
-
-		ShaderDescriptor(const string& name, uint bindingIndex, ShaderDescriptorType type, uint size = 0, ShaderStageType bindingPoint = ShaderStageType::Fragment) noexcept;
+		ShaderTextureSampler(const string& name) noexcept;
 	};
 
 	/// <summary>
@@ -92,12 +90,24 @@ namespace Coco::Rendering
 		/// </summary>
 		List<ShaderDescriptor> Descriptors;
 
+		/// <summary>
+		/// Texture samplers for this subshader
+		/// </summary>
+		List<ShaderTextureSampler> Samplers;
+
+		/// <summary>
+		/// The point in the render pipeline when the descriptors should be bound
+		/// </summary>
+		ShaderStageType DescriptorBindingPoint;
+
 		Subshader(
 			const string& name,
 			const Map<ShaderStageType, string>& stageFiles,
 			const GraphicsPipelineState& pipelineState,
 			const List<ShaderVertexAttribute>& attributes,
-			const List<ShaderDescriptor>& descriptors) noexcept;
+			const List<ShaderDescriptor>& descriptors,
+			const List<ShaderTextureSampler>& samplers,
+			ShaderStageType bindPoint = ShaderStageType::Fragment) noexcept;
 
 	private:
 		friend class Shader;
@@ -147,11 +157,15 @@ namespace Coco::Rendering
 		/// <param name="pipelineState">The pipeline state for the subshader</param>
 		/// <param name="attributes">The attributes for the subshader</param>
 		/// <param name="descriptors">The descriptors for the subshader</param>
+		/// <param name="samplers">The texture samplers for the subshader</param>
+		/// <param name="bindPoint">The point in this subshader when the descriptors should be bound</param>
 		void CreateSubshader(
 			const string& name, 
 			const Map<ShaderStageType, string>& stageFiles, 
 			const GraphicsPipelineState& pipelineState, 
 			const List<ShaderVertexAttribute>& attributes,
-			const List<ShaderDescriptor>& descriptors);
+			const List<ShaderDescriptor>& descriptors,
+			const List<ShaderTextureSampler>& samplers,
+			ShaderStageType bindPoint = ShaderStageType::Fragment);
 	};
 }

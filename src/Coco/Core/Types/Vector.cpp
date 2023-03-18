@@ -1,5 +1,7 @@
 #include "Vector.h"
 
+#include "Color.h"
+
 namespace Coco
 {
 	const Vector2Int Vector2Int::Zero = Vector2Int(0, 0);
@@ -130,5 +132,10 @@ namespace Coco
 		Vector4 copy = *this;
 		copy.Normalize(safe);
 		return copy;
+	}
+
+	Vector4::operator Color() const noexcept
+	{
+		return Color(X, Y, Z, W);
 	}
 }

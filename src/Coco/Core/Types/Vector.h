@@ -7,6 +7,7 @@ namespace Coco
 	struct Vector2;
 	struct Vector3;
 	struct Vector4;
+	struct Color;
 
 	/// <summary>
 	/// Represents a 2D vector using integers
@@ -438,5 +439,7 @@ namespace Coco
 
 		bool operator==(const Vector4& other) { return Equals(other); }
 		bool operator!=(const Vector4& other) { return !Equals(other); }
+
+		operator Color() const noexcept;
 	};
 }

@@ -19,7 +19,7 @@ namespace Coco::Rendering::Vulkan
 	/// <summary>
 	/// Manages a set pool of descriptor sets
 	/// </summary>
-	class DescriptorPoolVulkan final : public IGraphicsResource
+	class VulkanDescriptorPool final : public IGraphicsResource
 	{
 	private:
 		GraphicsDeviceVulkan* _device;
@@ -31,8 +31,8 @@ namespace Coco::Rendering::Vulkan
 		VkDescriptorPool _pool;
 
 	public:
-		DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanDescriptorLayout>& descriptorSetLayouts);
-		~DescriptorPoolVulkan() final;
+		VulkanDescriptorPool(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanDescriptorLayout>& descriptorSetLayouts);
+		~VulkanDescriptorPool() final;
 
 		/// <summary>
 		/// Gets or allocates a descriptor set linked to the given unique key

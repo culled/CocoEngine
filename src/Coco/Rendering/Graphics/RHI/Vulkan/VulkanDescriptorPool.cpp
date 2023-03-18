@@ -1,11 +1,11 @@
-#include "DescriptorPoolVulkan.h"
+#include "VulkanDescriptorPool.h"
 
 #include "GraphicsDeviceVulkan.h"
 #include "GraphicsPlatformVulkan.h"
 
 namespace Coco::Rendering::Vulkan
 {
-	DescriptorPoolVulkan::DescriptorPoolVulkan(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanDescriptorLayout>& descriptorSetLayouts) :
+	VulkanDescriptorPool::VulkanDescriptorPool(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanDescriptorLayout>& descriptorSetLayouts) :
 		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice)),
 		_maxDescriptorSets(maxSets), _descriptorSetLayouts(descriptorSetLayouts)
 	{
@@ -32,7 +32,7 @@ namespace Coco::Rendering::Vulkan
 		AssertVkResult(vkCreateDescriptorPool(_device->GetDevice(), &poolCreateInfo, nullptr, &_pool));
 	}
 
-	DescriptorPoolVulkan::~DescriptorPoolVulkan()
+	VulkanDescriptorPool::~VulkanDescriptorPool()
 	{
 		FreeSets();
 
@@ -43,7 +43,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	VkDescriptorSet DescriptorPoolVulkan::GetOrAllocateSet(const VulkanDescriptorLayout& layout, uint64_t key)
+	VkDescriptorSet VulkanDescriptorPool::GetOrAllocateSet(const VulkanDescriptorLayout& layout, uint64_t key)
 	{
 		if (_allocatedDescriptorSets.contains(key))
 			return _allocatedDescriptorSets[key];
@@ -65,7 +65,7 @@ namespace Coco::Rendering::Vulkan
 		return set;
 	}
 
-	void DescriptorPoolVulkan::FreeSets() noexcept
+	void VulkanDescriptorPool::FreeSets() noexcept
 	{
 		try
 		{
