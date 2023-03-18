@@ -19,6 +19,8 @@ namespace Coco::Rendering::Vulkan
 
 	CommandBufferPoolVulkan::~CommandBufferPoolVulkan()
 	{
+		_allocatedBuffers.Clear();
+
 		if (_pool != nullptr)
 		{
 			vkDestroyCommandPool(_device->GetDevice(), _pool, nullptr);

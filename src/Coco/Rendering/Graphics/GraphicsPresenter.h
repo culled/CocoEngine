@@ -62,13 +62,15 @@ namespace Coco::Rendering
 		/// <summary>
 		/// Gets a render context that can be used for rendering
 		/// </summary>
-		/// <returns>A render context</returns>
-		virtual bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) = 0;
+		/// <param name="renderContext">The pointer to the acquired render context</param>
+		/// <returns>True if a render context was acquired</returns>
+		virtual bool GetRenderContext(RenderContext*& renderContext) = 0;
 
 		/// <summary>
 		/// Queues the given render context for presentation
 		/// </summary>
 		/// <param name="renderContext">The render context</param>
+		/// <returns>True if the frame was queued for presenting</returns>
 		virtual bool Present(RenderContext* renderContext) = 0;
 	};
 }

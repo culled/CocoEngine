@@ -17,8 +17,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	RenderContextVulkan::RenderContextVulkan(GraphicsDevice* device) :
-		_device(static_cast<GraphicsDeviceVulkan*>(device)), _currentState(RenderContextState::Ready)
+	RenderContextVulkan::RenderContextVulkan(GraphicsDeviceVulkan* device) :
+		_device(device), _currentState(RenderContextState::Ready)
 	{
 		_renderingService = RenderingService::Get();
 		if (_renderingService == nullptr)

@@ -116,6 +116,8 @@ namespace Coco::Rendering::Vulkan
 		// Wait for any async work to finish
 		WaitForIdle();
 
+		_renderCache.reset();
+
 		_graphicsQueue.reset();
 		_transferQueue.reset();
 		_computeQueue.reset();
@@ -129,8 +131,6 @@ namespace Coco::Rendering::Vulkan
 
 		if (_computeCommandPool.has_value())
 			_computeCommandPool.value().reset();
-
-		_renderCache.reset();
 
 		LogTrace(VulkanPlatform->GetLogger(), FormattedString("Releasing {} resources", Resources.Count()));
 		Resources.Clear();

@@ -57,7 +57,7 @@ namespace Coco::Rendering
 		Ref<RenderView> view = CreateRef<RenderView>(Vector2Int::Zero, size, pipeline->GetClearColor(), camera->GetProjectionMatrix(), camera->GetViewMatrix());
 
 		// Acquire the render context that we'll be using
-		GraphicsResourceRef<RenderContext> renderContext;
+		RenderContext* renderContext;
 		if (!presenter->GetRenderContext(renderContext))
 		{
 			LogError(GetLogger(), "Failed to get RenderContext from render presenter");
@@ -66,11 +66,11 @@ namespace Coco::Rendering
 
 		// Actually render with the pipeline
 		renderContext->Begin(view, pipeline);
-		DoRender(pipeline.get(), renderContext.get());
+		DoRender(pipeline.get(), renderContext);
 		renderContext->End();
 
 		// Submit the render data to the gpu and present
-		if (!presenter->Present(renderContext.get()))
+		if (!presenter->Present(renderContext))
 		{
 			LogError(GetLogger(), "Failed to present");
 		}

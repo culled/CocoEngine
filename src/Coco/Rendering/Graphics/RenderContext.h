@@ -9,7 +9,6 @@
 #include <Coco/Rendering/Material.h>
 #include "RenderView.h"
 
-#include "GraphicsResource.h"
 #include "RenderContextTypes.h"
 
 namespace Coco::Rendering
@@ -41,7 +40,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// A context that can be used for rendering
 	/// </summary>
-	class COCOAPI RenderContext : public IGraphicsResource
+	class COCOAPI RenderContext
 	{
 		friend RenderPipeline;
 

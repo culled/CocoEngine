@@ -45,7 +45,7 @@ namespace Coco::Rendering::Vulkan
 		bool _isSwapchainDirty = true;
 
 		List<GraphicsResourceRef<ImageVulkan>> _backbuffers;
-		List< GraphicsResourceRef<RenderContextVulkan>> _renderContexts;
+		List<Managed<RenderContextVulkan>> _renderContexts;
 		
 		uint _currentFrame = 0;
 
@@ -62,7 +62,7 @@ namespace Coco::Rendering::Vulkan
 		void SetVSyncMode(VerticalSyncMode mode) noexcept final;
 		VerticalSyncMode GetVSyncMode() const noexcept final { return _vsyncMode; }
 
-		bool GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext) final;
+		bool GetRenderContext(RenderContext*& renderContext) final;
 		bool Present(RenderContext* renderContext) final;
 
 	private:

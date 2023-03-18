@@ -69,7 +69,7 @@ namespace Coco::Rendering::Vulkan
 		Managed<RenderContextVulkanCache> _renderCache;
 
 	public:
-		RenderContextVulkan(GraphicsDevice* owningDevice);
+		RenderContextVulkan(GraphicsDeviceVulkan* device);
 		~RenderContextVulkan() final;
 
 		void SetViewport(const Vector2Int& offset, const SizeInt& size) final;

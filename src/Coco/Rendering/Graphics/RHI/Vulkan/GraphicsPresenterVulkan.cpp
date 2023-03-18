@@ -80,14 +80,14 @@ namespace Coco::Rendering::Vulkan
 		_isSwapchainDirty = true;
 	}
 
-	bool GraphicsPresenterVulkan::GetRenderContext(GraphicsResourceRef<RenderContext>& renderContext)
+	bool GraphicsPresenterVulkan::GetRenderContext(RenderContext*& renderContext)
 	{
 		if (!EnsureSwapchainIsUpdated())
 			return false;
 
 		_currentFrame = (_currentFrame + 1) % static_cast<uint>(_backbuffers.Count());
 
-		GraphicsResourceRef<RenderContextVulkan> currentContext = _renderContexts[_currentFrame];
+		Managed<RenderContextVulkan>& currentContext = _renderContexts[_currentFrame];
 		
 		// Wait until a fresh frame is ready
 		currentContext->WaitForRenderingCompleted();
@@ -112,7 +112,7 @@ namespace Coco::Rendering::Vulkan
 
 		currentContext->SetRenderTargets({ _backbuffers[imageIndex] });
 
-		renderContext = currentContext;
+		renderContext = currentContext.get();
 		return true;
 	}
 
@@ -410,7 +410,7 @@ namespace Coco::Rendering::Vulkan
 
 		for (int i = 0; i < _backbuffers.Count(); i++)
 		{
-			_renderContexts.Add(_device->CreateResource<RenderContextVulkan>());
+			_renderContexts.Add(CreateManaged<RenderContextVulkan>(_device));
 		}
 
 		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString("Created {} render contexts", _renderContexts.Count()));
@@ -420,7 +420,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		_device->WaitForIdle();
 
-		for (GraphicsResourceRef<RenderContextVulkan>& renderContext : _renderContexts)
+		for (Managed<RenderContextVulkan>& renderContext : _renderContexts)
 		{
 			renderContext.reset();
 		}
