@@ -40,18 +40,14 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	//_camera->SetOrthographicProjection(10.0, 1.0, 0.1, 100.0);
 	_cameraPosition = Vector3(0.0, 0.0, 0.0);
 
-	//engine->GetMainLoop()->SetTargetTickRate(2);
-
 	// Setup our basic shader
-	GraphicsPipelineState pipelineState;
-	//pipelineState.CullingMode = CullMode::None;
 	_shader = CreateRef<Shader>("HelloTriangle");
 	_shader->CreateSubshader("main",
 		{
 			{ShaderStageType::Vertex, "assets/shaders/built-in/ObjectShader.vert.spv"},
 			{ShaderStageType::Fragment, "assets/shaders/built-in/ObjectShader.frag.spv"}
 		},
-		pipelineState,
+		GraphicsPipelineState(),
 		{
 			ShaderVertexAttribute(BufferDataFormat::Vector3),
 			ShaderVertexAttribute(BufferDataFormat::Vector2)
@@ -84,10 +80,9 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 
 	_mesh = MeshPrimitives::CreateFromVertices(vertexPositions, vertexUVs, vertexIndices);
 
-	//_mesh = MeshPrimitives::CreateBox(Vector3::One * size);
-
 	_meshTransform = Matrix4x4::CreateWithTranslation(Vector3(0.0, 0.0, 0.0));
 
+	// Setup our render pipeline
 	List<int> attachmentMapping;
 	attachmentMapping.Add(0);
 

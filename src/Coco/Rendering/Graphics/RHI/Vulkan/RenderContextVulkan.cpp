@@ -82,8 +82,8 @@ namespace Coco::Rendering::Vulkan
 		viewport.y = static_cast<float>(offset.Y);
 		viewport.width = static_cast<float>(size.Width);
 		viewport.height = static_cast<float>(size.Height);
-		viewport.minDepth = 0.0f; // TODO
-		viewport.maxDepth = 1.0f; // TODO
+		viewport.minDepth = 0.0f; // TODO: configurable min/max depth
+		viewport.maxDepth = 1.0f;
 
 		vkCmdSetViewport(_commandBuffer->GetCmdBuffer(), 0, 1, &viewport);
 

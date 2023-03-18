@@ -197,8 +197,8 @@ namespace Coco::Rendering::Vulkan
 				&subpass.DepthStencilAttachmentReference.value() : VK_NULL_HANDLE;
 			subpassDescription.preserveAttachmentCount = static_cast<uint32_t>(subpass.PreserveAttachments.Count());
 			subpassDescription.pPreserveAttachments = subpass.PreserveAttachments.Data();
-			subpassDescription.inputAttachmentCount = 0; // TODO
-			subpassDescription.pResolveAttachments = nullptr; // TODO
+			subpassDescription.inputAttachmentCount = 0; // TODO: input attachments
+			subpassDescription.pResolveAttachments = nullptr; // TODO: resolve attachments
 
 			subpasses.Add(subpassDescription);
 			subpass.SubpassDescription = subpassDescription;
@@ -292,7 +292,7 @@ namespace Coco::Rendering::Vulkan
 		rasterizationState.cullMode = ToVkCullModeFlags(subshader->PipelineState.CullingMode);
 		rasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
 		rasterizationState.depthClampEnable = subshader->PipelineState.EnableDepthClamping;
-		rasterizationState.depthBiasEnable = VK_FALSE; // TODO?
+		rasterizationState.depthBiasEnable = VK_FALSE; // TODO: depth biasing?
 		rasterizationState.depthBiasConstantFactor = 0.0f;
 		rasterizationState.depthBiasSlopeFactor = 0.0f;
 		rasterizationState.depthBiasClamp = 0.0f;
@@ -317,8 +317,7 @@ namespace Coco::Rendering::Vulkan
 
 		List<VkPipelineColorBlendAttachmentState> attachmentBlendStates;
 
-		// TODO: multiple passes
-		List<AttachmentDescription> attachments = renderPass.Subpasses[0].ColorAttachments;
+		const List<AttachmentDescription>& attachments = renderPass.Subpasses[subpassIndex].ColorAttachments;
 
 		for (uint64_t i = 0; i < attachments.Count(); i++)
 		{
@@ -339,7 +338,7 @@ namespace Coco::Rendering::Vulkan
 		colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 		colorBlendState.attachmentCount = static_cast<uint32_t>(attachmentBlendStates.Count());
 		colorBlendState.pAttachments = attachmentBlendStates.Data();
-		colorBlendState.logicOpEnable = VK_FALSE; // TODO?
+		colorBlendState.logicOpEnable = VK_FALSE; // TODO: logic blending?
 		colorBlendState.logicOp = VK_LOGIC_OP_COPY;
 		colorBlendState.blendConstants[0] = 0.0f;
 		colorBlendState.blendConstants[1] = 0.0f;
@@ -378,7 +377,7 @@ namespace Coco::Rendering::Vulkan
 		inputState.topology = ToVkPrimativeTopology(subshader->PipelineState.TopologyMode);
 		inputState.primitiveRestartEnable = VK_FALSE;
 
-		// TODO: make this more configurable
+		// TODO: make push constantes more configurable
 		VkPushConstantRange pushConstants = { };
 		pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 		pushConstants.offset = 0;
@@ -434,7 +433,7 @@ namespace Coco::Rendering::Vulkan
 		createInfo.pDepthStencilState = &depthStencilState;
 		createInfo.pColorBlendState = &colorBlendState;
 		createInfo.pDynamicState = &dynamicState;
-		createInfo.pTessellationState = nullptr; // TODO
+		createInfo.pTessellationState = nullptr; // TODO: tessellation
 		createInfo.layout = pipeline.Layout;
 		createInfo.renderPass = renderPass.RenderPass;
 
