@@ -18,6 +18,8 @@ namespace Coco
 	class COCOAPI MainLoop
 	{
 	private:
+		static constexpr uint s_suspendSleepPeriodMs = 1;
+
 		Platform::IEnginePlatform* _platform;
 
 		bool _isRunning = false;

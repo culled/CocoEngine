@@ -38,8 +38,7 @@ namespace Coco
 			// Only process messages if suspended
 			if (_isSuspended)
 			{
-				// TODO: configurable sleep time?
-				_platform->Sleep(1);
+				_platform->Sleep(s_suspendSleepPeriodMs);
 				continue;
 			}
 
