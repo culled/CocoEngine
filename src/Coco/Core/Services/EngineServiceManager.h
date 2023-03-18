@@ -1,7 +1,9 @@
 #pragma once
 #include <Coco/Core/Core.h>
-#include <Coco/Core/Types/List.h>
+#include <Coco/Core/Types/Map.h>
 #include "EngineService.h"
+
+#include <typeinfo>
 
 namespace Coco
 {
@@ -12,7 +14,7 @@ namespace Coco
 	{
 	private:
 		bool _isStarted = false;
-		List<Managed<EngineService>> _services;
+		Map<const char*, Managed<EngineService>> _services;
 
 	public:
 		~EngineServiceManager();
@@ -36,12 +38,17 @@ namespace Coco
 		{
 			static_assert(std::is_base_of<EngineService, T>::value, "Can only create services derived from EngineService");
 
-			// TODO: prevent duplicate services
-			T* service = new T(std::forward<Args>(args)...);
+			const char* typeName = typeid(T).name();
 
-			RegisterService(service);
+			if (!_services.contains(typeName))
+			{
+				auto it = _services.emplace(typeName, CreateManaged<T>(std::forward<Args>(args)...)).first;
 
-			return service;
+				if (_isStarted)
+					(*it).second->Start();
+			}
+
+			return static_cast<T*>(_services.at(typeName).get());
 		}
 
 		/// <summary>
@@ -52,13 +59,12 @@ namespace Coco
 		template<typename T>
 		bool TryFindService(T*& servicePtr) const noexcept
 		{
-			for (const Managed<EngineService>& service : _services)
+			const auto& it = _services.find(typeid(T).name());
+
+			if (it != _services.cend())
 			{
-				if (T* activeService = dynamic_cast<T*>(service.get()))
-				{
-					servicePtr = activeService;
-					return true;
-				}
+				servicePtr = static_cast<T*>((*it).second.get());
+				return true;
 			}
 
 			servicePtr = nullptr;
@@ -69,24 +75,6 @@ namespace Coco
 		/// Starts all services
 		/// </summary>
 		void Start();
-
-	private:
-		/// <summary>
-		/// Registers a service to this manager
-		/// </summary>
-		/// <typeparam name="T">The type of service to register</typeparam>
-		/// <param name="service">The service to register</param>
-		template<typename T>
-		void RegisterService(T* service)
-		{
-			static_assert(std::is_base_of<EngineService, T>::value, "Can only register services derived from EngineService");
-
-			// TODO: prevent duplicate services
-			_services.Add(Managed<EngineService>(service));
-
-			if (_isStarted)
-				service->Start();
-		}
 	};
 }
 

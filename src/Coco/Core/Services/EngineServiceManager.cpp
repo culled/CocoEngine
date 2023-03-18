@@ -6,17 +6,17 @@ namespace Coco
 	EngineServiceManager::~EngineServiceManager()
 	{
 		// Destroy services in reverse order that they were added
-		std::for_each(_services.rbegin(), _services.rend(), [](Managed<EngineService>& service) { service.reset(); });
+		std::for_each(_services.rbegin(), _services.rend(), [](auto& serviceKVP) { serviceKVP.second.reset(); });
 
-		_services.Clear();
+		_services.clear();
 	}
 
 	void EngineServiceManager::Start()
 	{
 		// Start all services
-		for (const Managed<EngineService>& service : _services)
+		for (const auto& serviceKVP : _services)
 		{
-			service->Start();
+			serviceKVP.second->Start();
 		}
 
 		_isStarted = true;
