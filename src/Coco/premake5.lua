@@ -16,16 +16,16 @@ project "Coco"
         "Core/**.cpp",
         "Windowing/**.h",
         "Windowing/**.cpp",
-        "Input/*.h",
-        "Input/*.cpp",
-        "Vendor/*.h",
-        "Vendor/*.cpp",
+        "Input/**.h",
+        "Input/**.cpp",
+        "Vendor/**.h",
+        "Vendor/**.cpp",
         "Rendering/*.h",
         "Rendering/*.cpp",
         "Rendering/Graphics/*.h",
         "Rendering/Graphics/*.cpp",
-        "Rendering/Pipeline/*.h",
-        "Rendering/Pipeline/*.cpp",
+        "Rendering/Pipeline/**.h",
+        "Rendering/Pipeline/**.cpp",
     }
 
     includedirs
