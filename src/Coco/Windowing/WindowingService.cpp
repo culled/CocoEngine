@@ -10,34 +10,27 @@
 
 namespace Coco::Windowing
 {
-	WindowingService::WindowingService() :
-		_mainWindow(nullptr), 
-		_renderTickListener(CreateRef<MainLoopTickListener>(this, &WindowingService::RenderTick, WindowRenderPriority))
-	{}
+	WindowingService::WindowingService(Coco::Engine* engine) : EngineService(engine),
+		_mainWindow(nullptr)
+	{
+		RegisterTickListener(this, &WindowingService::RenderTick, WindowRenderPriority);
+	}
 
 	WindowingService::~WindowingService()
 	{
-		Engine::Get()->GetMainLoop()->RemoveTickListener(_renderTickListener);
 		_mainWindow = nullptr;
 		_windows.Clear();
 	}
 
-	Logging::Logger* WindowingService::GetLogger() const noexcept
+	void WindowingService::StartImpl()
 	{
-		return Engine::Get()->GetLogger();
-	}
-
-	void WindowingService::Start()
-	{
-		if (!Engine::Get()->GetServiceManager()->TryFindService<Rendering::RenderingService>(_renderingService))
+		if (!this->Engine->GetServiceManager()->TryFindService<Rendering::RenderingService>(_renderingService))
 			throw EngineServiceStartException("Could not find an active rendering service. The windowing service requires an active rendering service");
-
-		Engine::Get()->GetMainLoop()->AddTickListener(_renderTickListener);
 	}
 
 	Window* WindowingService::CreateNewWindow(WindowCreateParameters& createParameters)
 	{
-		if (Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(Engine::Get()->GetPlatform()))
+		if (Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(this->Engine->GetPlatform()))
 		{
 			_windows.Add(platform->CreatePlatformWindow(createParameters, this));
 			const Managed<Window>& window = _windows.Last();
@@ -73,7 +66,7 @@ namespace Coco::Windowing
 		// The main window closes with the application
 		if (window == _mainWindow)
 		{
-			Engine::Get()->GetApplication()->Quit();
+			this->Engine->GetApplication()->Quit();
 			return;
 		}
 

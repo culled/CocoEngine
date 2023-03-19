@@ -7,19 +7,22 @@
 
 namespace Coco
 {
+	class Engine;
+
 	/// <summary>
 	/// Manages services for the engine
 	/// </summary>
 	class COCOAPI EngineServiceManager
 	{
 	private:
+		Engine* _engine;
 		bool _isStarted = false;
 		Map<const char*, Managed<EngineService>> _services;
 
 	public:
+		EngineServiceManager(Engine* engine);
 		~EngineServiceManager();
 
-		EngineServiceManager() = default;
 		EngineServiceManager(const EngineServiceManager&) = delete;
 		EngineServiceManager(EngineServiceManager&&) = delete;
 
@@ -42,7 +45,7 @@ namespace Coco
 
 			if (!_services.contains(typeName))
 			{
-				auto it = _services.emplace(typeName, CreateManaged<T>(std::forward<Args>(args)...)).first;
+				auto it = _services.emplace(typeName, CreateManaged<T>(_engine, std::forward<Args>(args)...)).first;
 
 				if (_isStarted)
 					(*it).second->Start();

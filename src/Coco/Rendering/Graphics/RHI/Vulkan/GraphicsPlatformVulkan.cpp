@@ -156,17 +156,17 @@ namespace Coco::Rendering::Vulkan
 		return CreateManaged<GraphicsPresenterVulkan>(_device.get());
 	}
 
-	GraphicsResourceRef<Buffer> GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
+	Ref<Buffer> GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
 	{
 		return _device->CreateResource<BufferVulkan>(usageFlags, size, bindOnCreate);
 	}
 
-	GraphicsResourceRef<Image> GraphicsPlatformVulkan::CreateImage(const ImageDescription& description)
+	Ref<Image> GraphicsPlatformVulkan::CreateImage(const ImageDescription& description)
 	{
 		return _device->CreateResource<ImageVulkan>(description);
 	}
 
-	GraphicsResourceRef<ImageSampler> GraphicsPlatformVulkan::CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy)
+	Ref<ImageSampler> GraphicsPlatformVulkan::CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy)
 	{
 		return _device->CreateResource<ImageSamplerVulkan>(filterMode, repeatMode, maxAnisotropy);
 	}

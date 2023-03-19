@@ -33,7 +33,7 @@ namespace Coco::Rendering::Vulkan
 	struct CachedShaderResource : public CachedResource
 	{
 		const uint MaxSets = 512;
-		GraphicsResourceRef<VulkanDescriptorPool> Pool = nullptr;
+		Ref<VulkanDescriptorPool> Pool = nullptr;
 
 		CachedShaderResource(const VulkanShader* shader);
 

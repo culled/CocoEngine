@@ -9,15 +9,25 @@
 #include "Graphics/Buffer.h"
 #include "Graphics/GraphicsResource.h"
 #include "Components/CameraComponent.h"
-#include "Texture.h"
+
+namespace Coco
+{
+    class MainLoopTickListener;
+}
 
 namespace Coco::Rendering
 {
+    class Texture;
+
     /// <summary>
     /// A service that allows for rendering operations
     /// </summary>
-    class COCOAPI RenderingService : public EngineService
+    class COCOAPI RenderingService final : public EngineService
     {
+    public:
+        static constexpr int TickPriority = 9000;
+        static constexpr double PurgeFrequency = 1.0;
+
     private:
         static RenderingService* s_instance;
 
@@ -26,12 +36,11 @@ namespace Coco::Rendering
         Ref<Texture> _defaultDiffuseTexture;
         Ref<Texture> _defaultCheckerTexture;
 
-    public:
-        RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
-        ~RenderingService() override;
+        double _timeSinceLastPurge = 0.0;
 
-        Logging::Logger* GetLogger() const noexcept override;
-        void Start() noexcept override;
+    public:
+        RenderingService(Coco::Engine* engine, const GraphicsPlatformCreationParameters& backendCreateParams);
+        ~RenderingService() final;
 
         /// <summary>
         /// Gets the active rendering service
@@ -88,18 +97,6 @@ namespace Coco::Rendering
         /// <param name="pipeline">The render pipeline</param>
         void Render(GraphicsPresenter* presenter, Ref<RenderPipeline> pipeline, CameraComponent* camera);
 
-        /// <summary>
-        /// Creates a data buffer that can be used to store data on the GPU
-        /// </summary>
-        /// <param name="size">The size of the buffer (in bytes)</param>
-        /// <param name="usageFlags">The usage flags for the buffer</param>
-        /// <param name="bindOnCreate">If true, the buffer's memory will be bound once created</param>
-        /// <returns>The created buffer</returns>
-        GraphicsResourceRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
-        { 
-            return _graphics->CreateBuffer(size, usageFlags, bindOnCreate);
-        }
-
     private:
         /// <summary>
         /// Performs rendering using a render pipeline
@@ -117,6 +114,8 @@ namespace Coco::Rendering
         /// Creates the default checker texture
         /// </summary>
         void CreateDefaultCheckerTexture();
+
+        void Tick(double deltaTime);
     };
 }
 

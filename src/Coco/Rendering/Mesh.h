@@ -3,15 +3,13 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Vector.h>
-#include <Coco/Core/Resources/Resource.h>
+#include "RenderingResource.h"
 #include "Graphics/GraphicsResource.h"
 #include "Graphics/Buffer.h"
 #include "RenderingExceptions.h"
 
 namespace Coco::Rendering
 {
-	class RenderingService;
-
 	/// <summary>
 	/// Vertex data that can be sent to the GPU
 	/// </summary>
@@ -24,7 +22,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Holds data for rendering geometry
 	/// </summary>
-	class COCOAPI Mesh : public Resource
+	class COCOAPI Mesh : public RenderingResource
 	{
 	public:
 		/// <summary>
@@ -38,9 +36,8 @@ namespace Coco::Rendering
 		static const uint64_t IndexBufferSize;
 
 	private:
-		RenderingService* _renderingService;
-		GraphicsResourceRef<Buffer> _vertexBuffer;
-		GraphicsResourceRef<Buffer> _indexBuffer;
+		Ref<Buffer> _vertexBuffer;
+		Ref<Buffer> _indexBuffer;
 
 		List<Vector3> _vertexPositions;
 		List<Vector2> _vertexUV0s;
@@ -87,19 +84,19 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="deleteLocalData">If true, the local mesh data will be cleared and will solely live on the GPU</param>
 		/// <returns>True if the data was uploaded successfully</returns>
-		bool UploadData(bool deleteLocalData = true) noexcept;
+		bool UploadData(bool deleteLocalData = true);
 
 		/// <summary>
 		/// Gets this mesh's vertex buffer
 		/// </summary>
 		/// <returns>The vertex buffer</returns>
-		GraphicsResourceRef<Buffer> GetVertexBuffer() const noexcept { return _vertexBuffer; }
+		Ref<Buffer> GetVertexBuffer() const noexcept { return _vertexBuffer; }
 
 		/// <summary>
 		/// Gets this mesh's index buffer
 		/// </summary>
 		/// <returns>The index buffer</returns>
-		GraphicsResourceRef<Buffer> GetIndexBuffer() const noexcept { return _indexBuffer; }
+		Ref<Buffer> GetIndexBuffer() const noexcept { return _indexBuffer; }
 
 		/// <summary>
 		/// Gets the number of vertices in this mesh

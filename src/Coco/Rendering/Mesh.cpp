@@ -10,17 +10,14 @@ namespace Coco::Rendering
 
 	Mesh::Mesh()
 	{
-		_renderingService = RenderingService::Get();
+		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
 
-		if (_renderingService == nullptr)
-			throw RenderingException("Cannot create a mesh without an active rendering service");
-		
-		_vertexBuffer = _renderingService->CreateBuffer(
+		_vertexBuffer = platform->CreateBuffer(
 			VertexBufferSize, 
 			BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Vertex,
 			true);
 
-		_indexBuffer = _renderingService->CreateBuffer(
+		_indexBuffer = platform->CreateBuffer(
 			IndexBufferSize, 
 			BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Index, 
 			true);
@@ -50,10 +47,12 @@ namespace Coco::Rendering
 		MarkDirty();
 	}
 
-	bool Mesh::UploadData(bool deleteLocalData) noexcept
+	bool Mesh::UploadData(bool deleteLocalData)
 	{
 		if (!_isDirty)
 			return true;
+
+		RenderingService* renderingService = EnsureRenderingService();
 
 		try
 		{
@@ -72,7 +71,7 @@ namespace Coco::Rendering
 					_vertexIndices.Count()));
 			}
 
-			GraphicsResourceRef<Buffer> staging = _renderingService->CreateBuffer(
+			Ref<Buffer> stagingBuffer = renderingService->GetPlatform()->CreateBuffer(
 				VertexBufferSize,
 				BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
 				true);
@@ -90,19 +89,19 @@ namespace Coco::Rendering
 			}
 
 			// Upload vertex data
-			staging->LoadData(0, vertexData);
-			staging->CopyTo(0, _vertexBuffer.get(), 0, sizeof(VertexData) * vertexData.Count());
+			stagingBuffer->LoadData(0, vertexData);
+			stagingBuffer->CopyTo(0, _vertexBuffer.get(), 0, sizeof(VertexData) * vertexData.Count());
 			_vertexCount = vertexData.Count();
 
 			// Resize for index data
-			staging->Resize(IndexBufferSize);
+			stagingBuffer->Resize(IndexBufferSize, false);
 
 			// Upload index data
-			staging->LoadData(0, _vertexIndices);
-			staging->CopyTo(0, _indexBuffer.get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
+			stagingBuffer->LoadData(0, _vertexIndices);
+			stagingBuffer->CopyTo(0, _indexBuffer.get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
 			_indexCount = _vertexIndices.Count();
 
-			staging.reset();
+			stagingBuffer.reset();
 
 			if (deleteLocalData)
 			{
@@ -117,16 +116,11 @@ namespace Coco::Rendering
 		}
 		catch (const Exception& ex)
 		{
-			LogError(_renderingService->GetLogger(), FormattedString(
+			LogError(renderingService->GetLogger(), FormattedString(
 				"Failed to upload mesh data: {}",
 				ex.what()
 			));
 
-			return false;
-		}
-		catch (...)
-		{
-			LogError(_renderingService->GetLogger(), "Failed to upload mesh data");
 			return false;
 		}
 	}

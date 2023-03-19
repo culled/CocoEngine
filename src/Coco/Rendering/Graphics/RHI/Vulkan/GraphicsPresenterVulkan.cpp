@@ -128,10 +128,10 @@ namespace Coco::Rendering::Vulkan
 		bool imageFound = false;
 
 		// TODO: just save the image index in the RenderContext?
-		List<GraphicsResourceRef<ImageVulkan>> renderTargets = vulkanRenderContext->GetRenderTargets();
+		List<Ref<ImageVulkan>> renderTargets = vulkanRenderContext->GetRenderTargets();
 		for (int i = 0; i < _backbuffers.Count(); i++)
 		{
-			if (renderTargets.Contains(_backbuffers[i]))
+			if (renderTargets.Contains([buffer = _backbuffers[i]](const Ref<ImageVulkan>& other) { return other.get() == buffer.get(); }))
 			{
 				imageIndex = i;
 				imageFound = true;
@@ -386,17 +386,9 @@ namespace Coco::Rendering::Vulkan
 
 	void GraphicsPresenterVulkan::DestroySwapchainObjects() noexcept
 	{
-		try
-		{
-			for (GraphicsResourceRef<ImageVulkan>& backbuffer : _backbuffers)
-			{
-				backbuffer.reset();
-			}
+		_device->WaitForIdle();
 
-			_backbuffers.Clear();
-		}
-		catch(...)
-		{ }
+		_backbuffers.Clear();
 
 		_isSwapchainDirty = true;
 	}
@@ -419,11 +411,6 @@ namespace Coco::Rendering::Vulkan
 	void GraphicsPresenterVulkan::DestroyRenderContexts() noexcept
 	{
 		_device->WaitForIdle();
-
-		for (Managed<RenderContextVulkan>& renderContext : _renderContexts)
-		{
-			renderContext.reset();
-		}
 
 		LogTrace(_device->VulkanPlatform->GetLogger(), FormattedString("Destroyed {} render contexts", _renderContexts.Count()));
 

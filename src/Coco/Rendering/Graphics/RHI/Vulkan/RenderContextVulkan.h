@@ -40,17 +40,17 @@ namespace Coco::Rendering::Vulkan
 		GraphicsDeviceVulkan* _device;
 		CommandBufferPoolVulkan* _pool;
 		CommandBufferVulkan* _commandBuffer;
-		GraphicsResourceRef<BufferVulkan> _globalUBO;
-		GraphicsResourceRef<GraphicsSemaphoreVulkan> _imageAvailableSemaphore;
-		GraphicsResourceRef<GraphicsSemaphoreVulkan> _renderingCompleteSemaphore;
-		GraphicsResourceRef<GraphicsFenceVulkan> _renderingCompleteFence;
+		Ref<BufferVulkan> _globalUBO;
+		Ref<GraphicsSemaphoreVulkan> _imageAvailableSemaphore;
+		Ref<GraphicsSemaphoreVulkan> _renderingCompleteSemaphore;
+		Ref<GraphicsFenceVulkan> _renderingCompleteFence;
 
 		WeakRef<RenderPipeline> _framebufferPipeline;
-		List<GraphicsResourceRef<ImageVulkan>> _renderTargets;
+		List<Ref<ImageVulkan>> _renderTargets;
 
 		RenderContextState _currentState;
-		List<GraphicsResourceRef<GraphicsSemaphoreVulkan>> _signalSemaphores;
-		List<GraphicsResourceRef<GraphicsSemaphoreVulkan>> _waitSemaphores;
+		List<Ref<GraphicsSemaphoreVulkan>> _signalSemaphores;
+		List<Ref<GraphicsSemaphoreVulkan>> _waitSemaphores;
 
 		Set<RenderContextStateChange> _stateChanges;
 		VulkanRenderPass _renderPass;
@@ -60,10 +60,10 @@ namespace Coco::Rendering::Vulkan
 		Ref<Material> _currentMaterial;
 
 		VulkanDescriptorLayout _globalDescriptor;
-		GraphicsResourceRef<VulkanDescriptorPool> _globalDescriptorPool;
+		Ref<VulkanDescriptorPool> _globalDescriptorPool;
 		VkDescriptorSet _globalDescriptorSet;
 
-		GraphicsResourceRef<BufferVulkan> _materialUBO;
+		Ref<BufferVulkan> _materialUBO;
 		uint64_t _currentMaterialUBOOffset = 0;
 		void* _mappedMaterialUBOMemory = nullptr;
 		Map<ResourceID, VkDescriptorSet> _materialDescriptorSets;
@@ -85,13 +85,13 @@ namespace Coco::Rendering::Vulkan
 		/// Sets the render targets for this render context to use
 		/// </summary>
 		/// <param name="renderTargets">The render targets to use</param>
-		void SetRenderTargets(const List<GraphicsResourceRef<ImageVulkan>>& renderTargets);
+		void SetRenderTargets(const List<Ref<ImageVulkan>>& renderTargets);
 
 		/// <summary>
 		/// Gets the render targets that this context is using
 		/// </summary>
 		/// <returns>The render targets that this context is using</returns>
-		List<GraphicsResourceRef<ImageVulkan>> GetRenderTargets() const noexcept { return _renderTargets; }
+		List<Ref<ImageVulkan>> GetRenderTargets() const noexcept { return _renderTargets; }
 
 		/// <summary>
 		/// Gets the render pass being used for this context

@@ -35,7 +35,7 @@ namespace Coco::Rendering::Vulkan
 		_size = 0;
 	}
 
-	void BufferVulkan::Resize(uint64_t newSize)
+	void BufferVulkan::Resize(uint64_t newSize, bool copyOldData)
 	{
 		// Create a new buffer at the requested size
 		VkBuffer newBuffer;
@@ -47,7 +47,8 @@ namespace Coco::Rendering::Vulkan
 		AssertVkResult(vkBindBufferMemory(_device->GetDevice(), newBuffer, newBufferMemory, 0));
 
 		// Copy data from the current buffer to the resized one
-		CopyBuffer(_buffer, 0, newBuffer, 0, newSize);
+		if(copyOldData)
+			CopyBuffer(_buffer, 0, newBuffer, 0, newSize);
 
 		// Destroy our current buffer
 		DestroyBuffer(_buffer, _bufferMemory);

@@ -34,7 +34,7 @@ namespace Coco::Rendering::Vulkan
 		BufferVulkan(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags, uint64_t size, bool createBound);
 		~BufferVulkan() final;
 
-		void Resize(uint64_t newSize) final;
+		void Resize(uint64_t newSize, bool copyOldData) final;
 		void CopyTo(uint64_t sourceOffset, Buffer* destination, uint64_t destinationOffset, uint64_t size) final;
 		void Bind(uint64_t offset) final;
 		uint64_t GetSize() const noexcept final { return _size; }

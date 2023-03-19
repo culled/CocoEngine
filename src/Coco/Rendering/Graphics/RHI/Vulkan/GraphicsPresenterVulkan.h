@@ -44,7 +44,7 @@ namespace Coco::Rendering::Vulkan
 
 		bool _isSwapchainDirty = true;
 
-		List<GraphicsResourceRef<ImageVulkan>> _backbuffers;
+		List<Ref<ImageVulkan>> _backbuffers;
 		List<Managed<RenderContextVulkan>> _renderContexts;
 		
 		uint _currentFrame = 0;

@@ -42,7 +42,7 @@ namespace Coco
 		_instance = this;
 		_startTime = _platform->GetPlatformLocalTime();
 		_logger = CreateManaged<Logging::Logger>("Coco");
-		_serviceManager = CreateManaged<EngineServiceManager>();
+		_serviceManager = CreateManaged<EngineServiceManager>(this);
 		_mainLoop = CreateManaged<MainLoop>(_platform.get());
 
 		_application = Application::Create(this);

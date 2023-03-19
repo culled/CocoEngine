@@ -1,21 +1,19 @@
 #pragma once
 
-#include <Coco/Core/Resources/Resource.h>
+#include "RenderingResource.h"
 #include "Graphics/Image.h"
 #include "Graphics/ImageSampler.h"
 
 namespace Coco::Rendering
 {
-	class RenderingService;
-
 	/// <summary>
 	/// A texture that can be used for rendering
 	/// </summary>
-	class COCOAPI Texture : public Resource
+	class COCOAPI Texture : public RenderingResource
 	{
 	private:
-		GraphicsResourceRef<Image> _image = nullptr;
-		GraphicsResourceRef<ImageSampler> _sampler = nullptr;
+		Ref<Image> _image;
+		Ref<ImageSampler> _sampler;
 		ImageDescription _description = {};
 		FilterMode _filterMode = FilterMode::Linear;
 		RepeatMode _repeatMode = RepeatMode::Repeat;
@@ -84,13 +82,13 @@ namespace Coco::Rendering
 		/// Gets the image that backs this texture
 		/// </summary>
 		/// <returns>The image that backs this texture</returns>
-		GraphicsResourceRef<Image> GetImage() const noexcept { return _image; }
+		Ref<Image> GetImage() const noexcept { return _image; }
 
 		/// <summary>
 		/// Gets this texture's sampler
 		/// </summary>
 		/// <returns>This texture's sampler</returns>
-		GraphicsResourceRef<ImageSampler> GetSampler() const noexcept { return _sampler; }
+		Ref<ImageSampler> GetSampler() const noexcept { return _sampler; }
 
 		/// <summary>
 		/// Loads image data from a file into this texture
@@ -116,11 +114,5 @@ namespace Coco::Rendering
 		/// Recreates the internal sampler
 		/// </summary>
 		void RecreateInternalSampler();
-
-		/// <summary>
-		/// Ensures that there is an active rendering service and returns it
-		/// </summary>
-		/// <returns>The active rendering service</returns>
-		RenderingService* EnsureRenderingService();
 	};
 }

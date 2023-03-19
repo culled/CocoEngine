@@ -3,10 +3,7 @@
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
-#include <Coco/Rendering/Mesh.h>
 #include <Coco/Rendering/Graphics/Buffer.h>
-#include <Coco/Rendering/Shader.h>
-#include <Coco/Rendering/Material.h>
 #include "RenderView.h"
 
 #include "RenderContextTypes.h"
@@ -15,6 +12,9 @@ namespace Coco::Rendering
 {
 	class IRenderPass;
 	class RenderPipeline;
+	class Shader;
+	class Material;
+	class Mesh;
 
 	/// <summary>
 	/// An object that holds global uniform data that can be directly pushed to a shader

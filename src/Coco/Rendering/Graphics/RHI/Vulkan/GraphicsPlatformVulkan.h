@@ -38,9 +38,9 @@ namespace Coco::Rendering::Vulkan
         GraphicsDevice* GetDevice() const noexcept final { return _device.get(); }
         void ResetDevice() final;
         Managed<GraphicsPresenter> CreatePresenter() final;
-        GraphicsResourceRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;
-        GraphicsResourceRef<Image> CreateImage(const ImageDescription& description) final;
-        GraphicsResourceRef<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) final;
+        Ref<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;
+        Ref<Image> CreateImage(const ImageDescription& description) final;
+        Ref<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) final;
 
         /// <summary>
         /// Gets the Vulkan instance

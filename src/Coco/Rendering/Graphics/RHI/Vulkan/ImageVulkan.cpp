@@ -55,7 +55,7 @@ namespace Coco::Rendering::Vulkan
 				imageSize
 			));
 
-		GraphicsResourceRef<BufferVulkan> staging = _device->CreateResource<BufferVulkan>(
+		Ref<BufferVulkan> staging = _device->CreateResource<BufferVulkan>(
 			BufferUsageFlags::HostVisible | BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination,
 			imageSize,
 			true);

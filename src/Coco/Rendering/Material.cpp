@@ -35,11 +35,11 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(EnsureRenderingService()->GetLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->GetName(), name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->GetName(), name));
 		}
 	}
 
-	Vector4 Material::GetVector4(const string& name) const noexcept
+	Vector4 Material::GetVector4(const string& name) const
 	{
 		const auto it = Vector4Parameters.find(name);
 
@@ -49,7 +49,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(EnsureRenderingService()->GetLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->GetName(), name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->GetName(), name));
 			return Vector4::Zero;
 		}
 	}
@@ -67,11 +67,11 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(EnsureRenderingService()->GetLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->GetName(), name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->GetName(), name));
 		}
 	}
 
-	Ref<Texture> Material::GetTexture(const string& name) const noexcept
+	Ref<Texture> Material::GetTexture(const string& name) const
 	{
 		const auto it = TextureParameters.find(name);
 
@@ -81,7 +81,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(EnsureRenderingService()->GetLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->GetName(), name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->GetName(), name));
 			return nullptr;
 		}
 	}
@@ -108,16 +108,6 @@ namespace Coco::Rendering
 		}
 
 		return false;
-	}
-
-	RenderingService* Material::EnsureRenderingService() const
-	{
-		RenderingService* renderService = RenderingService::Get();
-
-		if (renderService == nullptr)
-			throw Exception("Materials need to have an active rendering service");
-
-		return renderService;
 	}
 
 	void Material::UpdatePropertyMaps(bool forceUpdate)

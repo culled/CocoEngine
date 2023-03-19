@@ -12,6 +12,9 @@
 #include <Coco/Rendering/Graphics/GraphicsResource.h>
 #include <Coco/Core/Types/Array.h>
 #include <Coco/Rendering/RenderingService.h>
+#include <Coco/Rendering/Mesh.h>
+#include <Coco/Rendering/Material.h>
+#include <Coco/Rendering/Shader.h>
 
 #include "VulkanUtilities.h"
 
@@ -124,7 +127,7 @@ namespace Coco::Rendering::Vulkan
 		_currentMaterial = material;
 	}
 
-	void RenderContextVulkan::SetRenderTargets(const List<GraphicsResourceRef<ImageVulkan>>& renderTargets)
+	void RenderContextVulkan::SetRenderTargets(const List<Ref<ImageVulkan>>& renderTargets)
 	{
 		DestroyFramebuffer();
 		_renderTargets = renderTargets;
@@ -133,8 +136,8 @@ namespace Coco::Rendering::Vulkan
 	void RenderContextVulkan::Draw(const Mesh* mesh, const Matrix4x4& modelMatrix)
 	{
 		// Sanity checks
-		GraphicsResourceRef<Buffer> vertexBufferRef = mesh->GetVertexBuffer();
-		GraphicsResourceRef<Buffer> indexBufferRef = mesh->GetIndexBuffer();
+		Ref<Buffer> vertexBufferRef = mesh->GetVertexBuffer();
+		Ref<Buffer> indexBufferRef = mesh->GetIndexBuffer();
 		if (vertexBufferRef == nullptr || indexBufferRef == nullptr)
 		{
 			LogError(_renderingService->GetLogger(), "Mesh has no index and/or vertex buffer. Skipping...");
@@ -235,13 +238,13 @@ namespace Coco::Rendering::Vulkan
 
 			List<IGraphicsSemaphore*> waitSemaphores;
 
-			for (GraphicsResourceRef<GraphicsSemaphoreVulkan> semaphore : _waitSemaphores)
-				waitSemaphores.Add(semaphore.get());
+			for (const Ref<GraphicsSemaphoreVulkan>& semaphore : _waitSemaphores)
+					waitSemaphores.Add(semaphore.get());
 
 			List<IGraphicsSemaphore*> signalSemaphores;
 
-			for (GraphicsResourceRef<GraphicsSemaphoreVulkan> semaphore : _signalSemaphores)
-				signalSemaphores.Add(semaphore.get());
+			for (const Ref<GraphicsSemaphoreVulkan>& semaphore : _signalSemaphores)
+					signalSemaphores.Add(semaphore.get());
 
 			vkCmdEndRenderPass(_commandBuffer->GetCmdBuffer());
 			_commandBuffer->EndAndSubmit(waitSemaphores, signalSemaphores, _renderingCompleteFence.get());
@@ -363,7 +366,7 @@ namespace Coco::Rendering::Vulkan
 		framebufferInfo.layers = 1;
 
 		List<VkImageView> renderTargets;
-		for (const GraphicsResourceRef<ImageVulkan> renderTarget : _renderTargets)
+		for (const Ref<ImageVulkan> renderTarget : _renderTargets)
 		{
 			renderTargets.Add(renderTarget->GetNativeView());
 		}
@@ -471,7 +474,7 @@ namespace Coco::Rendering::Vulkan
 			return _materialDescriptorSets.at(materialID);
 
 		// Get the vulkan shader and this subshader's descriptor layout
-		GraphicsResourceRef<VulkanShader> vulkanShader = _device->GetRenderCache()->GetOrCreateVulkanShader(_currentShader.get());
+		Ref<VulkanShader> vulkanShader = _device->GetRenderCache()->GetOrCreateVulkanShader(_currentShader.get());
 		VulkanDescriptorLayout layout;
 		if (!vulkanShader->TryGetDescriptorSetLayout(subshaderName, layout))
 			throw RenderingException(FormattedString("Could not find a descriptor layout for subshader \"{}\" in shader \"{}\"",
@@ -529,9 +532,17 @@ namespace Coco::Rendering::Vulkan
 			if (!texture)
 				texture = _renderingService->GetDefaultCheckerTexture();
 
-			GraphicsResourceRef<Image> image = texture->GetImage();
+			Ref<Image> image = texture->GetImage();
+			Ref<ImageSampler> sampler = texture->GetSampler();
+
+			if (image == nullptr || sampler == nullptr)
+				throw RenderingException(FormattedString(
+					"The Vulkan sampler or Vulkan image reference for \"{}\" is empty for shader \"{}\"", 
+					textureSampler.Name, 
+					_currentShader->GetName()
+				));
+
 			const ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.get());
-			GraphicsResourceRef<ImageSampler> sampler = texture->GetSampler();
 			const ImageSamplerVulkan* vulkanSampler = static_cast<ImageSamplerVulkan*>(sampler.get());
 
 			// Texture data

@@ -21,11 +21,9 @@ namespace Coco::Input
     private:
         Managed<Keyboard> _keyboard;
         Managed<Mouse> _mouse;
-        Ref<MainLoopTickListener> _processListener;
-        Ref<MainLoopTickListener> _lateProcessListener;
 
     public:
-        InputService();
+        InputService(Coco::Engine* engine);
         virtual ~InputService() override;
 
         InputService(const InputService&) = delete;
@@ -33,9 +31,6 @@ namespace Coco::Input
 
         InputService& operator=(const InputService&) = delete;
         InputService& operator=(InputService&&) = delete;
-
-        Logging::Logger* GetLogger() const noexcept override;
-        void Start() override;
 
         /// <summary>
         /// Gets the current keyboard

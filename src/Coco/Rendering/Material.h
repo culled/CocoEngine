@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Coco/Core/Resources/Resource.h>
+#include "RenderingResource.h"
 
 #include "Shader.h"
 #include <Coco/Core/Types/Color.h>
@@ -28,7 +28,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// A material that can be used to modify the look of rendered geometry
 	/// </summary>
-	class COCOAPI Material : public Resource
+	class COCOAPI Material : public RenderingResource
 	{
 		friend MaterialInstance;
 
@@ -74,7 +74,7 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="name">The name of the vector4 property</param>
 		/// <returns>The vector4, or a default vector4 if no property was found</returns>
-		Vector4 GetVector4(const string& name) const noexcept;
+		Vector4 GetVector4(const string& name) const;
 
 		/// <summary>
 		/// Sets a texture property
@@ -88,7 +88,7 @@ namespace Coco::Rendering
 		/// </summary>
 		/// <param name="name">The name of the texture property</param>
 		/// <returns>The texture, or a null reference if no property was found</returns>
-		Ref<Texture> GetTexture(const string& name) const noexcept;
+		Ref<Texture> GetTexture(const string& name) const;
 
 		/// <summary>
 		/// Gets uniform buffer data from this material's currently set properties
@@ -97,13 +97,6 @@ namespace Coco::Rendering
 		const List<uint8_t>& GetBufferData();
 
 		bool TryGetSubshaderBinding(const string& subshaderName, SubshaderUniformBinding*& binding);
-
-	protected:
-		/// <summary>
-		/// Ensures that there is an active rendering service and returns it
-		/// </summary>
-		/// <returns>The active rendering service</returns>
-		RenderingService* EnsureRenderingService() const;
 
 	private:
 		/// <summary>

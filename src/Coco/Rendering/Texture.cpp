@@ -120,7 +120,7 @@ namespace Coco::Rendering
 		// Hold onto the old image data just in-case the transfer fails
 		ResourceVersion oldVersion = GetVersion();
 		ImageDescription oldDescription = _description;
-		GraphicsResourceRef<Image> oldImage = _image;
+		Ref<Image> oldImage = _image;
 
 		try
 		{
@@ -162,15 +162,5 @@ namespace Coco::Rendering
 	void Texture::RecreateInternalSampler()
 	{
 		_sampler = EnsureRenderingService()->GetPlatform()->CreateImageSampler(_filterMode, _repeatMode, _maxAnisotropy);
-	}
-
-	RenderingService* Texture::EnsureRenderingService()
-	{
-		RenderingService* renderService = RenderingService::Get();
-
-		if (renderService == nullptr)
-			throw Exception("Textures need to have an active rendering service");
-
-		return renderService;
 	}
 }

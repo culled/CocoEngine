@@ -131,14 +131,14 @@ namespace Coco::Rendering
 		/// <param name="usageFlags">Flags for how the buffer will be used</param>
 		/// <param name="bindOnCreate">If true, the buffer will be bound after it is created</param>
 		/// <returns>The created buffer</returns>
-		virtual GraphicsResourceRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
+		virtual Ref<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
 
 		/// <summary>
 		/// Creates an image
 		/// </summary>
 		/// <param name="description">The descriptor for the image</param>
 		/// <returns>The created image</returns>
-		virtual GraphicsResourceRef<Image> CreateImage(const ImageDescription& description) = 0;
+		virtual Ref<Image> CreateImage(const ImageDescription& description) = 0;
 
 		/// <summary>
 		/// Creates a sampler for an image
@@ -147,6 +147,6 @@ namespace Coco::Rendering
 		/// <param name="repeatMode">The repeat mode</param>
 		/// <param name="maxAnisotropy">The maximum anisotropy</param>
 		/// <returns>The created image sampler</returns>
-		virtual GraphicsResourceRef<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) = 0;
+		virtual Ref<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) = 0;
 	};
 }

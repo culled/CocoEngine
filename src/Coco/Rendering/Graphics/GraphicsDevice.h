@@ -6,12 +6,10 @@
 #include "GraphicsResource.h"
 
 #include "GraphicsPlatformTypes.h"
+#include <Coco/Core/Events/Event.h>
 
 namespace Coco::Rendering
 {
-	//template<class>
-	//class GraphicsResourceRef;
-
 	class IGraphicsResource;
 
 	/// <summary>
@@ -61,11 +59,14 @@ namespace Coco::Rendering
 	/// </summary>
 	class COCOAPI GraphicsDevice
 	{
+	public:
+		Event<> OnPurgedResources;
+
 	protected:
 		/// <summary>
 		/// The list of resources this device manages
 		/// </summary>
-		List<Managed<IGraphicsResource>> Resources;
+		List<Ref<IGraphicsResource>> Resources;
 
 	protected:
 		GraphicsDevice() = default;
@@ -128,21 +129,17 @@ namespace Coco::Rendering
 		/// <param name="...args">The arguments to pass to the resource's constructor</param>
 		/// <returns>A handle to the resource</returns>
 		template<typename ObjectT, typename ... Args, std::enable_if_t<std::is_base_of<IGraphicsResource, ObjectT>::value, bool> = true>
-		GraphicsResourceRef<ObjectT> CreateResource(Args&& ... args)
+		Ref<ObjectT> CreateResource(Args&& ... args)
 		{
-			Resources.Add(CreateManaged<ObjectT>(this, std::forward<Args>(args)...));
-			Managed<IGraphicsResource>& resource = Resources[Resources.Count() - 1];
-			return GraphicsResourceRef<ObjectT>(static_cast<ObjectT*>(resource.get()), [&](ObjectT* resource) 
-				{ 
-					this->DestroyResource(resource); 
-				});
+			Ref<ObjectT> ref = CreateRef<ObjectT>(this, std::forward<Args>(args)...);
+			Resources.Add(ref);
+			return ref;
 		}
 
 		/// <summary>
-		/// Destroys a managed graphics resource
+		/// Purges unused graphics resources
 		/// </summary>
-		/// <param name="resource">The resource to destroy</param>
-		void DestroyResource(const IGraphicsResource* resource) noexcept;
+		void PurgeUnusedResources() noexcept;
 	};
 }
 

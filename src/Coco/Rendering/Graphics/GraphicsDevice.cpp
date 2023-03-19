@@ -1,21 +1,35 @@
 #include "GraphicsDevice.h"
 
 #include "GraphicsResource.h"
+#include <Coco/Rendering/RenderingService.h>
+#include <Coco/Core/Logging/Logger.h>
 
 namespace Coco::Rendering
 {
-	void GraphicsDevice::DestroyResource(const IGraphicsResource* resource) noexcept
+	void GraphicsDevice::PurgeUnusedResources() noexcept
 	{
-		WaitForIdle();
+		auto it = Resources.begin();
+		uint64_t purgeCount = 0;
 
-		auto it = Resources.Find([resource](const Managed<IGraphicsResource>& other) noexcept {
-			return resource == other.get();
-			});
-
-		// Erasing will cause the resource to be destroyed
-		if (it != Resources.end())
+		while (it != Resources.end())
 		{
-			Resources.Remove(it);
+			// A use count of 1 means only the device is referencing the resource
+			if ((*it).use_count() <= 1)
+			{
+				it = Resources.EraseAndGetNext(it);
+				purgeCount++;
+			}
+			else
+				it++;
 		}
+
+		if (purgeCount > 0)
+		{
+			RenderingService* service = RenderingService::Get();
+			LogTrace(service->GetLogger(), FormattedString("Purged {} resources", purgeCount));
+		}
+
+
+		OnPurgedResources.Invoke();
 	}
 }

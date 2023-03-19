@@ -3,6 +3,9 @@
 
 namespace Coco
 {
+	EngineServiceManager::EngineServiceManager(Engine* engine) : _engine(engine)
+	{}
+
 	EngineServiceManager::~EngineServiceManager()
 	{
 		// Destroy services in reverse order that they were added

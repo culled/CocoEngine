@@ -19,7 +19,7 @@ namespace Coco::Windowing
     /// <summary>
     /// A service that manages GUI windows
     /// </summary>
-    class COCOAPI WindowingService : public EngineService
+    class COCOAPI WindowingService final : public EngineService
     {
     public:
         static const int WindowRenderPriority = 1000;
@@ -29,16 +29,12 @@ namespace Coco::Windowing
 
         List<Managed<Window>> _windows;
         Window* _mainWindow;
-        Ref<MainLoopTickListener> _renderTickListener;
 
         Rendering::RenderingService* _renderingService = nullptr;
 
     public:
-        WindowingService();
-        virtual ~WindowingService() override;
-
-        virtual Logging::Logger* GetLogger() const noexcept override;
-        virtual void Start() override;
+        WindowingService(Coco::Engine* engine);
+        ~WindowingService() final;
 
         /// <summary>
         /// Creates a window
@@ -54,6 +50,9 @@ namespace Coco::Windowing
         /// <param name="window">The pointer to the window with the given ID if it was found</param>
         /// <returns>True if a window with the given ID was found</returns>
         bool TryFindWindow(void* windowId, Window*& window) const noexcept;
+
+    protected:
+        void StartImpl() final;
 
     private:
         /// <summary>

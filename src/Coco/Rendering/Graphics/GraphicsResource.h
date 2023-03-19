@@ -22,9 +22,6 @@ namespace Coco::Rendering
 		IGraphicsResource& operator=(IGraphicsResource&&) = delete;
 	};
 
-	template<class ObjectT>
-	using GraphicsResourceRef = std::shared_ptr<ObjectT>;
-
 	/*template<class ObjectT>
 	class COCOAPI GraphicsResourceRef
 	{

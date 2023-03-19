@@ -3,12 +3,14 @@
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Types/Array.h>
 #include "Graphics/RenderContext.h"
+#include "Texture.h"
+#include <Coco/Core/MainLoop/MainLoopTickListener.h>
 
 namespace Coco::Rendering
 {
 	RenderingService* RenderingService::s_instance = nullptr;
 
-	RenderingService::RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams)
+	RenderingService::RenderingService(Coco::Engine* engine, const GraphicsPlatformCreationParameters& backendCreateParams) : EngineService(engine)
 	{
 		s_instance = this;
 		_graphics = GraphicsPlatform::CreatePlatform(this, backendCreateParams);
@@ -16,6 +18,8 @@ namespace Coco::Rendering
 		// Create default textures
 		CreateDefaultDiffuseTexture();
 		CreateDefaultCheckerTexture();
+
+		RegisterTickListener(this, &RenderingService::Tick, TickPriority);
 	}
 
 	RenderingService::~RenderingService()
@@ -26,19 +30,11 @@ namespace Coco::Rendering
 		_graphics.reset();
 	}
 
-	Logging::Logger* RenderingService::GetLogger() const noexcept
-	{
-		return Engine::Get()->GetLogger();
-	}
-
-	void RenderingService::Start() noexcept
-	{}
-
 	void RenderingService::Render(GraphicsPresenter* presenter)
 	{
 		if (_defaultPipeline)
 		{
-			Render(presenter, _defaultPipeline, Engine::Get()->GetApplication()->GetCamera().get());
+			Render(presenter, _defaultPipeline, this->Engine->GetApplication()->GetCamera().get());
 		}
 		else
 		{
@@ -147,5 +143,16 @@ namespace Coco::Rendering
 		}
 
 		_defaultCheckerTexture->SetPixels(0, pixelData.Count(), pixelData.Data());
+	}
+
+	void RenderingService::Tick(double deltaTime)
+	{
+		_timeSinceLastPurge += deltaTime;
+
+		if (_timeSinceLastPurge > PurgeFrequency)
+		{
+			_graphics->GetDevice()->PurgeUnusedResources();
+			_timeSinceLastPurge = 0.0;
+		}
 	}
 }

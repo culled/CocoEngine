@@ -82,7 +82,7 @@ namespace Coco::Rendering::Vulkan
 
 		Map<uint64_t, VulkanRenderPass> _renderPassCache;
 		Map<uint64_t, VulkanPipeline> _pipelineCache;
-		Map<ResourceID, GraphicsResourceRef<VulkanShader>> _shaderCache;
+		Map<ResourceID, Ref<VulkanShader>> _shaderCache;
 
 	public:
 		VulkanRenderCache(GraphicsDeviceVulkan* device);
@@ -120,7 +120,7 @@ namespace Coco::Rendering::Vulkan
 		/// </summary>
 		/// <param name="shader">The shader</param>
 		/// <returns>The Vulkan-ready shader</returns>
-		GraphicsResourceRef<VulkanShader> GetOrCreateVulkanShader(const Shader* shader);
+		Ref<VulkanShader> GetOrCreateVulkanShader(const Shader* shader);
 
 	private:
 		/// <summary>

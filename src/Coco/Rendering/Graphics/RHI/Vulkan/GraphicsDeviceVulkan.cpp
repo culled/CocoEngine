@@ -132,7 +132,15 @@ namespace Coco::Rendering::Vulkan
 		if (_computeCommandPool.has_value())
 			_computeCommandPool.value().reset();
 
-		LogTrace(VulkanPlatform->GetLogger(), FormattedString("Releasing {} resources", Resources.Count()));
+		LogTrace(VulkanPlatform->GetLogger(), FormattedString("Purging {} resources", Resources.Count()));
+		PurgeUnusedResources();
+
+		if (Resources.Count() > 0)
+			LogWarning(VulkanPlatform->GetLogger(), FormattedString(
+				"{} resources still have owners. Make sure they're released before the rendering system shuts down!", 
+				Resources.Count()
+			));
+
 		Resources.Clear();
 
 		if (_device != nullptr)

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-#include <Coco/Core/Resources/Resource.h>
+#include "RenderingResource.h"
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Matrix.h>
@@ -121,7 +120,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Defines how geometry is rendered
 	/// </summary>
-	class COCOAPI Shader : public Resource
+	class COCOAPI Shader : public RenderingResource
 	{
 	private:
 		string _name;

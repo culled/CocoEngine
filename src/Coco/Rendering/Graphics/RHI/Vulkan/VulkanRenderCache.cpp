@@ -100,7 +100,7 @@ namespace Coco::Rendering::Vulkan
 		return _pipelineCache.at(key);
 	}
 
-	GraphicsResourceRef<VulkanShader> VulkanRenderCache::GetOrCreateVulkanShader(const Shader* shader)
+	Ref<VulkanShader> VulkanRenderCache::GetOrCreateVulkanShader(const Shader* shader)
 	{
 		const ResourceID shaderID = shader->GetID();
 		bool needsUpdate = !_shaderCache.contains(shaderID) || _shaderCache.at(shaderID)->ShaderVersion != shader->GetVersion();
@@ -383,7 +383,7 @@ namespace Coco::Rendering::Vulkan
 		pushConstants.offset = 0;
 		pushConstants.size = sizeof(float) * 16; // 64 bytes for now
 
-		GraphicsResourceRef<VulkanShader> vulkanShader = GetOrCreateVulkanShader(shader);
+		Ref<VulkanShader> vulkanShader = GetOrCreateVulkanShader(shader);
 
 		VulkanDescriptorLayout layout;
 		if(!vulkanShader->TryGetDescriptorSetLayout(subpassName, layout))

@@ -38,7 +38,8 @@ namespace Coco::Rendering
 		/// so this buffer must have been created with the BufferUsageFlags::TransferDestination and BufferUsageFlags::TransferSource flags
 		/// </summary>
 		/// <param name="newSize">The new size (in bytes)</param>
-		virtual void Resize(uint64_t newSize) = 0;
+		/// <param name="copyOldData">If true, the buffer data will be copied over to the resized one. Set to false for a slight performance benefit</param>
+		virtual void Resize(uint64_t newSize, bool copyOldData) = 0;
 
 		/// <summary>
 		/// Copies a part of this buffer to part of another buffer
