@@ -96,23 +96,32 @@ namespace Coco::Rendering::Vulkan
 
 	void RenderContextVulkan::UseShader(Ref<Shader> shader)
 	{
+		// No need to change if the same shader is used
 		if (shader.get() == _currentShader.get())
 			return;
 
 		_stateChanges.insert(RenderContextStateChange::Shader);
 		_currentShader = shader;
+
+		// Reset the pipeline and material as we're using a different shader
+		_currentPipeline = VulkanPipeline::None;
+		_currentMaterial = nullptr;
 	}
 
 	void RenderContextVulkan::UseMaterial(Ref<Material> material)
 	{
+		// No need to change if the same material is used
 		if (material.get() == _currentMaterial.get())
 			return;
 
+		// Bind the material shader
+		if (material.get() != nullptr)
+			UseShader(material->GetShader());
+		else
+			UseShader(nullptr);
+
 		_stateChanges.insert(RenderContextStateChange::Material);
 		_currentMaterial = material;
-		
-		if (material->GetShader() != _currentShader)
-			UseShader(material->GetShader());
 	}
 
 	void RenderContextVulkan::SetRenderTargets(const List<GraphicsResourceRef<ImageVulkan>>& renderTargets)
@@ -261,10 +270,16 @@ namespace Coco::Rendering::Vulkan
 
 	bool RenderContextVulkan::FlushStateChanges()
 	{
+		bool stateBound = false;
+
 		try
 		{
 			if (CurrentRenderPass == nullptr)
-				throw RenderingException("A render pass was not set before rendering geometry");
+				throw RenderingException("A render pass was not set");
+
+			// We need to have a shader bound to draw anything
+			if (_currentShader.get() == nullptr)
+				throw RenderingException("No shader was bound");
 
 			if (_stateChanges.contains(RenderContextStateChange::Shader))
 			{
@@ -282,11 +297,12 @@ namespace Coco::Rendering::Vulkan
 					_commandBuffer->GetCmdBuffer(),
 					VK_PIPELINE_BIND_POINT_GRAPHICS,
 					_currentPipeline.Layout,
-					0, 1, &_globalDescriptorSet,
+					s_globalDescriptorSetIndex, 1, &_globalDescriptorSet,
 					0, 0);
 			}
 
-			if (_stateChanges.contains(RenderContextStateChange::Material))
+			// Rendering without a material is fine
+			if (_stateChanges.contains(RenderContextStateChange::Material) && _currentMaterial.get() != nullptr)
 			{
 				VkDescriptorSet set;
 				
@@ -297,21 +313,29 @@ namespace Coco::Rendering::Vulkan
 						_commandBuffer->GetCmdBuffer(),
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
 						_currentPipeline.Layout,
-						1, 1, &set,
+						s_materialDescriptorSetIndex, 1, &set,
 						0, 0);
 				}
 			}
 
-			_stateChanges.clear();
+			// Ensure a pipeline state has been bound
+			if(_currentPipeline == VulkanPipeline::None)
+				throw RenderingException("A pipeline was not bound");
 
-			return true;
+			stateBound = true;
 		}
 		catch (const RenderingException& ex)
 		{
-			_stateChanges.clear();
+			_currentPipeline = VulkanPipeline::None;
+			_currentShader = nullptr;
+			_currentMaterial = nullptr;
+
 			LogError(_renderingService->GetLogger(), FormattedString("Failed binding pipeline state: {}", ex.what()));
-			return false;
+			stateBound = false;
 		}
+
+		_stateChanges.clear();
+		return stateBound;
 	}
 
 	void RenderContextVulkan::CreateFramebuffer()

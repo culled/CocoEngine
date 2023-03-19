@@ -50,6 +50,8 @@ namespace Coco::Rendering::Vulkan
 
 		VkPipelineLayout Layout = nullptr;
 		VkPipeline Pipeline = nullptr;
+
+		bool operator == (const VulkanPipeline& other) { return Layout == other.Layout && Pipeline == other.Pipeline; }
 	};
 
 	/// <summary>

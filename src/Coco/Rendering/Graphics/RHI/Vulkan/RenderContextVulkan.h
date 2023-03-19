@@ -32,6 +32,8 @@ namespace Coco::Rendering::Vulkan
 	class RenderContextVulkan final : public RenderContext
 	{
 	private:
+		static constexpr uint s_globalDescriptorSetIndex = 0;
+		static constexpr uint s_materialDescriptorSetIndex = 1;
 		static constexpr uint s_materialBufferSize = 1024 * 1024 * 10; // 10 MiB
 
 		RenderingService* _renderingService;
