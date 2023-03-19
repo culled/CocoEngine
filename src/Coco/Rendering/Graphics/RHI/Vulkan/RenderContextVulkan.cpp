@@ -132,6 +132,22 @@ namespace Coco::Rendering::Vulkan
 
 	void RenderContextVulkan::Draw(const Mesh* mesh, const Matrix4x4& modelMatrix)
 	{
+		// Sanity checks
+		GraphicsResourceRef<Buffer> vertexBufferRef = mesh->GetVertexBuffer();
+		GraphicsResourceRef<Buffer> indexBufferRef = mesh->GetIndexBuffer();
+		if (vertexBufferRef == nullptr || indexBufferRef == nullptr)
+		{
+			LogError(_renderingService->GetLogger(), "Mesh has no index and/or vertex buffer. Skipping...");
+			return;
+		}
+
+		if (vertexBufferRef->GetSize() == 0 || indexBufferRef->GetSize() == 0)
+		{
+			LogError(_renderingService->GetLogger(), "Mesh has no index and/or vertex data. Skipping...");
+			return;
+		}
+
+		// Flush the pipeline state
 		if (!FlushStateChanges())
 		{
 			LogError(_renderingService->GetLogger(), "Failed setting up state for rendering mesh. Skipping...");
@@ -140,14 +156,11 @@ namespace Coco::Rendering::Vulkan
 
 		// Bind the vertex buffer
 		Array<VkDeviceSize, 1> offsets = { 0 };
-
-		GraphicsResourceRef<Buffer> vertexBufferRef = mesh->GetVertexBuffer();
 		const BufferVulkan* vertexBuffer = static_cast<BufferVulkan*>(vertexBufferRef.get());
 		VkBuffer vertexVkBuffer = vertexBuffer->GetBuffer();
 		vkCmdBindVertexBuffers(_commandBuffer->GetCmdBuffer(), 0, 1, &vertexVkBuffer, offsets.data());
 
 		// Bind the index buffer
-		GraphicsResourceRef<Buffer> indexBufferRef = mesh->GetIndexBuffer();
 		const BufferVulkan* indexBuffer = static_cast<BufferVulkan*>(indexBufferRef.get());
 		vkCmdBindIndexBuffer(_commandBuffer->GetCmdBuffer(), indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
