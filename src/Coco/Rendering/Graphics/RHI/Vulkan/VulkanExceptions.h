@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
 #include <Coco/Rendering/RenderingExceptions.h>
+
 #include <vulkan/vulkan.h>
 
 namespace Coco::Rendering::Vulkan

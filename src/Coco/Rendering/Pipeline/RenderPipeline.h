@@ -1,11 +1,12 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/Resources/Resource.h>
+
+#include <Coco/Core/Types/Color.h>
+#include <Coco/Rendering/Graphics/Resources/RenderContext.h>
 #include <Coco/Rendering/Graphics/AttachmentDescription.h>
 #include "IRenderPass.h"
 #include "RenderPipelineBinding.h"
-#include <Coco/Core/Types/Color.h>
-#include <Coco/Rendering/Graphics/RenderContext.h>
 
 namespace Coco::Rendering
 {
@@ -68,7 +69,7 @@ namespace Coco::Rendering
 	/// <summary>
 	/// Defines a set of render passes to create a rendered image
 	/// </summary>
-	class COCOAPI RenderPipeline
+	class COCOAPI RenderPipeline : public Resource
 	{
 	private:
 		List<Managed<RenderPipelineBinding>> _renderPasses;

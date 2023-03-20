@@ -3,11 +3,11 @@
 #include <Coco/Rendering/RenderingService.h>
 #include <Coco/Core/Application.h>
 #include <Coco/Core/Engine.h>
-#include "GraphicsPresenterVulkan.h"
-#include "RenderContextVulkan.h"
-#include "BufferVulkan.h"
-#include "ImageVulkan.h"
-#include "ImageSamplerVulkan.h"
+#include "Resources/GraphicsPresenterVulkan.h"
+#include "Resources/RenderContextVulkan.h"
+#include "Resources/BufferVulkan.h"
+#include "Resources/ImageVulkan.h"
+#include "Resources/ImageSamplerVulkan.h"
 
 #include "VulkanUtilities.h"
 
@@ -151,22 +151,22 @@ namespace Coco::Rendering::Vulkan
 		LogInfo(GetLogger(), "Graphics device reset");
 	}
 
-	Managed<GraphicsPresenter> GraphicsPlatformVulkan::CreatePresenter()
+	WeakManagedRef<GraphicsPresenter> GraphicsPlatformVulkan::CreatePresenter()
 	{
-		return CreateManaged<GraphicsPresenterVulkan>(_device.get());
+		return _device->CreateResource<GraphicsPresenterVulkan>();
 	}
 
-	Ref<Buffer> GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
+	WeakManagedRef<Buffer> GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
 	{
 		return _device->CreateResource<BufferVulkan>(usageFlags, size, bindOnCreate);
 	}
 
-	Ref<Image> GraphicsPlatformVulkan::CreateImage(const ImageDescription& description)
+	WeakManagedRef<Image> GraphicsPlatformVulkan::CreateImage(const ImageDescription& description)
 	{
 		return _device->CreateResource<ImageVulkan>(description);
 	}
 
-	Ref<ImageSampler> GraphicsPlatformVulkan::CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy)
+	WeakManagedRef<ImageSampler> GraphicsPlatformVulkan::CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy)
 	{
 		return _device->CreateResource<ImageSamplerVulkan>(filterMode, repeatMode, maxAnisotropy);
 	}

@@ -1,12 +1,13 @@
 #pragma once
 
 #include "RenderingResource.h"
+
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Matrix.h>
 #include "Graphics/GraphicsPipelineState.h"
+#include "Graphics/Resources/BufferTypes.h"
 #include "ShaderTypes.h"
-#include "Graphics/BufferTypes.h"
 
 namespace Coco::Rendering
 {

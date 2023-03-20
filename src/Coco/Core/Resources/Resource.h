@@ -17,6 +17,25 @@ namespace Coco
 	using ResourceVersion = uint64_t;
 
 	/// <summary>
+	/// A generic cached resource
+	/// </summary>
+	struct CachedResource
+	{
+		ResourceID ID;
+		ResourceVersion Version;
+		uint64_t LastTickUsed;
+
+		CachedResource(ResourceID id, ResourceVersion version);
+		virtual ~CachedResource() = default;
+
+		virtual bool IsInvalid() const noexcept = 0;
+		virtual bool NeedsUpdate() const noexcept = 0;
+
+		void UpdateTickUsed();
+		bool ShouldPurge(uint64_t staleTickThreshold) const noexcept;
+	};
+
+	/// <summary>
 	/// A generic resource for the engine
 	/// </summary>
 	class COCOAPI Resource

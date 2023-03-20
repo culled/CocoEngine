@@ -46,8 +46,8 @@ namespace Coco::Rendering
 
 	Texture::~Texture()
 	{
-		_sampler.reset();
-		_image.reset();
+		_sampler.Invalidate();
+		_image.Invalidate();
 	}
 
 	void Texture::SetPixels(uint64_t offset, uint64_t size, const void* pixelData)
@@ -120,7 +120,7 @@ namespace Coco::Rendering
 		// Hold onto the old image data just in-case the transfer fails
 		ResourceVersion oldVersion = GetVersion();
 		ImageDescription oldDescription = _description;
-		Ref<Image> oldImage = _image;
+		WeakManagedRef<Image> oldImage = _image;
 
 		try
 		{

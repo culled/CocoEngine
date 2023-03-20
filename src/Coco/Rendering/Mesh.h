@@ -1,11 +1,10 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include "RenderingResource.h"
+
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Vector.h>
-#include "RenderingResource.h"
-#include "Graphics/GraphicsResource.h"
-#include "Graphics/Buffer.h"
+#include "Graphics/Resources/Buffer.h"
 #include "RenderingExceptions.h"
 
 namespace Coco::Rendering
@@ -36,8 +35,8 @@ namespace Coco::Rendering
 		static const uint64_t IndexBufferSize;
 
 	private:
-		Ref<Buffer> _vertexBuffer;
-		Ref<Buffer> _indexBuffer;
+		WeakManagedRef<Buffer> _vertexBuffer;
+		WeakManagedRef<Buffer> _indexBuffer;
 
 		List<Vector3> _vertexPositions;
 		List<Vector2> _vertexUV0s;
@@ -90,13 +89,13 @@ namespace Coco::Rendering
 		/// Gets this mesh's vertex buffer
 		/// </summary>
 		/// <returns>The vertex buffer</returns>
-		Ref<Buffer> GetVertexBuffer() const noexcept { return _vertexBuffer; }
+		WeakManagedRef<Buffer> GetVertexBuffer() const noexcept { return _vertexBuffer; }
 
 		/// <summary>
 		/// Gets this mesh's index buffer
 		/// </summary>
 		/// <returns>The index buffer</returns>
-		Ref<Buffer> GetIndexBuffer() const noexcept { return _indexBuffer; }
+		WeakManagedRef<Buffer> GetIndexBuffer() const noexcept { return _indexBuffer; }
 
 		/// <summary>
 		/// Gets the number of vertices in this mesh

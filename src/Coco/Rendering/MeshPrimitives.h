@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+
 #include "Mesh.h"
 
 namespace Coco::Rendering

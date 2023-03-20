@@ -1,8 +1,6 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
 #include <Coco/Core/Services/EngineService.h>
-#include <Coco/Core/MainLoop/MainLoopTickListener.h>
 
 #include "Keyboard.h"
 #include "Mouse.h"

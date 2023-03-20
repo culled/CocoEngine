@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
 #include <Coco/Rendering/Graphics/GraphicsPlatform.h>
 
 #include "VulkanIncludes.h"
@@ -37,10 +36,10 @@ namespace Coco::Rendering::Vulkan
         RenderingRHI GetRHI() const noexcept final { return RenderingRHI::Vulkan; }
         GraphicsDevice* GetDevice() const noexcept final { return _device.get(); }
         void ResetDevice() final;
-        Managed<GraphicsPresenter> CreatePresenter() final;
-        Ref<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;
-        Ref<Image> CreateImage(const ImageDescription& description) final;
-        Ref<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) final;
+        WeakManagedRef<GraphicsPresenter> CreatePresenter() final;
+        WeakManagedRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;
+        WeakManagedRef<Image> CreateImage(const ImageDescription& description) final;
+        WeakManagedRef<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) final;
 
         /// <summary>
         /// Gets the Vulkan instance

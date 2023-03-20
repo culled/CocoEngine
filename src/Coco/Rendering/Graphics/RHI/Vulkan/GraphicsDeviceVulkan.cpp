@@ -1,9 +1,9 @@
 #include "GraphicsDeviceVulkan.h"
 
 #include <Coco/Core/Types/Set.h>
+#include "../../../RenderingUtilities.h"
 #include "GraphicsPlatformVulkan.h"
 #include "VulkanUtilities.h"
-#include <Coco/Rendering/RenderingUtilities.h>
 
 namespace Coco::Rendering::Vulkan
 {
@@ -103,7 +103,7 @@ namespace Coco::Rendering::Vulkan
 
 		_renderCache = CreateManaged<VulkanRenderCache>(this);
 
-		LogInfo(VulkanPlatform->GetLogger(), FormattedString(
+		LogInfo(GetLogger(), FormattedString(
 			"Using Vulkan on {} - Driver version {}, API version {}",
 			_name, 
 			_driverVersion.ToString(),
@@ -117,6 +117,9 @@ namespace Coco::Rendering::Vulkan
 		WaitForIdle();
 
 		_renderCache.reset();
+
+		LogTrace(GetLogger(), FormattedString("Destroying {} resources", Resources.Count()));
+		Resources.Clear();
 
 		_graphicsQueue.reset();
 		_transferQueue.reset();
@@ -132,17 +135,6 @@ namespace Coco::Rendering::Vulkan
 		if (_computeCommandPool.has_value())
 			_computeCommandPool.value().reset();
 
-		LogTrace(VulkanPlatform->GetLogger(), FormattedString("Purging {} resources", Resources.Count()));
-		PurgeUnusedResources();
-
-		if (Resources.Count() > 0)
-			LogWarning(VulkanPlatform->GetLogger(), FormattedString(
-				"{} resources still have owners. Make sure they're released before the rendering system shuts down!", 
-				Resources.Count()
-			));
-
-		Resources.Clear();
-
 		if (_device != nullptr)
 		{
 			vkDestroyDevice(_device, nullptr);
@@ -151,7 +143,12 @@ namespace Coco::Rendering::Vulkan
 
 		_physicalDevice = nullptr;
 
-		LogTrace(VulkanPlatform->GetLogger(), "Destroyed Vulkan device");
+		LogTrace(GetLogger(), "Destroyed Vulkan device");
+	}
+
+	Logging::Logger* GraphicsDeviceVulkan::GetLogger() const noexcept
+	{
+		return VulkanPlatform->GetLogger();
 	}
 
 	void GraphicsDeviceVulkan::WaitForIdle() noexcept
@@ -293,6 +290,12 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		return false;
+	}
+
+	void GraphicsDeviceVulkan::OnPurgeUnusedResources() noexcept
+	{
+		if(_renderCache != nullptr)
+			_renderCache->PurgeResources();
 	}
 
 	uint64_t GraphicsDeviceVulkan::GetPaddedUniformBufferAlignment(uint64_t originalOffset) const noexcept

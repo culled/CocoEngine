@@ -46,7 +46,9 @@ namespace Coco
 		template<typename ObjectType>
 		Ref<HandlerType> AddHandler(ObjectType* object, ReturnType(ObjectType::* function)(Args...))
 		{
-			return AddHandlerImpl(new ObjectQueryHandler<ObjectType, ReturnType, Args...>(object, function));
+			Ref<ObjectQueryHandler<ObjectType, ReturnType, Args...>> handler = CreateRef<ObjectQueryHandler<ObjectType, ReturnType, Args...>>(object, function);
+			AddHandler(handler);
+			return handler;
 		}
 
 		/// <summary>
@@ -56,7 +58,9 @@ namespace Coco
 		/// <returns>The ID of the handler</returns>
 		Ref<HandlerType> AddHandler(const HandlerFunctionType& handlerFunction)
 		{
-			return AddHandlerImpl(new HandlerType(handlerFunction));
+			Ref<HandlerType> handler = CreateRef<HandlerType>(handlerFunction);
+			AddHandler(handler);
+			return handler;
 		}
 
 		/// <summary>
@@ -76,18 +80,20 @@ namespace Coco
 		/// <param name="function">The handler function pointer</param>
 		/// <returns>True if the handler was found and removed</returns>
 		template<typename ObjectType>
-		bool RemoveHandler(ObjectType* object, ReturnType(ObjectType::* function)(Args...))
+		bool RemoveHandler(ObjectType* object, ReturnType(ObjectType::* function)(Args...)) noexcept
 		{
-			ObjectQueryHandler<ObjectType, ReturnType, Args...> handler(object, function);
+			auto it = _handlers.Find([object, function](const Ref<HandlerType>& other) noexcept {
+				if (ObjectQueryHandler<ObjectType, ReturnType, Args...>* otherPtr = dynamic_cast<ObjectQueryHandler<ObjectType, ReturnType, Args...>*>(other.get()))
+				{
+					return otherPtr->Equals(object, function);
+				}
 
-			auto it = _handlers.Find([handler](const Ref<HandlerType>& other) {
-				return handler == other.get();
+				return false;
 				});
 
 			if (it != _handlers.end())
 			{
-				_handlers.Erase(it);
-				return true;
+				return _handlers.Remove(it);
 			}
 
 			return false;
@@ -98,16 +104,15 @@ namespace Coco
 		/// </summary>
 		/// <param name="handlerId">The ID of the handler, received as the return value of AddHandler()</param>
 		/// <returns>True if the handler was found and removed</returns>
-		bool RemoveHandler(HandlerID handlerId)
+		bool RemoveHandler(HandlerID handlerId) noexcept
 		{
-			auto it = _handlers.Find([handlerId](const Ref<HandlerType>& other) {
+			auto it = _handlers.Find([handlerId](const Ref<HandlerType>& other) noexcept {
 				return other->GetID() == handlerId;
 				});
 
 			if (it != _handlers.end())
 			{
-				_handlers.Erase(it);
-				return true;
+				return _handlers.Remove(it);
 			}
 
 			return false;
@@ -118,7 +123,7 @@ namespace Coco
 		/// </summary>
 		/// <param name="handler">The handler to remove</param>
 		/// <returns>True if the handler was found and removed</returns>
-		bool RemoveHandler(const Ref<HandlerType>& handler)
+		bool RemoveHandler(const Ref<HandlerType>& handler) noexcept
 		{
 			return _handlers.Remove(handler);
 		}
@@ -161,19 +166,6 @@ namespace Coco
 		bool operator()(ReturnType& value, Args... params)
 		{
 			return Invoke(value, params...);
-		}
-
-	private:
-		/// <summary>
-		/// Adds a handler pointer to the handlers for this query
-		/// </summary>
-		/// <param name="handler">The handler to add</param>
-		/// <returns>A reference to the handler</returns>
-		Ref<HandlerType> AddHandlerImpl(HandlerType* handler)
-		{
-			Ref<HandlerType> handlerRef(handler);
-			_handlers.Insert(0, handlerRef);
-			return handlerRef;
 		}
 	};
 }

@@ -88,20 +88,24 @@ namespace Coco
 
 	public:
 		ObjectQueryHandler(ObjectType* instance, ObjectHandlerFunctionType function) :
-			QueryHandler<ReturnType, Args...>(std::bind(function, instance, std::placeholders::_1)),
+			QueryHandler<ReturnType, Args...>(std::bind(function, instance)),
 			_instance(instance),
 			_function(function)
 		{}
 
-		virtual bool operator==(QueryHandler<ReturnType, Args...>* other) const override
+		bool operator==(QueryHandler<ReturnType, Args...>* other) const noexcept override
 		{
 			if (ObjectQueryHandler<ObjectType, ReturnType, Args...>* otherPtr = dynamic_cast<ObjectQueryHandler<ObjectType, ReturnType, Args...>*>(other))
 			{
-				return _instance == otherPtr->_instance &&
-					_function == otherPtr->_function;
+				return _instance == otherPtr->_instance && _function == otherPtr->_function;
 			}
 
 			return false;
+		}
+
+		bool Equals(ObjectType* instance, ObjectHandlerFunctionType function) const noexcept
+		{
+				return instance == _instance && function == _function;
 		}
 	};
 }

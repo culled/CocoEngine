@@ -6,7 +6,6 @@
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Logging/Logger.h>
 #include <Coco/Core/Services/EngineServiceManager.h>
-#include <Coco/Windowing/WindowingService.h>
 #include <Coco/Input/InputService.h>
 #include <Coco/Input/Keyboard.h>
 #include <Coco/Input/Mouse.h>

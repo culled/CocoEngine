@@ -1,9 +1,10 @@
 #include "WindowsWindow.h"
+
 #include "EnginePlatformWindows.h"
 
-#include <Coco/Windowing/WindowingService.h>
 #include <Coco/Core/Logging/Logger.h>
-#include <Coco/Rendering/Graphics/PresenterSurfaceInitializationInfo.h>
+#include <Coco/Windowing/WindowingService.h>
+#include <Coco/Rendering/Graphics/Resources/PresenterSurfaceInitializationInfo.h>
 
 #define CheckWindowHandle() Assert(_handle != NULL)
 

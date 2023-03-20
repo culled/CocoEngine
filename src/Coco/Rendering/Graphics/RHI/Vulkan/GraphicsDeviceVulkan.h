@@ -1,13 +1,12 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
 #include <Coco/Rendering/Graphics/GraphicsDevice.h>
-#include <Coco/Core/Types/Optional.h>
 
+#include <Coco/Core/Types/Optional.h>
 #include "VulkanQueue.h"
 #include "VulkanRenderCache.h"
 #include "VulkanIncludes.h"
-#include "CommandBufferPoolVulkan.h"
+#include "Resources/CommandBufferPoolVulkan.h"
 
 namespace Coco::Rendering::Vulkan
 {
@@ -77,13 +76,14 @@ namespace Coco::Rendering::Vulkan
         GraphicsDeviceVulkan(const GraphicsPlatformVulkan& platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
         ~GraphicsDeviceVulkan() final;
 
-       string GetName() const noexcept final { return _name; }
-       GraphicsDeviceType GetType() const noexcept final { return _deviceType; }
-       Version GetDriverVersion() const noexcept final { return _driverVersion; }
-       Version GetAPIVersion() const noexcept final { return _apiVersion; }
-       void WaitForIdle() noexcept final;
-       const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const noexcept final { return _memoryFeatures; };
-       uint GetMinimumBufferAlignment() const noexcept final { return _minUniformBufferAlignment; }
+        Logging::Logger* GetLogger() const noexcept final;
+        string GetName() const noexcept final { return _name; }
+        GraphicsDeviceType GetType() const noexcept final { return _deviceType; }
+        Version GetDriverVersion() const noexcept final { return _driverVersion; }
+        Version GetAPIVersion() const noexcept final { return _apiVersion; }
+        void WaitForIdle() noexcept final;
+        const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const noexcept final { return _memoryFeatures; };
+        uint GetMinimumBufferAlignment() const noexcept final { return _minUniformBufferAlignment; }
 
         /// <summary>
         /// Creates a graphics device with the given parameters
@@ -189,6 +189,9 @@ namespace Coco::Rendering::Vulkan
         /// <param name="originalOffset">The original offset</param>
         /// <returns>An adjusted offset that respects this device's minimum uniform buffer alignment
         uint64_t GetPaddedUniformBufferAlignment(uint64_t originalOffset) const noexcept;
+
+    protected:
+        void OnPurgeUnusedResources() noexcept final;
 
     private:
         /// <summary>

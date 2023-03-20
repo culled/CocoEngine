@@ -4,9 +4,7 @@
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Platform/IEnginePlatform.h>
 #include <Coco/Rendering/RenderingService.h>
-
 #include "IWindowingPlatform.h"
-#include "Window.h"
 
 namespace Coco::Windowing
 {

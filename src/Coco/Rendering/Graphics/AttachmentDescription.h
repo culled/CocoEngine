@@ -2,7 +2,7 @@
 
 #include <Coco/Core/Core.h>
 
-#include "ImageTypes.h"
+#include "Resources/ImageTypes.h"
 #include "GraphicsPipelineTypes.h"
 
 namespace Coco::Rendering

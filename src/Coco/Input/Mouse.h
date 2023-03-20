@@ -4,8 +4,8 @@
 #include <Coco/Core/Types/Array.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Vector.h>
-#include <Coco/Core/Events/Event.h>
 #include <Coco/Core/Types/Optional.h>
+#include <Coco/Core/Events/Event.h>
 
 #include "InputTypes.h"
 

@@ -1,13 +1,13 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+
 #include <Coco/Core/Types/Optional.h>
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Events/Event.h>
-#include <Coco/Rendering/Graphics/GraphicsPresenter.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsPresenter.h>
 #include "WindowExceptions.h"
-
 #include "WindowTypes.h"
 
 namespace Coco::Windowing
@@ -58,7 +58,7 @@ namespace Coco::Windowing
 		/// <summary>
 		/// The presenter for the window
 		/// </summary>
-		Managed<Rendering::GraphicsPresenter> Presenter;
+		WeakManagedRef<Rendering::GraphicsPresenter> Presenter;
 
 		/// <summary>
 		/// The windowing service
@@ -99,7 +99,7 @@ namespace Coco::Windowing
 		/// Gets this window's presenter
 		/// </summary>
 		/// <returns>This window's presenter</returns>
-		Rendering::GraphicsPresenter* GetPresenter() const noexcept { return Presenter.get(); }
+		Rendering::GraphicsPresenter* GetPresenter() const noexcept { return Presenter.Get(); }
 
 		/// <summary>
 		/// Gets the platform-specific ID for this window

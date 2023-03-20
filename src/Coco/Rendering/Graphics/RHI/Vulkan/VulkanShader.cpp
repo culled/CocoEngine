@@ -1,14 +1,36 @@
 #include "VulkanShader.h"
+
 #include <Coco/Core/Types/Map.h>
-#include "GraphicsDeviceVulkan.h"
 #include <Coco/Core/IO/File.h>
+#include "GraphicsDeviceVulkan.h"
 #include "VulkanUtilities.h"
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanShader::VulkanShader(GraphicsDevice* device, const Shader* shader) :
-		_device(static_cast<GraphicsDeviceVulkan*>(device)), ShaderID(shader->GetID()), ShaderVersion(shader->GetVersion())
+	VulkanShader::VulkanShader(GraphicsDeviceVulkan* device, Ref<Shader> shader) : CachedResource(shader->GetID(), shader->GetVersion()),
+		_device(device), _shader(shader)
+	{}
+
+	VulkanShader::~VulkanShader()
 	{
+		DestroyShaderObjects();
+	}
+
+	bool VulkanShader::NeedsUpdate() const noexcept
+	{
+		if (Ref<Shader> shader = _shader.lock())
+			return _shaderStages.size() == 0 || _descriptorSetLayouts.size() == 0 || this->Version != shader->GetVersion();
+
+		return false;
+	}
+
+	void VulkanShader::Update()
+	{
+		DestroyShaderObjects();
+
+		Ref<Shader> shader = _shader.lock();
+		Assert(shader != nullptr);
+
 		List<Subshader> subshaders = shader->GetSubshaders();
 
 		for (const Subshader& subshader : subshaders)
@@ -67,29 +89,6 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	VulkanShader::~VulkanShader()
-	{
-		for (const auto& layoutKVP : _descriptorSetLayouts)
-		{
-			vkDestroyDescriptorSetLayout(_device->GetDevice(), layoutKVP.second.Layout, nullptr);
-		}
-
-		_descriptorSetLayouts.clear();
-
-		for (const auto& shaderKVP : _shaderStages)
-		{
-			for (const VulkanShaderStage& stage : shaderKVP.second)
-			{
-				if (stage.ShaderModule != nullptr)
-				{
-					vkDestroyShaderModule(_device->GetDevice(), stage.ShaderModule, nullptr);
-				}
-			}
-		}
-
-		_shaderStages.clear();
-	}
-
 	bool VulkanShader::TryGetSubshaderStages(const string& subshaderName, List<VulkanShaderStage>& stages) const noexcept
 	{
 		if (!_shaderStages.contains(subshaderName))
@@ -116,6 +115,31 @@ namespace Coco::Rendering::Vulkan
 			layouts.Add(layoutKVP.second);
 
 		return layouts;
+	}
+
+	void VulkanShader::DestroyShaderObjects() noexcept
+	{
+		_device->WaitForIdle();
+
+		for (const auto& layoutKVP : _descriptorSetLayouts)
+		{
+			vkDestroyDescriptorSetLayout(_device->GetDevice(), layoutKVP.second.Layout, nullptr);
+		}
+
+		_descriptorSetLayouts.clear();
+
+		for (const auto& shaderKVP : _shaderStages)
+		{
+			for (const VulkanShaderStage& stage : shaderKVP.second)
+			{
+				if (stage.ShaderModule != nullptr)
+				{
+					vkDestroyShaderModule(_device->GetDevice(), stage.ShaderModule, nullptr);
+				}
+			}
+		}
+
+		_shaderStages.clear();
 	}
 
 	VulkanShaderStage VulkanShader::CreateShaderStage(ShaderStageType stage, const string& subshaderName, const string& file)

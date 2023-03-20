@@ -17,4 +17,5 @@ using ulong = unsigned long;
 #include <Coco/Core/Types/Exceptions.h>
 #include <Coco/Core/Types/String.h>
 #include <Coco/Core/Types/Ref.h>
+#include <Coco/Core/Types/ManagedRef.h>
 #include <Coco/Core/Math/Math.h>

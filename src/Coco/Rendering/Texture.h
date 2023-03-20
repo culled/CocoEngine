@@ -1,8 +1,9 @@
 #pragma once
 
 #include "RenderingResource.h"
-#include "Graphics/Image.h"
-#include "Graphics/ImageSampler.h"
+
+#include "Graphics/Resources/Image.h"
+#include "Graphics/Resources/ImageSampler.h"
 
 namespace Coco::Rendering
 {
@@ -12,8 +13,8 @@ namespace Coco::Rendering
 	class COCOAPI Texture : public RenderingResource
 	{
 	private:
-		Ref<Image> _image;
-		Ref<ImageSampler> _sampler;
+		WeakManagedRef<Image> _image;
+		WeakManagedRef<ImageSampler> _sampler;
 		ImageDescription _description = {};
 		FilterMode _filterMode = FilterMode::Linear;
 		RepeatMode _repeatMode = RepeatMode::Repeat;
@@ -82,13 +83,13 @@ namespace Coco::Rendering
 		/// Gets the image that backs this texture
 		/// </summary>
 		/// <returns>The image that backs this texture</returns>
-		Ref<Image> GetImage() const noexcept { return _image; }
+		WeakManagedRef<Image> GetImage() const noexcept { return _image; }
 
 		/// <summary>
 		/// Gets this texture's sampler
 		/// </summary>
 		/// <returns>This texture's sampler</returns>
-		Ref<ImageSampler> GetSampler() const noexcept { return _sampler; }
+		WeakManagedRef<ImageSampler> GetSampler() const noexcept { return _sampler; }
 
 		/// <summary>
 		/// Loads image data from a file into this texture

@@ -2,7 +2,6 @@
 
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Types/Array.h>
-#include "Graphics/RenderContext.h"
 #include "Texture.h"
 #include <Coco/Core/MainLoop/MainLoopTickListener.h>
 
@@ -151,7 +150,9 @@ namespace Coco::Rendering
 
 		if (_timeSinceLastPurge > PurgeFrequency)
 		{
-			_graphics->GetDevice()->PurgeUnusedResources();
+			if(_graphics != nullptr && _graphics->GetDevice() != nullptr)
+				_graphics->GetDevice()->PurgeUnusedResources();
+
 			_timeSinceLastPurge = 0.0;
 		}
 	}

@@ -1,7 +1,6 @@
 #include "InputService.h"
 
 #include <Coco/Core/Engine.h>
-#include <Coco/Core/MainLoop/MainLoop.h>
 
 namespace Coco::Input
 {

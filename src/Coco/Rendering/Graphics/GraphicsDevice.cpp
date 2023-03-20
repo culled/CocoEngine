@@ -1,6 +1,5 @@
 #include "GraphicsDevice.h"
 
-#include "GraphicsResource.h"
 #include <Coco/Rendering/RenderingService.h>
 #include <Coco/Core/Logging/Logger.h>
 
@@ -13,8 +12,7 @@ namespace Coco::Rendering
 
 		while (it != Resources.end())
 		{
-			// A use count of 1 means only the device is referencing the resource
-			if ((*it).use_count() <= 1)
+			if ((*it).GetUseCount() <= 0)
 			{
 				it = Resources.EraseAndGetNext(it);
 				purgeCount++;
@@ -24,12 +22,15 @@ namespace Coco::Rendering
 		}
 
 		if (purgeCount > 0)
+			LogTrace(GetLogger(), FormattedString("Purged {} unused graphics resources ({} in use)", purgeCount, Resources.Count()));
+
+		OnPurgeUnusedResources();
+
+		try
 		{
-			RenderingService* service = RenderingService::Get();
-			LogTrace(service->GetLogger(), FormattedString("Purged {} resources", purgeCount));
+			OnPurgedResources.Invoke();
 		}
-
-
-		OnPurgedResources.Invoke();
+		catch(...)
+		{ }
 	}
 }

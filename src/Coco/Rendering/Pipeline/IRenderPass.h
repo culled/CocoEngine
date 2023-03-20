@@ -1,8 +1,9 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+
 #include <Coco/Core/Types/List.h>
-#include <Coco/Rendering/Graphics/RenderContext.h>
+#include <Coco/Rendering/Graphics/Resources/RenderContext.h>
 #include <Coco/Rendering/Graphics/AttachmentDescription.h>
 #include <Coco/Rendering/RenderingExceptions.h>
 

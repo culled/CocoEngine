@@ -1,7 +1,7 @@
 #include "Mesh.h"
 
 #include "RenderingService.h"
-#include "Graphics/BufferTypes.h"
+#include "Graphics/Resources/BufferTypes.h"
 
 namespace Coco::Rendering
 {
@@ -25,8 +25,8 @@ namespace Coco::Rendering
 
 	Mesh::~Mesh()
 	{
-		_vertexBuffer.reset();
-		_indexBuffer.reset();
+		_vertexBuffer.Invalidate();
+		_indexBuffer.Invalidate();
 	}
 
 	void Mesh::SetPositions(const List<Vector3>& positions)
@@ -71,7 +71,13 @@ namespace Coco::Rendering
 					_vertexIndices.Count()));
 			}
 
-			Ref<Buffer> stagingBuffer = renderingService->GetPlatform()->CreateBuffer(
+			if (!_vertexBuffer.IsValid())
+				throw InvalidOperationException("Lost vertex buffer resource");
+
+			if (!_indexBuffer.IsValid())
+				throw InvalidOperationException("Lost index buffer resource");
+
+			WeakManagedRef<Buffer> stagingBuffer = renderingService->GetPlatform()->CreateBuffer(
 				VertexBufferSize,
 				BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
 				true);
@@ -90,7 +96,7 @@ namespace Coco::Rendering
 
 			// Upload vertex data
 			stagingBuffer->LoadData(0, vertexData);
-			stagingBuffer->CopyTo(0, _vertexBuffer.get(), 0, sizeof(VertexData) * vertexData.Count());
+			stagingBuffer->CopyTo(0, _vertexBuffer.Get(), 0, sizeof(VertexData) * vertexData.Count());
 			_vertexCount = vertexData.Count();
 
 			// Resize for index data
@@ -98,10 +104,10 @@ namespace Coco::Rendering
 
 			// Upload index data
 			stagingBuffer->LoadData(0, _vertexIndices);
-			stagingBuffer->CopyTo(0, _indexBuffer.get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
+			stagingBuffer->CopyTo(0, _indexBuffer.Get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
 			_indexCount = _vertexIndices.Count();
 
-			stagingBuffer.reset();
+			stagingBuffer.Invalidate();
 
 			if (deleteLocalData)
 			{

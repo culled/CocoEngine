@@ -1,24 +1,91 @@
 #include "VulkanRenderCache.h"
 
 #include <Coco/Core/Types/Array.h>
+#include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Optional.h>
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 #include <Coco/Rendering/Pipeline/RenderPipelineBinding.h>
+#include <Coco/Rendering/Graphics/GraphicsPipelineState.h>
+#include <Coco/Rendering/Mesh.h>
 #include "GraphicsDeviceVulkan.h"
 #include "VulkanUtilities.h"
-#include <Coco/Core/Types/List.h>
-#include <Coco/Rendering/Mesh.h>
 #include "VulkanShader.h"
-#include <Coco/Rendering/Graphics/GraphicsPipelineState.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	const VulkanPipeline VulkanPipeline::None = VulkanPipeline();
+	constexpr uint64_t CombineIDs(uint64_t a, uint64_t b)
+	{
+		return a ^ (b << 1);
+	}
+
+	CachedVulkanRenderPass::CachedVulkanRenderPass(GraphicsDeviceVulkan* device, Ref<RenderPipeline> pipeline) : 
+		CachedResource(pipeline->GetID(), pipeline->GetVersion()), Device(device), PipelineRef(pipeline)
+	{}
+
+	CachedVulkanRenderPass::~CachedVulkanRenderPass()
+	{
+		DeleteRenderPass();
+	}
+
+	bool CachedVulkanRenderPass::NeedsUpdate() const noexcept
+	{
+		if (Ref<RenderPipeline> pipeline = PipelineRef.lock())
+			return RenderPass == nullptr || pipeline->GetVersion() != this->Version;
+
+		return false;
+	}
+
+	void CachedVulkanRenderPass::DeleteRenderPass() noexcept
+	{
+		if (RenderPass != nullptr)
+		{
+			Device->WaitForIdle();
+			vkDestroyRenderPass(Device->GetDevice(), RenderPass, nullptr);
+		}
+
+		RenderPass = nullptr;
+	}
+
+	CachedVulkanPipeline::CachedVulkanPipeline(GraphicsDeviceVulkan* device, Ref<RenderPipeline> pipeline, Ref<Shader> shader) :
+		CachedResource(CombineIDs(pipeline->GetID(), shader->GetID()), CombineIDs(pipeline->GetVersion(), shader->GetVersion())), 
+		Device(device), PipelineRef(pipeline), ShaderRef(shader)
+	{}
+
+	CachedVulkanPipeline::~CachedVulkanPipeline()
+	{
+		DeletePipeline();
+	}
+
+	bool CachedVulkanPipeline::NeedsUpdate() const noexcept
+	{
+		Ref<RenderPipeline> pipeline = PipelineRef.lock();
+		Ref<Shader> shader = ShaderRef.lock();
+
+		if (pipeline != nullptr && shader != nullptr)
+			return Pipeline == nullptr || Layout == nullptr || this->Version != CombineIDs(pipeline->GetVersion(), shader->GetVersion());
+
+		return false;
+	}
+
+	void CachedVulkanPipeline::DeletePipeline() noexcept
+	{
+		if(Pipeline == nullptr || Layout != nullptr)
+			Device->WaitForIdle();
+
+		if (Pipeline != nullptr)
+			vkDestroyPipeline(Device->GetDevice(), Pipeline, nullptr);
+
+		Pipeline = nullptr;
+
+		if (Layout != nullptr)
+			vkDestroyPipelineLayout(Device->GetDevice(), Layout, nullptr);
+
+		Layout = nullptr;
+	}
 
 	VulkanRenderCache::VulkanRenderCache(GraphicsDeviceVulkan* device) :
 		_device(device)
-	{
-	}
+	{}
 
 	VulkanRenderCache::~VulkanRenderCache()
 	{
@@ -27,68 +94,134 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanRenderCache::Invalidate() noexcept
 	{
-		for (const auto& renderPassKVP : _renderPassCache)
-		{
-			vkDestroyRenderPass(_device->GetDevice(), renderPassKVP.second.RenderPass, nullptr);
-		}
-
 		_renderPassCache.clear();
-
-		for (const auto& pipelineKVP : _pipelineCache)
-		{
-			vkDestroyPipeline(_device->GetDevice(), pipelineKVP.second.Pipeline, nullptr);
-			vkDestroyPipelineLayout(_device->GetDevice(), pipelineKVP.second.Layout, nullptr);
-		}
-
 		_pipelineCache.clear();
-
-		for (auto& shaderKVP : _shaderCache)
-		{
-			shaderKVP.second.reset();
-		}
-
 		_shaderCache.clear();
 	}
 
-	VulkanRenderPass VulkanRenderCache::GetOrCreateRenderPass(RenderPipeline* renderPipeline)
+	void VulkanRenderCache::PurgeResources() noexcept
 	{
-		const uint64_t key = _renderPipelineHasher(renderPipeline);
-
-		if (!_renderPassCache.contains(key))
+		// Purge renderpass cache
+		uint64_t renderPassesPurged = 0;
+		auto renderPassIt = _renderPassCache.begin();
+		while (renderPassIt != _renderPassCache.end())
 		{
+			const Ref<CachedVulkanRenderPass>& resource = (*renderPassIt).second;
+
+			if (resource->ShouldPurge(s_staleTickCount))
+			{
+				renderPassIt = _renderPassCache.erase(renderPassIt);
+				renderPassesPurged++;
+			}
+			else
+				renderPassIt++;
+		}
+
+		// Purge pipeline cache
+		uint64_t pipelinesPurged = 0;
+		auto pipelineIt = _pipelineCache.begin();
+		while (pipelineIt != _pipelineCache.end())
+		{
+			const Ref<CachedVulkanPipeline>& resource = (*pipelineIt).second;
+
+			if (resource->ShouldPurge(s_staleTickCount))
+			{
+				pipelineIt = _pipelineCache.erase(pipelineIt);
+				pipelinesPurged++;
+			}
+			else
+				pipelineIt++;
+		}
+
+		// Purge shader cache
+		uint64_t shadersPurged = 0;
+		auto shaderIt = _shaderCache.begin();
+		while (shaderIt != _shaderCache.end())
+		{
+			const Ref<VulkanShader>& resource = (*shaderIt).second;
+
+			if (resource->ShouldPurge(s_staleTickCount))
+			{
+				shaderIt = _shaderCache.erase(shaderIt);
+				shadersPurged++;
+			}
+			else
+				shaderIt++;
+		}
+
+		if (renderPassesPurged > 0 || pipelinesPurged > 0 || shadersPurged > 0)
+			LogTrace(_device->GetLogger(), FormattedString(
+				"Purged {} cached renderpasses, {} cached pipelines, and {} cached shaders from global cache",
+				renderPassesPurged, 
+				pipelinesPurged, 
+				shadersPurged
+			));
+	}
+
+	Ref<CachedVulkanRenderPass> VulkanRenderCache::GetOrCreateRenderPass(Ref<RenderPipeline> renderPipeline)
+	{
+		const ResourceID id = renderPipeline->GetID();
+
+		if (!_renderPassCache.contains(id))
+			_renderPassCache.emplace(id, CreateRef<CachedVulkanRenderPass>(_device, renderPipeline));
+
+		Ref<CachedVulkanRenderPass>& resource = _renderPassCache.at(id);
+		Assert(resource->IsInvalid() == false);
+
+		resource->UpdateTickUsed();
+
+		if (resource->NeedsUpdate())
+		{
+			LogTrace(_device->GetLogger(), FormattedString("Recreating renderpass for pipeline {}", renderPipeline->GetID()));
+
+			resource->DeleteRenderPass();
+
 			try
 			{
-				_renderPassCache[key] = CreateRenderPass(renderPipeline);
+				CreateRenderPass(*resource);
 			}
 			catch (const Exception& ex)
 			{
-				throw VulkanRenderPassCreateException(FormattedString("Failed to create renderpass for pipeline: {}", ex.what()));
+				throw VulkanRenderingException(FormattedString("Failed to create renderpass for pipeline: {}", ex.what()));
 			}
 		}
 
-		return _renderPassCache.at(key);
+		return resource;
 	}
 
-	VulkanPipeline VulkanRenderCache::GetOrCreatePipeline(
-		VulkanRenderPass renderPass, 
-		const string& subpassName, 
-		uint32_t subpassIndex, 
-		const Shader* shader,
+	Ref<CachedVulkanPipeline> VulkanRenderCache::GetOrCreatePipeline(
+		const CachedVulkanRenderPass& renderPass,
+		const string& subpassName,
+		uint32_t subpassIndex,
+		Ref<Shader> shader,
 		VkDescriptorSetLayout globalDescriptorLayout)
 	{
-		const uint64_t rpHash = _renderPassHasher(renderPass.RenderPass);
-		const ResourceID shaderID = shader->GetID();
-		const uint64_t key = rpHash ^ (shaderID << 1);
+		Ref<RenderPipeline> pipeline = renderPass.PipelineRef.lock();
+		Assert(pipeline != nullptr);
+
+		const uint64_t key = CombineIDs(pipeline->GetID(), shader->GetID());
 
 		if (!_pipelineCache.contains(key))
+			_pipelineCache.emplace(key, CreateRef<CachedVulkanPipeline>(_device, pipeline, shader));
+
+		Ref<CachedVulkanPipeline>& resource = _pipelineCache.at(key);
+		Assert(resource->IsInvalid() == false);
+
+		resource->UpdateTickUsed();
+
+		if (resource->NeedsUpdate())
 		{
+			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subpass \"{}\" with shader \"{}\"", subpassName, shader->GetName()));
+
+			resource->DeletePipeline();
+
 			try
 			{
-				_pipelineCache[key] = CreatePipeline(renderPass, subpassName, subpassIndex, shader, globalDescriptorLayout);
+				CreatePipeline(renderPass, subpassName, subpassIndex, shader, globalDescriptorLayout, *resource);
 			}
 			catch (const Exception& ex)
 			{
-				throw VulkanPipelineCreateException(FormattedString(
+				throw VulkanRenderingException(FormattedString(
 					"Failed to create pipeline for pass \"{}\" using shader \"{}\": {}",
 					subpassName,
 					shader->GetName(),
@@ -97,34 +230,47 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		return _pipelineCache.at(key);
+		return resource;
 	}
 
-	Ref<VulkanShader> VulkanRenderCache::GetOrCreateVulkanShader(const Shader* shader)
+	Ref<VulkanShader> VulkanRenderCache::GetOrCreateVulkanShader(Ref<Shader> shader)
 	{
-		const ResourceID shaderID = shader->GetID();
-		bool needsUpdate = !_shaderCache.contains(shaderID) || _shaderCache.at(shaderID)->ShaderVersion != shader->GetVersion();
+		const ResourceID id = shader->GetID();
 
-		if (needsUpdate)
+		if (!_shaderCache.contains(id))
+			_shaderCache.emplace(id, CreateRef<VulkanShader>(_device, shader));
+
+		Ref<VulkanShader>& resource = _shaderCache.at(id);
+		Assert(resource->IsInvalid() == false);
+
+		resource->UpdateTickUsed();
+
+		if (resource->NeedsUpdate())
 		{
+			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan shader for shader \"{}\"", shader->GetName()));
+
 			try
 			{
-				_shaderCache[shaderID] = _device->CreateResource<VulkanShader>(shader);
+				resource->Update();
 			}
 			catch (const Exception& ex)
 			{
-				throw VulkanShaderCreateException(FormattedString("Failed to create an internal shader for the shader \"{}\": {}",
+				throw VulkanRenderingException(FormattedString("Failed to create an internal shader for the shader \"{}\": {}",
 					shader->GetName(),
 					ex.what()
 				));
 			}
 		}
 
-		return _shaderCache.at(shaderID);
+		return resource;
 	}
 
-	VulkanRenderPass VulkanRenderCache::CreateRenderPass(RenderPipeline* renderPipeline)
+	void VulkanRenderCache::CreateRenderPass(CachedVulkanRenderPass& cachedRenderPass)
 	{
+		Ref<RenderPipeline> renderPipeline = cachedRenderPass.PipelineRef.lock();
+		if (renderPipeline == nullptr)
+			throw VulkanRenderingException("Render pipeline was empty");
+
 		List<VkAttachmentDescription> attachments;
 
 		List<RenderPipelineAttachmentDescription> pipelineAttachments = renderPipeline->GetPipelineAttachmentDescriptions();
@@ -150,13 +296,12 @@ namespace Coco::Rendering::Vulkan
 
 		List<RenderPipelineBinding*> renderPasses = renderPipeline->GetPasses();
 		List<VkSubpassDescription> subpasses;
-		VulkanRenderPass renderPass;
-		renderPass.Subpasses.Resize(renderPasses.Count());
+		cachedRenderPass.Subpasses.Resize(renderPasses.Count());
 
 		// Create subpasses for all pipeline renderpasses
 		for (int i = 0; i < renderPasses.Count(); i++)
 		{
-			SubpassInfo& subpass = renderPass.Subpasses[i];
+			SubpassInfo& subpass = cachedRenderPass.Subpasses[i];
 
 			// Start assuming no attachments are used
 			for (int ii = 0; ii < pipelineAttachments.Count(); ii++)
@@ -254,21 +399,20 @@ namespace Coco::Rendering::Vulkan
 		createInfo.dependencyCount = static_cast<uint32_t>(subpassDependencies.Count());
 		createInfo.pDependencies = subpassDependencies.Data();
 		
-		AssertVkResult(vkCreateRenderPass(_device->GetDevice(), &createInfo, nullptr, &renderPass.RenderPass));
-
-		return renderPass;
+		AssertVkResult(vkCreateRenderPass(_device->GetDevice(), &createInfo, nullptr, &cachedRenderPass.RenderPass));
 	}
 
-	VulkanPipeline VulkanRenderCache::CreatePipeline(
-		VulkanRenderPass renderPass, 
+	void VulkanRenderCache::CreatePipeline(
+		const CachedVulkanRenderPass& renderPass, 
 		const string& subpassName, 
 		uint32_t subpassIndex, 
-		const Shader* shader,
-		VkDescriptorSetLayout globalDescriptorLayout)
+		const Ref<Shader>& shader,
+		VkDescriptorSetLayout globalDescriptorLayout,
+		CachedVulkanPipeline& cachedPipeline)
 	{
 		const Subshader* subshader;
 		if (!shader->TryGetSubshader(subpassName, subshader))
-			throw VulkanPipelineCreateException(FormattedString("Could not find a subshader named \"{}\"", subpassName));
+			throw VulkanRenderingException(FormattedString("Could not find a subshader named \"{}\"", subpassName));
 
 		List<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH };
 
@@ -387,7 +531,7 @@ namespace Coco::Rendering::Vulkan
 
 		VulkanDescriptorLayout layout;
 		if(!vulkanShader->TryGetDescriptorSetLayout(subpassName, layout))
-			throw VulkanPipelineCreateException("Could not find a descriptor layout for subshader");
+			throw VulkanRenderingException(FormattedString("Could not find a descriptor layout for subshader \"{}\"", subpassName));
 
 		Array<VkDescriptorSetLayout, 2> descriptorSetLayouts = {
 			globalDescriptorLayout,
@@ -403,10 +547,9 @@ namespace Coco::Rendering::Vulkan
 
 		List<VulkanShaderStage> shaderStages;
 		if (!vulkanShader->TryGetSubshaderStages(subpassName, shaderStages))
-			throw VulkanPipelineCreateException("Could not find subshader stages");
+			throw VulkanRenderingException(FormattedString("Could not find subshader stages for subshader \"{}\"", subpassName));
 
-		VulkanPipeline pipeline = {};
-		AssertVkResult(vkCreatePipelineLayout(_device->GetDevice(), &layoutInfo, nullptr, &pipeline.Layout));
+		AssertVkResult(vkCreatePipelineLayout(_device->GetDevice(), &layoutInfo, nullptr, &cachedPipeline.Layout));
 
 		List<VkPipelineShaderStageCreateInfo> shaderStageInfos;
 
@@ -434,7 +577,7 @@ namespace Coco::Rendering::Vulkan
 		createInfo.pColorBlendState = &colorBlendState;
 		createInfo.pDynamicState = &dynamicState;
 		createInfo.pTessellationState = nullptr; // TODO: tessellation
-		createInfo.layout = pipeline.Layout;
+		createInfo.layout = cachedPipeline.Layout;
 		createInfo.renderPass = renderPass.RenderPass;
 
 		createInfo.subpass = subpassIndex;
@@ -448,9 +591,7 @@ namespace Coco::Rendering::Vulkan
 			1,
 			&createInfo,
 			nullptr,
-			&pipeline.Pipeline
+			&cachedPipeline.Pipeline
 		));
-
-		return pipeline;
 	}
 }

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/Resources/Resource.h>
+
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Rendering/Shader.h>
 #include <Coco/Rendering/ShaderTypes.h>
-#include <Coco/Rendering/Graphics/GraphicsResource.h>
-#include "VulkanDescriptorSet.h"
-#include "VulkanDescriptorPool.h"
+#include "Resources/VulkanDescriptorSet.h"
+#include "Resources/VulkanDescriptorPool.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -33,20 +33,22 @@ namespace Coco::Rendering::Vulkan
 	/// <summary>
 	/// A shader that can be used with Vulkan
 	/// </summary>
-	class VulkanShader final : public IGraphicsResource
+	class VulkanShader final : public CachedResource
 	{
-	public:
-		const ResourceID ShaderID;
-		const ResourceVersion ShaderVersion;
-
 	private:
 		GraphicsDeviceVulkan* _device;
+		WeakRef<Shader> _shader;
 		Map<string, List<VulkanShaderStage>> _shaderStages;
 		Map<string, VulkanDescriptorLayout> _descriptorSetLayouts;
 
 	public:
-		VulkanShader(GraphicsDevice* device, const Shader* shader);
+		VulkanShader(GraphicsDeviceVulkan* device, Ref<Shader> shader);
 		~VulkanShader() final;
+
+		bool IsInvalid() const noexcept final { return _shader.expired(); }
+		bool NeedsUpdate() const noexcept final;
+
+		void Update();
 
 		/// <summary>
 		/// Gets the stages for a subshader
@@ -70,6 +72,8 @@ namespace Coco::Rendering::Vulkan
 		List<VulkanDescriptorLayout> GetDescriptorLayouts() const noexcept;
 
 	private:
+		void DestroyShaderObjects() noexcept;
+
 		/// <summary>
 		/// Creates a shader stage from a compiled SPV file
 		/// </summary>

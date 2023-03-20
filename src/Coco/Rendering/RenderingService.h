@@ -1,19 +1,13 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
 #include <Coco/Core/Services/EngineService.h>
 
-#include "Graphics/GraphicsPlatform.h"
-#include "Graphics/GraphicsPresenter.h"
-#include "Pipeline/RenderPipeline.h"
-#include "Graphics/Buffer.h"
-#include "Graphics/GraphicsResource.h"
 #include "Components/CameraComponent.h"
-
-namespace Coco
-{
-    class MainLoopTickListener;
-}
+#include "Pipeline/RenderPipeline.h"
+#include "Graphics/GraphicsPlatform.h"
+#include "Graphics/Resources/GraphicsPresenter.h"
+#include "Graphics/Resources/RenderContext.h"
+#include "Graphics/Resources/Buffer.h"
 
 namespace Coco::Rendering
 {
@@ -58,7 +52,7 @@ namespace Coco::Rendering
         /// Creates a graphics presenter
         /// </summary>
         /// <returns>A graphics presenter</returns>
-        Managed<GraphicsPresenter> CreatePresenter() const { return _graphics->CreatePresenter(); }
+        WeakManagedRef<GraphicsPresenter> CreatePresenter() const { return _graphics->CreatePresenter(); }
 
         /// <summary>
         /// Sets the default render pipeline to use

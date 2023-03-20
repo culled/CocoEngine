@@ -2,13 +2,14 @@
 
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Logging/Logger.h>
+#include <Coco/Core/Types/ManagedRef.h>
 
 #include "GraphicsPlatformTypes.h"
 #include "GraphicsDevice.h"
-#include "GraphicsPresenter.h"
-#include "Buffer.h"
-#include "Image.h"
-#include "ImageSampler.h"
+#include "Resources/GraphicsPresenter.h"
+#include "Resources/Buffer.h"
+#include "Resources/Image.h"
+#include "Resources/ImageSampler.h"
 #include <Coco/Core/Types/Matrix.h>
 
 namespace Coco::Rendering
@@ -122,7 +123,7 @@ namespace Coco::Rendering
 		/// Creates a graphics presenter
 		/// </summary>
 		/// <returns>A graphics presenter</returns>
-		virtual Managed<GraphicsPresenter> CreatePresenter() = 0;
+		virtual WeakManagedRef<GraphicsPresenter> CreatePresenter() = 0;
 
 		/// <summary>
 		/// Creates a data buffer
@@ -131,14 +132,14 @@ namespace Coco::Rendering
 		/// <param name="usageFlags">Flags for how the buffer will be used</param>
 		/// <param name="bindOnCreate">If true, the buffer will be bound after it is created</param>
 		/// <returns>The created buffer</returns>
-		virtual Ref<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
+		virtual WeakManagedRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
 
 		/// <summary>
 		/// Creates an image
 		/// </summary>
 		/// <param name="description">The descriptor for the image</param>
 		/// <returns>The created image</returns>
-		virtual Ref<Image> CreateImage(const ImageDescription& description) = 0;
+		virtual WeakManagedRef<Image> CreateImage(const ImageDescription& description) = 0;
 
 		/// <summary>
 		/// Creates a sampler for an image
@@ -147,6 +148,6 @@ namespace Coco::Rendering
 		/// <param name="repeatMode">The repeat mode</param>
 		/// <param name="maxAnisotropy">The maximum anisotropy</param>
 		/// <returns>The created image sampler</returns>
-		virtual Ref<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) = 0;
+		virtual WeakManagedRef<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) = 0;
 	};
 }

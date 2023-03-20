@@ -1,10 +1,9 @@
 #pragma once
 
-#include "WindowsIncludes.h"
-
-#include <Coco/Core/Core.h>
 #include <Coco/Core/Platform/IEnginePlatform.h>
+
 #include <Coco/Windowing/IWindowingPlatform.h>
+#include "WindowsIncludes.h"
 
 namespace Coco::Input
 {

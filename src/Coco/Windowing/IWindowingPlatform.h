@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+
 #include "Window.h"
 #include "WindowingService.h"
 

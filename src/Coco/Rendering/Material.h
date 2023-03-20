@@ -2,12 +2,11 @@
 
 #include "RenderingResource.h"
 
-#include "Shader.h"
 #include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/Map.h>
+#include "Shader.h"
 #include "Texture.h"
-
-#include "Graphics/BufferTypes.h"
+#include "Graphics/Resources/BufferTypes.h"
 
 namespace Coco::Rendering
 {

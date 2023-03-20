@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-
 namespace Coco::Rendering
 {
 	/// <summary>

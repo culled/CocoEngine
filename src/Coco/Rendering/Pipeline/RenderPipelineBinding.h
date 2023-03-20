@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+
 #include <Coco/Core/Types/Optional.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Rendering/Graphics/AttachmentDescription.h>
-
 #include "IRenderPass.h"
 
 namespace Coco::Rendering

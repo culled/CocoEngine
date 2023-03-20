@@ -19,7 +19,7 @@ namespace Coco::Windowing
 
 	Window::~Window()
 	{
-		Presenter.reset();
+		Presenter.Invalidate();
 	}
 
 	bool Window::Close() noexcept

@@ -1,12 +1,18 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Version.h>
-#include "GraphicsResource.h"
-
-#include "GraphicsPlatformTypes.h"
+#include <Coco/Core/Types/ManagedRef.h>
 #include <Coco/Core/Events/Event.h>
+#include "Resources/GraphicsResource.h"
+#include "GraphicsPlatformTypes.h"
+
+namespace Coco::Logging
+{
+	class Logger;
+}
 
 namespace Coco::Rendering
 {
@@ -66,7 +72,7 @@ namespace Coco::Rendering
 		/// <summary>
 		/// The list of resources this device manages
 		/// </summary>
-		List<Ref<IGraphicsResource>> Resources;
+		List<ManagedRef<IGraphicsResource>> Resources;
 
 	protected:
 		GraphicsDevice() = default;
@@ -79,6 +85,12 @@ namespace Coco::Rendering
 
 		GraphicsDevice& operator=(const GraphicsDevice&) = delete;
 		GraphicsDevice& operator=(GraphicsDevice&&) = delete;
+
+		/// <summary>
+		/// Gets this graphics devices's logger
+		/// </summary>
+		/// <returns>This graphics platform's logger</returns>
+		virtual Logging::Logger* GetLogger() const noexcept = 0;
 
 		/// <summary>
 		/// Gets the name of this device
@@ -128,18 +140,28 @@ namespace Coco::Rendering
 		/// <typeparam name="...Args">The type of arguments to pass to the resource constructor</typeparam>
 		/// <param name="...args">The arguments to pass to the resource's constructor</param>
 		/// <returns>A handle to the resource</returns>
-		template<typename ObjectT, typename ... Args, std::enable_if_t<std::is_base_of<IGraphicsResource, ObjectT>::value, bool> = true>
-		Ref<ObjectT> CreateResource(Args&& ... args)
+		template<typename ObjectT, typename ... Args>
+		WeakManagedRef<ObjectT> CreateResource(Args&& ... args)
 		{
-			Ref<ObjectT> ref = CreateRef<ObjectT>(this, std::forward<Args>(args)...);
-			Resources.Add(ref);
-			return ref;
+			static_assert(std::is_base_of_v<IGraphicsResource, ObjectT>, "The resource must be derived from IGraphicsResource");
+
+			ManagedRef<IGraphicsResource> ref(new ObjectT(this, std::forward<Args>(args)...));
+
+			//Ref<ObjectT> ref = CreateRef<ObjectT>(this, std::forward<Args>(args)...);
+			Resources.Add(std::move(ref));
+			return WeakManagedRef<ObjectT>(Resources.Last());
 		}
 
 		/// <summary>
 		/// Purges unused graphics resources
 		/// </summary>
 		void PurgeUnusedResources() noexcept;
+
+	protected:
+		/// <summary>
+		/// Called when this device purges resources
+		/// </summary>
+		virtual void OnPurgeUnusedResources() noexcept {}
 	};
 }
 

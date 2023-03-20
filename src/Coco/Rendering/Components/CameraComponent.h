@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Coco/Core/Scene/Components/EntityComponent.h>
+
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/Size.h>
-
 #include "CameraComponentTypes.h"
 
 namespace Coco::Rendering

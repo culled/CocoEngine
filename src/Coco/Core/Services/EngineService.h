@@ -4,8 +4,8 @@
 
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Logging/Logger.h>
-#include "EngineServiceExceptions.h"
 #include <Coco/Core/MainLoop/MainLoopTickListener.h>
+#include "EngineServiceExceptions.h"
 
 namespace Coco
 {

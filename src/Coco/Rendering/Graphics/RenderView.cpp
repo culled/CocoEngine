@@ -1,5 +1,4 @@
 #include "RenderView.h"
-#include <Coco/Rendering/Texture.h>
 
 namespace Coco::Rendering
 {
