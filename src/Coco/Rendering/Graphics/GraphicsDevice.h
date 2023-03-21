@@ -145,10 +145,7 @@ namespace Coco::Rendering
 		{
 			static_assert(std::is_base_of_v<IGraphicsResource, ObjectT>, "The resource must be derived from IGraphicsResource");
 
-			ManagedRef<IGraphicsResource> ref(new ObjectT(this, std::forward<Args>(args)...));
-
-			//Ref<ObjectT> ref = CreateRef<ObjectT>(this, std::forward<Args>(args)...);
-			Resources.Add(std::move(ref));
+			Resources.Add(CreateManagedRef<ObjectT>(this, std::forward<Args>(args)...));
 			return WeakManagedRef<ObjectT>(Resources.Last());
 		}
 

@@ -47,7 +47,7 @@ private:
 	Coco::Input::InputService* _inputService;
 	Coco::Rendering::RenderingService* _renderService;
 	Coco::Windowing::WindowingService* _windowService;
-	Coco::Windowing::Window* _window = nullptr;
+	Coco::WeakManagedRef<Coco::Windowing::Window> _window;
 	Coco::Ref<Coco::Rendering::CameraComponent> _camera;
 	Coco::Vector3 _cameraPosition;
 	Coco::Vector3 _cameraEulerAngles;

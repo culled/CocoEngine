@@ -51,9 +51,9 @@ namespace Coco::Platform::Windows
         void Sleep(unsigned long milliseconds) noexcept final;
         void ShowPlatformMessageBox(const string& title, const string& message, bool isError) final;
 
-        Managed<::Coco::Windowing::Window> CreatePlatformWindow(
-            ::Coco::Windowing::WindowCreateParameters& createParameters, 
-            ::Coco::Windowing::WindowingService* windowingService) final;
+        ManagedRef<Windowing::Window> CreatePlatformWindow(
+            Windowing::WindowCreateParameters& createParameters, 
+            Windowing::WindowingService* windowingService) final;
 
     private:
         /// <summary>

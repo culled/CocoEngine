@@ -25,8 +25,8 @@ namespace Coco::Windowing
     private:
         friend Window;
 
-        List<Managed<Window>> _windows;
-        Window* _mainWindow;
+        List<ManagedRef<Window>> _windows;
+        WeakManagedRef<Window> _mainWindow;
 
         Rendering::RenderingService* _renderingService = nullptr;
 
@@ -39,7 +39,13 @@ namespace Coco::Windowing
         /// </summary>
         /// <param name="createParameters">Parameters to create the new window with</param>
         /// <returns>The created window</returns>
-        Window* CreateNewWindow(WindowCreateParameters& createParameters);
+        WeakManagedRef<Window> CreateNewWindow(WindowCreateParameters& createParameters);
+
+        /// <summary>
+        /// Gets the main window (if one has been created)
+        /// </summary>
+        /// <returns>The main window</returns>
+        WeakManagedRef<Window> GetMainWindow() const noexcept { return _mainWindow; }
 
         /// <summary>
         /// Attempts to find a window with the given ID
@@ -47,7 +53,7 @@ namespace Coco::Windowing
         /// <param name="windowId">The id of the window</param>
         /// <param name="window">The pointer to the window with the given ID if it was found</param>
         /// <returns>True if a window with the given ID was found</returns>
-        bool TryFindWindow(void* windowId, Window*& window) const noexcept;
+        bool TryFindWindow(void* windowId, WeakManagedRef<Window>& window) const noexcept;
 
     protected:
         void StartImpl() final;

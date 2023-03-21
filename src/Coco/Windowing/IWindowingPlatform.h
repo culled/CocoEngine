@@ -19,7 +19,7 @@ namespace Coco::Platform
 		/// <param name="createParameters">Parameters for creating the window</param>
 		/// <param name="windowingService">The service that will manage the window</param>
 		/// <returns>The created window</returns>
-		virtual Managed<::Coco::Windowing::Window> CreatePlatformWindow(
+		virtual ManagedRef<::Coco::Windowing::Window> CreatePlatformWindow(
 			::Coco::Windowing::WindowCreateParameters& createParameters, 
 			::Coco::Windowing::WindowingService* windowingService) = 0;
 	};

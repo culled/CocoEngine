@@ -7,6 +7,9 @@ namespace Coco
 	template <typename>
 	class ManagedRef;
 
+	/// <summary>
+	/// Shared control block for a ManagedRefs and WeakManagedRefs
+	/// </summary>
 	class ManagedRefControlBlock
 	{
 		template<typename>
@@ -62,6 +65,9 @@ namespace Coco
 		ManagedRef(ObjectType&& object) :  _managedResource(object), _controlBlock(std::make_shared<ManagedRefControlBlock>())
 		{}
 
+		ManagedRef(std::unique_ptr<ObjectType> object) : _managedResource(std::move(object)), _controlBlock(std::make_shared<ManagedRefControlBlock>())
+		{}
+
 		template<typename ObjectV>
 		ManagedRef(ManagedRef<ObjectV>&& object) :
 			_managedResource(std::move(object._managedResource)), _controlBlock(std::move(object._controlBlock))
@@ -98,7 +104,20 @@ namespace Coco
 		/// </summary>
 		/// <returns>The number of references to this managed resource</returns>
 		int GetUseCount() const noexcept { return _controlBlock.use_count() - 1; }
+
+		ObjectType* operator->()const noexcept { return _managedResource.get(); }
 	};
+
+	/// <summary>
+	/// Creates a managed reference for a given type
+	/// </summary>
+	/// <param name="...args">Arguments to forward to the object's constructor</param>
+	/// <returns>A managed reference</returns>
+	template<typename ObjectType, typename ... Args>
+	ManagedRef<ObjectType> CreateManagedRef(Args&&... args)
+	{
+		return ManagedRef<ObjectType>(CreateManaged<ObjectType>(std::forward<Args>(args)...));
+	}
 
 	/// <summary>
 	/// A weak reference to a ManagedRef object

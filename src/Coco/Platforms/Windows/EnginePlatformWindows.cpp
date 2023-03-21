@@ -188,11 +188,11 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	Managed<::Coco::Windowing::Window> EnginePlatformWindows::CreatePlatformWindow(
-		::Coco::Windowing::WindowCreateParameters& createParameters, 
-		::Coco::Windowing::WindowingService* windowingService)
+	ManagedRef<Windowing::Window> EnginePlatformWindows::CreatePlatformWindow(
+		Windowing::WindowCreateParameters& createParameters, 
+		Windowing::WindowingService* windowingService)
 	{
-		return CreateManaged<WindowsWindow>(createParameters, windowingService, this);
+		return CreateManagedRef<WindowsWindow>(createParameters, windowingService, this);
 	}
 
 	void EnginePlatformWindows::Sleep(unsigned long milliseconds) noexcept
