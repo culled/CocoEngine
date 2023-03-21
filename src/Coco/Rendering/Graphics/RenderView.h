@@ -2,9 +2,8 @@
 
 #include <Coco/Core/Core.h>
 
-#include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Rect.h>
 #include <Coco/Core/Types/Matrix.h>
-#include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Color.h>
 
 namespace Coco::Rendering
@@ -15,14 +14,9 @@ namespace Coco::Rendering
 	struct COCOAPI RenderView
 	{
 		/// <summary>
-		/// The offset to begin rendering
+		/// The viewport rectangle
 		/// </summary>
-		const Vector2Int RenderOffset;
-
-		/// <summary>
-		/// The size of the render viewport
-		/// </summary>
-		const SizeInt RenderSize;
+		const RectInt ViewportRect;
 
 		/// <summary>
 		/// The clear color for the render
@@ -39,6 +33,6 @@ namespace Coco::Rendering
 		/// </summary>
 		const Matrix4x4 View;
 
-		RenderView(const Vector2Int& offset, const SizeInt& size, const Color& clearColor, const Matrix4x4& projection, const Matrix4x4& view) noexcept;
+		RenderView(const RectInt& viewportRect, const Color& clearColor, const Matrix4x4& projection, const Matrix4x4& view) noexcept;
 	};
 }

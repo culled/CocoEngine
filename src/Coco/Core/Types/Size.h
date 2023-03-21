@@ -12,6 +12,11 @@ namespace Coco
 	/// </summary>
 	struct COCOAPI SizeInt
 	{
+		/// <summary>
+		/// A zero size
+		/// </summary>
+		static const SizeInt Zero;
+
 		int Width = 0;
 		int Height = 0;
 
@@ -49,6 +54,11 @@ namespace Coco
 	/// </summary>
 	struct COCOAPI Size
 	{
+		/// <summary>
+		/// A zero size
+		/// </summary>
+		static const Size Zero;
+
 		double Width = 0;
 		double Height = 0;
 

@@ -19,6 +19,37 @@
 
 namespace Coco::Rendering::Vulkan
 {
+	CachedVulkanFramebuffer::CachedVulkanFramebuffer(GraphicsDeviceVulkan* device, Ref<RenderPipeline> pipeline) : CachedResource(pipeline->GetID(), pipeline->GetVersion()),
+		Device(device), PipelineRef(pipeline)
+	{}
+
+	CachedVulkanFramebuffer::~CachedVulkanFramebuffer()
+	{
+		DestroyFramebuffer();
+	}
+
+	bool CachedVulkanFramebuffer::NeedsUpdate() const noexcept
+	{
+		if (Ref<RenderPipeline> pipeline = PipelineRef.lock())
+		{
+			return Framebuffer == nullptr || FramebufferSize == SizeInt::Zero || this->Version != pipeline->GetVersion();
+		}
+
+		return false;
+	}
+
+	void CachedVulkanFramebuffer::DestroyFramebuffer() noexcept
+	{
+		if (Framebuffer != nullptr)
+		{
+			Device->WaitForIdle();
+			vkDestroyFramebuffer(Device->GetDevice(), Framebuffer, nullptr);
+		}
+
+		Framebuffer = nullptr;
+		FramebufferSize = SizeInt::Zero;
+	}
+
 	RenderContextVulkan::RenderContextVulkan(GraphicsDevice* device) :
 		_device(static_cast<GraphicsDeviceVulkan*>(device)), _currentState(RenderContextState::Ready)
 	{
@@ -57,6 +88,7 @@ namespace Coco::Rendering::Vulkan
 		_globalDescriptor.Layout = nullptr;
 
 		_renderCache.reset();
+		_framebuffer.reset();
 
 		_signalSemaphores.Clear();
 		_waitSemaphores.Clear();
@@ -70,25 +102,23 @@ namespace Coco::Rendering::Vulkan
 		_renderingCompleteSemaphore.Invalidate();
 		_renderingCompleteFence.Invalidate();
 		_globalUBO.Invalidate();
-
-		DestroyFramebuffer();
 	}
 
-	void RenderContextVulkan::SetViewport(const Vector2Int& offset, const SizeInt& size)
+	void RenderContextVulkan::SetViewport(const RectInt& rect)
 	{
 		VkViewport viewport = {};
-		viewport.x = static_cast<float>(offset.X);
-		viewport.y = static_cast<float>(offset.Y);
-		viewport.width = static_cast<float>(size.Width);
-		viewport.height = static_cast<float>(size.Height);
+		viewport.x = static_cast<float>(rect.Offset.X);
+		viewport.y = static_cast<float>(-rect.Offset.Y);
+		viewport.width = static_cast<float>(rect.Size.Width);
+		viewport.height = static_cast<float>(rect.Size.Height);
 		viewport.minDepth = 0.0f; // TODO: configurable min/max depth
 		viewport.maxDepth = 1.0f;
 
 		vkCmdSetViewport(_commandBuffer->GetCmdBuffer(), 0, 1, &viewport);
 
 		VkRect2D scissor = {};
-		scissor.extent.width = static_cast<uint32_t>(size.Width);
-		scissor.extent.height = static_cast<uint32_t>(size.Height);
+		scissor.extent.width = static_cast<uint32_t>(rect.Size.Width);
+		scissor.extent.height = static_cast<uint32_t>(rect.Size.Height);
 
 		vkCmdSetScissor(_commandBuffer->GetCmdBuffer(), 0, 1, &scissor);
 	}
@@ -125,7 +155,10 @@ namespace Coco::Rendering::Vulkan
 
 	void RenderContextVulkan::SetRenderTargets(const List<WeakManagedRef<ImageVulkan>>& renderTargets)
 	{
-		DestroyFramebuffer();
+		// TODO: Make a way to tell if the same render targets are used to prevent recreating framebuffer every frame
+		if(_framebuffer)
+			_framebuffer->DestroyFramebuffer();
+
 		_renderTargets = renderTargets;
 	}
 
@@ -188,20 +221,19 @@ namespace Coco::Rendering::Vulkan
 
 			_globalUBO->LoadData(0, sizeof(GlobalUniformObject), &GlobalUO);
 
-			if (_framebuffer == nullptr)
-				CreateFramebuffer();
+			EnsureFramebufferUpdated();
 
 			_commandBuffer->Begin(true, false);
 
 			VkRenderPassBeginInfo beginInfo = {};
 			beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			beginInfo.renderPass = _renderPass->RenderPass;
-			beginInfo.framebuffer = _framebuffer;
+			beginInfo.framebuffer = _framebuffer->Framebuffer;
 
-			beginInfo.renderArea.offset.x = static_cast<uint32_t>(RenderView->RenderOffset.X);
-			beginInfo.renderArea.offset.y = static_cast<uint32_t>(RenderView->RenderOffset.Y);
-			beginInfo.renderArea.extent.width = static_cast<uint32_t>(RenderView->RenderSize.Width);
-			beginInfo.renderArea.extent.height = static_cast<uint32_t>(RenderView->RenderSize.Height);
+			beginInfo.renderArea.offset.x =	static_cast<uint32_t>(RenderView->ViewportRect.Offset.X);
+			beginInfo.renderArea.offset.y =	static_cast<uint32_t>(-RenderView->ViewportRect.Offset.Y);
+			beginInfo.renderArea.extent.width = static_cast<uint32_t>(RenderView->ViewportRect.Size.Width);
+			beginInfo.renderArea.extent.height = static_cast<uint32_t>(RenderView->ViewportRect.Size.Height);
 
 			const VkClearValue clearValue = { {{
 					static_cast<float>(RenderView->ClearColor.R),
@@ -354,38 +386,39 @@ namespace Coco::Rendering::Vulkan
 		return stateBound;
 	}
 
-	void RenderContextVulkan::CreateFramebuffer()
+	void RenderContextVulkan::EnsureFramebufferUpdated()
 	{
-		_framebufferPipeline = CurrentPipeline;
+		// Create the cached resource if necessary
+		if (_framebuffer == nullptr || _framebuffer->IsInvalid())
+			_framebuffer = CreateRef<CachedVulkanFramebuffer>(_device, CurrentPipeline);
 
-		VkFramebufferCreateInfo framebufferInfo = {};
-		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = _renderPass->RenderPass;
-		framebufferInfo.width = static_cast<uint32_t>(RenderView->RenderSize.Width);
-		framebufferInfo.height = static_cast<uint32_t>(RenderView->RenderSize.Height);
-		framebufferInfo.layers = 1;
-
-		List<VkImageView> renderTargets;
-		for (const WeakManagedRef<ImageVulkan> renderTarget : _renderTargets)
+		// Update the framebuffer if necessary
+		if (_framebuffer->NeedsUpdate(RenderView->ViewportRect.Size))
 		{
-			if (!renderTarget.IsValid())
-				throw VulkanRenderingException("Render target resource was invalid");
+			_framebuffer->DestroyFramebuffer();
 
-			renderTargets.Add(renderTarget->GetNativeView());
+			VkFramebufferCreateInfo framebufferInfo = {};
+			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			framebufferInfo.renderPass = _renderPass->RenderPass;
+			framebufferInfo.width = static_cast<uint32_t>(RenderView->ViewportRect.Size.Width);
+			framebufferInfo.height = static_cast<uint32_t>(RenderView->ViewportRect.Size.Height);
+			framebufferInfo.layers = 1;
+
+			List<VkImageView> renderTargets;
+			for (const WeakManagedRef<ImageVulkan> renderTarget : _renderTargets)
+			{
+				if (!renderTarget.IsValid())
+					throw VulkanRenderingException("Render target resource was invalid");
+
+				renderTargets.Add(renderTarget->GetNativeView());
+			}
+
+			framebufferInfo.attachmentCount = static_cast<uint32_t>(renderTargets.Count());
+			framebufferInfo.pAttachments = renderTargets.Data();
+
+			AssertVkResult(vkCreateFramebuffer(_device->GetDevice(), &framebufferInfo, nullptr, &_framebuffer->Framebuffer));
+			_framebuffer->FramebufferSize = RenderView->ViewportRect.Size;
 		}
-
-		framebufferInfo.attachmentCount = static_cast<uint32_t>(renderTargets.Count());
-		framebufferInfo.pAttachments = renderTargets.Data();
-
-		AssertVkResult(vkCreateFramebuffer(_device->GetDevice(), &framebufferInfo, nullptr, &_framebuffer));
-	}
-
-	void RenderContextVulkan::DestroyFramebuffer() noexcept
-	{
-		_device->WaitForIdle();
-
-		vkDestroyFramebuffer(_device->GetDevice(), _framebuffer, nullptr);
-		_framebuffer = nullptr;
 	}
 
 	void RenderContextVulkan::CreateGlobalDescriptorSet()

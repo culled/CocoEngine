@@ -102,11 +102,10 @@ namespace Coco::Rendering
 		void Reset();
 
 		/// <summary>
-		/// Sets the size and offset of the viewport to use
+		/// Sets the rectangle of the viewport to use
 		/// </summary>
-		/// <param name="offset">The offset of the viewport</param>
-		/// <param name="size">The size of the viewport</param>
-		virtual void SetViewport(const Vector2Int& offset, const SizeInt& size) = 0;
+		/// <param name="rect">The viewport rectangle</param>
+		virtual void SetViewport(const RectInt& rect) = 0;
 
 		/// <summary>
 		/// Sets the given shader as the one that will be used to draw subsequent geometry

@@ -60,7 +60,7 @@ namespace Coco::Rendering
 
 	void RenderContext::RestoreViewport()
 	{
-		SetViewport(RenderView->RenderOffset, RenderView->RenderSize);
+		SetViewport(RenderView->ViewportRect);
 	}
 
 	void RenderContext::GetLastFrameStats(uint64_t& drawCallCount, uint64_t trianglesDrawn) const noexcept

@@ -49,7 +49,7 @@ namespace Coco::Rendering
 		camera->SetAspectRatio(static_cast<double>(size.Width) / size.Height);
 
 		// TODO: create this from the scene graph
-		Ref<RenderView> view = CreateRef<RenderView>(Vector2Int::Zero, size, pipeline->GetClearColor(), camera->GetProjectionMatrix(), camera->GetViewMatrix());
+		Ref<RenderView> view = CreateRef<RenderView>(RectInt(Vector2Int::Zero, size), pipeline->GetClearColor(), camera->GetProjectionMatrix(), camera->GetViewMatrix());
 
 		// Acquire the render context that we'll be using
 		RenderContext* renderContext;

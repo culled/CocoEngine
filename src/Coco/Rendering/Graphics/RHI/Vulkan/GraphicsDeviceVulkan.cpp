@@ -118,7 +118,7 @@ namespace Coco::Rendering::Vulkan
 
 		_renderCache.reset();
 
-		LogTrace(GetLogger(), FormattedString("Destroying {} resources", Resources.Count()));
+		LogTrace(GetLogger(), FormattedString("Destroying {} graphic resources", Resources.Count()));
 		Resources.Clear();
 
 		_graphicsQueue.reset();

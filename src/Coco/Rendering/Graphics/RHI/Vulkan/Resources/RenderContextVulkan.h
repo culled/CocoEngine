@@ -27,6 +27,38 @@ namespace Coco::Rendering::Vulkan
 	class RenderCacheVulkan;
 
 	/// <summary>
+	/// A cached Vulkan framebuffer
+	/// </summary>
+	struct CachedVulkanFramebuffer final : public CachedResource
+	{
+		GraphicsDeviceVulkan* Device;
+		WeakRef<RenderPipeline> PipelineRef;
+		SizeInt FramebufferSize = SizeInt::Zero;
+		VkFramebuffer Framebuffer = nullptr;
+
+		CachedVulkanFramebuffer(GraphicsDeviceVulkan* device, Ref<RenderPipeline> pipeline);
+		virtual ~CachedVulkanFramebuffer();
+
+		bool IsInvalid() const noexcept final { return PipelineRef.expired(); }
+		bool NeedsUpdate() const noexcept final;
+
+		/// <summary>
+		/// Checks if this cached framebuffer needs to be updated
+		/// </summary>
+		/// <param name="framebufferSize">The desired size of the framebuffer</param>
+		/// <returns>True if this resource should be updated</returns>
+		bool NeedsUpdate(const SizeInt& framebufferSize) const noexcept
+		{
+			return NeedsUpdate() || FramebufferSize != framebufferSize;
+		}
+
+		/// <summary>
+		/// Destroys the framebuffer
+		/// </summary>
+		void DestroyFramebuffer() noexcept;
+	};
+
+	/// <summary>
 	/// Vulkan-implementation of a RenderContext
 	/// </summary>
 	class RenderContextVulkan final : public RenderContext
@@ -45,9 +77,6 @@ namespace Coco::Rendering::Vulkan
 		WeakManagedRef<GraphicsFenceVulkan> _renderingCompleteFence;
 		Managed<RenderContextVulkanCache> _renderCache;
 
-		WeakRef<RenderPipeline> _framebufferPipeline;
-		List<WeakManagedRef<ImageVulkan>> _renderTargets;
-
 		RenderContextState _currentState;
 		List<WeakManagedRef<GraphicsSemaphoreVulkan>> _signalSemaphores;
 		List<WeakManagedRef<GraphicsSemaphoreVulkan>> _waitSemaphores;
@@ -59,19 +88,19 @@ namespace Coco::Rendering::Vulkan
 
 		Set<RenderContextStateChange> _stateChanges;
 		Ref<CachedVulkanRenderPass> _renderPass = nullptr;
-		VkFramebuffer _framebuffer = nullptr;
-
+		Ref<CachedVulkanFramebuffer> _framebuffer = nullptr;
+		List<WeakManagedRef<ImageVulkan>> _renderTargets;
 		Ref<CachedVulkanPipeline> _currentPipeline = nullptr;
+
 		Ref<Shader> _currentShader;
 		Ref<Material> _currentMaterial;
-
 		Map<ResourceID, VkDescriptorSet> _materialDescriptorSets;
 
 	public:
 		RenderContextVulkan(GraphicsDevice* device);
 		~RenderContextVulkan() final;
 
-		void SetViewport(const Vector2Int& offset, const SizeInt& size) final;
+		void SetViewport(const RectInt& rect) final;
 		void UseShader(Ref<Shader> shader) final;
 		void UseMaterial(Ref<Material> material) final;
 		void Draw(const Mesh* mesh, const Matrix4x4& modelMatrix) final;
@@ -114,14 +143,9 @@ namespace Coco::Rendering::Vulkan
 		bool FlushStateChanges();
 
 		/// <summary>
-		/// Creates the framebuffer from the current renderpass and render view
+		/// Ensures a framebuffer is created for the current pipeline and render pass using the current render targets
 		/// </summary>
-		void CreateFramebuffer();
-
-		/// <summary>
-		/// Destroys the current framebuffer
-		/// </summary>
-		void DestroyFramebuffer() noexcept;
+		void EnsureFramebufferUpdated();
 
 		/// <summary>
 		/// Creates the global descriptor set
