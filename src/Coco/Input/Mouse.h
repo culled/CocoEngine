@@ -24,7 +24,7 @@ namespace Coco::Input
 		/// <summary>
 		/// Mouse button states
 		/// </summary>
-		Array<bool, ButtonCount> ButtonStates;
+		Array<bool, ButtonCount> ButtonStates = { false };
 
 		/// <summary>
 		/// The mouse position

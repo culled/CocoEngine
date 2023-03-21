@@ -91,7 +91,7 @@ namespace Coco::Rendering
 		ImageDescription description = {};
 		description.UsageFlags = _usageFlags;
 
-		const string fullFilePath = Engine::Get()->GetResourceLibrary()->BasePath + filePath;
+		const string fullFilePath = Engine::Get()->GetResourceLibrary()->GetFullFilePath(filePath);
 
 		// Load in the image data from the file
 		int actualChannelCount;

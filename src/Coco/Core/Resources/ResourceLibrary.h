@@ -3,10 +3,13 @@
 #include <Coco/Core/Core.h>
 
 #include <Coco/Core/Types/Map.h>
-#include <Coco/Core/Logging/Logger.h>
 #include "Resource.h"
 #include "ResourceLoader.h"
-#include <typeinfo>
+
+namespace Coco::Logging
+{
+	class Logger;
+}
 
 namespace Coco
 {

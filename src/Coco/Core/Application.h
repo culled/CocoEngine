@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-#include <Coco/Core/Logging/Logger.h>
-#include <Coco/Core/Events/Event.h>
+#include "Core.h"
+#include "Logging/Logger.h"
+#include "Events/Event.h"
 
 // TEMPORARY -----------------------------------------------
 #include <Coco/Rendering/Components/CameraComponent.h>

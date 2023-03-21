@@ -13,9 +13,9 @@ using ulong = unsigned long;
 #include <stdint.h>
 
 // Core types
-#include <Coco/Core/Asserts.h>
-#include <Coco/Core/Types/Exceptions.h>
-#include <Coco/Core/Types/String.h>
-#include <Coco/Core/Types/Ref.h>
-#include <Coco/Core/Types/ManagedRef.h>
-#include <Coco/Core/Math/Math.h>
+#include "Asserts.h"
+#include "Types/Exceptions.h"
+#include "Types/String.h"
+#include "Types/Ref.h"
+#include "Types/ManagedRef.h"
+#include "Math/Math.h"
