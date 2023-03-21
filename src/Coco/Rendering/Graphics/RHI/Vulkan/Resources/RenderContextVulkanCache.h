@@ -38,6 +38,7 @@ namespace Coco::Rendering::Vulkan
 	/// </summary>
 	struct CachedMaterialResource final : public CachedResource
 	{
+		uint BufferIndex = Math::MaxValue<uint>();
 		uint64_t BufferOffset = Math::MaxValue<uint64_t>();
 		uint64_t BufferSize = 0;
 		WeakRef<Material> MaterialRef;
@@ -61,6 +62,16 @@ namespace Coco::Rendering::Vulkan
 		void InvalidateBufferRegion();
 	};
 
+	struct MaterialBuffer
+	{
+		WeakManagedRef<BufferVulkan> Buffer;
+		uint64_t CurrentOffset = 0;
+		uint64_t FragmentedSize = 0;
+		uint8_t* MappedMemory = nullptr;
+
+		uint64_t GetFreeRegionSize() const noexcept;
+	};
+
 	/// <summary>
 	/// A cache for a Vulkan render context that manages material data
 	/// </summary>
@@ -69,15 +80,13 @@ namespace Coco::Rendering::Vulkan
 	private:
 		static constexpr uint64_t s_materialBufferSize = 1024 * 1024 * 10; // 10 MiB
 		static constexpr uint64_t s_staleTickCount = 500;
+		static constexpr double s_fragmentFlushThreshold = 0.5;
 
 		GraphicsDeviceVulkan* _device;
 		Map<ResourceID, CachedShaderResource> _shaderCache;
 		Map<ResourceID, CachedMaterialResource> _materialCache;
 
-		WeakManagedRef<BufferVulkan> _materialUBO;
-		uint64_t _currentMaterialUBOOffset = 0;
-		uint8_t* _mappedMaterialUBOMemory = nullptr;
-		double _averageMaterialDataSize = 0.0;
+		List<MaterialBuffer> _materialUBOs;
 
 	public:
 		RenderContextVulkanCache(GraphicsDeviceVulkan* device);
@@ -111,7 +120,7 @@ namespace Coco::Rendering::Vulkan
 		/// Gets the material buffer
 		/// </summary>
 		/// <returns>The material buffer</returns>
-		WeakManagedRef<BufferVulkan> GetMaterialBuffer() const noexcept { return _materialUBO; }
+		WeakManagedRef<BufferVulkan> GetMaterialBuffer(uint bufferIndex) const noexcept { return _materialUBOs[bufferIndex].Buffer; }
 
 		/// <summary>
 		/// Purges unused and invalid resources
@@ -122,7 +131,20 @@ namespace Coco::Rendering::Vulkan
 		/// <summary>
 		/// Invalidates all material regions that overlap or begin past the given offset
 		/// </summary>
-		/// <param name="invalidStartOffset">The offset to start invalidating regions</param>
-		void InvalidateMaterialBufferRegions(uint64_t invalidStartOffset);
+		/// <param name="bufferIndex">The buffer to invalidate</param>
+		void InvalidateMaterialBufferRegions(uint bufferIndex);
+
+		/// <summary>
+		/// Finds a buffer region to fit material data
+		/// </summary>
+		/// <param name="requiredSize">The required size of the region</param>
+		/// <param name="bufferIndex">The index of the material buffer to use</param>
+		/// <param name="bufferOffset">The offset in the material buffer to use</param>
+		void FindBufferRegion(uint64_t requiredSize, uint& bufferIndex, uint64_t& bufferOffset);
+
+		/// <summary>
+		/// Creates an additional material buffer
+		/// </summary>
+		void CreateAdditionalMaterialBuffer();
 	};
 }

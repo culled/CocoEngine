@@ -30,7 +30,7 @@ namespace Coco::Rendering::Vulkan
 	bool CachedMaterialResource::NeedsUpdate() const noexcept
 	{
 		if (Ref<Material> mat = MaterialRef.lock())
-			return BufferOffset == Math::MaxValue<uint64_t>() || mat->GetVersion() != this->Version;
+			return BufferOffset == Math::MaxValue<uint64_t>() || BufferIndex == Math::MaxValue<uint>() || mat->GetVersion() != this->Version;
 
 		return false;
 	}
@@ -49,20 +49,22 @@ namespace Coco::Rendering::Vulkan
 		BufferSize = 0;
 	}
 
+	uint64_t MaterialBuffer::GetFreeRegionSize() const noexcept
+	{
+		return Buffer->GetSize() - CurrentOffset;
+	}
+
 	RenderContextVulkanCache::RenderContextVulkanCache(GraphicsDeviceVulkan* device) :
 		_device(device)
 	{
-		_materialUBO = _device->CreateResource<BufferVulkan>(
-			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
-			s_materialBufferSize,
-			true);
+		//CreateAdditionalMaterialBuffer();
 	}
 
 	RenderContextVulkanCache::~RenderContextVulkanCache()
 	{
 		_materialCache.clear();
 		_shaderCache.clear();
-		_materialUBO.Invalidate();
+		_materialUBOs.Clear();
 	}
 
 	CachedShaderResource& RenderContextVulkanCache::GetShaderResource(Ref<VulkanShader> shader)
@@ -96,28 +98,30 @@ namespace Coco::Rendering::Vulkan
 		{
 			const List<uint8_t>& data = material->GetBufferData();
 
-			// Choose a place in the buffer if this resource needs to expand
+			// Choose a new place in the buffers if this resource needs to expand
 			if (data.Count() > resource.BufferSize)
 			{
-				if (data.Count() > _materialUBO->GetSize() - _currentMaterialUBOOffset)
+				if (resource.BufferIndex != Math::MaxValue<uint>() && _materialUBOs.Count() > 0)
 				{
-					// TODO: make new buffer if out of memory?
-					InvalidateMaterialBufferRegions(0);
-					throw VulkanRenderingException("Out of material memory");
+					// The old region is now fragmented
+					_materialUBOs[resource.BufferIndex].FragmentedSize += resource.BufferSize;
 				}
 
-				resource.BufferOffset = _currentMaterialUBOOffset;
+				// Find a new buffer region
 				resource.BufferSize = data.Count();
-				_currentMaterialUBOOffset += resource.BufferSize;
+				FindBufferRegion(resource.BufferSize, resource.BufferIndex, resource.BufferOffset);
 
-				_averageMaterialDataSize += static_cast<double>(resource.BufferSize - _averageMaterialDataSize) / _materialCache.size();
+				Assert(resource.BufferIndex != Math::MaxValue<uint>());
+				Assert(resource.BufferOffset != Math::MaxValue<uint64_t>());
 			}
 
-			// Map the buffer data if it isn't already
-			if (_mappedMaterialUBOMemory == nullptr)
-				_mappedMaterialUBOMemory = reinterpret_cast<uint8_t*>(_materialUBO->Lock(0, s_materialBufferSize));
+			MaterialBuffer& buffer = _materialUBOs[resource.BufferIndex];
 
-			resource.Update(_mappedMaterialUBOMemory, data.Data(), data.Count());
+			// Map the buffer data if it isn't already
+			if (buffer.MappedMemory == nullptr)
+				buffer.MappedMemory = reinterpret_cast<uint8_t*>(buffer.Buffer->Lock(0, s_materialBufferSize));
+
+			resource.Update(buffer.MappedMemory, data.Data(), data.Count());
 		}
 
 		return resource;
@@ -125,22 +129,22 @@ namespace Coco::Rendering::Vulkan
 
 	void RenderContextVulkanCache::FlushMaterialChanges()
 	{
-		if (_mappedMaterialUBOMemory != nullptr)
+		for (int i = 0; i < _materialUBOs.Count(); i++)
 		{
-			_materialUBO->Unlock();
-			_mappedMaterialUBOMemory = nullptr;
-		}
+			MaterialBuffer& buffer = _materialUBOs[i];
 
-		// TEMPORARY HACK: We'll need a better way of managing the buffer data in the future, but for now this should defragment it if its getting too large
-		if (_materialUBO->GetSize() - _currentMaterialUBOOffset < _averageMaterialDataSize * 2.0)
-		{
-			LogInfo(_device->GetLogger(), FormattedString(
-				"Material buffer has used {}/{} bytes (Average data size is {} bytes). Invalidating regions for next frame",
-				_currentMaterialUBOOffset,
-				_materialUBO->GetSize(), _averageMaterialDataSize
-			));
+			// Flush the buffer if it's mapped
+			if(buffer.MappedMemory != nullptr)
+				buffer.Buffer->Unlock();
 
-			InvalidateMaterialBufferRegions(0);
+			buffer.MappedMemory = nullptr;
+
+			// If the buffer is too fragmented, invalidate it to cause a reshuffling of data
+			if (static_cast<double>(buffer.FragmentedSize) / buffer.Buffer->GetSize() > s_fragmentFlushThreshold)
+			{
+				LogInfo(_device->GetLogger(), FormattedString("Material buffer {} is too fragmented. Invalidating for new frame...", i));
+				InvalidateMaterialBufferRegions(i);
+			}
 		}
 	}
 
@@ -188,16 +192,61 @@ namespace Coco::Rendering::Vulkan
 			LogTrace(_device->GetLogger(), FormattedString("Purged {} cached shaders and {} cached materials from RenderContext cache", shadersPurged, materialsPurged));
 	}
 
-	void RenderContextVulkanCache::InvalidateMaterialBufferRegions(uint64_t invalidStartOffset)
+	void RenderContextVulkanCache::InvalidateMaterialBufferRegions(uint bufferIndex)
 	{
+		MaterialBuffer& buffer = _materialUBOs[bufferIndex];
+
 		for (auto& materialKVP : _materialCache)
 		{
 			CachedMaterialResource& resource = materialKVP.second;
-			if (resource.BufferOffset >= invalidStartOffset || resource.BufferOffset + resource.BufferSize > invalidStartOffset)
+			if (resource.BufferIndex != bufferIndex)
+				continue;
+
+			resource.InvalidateBufferRegion();
+		}
+
+		buffer.CurrentOffset = 0;
+		buffer.FragmentedSize = 0;
+	}
+
+	void RenderContextVulkanCache::FindBufferRegion(uint64_t requiredSize, uint& bufferIndex, uint64_t& bufferOffset)
+	{
+		int freeBufferIndex = -1;
+
+		// Try to find a buffer that can fit this material data
+		for (int i = 0; i < _materialUBOs.Count(); i++)
+		{
+			if (_materialUBOs[i].GetFreeRegionSize() >= requiredSize)
 			{
-				_currentMaterialUBOOffset = Math::Min(_currentMaterialUBOOffset, resource.BufferOffset);
-				resource.InvalidateBufferRegion();
+				freeBufferIndex = i;
+				break;
 			}
 		}
+
+		// Make a new buffer if we can't fit the material in the current one
+		if (freeBufferIndex == -1)
+		{
+			CreateAdditionalMaterialBuffer();
+			LogInfo(_device->GetLogger(), FormattedString("Created addition material buffer. New buffer count is {}", _materialUBOs.Count()));
+			freeBufferIndex = static_cast<int>(_materialUBOs.Count()) - 1;
+		}
+
+		Assert(freeBufferIndex != -1);
+
+		bufferIndex = static_cast<uint>(freeBufferIndex);
+		bufferOffset = _materialUBOs[freeBufferIndex].CurrentOffset;
+
+		_materialUBOs[freeBufferIndex].CurrentOffset += requiredSize;
+	}
+
+	void RenderContextVulkanCache::CreateAdditionalMaterialBuffer()
+	{
+		MaterialBuffer buffer = {};
+		buffer.Buffer = _device->CreateResource<BufferVulkan>(
+			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
+			s_materialBufferSize,
+			true);
+
+		_materialUBOs.Add(buffer);
 	}
 }

@@ -516,7 +516,7 @@ namespace Coco::Rendering::Vulkan
 			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			write.descriptorCount = 1;
 
-			bufferInfo.buffer = _renderCache->GetMaterialBuffer()->GetBuffer();
+			bufferInfo.buffer = _renderCache->GetMaterialBuffer(materialResource.BufferIndex)->GetBuffer();
 			bufferInfo.offset = materialResource.BufferOffset + subshaderBinding->Offset;
 			bufferInfo.range = subshaderBinding->Size;
 
