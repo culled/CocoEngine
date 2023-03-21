@@ -10,7 +10,7 @@ namespace Coco
 	struct Color;
 
 	/// <summary>
-	/// Represents a 2D vector using integers
+	/// Represents a 2D vector using integer coordinates
 	/// </summary>
 	struct COCOAPI Vector2Int
 	{
