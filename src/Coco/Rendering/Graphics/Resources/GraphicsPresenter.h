@@ -3,14 +3,13 @@
 #include "GraphicsResource.h"
 
 #include <Coco/Core/Types/Size.h>
-#include "../../Pipeline/RenderPipeline.h"
-#include "../GraphicsPlatformTypes.h"
-#include "../RenderView.h"
+#include "GraphicsPresenterTypes.h"
 #include "PresenterSurfaceInitializationInfo.h"
-#include "RenderContext.h"
 
 namespace Coco::Rendering
 {
+	class RenderContext;
+
 	/// <summary>
 	/// A presenter that can be used with a window for displaying rendered images
 	/// </summary>

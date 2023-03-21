@@ -3,15 +3,11 @@
 #include <Coco/Rendering/Graphics/GraphicsPlatform.h>
 
 #include "VulkanIncludes.h"
-#include "GraphicsDeviceVulkan.h"
-
-namespace Coco::Rendering
-{
-    class RenderingService;
-}
 
 namespace Coco::Rendering::Vulkan
 {
+    class GraphicsDeviceVulkan;
+
     /// <summary>
     /// Vulkan implementation of a GraphicsPlatform
     /// </summary>
@@ -34,7 +30,7 @@ namespace Coco::Rendering::Vulkan
 
         Logging::Logger* GetLogger() const noexcept final;
         RenderingRHI GetRHI() const noexcept final { return RenderingRHI::Vulkan; }
-        GraphicsDevice* GetDevice() const noexcept final { return _device.get(); }
+        GraphicsDevice* GetDevice() const noexcept final;
         void ResetDevice() final;
         WeakManagedRef<GraphicsPresenter> CreatePresenter() final;
         WeakManagedRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;

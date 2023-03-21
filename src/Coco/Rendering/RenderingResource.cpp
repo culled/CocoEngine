@@ -1,8 +1,13 @@
 #include "RenderingResource.h"
 
+#include "RenderingService.h"
+
 namespace Coco::Rendering
 {
-    Logging::Logger* RenderingResource::GetRenderingLogger() const 
+    RenderingResource::RenderingResource(ResourceType type) : Resource(type)
+    {}
+
+    Logging::Logger* RenderingResource::GetRenderingLogger() const
     { 
         return EnsureRenderingService()->GetLogger(); 
     }

@@ -13,19 +13,17 @@ namespace Coco
 
 	ExitCode Engine::Run(Managed<Platform::IEnginePlatform> platform)
 	{
-		Platform::IEnginePlatform* platformPtr = platform.get();
-
-		if(platformPtr == nullptr)
+		if(platform.get() == nullptr)
 			return ExitCode::FatalError;
 
 		try
 		{
-			Managed<Engine> engine = CreateManaged<Engine>(std::move(platform));
+			Managed<Engine> engine = CreateManaged<Engine>(platform.get());
 			return engine->Run();
 		}
 		catch (const Exception& ex)
 		{
-			platformPtr->ShowPlatformMessageBox("Fatal error", string(ex.what()), true);
+			platform->ShowPlatformMessageBox("Fatal error", string(ex.what()), true);
 			DebuggerBreak();
 			return ExitCode::FatalError;
 		}
@@ -36,14 +34,15 @@ namespace Coco
 		return _platform->GetPlatformLocalTime() - _startTime;
 	}
 
-	Engine::Engine(Managed<Platform::IEnginePlatform> platform) :
-		_platform(std::move(platform))
+	Engine::Engine(Platform::IEnginePlatform* platform) :
+		_platform(platform)
 	{
 		_instance = this;
 		_startTime = _platform->GetPlatformLocalTime();
 		_logger = CreateManaged<Logging::Logger>("Coco");
 		_serviceManager = CreateManaged<EngineServiceManager>(this);
-		_mainLoop = CreateManaged<MainLoop>(_platform.get());
+		_mainLoop = CreateManaged<MainLoop>(_platform);
+		_resourceLibrary = CreateManaged<ResourceLibrary>("assets/");
 
 		_application = Application::Create(this);
 
@@ -55,9 +54,9 @@ namespace Coco
 		LogTrace(_logger, "Shutting down engine...");
 
 		_application.reset();
+		_resourceLibrary.reset();
 		_serviceManager.reset();
 		_mainLoop.reset();
-		_platform.reset();
 		_logger.reset();
 	}
 

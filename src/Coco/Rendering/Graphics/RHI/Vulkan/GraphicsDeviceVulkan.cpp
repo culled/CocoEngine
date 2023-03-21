@@ -1,8 +1,12 @@
 #include "GraphicsDeviceVulkan.h"
 
+#include <Coco/Core/Logging/Logger.h>
 #include <Coco/Core/Types/Set.h>
 #include "../../../RenderingUtilities.h"
 #include "GraphicsPlatformVulkan.h"
+#include "VulkanQueue.h"
+#include "VulkanRenderCache.h"
+#include "Resources/CommandBufferPoolVulkan.h"
 #include "VulkanUtilities.h"
 
 namespace Coco::Rendering::Vulkan

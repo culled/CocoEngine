@@ -12,9 +12,14 @@
 #include "../GraphicsDeviceVulkan.h"
 #include "../GraphicsPlatformVulkan.h"
 #include "../VulkanShader.h"
+#include "../VulkanRenderCache.h"
 #include "ImageVulkan.h"
-#include "BufferVulkan.h"
 #include "ImageSamplerVulkan.h"
+#include "CommandBufferVulkan.h"
+#include "VulkanDescriptorPool.h"
+#include "BufferVulkan.h"
+#include "RenderContextVulkanCache.h"
+#include "CommandBufferPoolVulkan.h"
 
 
 namespace Coco::Rendering::Vulkan

@@ -1,8 +1,10 @@
 #include "GraphicsPresenterVulkan.h"
 
+#include <Coco/Core/Logging/Logger.h>
 #include "../GraphicsDeviceVulkan.h"
 #include "../GraphicsPlatformVulkan.h"
 #include "../VulkanUtilities.h"
+#include "../VulkanQueue.h"
 #include "ImageVulkan.h"
 #include "GraphicsFenceVulkan.h"
 #include "GraphicsSemaphoreVulkan.h"

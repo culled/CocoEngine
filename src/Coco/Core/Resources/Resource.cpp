@@ -1,5 +1,6 @@
 #include "Resource.h"
 #include <Coco/Core/Engine.h>
+#include "ResourceLoader.h"
 
 namespace Coco
 {
@@ -21,8 +22,11 @@ namespace Coco
 		return IsInvalid() || Engine::Get()->GetMainLoop()->GetTickCount() - LastTickUsed > staleTickThreshold;
 	}
 
-	Resource::Resource() noexcept :
-		_id(GetNewID())
+	Resource::Resource(const string & namedType) noexcept : 
+		_id(GetNewID()), _typename(namedType)
+	{}
+	
+	Resource::Resource(ResourceType type) noexcept : Resource(ResourceTypeToString(type))
 	{}
 
 	ResourceID Resource::GetNewID() noexcept

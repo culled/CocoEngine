@@ -2,8 +2,9 @@
 
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Types/Array.h>
+#include "Graphics/GraphicsDevice.h"
+#include "Loaders/TextureLoader.h"
 #include "Texture.h"
-#include <Coco/Core/MainLoop/MainLoopTickListener.h>
 
 namespace Coco::Rendering
 {
@@ -19,6 +20,9 @@ namespace Coco::Rendering
 		CreateDefaultCheckerTexture();
 
 		RegisterTickListener(this, &RenderingService::Tick, TickPriority);
+
+		ResourceLibrary* resourceLibrary = engine->GetResourceLibrary();
+		resourceLibrary->CreateLoader<TextureLoader>();
 	}
 
 	RenderingService::~RenderingService()

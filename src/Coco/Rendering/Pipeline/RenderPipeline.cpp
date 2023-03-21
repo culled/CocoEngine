@@ -1,13 +1,12 @@
 #include "RenderPipeline.h"
 
-#include <Coco/Rendering/RenderingService.h>
+#include "../RenderingService.h"
 
 namespace Coco::Rendering
 {
 	RenderPipelineAttachmentDescription::RenderPipelineAttachmentDescription(const AttachmentDescription& description) noexcept :
 		Description(description)
-	{
-	}
+	{}
 
 	RenderPipelineAttachmentDescription::~RenderPipelineAttachmentDescription()
 	{
@@ -34,7 +33,7 @@ namespace Coco::Rendering
 		IsUsedInFirstPipelinePass = FirstUsePassIndex == 0;
 	}
 
-	RenderPipeline::RenderPipeline() :
+	RenderPipeline::RenderPipeline() : RenderingResource(ResourceType::RenderPipeline),
 		_clearColor(Color::Black)
 	{}
 
@@ -107,7 +106,7 @@ namespace Coco::Rendering
 			}
 			catch (const Exception& ex)
 			{
-				LogError(RenderingService::Get()->GetLogger(), FormattedString("Failed to execute \"{}\": {}", renderPass->GetName(), ex.what()));
+				LogError(GetRenderingLogger(), FormattedString("Failed to execute \"{}\": {}", renderPass->GetName(), ex.what()));
 			}
 		}
 	}

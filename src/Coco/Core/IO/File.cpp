@@ -162,9 +162,12 @@ namespace Coco
 	{
 		CheckHandle();
 
+		if (_handle.eof())
+			return false;
+
 		std::getline(_handle, text, lineEnd);
 
-		return !_handle.eof();
+		return true;
 	}
 
 	void File::WriteLine(const string& text)

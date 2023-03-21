@@ -1,17 +1,23 @@
 #pragma once
 
 #include <Coco/Core/Resources/Resource.h>
-#include "RenderingService.h"
+
+namespace Coco::Logging
+{
+	class Logger;
+}
 
 namespace Coco::Rendering
 {
+	class RenderingService;
+
 	/// <summary>
 	/// A Resource that has access to the RenderingService
 	/// </summary>
 	class COCOAPI RenderingResource : public Resource
 	{
 	protected:
-		RenderingResource() = default;
+		RenderingResource(ResourceType type);
 
 	public:
 		virtual ~RenderingResource() = default;

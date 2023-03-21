@@ -5,7 +5,6 @@
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
 #include "../RenderView.h"
-#include "Buffer.h"
 #include "RenderContextTypes.h"
 
 namespace Coco::Rendering

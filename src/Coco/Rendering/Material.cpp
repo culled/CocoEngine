@@ -2,10 +2,11 @@
 
 #include "RenderingUtilities.h"
 #include "RenderingService.h"
+#include "Graphics/GraphicsDevice.h"
 
 namespace Coco::Rendering
 {
-	Material::Material(Ref<Rendering::Shader> shader) :
+	Material::Material(Ref<Rendering::Shader> shader) : RenderingResource(ResourceType::Material),
 		Shader(shader)
 	{
 		UpdatePropertyMaps(true);

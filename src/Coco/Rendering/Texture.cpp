@@ -2,6 +2,7 @@
 
 #include "Graphics/GraphicsPlatform.h"
 #include "RenderingService.h"
+#include <Coco/Core/Engine.h>
 
 #include <Coco/Vendor/stb/stb_image.h>
 
@@ -15,31 +16,36 @@ namespace Coco::Rendering
 		ImageUsageFlags usageFlags,
 		FilterMode filterMode,
 		RepeatMode repeatMode,
-		uint maxAnisotropy) :
-		_filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
+		uint maxAnisotropy
+	) : RenderingResource(ResourceType::Texture),
+		_usageFlags(usageFlags), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
 	{
-		_description.Width = width;
-		_description.Height = height;
-		_description.PixelFormat = pixelFormat;
-		_description.ColorSpace = colorSpace;
-		_description.UsageFlags = usageFlags;
-
-		RecreateInternalImage();
+		RecreateImageFromDescription(ImageDescription(width, height, 1, pixelFormat, colorSpace, usageFlags));
 		RecreateInternalSampler();
 	}
 
-	Texture::Texture(const ImageDescription& description, FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) :
-		_description(description), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
+	Texture::Texture(
+		const ImageDescription& description, 
+		FilterMode filterMode, 
+		RepeatMode repeatMode, 
+		uint maxAnisotropy
+	) : RenderingResource(ResourceType::Texture),
+		_usageFlags(description.UsageFlags), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
 	{
-		RecreateInternalImage();
+		RecreateImageFromDescription(description);
 		RecreateInternalSampler();
 	}
 
-	Texture::Texture(const string& filePath, ImageUsageFlags usageFlags, FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy, int channelCount) :
-		_filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
+	Texture::Texture(
+		const string& filePath, 
+		ImageUsageFlags usageFlags, 
+		FilterMode filterMode, 
+		RepeatMode repeatMode, 
+		uint maxAnisotropy, 
+		int channelCount
+	) : RenderingResource(ResourceType::Texture),
+		_usageFlags(usageFlags), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
 	{
-		_description.UsageFlags = usageFlags;
-
 		LoadFromFile(filePath, channelCount);
 		RecreateInternalSampler();
 	}
@@ -48,6 +54,14 @@ namespace Coco::Rendering
 	{
 		_sampler.Invalidate();
 		_image.Invalidate();
+	}
+
+	ImageDescription Texture::GetDescription() const noexcept
+	{
+		if (_image.IsValid())
+			return _image->GetDescription();
+		
+		return ImageDescription::Empty;
 	}
 
 	void Texture::SetPixels(uint64_t offset, uint64_t size, const void* pixelData)
@@ -73,13 +87,15 @@ namespace Coco::Rendering
 		// Set Y = 0 to the top
 		stbi_set_flip_vertically_on_load(true);
 
-		// Create a new texture description with the current usage flags
+		// Create a new texture description with the given usage flags
 		ImageDescription description = {};
-		description.UsageFlags = _description.UsageFlags;
+		description.UsageFlags = _usageFlags;
+
+		const string fullFilePath = Engine::Get()->GetResourceLibrary()->BasePath + filePath;
 
 		// Load in the image data from the file
 		int actualChannelCount;
-		uint8_t* rawImageData = stbi_load(filePath.c_str(), &description.Width, &description.Height, &actualChannelCount, imageChannelCount);
+		uint8_t* rawImageData = stbi_load(fullFilePath.c_str(), &description.Width, &description.Height, &actualChannelCount, imageChannelCount);
 
 		if (rawImageData == nullptr || stbi_failure_reason())
 		{
@@ -119,21 +135,20 @@ namespace Coco::Rendering
 
 		// Hold onto the old image data just in-case the transfer fails
 		ResourceVersion oldVersion = GetVersion();
-		ImageDescription oldDescription = _description;
 		WeakManagedRef<Image> oldImage = _image;
 
 		try
 		{
 			// Load the image data into this texture
-			RecreateFromDescription(description);
+			RecreateImageFromDescription(description);
 			SetPixels(0, byteSize, rawImageData);
+			_imageFilePath = filePath;
 		}
 		catch (const Exception& ex)
 		{
 			LogError(renderService->GetLogger(), FormattedString("Failed to transfer image data into backend: {}", ex.what()));
 
 			// Revert to the previous image data
-			_description = oldDescription;
 			_image = oldImage;
 			SetVersion(oldVersion);
 
@@ -147,16 +162,9 @@ namespace Coco::Rendering
 		return true;
 	}
 
-	void Texture::RecreateFromDescription(const ImageDescription& newDescription)
+	void Texture::RecreateImageFromDescription(const ImageDescription& newDescription)
 	{
-		_description = newDescription;
-
-		RecreateInternalImage();
-	}
-
-	void Texture::RecreateInternalImage()
-	{
-		_image = EnsureRenderingService()->GetPlatform()->CreateImage(_description);
+		_image = EnsureRenderingService()->GetPlatform()->CreateImage(newDescription);
 	}
 
 	void Texture::RecreateInternalSampler()

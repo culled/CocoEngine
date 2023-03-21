@@ -3,15 +3,20 @@
 #include <Coco/Core/Resources/Resource.h>
 
 #include <Coco/Core/Types/Map.h>
-#include <Coco/Rendering/Material.h>
 #include "../VulkanIncludes.h"
-#include "../GraphicsDeviceVulkan.h"
-#include "../VulkanShader.h"
-#include "VulkanDescriptorPool.h"
-#include "BufferVulkan.h"
+
+namespace Coco::Rendering
+{
+	class Material;
+}
 
 namespace Coco::Rendering::Vulkan
 {
+	class VulkanShader;
+	class GraphicsDeviceVulkan;
+	class BufferVulkan;
+	class VulkanDescriptorPool;
+
 	/// <summary>
 	/// A cached shader resource
 	/// </summary>
@@ -120,7 +125,7 @@ namespace Coco::Rendering::Vulkan
 		/// Gets the material buffer
 		/// </summary>
 		/// <returns>The material buffer</returns>
-		WeakManagedRef<BufferVulkan> GetMaterialBuffer(uint bufferIndex) const noexcept { return _materialUBOs[bufferIndex].Buffer; }
+		WeakManagedRef<BufferVulkan> GetMaterialBuffer(uint bufferIndex) const noexcept;
 
 		/// <summary>
 		/// Purges unused and invalid resources

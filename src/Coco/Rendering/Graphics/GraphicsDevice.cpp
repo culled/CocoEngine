@@ -1,7 +1,7 @@
 #include "GraphicsDevice.h"
 
-#include <Coco/Rendering/RenderingService.h>
 #include <Coco/Core/Logging/Logger.h>
+#include "Resources/GraphicsResource.h"
 
 namespace Coco::Rendering
 {

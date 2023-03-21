@@ -26,6 +26,12 @@ namespace Coco
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
 
+	//template<class To>
+	//using RefCast = std::static_pointer_cast<To>;
+	//
+	//template<class To>
+	//using SafeRefCast = std::dynamic_pointer_cast<To>;
+
 	/// <summary>
 	/// A weak reference to a reference
 	/// </summary>

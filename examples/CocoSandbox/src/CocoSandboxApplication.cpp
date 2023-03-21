@@ -60,7 +60,8 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 		},
 		ShaderStageType::Fragment);
 
-	_texture = CreateRef<Texture>(s_textureFiles.at(0), ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
+	//_texture = CreateRef<Texture>(s_textureFiles.at(0), ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
+	_texture = std::static_pointer_cast<Texture>(engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Texture, s_textureFiles.at(0)));
 
 	_material = CreateRef<Material>(_shader);
 	_material->SetVector4("_BaseColor", Color::White);
@@ -166,7 +167,8 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{
 		_textureIndex = (_textureIndex + 1) % static_cast<uint>(s_textureFiles.size());
-		_texture->LoadFromFile(s_textureFiles.at(_textureIndex));
+		_texture = std::static_pointer_cast<Texture>(Engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Texture, s_textureFiles.at(_textureIndex)));
+		_material->SetTexture("_MainTex", _texture);
 	}
 
 	_rp->UpdateMeshTransform(_meshTransform);

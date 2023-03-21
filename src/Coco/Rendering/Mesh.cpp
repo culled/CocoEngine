@@ -8,7 +8,7 @@ namespace Coco::Rendering
 	const uint64_t Mesh::VertexBufferSize = sizeof(VertexData) * 1024 * 1024;
 	const uint64_t Mesh::IndexBufferSize = sizeof(uint32_t) * 1024 * 1024;
 
-	Mesh::Mesh()
+	Mesh::Mesh() : RenderingResource(ResourceType::Mesh)
 	{
 		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
 

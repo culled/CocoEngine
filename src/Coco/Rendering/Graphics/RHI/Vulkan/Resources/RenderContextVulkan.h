@@ -2,16 +2,14 @@
 
 #include <Coco/Rendering/Graphics/Resources/RenderContext.h>
 
+#include <Coco/Core/Resources/Resource.h>
 #include <Coco/Core/Types/List.h>
+#include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/Set.h>
-#include "../VulkanRenderCache.h"
 #include "../VulkanIncludes.h"
 #include "GraphicsFenceVulkan.h"
 #include "GraphicsSemaphoreVulkan.h"
-#include "CommandBufferVulkan.h"
-#include "VulkanDescriptorPool.h"
-#include "BufferVulkan.h"
-#include "RenderContextVulkanCache.h"
+#include "VulkanDescriptorSet.h"
 
 namespace Coco::Rendering
 {
@@ -25,6 +23,13 @@ namespace Coco::Rendering::Vulkan
 	class GraphicsDeviceVulkan;
 	class ImageVulkan;
 	class RenderCacheVulkan;
+	class RenderContextVulkanCache;
+	class CommandBufferPoolVulkan;
+	class CommandBufferVulkan;
+	class BufferVulkan;
+	class VulkanDescriptorPool;
+	struct CachedVulkanRenderPass;
+	struct CachedVulkanPipeline;
 
 	/// <summary>
 	/// A cached Vulkan framebuffer

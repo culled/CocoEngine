@@ -3,9 +3,8 @@
 #include <Coco/Rendering/Graphics/Resources/GraphicsPresenter.h>
 
 #include <Coco/Core/Types/List.h>
-#include "ImageVulkan.h"
-#include "RenderContextVulkan.h"
 #include "../VulkanIncludes.h"
+#include "../../../Resources/ImageTypes.h"
 
 namespace Coco::Rendering
 {
@@ -19,6 +18,8 @@ namespace Coco::Rendering::Vulkan
 	class GraphicsSemaphoreVulkan;
 	class CommandBufferVulkan;
 	class BufferVulkan;
+	class ImageVulkan;
+	class RenderContextVulkan;
 
 	/// <summary>
 	/// Support details for a swapchain

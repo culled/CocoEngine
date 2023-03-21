@@ -8,6 +8,7 @@
 #include <Coco/Core/Platform/IEnginePlatform.h>
 #include <Coco/Core/Services/EngineServiceManager.h>
 #include <Coco/Core/MainLoop/MainLoop.h>
+#include "Resources/ResourceLibrary.h"
 #include "Application.h"
 
 namespace Coco
@@ -24,13 +25,14 @@ namespace Coco
 
 		ExitCode _exitCode = ExitCode::Ok;
 		Managed<Logging::Logger> _logger;
-		Managed<Platform::IEnginePlatform> _platform;
+		Platform::IEnginePlatform* _platform;
 		Managed<Application> _application;
 		Managed<EngineServiceManager> _serviceManager;
 		Managed<MainLoop> _mainLoop;
+		Managed<ResourceLibrary> _resourceLibrary;
 
 	public:
-		Engine(Managed<Platform::IEnginePlatform> platform);
+		Engine(Platform::IEnginePlatform* platform);
 		virtual ~Engine();
 
 		Engine() = delete;
@@ -63,7 +65,7 @@ namespace Coco
 		/// Gets the engine's platform
 		/// </summary>
 		/// <returns>The engine's platform</returns>
-		Platform::IEnginePlatform* GetPlatform() const noexcept { return _platform.get(); }
+		Platform::IEnginePlatform* GetPlatform() const noexcept { return _platform; }
 
 		/// <summary>
 		/// Gets the client application
@@ -82,6 +84,12 @@ namespace Coco
 		/// </summary>
 		/// <returns>The main loop</returns>
 		MainLoop* GetMainLoop() const noexcept { return _mainLoop.get(); }
+
+		/// <summary>
+		/// Gets the resource library
+		/// </summary>
+		/// <returns>The resource library</returns>
+		ResourceLibrary* GetResourceLibrary() const noexcept { return _resourceLibrary.get(); }
 
 		/// <summary>
 		/// Sets the exit code for the engine. Will be used unless an error occurs

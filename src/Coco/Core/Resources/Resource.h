@@ -2,6 +2,7 @@
 
 #include <Coco/Core/Core.h>
 
+#include "ResourceTypes.h"
 #include <atomic>
 
 namespace Coco
@@ -40,19 +41,26 @@ namespace Coco
 	/// </summary>
 	class COCOAPI Resource
 	{
+		friend class ResourceLoader;
+
 	private:
 		static std::atomic<ResourceID> s_ResourceIndex;
 		ResourceID _id = InvalidID;
 		std::atomic<ResourceVersion> _version = 0;
+		string _typename;
+		string _filePath;
 
 	public:
 		/// <summary>
 		/// An invalid ID
 		/// </summary>
-		const static ResourceID InvalidID = Math::MaxValue<ResourceID>();
+		constexpr static ResourceID InvalidID = Math::MaxValue<ResourceID>();
+
+	protected:
+		Resource(const string& namedType) noexcept;
+		Resource(ResourceType type) noexcept;
 
 	public:
-		Resource() noexcept;
 		virtual ~Resource() noexcept = default;
 
 		Resource(const Resource&) = delete;
@@ -72,6 +80,18 @@ namespace Coco
 		/// <returns>This resource's version number</returns>
 		ResourceVersion GetVersion() const noexcept { return _version; }
 
+		/// <summary>
+		/// Gets the type of this resource
+		/// </summary>
+		/// <returns>This resource's type</returns>
+		const char* GetTypename() const noexcept { return _typename.c_str(); }
+
+		/// <summary>
+		/// Gets the path to the file this resource is loaded from (if any)
+		/// </summary>
+		/// <returns>The path to the file this resource is loaded from, or an empty string if this resource isn't saved to disk</returns>
+		const string& GetFilePath() const noexcept { return _filePath; }
+
 	protected:
 		/// <summary>
 		/// Increments this resource's version number
@@ -90,5 +110,11 @@ namespace Coco
 		/// </summary>
 		/// <returns>A unique ID</returns>
 		static ResourceID GetNewID() noexcept;
+
+		/// <summary>
+		/// Sets this resource's file path
+		/// </summary>
+		/// <param name="filePath">The file path</param>
+		void SetFilePath(const string& filePath) { _filePath = filePath; }
 	};
 }

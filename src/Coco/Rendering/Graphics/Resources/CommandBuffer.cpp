@@ -1,4 +1,6 @@
 #include "CommandBuffer.h"
+#include "IGraphicsSemaphore.h"
+#include "IGraphicsFence.h"
 
 namespace Coco::Rendering
 {

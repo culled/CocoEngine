@@ -1,0 +1,7 @@
+version=1
+imageFile=textures/LargeBlocks.png
+usageFlags=7
+filterMode=1
+repeatMode=0
+maxAnisotropy=16
+channelCount=4

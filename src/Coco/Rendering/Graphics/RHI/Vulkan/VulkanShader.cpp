@@ -2,6 +2,9 @@
 
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/IO/File.h>
+#include <Coco/Rendering/Shader.h>
+#include "Resources/VulkanDescriptorSet.h"
+#include "Resources/VulkanDescriptorPool.h"
 #include "GraphicsDeviceVulkan.h"
 #include "VulkanUtilities.h"
 

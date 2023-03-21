@@ -3,13 +3,16 @@
 #include <Coco/Core/Types/Array.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Optional.h>
+#include <Coco/Core/Logging/Logger.h>
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 #include <Coco/Rendering/Pipeline/RenderPipelineBinding.h>
 #include <Coco/Rendering/Graphics/GraphicsPipelineState.h>
 #include <Coco/Rendering/Mesh.h>
+#include <Coco/Rendering/Shader.h>
 #include "GraphicsDeviceVulkan.h"
 #include "VulkanUtilities.h"
 #include "VulkanShader.h"
+#include "Resources/VulkanDescriptorSet.h"
 
 namespace Coco::Rendering::Vulkan
 {

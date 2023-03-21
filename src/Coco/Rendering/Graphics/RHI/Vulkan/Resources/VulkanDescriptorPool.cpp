@@ -1,5 +1,6 @@
 #include "VulkanDescriptorPool.h"
 
+#include <Coco/Core/Logging/Logger.h>
 #include "../GraphicsDeviceVulkan.h"
 #include "../GraphicsPlatformVulkan.h"
 

@@ -44,7 +44,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	Shader::Shader(const string& name) :
+	Shader::Shader(const string& name) : RenderingResource(ResourceType::Shader),
 		_name(name)
 	{}
 

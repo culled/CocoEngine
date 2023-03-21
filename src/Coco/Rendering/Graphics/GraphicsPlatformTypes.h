@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GraphicsDeviceTypes.h"
+
 namespace Coco::Rendering
 {
 	/// <summary>
@@ -13,23 +15,25 @@ namespace Coco::Rendering
 	};
 
 	/// <summary>
-	/// Types of graphics devices
+	/// Parameters for creating a graphics platform
 	/// </summary>
-	enum class GraphicsDeviceType
+	struct COCOAPI GraphicsPlatformCreationParameters
 	{
-		Discrete,
-		Integrated,
-		CPU,
-		Other
-	};
+		/// <summary>
+		/// The name of the application
+		/// </summary>
+		string ApplicationName;
 
-	/// <summary>
-	/// Vertical sync modes
-	/// </summary>
-	enum class VerticalSyncMode
-	{
-		Disabled,
-		Enabled,
-		Mailbox
+		/// <summary>
+		/// The type of render hardware interface to use
+		/// </summary>
+		RenderingRHI RHI;
+
+		/// <summary>
+		/// Parameters for creating the graphics device
+		/// </summary>
+		GraphicsDeviceCreationParameters DeviceCreateParams = {};
+
+		GraphicsPlatformCreationParameters(const string& applicationName, RenderingRHI rhi) : ApplicationName(applicationName), RHI(rhi) {}
 	};
 }

@@ -40,25 +40,17 @@ project "CocoSandbox"
             "vulkan-1.lib"
         }
 
-    filter "system:windows"
-        postbuildcommands
-        {
-            "echo Copying assets to %{TargetDir}assets...", 
-            "xcopy %{AssetsDir} %{TargetDir}assets /h /i /c /k /e /r /y",
-            "echo Assets copied"
-        }  
-
     filter {"system:windows", "options:vulkan-enabled"}
         -- TEMPORARY
         postbuildcommands
         {
-            "if not exist %{TargetDir}assets\\shaders mkdir %{TargetDir}assets\\shaders",
+            "if not exist %{AssetsDir}shaders mkdir %{AssetsDir}shaders",
             "echo Compiling shaders...", 
-            "echo %{TargetDir}assets\\shaders\\built-in\\ObjectShader.vert.glsl to %{TargetDir}assets\\shaders\\built-in\\ObjectShader.vert.spv",
-            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=vert %{TargetDir}assets\\shaders\\built-in\\ObjectShader.vert.glsl -o %{TargetDir}assets\\shaders\\built-in\\ObjectShader.vert.spv",
+            "echo %{AssetsDir}shaders\\built-in\\ObjectShader.vert.glsl to %{AssetsDir}shaders\\built-in\\ObjectShader.vert.spv",
+            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=vert %{AssetsDir}shaders\\built-in\\ObjectShader.vert.glsl -o %{AssetsDir}shaders\\built-in\\ObjectShader.vert.spv",
             "if %ERRORLEVEL% NEQ 0 (echo Error compiling vertex shader: %ERRORLEVEL% && exit)",
-            "echo %{TargetDir}assets\\shaders\\built-in\\ObjectShader.frag.glsl to %{TargetDir}assets\\shaders\\built-in\\ObjectShader.frag.spv",
-            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=frag %{TargetDir}assets\\shaders\\built-in\\ObjectShader.frag.glsl -o %{TargetDir}assets\\shaders\\built-in\\ObjectShader.frag.spv",
+            "echo %{AssetsDir}shaders\\built-in\\ObjectShader.frag.glsl to %{AssetsDir}shaders\\built-in\\ObjectShader.frag.spv",
+            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=frag %{AssetsDir}shaders\\built-in\\ObjectShader.frag.glsl -o %{AssetsDir}shaders\\built-in\\ObjectShader.frag.spv",
             "if %ERRORLEVEL% NEQ 0 (echo Error compiling fragment shader: %ERRORLEVEL% && exit)",
             "echo Shaders compiled"
         }
@@ -71,7 +63,7 @@ project "CocoSandbox"
             "COCO_LOG_WARNING",
         }
 
-        debugdir "%{OutputDir.bin}%{prj.name}\\"
+        debugdir "%{wks.location}"
 
         runtime "Debug"
         symbols "on"

@@ -6,17 +6,18 @@
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/Optional.h>
 #include <Coco/Rendering/Graphics/AttachmentDescription.h>
-#include "VulkanShader.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
 {
 	class RenderPipeline;
+	class Shader;
 }
 
 namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
+	class VulkanShader;
 
 	/// <summary>
 	/// Information for a RenderPass Subpass

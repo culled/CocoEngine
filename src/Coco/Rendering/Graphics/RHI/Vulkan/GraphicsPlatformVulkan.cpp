@@ -8,6 +8,7 @@
 #include "Resources/BufferVulkan.h"
 #include "Resources/ImageVulkan.h"
 #include "Resources/ImageSamplerVulkan.h"
+#include "GraphicsDeviceVulkan.h"
 
 #include "VulkanUtilities.h"
 
@@ -138,10 +139,9 @@ namespace Coco::Rendering::Vulkan
 		LogTrace(GetLogger(), "Destroyed Vulkan graphics platform");
 	}
 
-	Logging::Logger* GraphicsPlatformVulkan::GetLogger() const noexcept
-	{
-		return RenderService->GetLogger();
-	}
+	Logging::Logger* GraphicsPlatformVulkan::GetLogger() const noexcept { return RenderService->GetLogger(); }
+
+	GraphicsDevice* GraphicsPlatformVulkan::GetDevice() const noexcept { return _device.get(); }
 
 	void GraphicsPlatformVulkan::ResetDevice()
 	{

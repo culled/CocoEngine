@@ -85,7 +85,7 @@ namespace Coco
 		ManagedRef(const ManagedRef&) = delete;
 		ManagedRef& operator=(const ManagedRef&) = delete;
 
-		ManagedRef& operator=(ManagedRef&& other)
+		ManagedRef& operator=(ManagedRef&& other) noexcept
 		{
 			_managedResource = std::move(other._managedResource);
 			_controlBlock = std::move(other._controlBlock);
@@ -195,7 +195,7 @@ namespace Coco
 			_ptr = nullptr;
 		}
 
-		WeakManagedRef& operator=(const WeakManagedRef& other)
+		WeakManagedRef& operator=(const WeakManagedRef& other) noexcept
 		{
 			_controlBlock = other._controlBlock;
 			_ptr = other._ptr;
@@ -203,7 +203,7 @@ namespace Coco
 			return *this;
 		}
 
-		WeakManagedRef& operator=(WeakManagedRef&& other)
+		WeakManagedRef& operator=(WeakManagedRef&& other) noexcept
 		{
 			_controlBlock = std::move(other._controlBlock);
 			_ptr = std::move(other._ptr);

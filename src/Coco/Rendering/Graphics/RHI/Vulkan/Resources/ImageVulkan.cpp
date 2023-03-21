@@ -1,10 +1,12 @@
 #include "ImageVulkan.h"
 
+#include <Coco/Core/Logging/Logger.h>
 #include "../GraphicsDeviceVulkan.h"
 #include "../GraphicsPlatformVulkan.h"
 #include "../VulkanUtilities.h"
-
+#include "../VulkanQueue.h"
 #include "BufferVulkan.h"
+#include "CommandBufferPoolVulkan.h"
 #include "CommandBufferVulkan.h"
 
 #include <vulkan/vk_enum_string_helper.h>

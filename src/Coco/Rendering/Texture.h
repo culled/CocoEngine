@@ -14,11 +14,12 @@ namespace Coco::Rendering
 	{
 	private:
 		WeakManagedRef<Image> _image;
+		ImageUsageFlags _usageFlags;
 		WeakManagedRef<ImageSampler> _sampler;
-		ImageDescription _description = {};
 		FilterMode _filterMode = FilterMode::Linear;
 		RepeatMode _repeatMode = RepeatMode::Repeat;
 		uint _maxAnisotropy = 0;
+		string _imageFilePath;
 
 	public:
 		Texture(
@@ -29,19 +30,24 @@ namespace Coco::Rendering
 			ImageUsageFlags usageFlags, 
 			FilterMode filterMode = FilterMode::Linear,
 			RepeatMode repeatMode = RepeatMode::Repeat,
-			uint maxAnisotropy = 16);
+			uint maxAnisotropy = 16
+		);
 
-		Texture(const ImageDescription& description,
+		Texture(
+			const ImageDescription& description,
 			FilterMode filterMode = FilterMode::Linear,
 			RepeatMode repeatMode = RepeatMode::Repeat,
-			uint maxAnisotropy = 16);
+			uint maxAnisotropy = 16
+		);
 
-		Texture(const string& filePath,
+		Texture(
+			const string& filePath,
 			ImageUsageFlags usageFlags,
 			FilterMode filterMode = FilterMode::Linear,
 			RepeatMode repeatMode = RepeatMode::Repeat,
 			uint maxAnisotropy = 16,
-			int channelCount = 4);
+			int channelCount = 4
+		);
 
 		virtual ~Texture();
 
@@ -60,6 +66,12 @@ namespace Coco::Rendering
 		/// <param name="filterMode">The filter mode</param>
 		/// <param name="maxAnisotropy">The maximum amount of anisotropy to use</param>
 		void SetSamplerProperties(RepeatMode repeatMode, FilterMode filterMode, uint maxAnisotropy);
+
+		/// <summary>
+		/// Gets the image description of this texture
+		/// </summary>
+		/// <returns>The image description of this texture</returns>
+		ImageDescription GetDescription() const noexcept;
 
 		/// <summary>
 		/// Gets the repeat mode for this texture's sampler
@@ -99,17 +111,18 @@ namespace Coco::Rendering
 		/// <returns>True if the image was loaded successfully</returns>
 		bool LoadFromFile(const string& filePath, int channelCount = 4);
 
+		/// <summary>
+		/// Gets the path to the image that this texture has loaded, if any
+		/// </summary>
+		/// <returns>The path to the image that this texture has loaded, or an empty string if one has not been loaded</returns>
+		const string& GetImageFilePath() const noexcept { return _imageFilePath; }
+
 	private:
 		/// <summary>
-		/// Recreates the internal image to use a given description
+		/// Recreates the internal image using a given description
 		/// </summary>
 		/// <param name="newDescription">The new image description</param>
-		void RecreateFromDescription(const ImageDescription& newDescription);
-
-		/// <summary>
-		/// Recreates the internal image
-		/// </summary>
-		void RecreateInternalImage();
+		void RecreateImageFromDescription(const ImageDescription& newDescription);
 
 		/// <summary>
 		/// Recreates the internal sampler

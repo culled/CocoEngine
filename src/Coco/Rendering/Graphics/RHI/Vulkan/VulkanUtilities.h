@@ -3,12 +3,13 @@
 #include <Coco/Core/Core.h>
 
 #include <Coco/Core/Types/Version.h>
-#include <Coco/Rendering/Graphics/GraphicsPlatformTypes.h>
 #include <Coco/Rendering/ShaderTypes.h>
+#include <Coco/Rendering/Graphics/GraphicsPlatformTypes.h>
 #include <Coco/Rendering/Graphics/GraphicsPipelineTypes.h>
 #include <Coco/Rendering/Graphics/Resources/ImageTypes.h>
 #include <Coco/Rendering/Graphics/Resources/BufferTypes.h>
 #include <Coco/Rendering/Graphics/Resources/ImageSamplerTypes.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsPresenterTypes.h>
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan

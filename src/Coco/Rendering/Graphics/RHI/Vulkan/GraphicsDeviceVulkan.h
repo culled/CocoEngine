@@ -3,14 +3,14 @@
 #include <Coco/Rendering/Graphics/GraphicsDevice.h>
 
 #include <Coco/Core/Types/Optional.h>
-#include "VulkanQueue.h"
-#include "VulkanRenderCache.h"
 #include "VulkanIncludes.h"
-#include "Resources/CommandBufferPoolVulkan.h"
 
 namespace Coco::Rendering::Vulkan
 {
     class GraphicsPlatformVulkan;
+    struct VulkanQueue;
+    class VulkanRenderCache;
+    class CommandBufferPoolVulkan;
 
     /// <summary>
     /// A ranking for a VkPhysicalDevice

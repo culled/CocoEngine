@@ -2,8 +2,6 @@
 
 #include <Coco/Rendering/Graphics/Resources/Image.h>
 
-#include "CommandBufferVulkan.h"
-#include "BufferVulkan.h"
 #include "../VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -14,6 +12,8 @@ namespace Coco::Rendering
 namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
+	class BufferVulkan;
+	class CommandBufferVulkan;
 
 	/// <summary>
 	/// Vulkan-implementation of an Image

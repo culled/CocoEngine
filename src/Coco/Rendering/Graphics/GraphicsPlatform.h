@@ -1,43 +1,26 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-#include <Coco/Core/Logging/Logger.h>
-#include <Coco/Core/Types/ManagedRef.h>
 
-#include "GraphicsPlatformTypes.h"
-#include "GraphicsDevice.h"
-#include "Resources/GraphicsPresenter.h"
-#include "Resources/Buffer.h"
-#include "Resources/Image.h"
-#include "Resources/ImageSampler.h"
 #include <Coco/Core/Types/Matrix.h>
+#include "Resources/ImageTypes.h"
+#include "Resources/ImageSamplerTypes.h"
+#include "Resources/BufferTypes.h"
+#include "GraphicsPlatformTypes.h"
+
+namespace Coco::Logging
+{
+	class Logger;
+}
 
 namespace Coco::Rendering
 {
+	class GraphicsDevice;
 	class RenderingService;
-
-	/// <summary>
-	/// Parameters for creating a graphics platform
-	/// </summary>
-	struct COCOAPI GraphicsPlatformCreationParameters
-	{
-		/// <summary>
-		/// The name of the application
-		/// </summary>
-		string ApplicationName;
-
-		/// <summary>
-		/// The type of render hardware interface to use
-		/// </summary>
-		RenderingRHI RHI;
-
-		/// <summary>
-		/// Parameters for creating the graphics device
-		/// </summary>
-		GraphicsDeviceCreationParameters DeviceCreateParams = {};
-
-		GraphicsPlatformCreationParameters(const string& applicationName, RenderingRHI rhi) : ApplicationName(applicationName), RHI(rhi) {}
-	};
+	class Image;
+	class Buffer;
+	class ImageSampler;
+	class GraphicsPresenter;
 
 	/// <summary>
 	/// A platform that interfaces with low-level rendering hardware

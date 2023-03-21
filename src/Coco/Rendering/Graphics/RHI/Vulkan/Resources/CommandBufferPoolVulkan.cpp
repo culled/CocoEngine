@@ -1,7 +1,7 @@
 #include "CommandBufferPoolVulkan.h"
 
+#include <Coco/Core/Logging/Logger.h>
 #include "../GraphicsDeviceVulkan.h"
-#include "CommandBufferVulkan.h"
 
 namespace Coco::Rendering::Vulkan
 {

@@ -357,3 +357,6 @@ MigrationBackup/
 
 # Generated documentation
 docs/generated/
+
+# Built shaders
+*.spv

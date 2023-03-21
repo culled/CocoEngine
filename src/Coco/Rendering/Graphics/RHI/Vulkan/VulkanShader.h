@@ -4,20 +4,20 @@
 
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Map.h>
-#include <Coco/Rendering/Shader.h>
 #include <Coco/Rendering/ShaderTypes.h>
-#include "Resources/VulkanDescriptorSet.h"
-#include "Resources/VulkanDescriptorPool.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
 {
 	class GraphicsDevice;
+	class Shader;
 }
 
 namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
+	struct VulkanDescriptorLayout;
+	class VulkanDescriptorPool;
 
 	/// <summary>
 	/// A Vulkan shader stage

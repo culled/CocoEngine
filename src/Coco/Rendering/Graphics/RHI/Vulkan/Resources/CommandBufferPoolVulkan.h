@@ -4,8 +4,8 @@
 
 #include <Coco/Core/Types/List.h>
 #include "CommandBufferVulkan.h"
-#include "../VulkanQueue.h"
 #include "../VulkanIncludes.h"
+#include "../VulkanQueue.h"
 
 namespace Coco::Rendering::Vulkan
 {

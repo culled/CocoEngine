@@ -1,7 +1,11 @@
 #include "RenderContextVulkanCache.h"
 
-#include <Coco/Core/Engine.h>
-#include <Coco/Core/MainLoop/MainLoop.h>
+#include <Coco/Core/Logging/Logger.h>
+#include <Coco/Rendering/Material.h>
+#include "../GraphicsDeviceVulkan.h"
+#include "../VulkanShader.h"
+#include "VulkanDescriptorPool.h"
+#include "BufferVulkan.h"
 
 namespace Coco::Rendering::Vulkan
 {
@@ -56,9 +60,7 @@ namespace Coco::Rendering::Vulkan
 
 	RenderContextVulkanCache::RenderContextVulkanCache(GraphicsDeviceVulkan* device) :
 		_device(device)
-	{
-		//CreateAdditionalMaterialBuffer();
-	}
+	{}
 
 	RenderContextVulkanCache::~RenderContextVulkanCache()
 	{
@@ -153,6 +155,14 @@ namespace Coco::Rendering::Vulkan
 		for (auto& shaderKVP : _shaderCache)
 			shaderKVP.second.Pool->FreeSets();
 	}
+
+
+	/// <summary>
+	/// Gets the material buffer
+	/// </summary>
+	/// <returns>The material buffer</returns>
+
+	WeakManagedRef<BufferVulkan> RenderContextVulkanCache::GetMaterialBuffer(uint bufferIndex) const noexcept { return _materialUBOs[bufferIndex].Buffer; }
 
 	void RenderContextVulkanCache::PurgeResources() noexcept
 	{

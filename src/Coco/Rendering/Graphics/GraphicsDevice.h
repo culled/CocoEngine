@@ -6,8 +6,7 @@
 #include <Coco/Core/Types/Version.h>
 #include <Coco/Core/Types/ManagedRef.h>
 #include <Coco/Core/Events/Event.h>
-#include "Resources/GraphicsResource.h"
-#include "GraphicsPlatformTypes.h"
+#include "GraphicsDeviceTypes.h"
 
 namespace Coco::Logging
 {
@@ -17,48 +16,6 @@ namespace Coco::Logging
 namespace Coco::Rendering
 {
 	class IGraphicsResource;
-
-	/// <summary>
-	/// Memory features for a GraphicsDevice
-	/// </summary>
-	struct COCOAPI GraphicsDeviceMemoryFeatures
-	{
-		/// <summary>
-		/// If true, this device support host visible local memory
-		/// </summary>
-		bool SupportsLocalHostBufferMemory = false;
-	};
-
-	/// <summary>
-	/// Parameters for choosing and creating a graphics device
-	/// </summary>
-	struct COCOAPI GraphicsDeviceCreationParameters
-	{
-		/// <summary>
-		/// The ideal type of rendering device to pick
-		/// </summary>
-		GraphicsDeviceType PreferredDeviceType = GraphicsDeviceType::Discrete;
-
-		/// <summary>
-		/// If true, the device will be able to present images
-		/// </summary>
-		bool SupportsPresentation = true;
-
-		/// <summary>
-		/// If true, the device will be required to support graphics operations
-		/// </summary>
-		bool RequireGraphicsCapability = true;
-
-		/// <summary>
-		/// If true, the device will be required to support compute operations
-		/// </summary>
-		bool RequireComputeCapability = true;
-
-		/// <summary>
-		/// If true, the device will be required to support memory transfer operations
-		/// </summary>
-		bool RequireTransferCapability = true;
-	};
 
 	/// <summary>
 	/// A graphics device that can perform rendering-related operations

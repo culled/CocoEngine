@@ -3,11 +3,12 @@
 #include "GraphicsResource.h"
 
 #include <Coco/Core/Types/List.h>
-#include "IGraphicsSemaphore.h"
-#include "IGraphicsFence.h"
 
 namespace Coco::Rendering
 {
+	class IGraphicsSemaphore;
+	class IGraphicsFence;
+
 	/// <summary>
 	/// A buffer that can record commands
 	/// </summary>

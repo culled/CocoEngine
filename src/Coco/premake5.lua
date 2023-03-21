@@ -26,8 +26,12 @@ project "Coco"
         "Rendering/Components/**.cpp",
         "Rendering/Graphics/*.h",
         "Rendering/Graphics/*.cpp",
+        "Rendering/Graphics/Resources/**.h",
+        "Rendering/Graphics/Resources/**.cpp",
         "Rendering/Pipeline/**.h",
         "Rendering/Pipeline/**.cpp",
+        "Rendering/Loaders/**.h",
+        "Rendering/Loaders/**.cpp",
     }
 
     includedirs
