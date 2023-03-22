@@ -39,8 +39,8 @@ class CocoSandboxApplication final : public Coco::Application
 {
 private:
 	static constexpr Coco::Array<const char*, 2> s_textureFiles = {
-		"textures/UV_Grid.ctex",
-		"textures/LargeBlocks.ctex"
+		"textures/UV_Grid.ctexture",
+		"textures/LargeBlocks.ctexture"
 	};
 
 	Coco::Ref<Coco::MainLoopTickListener> _tickListener;

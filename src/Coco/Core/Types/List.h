@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Coco/Core/API.h>
 #include <vector>
 #include <functional>
 

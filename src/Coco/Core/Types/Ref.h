@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-#include <Coco/Core/Types/List.h>
+#include <Coco/Core/API.h>
+
 #include <memory>
 
 namespace Coco

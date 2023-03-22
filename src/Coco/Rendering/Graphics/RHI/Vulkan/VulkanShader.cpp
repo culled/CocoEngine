@@ -1,5 +1,6 @@
 #include "VulkanShader.h"
 
+#include <Coco/Core/Engine.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/IO/File.h>
 #include <Coco/Rendering/Shader.h>
@@ -154,7 +155,8 @@ namespace Coco::Rendering::Vulkan
 		shaderStage.ShaderModuleCreateInfo = {};
 		shaderStage.ShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 
-		List<uint8_t> byteCode = File::ReadAllBytes(file);
+		const string fullFilePath = Engine::Get()->GetResourceLibrary()->GetFullFilePath(file);
+		List<uint8_t> byteCode = File::ReadAllBytes(fullFilePath);
 
 		shaderStage.ShaderModuleCreateInfo.codeSize = byteCode.Count();
 		shaderStage.ShaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(byteCode.Data());

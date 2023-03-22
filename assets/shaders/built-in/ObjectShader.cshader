@@ -1,0 +1,22 @@
+version=1
+name=ObjectShader
+subshaders
+    main
+        stages
+            0=shaders/built-in/ObjectShader.vert.spv
+            3=shaders/built-in/ObjectShader.frag.spv
+        state
+            topologyMode=3
+            cullingMode=1
+            fillMode=2
+            enableDepthClamping=0
+            depthTestingMode=1
+            enableDepthWrite=1
+        attributes
+            4
+            2
+        descriptors
+            _BaseColor=6
+        samplers
+            _MainTex
+        descriptorBindStage=3

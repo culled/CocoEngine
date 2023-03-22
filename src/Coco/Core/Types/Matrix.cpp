@@ -1,5 +1,6 @@
 #include "Matrix.h"
 
+#include <Coco/Core/Math/Math.h>
 #include "Quaternion.h"
 
 namespace Coco

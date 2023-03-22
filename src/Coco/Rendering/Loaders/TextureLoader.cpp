@@ -5,13 +5,11 @@
 
 namespace Coco::Rendering
 {
-	TextureLoader::TextureLoader(const string& basePath) : ResourceLoader(basePath)
+	TextureLoader::TextureLoader(const string& basePath) : KeyValueResourceLoader(basePath)
 	{}
 
 	Ref<Resource> TextureLoader::LoadImpl(const string& path)
 	{
-		const string& filePath = BasePath + path;
-
 		ImageUsageFlags usageFlags = ImageUsageFlags::TransferSource | ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled;
 		FilterMode filterMode = FilterMode::Linear;
 		RepeatMode repeatMode = RepeatMode::Repeat;
@@ -19,32 +17,24 @@ namespace Coco::Rendering
 		int channelCount = 4;
 		string imageFilePath;
 
-		File file = File::Open(filePath, FileModes::Read);
-		string line;
-		while (file.ReadLine(line))
+		File file = File::Open(path, FileModes::Read);
+		KeyValueReader reader(file);
+		while (reader.ReadLine())
 		{
-			size_t delimiter = line.find('=');
-
-			if (delimiter == string::npos)
-				continue;
-
-			string variable = line.substr(0, delimiter);
-			string value = line.substr(delimiter + 1);
-
-			if (variable == "version" && value != "1")
+			if (reader.IsVariable("version") && reader.GetVariableValue() != "1")
 				throw InvalidOperationException("Mismatching texture versions");
-			else if (variable == "imageFile")
-				imageFilePath = value;
-			else if (variable == "usageFlags")
-				usageFlags = static_cast<ImageUsageFlags>(atoi(value.c_str()));
-			else if (variable == "filterMode")
-				filterMode = static_cast<FilterMode>(atoi(value.c_str()));
-			else if (variable == "repeatMode")
-				repeatMode = static_cast<RepeatMode>(atoi(value.c_str()));
-			else if (variable == "maxAnisotropy")
-				maxAnisotropy = static_cast<uint>(atoi(value.c_str()));
-			else if (variable == "channelCount")
-				channelCount = atoi(value.c_str());
+			else if (reader.IsVariable(s_imageFileVariable))
+				imageFilePath = reader.GetVariableValue();
+			else if (reader.IsVariable(s_usageFlagsVariable))
+				usageFlags = static_cast<ImageUsageFlags>(reader.GetVariableValueAsInt());
+			else if (reader.IsVariable(s_filterModeVariable))
+				filterMode = static_cast<FilterMode>(reader.GetVariableValueAsInt());
+			else if (reader.IsVariable(s_repeatModeVariable))
+				repeatMode = static_cast<RepeatMode>(reader.GetVariableValueAsInt());
+			else if (reader.IsVariable(s_maxAnisotropyVariable))
+				maxAnisotropy = static_cast<uint>(reader.GetVariableValueAsInt());
+			else if (reader.IsVariable(s_channelCountVariable))
+				channelCount = reader.GetVariableValueAsInt();
 		}
 
 		file.Close();
@@ -56,17 +46,17 @@ namespace Coco::Rendering
 	{
 		if (Texture* texture = dynamic_cast<Texture*>(resource.get()))
 		{
-			const string& filePath = BasePath + path;
 			const ImageDescription textureDescription = texture->GetDescription();
 
-			File file = File::Open(filePath, FileModes::Write);
+			File file = File::Open(path, FileModes::Write);
+			KeyValueWriter writer(file);
 
-			file.WriteLine("version=1");
-			file.WriteLine(FormattedString("usageFlags={}", static_cast<uint>(textureDescription.UsageFlags)));
-			file.WriteLine(FormattedString("filterMode={}", static_cast<uint>(texture->GetFilterMode())));
-			file.WriteLine(FormattedString("repeatMode={}", static_cast<uint>(texture->GetRepeatMode())));
-			file.WriteLine(FormattedString("maxAnisotropy={}", texture->GetMaxAnisotropy()));
-			file.WriteLine(FormattedString("channelCount={}", GetPixelFormatChannelCount(textureDescription.PixelFormat)));
+			writer.WriteLine("version", "1");
+			writer.WriteLine(s_usageFlagsVariable, ToString(static_cast<uint>(textureDescription.UsageFlags)));
+			writer.WriteLine(s_filterModeVariable, ToString(static_cast<uint>(texture->GetFilterMode())));
+			writer.WriteLine(s_repeatModeVariable, ToString(static_cast<uint>(texture->GetRepeatMode())));
+			writer.WriteLine(s_maxAnisotropyVariable, ToString(texture->GetMaxAnisotropy()));
+			writer.WriteLine(s_channelCountVariable, ToString(GetPixelFormatChannelCount(textureDescription.PixelFormat)));
 
 			file.Close();
 		}

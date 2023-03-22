@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/API.h>
+
 #include "Array.h"
 
 namespace Coco

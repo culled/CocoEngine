@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+
+#include <Coco/Core/Types/List.h>
 #include "QueryHandler.h"
 
 namespace Coco

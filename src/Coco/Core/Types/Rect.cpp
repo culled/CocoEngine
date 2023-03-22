@@ -1,5 +1,7 @@
 #include "Rect.h"
 
+#include <Coco/Core/Math/Math.h>
+
 namespace Coco
 {
 	RectInt::RectInt() noexcept :

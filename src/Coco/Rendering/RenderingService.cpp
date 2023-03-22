@@ -4,6 +4,7 @@
 #include <Coco/Core/Types/Array.h>
 #include "Graphics/GraphicsDevice.h"
 #include "Loaders/TextureLoader.h"
+#include "Loaders/ShaderLoader.h"
 #include "Texture.h"
 
 namespace Coco::Rendering
@@ -23,6 +24,7 @@ namespace Coco::Rendering
 
 		ResourceLibrary* resourceLibrary = engine->GetResourceLibrary();
 		resourceLibrary->CreateLoader<TextureLoader>();
+		resourceLibrary->CreateLoader<ShaderLoader>();
 	}
 
 	RenderingService::~RenderingService()

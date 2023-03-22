@@ -7,7 +7,7 @@ namespace Coco
 
 	Ref<Resource> ResourceLoader::Load(const string & path)
 	{
-		Ref<Resource> resource = LoadImpl(path);
+		Ref<Resource> resource = LoadImpl(BasePath + path);
 		resource->SetFilePath(path);
 
 		return resource;
@@ -15,7 +15,7 @@ namespace Coco
 
 	void ResourceLoader::Save(const Ref<Resource>& resource, const string& path)
 	{
-		SaveImpl(resource, path);
+		SaveImpl(resource, BasePath + path);
 		resource->SetFilePath(path);
 	}
 }

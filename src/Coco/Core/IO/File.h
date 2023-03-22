@@ -111,13 +111,21 @@ namespace Coco
 		void WriteText(const string& text);
 
 		/// <summary>
-		/// Reads a line of text from this file, deliminated by the given deliminator.
+		/// Reads a line of text from this file, deliminated by the given deliminator
 		/// The deliminator will not be included in the read text
 		/// </summary>
 		/// <param name="text">A string where the read text will be placed</param>
 		/// <param name="lineEnd">The deliminator for the end of line</param>
 		/// <returns>True if end of file has not been reached</returns>
 		bool ReadLine(string& text, char lineEnd = '\n');
+
+		/// <summary>
+		/// Peeks a line of text from this file, deliminated by the given deliminator
+		/// </summary>
+		/// <param name="text">A string where the read text will be placed</param>
+		/// <param name="lineEnd">The deliminator for the end of line</param>
+		/// <returns>True if end of file has not been reached</returns>
+		bool PeekLine(string& text, char lineEnd = '\n');
 
 		/// <summary>
 		/// Writes a line of text to the file

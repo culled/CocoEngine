@@ -1,6 +1,8 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/API.h>
+
+#include <memory>
 
 namespace Coco
 {

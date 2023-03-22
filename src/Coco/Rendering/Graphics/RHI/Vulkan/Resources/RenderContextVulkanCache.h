@@ -3,6 +3,7 @@
 #include <Coco/Core/Resources/Resource.h>
 
 #include <Coco/Core/Types/Map.h>
+#include <Coco/Core/Types/List.h>
 #include "../VulkanIncludes.h"
 
 namespace Coco::Rendering

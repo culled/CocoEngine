@@ -162,12 +162,20 @@ namespace Coco
 	{
 		CheckHandle();
 
-		if (_handle.eof())
+		if (!_handle.good())
 			return false;
 
 		std::getline(_handle, text, lineEnd);
 
 		return true;
+	}
+
+	bool File::PeekLine(string& text, char lineEnd)
+	{
+		uint64_t pos = GetPosition();
+		bool read = ReadLine(text, lineEnd);
+		Seek(pos);
+		return read;
 	}
 
 	void File::WriteLine(const string& text)

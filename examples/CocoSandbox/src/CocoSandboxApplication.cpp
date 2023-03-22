@@ -41,7 +41,10 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	_cameraPosition = Vector3(0.0, 0.0, 0.0);
 
 	// Setup our basic shader
-	_shader = CreateRef<Shader>("HelloTriangle");
+	_shader = std::static_pointer_cast<Shader>(
+		engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Shader, "shaders/built-in/ObjectShader.cshader")
+		);
+	/*_shader = CreateRef<Shader>("HelloTriangle");
 	_shader->CreateSubshader("main",
 		{
 			{ShaderStageType::Vertex, "assets/shaders/built-in/ObjectShader.vert.spv"},
@@ -58,10 +61,12 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 		{
 			ShaderTextureSampler("_MainTex")
 		},
-		ShaderStageType::Fragment);
+		ShaderStageType::Fragment);*/
 
 	//_texture = CreateRef<Texture>(s_textureFiles.at(0), ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
-	_texture = std::static_pointer_cast<Texture>(engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Texture, s_textureFiles.at(0)));
+	_texture = std::static_pointer_cast<Texture>(
+		engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Texture, s_textureFiles.at(0))
+		);
 
 	_material = CreateRef<Material>(_shader);
 	_material->SetVector4("_BaseColor", Color::White);
