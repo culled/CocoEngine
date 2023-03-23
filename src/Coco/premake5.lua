@@ -29,14 +29,14 @@ project "Coco"
     {}
 
     -- Engine service files
-    filter "options:service-input or options:services-all"
+    filter { "options:service-input or options:services-all" }
         files
         {
             "Input/**.h",
             "Input/**.cpp",
         }
 
-    filter "options:service-rendering or options:services-all"
+    filter { "options:service-rendering or options:services-all" }
         files
         {
             "Rendering/*.h",
@@ -53,7 +53,7 @@ project "Coco"
             "Rendering/Loaders/**.cpp",
         }
 
-    filter "options:service-windowing or options:service-rendering or options:services-all"
+    filter { "options:service-windowing or options:service-rendering or options:services-all" }
         files
         {
             "Windowing/**.h",
@@ -124,7 +124,7 @@ project "Coco"
         }
 
     -- Engine platform files
-    filter "options:platform-windows or options:platforms-all"
+    filter { "options:platform-windows or options:platforms-all" }
         files
         {
             "Platforms/Windows/**.h",
@@ -133,18 +133,18 @@ project "Coco"
 
         systemversion "latest"
 
-    filter "options:platform-mac or options:platforms-all"
+    filter { "options:platform-mac or options:platforms-all" }
         files
         {
         }
 
-    filter "options:platform-linux or options:platforms-all"
+    filter { "options:platform-linux or options:platforms-all" }
         files
         {
         }
 
     -- Build configs
-    filter "configurations:Debug"
+    filter { "configurations:Debug" }
         defines
         { 
             "COCO_LOG_TRACE",
@@ -155,6 +155,6 @@ project "Coco"
         runtime "Debug"
         symbols "on"
         
-    filter "configurations:Release"
+    filter { "configurations:Release" }
         runtime "Release"
         optimize "on"
