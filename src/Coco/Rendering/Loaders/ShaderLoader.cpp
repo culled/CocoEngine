@@ -5,7 +5,7 @@
 
 namespace Coco::Rendering
 {
-	ShaderLoader::ShaderLoader(const string& basePath) : KeyValueResourceLoader(basePath)
+	ShaderLoader::ShaderLoader(ResourceLibrary* library, const string& basePath) : KeyValueResourceLoader(library, basePath)
 	{}
 
 	Ref<Resource> ShaderLoader::LoadImpl(const string& path)
@@ -26,6 +26,9 @@ namespace Coco::Rendering
 		}
 
 		file.Close();
+
+		if (subshaders.Count() == 0)
+			throw InvalidOperationException("Shader file did not have subshaders");
 
 		Ref<Shader> shader = CreateRef<Shader>(shaderName);
 

@@ -54,7 +54,7 @@ namespace Coco
 		{
 			static_assert(std::is_base_of_v<ResourceLoader, LoaderType>, "Only classes derived from ResourceLoader can be resource loaders");
 
-			Managed<LoaderType> loader = CreateManaged<LoaderType>(BasePath, std::forward<Args>(args)...);
+			Managed<LoaderType> loader = CreateManaged<LoaderType>(this, BasePath, std::forward<Args>(args)...);
 			const char* loaderType = loader->GetResourceTypename();
 
 			if (_resourceLoaders.contains(loaderType))

@@ -1,11 +1,13 @@
 #include "TextureLoader.h"
 
 #include <Coco/Core/IO/File.h>
+#include <Coco/Core/Resources/ResourceLibrary.h>
+#include <Coco/Core/Logging/Logger.h>
 #include "../Texture.h"
 
 namespace Coco::Rendering
 {
-	TextureLoader::TextureLoader(const string& basePath) : KeyValueResourceLoader(basePath)
+	TextureLoader::TextureLoader(ResourceLibrary* library, const string& basePath) : KeyValueResourceLoader(library, basePath)
 	{}
 
 	Ref<Resource> TextureLoader::LoadImpl(const string& path)
@@ -39,6 +41,9 @@ namespace Coco::Rendering
 			else if (reader.IsVariable(s_channelCountVariable))
 				channelCount = reader.GetVariableValueAsInt();
 		}
+
+		if (imageFilePath.empty())
+			LogWarning(Library->GetLogger(), FormattedString("\"{}\" did not have a valid image file", path));
 
 		file.Close();
 

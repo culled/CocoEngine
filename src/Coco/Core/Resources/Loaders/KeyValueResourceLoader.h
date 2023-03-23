@@ -164,7 +164,7 @@ namespace Coco
 		friend KeyValueReader;
 
 	protected:
-		KeyValueResourceLoader(const string& basePath);
+		KeyValueResourceLoader(ResourceLibrary* library, const string& basePath);
 
 	public:
 		virtual ~KeyValueResourceLoader() = default;

@@ -19,7 +19,7 @@ namespace Coco::Rendering
 		static constexpr const char* s_channelCountVariable = "channelCount";
 
 	public:
-		TextureLoader(const string& basePath);
+		TextureLoader(ResourceLibrary* library, const string& basePath);
 		~TextureLoader() final = default;
 
 		const char* GetResourceTypename() const noexcept final { return ResourceTypeToString(ResourceType::Texture); }

@@ -27,7 +27,7 @@ namespace Coco::Rendering
 		static constexpr const char* s_textureSection = "texture";
 
 	public:
-		MaterialLoader(const string& basePath);
+		MaterialLoader(ResourceLibrary* library, const string& basePath);
 		~MaterialLoader() final = default;
 
 		const char* GetResourceTypename() const noexcept final { return ResourceTypeToString(ResourceType::Material); }

@@ -7,6 +7,8 @@
 
 namespace Coco
 {
+	class ResourceLibrary;
+
 	/// <summary>
 	/// Base class that provides file save and load operations for a resource
 	/// </summary>
@@ -18,8 +20,10 @@ namespace Coco
 		/// </summary>
 		const string BasePath;
 
+		ResourceLibrary* Library;
+
 	protected:
-		ResourceLoader(const string& basePath);
+		ResourceLoader(ResourceLibrary* library, const string& basePath);
 
 	public:
 		virtual ~ResourceLoader() = default;

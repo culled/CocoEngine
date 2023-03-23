@@ -34,7 +34,7 @@ namespace Coco::Rendering
 		static constexpr const char* s_subshaderBindStageVariable = "descriptorBindStage";
 
 	public:
-		ShaderLoader(const string& basePath);
+		ShaderLoader(ResourceLibrary* library, const string& basePath);
 		~ShaderLoader() final = default;
 
 		const char* GetResourceTypename() const noexcept final { return ResourceTypeToString(ResourceType::Shader); }

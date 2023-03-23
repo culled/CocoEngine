@@ -1,8 +1,10 @@
 #include "ResourceLoader.h"
 
+#include "ResourceLibrary.h"
+
 namespace Coco
 {
-	ResourceLoader::ResourceLoader(const string& basePath) : BasePath(basePath)
+	ResourceLoader::ResourceLoader(ResourceLibrary* library, const string& basePath) : Library(library), BasePath(basePath)
 	{}
 
 	Ref<Resource> ResourceLoader::Load(const string & path)

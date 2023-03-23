@@ -74,7 +74,7 @@ namespace Coco
 		WriteLine(FormattedString("{}={}", variable, value));
 	}
 
-	KeyValueResourceLoader::KeyValueResourceLoader(const string& basePath) : ResourceLoader(basePath)
+	KeyValueResourceLoader::KeyValueResourceLoader(ResourceLibrary* library, const string& basePath) : ResourceLoader(library, basePath)
 	{}
 
 	int KeyValueResourceLoader::GetIndentationLevel(const string& line)

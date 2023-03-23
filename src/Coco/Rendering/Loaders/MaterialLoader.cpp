@@ -1,14 +1,15 @@
 #include "MaterialLoader.h"
 
 #include <Coco/Core/IO/File.h>
-#include <Coco/Core/Engine.h>
+#include <Coco/Core/Resources/ResourceLibrary.h>
+#include <Coco/Core/Logging/Logger.h>
 #include "../Material.h"
 #include "../Shader.h"
 #include "../Texture.h"
 
 namespace Coco::Rendering
 {
-	MaterialLoader::MaterialLoader(const string& basePath) : KeyValueResourceLoader(basePath)
+	MaterialLoader::MaterialLoader(ResourceLibrary* library, const string& basePath) : KeyValueResourceLoader(library, basePath)
 	{}
 
 	Ref<Resource> MaterialLoader::LoadImpl(const string& path)
@@ -35,11 +36,17 @@ namespace Coco::Rendering
 
 		// Can't set properties without a shader
 		if (shaderPath.empty())
+		{
+			LogWarning(Library->GetLogger(), FormattedString("\"{}\" did not have a shader file", path));
 			return CreateRef<Material>(nullptr, name);
+		}
 
-		Ref<Shader> shader = static_pointer_cast<Shader>(Engine::Get()->GetResourceLibrary()->GetOrLoadResource(ResourceType::Shader, shaderPath));
+		Ref<Shader> shader = static_pointer_cast<Shader>(Library->GetOrLoadResource(ResourceType::Shader, shaderPath));
 		if (shader == nullptr)
+		{
+			LogWarning(Library->GetLogger(), FormattedString("Could not load shader at \"{}\" for \"{}\"", shaderPath, path));
 			return CreateRef<Material>(nullptr, name);
+		}
 
 		Ref<Material> material = CreateRef<Material>(shader, name);
 
@@ -48,7 +55,7 @@ namespace Coco::Rendering
 
 		for (const auto& textureProp : textureProperties)
 		{
-			Ref<Texture> texture = static_pointer_cast<Texture>(Engine::Get()->GetResourceLibrary()->GetOrLoadResource(ResourceType::Texture, textureProp.second));
+			Ref<Texture> texture = static_pointer_cast<Texture>(Library->GetOrLoadResource(ResourceType::Texture, textureProp.second));
 			material->SetTexture(textureProp.first, texture);
 		}
 
