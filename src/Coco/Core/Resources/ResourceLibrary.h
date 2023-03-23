@@ -26,7 +26,7 @@ namespace Coco
 
 	private:
 		Map<string, Ref<Resource>> _loadedResources;
-		Map<const char*, Managed<ResourceLoader>> _resourceLoaders;
+		Map<string, Managed<ResourceLoader>> _resourceLoaders;
 
 	public:
 		ResourceLibrary(const string& basePath);
@@ -80,7 +80,7 @@ namespace Coco
 		/// <param name="resourceType">The type of resource</param>
 		/// <param name="path">The path to the resource, relative to this library's base path</param>
 		/// <returns>The loaded resource</returns>
-		Ref<Resource> GetOrLoadResource(const char* resourceType, const string& path);
+		Ref<Resource> GetOrLoadResource(const string& resourceType, const string& path);
 
 		/// <summary>
 		/// Gets a loaded resource by its ID
@@ -122,6 +122,6 @@ namespace Coco
 		/// </summary>
 		/// <param name="resourceTypename">The type of the resource</param>
 		/// <returns>A pointer to the loader instance</returns>
-		ResourceLoader* GetLoaderForResourceType(const char* resourceTypename);
+		ResourceLoader* GetLoaderForResourceType(const string& resourceTypename);
 	};
 }

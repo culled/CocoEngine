@@ -3,6 +3,7 @@
 #include <Coco/Core/API.h>
 
 #include <Coco/Core/Math/Math.h>
+#include "String.h"
 
 namespace Coco
 {
@@ -32,6 +33,19 @@ namespace Coco
 		Vector2Int() noexcept = default;
 		Vector2Int(int x, int y) noexcept;
 		virtual ~Vector2Int() = default;
+
+		/// <summary>
+		/// Parses a vector2int from a string
+		/// </summary>
+		/// <param name="str">The string</param>
+		/// <returns>The parsed vector2int</returns>
+		static Vector2Int Parse(const string& str);
+
+		/// <summary>
+		/// Converts this vector to a string
+		/// </summary>
+		/// <returns>This vector as a string</returns>
+		string ToString() const noexcept { return FormattedString("{}, {}", X, Y); }
 
 		Vector2Int operator+(const Vector2Int& other) const noexcept { return Vector2Int(X + other.X, Y + other.Y); }
 		void operator+=(const Vector2Int& other) noexcept { X += other.X; Y += other.Y; }
@@ -103,6 +117,13 @@ namespace Coco
 		virtual ~Vector2() = default;
 
 		/// <summary>
+		/// Parses a vector2 from a string
+		/// </summary>
+		/// <param name="str">The string</param>
+		/// <returns>The parsed vector2</returns>
+		static Vector2 Parse(const string& str);
+
+		/// <summary>
 		/// Returns the distance between two vectors
 		/// </summary>
 		/// <param name="a">The first vector</param>
@@ -158,6 +179,12 @@ namespace Coco
 		/// <param name="other">The other vector</param>
 		/// <returns>The dot product of this vector and the other vector</returns>
 		double Dot(const Vector2& other) const noexcept { return X * other.X + Y * other.Y; }
+
+		/// <summary>
+		/// Converts this vector to a string
+		/// </summary>
+		/// <returns>This vector as a string</returns>
+		string ToString() const noexcept { return FormattedString("{}, {}", X, Y); }
 
 		Vector2 operator+(const Vector2& other) const noexcept { return Vector2(X + other.X, Y + other.Y); }
 		void operator+=(const Vector2& other) noexcept { X += other.X; Y += other.Y; }
@@ -238,6 +265,13 @@ namespace Coco
 		virtual ~Vector3() = default;
 
 		/// <summary>
+		/// Parses a vector3 from a string
+		/// </summary>
+		/// <param name="str">The string</param>
+		/// <returns>The parsed vector3</returns>
+		static Vector3 Parse(const string& str);
+
+		/// <summary>
 		/// Returns the distance between two vectors
 		/// </summary>
 		/// <param name="a">The first vector</param>
@@ -313,6 +347,12 @@ namespace Coco
 		/// <returns>The cross product</returns>
 		Vector3 Cross(const Vector3& other) const noexcept { return Vector3( Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X); }
 
+		/// <summary>
+		/// Converts this vector to a string
+		/// </summary>
+		/// <returns>This vector as a string</returns>
+		string ToString() const noexcept { return FormattedString("{}, {}, {}", X, Y, Z); }
+
 		Vector3 operator+(const Vector3& other) const noexcept { return Vector3(X + other.X, Y + other.Y, Z + other.Z); }
 		void operator+=(const Vector3& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; }
 
@@ -364,6 +404,13 @@ namespace Coco
 		Vector4(const Vector2& vec2, double z = 0.0, double w = 0.0) noexcept;
 		Vector4(const Vector3& vec3, double w = 0.0) noexcept;
 		virtual ~Vector4() = default;
+
+		/// <summary>
+		/// Parses a vector4 from a string
+		/// </summary>
+		/// <param name="str">The string</param>
+		/// <returns>The parsed vector4</returns>
+		static Vector4 Parse(const string& str);
 
 		/// <summary>
 		/// Calculates the dot product of A and B
@@ -418,6 +465,12 @@ namespace Coco
 		/// <param name="other">The other vector</param>
 		/// <returns>The dot product of this vector and the other vector</returns>
 		double Dot(const Vector4& other) const noexcept { return X * other.X + Y * other.Y + Z * other.Z + W * other.W; }
+
+		/// <summary>
+		/// Converts this vector to a string
+		/// </summary>
+		/// <returns>This vector as a string</returns>
+		string ToString() const noexcept { return FormattedString("{}, {}, {}, {}", X, Y, Z, W); }
 
 		Vector4 operator+(const Vector4& other) const noexcept { return Vector4(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
 		void operator+=(const Vector4& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; W += other.W; }

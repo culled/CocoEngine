@@ -48,7 +48,7 @@ namespace Coco::Rendering
 		bool _isDirty = false;
 
 	public:
-		Mesh();
+		Mesh(const string& name = "");
 		virtual ~Mesh();
 
 		/// <summary>

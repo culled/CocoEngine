@@ -10,6 +10,7 @@ namespace Coco::Rendering
 	class TextureLoader final : public KeyValueResourceLoader
 	{
 	private:
+		static constexpr const char* s_nameVariable = "name";
 		static constexpr const char* s_imageFileVariable = "imageFile";
 		static constexpr const char* s_usageFlagsVariable = "usageFlags";
 		static constexpr const char* s_filterModeVariable = "filterMode";

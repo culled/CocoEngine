@@ -16,8 +16,9 @@ namespace Coco::Rendering
 		ImageUsageFlags usageFlags,
 		FilterMode filterMode,
 		RepeatMode repeatMode,
-		uint maxAnisotropy
-	) : RenderingResource(ResourceType::Texture),
+		uint maxAnisotropy,
+		const string& name
+	) : RenderingResource(name, ResourceType::Texture),
 		_usageFlags(usageFlags), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
 	{
 		RecreateImageFromDescription(ImageDescription(width, height, 1, pixelFormat, colorSpace, usageFlags));
@@ -28,8 +29,9 @@ namespace Coco::Rendering
 		const ImageDescription& description, 
 		FilterMode filterMode, 
 		RepeatMode repeatMode, 
-		uint maxAnisotropy
-	) : RenderingResource(ResourceType::Texture),
+		uint maxAnisotropy,
+		const string& name
+	) : RenderingResource(name, ResourceType::Texture),
 		_usageFlags(description.UsageFlags), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
 	{
 		RecreateImageFromDescription(description);
@@ -42,8 +44,9 @@ namespace Coco::Rendering
 		FilterMode filterMode, 
 		RepeatMode repeatMode, 
 		uint maxAnisotropy, 
-		int channelCount
-	) : RenderingResource(ResourceType::Texture),
+		int channelCount,
+		const string& name
+	) : RenderingResource(name, ResourceType::Texture),
 		_usageFlags(usageFlags), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
 	{
 		LoadFromFile(filePath, channelCount);

@@ -1,14 +1,70 @@
 #include "Vector.h"
 
 #include "Color.h"
+#include "Array.h"
 
 namespace Coco
 {
+	void ParseIntArray(const string& str, int* values, uint64_t valueCount)
+	{
+		uint64_t currentCharacterIndex = 0;
+		uint64_t fieldIndex = 0;
+
+		while (currentCharacterIndex < str.length())
+		{
+			if (fieldIndex >= valueCount)
+				break;
+
+			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
+
+			if (endIndex == string::npos)
+				break;
+
+			string part = str.substr(currentCharacterIndex, endIndex);
+			values[fieldIndex] = atoi(part.c_str());
+
+			currentCharacterIndex = endIndex + 1;
+			fieldIndex++;
+		}
+
+	}
+	void ParseDoubleArray(const string& str, double* values, uint64_t valueCount)
+	{
+		uint64_t currentCharacterIndex = 0;
+		uint64_t fieldIndex = 0;
+
+		while (currentCharacterIndex < str.length())
+		{
+			if (fieldIndex >= valueCount)
+				break;
+
+			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
+
+			if (endIndex == string::npos)
+				endIndex = str.length();
+
+			string part = str.substr(currentCharacterIndex, endIndex - currentCharacterIndex);
+			values[fieldIndex] = atof(part.c_str());
+
+			currentCharacterIndex = endIndex + 1;
+			fieldIndex++;
+		}
+	}
+
 	const Vector2Int Vector2Int::Zero = Vector2Int(0, 0);
 	const Vector2Int Vector2Int::One = Vector2Int(1, 1);
 
 	Vector2Int::Vector2Int(int x, int y) noexcept : X(x), Y(y)
 	{}
+
+	Vector2Int Vector2Int::Parse(const string& str)
+	{
+		Array<int, 2> values = { 0 };
+
+		ParseIntArray(str, values.data(), values.size());
+
+		return Vector2Int(values[0], values[1]);
+	}
 
 	Vector2Int::operator Vector2() const noexcept { return Vector2(X, Y); }
 
@@ -25,6 +81,15 @@ namespace Coco
 	{}
 
 	Vector2::Vector2(const Vector3 & vec) noexcept : Vector2(vec.X, vec.Y) {}
+
+	Vector2 Vector2::Parse(const string& str)
+	{
+		Array<double, 2> values = { 0.0 };
+
+		ParseDoubleArray(str, values.data(), values.size());
+
+		return Vector2(values[0], values[1]);
+	}
 
 	double Vector2::DistanceBetween(const Vector2& a, const Vector2& b) noexcept
 	{
@@ -71,6 +136,15 @@ namespace Coco
 
 	Vector3::Vector3(const Vector4 & vec4) noexcept : Vector3(vec4.X, vec4.Y, vec4.Z) {}
 
+	Vector3 Vector3::Parse(const string& str)
+	{
+		Array<double, 3> values = { 0.0 };
+
+		ParseDoubleArray(str, values.data(), values.size());
+
+		return Vector3(values[0], values[1], values[2]);
+	}
+
 	double Vector3::DistanceBetween(const Vector3 & a, const Vector3 & b) noexcept
 	{
 		const Vector3 diff = a - b;
@@ -110,6 +184,15 @@ namespace Coco
 	Vector4::Vector4(const Vector2& vec2, double z, double w) noexcept : Vector4(vec2.X, vec2.Y, z, w) {}
 
 	Vector4::Vector4(const Vector3& vec3, double w) noexcept : Vector4(vec3.X, vec3.Y, vec3.Z, w) {}
+
+	Vector4 Vector4::Parse(const string& str)
+	{
+		Array<double, 4> values = {0.0};
+
+		ParseDoubleArray(str, values.data(), values.size());
+
+		return Vector4(values[0], values[1], values[2], values[3]);
+	}
 
 	void Vector4::Normalize(bool safe) noexcept
 	{

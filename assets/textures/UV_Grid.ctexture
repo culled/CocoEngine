@@ -1,4 +1,5 @@
 version=1
+name=UV Grid
 imageFile=textures/UV_Grid.png
 usageFlags=7
 filterMode=0

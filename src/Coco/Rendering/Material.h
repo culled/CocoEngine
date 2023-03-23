@@ -37,8 +37,8 @@ namespace Coco::Rendering
 	protected:
 		ResourceVersion PropertyMapVersion = 0;
 		Ref<Shader> Shader;
-		Map<string, Vector4> Vector4Parameters;
-		Map<string, Ref<Texture>> TextureParameters;
+		Map<string, Vector4> Vector4Properties;
+		Map<string, Ref<Texture>> TextureProperties;
 
 	private:
 		Map<string, SubshaderUniformBinding> _subshaderBindings;
@@ -46,14 +46,14 @@ namespace Coco::Rendering
 		bool _isBufferDataDirty = true;
 
 	public:
-		Material(Ref<Rendering::Shader> shader);
+		Material(Ref<Rendering::Shader> shader, const string& name = "");
 		virtual ~Material() override;
 
 		/// <summary>
 		/// Creates an instance of this material that allows for its properties to differ from this material
 		/// </summary>
 		/// <returns>An instance of this material</returns>
-		Ref<MaterialInstance> CreateInstance() const;
+		//Ref<MaterialInstance> CreateInstance() const;
 
 		/// <summary>
 		/// Gets the shader that this material uses
@@ -76,6 +76,12 @@ namespace Coco::Rendering
 		Vector4 GetVector4(const string& name) const;
 
 		/// <summary>
+		/// Gets all the vector4 properties that this material has
+		/// </summary>
+		/// <returns>This material's vector4 properties</returns>
+		const Map<string, Vector4> GetVector4Properties() const noexcept { return Vector4Properties; }
+
+		/// <summary>
 		/// Sets a texture property
 		/// </summary>
 		/// <param name="name">The name of the texture property</param>
@@ -88,6 +94,12 @@ namespace Coco::Rendering
 		/// <param name="name">The name of the texture property</param>
 		/// <returns>The texture, or a null reference if no property was found</returns>
 		Ref<Texture> GetTexture(const string& name) const;
+
+		/// <summary>
+		/// Gets all the texture properties that this material has
+		/// </summary>
+		/// <returns>This material's texture properties</returns>
+		const Map<string, Ref<Texture>> GetTextureProperties() const noexcept { return TextureProperties; }
 
 		/// <summary>
 		/// Gets uniform buffer data from this material's currently set properties
@@ -115,10 +127,10 @@ namespace Coco::Rendering
 	/// <summary>
 	/// An instance of a material that overrides properties from the parent material
 	/// </summary>
-	class COCOAPI MaterialInstance : public Material
-	{
-	public:
-		MaterialInstance(const Material* material);
-		virtual ~MaterialInstance() override;
-	};
+	//class COCOAPI MaterialInstance : public Material
+	//{
+	//public:
+	//	MaterialInstance(const Material* material);
+	//	virtual ~MaterialInstance() override;
+	//};
 }

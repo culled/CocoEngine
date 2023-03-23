@@ -6,7 +6,7 @@
 
 namespace Coco::Rendering
 {
-	Material::Material(Ref<Rendering::Shader> shader) : RenderingResource(ResourceType::Material),
+	Material::Material(Ref<Rendering::Shader> shader, const string& name) : RenderingResource(name, ResourceType::Material),
 		Shader(shader)
 	{
 		UpdatePropertyMaps(true);
@@ -17,18 +17,18 @@ namespace Coco::Rendering
 		Shader.reset();
 	}
 
-	Ref<MaterialInstance> Material::CreateInstance() const
-	{
-		return CreateRef<MaterialInstance>(this);
-	}
+	//Ref<MaterialInstance> Material::CreateInstance() const
+	//{
+	//	return CreateRef<MaterialInstance>(this);
+	//}
 
 	void Material::SetVector4(const string& name, const Vector4& value)
 	{
 		UpdatePropertyMaps(false);
 
-		auto it = Vector4Parameters.find(name);
+		auto it = Vector4Properties.find(name);
 
-		if (it != Vector4Parameters.end())
+		if (it != Vector4Properties.end())
 		{
 			(*it).second = value;
 			this->IncrementVersion();
@@ -42,9 +42,9 @@ namespace Coco::Rendering
 
 	Vector4 Material::GetVector4(const string& name) const
 	{
-		const auto it = Vector4Parameters.find(name);
+		const auto it = Vector4Properties.find(name);
 
-		if (it != Vector4Parameters.end())
+		if (it != Vector4Properties.end())
 		{
 			return (*it).second;
 		}
@@ -59,9 +59,9 @@ namespace Coco::Rendering
 	{
 		UpdatePropertyMaps(false);
 
-		auto it = TextureParameters.find(name);
+		auto it = TextureProperties.find(name);
 
-		if (it != TextureParameters.end())
+		if (it != TextureProperties.end())
 		{
 			(*it).second = texture;
 			this->IncrementVersion();
@@ -74,9 +74,9 @@ namespace Coco::Rendering
 
 	Ref<Texture> Material::GetTexture(const string& name) const
 	{
-		const auto it = TextureParameters.find(name);
+		const auto it = TextureProperties.find(name);
 
-		if (it != TextureParameters.cend())
+		if (it != TextureProperties.cend())
 		{
 			return (*it).second;
 		}
@@ -135,8 +135,8 @@ namespace Coco::Rendering
 					if (vec4Properties.contains(descriptor.Name))
 						continue;
 
-					if (Vector4Parameters.contains(descriptor.Name))
-						vec4Properties[descriptor.Name] = Vector4Parameters[descriptor.Name];
+					if (Vector4Properties.contains(descriptor.Name))
+						vec4Properties[descriptor.Name] = Vector4Properties[descriptor.Name];
 					else
 						vec4Properties[descriptor.Name] = Vector4::Zero;
 					break;
@@ -154,16 +154,16 @@ namespace Coco::Rendering
 				if (textureProperties.contains(sampler.Name))
 					continue;
 
-				if (TextureParameters.contains(sampler.Name))
-					textureProperties[sampler.Name] = TextureParameters[sampler.Name];
+				if (TextureProperties.contains(sampler.Name))
+					textureProperties[sampler.Name] = TextureProperties[sampler.Name];
 				else
 					textureProperties[sampler.Name] = nullptr;
 				break;
 			}
 		}
 
-		Vector4Parameters = std::move(vec4Properties);
-		TextureParameters = std::move(textureProperties);
+		Vector4Properties = std::move(vec4Properties);
+		TextureProperties = std::move(textureProperties);
 		PropertyMapVersion = Shader->GetVersion();
 		_isBufferDataDirty = true;
 	}
@@ -226,11 +226,9 @@ namespace Coco::Rendering
 		_isBufferDataDirty = false;
 	}
 
-	MaterialInstance::MaterialInstance(const Material* material) : Material(material->Shader)
-	{
-	}
-
-	MaterialInstance::~MaterialInstance()
-	{
-	}
+	//MaterialInstance::MaterialInstance(const Material* material) : Material(material->Shader, FormattedString("{} (Instance)", material->GetName()))
+	//{}
+	//
+	//MaterialInstance::~MaterialInstance()
+	//{}
 }

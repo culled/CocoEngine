@@ -19,7 +19,7 @@ namespace Coco
 		return GetOrLoadResource(ResourceTypeToString(resourceType), path);
 	}
 
-	Ref<Resource> ResourceLibrary::GetOrLoadResource(const char* resourceType, const string& path)
+	Ref<Resource> ResourceLibrary::GetOrLoadResource(const string& resourceType, const string& path)
 	{
 		// Get the resource if it already is loaded
 		if (_loadedResources.contains(path))
@@ -89,7 +89,7 @@ namespace Coco
 			_loadedResources.erase(it);
 	}
 
-	ResourceLoader* ResourceLibrary::GetLoaderForResourceType(const char* resourceTypename)
+	ResourceLoader* ResourceLibrary::GetLoaderForResourceType(const string& resourceTypename)
 	{
 		auto it = _resourceLoaders.find(resourceTypename);
 

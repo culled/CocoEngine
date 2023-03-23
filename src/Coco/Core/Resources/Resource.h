@@ -49,6 +49,7 @@ namespace Coco
 		std::atomic<ResourceVersion> _version = 0;
 		string _typename;
 		string _filePath;
+		string _name;
 
 	public:
 		/// <summary>
@@ -57,8 +58,8 @@ namespace Coco
 		constexpr static ResourceID InvalidID = Math::MaxValue<ResourceID>();
 
 	protected:
-		Resource(const string& namedType) noexcept;
-		Resource(ResourceType type) noexcept;
+		Resource(const string& name, const string& namedType) noexcept;
+		Resource(const string& name, ResourceType type) noexcept;
 
 	public:
 		virtual ~Resource() noexcept = default;
@@ -84,13 +85,19 @@ namespace Coco
 		/// Gets the type of this resource
 		/// </summary>
 		/// <returns>This resource's type</returns>
-		const char* GetTypename() const noexcept { return _typename.c_str(); }
+		const string& GetTypename() const noexcept { return _typename; }
 
 		/// <summary>
 		/// Gets the path to the file this resource is loaded from (if any)
 		/// </summary>
 		/// <returns>The path to the file this resource is loaded from, or an empty string if this resource isn't saved to disk</returns>
 		const string& GetFilePath() const noexcept { return _filePath; }
+
+		/// <summary>
+		/// Gets the name of this resource
+		/// </summary>
+		/// <returns>This resource's name</returns>
+		const string& GetName() const noexcept { return _name; }
 
 	protected:
 		/// <summary>

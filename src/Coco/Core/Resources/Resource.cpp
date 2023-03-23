@@ -22,11 +22,11 @@ namespace Coco
 		return IsInvalid() || Engine::Get()->GetMainLoop()->GetTickCount() - LastTickUsed > staleTickThreshold;
 	}
 
-	Resource::Resource(const string & namedType) noexcept : 
-		_id(GetNewID()), _typename(namedType)
+	Resource::Resource(const string& name, const string & namedType) noexcept : 
+		_id(GetNewID()), _typename(namedType), _name(name)
 	{}
 	
-	Resource::Resource(ResourceType type) noexcept : Resource(ResourceTypeToString(type))
+	Resource::Resource(const string& name, ResourceType type) noexcept : Resource(name, ResourceTypeToString(type))
 	{}
 
 	ResourceID Resource::GetNewID() noexcept

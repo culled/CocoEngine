@@ -1,0 +1,8 @@
+version=1
+name=Test
+shader=shaders/built-in/ObjectShader.cshader
+properties
+    vector4
+        _BaseColor=1.0,0.0,0.0,1.0
+    texture
+        _MainTex=textures/UV_Grid.ctexture

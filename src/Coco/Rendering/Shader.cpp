@@ -2,8 +2,7 @@
 
 namespace Coco::Rendering
 {
-	Shader::Shader(const string& name) : RenderingResource(ResourceType::Shader),
-		_name(name)
+	Shader::Shader(const string& name) : RenderingResource(name, ResourceType::Shader)
 	{}
 
 	bool Shader::TryGetSubshader(const string & passName, const Subshader*& subshader) const noexcept

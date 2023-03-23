@@ -78,7 +78,7 @@ namespace Coco::Rendering
 		Color _clearColor;
 
 	public:
-		RenderPipeline();
+		RenderPipeline(const string& name = "");
 		virtual ~RenderPipeline();
 
 		/// <summary>

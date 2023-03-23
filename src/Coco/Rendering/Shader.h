@@ -15,18 +15,11 @@ namespace Coco::Rendering
 	class COCOAPI Shader : public RenderingResource
 	{
 	private:
-		string _name;
 		List<Subshader> _subshaders;
 
 	public:
-		Shader(const string& name);
+		Shader(const string& name = "");
 		virtual ~Shader() = default;
-
-		/// <summary>
-		/// Gets this shader's name
-		/// </summary>
-		/// <returns>This shader's name</returns>
-		string GetName() const noexcept { return _name; }
 
 		/// <summary>
 		/// Tries to find a subshader with the given name

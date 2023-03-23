@@ -44,33 +44,16 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	_shader = std::static_pointer_cast<Shader>(
 		engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Shader, "shaders/built-in/ObjectShader.cshader")
 		);
-	/*_shader = CreateRef<Shader>("HelloTriangle");
-	_shader->CreateSubshader("main",
-		{
-			{ShaderStageType::Vertex, "assets/shaders/built-in/ObjectShader.vert.spv"},
-			{ShaderStageType::Fragment, "assets/shaders/built-in/ObjectShader.frag.spv"}
-		},
-		GraphicsPipelineState(),
-		{
-			ShaderVertexAttribute(BufferDataFormat::Vector3),
-			ShaderVertexAttribute(BufferDataFormat::Vector2)
-		},
-		{
-			ShaderDescriptor("_BaseColor", BufferDataFormat::Vector4)
-		},
-		{
-			ShaderTextureSampler("_MainTex")
-		},
-		ShaderStageType::Fragment);*/
-
-	//_texture = CreateRef<Texture>(s_textureFiles.at(0), ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
 	_texture = std::static_pointer_cast<Texture>(
 		engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Texture, s_textureFiles.at(0))
 		);
+	_material = std::static_pointer_cast<Material>(
+		engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Material, "materials/testMaterial.cmaterial")
+		);
 
-	_material = CreateRef<Material>(_shader);
-	_material->SetVector4("_BaseColor", Color::White);
-	_material->SetTexture("_MainTex", _texture);
+	//_material = CreateRef<Material>(_shader);
+	//_material->SetVector4("_BaseColor", Color::White);
+	//_material->SetTexture("_MainTex", _texture);
 
 	// Setup our basic mesh
 	const double size = 30.0;
@@ -165,9 +148,9 @@ void CocoSandboxApplication::Tick(double deltaTime)
 
 	_camera->SetViewMatrix(transform.Inverted());
 
-	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
-	const double a = Math::Sin(t) * 0.5 + 0.5;
-	_material->SetVector4("_BaseColor", Color(a, a, a, 1.0));
+	//const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
+	//const double a = Math::Sin(t) * 0.5 + 0.5;
+	//_material->SetVector4("_BaseColor", Color(a, a, a, 1.0));
 
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{

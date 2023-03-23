@@ -30,14 +30,16 @@ namespace Coco::Rendering
 			ImageUsageFlags usageFlags, 
 			FilterMode filterMode = FilterMode::Linear,
 			RepeatMode repeatMode = RepeatMode::Repeat,
-			uint maxAnisotropy = 16
+			uint maxAnisotropy = 16,
+			const string& name = ""
 		);
 
 		Texture(
 			const ImageDescription& description,
 			FilterMode filterMode = FilterMode::Linear,
 			RepeatMode repeatMode = RepeatMode::Repeat,
-			uint maxAnisotropy = 16
+			uint maxAnisotropy = 16,
+			const string& name = ""
 		);
 
 		Texture(
@@ -46,7 +48,8 @@ namespace Coco::Rendering
 			FilterMode filterMode = FilterMode::Linear,
 			RepeatMode repeatMode = RepeatMode::Repeat,
 			uint maxAnisotropy = 16,
-			int channelCount = 4
+			int channelCount = 4,
+			const string& name = ""
 		);
 
 		virtual ~Texture();

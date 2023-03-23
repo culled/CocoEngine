@@ -173,8 +173,14 @@ namespace Coco
 	bool File::PeekLine(string& text, char lineEnd)
 	{
 		uint64_t pos = GetPosition();
+		std::ios_base::iostate state = _handle.rdstate();
+
 		bool read = ReadLine(text, lineEnd);
+
+		_handle.setstate(state);
+
 		Seek(pos);
+
 		return read;
 	}
 
