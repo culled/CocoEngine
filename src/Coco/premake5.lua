@@ -10,28 +10,13 @@ project "Coco"
     --defines { "COCO_EXPORT" }
     defines { "COCO_ASSERTIONS" }
 
+    -- Core files
     files
     {
         "Core/**.h",
         "Core/**.cpp",
-        "Windowing/**.h",
-        "Windowing/**.cpp",
-        "Input/**.h",
-        "Input/**.cpp",
         "Vendor/**.h",
         "Vendor/**.cpp",
-        "Rendering/*.h",
-        "Rendering/*.cpp",
-        "Rendering/Components/**.h",
-        "Rendering/Components/**.cpp",
-        "Rendering/Graphics/*.h",
-        "Rendering/Graphics/*.cpp",
-        "Rendering/Graphics/Resources/**.h",
-        "Rendering/Graphics/Resources/**.cpp",
-        "Rendering/Pipeline/**.h",
-        "Rendering/Pipeline/**.cpp",
-        "Rendering/Loaders/**.h",
-        "Rendering/Loaders/**.cpp",
     }
 
     includedirs
@@ -42,8 +27,41 @@ project "Coco"
 
     links
     {}
+
+    -- Engine service files
+    filter "options:service-input or options:services-all"
+        files
+        {
+            "Input/**.h",
+            "Input/**.cpp",
+        }
+
+    filter "options:service-rendering or options:services-all"
+        files
+        {
+            "Rendering/*.h",
+            "Rendering/*.cpp",
+            "Rendering/Components/**.h",
+            "Rendering/Components/**.cpp",
+            "Rendering/Graphics/*.h",
+            "Rendering/Graphics/*.cpp",
+            "Rendering/Graphics/Resources/**.h",
+            "Rendering/Graphics/Resources/**.cpp",
+            "Rendering/Pipeline/**.h",
+            "Rendering/Pipeline/**.cpp",
+            "Rendering/Loaders/**.h",
+            "Rendering/Loaders/**.cpp",
+        }
+
+    filter "options:service-windowing or options:service-rendering or options:services-all"
+        files
+        {
+            "Windowing/**.h",
+            "Windowing/**.cpp",
+        } 
     
-    filter "options:vulkan-enabled"
+    -- Render RHI files
+    filter { "options:renderRHI-vulkan or options:renderRHIs-all", "options:service-rendering or options:services-all" }
         defines { "COCO_RENDERING_VULKAN"}
 
         files
@@ -66,8 +84,47 @@ project "Coco"
         {
             "vulkan-1.lib"
         }
+    
+    filter { "options:renderRHI-opengl or options:renderRHIs-all", "options:service-rendering or options:services-all" }
+        defines { "COCO_RENDERING_OPENGL"}
 
-    filter "system:windows"
+        files
+        {
+        }
+
+        includedirs
+        {
+        }
+
+        libdirs
+        {
+        }
+
+        links
+        {
+        }
+    
+    filter { "options:renderRHI-dx12 or options:renderRHIs-all", "options:service-rendering or options:services-all" }
+        defines { "COCO_RENDERING_DX12"}
+
+        files
+        {
+        }
+
+        includedirs
+        {
+        }
+
+        libdirs
+        {
+        }
+
+        links
+        {
+        }
+
+    -- Engine platform files
+    filter "options:platform-windows or options:platforms-all"
         files
         {
             "Platforms/Windows/**.h",
@@ -76,6 +133,17 @@ project "Coco"
 
         systemversion "latest"
 
+    filter "options:platform-mac or options:platforms-all"
+        files
+        {
+        }
+
+    filter "options:platform-linux or options:platforms-all"
+        files
+        {
+        }
+
+    -- Build configs
     filter "configurations:Debug"
         defines
         { 
