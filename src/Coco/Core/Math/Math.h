@@ -7,9 +7,7 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// Class with many math functions
-	/// </summary>
+	/// @brief A math function library
 	class COCOAPI Math
 	{
 	public:
@@ -33,163 +31,134 @@ namespace Coco
 		static constexpr double Epsilon = std::numeric_limits<double>::epsilon();
 
 	public:
-		/// <summary>
-		/// Converts degrees to radians
-		/// </summary>
-		/// <param name="degrees">The degrees</param>
-		/// <returns>The equivalent radians</returns>
+		/// @brief Converts degrees to radians
+		/// @param degrees The degrees
+		/// @return The equivalent angle in radians
 		static constexpr double Deg2Rad(double degrees) noexcept { return degrees * Deg2RadMultiplier; }
 
-		/// <summary>
-		/// Converts radians to degrees
-		/// </summary>
-		/// <param name="radians">The radians</param>
-		/// <returns>The equivalent degrees</returns>
+		/// @brief Converts radians to degrees
+		/// @param radians The radians
+		/// @return The equivalent angle in degrees
 		static constexpr double Rad2Deg(double radians) noexcept { return radians * Rad2DegMultiplier; }
 
-		/// <summary>
-		/// Calculates the sine of an angle
-		/// </summary>
-		/// <param name="x">The angle (in radians)</param>
-		/// <returns>The sine</returns>
-		static double Sin(const double x) noexcept { return sin(x); }
+		/// @brief Calculates the sine of an angle
+		/// @param x The angle (in radians)
+		/// @return The sine value
+		static double Sin(double x) noexcept { return sin(x); }
 
-		/// <summary>
-		/// Calculates the cosine of an angle
-		/// </summary>
-		/// <param name="x">The angle (in radians)</param>
-		/// <returns>The cosine</returns>
-		static double Cos(const double x) noexcept { return cos(x); }
+		/// @brief Calculates the cosine of an angle
+		/// @param x The angle (in radians)
+		/// @return The cosine value
+		static double Cos(double x) noexcept { return cos(x); }
 
-		/// <summary>
-		/// Calculates the tangent of an angle
-		/// </summary>
-		/// <param name="x">The angle (in radians)</param>
-		/// <returns>The tangent</returns>
-		static double Tan(const double x) noexcept { return tan(x); }
+		/// @brief Calculates the tangent of an angle
+		/// @param x The angle (in radians)
+		/// @return The tangent value
+		static double Tan(double x) noexcept { return tan(x); }
 
-		/// <summary>
-		/// Calculates the arc-sine of a number
-		/// </summary>
-		/// <param name="x">The number</param>
-		/// <returns>The angle (in radians)</returns>
-		static double ASin(const double x) noexcept { return asin(x); }
+		/// @brief Calculates the arc-sine of a number
+		/// @param x The ratio between the opposite and adjacent side lengths
+		/// @return The angle (in radians)
+		static double Asin(double x) noexcept { return asin(x); }
 
-		/// <summary>
-		/// Calculates the arc-cosine of a number
-		/// </summary>
-		/// <param name="x">The number</param>
-		/// <returns>The angle (in radians)</returns>
-		static double ACos(const double x) noexcept { return acos(x); }
+		/// @brief Calculates the arc-cosine of a number
+		/// @param x The ratio between the adjacent and hypotenuse side lengths
+		/// @return The angle (in radians)
+		static double Acos(double x) noexcept { return acos(x); }
 
-		/// <summary>
-		/// Calculates the arc-tangent of a number
-		/// </summary>
-		/// <param name="x">The number</param>
-		/// <returns>The angle (in radians)</returns>
-		static double ATan(const double x) noexcept { return atan(x); }
+		/// @brief Calculates the arc-tangent of a number
+		/// @param x The ratio between the opposite and hypotenuse side lengths
+		/// @return The angle (in radians)
+		static double Atan(double x) noexcept { return atan(x); }
 
-		/// <summary>
-		/// Calculates the arc-tangent of an (x,y) vector
-		/// </summary>
-		/// <param name="x">The x value</param>
-		/// <param name="y">The y value</param>
-		/// <returns>The angle (in radians) from the x-axis</returns>
-		static double ATan2(const double x, const double y) noexcept { return atan2(x, y); }
+		/// @brief Calculates the arc-tangent of an (x,y) vector
+		/// @param x The x value
+		/// @param y The y value
+		/// @return The angle (in radians) from the x-axis
+		static double Atan2(double x, double y) noexcept { return atan2(x, y); }
 
-		/// <summary>
-		/// Calculates the square root of a number
-		/// </summary>
-		/// <param name="x">The number</param>
-		/// <returns>The square root</returns>
-		static double Sqrt(const double x) noexcept { return sqrt(x); }
+		/// @brief Calculates the square root of a number
+		/// @param x The number
+		/// @return The square root of the number
+		static double Sqrt(double x) noexcept { return sqrt(x); }
 
-		/// <summary>
-		/// Calculates the absolute value of an number
-		/// </summary>
-		/// <param name="x">The number</param>
-		/// <returns>The absolute value of the number</returns>
+		/// @brief Calculates the absolute value of an number
+		/// @tparam T 
+		/// @param x The number
+		/// @return The absolute value of the number
 		template<typename T>
 		static T Abs(const T x) noexcept { return abs(x); }
 
-		/// <summary>
-		/// Determines if the given value is a power of two
-		/// </summary>
-		/// <param name="value>The value</param>
-		/// <returns>True if the number is a power of two</returns>
-		static constexpr bool IsPowerOfTwo(const uint64_t value) noexcept { return (value != 0) && ((value & (value - 1)) == 0); }
+		/// @brief Determines if the given number is a power of two
+		/// @param x The number
+		/// @return True if the number is a power of two
+		static constexpr bool IsPowerOfTwo(uint64_t x) noexcept { return (x != 0) && ((x & (x - 1)) == 0); }
 
-		/// <summary>
-		/// Compares if two decimal values are within a tolerance of each other.
-		/// Use this instead of "a == b" to compare decimals due to rounding errors
-		/// </summary>
-		/// <param name="a">The first number</param>
-		/// <param name="b">The second number</param>
-		/// <param name="tolerance">The acceptable error between the two values</param>
-		/// <returns>True if the values are within error of each other</returns>
+		/// @brief Compares if two numbers values are within a tolerance of each other. Use this instead of "a == b" to compare decimal numbers due to rounding errors
+		/// @tparam T 
+		/// @param a The first number
+		/// @param b The second number
+		/// @param tolerance The acceptable error between the two values
+		/// @return True if the numbers are within error of each other
 		template<typename T>
 		static bool Approximately(const T a, const T b, const T tolerance = Math::Epsilon) noexcept { return Abs(a - b) <= tolerance; }
 
-		/// <summary>
-		/// Returns the greater of two numbers
-		/// </summary>
-		/// <returns>The greater of the two numbers</returns>
+		/// @brief Returns the greater of two numbers
+		/// @tparam T 
+		/// @param a The first number
+		/// @param b The second number
+		/// @return The greater of the two numbers
 		template<typename T>
-		static constexpr T Max(const T a, const T b) noexcept { return std::max(a, b); }
+		static constexpr T Max(T a, T b) noexcept { return std::max(a, b); }
 
-		/// <summary>
-		/// Returns the smaller of two numbers
-		/// </summary>
-		/// <returns>The smaller of the two numbers</returns>
+		/// @brief Returns the smaller of two numbers
+		/// @tparam T 
+		/// @param a The first number
+		/// @param b The second number
+		/// @return The smaller of the two numbers
 		template<typename T>
 		static constexpr T Min(T a, T b) noexcept { return std::min(a, b); }
 
-		/// <summary>
-		/// Clamps a value between a minimum and a maximum
-		/// </summary>
-		/// <param name="value">The value</param>
-		/// <param name="minimum">The minimum</param>
-		/// <param name="maximum">The maximum</param>
-		/// <returns>The value clamped in the range [minimum, maximum]</returns>
+		/// @brief Clamps a number between a minimum and a maximum
+		/// @tparam T 
+		/// @param x The number 
+		/// @param minimum The minimum
+		/// @param maximum The maximum
+		/// @return The number clamped in the range [minimum, maximum]
 		template<typename T>
-		static constexpr T Clamp(const T value, const T minimum, const T maximum) noexcept { return std::clamp(value, minimum, maximum); }
+		static constexpr T Clamp(T x, T minimum, T maximum) noexcept { return std::clamp(x, minimum, maximum); }
 
-		/// <summary>
-		/// Rounds a number to the closest non-decimal value
-		/// </summary>
-		/// <param name="value">The value</param>
-		/// <returns>The rounded value</returns>
+		/// @brief Rounds a number to the closest non-decimal value
+		/// @tparam T 
+		/// @param x The number 
+		/// @return The rounded number
 		template<typename T>
-		static T Round(const T value) noexcept { return round(value); }
+		static T Round(T x) noexcept { return round(x); }
 
-		/// <summary>
-		/// Rounds a number to the closest integer
-		/// </summary>
-		/// <param name="value">The value</param>
-		/// <returns>The rounded integer</returns>
+		/// @brief Rounds a number to the closest integer
+		/// @tparam T 
+		/// @param x The number 
+		/// @return The number rounded to an integer
 		template<typename T>
-		static int RoundToInt(const T value) noexcept { return static_cast<int>(Round(value)); }
+		static int RoundToInt(T x) noexcept { return static_cast<int>(Round(x)); }
 
-		/// <summary>
-		/// Gets the largest value of a type
-		/// </summary>
-		/// <returns>The largest value of the type</returns>
+		/// @brief Gets the largest value of a type
+		/// @tparam T 
+		/// @return The largest value of the type
 		template<typename T>
 		static constexpr T MaxValue() noexcept { return std::numeric_limits<T>::max(); }
 
-		/// <summary>
-		/// Gets the smallest value of a type
-		/// </summary>
-		/// <returns>The smallest value of the type</returns>
+		/// @brief Gets the smallest value of a type
+		/// @tparam T 
+		/// @return The smallest value of the type
 		template<typename T>
 		static constexpr T MinValue() noexcept { return std::numeric_limits<T>::min(); }
 
-		/// <summary>
-		/// Raises the base to the power of the exponent
-		/// </summary>
-		/// <param name="base">The base number</param>
-		/// <param name="exponent">The exponent</param>
-		/// <returns>The base raised by the exponent</returns>
+		/// @brief Raises a base to the power of an exponent
+		/// @tparam T 
+		/// @param base The base number
+		/// @param exponent The exponent
+		/// @return The base raised by the exponent
 		template<typename T>
 		static constexpr T Pow(T base, T exponent) noexcept { return std::pow(base, exponent); }
 	};

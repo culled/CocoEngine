@@ -9,9 +9,7 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Defines how geometry is rendered
-	/// </summary>
+	/// @brief Defines how geometry is rendered
 	class COCOAPI Shader : public RenderingResource
 	{
 	private:
@@ -21,34 +19,28 @@ namespace Coco::Rendering
 		Shader(const string& name = "");
 		virtual ~Shader() = default;
 
-		/// <summary>
-		/// Tries to find a subshader with the given name
-		/// </summary>
-		/// <returns>True if a subshader was found</returns>
-		bool TryGetSubshader(const string& passName, const Subshader*& subshader) const noexcept;
+		/// @brief Tries to find a subshader with the given name
+		/// @param name The name of the subshader
+		/// @param subshader Will be filled with the subshader if it was found
+		/// @return True if a subshader was found
+		bool TryGetSubshader(const string& name, const Subshader*& subshader) const noexcept;
 
-		/// <summary>
-		/// Gets a list of all subshaders for this shader
-		/// </summary>
-		/// <returns>The shader's subshaders</returns>
+		/// @brief Gets all subshaders for this shader
+		/// @return This shader's subshaders
 		List<Subshader> GetSubshaders() const noexcept { return _subshaders; }
 
-		/// <summary>
-		/// Adds a subshader to this shader
-		/// </summary>
-		/// <param name="subshader">The subshader to add</param>
-		void AddSubshader(const Subshader& subshader) { _subshaders.Add(subshader); }
+		/// @brief Adds a subshader to this shader
+		/// @param subshader The subshader to add
+		void AddSubshader(const Subshader& subshader);
 
-		/// <summary>
-		/// Creates a subshader for this shader
-		/// </summary>
-		/// <param name="name">The name of the subshader</param>
-		/// <param name="stageFiles">The files for each stage of the subshader</param>
-		/// <param name="pipelineState">The pipeline state for the subshader</param>
-		/// <param name="attributes">The attributes for the subshader</param>
-		/// <param name="descriptors">The descriptors for the subshader</param>
-		/// <param name="samplers">The texture samplers for the subshader</param>
-		/// <param name="bindPoint">The point in this subshader when the descriptors should be bound</param>
+		/// @brief Creates a subshader for this shader
+		/// @param name The name of the subshader
+		/// @param stageFiles The files for each stage of the subshader
+		/// @param pipelineState The pipeline state for the subshader
+		/// @param attributes The attributes for the subshader
+		/// @param descriptors The descriptors for the subshader
+		/// @param samplers The texture samplers for the subshader
+		/// @param bindPoint The point in this subshader when the descriptors should be bound
 		void CreateSubshader(
 			const string& name, 
 			const Map<ShaderStageType, string>& stageFiles, 

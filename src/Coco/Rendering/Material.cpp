@@ -36,7 +36,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->GetName(), name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->Name, name));
 		}
 	}
 
@@ -50,7 +50,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->GetName(), name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->Name, name));
 			return Vector4::Zero;
 		}
 	}
@@ -68,7 +68,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->GetName(), name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->Name, name));
 		}
 	}
 
@@ -82,7 +82,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->GetName(), name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->Name, name));
 			return nullptr;
 		}
 	}
@@ -95,12 +95,12 @@ namespace Coco::Rendering
 		return _bufferData;
 	}
 
-	bool Material::TryGetSubshaderBinding(const string& subshaderName, SubshaderUniformBinding*& binding)
+	bool Material::TryGetSubshaderBinding(const string& subshaderName, const SubshaderUniformBinding*& binding)
 	{
 		if (_isBufferDataDirty)
 			UpdateBufferData();
 
-		auto it = _subshaderBindings.find(subshaderName);
+		const auto it = _subshaderBindings.find(subshaderName);
 
 		if (it != _subshaderBindings.end())
 		{
@@ -113,7 +113,7 @@ namespace Coco::Rendering
 
 	void Material::UpdatePropertyMaps(bool forceUpdate)
 	{
-		if (!forceUpdate && PropertyMapVersion == Shader->GetVersion())
+		if (!forceUpdate && _propertyMapVersion == Shader->GetVersion())
 			return;
 
 		Map<string, Vector4> vec4Properties;
@@ -164,7 +164,7 @@ namespace Coco::Rendering
 
 		Vector4Properties = std::move(vec4Properties);
 		TextureProperties = std::move(textureProperties);
-		PropertyMapVersion = Shader->GetVersion();
+		_propertyMapVersion = Shader->GetVersion();
 		_isBufferDataDirty = true;
 	}
 
@@ -226,7 +226,7 @@ namespace Coco::Rendering
 		_isBufferDataDirty = false;
 	}
 
-	//MaterialInstance::MaterialInstance(const Material* material) : Material(material->Shader, FormattedString("{} (Instance)", material->GetName()))
+	//MaterialInstance::MaterialInstance(const Material* material) : Material(material->Shader, FormattedString("{} (Instance)", material->Name))
 	//{}
 	//
 	//MaterialInstance::~MaterialInstance()

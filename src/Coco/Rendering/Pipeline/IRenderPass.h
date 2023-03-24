@@ -9,30 +9,22 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Abstract interface for all rendering-related operations
-	/// </summary>
+	/// @brief Abstract interface for all rendering-related operations
 	class COCOAPI IRenderPass
 	{
 	public:
 		virtual ~IRenderPass() = default;
 
-		/// <summary>
-		/// Gets the name of the subpass used in shaders for rendering with this pass
-		/// </summary>
-		/// <returns>The pass name</returns>
+		/// @brief Gets the name of the subpass used in shaders for rendering with this pass
+		/// @return The pass name
 		virtual string GetName() const noexcept = 0;
 
-		/// <summary>
-		/// Gets the attachment descriptions required for this pass
-		/// </summary>
-		/// <returns>The attachment descriptions</returns>
+		/// @brief Gets the attachment descriptions required for this pass
+		/// @return The attachment descriptions
 		virtual List<AttachmentDescription> GetAttachmentDescriptions() noexcept = 0;
 
-		/// <summary>
-		/// Called to perform rendering operations with a RenderContext
-		/// </summary>
-		/// <param name="renderContext">The context to use for rendering</param>
+		/// @brief Called to perform rendering operations with a RenderContext
+		/// @param renderContext The context to use for rendering
 		virtual void Execute(RenderContext* renderContext) = 0;
 	};
 }

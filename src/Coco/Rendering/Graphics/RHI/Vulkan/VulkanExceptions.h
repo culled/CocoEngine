@@ -6,9 +6,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	/// <summary>
-	/// A generic Vulkan rendering exception
-	/// </summary>
+	/// @brief A generic Vulkan rendering exception
 	class VulkanRenderingException : public RenderingException
 	{
 	public:
@@ -16,9 +14,7 @@ namespace Coco::Rendering::Vulkan
 		virtual ~VulkanRenderingException() = default;
 	};
 
-	/// <summary>
-	/// An exception when a Vulkan operation fails
-	/// </summary>
+	/// @brief An exception when a Vulkan operation fails
 	class VulkanOperationException : public VulkanRenderingException
 	{
 	public:
@@ -27,9 +23,7 @@ namespace Coco::Rendering::Vulkan
 	};
 
 
-	/// <summary>
-	/// An exception thrown when a descriptor pool can no longer allocate descriptor sets
-	/// </summary>
+	/// @brief An exception thrown when a descriptor pool can no longer allocate descriptor sets
 	class DescriptorSetAllocateException : public VulkanRenderingException
 	{
 	public:

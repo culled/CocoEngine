@@ -2,18 +2,14 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Types of state changes within a render context
-	/// </summary>
+	/// @brief Types of state changes within a render context
 	enum class RenderContextStateChange
 	{
 		Shader,
 		Material
 	};
 
-	/// <summary>
-	/// States for a render context to be in
-	/// </summary>
+	/// @brief States for a render context to be in
 	enum class RenderContextState
 	{
 		Ready,

@@ -2,9 +2,7 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Types of camera projections
-	/// </summary>
+	/// @brief Types of camera projections
 	enum class ProjectionType
 	{
 		Perspective,

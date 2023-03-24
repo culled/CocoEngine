@@ -12,7 +12,7 @@ namespace Coco::Rendering
 {
 	RenderingService* RenderingService::s_instance = nullptr;
 
-	RenderingService::RenderingService(Coco::Engine* engine, const GraphicsPlatformCreationParameters& backendCreateParams) : EngineService(engine)
+	RenderingService::RenderingService(EngineServiceManager* serviceManager, const GraphicsPlatformCreationParameters& backendCreateParams) : EngineService(serviceManager)
 	{
 		s_instance = this;
 		_graphics = GraphicsPlatform::CreatePlatform(this, backendCreateParams);
@@ -21,9 +21,9 @@ namespace Coco::Rendering
 		CreateDefaultDiffuseTexture();
 		CreateDefaultCheckerTexture();
 
-		RegisterTickListener(this, &RenderingService::Tick, TickPriority);
+		RegisterTickListener(this, &RenderingService::PurgeTick, ResourcePurgeTickPriority);
 
-		ResourceLibrary* resourceLibrary = engine->GetResourceLibrary();
+		ResourceLibrary* resourceLibrary = ServiceManager->Engine->GetResourceLibrary();
 		resourceLibrary->CreateLoader<TextureLoader>();
 		resourceLibrary->CreateLoader<ShaderLoader>();
 		resourceLibrary->CreateLoader<MaterialLoader>();
@@ -41,7 +41,7 @@ namespace Coco::Rendering
 	{
 		if (_defaultPipeline)
 		{
-			Render(presenter, _defaultPipeline, this->Engine->GetApplication()->GetCamera().get());
+			Render(presenter, _defaultPipeline, ServiceManager->Engine->GetApplication()->GetCamera().get());
 		}
 		else
 		{
@@ -152,7 +152,7 @@ namespace Coco::Rendering
 		_defaultCheckerTexture->SetPixels(0, pixelData.Count(), pixelData.Data());
 	}
 
-	void RenderingService::Tick(double deltaTime)
+	void RenderingService::PurgeTick(double deltaTime)
 	{
 		_timeSinceLastPurge += deltaTime;
 

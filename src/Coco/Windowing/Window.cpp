@@ -14,7 +14,7 @@ namespace Coco::Windowing
 		if (!Engine::Get()->GetServiceManager()->TryFindService<Rendering::RenderingService>(renderingService))
 			throw WindowCreateException("Could not find an active rendering service. Windowing requires an active rendering service");
 
-		Presenter = renderingService->CreatePresenter();
+		Presenter = renderingService->GetPlatform()->CreatePresenter();
 	}
 
 	Window::~Window()

@@ -4,9 +4,7 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A loader for texture files (*.ctexture)
-	/// </summary>
+	/// @brief A loader for texture files (*.ctexture)
 	class TextureLoader final : public KeyValueResourceLoader
 	{
 	private:
@@ -19,10 +17,10 @@ namespace Coco::Rendering
 		static constexpr const char* s_channelCountVariable = "channelCount";
 
 	public:
-		TextureLoader(ResourceLibrary* library, const string& basePath);
+		TextureLoader(ResourceLibrary* library);
 		~TextureLoader() final = default;
 
-		const char* GetResourceTypename() const noexcept final { return ResourceTypeToString(ResourceType::Texture); }
+		string GetResourceTypename() const noexcept final { return ResourceTypeToString(ResourceType::Texture); }
 
 	protected:
 		Ref<Resource> LoadImpl(const string& path) final;

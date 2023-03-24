@@ -9,30 +9,22 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Vertex data that can be sent to the GPU
-	/// </summary>
+	/// @brief Vertex data that can be sent to the GPU
 	struct VertexData
 	{
 		float Position[3];
 		float UV0[2];
 	};
 
-	/// <summary>
-	/// Holds data for rendering geometry
-	/// </summary>
+	/// @brief Holds vertex and index data for rendering geometry
 	class COCOAPI Mesh : public RenderingResource
 	{
 	public:
-		/// <summary>
-		/// The size of the vertex buffer (in bytes)
-		/// </summary>
-		static const uint64_t VertexBufferSize;
+		/// @brief The size of the vertex buffer (in bytes)
+		static constexpr uint64_t VertexBufferSize = sizeof(VertexData) * 1024 * 1024;
 
-		/// <summary>
-		/// The size of the index buffer (in bytes)
-		/// </summary>
-		static const uint64_t IndexBufferSize;
+		/// @brief The size of the index buffer (in bytes)
+		static constexpr uint64_t IndexBufferSize = sizeof(uint32_t) * VertexBufferSize * 3;
 
 	private:
 		WeakManagedRef<Buffer> _vertexBuffer;
@@ -51,68 +43,45 @@ namespace Coco::Rendering
 		Mesh(const string& name = "");
 		virtual ~Mesh();
 
-		/// <summary>
-		/// Sets vertex positions for this mesh.
-		/// NOTE: this will define the number of vertices this mesh has
-		/// </summary>
-		/// <param name="positions">A list of vertex positions</param>
+		/// @brief Sets vertex positions for this mesh. NOTE: this will define the number of vertices this mesh has
+		/// @param positions The list of vertex positions
 		void SetPositions(const List<Vector3>& positions);
 
-		/// <summary>
-		/// Sets vertex positions for this mesh.
-		/// NOTE: this will define the number of vertices this mesh has
-		/// </summary>
-		/// <param name="positions">A list of vertex positions</param>
+		/// @brief Sets the uvs for the mesh
+		/// @param uvs The list of UV coordinates
 		void SetUVs(const List<Vector2>& uvs);
 
-		/// <summary>
-		/// Sets the indices for this mesh.
-		/// NOTE: must be a multiple of [vertex count * 3]
-		/// </summary>
-		/// <param name="indices">The list of vertex indices</param>
+		/// @brief Sets the indices for this mesh. NOTE: must be a multiple of <vertex count * 3>
+		/// @param indices The list of vertex indices
 		void SetIndices(const List<uint32_t>& indices);
 
-		/// <summary>
-		/// Gets if this mesh has changes that haven't been uploaded to the GPU
-		/// </summary>
-		/// <returns>True if this mesh has changes that haven't been uploaded to the GPU</returns>
+		/// @brief Gets if this mesh has changes that haven't been uploaded to the GPU
+		/// @return True if this mesh has changes that haven't been uploaded to the GPU
 		bool GetIsDirty() const noexcept { return _isDirty; }
 
-		/// <summary>
-		/// Uploads this mesh's data to the GPU
-		/// </summary>
-		/// <param name="deleteLocalData">If true, the local mesh data will be cleared and will solely live on the GPU</param>
-		/// <returns>True if the data was uploaded successfully</returns>
+		/// @brief Uploads any pending changes of this mesh's data to the GPU
+		/// @param deleteLocalData If true, the local mesh data will be cleared and will solely live on the GPU
+		/// @return True if the data was uploaded successfully
 		bool UploadData(bool deleteLocalData = true);
 
-		/// <summary>
-		/// Gets this mesh's vertex buffer
-		/// </summary>
-		/// <returns>The vertex buffer</returns>
+		/// @brief Gets this mesh's vertex buffer
+		/// @return The vertex buffer
 		WeakManagedRef<Buffer> GetVertexBuffer() const noexcept { return _vertexBuffer; }
 
-		/// <summary>
-		/// Gets this mesh's index buffer
-		/// </summary>
-		/// <returns>The index buffer</returns>
+		/// @brief Gets this mesh's index buffer
+		/// @return The index buffer
 		WeakManagedRef<Buffer> GetIndexBuffer() const noexcept { return _indexBuffer; }
 
-		/// <summary>
-		/// Gets the number of vertices in this mesh
-		/// </summary>
-		/// <returns>The number of vertices</returns>
-		uint64_t GetVertexCount() const noexcept { return _vertexCount; }
+		/// @brief Gets the number of vertices in this mesh
+		/// @return The number of vertices
+		constexpr uint64_t GetVertexCount() const noexcept { return _vertexCount; }
 
-		/// <summary>
-		/// Gets the number of indices in the mesh
-		/// </summary>
-		/// <returns>The number of vertex indices</returns>
-		uint64_t GetIndexCount() const noexcept { return _indexCount; }
+		/// @brief Gets the number of indices in the mesh
+		/// @return The number of vertex indices
+		constexpr uint64_t GetIndexCount() const noexcept { return _indexCount; }
 
 	private:
-		/// <summary>
-		/// Marks this mesh as dirty and needing a re-upload of data
-		/// </summary>
+		/// @brief Marks this mesh as dirty and needing a re-upload of data
 		void MarkDirty() noexcept;
 	};
 }

@@ -18,30 +18,24 @@ namespace Coco::Rendering::Vulkan
 	class BufferVulkan;
 	class VulkanDescriptorPool;
 
-	/// <summary>
-	/// A cached shader resource
-	/// </summary>
+	/// @brief A cached shader resource
 	struct CachedShaderResource : public CachedResource
 	{
 		const uint MaxSets = 512;
 		WeakManagedRef<VulkanDescriptorPool> Pool;
 		WeakRef<VulkanShader> ShaderRef;
 
-		CachedShaderResource(Ref<VulkanShader> shader);
+		CachedShaderResource(const Ref<VulkanShader>& shader);
 
 		bool IsInvalid() const noexcept final { return ShaderRef.expired(); }
 		bool NeedsUpdate() const noexcept final;
 
-		/// <summary>
-		/// Updates this cached resource
-		/// </summary>
-		/// <param name="device">The device</param>
+		/// @brief Updates this cached resource
+		/// @param device The device
 		void Update(GraphicsDeviceVulkan* device);
 	};
 
-	/// <summary>
-	/// A cached material resource
-	/// </summary>
+	/// @brief A cached material resource
 	struct CachedMaterialResource final : public CachedResource
 	{
 		uint BufferIndex = Math::MaxValue<uint>();
@@ -49,38 +43,42 @@ namespace Coco::Rendering::Vulkan
 		uint64_t BufferSize = 0;
 		WeakRef<Material> MaterialRef;
 
-		CachedMaterialResource(Ref<Material> material);
+		CachedMaterialResource(const Ref<Material>& material);
 
 		bool IsInvalid() const noexcept final { return MaterialRef.expired(); }
 		bool NeedsUpdate() const noexcept final;
 
-		/// <summary>
-		/// Updates this cached material's region of data in the material buffer
-		/// </summary>
-		/// <param name="bufferMemory">The memory of the buffer</param>
-		/// <param name="materialData">The material data</param>
-		/// <param name="materialDataLength">The size of the material data</param>
+		/// @brief Updates this cached material's region of data in the material buffer
+		/// @param bufferMemory The memory of the buffer
+		/// @param materialData The material data
+		/// @param materialDataLength The size of the material data
 		void Update(uint8_t* bufferMemory, const uint8_t* materialData, uint64_t materialDataLength);
 
-		/// <summary>
-		/// Invalidates this cached material's region of data
-		/// </summary>
+		/// @brief Invalidates this cached material's region of data
 		void InvalidateBufferRegion();
 	};
 
+	/// @brief Holds material property data
 	struct MaterialBuffer
 	{
+		/// @brief The buffer
 		WeakManagedRef<BufferVulkan> Buffer;
+
+		/// @brief The next open offset in the buffer
 		uint64_t CurrentOffset = 0;
+		
+		/// @brief The amount of fragmented memory behind the current offset
 		uint64_t FragmentedSize = 0;
+
+		/// @brief The mapped memory of the buffer (if it has been locked)
 		uint8_t* MappedMemory = nullptr;
 
+		/// @brief Gets the size of the available memory region
+		/// @return The size of the free space past the current offset in the buffer
 		uint64_t GetFreeRegionSize() const noexcept;
 	};
 
-	/// <summary>
-	/// A cache for a Vulkan render context that manages material data
-	/// </summary>
+	/// @brief A cache for a Vulkan render context that manages material data
 	class RenderContextVulkanCache
 	{
 	private:
@@ -98,59 +96,42 @@ namespace Coco::Rendering::Vulkan
 		RenderContextVulkanCache(GraphicsDeviceVulkan* device);
 		virtual ~RenderContextVulkanCache();
 
-		/// <summary>
-		/// Gets a shader resource, updating its last used tick
-		/// </summary>
-		/// <param name="shader">The shader that the resource points to</param>
-		/// <returns>The cached resource for the shader</returns>
-		CachedShaderResource& GetShaderResource(Ref<VulkanShader> shader);
+		/// @brief Gets a shader resource, updating its last used tick
+		/// @param shader The shader that the resource points to
+		/// @return The cached resource for the shader
+		CachedShaderResource& GetShaderResource(const Ref<VulkanShader>& shader);
 
-		/// <summary>
-		/// Gets a material resource, updating its last used tick
-		/// </summary>
-		/// <param name="material">The material that the resource points to</param>
-		/// <returns>The cached resource for the material</returns>
-		CachedMaterialResource& GetMaterialResource(Ref<Material> material);
+		/// @brief Gets a material resource, updating its last used tick
+		/// @param material The material that the resource points to
+		/// @return The cached resource for the material
+		CachedMaterialResource& GetMaterialResource(const Ref<Material>& material);
 
-		/// <summary>
-		/// Flushes any pending material changes to the material buffers
-		/// </summary>
+		/// @brief Flushes any pending material changes to the material buffers
 		void FlushMaterialChanges();
 
-		/// <summary>
-		/// Frees all descriptor sets from cached shader pools
-		/// </summary>
+		/// @brief Frees all descriptor sets from cached shader pools
 		void FreeDescriptorSets();
 
-		/// <summary>
-		/// Gets the material buffer
-		/// </summary>
-		/// <returns>The material buffer</returns>
+		/// @brief Gets the material buffer
+		/// @param bufferIndex The index of the material buffer
+		/// @return The material buffer
 		WeakManagedRef<BufferVulkan> GetMaterialBuffer(uint bufferIndex) const noexcept;
 
-		/// <summary>
-		/// Purges unused and invalid resources
-		/// </summary>
+		/// @brief Purges unused and invalid resources 
 		void PurgeResources() noexcept;
 
 	private:
-		/// <summary>
-		/// Invalidates all material regions that overlap or begin past the given offset
-		/// </summary>
-		/// <param name="bufferIndex">The buffer to invalidate</param>
+		/// @brief Invalidates all cached material regions in a material buffer
+		/// @param bufferIndex The index of the material buffer
 		void InvalidateMaterialBufferRegions(uint bufferIndex);
 
-		/// <summary>
-		/// Finds a buffer region to fit material data
-		/// </summary>
-		/// <param name="requiredSize">The required size of the region</param>
-		/// <param name="bufferIndex">The index of the material buffer to use</param>
-		/// <param name="bufferOffset">The offset in the material buffer to use</param>
+		/// @brief Finds a region in a material buffer to fit material data
+		/// @param requiredSize The required size of the region
+		/// @param bufferIndex Will be set to the index of the buffer to use
+		/// @param bufferOffset Will be set to the offset in the buffer
 		void FindBufferRegion(uint64_t requiredSize, uint& bufferIndex, uint64_t& bufferOffset);
 
-		/// <summary>
-		/// Creates an additional material buffer
-		/// </summary>
+		/// @brief Creates an additional material buffer
 		void CreateAdditionalMaterialBuffer();
 	};
 }

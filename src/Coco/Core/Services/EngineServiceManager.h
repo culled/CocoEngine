@@ -9,18 +9,19 @@ namespace Coco
 {
 	class Engine;
 
-	/// <summary>
-	/// Manages services for the engine
-	/// </summary>
+	/// @brief Manages services for the engine
 	class COCOAPI EngineServiceManager
 	{
+	public:
+		/// @brief A pointer to the engine
+		Engine* const Engine;
+
 	private:
-		Engine* _engine;
 		bool _isStarted = false;
 		Map<const char*, Managed<EngineService>> _services;
 
 	public:
-		EngineServiceManager(Engine* engine);
+		EngineServiceManager(Coco::Engine* engine);
 		~EngineServiceManager();
 
 		EngineServiceManager(const EngineServiceManager&) = delete;
@@ -29,44 +30,41 @@ namespace Coco
 		EngineServiceManager operator=(const EngineServiceManager&) = delete;
 		EngineServiceManager operator=(EngineServiceManager&&) = delete;
 
-		/// <summary>
-		/// Creates a service and registers it
-		/// </summary>
-		/// <typeparam name="T">The type of service to create</typeparam>
-		/// <typeparam name="...Args">Arguement types</typeparam>
-		/// <param name="args">Arguments to pass to the service's constructor</param>
-		/// <returns>The created service</returns>
-		template<typename T, typename ... Args>
-		T* CreateService(Args&& ... args)
+		/// @brief Creates a service and registers it
+		/// @tparam ServiceType 
+		/// @tparam ...Args 
+		/// @param ...args Arguments to pass to the service's constructor
+		/// @return The created service
+		template<typename ServiceType, typename ... Args>
+		ServiceType* CreateService(Args&& ... args)
 		{
-			static_assert(std::is_base_of<EngineService, T>::value, "Can only create services derived from EngineService");
+			static_assert(std::is_base_of<EngineService, ServiceType>::value, "Can only create services derived from EngineService");
 
-			const char* typeName = typeid(T).name();
+			const char* typeName = typeid(ServiceType).name();
 
 			if (!_services.contains(typeName))
 			{
-				auto it = _services.emplace(typeName, CreateManaged<T>(_engine, std::forward<Args>(args)...)).first;
+				auto it = _services.emplace(typeName, CreateManaged<ServiceType>(this, std::forward<Args>(args)...)).first;
 
 				if (_isStarted)
 					(*it).second->Start();
 			}
 
-			return static_cast<T*>(_services.at(typeName).get());
+			return static_cast<ServiceType*>(_services.at(typeName).get());
 		}
 
-		/// <summary>
-		/// Tries to find a registered service and returns it
-		/// </summary>
-		/// <param name="servicePtr">A pointer that will be assigned to the service if it is found</param>
-		/// <returns>True if a service of the given type has been registered</returns>
-		template<typename T>
-		bool TryFindService(T*& servicePtr) const noexcept
+		/// @brief Tries to find a service and returns it
+		/// @tparam ServiceType 
+		/// @param servicePtr A pointer that will be assigned to the service if it is found
+		/// @return True if a service of the given type has been registered
+		template<typename ServiceType>
+		bool TryFindService(ServiceType*& servicePtr) const noexcept
 		{
-			const auto& it = _services.find(typeid(T).name());
+			const auto& it = _services.find(typeid(ServiceType).name());
 
 			if (it != _services.cend())
 			{
-				servicePtr = static_cast<T*>((*it).second.get());
+				servicePtr = static_cast<ServiceType*>((*it).second.get());
 				return true;
 			}
 
@@ -74,9 +72,7 @@ namespace Coco
 			return false;
 		}
 
-		/// <summary>
-		/// Starts all services
-		/// </summary>
+		/// @brief Starts all services
 		void Start();
 	};
 }

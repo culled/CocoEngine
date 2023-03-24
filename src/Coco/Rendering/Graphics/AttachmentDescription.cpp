@@ -12,6 +12,12 @@ namespace Coco::Rendering
 	{
 		return PixelFormat == other.PixelFormat &&
 			ColorSpace == other.ColorSpace &&
-			UsesBlending == other.UsesBlending;
+			UsesBlending == other.UsesBlending &&
+			ColorSourceFactor == other.ColorSourceFactor &&
+			ColorDestinationFactor == other.ColorDestinationFactor &&
+			ColorBlendOperation == other.ColorBlendOperation &&
+			AlphaSourceBlendFactor == other.AlphaSourceBlendFactor &&
+			AlphaDestinationBlendFactor == other.AlphaDestinationBlendFactor && 
+			AlphaBlendOperation == other.AlphaBlendOperation;
 	}
 }

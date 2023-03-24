@@ -6,18 +6,14 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// A listener that can be added to the main loop to call a tick function
-	/// </summary>
+	/// @brief A listener of ticks from a MainLoop that performs a callback every tick
 	class COCOAPI MainLoopTickListener
 	{
 	public:
+		/// @brief Function signature for a tick callback
 		using TickHandler = std::function<void(double)>;
 
-		/// <summary>
-		/// The priority for this listener.
-		/// Lower priorities get ticked before higher priorities
-		/// </summary>
+		/// @brief The priority for this listener. Lower priorities get ticked before higher priorities
 		const int Priority;
 
 	private:
@@ -25,29 +21,28 @@ namespace Coco
 		bool _isEnabled;
 
 	public:
+		MainLoopTickListener(TickHandler tickHandler, int priority);
+
 		template<typename ObjectType>
 		MainLoopTickListener(ObjectType* object, void(ObjectType::* handlerFunction)(double), int priority) :
 			MainLoopTickListener(std::bind(handlerFunction, object, std::placeholders::_1), priority)
 		{}
 
-		MainLoopTickListener(TickHandler tickHandler, int priority);
 		virtual ~MainLoopTickListener() = default;
 
-		/// <summary>
-		/// Sets this listeners as enabled
-		/// </summary>
-		/// <param name="isEnabled">If true, this listener (and its callback) will receive ticks</param>
-		void SetIsEnabled(bool isEnabled) noexcept { _isEnabled = isEnabled; }
+		/// @brief Sets this listener as enabled. Enabled listeners receive ticks and call their callbacks
+		/// @param isEnabled If true, this listener will receive ticks
+		constexpr void SetIsEnabled(bool isEnabled) noexcept { _isEnabled = isEnabled; }
 
-		/// <summary>
-		/// Gets if this listener is enabled
-		/// </summary>
-		/// <returns>True if this listener is responding to ticks
-		bool GetIsEnabled() const noexcept { return _isEnabled; }
+		/// @brief Gets if this listener is enabled
+		/// @return True if this listener is responding to ticks
+		constexpr bool GetIsEnabled() const noexcept { return _isEnabled; }
 
 	private:
 		friend class MainLoop;
 
-		void Tick(double deltaTime);
+		/// @brief Called by the main loop everytick
+		/// @param deltaTime The time between ticks (in seconds)
+		void PurgeTick(double deltaTime);
 	};
 }

@@ -9,58 +9,42 @@ namespace Coco
 {
 	class ResourceLibrary;
 
-	/// <summary>
-	/// Base class that provides file save and load operations for a resource
-	/// </summary>
+	/// @brief Provides file save and load operations for a resource
 	class COCOAPI ResourceLoader
 	{
 	public:
-		/// <summary>
-		/// The base path for all resources
-		/// </summary>
-		const string BasePath;
-
-		ResourceLibrary* Library;
+		/// @brief The resource library
+		ResourceLibrary* const Library;
 
 	protected:
-		ResourceLoader(ResourceLibrary* library, const string& basePath);
+		ResourceLoader(ResourceLibrary* library);
 
 	public:
 		virtual ~ResourceLoader() = default;
 
-		/// <summary>
-		/// Gets the type of resources that this loader can work with
-		/// </summary>
-		/// <returns>The type of resources that this loader can work with</returns>
-		virtual const char* GetResourceTypename() const noexcept = 0;
+		/// @brief Gets the type of resources that this loader can work with
+		/// @return The type of resources that this loader can work with
+		virtual string GetResourceTypename() const noexcept = 0;
 
-		/// <summary>
-		/// Loads a resource from a file
-		/// </summary>
-		/// <param name="path">The file path</param>
-		/// <returns>The loaded resource</returns>
+		/// @brief Loads a resource from a file
+		/// @param path The file path
+		/// @return The loaded resource
 		Ref<Resource> Load(const string& path);
 
-		/// <summary>
-		/// Saves a resource to a file
-		/// </summary>
-		/// <param name="resource">The resource</param>
-		/// <param name="path">The path of the saved file</param>
+		/// @brief Saves a resource to a file
+		/// @param resource The resource
+		/// @param path The path of the saved file
 		void Save(const Ref<Resource>& resource, const string& path);
 
 	protected:
-		/// <summary>
-		/// Implementation for loading a resource from a file
-		/// </summary>
-		/// <param name="path">The file path</param>
-		/// <returns>The loaded resource</returns>
+		/// @brief Implementation for loading a resource from a file
+		/// @param path The file path
+		/// @return The loaded resource
 		virtual Ref<Resource> LoadImpl(const string& path) = 0;
 
-		/// <summary>
-		/// Implementation for saving a resource to a file
-		/// </summary>
-		/// <param name="resource">The resource</param>
-		/// <param name="path">The path of the saved file</param>
+		/// @brief Implementation for saving a resource to a file
+		/// @param resource The resource
+		/// @param path The path of the saved file
 		virtual void SaveImpl(const Ref<Resource>& resource, const string& path) = 0;
 	};
 }

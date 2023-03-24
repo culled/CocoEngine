@@ -7,7 +7,7 @@
 
 namespace Coco::Rendering
 {
-	TextureLoader::TextureLoader(ResourceLibrary* library, const string& basePath) : KeyValueResourceLoader(library, basePath)
+	TextureLoader::TextureLoader(ResourceLibrary* library) : KeyValueResourceLoader(library)
 	{}
 
 	Ref<Resource> TextureLoader::LoadImpl(const string& path)
@@ -20,25 +20,25 @@ namespace Coco::Rendering
 		string imageFilePath;
 		string name;
 
-		File file = File::Open(path, FileModes::Read);
+		File file = File::Open(path, FileModeFlags::Read);
 		KeyValueReader reader(file);
 		while (reader.ReadLine())
 		{
-			if (reader.IsVariable("version") && reader.GetVariableValue() != "1")
+			if (reader.IsKey("version") && reader.GetValue() != "1")
 				throw InvalidOperationException("Mismatching texture versions");
-			else if (reader.IsVariable(s_nameVariable))
-				name = reader.GetVariableValue();
-			else if (reader.IsVariable(s_imageFileVariable))
-				imageFilePath = reader.GetVariableValue();
-			else if (reader.IsVariable(s_usageFlagsVariable))
+			else if (reader.IsKey(s_nameVariable))
+				name = reader.GetValue();
+			else if (reader.IsKey(s_imageFileVariable))
+				imageFilePath = reader.GetValue();
+			else if (reader.IsKey(s_usageFlagsVariable))
 				usageFlags = static_cast<ImageUsageFlags>(reader.GetVariableValueAsInt());
-			else if (reader.IsVariable(s_filterModeVariable))
+			else if (reader.IsKey(s_filterModeVariable))
 				filterMode = static_cast<FilterMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsVariable(s_repeatModeVariable))
+			else if (reader.IsKey(s_repeatModeVariable))
 				repeatMode = static_cast<RepeatMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsVariable(s_maxAnisotropyVariable))
+			else if (reader.IsKey(s_maxAnisotropyVariable))
 				maxAnisotropy = static_cast<uint>(reader.GetVariableValueAsInt());
-			else if (reader.IsVariable(s_channelCountVariable))
+			else if (reader.IsKey(s_channelCountVariable))
 				channelCount = reader.GetVariableValueAsInt();
 		}
 
@@ -56,11 +56,11 @@ namespace Coco::Rendering
 		{
 			const ImageDescription textureDescription = texture->GetDescription();
 
-			File file = File::Open(path, FileModes::Write);
+			File file = File::Open(path, FileModeFlags::Write);
 			KeyValueWriter writer(file);
 
 			writer.WriteLine("version", "1");
-			writer.WriteLine(s_nameVariable, texture->GetName());
+			writer.WriteLine(s_nameVariable, texture->Name);
 			writer.WriteLine(s_imageFileVariable, texture->GetImageFilePath());
 			writer.WriteLine(s_usageFlagsVariable, ToString(static_cast<uint>(textureDescription.UsageFlags)));
 			writer.WriteLine(s_filterModeVariable, ToString(static_cast<uint>(texture->GetFilterMode())));

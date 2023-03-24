@@ -1,12 +1,10 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/API.h>
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Types of buffer usage
-	/// </summary>
+	/// @brief Types of buffer usage
 	enum class BufferUsageFlags
 	{
 		None				= 0,
@@ -27,9 +25,7 @@ namespace Coco::Rendering
 	COCOAPI void operator|=(BufferUsageFlags& a, BufferUsageFlags b) noexcept;
 	COCOAPI void operator&=(BufferUsageFlags& a, BufferUsageFlags b) noexcept;
 
-	/// <summary>
-	/// Data types that a buffer can hold and shaders can read
-	/// </summary>
+	/// @brief Data types that a buffer can hold and shaders can read
 	enum class BufferDataFormat
 	{
 		Float,
@@ -43,11 +39,9 @@ namespace Coco::Rendering
 		Matrix4x4,
 	};
 
-	/// <summary>
-	/// Gets the size of a BufferDataFormat
-	/// </summary>
-	/// <param name="format">The buffer data format</param>
-	/// <returns>The size of the buffer data format (in bytes)</returns>
+	/// @brief Gets the size of a BufferDataFormat
+	/// @param format The buffer data format
+	/// @return The size of the buffer data format (in bytes)
 	constexpr uint GetBufferDataFormatSize(BufferDataFormat format) noexcept
 	{
 		switch (format)

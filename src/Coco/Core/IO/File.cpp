@@ -7,20 +7,21 @@
 
 namespace Coco
 {
-	File::File(const string& path, FileModes openModes)
+	File::File(const string& path, FileModeFlags openFlags) :
+		_openFlags(FileModeFlags::None)
 	{
 		int mode = 0;
 
-		if (openModes == FileModes::None)
+		if (openFlags == FileModeFlags::None)
 			throw FileOpenException("Invalid open mode");
 
-		if ((openModes & FileModes::Read) == FileModes::Read)
+		if ((openFlags & FileModeFlags::Read) == FileModeFlags::Read)
 			mode |= std::ios::in;
 
-		if ((openModes & FileModes::Write) == FileModes::Write)
+		if ((openFlags & FileModeFlags::Write) == FileModeFlags::Write)
 			mode |= std::ios::out;
 
-		if ((openModes & FileModes::Binary) == FileModes::Binary)
+		if ((openFlags & FileModeFlags::Binary) == FileModeFlags::Binary)
 			mode |= std::ios::binary;
 
 		_handle.open(path, mode);
@@ -32,10 +33,11 @@ namespace Coco
 		_handle.seekg(0, std::ios::beg);
 
 		_path = path;
+		_openFlags = openFlags;
 	}
 
 	File::File(File&& other) noexcept :
-		_modes(other._modes), _path(std::move(other._path)), _handle(std::move(other._handle))
+		_openFlags(other._openFlags), _path(std::move(other._path)), _handle(std::move(other._handle))
 	{}
 
 	File::~File()
@@ -51,7 +53,7 @@ namespace Coco
 
 	File& File::operator=(File&& other) noexcept
 	{
-		_modes = other._modes;
+		_openFlags = other._openFlags;
 		_path = std::move(other._path);
 		_handle = std::move(other._handle);
 		return *this;
@@ -64,7 +66,7 @@ namespace Coco
 
 	string File::ReadAllText(const string& path)
 	{
-		File f = Open(path, FileModes::Read);
+		File f = Open(path, FileModeFlags::Read);
 		string text = f.ReadTextToEnd();
 		f.Close();
 		return text;
@@ -72,10 +74,24 @@ namespace Coco
 
 	List<uint8_t> File::ReadAllBytes(const string& path)
 	{
-		File f = Open(path, FileModes::Read | FileModes::Binary);
+		File f = Open(path, FileModeFlags::Read | FileModeFlags::Binary);
 		List<uint8_t> bytes = f.ReadToEnd();
 		f.Close();
 		return bytes;
+	}
+
+	void File::WriteAllText(const string& path, const string& text)
+	{
+		File f = Open(path, FileModeFlags::Write);
+		f.WriteText(text);
+		f.Close();
+	}
+
+	void File::WriteAllBytes(const string& path, const List<uint8_t>& data)
+	{
+		File f = Open(path, FileModeFlags::Write | FileModeFlags::Binary);
+		f.Write(data);
+		f.Close();
 	}
 
 	uint8_t File::Peek()
@@ -158,6 +174,11 @@ namespace Coco
 		_handle.write(text.c_str(), text.length());
 	}
 
+	void File::WriteLine(const string& text, char lineEnd)
+	{
+		WriteText(text + lineEnd);
+	}
+
 	bool File::ReadLine(string& text, char lineEnd)
 	{
 		CheckHandle();
@@ -170,25 +191,18 @@ namespace Coco
 		return true;
 	}
 
-	bool File::PeekLine(string& text, char lineEnd)
+	void File::PeekLine(string& text, char lineEnd)
 	{
-		uint64_t pos = GetPosition();
-		std::ios_base::iostate state = _handle.rdstate();
+		CheckHandle();
 
-		bool read = ReadLine(text, lineEnd);
+		const uint64_t pos = GetPosition();
+		const std::ios_base::iostate state = _handle.rdstate();
+
+		ReadLine(text, lineEnd);
 
 		_handle.setstate(state);
 
 		Seek(pos);
-
-		return read;
-	}
-
-	void File::WriteLine(const string& text)
-	{
-		string writeText = text + '\n';
-
-		WriteText(writeText);
 	}
 
 	void File::Seek(uint64_t position)

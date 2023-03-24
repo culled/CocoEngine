@@ -4,7 +4,7 @@ namespace Coco::Logging
 {
 	FileLogSink::FileLogSink(LogLevel minimumLevel, const string& file) : LogSink(minimumLevel)
 	{
-		_file = CreateManaged<File>(file, FileModes::Write);
+		_file = CreateManaged<File>(file, FileModeFlags::Write);
 	}
 
 	FileLogSink::~FileLogSink()

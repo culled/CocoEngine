@@ -6,30 +6,32 @@
 #include <atomic>
 
 namespace Coco
-{
-	/// <summary>
-	/// A handler for queries
-	/// </summary>
-	/// <typeparam name="ReturnType">The event return type</typeparam>
-	/// <typeparam name="...Args">The argument types for the event</typeparam>
+{	
+	/// @brief A handler for queries/events
+	/// @tparam ReturnType 
+	/// @tparam ...Args 
 	template<typename ReturnType, typename ... Args>
 	class COCOAPI QueryHandler
 	{
 	public:
+		/// @brief The function signature for this handler
 		using HandlerFunctionType = std::function<ReturnType(Args...)>;
 
+		/// @brief The type for a query/event handler ID
+		using HandlerID = uint64_t;
+
+		/// @brief The ID of this handler
+		const HandlerID ID;
+
 	private:
-		static std::atomic<uint32_t> _handlerIdCounter;
+		static std::atomic<HandlerID> _handlerIdCounter;
 
 		HandlerFunctionType _handler;
-		uint32_t _id;
 		bool _isBlocked = false;
 
 	public:
-		QueryHandler(const HandlerFunctionType& handlerFunction) : _handler(handlerFunction)
-		{
-			_id = ++_handlerIdCounter;
-		}
+		QueryHandler(const HandlerFunctionType& handlerFunction) : _handler(handlerFunction), ID(++_handlerIdCounter)
+		{}
 
 		virtual ~QueryHandler() = default;
 
@@ -52,34 +54,28 @@ namespace Coco
 			return false;
 		}
 
-		virtual bool operator==(QueryHandler<ReturnType, Args...>* other) const noexcept { return _id == other->_id; }
+		virtual bool operator==(QueryHandler<ReturnType, Args...>* other) const noexcept { return ID == other->ID; }
 
-		/// <summary>
-		/// Gets this handler's ID
-		/// </summary>
-		/// <returns>This handler's ID</returns>
-		unsigned int GetID() const noexcept { return _id; }
+		/// @brief Sets the blocked state of this handler. Blocked handlers do not receive queries/events
+		/// @param isBlocked The blocked state
+		constexpr void SetIsBlocked(bool isBlocked) noexcept { _isBlocked = true; }
 
-		/// <summary>
-		/// Sets the blocked state of this handler.
-		/// Blocked handlers do not receive events
-		/// </summary>
-		/// <param name="isBlocked">The blocked state</param>
-		void SetIsBlocked(bool isBlocked) noexcept { _isBlocked = true; }
+		/// @brief Gets the blocked state of this handler
+		/// @return True if this handler is blocked
+		constexpr bool GetIsBlocked() const noexcept { return _isBlocked; }
 	};
 
 	template <typename ReturnType, typename... Args>
-	std::atomic_uint QueryHandler<ReturnType, Args...>::_handlerIdCounter(0);
+	std::atomic_uint64_t QueryHandler<ReturnType, Args...>::_handlerIdCounter(0);
 
-	/// <summary>
-	/// Handler for events that use an instance and member function
-	/// </summary>
-	/// <typeparam name="ObjectType">The type of instance</typeparam>
-	/// <typeparam name="ReturnType">The return type of the event</typeparam>
-	/// <typeparam name="...Args">The argument types for the event</typeparam>
+	/// @brief Handler for queries/events that use an instance and member function
+	/// @tparam ObjectType 
+	/// @tparam ReturnType 
+	/// @tparam ...Args 
 	template<typename ObjectType, typename ReturnType, typename ... Args>
 	class ObjectQueryHandler : public QueryHandler<ReturnType, Args...>
 	{
+		/// @brief The function signature for this handler
 		using ObjectHandlerFunctionType = ReturnType(ObjectType::*)(Args...);
 
 	private:
@@ -88,24 +84,26 @@ namespace Coco
 
 	public:
 		ObjectQueryHandler(ObjectType* instance, ObjectHandlerFunctionType function) :
-			QueryHandler<ReturnType, Args...>(std::bind(function, instance)),
-			_instance(instance),
-			_function(function)
+			QueryHandler<ReturnType, Args...>(std::bind(function, instance)), _instance(instance), _function(function)
 		{}
+
+		/// @brief Returns if this handler references the same instance and member function as the given pair
+		/// @param instance The object instance
+		/// @param function The function pointer
+		/// @return True if this handler references the object and function
+		bool Equals(ObjectType* instance, ObjectHandlerFunctionType function) const noexcept
+		{
+			return instance == _instance && function == _function;
+		}
 
 		bool operator==(QueryHandler<ReturnType, Args...>* other) const noexcept override
 		{
 			if (ObjectQueryHandler<ObjectType, ReturnType, Args...>* otherPtr = dynamic_cast<ObjectQueryHandler<ObjectType, ReturnType, Args...>*>(other))
 			{
-				return _instance == otherPtr->_instance && _function == otherPtr->_function;
+				return Equals(otherPtr->_instance, otherPtr->_function);
 			}
 
 			return false;
-		}
-
-		bool Equals(ObjectType* instance, ObjectHandlerFunctionType function) const noexcept
-		{
-				return instance == _instance && function == _function;
 		}
 	};
 }

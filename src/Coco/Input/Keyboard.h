@@ -11,66 +11,40 @@
 
 namespace Coco::Input
 {
-    /// <summary>
-    /// A state for a keyboard
-    /// </summary>
+    /// @brief A state for a keyboard
     struct KeyboardState
     {
-        /// <summary>
-        /// The maximum number of keys
-        /// </summary>
+        /// @brief The maximum number of keys
         static constexpr int KeyCount = 256;
 
-        /// <summary>
-        /// Key pressed states
-        /// </summary>
+        /// @brief Key pressed states
         Array<bool, KeyCount> KeyState = {false};
     };
 
-    /// <summary>
-    /// A state change for the keyboard
-    /// </summary>
+    /// @brief A state change for the keyboard
     struct KeyboardStateChange
     {
-        /// <summary>
-        /// The key that changed
-        /// </summary>
+        /// @brief The key that changed
         Optional<KeyboardKey> Key;
 
-        /// <summary>
-        /// If true, the key was pressed, else it was released
-        /// </summary>
+        /// @brief If true, the key was pressed, else it was released
         bool IsPressed = false;
 
-        /// <summary>
-        /// Creates a keyboard state change for a key that was pressed or released
-        /// </summary>
-        /// <param name="key">The key</param>
-        /// <param name="isPressed">True if the key was pressed, false if it was released</param>
-        /// <returns>A state change</returns>
-        static KeyboardStateChange KeyStateChange(KeyboardKey key, bool isPressed) noexcept
-        {
-            KeyboardStateChange state = {};
-            state.Key = key;
-            state.IsPressed = isPressed;
-            return state;
-        }
+        /// @brief Creates a keyboard state change for a key that was pressed or released
+        /// @param key The key
+        /// @param isPressed True if the key was pressed, false if it was released
+        /// @return A state change
+        static KeyboardStateChange KeyStateChange(KeyboardKey key, bool isPressed) noexcept;
     };
 
-	/// <summary>
-	/// Represents a keyboard
-	/// </summary>
+	/// @brief A keyboard input device
 	class COCOAPI Keyboard
 	{
 	public:
-        /// <summary>
-        /// Invoked when a key is pressed
-        /// </summary>
+        /// @brief Invoked when a key is pressed
         Event<KeyboardKey> OnKeyPressedEvent;
 
-        /// <summary>
-        /// Invoked when a key is released
-        /// </summary>
+        /// @brief Invoked when a key is released
         Event<KeyboardKey> OnKeyReleasedEvent;
 
     private:
@@ -82,43 +56,31 @@ namespace Coco::Input
         KeyboardState _previousState = {};
 
     public:
-        /// <summary>
-        /// Updates the pressed state for a key
-        /// </summary>
-        /// <param name="key">The key</param>
-        /// <param name="isPressed">True if the key is pressed</param>
+        /// @brief Updates the pressed state for a key
+        /// @param key The key
+        /// @param isPressed True if the key is pressed
         void UpdateKeyState(KeyboardKey key, bool isPressed);
 
-        /// <summary>
-        /// Gets if the given key is currently pressed
-        /// </summary>
-        /// <param name="key">The key</param>
-        /// <returns>True if the key is currently pressed</returns>
+        /// @brief Gets if the given key is currently pressed
+        /// @param key The key
+        /// @return True if the key is currently pressed
         bool IsKeyPressed(KeyboardKey key) const noexcept;
 
-        /// <summary>
-        /// Gets if the given key was just pressed (unpressed -> pressed) within the last tick
-        /// </summary>
-        /// <param name="key">The key</param>
-        /// <returns>True if the key was pressed since the last tick</returns>
+        /// @brief Gets if the given key was just pressed (unpressed -> pressed) within the last tick
+        /// @param key The key
+        /// @return True if the key was pressed since the last tick
         bool WasKeyJustPressed(KeyboardKey key) const noexcept;
 
-        /// <summary>
-        /// Gets if the given key was just released (pressed -> unpressed) within the last tick
-        /// </summary>
-        /// <param name="key">The key</param>
-        /// <returns>True if the key was released since the last tick</returns>
+        /// @brief Gets if the given key was just released (pressed -> unpressed) within the last tick
+        /// @param key The key
+        /// @return True if the key was released since the last tick
         bool WasKeyJustReleased(KeyboardKey key) const noexcept;
 
     private:
-        /// <summary>
-        /// Processes all state changes since the last tick
-        /// </summary>
+        /// @brief Processes all state changes since the last tick
         void ProcessCurrentState();
 
-        /// <summary>
-        /// Saves the current state as the previous state
-        /// </summary>
+        /// @brief Saves the current state as the previous state
         void SavePreviousState() noexcept;
 	};
 }

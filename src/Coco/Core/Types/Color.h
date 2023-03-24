@@ -7,9 +7,7 @@ namespace Coco
 	struct Vector3;
 	struct Vector4;
 
-	/// <summary>
-	/// Holds a color composed of R, G, B, and A decimal values
-	/// </summary>
+	/// @brief Represents a color composed of R, G, B, and A decimal values
 	struct COCOAPI Color
 	{
 		static const Color Black;
@@ -22,24 +20,16 @@ namespace Coco
 		static const Color Cyan;
 		static const Color Clear;
 
-		/// <summary>
-		/// The normalized red component
-		/// </summary>
+		/// @brief The normalized red component
 		double R = 0.0;
 
-		/// <summary>
-		/// The normalized green component
-		/// </summary>
+		/// @brief The normalized green component
 		double G = 0.0;
 
-		/// <summary>
-		/// The normalized blue component
-		/// </summary>
+		/// @brief The normalized blue component
 		double B = 0.0;
 
-		/// <summary>
-		/// The normalized alpha component
-		/// </summary>
+		/// @brief The normalized alpha component
 		double A = 1.0;
 
 		Color() noexcept = default;

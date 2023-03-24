@@ -5,11 +5,11 @@ namespace Coco::Rendering
 	Shader::Shader(const string& name) : RenderingResource(name, ResourceType::Shader)
 	{}
 
-	bool Shader::TryGetSubshader(const string & passName, const Subshader*& subshader) const noexcept
+	bool Shader::TryGetSubshader(const string & name, const Subshader*& subshader) const noexcept
 	{
 		for (const Subshader& sub : _subshaders)
 		{
-			if (sub.PassName == passName)
+			if (sub.PassName == name)
 			{
 				subshader = &sub;
 				return true;
@@ -17,6 +17,12 @@ namespace Coco::Rendering
 		}
 
 		return false;
+	}
+
+	void Shader::AddSubshader(const Subshader& subshader)
+	{
+		_subshaders.Add(subshader);
+		_subshaders.Last().UpdateAttributeOffsets();
 	}
 
 	void Shader::CreateSubshader(

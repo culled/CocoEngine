@@ -7,9 +7,7 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A texture that can be used for rendering
-	/// </summary>
+	/// @brief A texture that can be used for rendering images
 	class COCOAPI Texture : public RenderingResource
 	{
 	private:
@@ -54,82 +52,58 @@ namespace Coco::Rendering
 
 		virtual ~Texture();
 
-		/// <summary>
-		/// Sets the pixel data for this texture
-		/// </summary>
-		/// <param name="offset">The offset in the texture memory to start loading pixel data into</param>
-		/// <param name="size">The size of the pixel data being loaded</param>
-		/// <param name="pixelData">The pixel data</param>
+		/// @brief Sets the pixel data for this texture
+		/// @param offset The offset in the texture memory to start loading pixel data into
+		/// @param size The size of the pixel data being loaded 
+		/// @param pixelData The pixel data
 		void SetPixels(uint64_t offset, uint64_t size, const void* pixelData);
 
-		/// <summary>
-		/// Sets the properties for sampling this texture
-		/// </summary>
-		/// <param name="repeatMode">The repeat mode</param>
-		/// <param name="filterMode">The filter mode</param>
-		/// <param name="maxAnisotropy">The maximum amount of anisotropy to use</param>
+		/// @brief Sets the properties for sampling this texture
+		/// @param repeatMode The repeat mode
+		/// @param filterMode The filter mode
+		/// @param maxAnisotropy The maximum amount of anisotropy to use
 		void SetSamplerProperties(RepeatMode repeatMode, FilterMode filterMode, uint maxAnisotropy);
 
-		/// <summary>
-		/// Gets the image description of this texture
-		/// </summary>
-		/// <returns>The image description of this texture</returns>
+		/// @brief Gets the image description of this texture
+		/// @return The image description of this texture
 		ImageDescription GetDescription() const noexcept;
 
-		/// <summary>
-		/// Gets the repeat mode for this texture's sampler
-		/// </summary>
-		/// <returns>This texture's repeat mode</returns>
-		RepeatMode GetRepeatMode() const noexcept { return _repeatMode; }
+		/// @brief Gets the repeat mode for this texture's sampler
+		/// @return This texture's repeat mode
+		constexpr RepeatMode GetRepeatMode() const noexcept { return _repeatMode; }
 
-		/// <summary>
-		/// Gets the filter mode for this texture's sampler
-		/// </summary>
-		/// <returns>This texture's filter mode</returns>
-		FilterMode GetFilterMode() const noexcept { return _filterMode; }
+		/// @brief Gets the filter mode for this texture's sampler
+		/// @return This texture's filter mode
+		constexpr FilterMode GetFilterMode() const noexcept { return _filterMode; }
+		
+		/// @brief Gets the maximum amount of anisotropy that this texture's sampler will use
+		/// @return The maximum amount of anisotropy that this texture's sampler will use
+		constexpr uint GetMaxAnisotropy() const noexcept { return _maxAnisotropy; }
 
-		/// <summary>
-		/// Gets the maximum amount of anisotropy that this texture's sampler will use
-		/// </summary>
-		/// <returns>The maximum amount of anisotropy that this texture's sampler will use</returns>
-		uint GetMaxAnisotropy() const noexcept { return _maxAnisotropy; }
-
-		/// <summary>
-		/// Gets the image that backs this texture
-		/// </summary>
-		/// <returns>The image that backs this texture</returns>
+		/// @brief Gets the image that backs this texture
+		/// @return The image that backs this texture
 		WeakManagedRef<Image> GetImage() const noexcept { return _image; }
 
-		/// <summary>
-		/// Gets this texture's sampler
-		/// </summary>
-		/// <returns>This texture's sampler</returns>
+		/// @brief Gets this texture's sampler
+		/// @return This texture's sampler
 		WeakManagedRef<ImageSampler> GetSampler() const noexcept { return _sampler; }
 
-		/// <summary>
-		/// Loads image data from a file into this texture
-		/// </summary>
-		/// <param name="filePath">The path of the image file</param>
-		/// <param name="channelCount">The desired number of channels to load</param>
-		/// <returns>True if the image was loaded successfully</returns>
+		/// @brief Loads image data from a file into this texture
+		/// @param filePath The path of the image file
+		/// @param channelCount The desired number of channels to load
+		/// @return True if the image was loaded successfully
 		bool LoadFromFile(const string& filePath, int channelCount = 4);
 
-		/// <summary>
-		/// Gets the path to the image that this texture has loaded, if any
-		/// </summary>
-		/// <returns>The path to the image that this texture has loaded, or an empty string if one has not been loaded</returns>
+		/// @brief Gets the path to the image that this texture has loaded, if any
+		/// @return The path to the image that this texture has loaded, or an empty string if one has not been loaded
 		const string& GetImageFilePath() const noexcept { return _imageFilePath; }
 
 	private:
-		/// <summary>
-		/// Recreates the internal image using a given description
-		/// </summary>
-		/// <param name="newDescription">The new image description</param>
+		/// @brief Recreates the internal image using a given description
+		/// @param newDescription The new image description
 		void RecreateImageFromDescription(const ImageDescription& newDescription);
 
-		/// <summary>
-		/// Recreates the internal sampler
-		/// </summary>
+		/// @brief Recreates the internal sampler
 		void RecreateInternalSampler();
 	};
 }

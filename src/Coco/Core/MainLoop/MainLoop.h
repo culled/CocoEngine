@@ -12,9 +12,7 @@ namespace Coco
 		class IEnginePlatform;
 	}
 
-	/// <summary>
-	/// The loop that runs for the lifetime of the application and dispatches ticks
-	/// </summary>
+	/// @brief The loop that runs for the lifetime of the application and dispatches ticks to MainLoopTickListeners
 	class COCOAPI MainLoop
 	{
 	private:
@@ -46,126 +44,86 @@ namespace Coco
 	public:
 		MainLoop(Platform::IEnginePlatform* platform) noexcept;
 
-		/// <summary>
-		/// Runs this loop and blocks until it has stopped
-		/// </summary>
+		/// @brief Runs this loop and blocks until it has stopped
 		void Run();
 
-		/// <summary>
-		/// Stops this loop from running
-		/// </summary>
+		/// @brief Stops this loop from running after the current tick finishes
 		void Stop() noexcept;
 
-		/// <summary>
-		/// Sets the suspended state of the loop.
+		/// @brief Sets the suspended state of the loop.
 		/// Suspended means the application will only handle platform messages, essentially pausing everything else
-		/// </summary>
-		/// <param name="isSuspended">The suspended state</param>
+		/// @param isSuspended The suspended state
 		void SetIsSuspended(bool isSuspended) noexcept;
 
-		/// <summary>
-		/// Gets the suspended state of the loop
-		/// </summary>
-		/// <returns>True if the loop is suspended</returns>
-		bool GetIsSuspended() const noexcept { return _isSuspended; }
+		/// @brief Gets the suspended state of the loop
+		/// @return True if the loop is suspended
+		constexpr bool GetIsSuspended() const noexcept { return _isSuspended; }
 
-		/// <summary>
-		/// Sets if this loop should use absolute timing
+		/// @brief Sets if this loop should use absolute timing
 		/// If false, the loop will attempt to maintain a consistent delta time across suspensions/platform message loops, 
 		/// at the expense of running time becoming out of sync with the actual time passing. The default is false
-		/// </summary>
-		/// <param name="useAbsoluteTiming">If true, this loop will use absolute timing</param>
-		void SetUseAbsoluteTiming(bool useAbsoluteTiming) noexcept { _useAbsoluteTiming = useAbsoluteTiming; }
+		/// @param useAbsoluteTiming If true, this loop will use absolute timing
+		constexpr void SetUseAbsoluteTiming(bool useAbsoluteTiming) noexcept { _useAbsoluteTiming = useAbsoluteTiming; }
 
-		/// <summary>
-		/// Gets if this loop is using absolute timing
-		/// </summary>
-		/// <returns>If true, this loop is using absolute timing</returns>
-		bool GetUseAbsoluteTiming() const noexcept { return _useAbsoluteTiming; }
+		/// @brief Gets if this loop is using absolute timing
+		/// @return If true, this loop is using absolute timing
+		constexpr bool GetUseAbsoluteTiming() const noexcept { return _useAbsoluteTiming; }
 
-		/// <summary>
-		/// Adds a tick listener to the main loop
-		/// </summary>
-		/// <param name="tickListener">The listener to add</param>
+		/// @brief Adds a tick listener to the main loop
+		/// @param tickListener The listener to add
 		void AddTickListener(Ref<MainLoopTickListener> tickListener);
 
-		/// <summary>
-		/// Removes a tick listener from the main loop
-		/// </summary>
-		/// <param name="tickListener">The listener to remove</param>
+		/// @brief Removes a tick listener from the main loop
+		/// @param tickListener The listener to remove
 		void RemoveTickListener(const Ref<MainLoopTickListener>& tickListener) noexcept;
 
-		/// <summary>
-		/// Sets the time scale of the main loop
-		/// </summary>
-		/// <param name="timeScale">The relative scale that time passes</param>
-		void SetTimeScale(double timeScale) noexcept { _timeScale = timeScale; }
+		/// @brief Sets the time scale of the main loop
+		/// @param timeScale The relative scale that time passes
+		constexpr void SetTimeScale(double timeScale) noexcept { _timeScale = timeScale; }
 
-		/// <summary>
-		/// Gets the time scale of the main loop
-		/// </summary>
-		/// <returns>The relative scale that time passes</returns>
-		double GetTimeScale() const noexcept { return _timeScale; }
+		/// @brief Gets the time scale of the main loop
+		/// @return The relative scale that time passes
+		constexpr double GetTimeScale() const noexcept { return _timeScale; }
 
-		/// <summary>
-		/// Sets the target ticks per seconds for the loop to tick at
-		/// </summary>
-		/// <param name="targetTickRate">The target ticks per second to run the engine at. Values equal to or less than 0 make the engine run as fast as possible</param>
-		void SetTargetTickRate(int targetTickRate) noexcept { _targetTickRate = targetTickRate; }
+		/// @brief Sets the target ticks per seconds for the loop to tick at
+		/// @param targetTickRate The target ticks per second to run the engine at. Values equal to or less than 0 make the engine run as fast as possible
+		constexpr void SetTargetTickRate(int targetTickRate) noexcept { _targetTickRate = targetTickRate; }
 
-		/// <summary>
-		/// Gets the target ticks per seconds for the loop to tick at
-		/// </summary>
-		/// <returns>The target ticks per seconds for the loop to tick at</returns>
-		int GetTargetTickRate() const noexcept { return _targetTickRate; }
+		/// @brief Gets the target ticks per seconds for the loop to tick at
+		/// @return The target ticks per seconds for the loop to tick at
+		constexpr int GetTargetTickRate() const noexcept { return _targetTickRate; }
 
-		/// <summary>
-		/// Gets the cumulative time the loop has been running, regardless of the time scale
-		/// </summary>
-		/// <returns>The unscaled amount of time the loop has been running</returns>
-		double GetUnscaledRunningTime() const noexcept { return _currentUnscaledRunningTime; }
+		/// @brief Gets the cumulative time the loop has been running, regardless of the time scale
+		/// @return The unscaled amount of time the loop has been running
+		constexpr double GetUnscaledRunningTime() const noexcept { return _currentUnscaledRunningTime; }
 
-		/// <summary>
-		/// Gets the current tick delta time, regardless of the time scale
-		/// </summary>
-		/// <returns>The current tick unscaled delta time, in seconds</returns>
-		double GetUnscaledDeltaTime() const noexcept { return _currentUnscaledDeltaTime; }
+		/// @brief Gets the current tick delta time, regardless of the time scale
+		/// @return The current tick unscaled delta time, in seconds
+		constexpr double GetUnscaledDeltaTime() const noexcept { return _currentUnscaledDeltaTime; }
 
-		/// <summary>
-		/// Gets the cumulative time the loop has been running, taking into account the time scale
-		/// </summary>
-		/// <returns>The scaled amount of time the loop has been running</returns>
-		double GetRunningTime() const noexcept { return _currentRunningTime; }
+		/// @brief Gets the cumulative time the loop has been running, taking into account the time scale
+		/// @return The scaled amount of time the loop has been running
+		constexpr double GetRunningTime() const noexcept { return _currentRunningTime; }
 
-		/// <summary>
-		/// Gets the current tick delta time, taking into account the time scale
-		/// </summary>
-		/// <returns>The current tick scaled delta time, in seconds</returns>
-		double GetDeltaTime() const noexcept { return _currentDeltaTime; }
+		/// @brief Gets the current tick delta time, taking into account the time scale
+		/// @return The current tick scaled delta time, in seconds
+		constexpr double GetDeltaTime() const noexcept { return _currentDeltaTime; }
 
-		/// <summary>
-		/// Gets the number of ticks that have occurred
-		/// </summary>
-		/// <returns>The number of ticks that have occurred</returns>
-		uint64_t GetTickCount() const noexcept { return _tickCount; }
+		/// @brief Gets the number of ticks that have occurred
+		/// @return The number of ticks that have occurred
+		constexpr uint64_t GetTickCount() const noexcept { return _tickCount; }
 
 	private:
-		/// <summary>
-		/// Compares two tick listeners
-		/// </summary>
-		/// <param name="a">The first listener</param>
-		/// <param name="b">The second listener</param>
-		/// <returns>True if listener A should be placed before listener B</returns>
+		/// @brief Compares two tick listeners
+		/// @param a The first listener
+		/// @param b The second listener
+		/// @return True if listener A should be placed before listener B
 		static bool CompareTickListeners(const Ref<MainLoopTickListener>& a, const Ref<MainLoopTickListener>& b) noexcept;
 
-		/// <summary>
-		/// Sorts the list of tick listeners
-		/// </summary>
+		/// @brief Sorts the list of tick listeners
 		void SortTickListeners() noexcept;
 
-		/// <summary>
-		/// Blocks the thread until the next tick time
-		/// </summary>
+		/// @brief Blocks the thread until the next tick time
 		void WaitForNextTick();
 	};
 }

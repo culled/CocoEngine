@@ -2,9 +2,7 @@
 
 namespace Coco::Platform
 {
-	/// <summary>
-	/// Types of console colors
-	/// </summary>
+	/// @brief Types of console colors
 	enum class ConsoleColor
 	{
 		White,

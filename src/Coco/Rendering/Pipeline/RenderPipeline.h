@@ -10,37 +10,25 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A description for an attachment used by a RenderPipeline
-	/// </summary>
+	/// @brief A description for an attachment used by a RenderPipeline
 	struct RenderPipelineAttachmentDescription
 	{
-	public:
 		friend class RenderPipeline;
 
-		/// <summary>
-		/// The attachment description
-		/// </summary>
+	public:
+		/// @brief The attachment description
 		AttachmentDescription Description = AttachmentDescription::Empty;
 
-		/// <summary>
-		/// The index of the pass that this attachment is first used
-		/// </summary>
+		/// @brief The index of the pass that this attachment is first used
 		int FirstUsePassIndex = 0;
 
-		/// <summary>
-		/// The index of the pass that this attachment is last used
-		/// </summary>
+		/// @brief The index of the pass that this attachment is last used
 		int LastUsePassIndex = 0;
 
-		/// <summary>
-		/// If true, this attachment is used in the first pass of the pipeline
-		/// </summary>
+		/// @brief If true, this attachment is used in the first pass of the pipeline
 		bool IsUsedInFirstPipelinePass = false;
 
-		/// <summary>
-		/// If true, this attachment is only used in a single render pass
-		/// </summary>
+		/// @brief If true, this attachment is only used in a single render pass
 		bool IsUsedInSinglePass = false;
 		
 	private:
@@ -51,24 +39,17 @@ namespace Coco::Rendering
 		RenderPipelineAttachmentDescription(const AttachmentDescription& description) noexcept;
 		~RenderPipelineAttachmentDescription();
 
-		/// <summary>
-		/// Gets the indices of the render passes in a pipeline that this attachment is used
-		/// </summary>
-		/// <returns>The indices of the pipeline render passes where this attachment is used</returns>
+		/// @brief Gets the indices of the render passes in a pipeline that this attachment is used
+		/// @return The indices of the pipeline render passes where this attachment is used
 		const List<int>& GetPassesUsed() const noexcept { return _passesUsed; }
 
 	private:
-
-		/// <summary>
-		/// Marks a pass's index where this attachment is used
-		/// </summary>
-		/// <param name="passIndex"></param>
+		/// @brief Marks a pass's index where this attachment is used
+		/// @param passIndex The index of the pass
 		void AddPassUse(int passIndex);
 	};
 
-	/// <summary>
-	/// Defines a set of render passes to create a rendered image
-	/// </summary>
+	/// @brief Defines a sequence of render passes to create a rendered image
 	class COCOAPI RenderPipeline : public RenderingResource
 	{
 	private:
@@ -81,57 +62,41 @@ namespace Coco::Rendering
 		RenderPipeline(const string& name = "");
 		virtual ~RenderPipeline();
 
-		/// <summary>
-		/// Gets the render pipeline attachment descriptions for this pipeline
-		/// </summary>
-		/// <returns>This pipeline's attachment descriptions</returns>
-		List<RenderPipelineAttachmentDescription> GetPipelineAttachmentDescriptions();
+		/// @brief Gets the render pipeline attachment descriptions for this pipeline
+		/// @return This pipeline's attachment descriptions
+		const List<RenderPipelineAttachmentDescription>& GetPipelineAttachmentDescriptions();
 
-		/// <summary>
-		/// Adds a render pass to this pipeline with the given attachment mapping.
+		/// @brief Adds a render pass to this pipeline with the given attachment mapping.
 		/// The mapping list must equal the number of attachments the render pass uses.
 		/// Each index correponds to the index of the pass attachment, and its value is the corresponding index in the pipeline's attachments
-		/// </summary>
-		/// <param name="renderPass">The pass to add</param>
-		/// <param name="passToPipelineAttachmentBindings">A mapping from the render pass's attachments to the pipeline's attachments</param>
-		/// <returns>A binding</returns>
+		/// @param renderPass The pass to add
+		/// @param passToPipelineAttachmentBindings A mapping from the render pass's attachments to the pipeline's attachments
+		/// @return A binding
 		RenderPipelineBinding* AddRenderPass(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentBindings);
 
-		/// <summary>
-		/// Removes a binding and its render pass from this pipeline
-		/// </summary>
-		/// <param name="renderPassBinding">The binding to the renderpass</param>
-		/// <returns>True if the binding was found and removed</returns>
-		bool RemoveRenderPass(RenderPipelineBinding* renderPassBinding) noexcept;
+		/// @brief Removes a binding and its render pass from this pipeline
+		/// @param renderPassBinding The binding to the renderpass
+		/// @return True if the binding was found and removed
+		bool RemoveRenderPass(const RenderPipelineBinding*& renderPassBinding) noexcept;
 
-		/// <summary>
-		/// Gets the list of render passes in this pipeline
-		/// </summary>
-		/// <returns>The passes in this pipeline</returns>
+		/// @brief Gets the list of render passes in this pipeline
+		/// @return The passes in this pipeline
 		List<RenderPipelineBinding*> GetPasses() const;
 
-		/// <summary>
-		/// Sets the clear color of this render pipeline
-		/// </summary>
-		/// <param name="color">The clear color</param>
+		/// @brief Sets the clear color of this render pipeline
+		/// @param color The clear color
 		void SetClearColor(const Color& color) noexcept { _clearColor = color; }
 
-		/// <summary>
-		/// Gets the clear color used by this render pipeline
-		/// </summary>
-		/// <returns>The clear color</returns>
+		/// @brief Gets the clear color used by this render pipeline
+		/// @return The clear color
 		Color GetClearColor() const noexcept { return _clearColor; }
 
-		/// <summary>
-		/// Performs rendering operations for this pipeline
-		/// </summary>
-		/// <param name="renderContext">The context to use for rendering</param>
+		/// @brief Performs rendering operations for this pipeline
+		/// @param renderContext The context to use for rendering
 		void Execute(RenderContext* renderContext);
 
 	private:
-		/// <summary>
-		/// Updates the pipeline attachment descriptions to match the mapped attachments from this pipeline's render passes 
-		/// </summary>
+		/// @brief Updates the pipeline attachment descriptions to match the mapped attachments from this pipeline's render passes 
 		void GatherPipelineAttachmentDescriptions();
 	};
 }

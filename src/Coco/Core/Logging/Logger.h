@@ -61,23 +61,17 @@
 
 namespace Coco::Logging
 {
-	/// <summary>
-	/// A log that can write messages to various LogSinks
-	/// </summary>
+	/// @brief A log that can write messages to various LogSinks
 	class COCOAPI Logger
 	{
 	private:
 		List<Ref<LogSink>> _logSinks;
 
 	public:
-		/// <summary>
-		/// Text representations of log levels
-		/// </summary>
+		/// @brief Text representations of log levels
 		static const Array<const char*, 5> LogLevels;
 
-		/// <summary>
-		/// The name of this logger
-		/// </summary>
+		/// @brief The name of this logger
 		const string Name;
 
 	public:
@@ -91,23 +85,17 @@ namespace Coco::Logging
 		Logger& operator=(const Logger&) = delete;
 		Logger& operator=(Logger&&) = delete;
 
-		/// <summary>
-		/// Adds a log sink to this logger
-		/// </summary>
-		/// <param name="sink">The sink to add</param>
+		/// @brief Adds a sink to this logger
+		/// @param sink The sink to add
 		void AddSink(Ref<LogSink> sink);
 
-		/// <summary>
-		/// Removes a sink from this logger
-		/// </summary>
-		/// <param name="sink">The sink to remove</param>
+		/// @brief Removes a sink from this logger
+		/// @param sink The sink to remove
 		void RemoveSink(const Ref<LogSink>& sink);
 
-		/// <summary>
-		/// Writes a message with a log level to this logger
-		/// </summary>
-		/// <param name="level">The level of the message</param>
-		/// <param name="message">The message</param>
+		/// @brief Writes a message with a log level to this logger's sinks
+		/// @param level The level of the message
+		/// @param message The message
 		void Write(LogLevel level, const string& message) noexcept;
 	};
 }

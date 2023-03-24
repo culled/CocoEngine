@@ -4,9 +4,7 @@
 
 namespace Coco::Logging
 {
-    /// <summary>
-    /// A LogSink that writes to a console window
-    /// </summary>
+    /// @brief A LogSink that writes to a console window
     class COCOAPI ConsoleLogSink final : public LogSink
     {
     public:

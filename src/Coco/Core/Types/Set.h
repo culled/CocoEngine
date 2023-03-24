@@ -6,10 +6,8 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// A set of unique items
-	/// </summary>
-	/// <typeparam name="T">The type of item</typeparam>
-	template<typename T>
-	using Set = std::set<T>;
+	/// @brief A set of unique items
+	/// @tparam ValueType 
+	template<typename ValueType>
+	using Set = std::set<ValueType>;
 }

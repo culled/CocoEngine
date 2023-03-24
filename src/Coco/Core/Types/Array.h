@@ -6,10 +6,9 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// Helper for a constant array of N length
-	/// </summary>
-	/// <typeparam name="ArrayT">The type of value for the array</typeparam>
-	template<typename ArrayT, int Length>
-	using Array = std::array<ArrayT, Length>;
+	/// @brief Helper for a constant array of a known length
+	/// @tparam ValueType
+	/// @tparam Length
+	template<typename ValueType, int Length>
+	using Array = std::array<ValueType, Length>;
 }

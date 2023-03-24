@@ -12,9 +12,7 @@ namespace Coco
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A loader for shader files (*.cshader)
-	/// </summary>
+	/// @brief A loader for shader files (*.cshader)
 	class ShaderLoader final : public KeyValueResourceLoader
 	{
 	private:
@@ -34,56 +32,44 @@ namespace Coco::Rendering
 		static constexpr const char* s_subshaderBindStageVariable = "descriptorBindStage";
 
 	public:
-		ShaderLoader(ResourceLibrary* library, const string& basePath);
+		ShaderLoader(ResourceLibrary* library);
 		~ShaderLoader() final = default;
 
-		const char* GetResourceTypename() const noexcept final { return ResourceTypeToString(ResourceType::Shader); }
+		string GetResourceTypename() const noexcept final { return ResourceTypeToString(ResourceType::Shader); }
 
 	protected:
 		Ref<Resource> LoadImpl(const string& path) final;
 		void SaveImpl(const Ref<Resource>& resource, const string& path) final;
 
 	private:
-		/// <summary>
-		/// Reads a list of subshaders from a file
-		/// </summary>
-		/// <param name="reader">The reader (should be positioned after the start of the "subshaders" section</param>
-		/// <param name="subshaders">A list of subshaders that will be filled out</param>
+		/// @brief Reads a list of subshaders for a shader
+		/// @param reader The reader
+		/// @param subshaders Will be filled with subshaders
 		void ReadSubshaders(KeyValueReader& reader, List<Subshader>& subshaders);
 
-		/// <summary>
-		/// Reads the stages of a subshader from a file
-		/// </summary>
-		/// <param name="reader">The reader (should be positioned after the start of the "stages" section</param>
-		/// <param name="stageFiles">A map of subshader stages that will be filled out</param>
+		/// @brief Reads the stages of a subshader from a file
+		/// @param reader The reader
+		/// @param stageFiles Will be filled with subshader stage files
 		void ReadSubshaderStages(KeyValueReader& reader, Map<ShaderStageType, string>& stageFiles);
 
-		/// <summary>
-		/// Reads a GraphicsPipelineState for a subshader
-		/// </summary>
-		/// <param name="reader">The reader (should be positioned after the start of the "state" section</param>
-		/// <param name="state">The state that will be filled out</param>
+		/// @brief Reads a GraphicsPipelineState for a subshader
+		/// @param reader The reader
+		/// @param state Will be filled out with the state
 		void ReadSubshaderState(KeyValueReader& reader, GraphicsPipelineState& state);
 
-		/// <summary>
-		/// Reads vertex attributes for a subshader
-		/// </summary>
-		/// <param name="reader">The reader (should be positioned after the start of the "attributes" section</param>
-		/// <param name="attributes">The vertex attributes that will be filled out</param>
+		/// @brief Reads vertex attributes for a subshader
+		/// @param reader The reader
+		/// @param attributes Will be filled out with vertex attributes
 		void ReadSubshaderAttributes(KeyValueReader& reader, List<ShaderVertexAttribute>& attributes);
 
-		/// <summary>
-		/// Reads vertex descriptors for a subshader
-		/// </summary>
-		/// <param name="reader">The reader (should be positioned after the start of the "descriptors" section</param>
-		/// <param name="descriptors">The descriptors that will be filled out</param>
+		/// @brief Reads descriptors for a subshader
+		/// @param reader The reader
+		/// @param descriptors Will be filled out with descriptors
 		void ReadSubshaderDescriptors(KeyValueReader& reader, List<ShaderDescriptor>& descriptors);
 
-		/// <summary>
-		/// Reads texture samplers for a subshader
-		/// </summary>
-		/// <param name="reader">The reader (should be positioned after the start of the "samplers" section</param>
-		/// <param name="samplers">The samplers that will be filled out</param>
+		/// @brief Reads texture samplers for a subshader
+		/// @param reader The reader
+		/// @param samplers Will be filled out with texture samplers
 		void ReadSubshaderSamplers(KeyValueReader& reader, List<ShaderTextureSampler>& samplers);
 	};
 }

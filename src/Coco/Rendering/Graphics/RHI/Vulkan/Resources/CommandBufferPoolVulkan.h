@@ -11,9 +11,7 @@ namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 
-	/// <summary>
-	/// Vulkan-implementation of a CommandBufferPool
-	/// </summary>
+	/// @brief Vulkan-implementation of a CommandBufferPool
 	class CommandBufferPoolVulkan final : public CommandBufferPool
 	{
 	private:
@@ -21,26 +19,22 @@ namespace Coco::Rendering::Vulkan
 		VkCommandPool _pool = nullptr;
 		Ref<VulkanQueue> _queue;
 
-		List<Managed<CommandBufferVulkan>> _allocatedBuffers;
+		List<ManagedRef<CommandBufferVulkan>> _allocatedBuffers;
 
 	public:
 		CommandBufferPoolVulkan(GraphicsDeviceVulkan* device, Ref<VulkanQueue> queue);
 		~CommandBufferPoolVulkan() final;
 
-		CommandBuffer* Allocate(bool isPrimary) final;
-		void Free(CommandBuffer* buffer) noexcept final;
+		WeakManagedRef<CommandBuffer> Allocate(bool isPrimary) final;
+		void Free(const WeakManagedRef<CommandBuffer>& buffer) noexcept final;
 		void WaitForQueue() noexcept final;
 
-		/// <summary>
-		/// Gets the underlying VkCommandPool
-		/// </summary>
-		/// <returns>The underlying pool</returns>
+		/// @brief Gets the underlying VkCommandPool
+		/// @return The underlying pool
 		VkCommandPool GetPool() const noexcept { return _pool; }
 
-		/// <summary>
-		/// Gets the queue that this pool is for
-		/// </summary>
-		/// <returns>The queue that this pool serves</returns>
+		/// @brief Gets the queue that this pool is for
+		/// @return The queue that this pool serves
 		VkQueue GetQueue() const noexcept { return _queue->Queue; }
 	};
 }

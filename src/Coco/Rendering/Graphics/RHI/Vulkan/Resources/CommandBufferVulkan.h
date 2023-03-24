@@ -9,9 +9,7 @@ namespace Coco::Rendering::Vulkan
 	class CommandBufferPoolVulkan;
 	class GraphicsDeviceVulkan;
 
-	/// <summary>
-	/// Vulkan-implementation of a CommandBuffer
-	/// </summary>
+	/// @brief Vulkan-implementation of a CommandBuffer
 	class CommandBufferVulkan final : public CommandBuffer
 	{
 	private:
@@ -23,10 +21,8 @@ namespace Coco::Rendering::Vulkan
 		CommandBufferVulkan(bool isPrimary, GraphicsDeviceVulkan* device, CommandBufferPoolVulkan* pool);
 		~CommandBufferVulkan() final;
 
-		/// <summary>
-		/// Gets the underlying Vulkan command buffer
-		/// </summary>
-		/// <returns>The underlying Vulkan command buffer</returns>
+		/// @brief Gets the underlying Vulkan command buffer
+		/// @return The underlying Vulkan command buffer
 		VkCommandBuffer GetCmdBuffer() const noexcept { return _commandBuffer; }
 
 	protected:

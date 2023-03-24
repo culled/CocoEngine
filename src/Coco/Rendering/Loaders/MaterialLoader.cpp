@@ -9,12 +9,12 @@
 
 namespace Coco::Rendering
 {
-	MaterialLoader::MaterialLoader(ResourceLibrary* library, const string& basePath) : KeyValueResourceLoader(library, basePath)
+	MaterialLoader::MaterialLoader(ResourceLibrary* library) : KeyValueResourceLoader(library)
 	{}
 
 	Ref<Resource> MaterialLoader::LoadImpl(const string& path)
 	{
-		File file = File::Open(path, FileModes::Read);
+		File file = File::Open(path, FileModeFlags::Read);
 		KeyValueReader reader(file);
 
 		string name;
@@ -24,13 +24,13 @@ namespace Coco::Rendering
 
 		while (reader.ReadLine())
 		{
-			if (reader.IsVariable("version") && reader.GetVariableValue() != "1")
+			if (reader.IsKey("version") && reader.GetValue() != "1")
 				throw InvalidOperationException("Mismatching material versions");
-			else if (reader.IsVariable(s_materialNameVariable))
-				name = reader.GetVariableValue();
-			else if (reader.IsVariable(s_materialShaderVariable))
-				shaderPath = reader.GetVariableValue();
-			else if (reader.IsVariable(s_propertiesSection))
+			else if (reader.IsKey(s_materialNameVariable))
+				name = reader.GetValue();
+			else if (reader.IsKey(s_materialShaderVariable))
+				shaderPath = reader.GetValue();
+			else if (reader.IsKey(s_propertiesSection))
 				ReadPropertiesSection(reader, vec4Properties, textureProperties);
 		}
 
@@ -66,11 +66,11 @@ namespace Coco::Rendering
 	{
 		if (Material* material = dynamic_cast<Material*>(resource.get()))
 		{
-			File file = File::Open(path, FileModes::Write);
+			File file = File::Open(path, FileModeFlags::Write);
 			KeyValueWriter writer(file);
 
 			writer.WriteLine("version", "1");
-			writer.WriteLine(s_materialNameVariable, material->GetName());
+			writer.WriteLine(s_materialNameVariable, material->Name);
 
 			writer.WriteLine(s_materialShaderVariable, material->GetShader() != nullptr ? material->GetShader()->GetFilePath() : "");
 			
@@ -101,9 +101,9 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(1))
 		{
-			if (reader.IsVariable(s_vector4Section))
+			if (reader.IsKey(s_vector4Section))
 				ReadVector4Section(reader, vec4Properties);
-			else if (reader.IsVariable(s_textureSection))
+			else if (reader.IsKey(s_textureSection))
 				ReadTextureSection(reader, textureProperties);
 		}
 	}
@@ -112,7 +112,7 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(2))
 		{
-			vec4Properties[reader.GetVariable()] = Vector4::Parse(reader.GetVariableValue());
+			vec4Properties[reader.GetKey()] = Vector4::Parse(reader.GetValue());
 		}
 	}
 
@@ -120,7 +120,7 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(2))
 		{
-			textureProperties[reader.GetVariable()] = reader.GetVariableValue();
+			textureProperties[reader.GetKey()] = reader.GetValue();
 		}
 	}
 }

@@ -6,20 +6,14 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	/// <summary>
-	/// A wrapper for a Vulkan queue
-	/// </summary>
+	/// @brief A wrapper for a Vulkan queue
 	struct VulkanQueue
 	{
-		/// <summary>
-		/// The Vulkan queue
-		/// </summary>
-		VkQueue Queue;
+		/// @brief The Vulkan queue
+		const VkQueue Queue;
 
-		/// <summary>
-		/// The queue family that this queue belongs to
-		/// </summary>
-		int QueueFamily;
+		/// @brief The queue family that this queue belongs to
+		const int QueueFamily;
 
 		VulkanQueue(VkQueue queue, int queueFamily) noexcept;
 	};

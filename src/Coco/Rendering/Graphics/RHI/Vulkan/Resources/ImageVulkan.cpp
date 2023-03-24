@@ -66,12 +66,12 @@ namespace Coco::Rendering::Vulkan
 
 		staging->LoadData(offset, size, pixelData);
 
-		CommandBufferVulkan* commandBuffer = static_cast<CommandBufferVulkan*>(pool->Allocate(true));
+		WeakManagedRef<CommandBufferVulkan> commandBuffer = pool->Allocate(true);
 		commandBuffer->Begin(true, false);
 
-		TransitionLayout(commandBuffer, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		CopyFromBuffer(commandBuffer, staging.Get());
-		TransitionLayout(commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		TransitionLayout(commandBuffer.Get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		CopyFromBuffer(commandBuffer.Get(), staging.Get());
+		TransitionLayout(commandBuffer.Get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		commandBuffer->EndAndSubmit();
 		pool->WaitForQueue();

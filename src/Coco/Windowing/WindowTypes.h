@@ -2,9 +2,7 @@
 
 namespace Coco::Windowing
 {
-	/// <summary>
-	/// States of a window
-	/// </summary>
+	/// @brief States of a window
 	enum class WindowState
 	{
 		Windowed,

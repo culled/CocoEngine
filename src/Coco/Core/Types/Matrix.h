@@ -9,19 +9,13 @@ namespace Coco
 {
 	struct Quaternion;
 
-	/// <summary>
-	/// A matrix with 4 rows and 4 columns, stored in column-major order
-	/// </summary>
+	/// @brief A matrix with 4 rows and 4 columns, stored in column-major order
 	struct COCOAPI Matrix4x4
 	{
-		/// <summary>
-		/// The number of cells in a 4x4 matrix
-		/// </summary>
+		/// @brief The number of cells in a 4x4 matrix
 		static constexpr int CellCount = 16;
 
-		/// <summary>
-		/// An identity matrix
-		/// </summary>
+		/// @brief An identity matrix
 		static const Matrix4x4 Identity;
 
 		// First row, first column
@@ -72,9 +66,7 @@ namespace Coco
 		// Fourth row, fourth column
 		static constexpr int m44 = 15;
 
-		/// <summary>
-		/// The matrix data, stored in column-major order
-		/// </summary>
+		/// @brief The matrix data, stored in column-major order
 		Array<double, CellCount> Data = { 0.0 };
 
 		Matrix4x4() noexcept = default;
@@ -88,156 +80,122 @@ namespace Coco
 		Matrix4x4& operator=(const Matrix4x4& other) noexcept;
 		Matrix4x4& operator=(Matrix4x4&& other) noexcept;
 
-		/// <summary>
-		/// Creates an orthographic projection matrix
-		/// </summary>
-		/// <param name="left">The left side of the view frustrum</param>
-		/// <param name="right">The right side of the view frustrum</param>
-		/// <param name="top">The top side of the view frustrum</param>
-		/// <param name="bottom">The bottom side of the view frustrum</param>
-		/// <param name="nearClip">The distance to the near clipping plane</param>
-		/// <param name="farClip">The distance to the far clipping plane</param>
-		/// <returns>An orthographic projection matrix</returns>
+		/// @brief Creates an orthographic projection matrix
+		/// @param left The left side of the view frustrum
+		/// @param right The right side of the view frustrum
+		/// @param top The top side of the view frustrum
+		/// @param bottom The bottom side of the view frustrum
+		/// @param nearClip The distance to the near clipping plane
+		/// @param farClip The distance to the far clipping plane
+		/// @return An orthographic projection matrix
 		static Matrix4x4 CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip) noexcept;
 
-		/// <summary>
-		/// Creates a perspective matrix
-		/// </summary>
-		/// <param name="fieldOfViewRadians">The field of view (in radians)</param>
-		/// <param name="aspectRatio">The aspect ratio</param>
-		/// <param name="nearClip">The distance to the near clipping plane</param>
-		/// <param name="farClip">The distance to the far clipping plane</param>
-		/// <returns>A perspective matrix</returns>
+		/// @brief Creates an orthographic projection matrix
+		/// @param size The vertical size of the view frustrum
+		/// @param aspectRatio The aspect ratio
+		/// @param nearClip The distance to the near clipping plane
+		/// @param farClip The distance to the far clipping plane
+		/// @return An orthographic projection matrix
+		static Matrix4x4 CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) noexcept;
+
+		/// @brief Creates a perspective matrix
+		/// @param fieldOfViewRadians The vertical field of view (in radians)
+		/// @param aspectRatio The aspect ratio
+		/// @param nearClip The distance to the near clipping plane
+		/// @param farClip The distance to the far clipping plane
+		/// @return A perspective projection matrix
 		static Matrix4x4 CreatePerspectiveProjection(double fieldOfViewRadians, double aspectRatio, double nearClip, double farClip) noexcept;
 
-		/// <summary>
-		/// Creates a view matrix that looks from an eye position at a target position
-		/// </summary>
-		/// <param name="eyePosition">The eye position</param>
-		/// <param name="targetPosition">The position to look at</param>
-		/// <param name="up">The up direction</param>
-		/// <returns>A view matrix with the looking from the eye position to the target position</returns>
+		/// @brief Creates a view matrix that looks from an eye position at a target position
+		/// @param eyePosition The eye position
+		/// @param targetPosition The position to look at
+		/// @param up The up direction
+		/// @return A view matrix with the looking from the eye position to the target position
 		static Matrix4x4 CreateLookAtMatrix(const Vector3& eyePosition, const Vector3& targetPosition, const Vector3& up) noexcept;
 
-		/// <summary>
-		/// Creates a matrix with only a translation
-		/// </summary>
-		/// <param name="position">The translation</param>
-		/// <returns>The matrix</returns>
+		/// @brief Creates a matrix with only a translation
+		/// @param translation The translation
+		/// @return A matrix
 		static Matrix4x4 CreateWithTranslation(const Vector3& translation) noexcept;
 
-		/// <summary>
-		/// Creates a matrix with only a scale
-		/// </summary>
-		/// <param name="scale">The scale</param>
-		/// <returns>The matrix</returns>
+		/// @brief Creates a matrix with only a scale
+		/// @param scale The scale
+		/// @return A matrix
 		static Matrix4x4 CreateWithScale(const Vector3& scale) noexcept;
 
-		/// <summary>
-		/// Creates a matrix with only a rotation on the X axis
-		/// </summary>
-		/// <param name="angleRadians">The angle in radians</param>
-		/// <returns>The matrix</returns>
+		/// @brief Creates a matrix with only a rotation on the X axis
+		/// @param angleRadians The angle (in radians)
+		/// @return A matrix
 		static Matrix4x4 CreateWithRotationEulerX(double angleRadians) noexcept;
 
-		/// <summary>
-		/// Creates a matrix with only a rotation on the Y axis
-		/// </summary>
-		/// <param name="angleRadians">The angle in radians</param>
-		/// <returns>The matrix</returns>
+		/// @brief Creates a matrix with only a rotation on the Y axis
+		/// @param angleRadians The angle (in radians)
+		/// @return A matrix
 		static Matrix4x4 CreateWithRotationEulerY(double angleRadians) noexcept;
 
-		/// <summary>
-		/// Creates a matrix with only a rotation on the Z axis
-		/// </summary>
-		/// <param name="angleRadians">The angle in radians</param>
-		/// <returns>The matrix</returns>
+		/// @brief Creates a matrix with only a rotation on the Z axis
+		/// @param angleRadians The angle (in radians)
+		/// @return A matrix
 		static Matrix4x4 CreateWithRotationEulerZ(double angleRadians) noexcept;
 
-		/// <summary>
-		/// Creates a matrix with only a rotation
-		/// </summary>
-		/// <param name="xRadians">The angle in radians on the X axis</param>
-		/// <param name="yRadians">The angle in radians on the Y axis</param>
-		/// <param name="zRadians">The angle in radians on the Z axis</param>
-		/// <returns>The matrix</returns>
+		/// @brief Creates a matrix with only a rotation
+		/// @param xRadians The angle on the X axis (in radians)
+		/// @param yRadians The angle on the Y axis (in radians)
+		/// @param zRadians The angle on the Z axis (in radians)
+		/// @return A matrix
 		static Matrix4x4 CreateWithEulerRotation(double xRadians, double yRadians, double zRadians) noexcept;
 
-		/// <summary>
-		/// Creates a matrix with only a rotation
-		/// </summary>
-		/// <param name="eulerAnglesRadians">The euler angles in radians</param>
-		/// <returns>The matrix</returns>
+		/// @brief Creates a matrix with only a rotation
+		/// @param eulerAnglesRadians The euler angles in radians
+		/// @return A matrix
 		static Matrix4x4 CreateWithEulerRotation(const Vector3& eulerAnglesRadians) noexcept;
 
-		/// <summary>
-		/// Creates a transform matrix with a translation, orientation, and scale
-		/// </summary>
-		/// <param name="position">The position</param>
-		/// <param name="orientation">The orientation</param>
-		/// <param name="scale">The scale</param>
-		/// <returns>A transform matrix</returns>
+		/// @brief Creates a transform matrix with a translation, orientation, and scale
+		/// @param position The position
+		/// @param orientation The orientation
+		/// @param scale The scale
+		/// @return A transform matrix
 		static Matrix4x4 CreateTransform(const Vector3& position, const Quaternion& orientation, const Vector3& scale) noexcept;
 
-		/// <summary>
-		/// Multiplies the rows of this matrix with the columns of another matrix
-		/// </summary>
-		/// <param name="other">The other matrix</param>
-		/// <returns>The multiply result</returns>
+		/// @brief Multiplies the rows of this matrix with the columns of another matrix
+		/// @param other The other matrix
+		/// @return The multiply result
 		Matrix4x4 Mul(const Matrix4x4& other) const noexcept { return *this * other; }
 
-		/// <summary>
-		/// Returns a matrix that is the inverse of this matrix
-		/// </summary>
-		/// <returns>The inverse of this matrix</returns>
+		/// @brief Returns a matrix that is the inverse of this matrix
+		/// @return The inverse of this matrix
 		Matrix4x4 Inverted() const noexcept;
 
-		/// <summary>
-		/// Returns a matrix that is the transpose of this matrix (rows and colums swapped)
-		/// </summary>
-		/// <returns>The transpose of this matrix</returns>
+		/// @brief Returns a matrix that is the transpose of this matrix (rows and colums swapped)
+		/// @return The transpose of this matrix
 		Matrix4x4 Transposed() const noexcept;
 
-		/// <summary>
-		/// Gets a vector that points to the right
-		/// </summary>
-		/// <returns>A vector that points to the right</returns>
+		/// @brief Gets a vector that points to the right
+		/// @return A vector that points to the right
 		Vector3 GetRightVector() const noexcept;
 
-		/// <summary>
-		/// Gets a vector that points to the left
-		/// </summary>
-		/// <returns>A vector that points to the left</returns>
+		/// @brief Gets a vector that points to the left
+		/// @return A vector that points to the left
 		Vector3 GetLeftVector() const noexcept { return -GetRightVector(); }
 
-		/// <summary>
-		/// Gets a vector that points upwards
-		/// </summary>
-		/// <returns>A vector that points upwards</returns>
+		/// @brief Gets a vector that points upwards
+		/// @return A vector that points upwards
 		Vector3 GetUpVector() const noexcept;
 
-		/// <summary>
-		/// Gets a vector that points downwards
-		/// </summary>
-		/// <returns>A vector that points downwards</returns>
+		/// @brief Gets a vector that points downwards
+		/// @return A vector that points downwards
 		Vector3 GetDownVector() const noexcept { return -GetUpVector(); }
 
-		/// <summary>
-		/// Gets a vector that points backwards
-		/// </summary>
-		/// <returns>A vector that points backwards</returns>
+		/// @brief Gets a vector that points forwards
+		/// @return A vector that points forwards
 		Vector3 GetForwardVector() const noexcept;
 
-		/// <summary>
-		/// Gets a vector that points forwards
-		/// </summary>
-		/// <returns>A vector that points forwards</returns>
+		/// @brief Gets a vector that points backwards
+		/// @return A vector that points backwards
 		Vector3 GetBackwardVector() const noexcept { return -GetForwardVector(); }
 
-		/// <summary>
-		/// Gets this matrix's data as a float array of 16 elements
-		/// </summary>
-		/// <returns>This matrix's data as a float array of 16 elements</returns>
+		/// @brief Gets this matrix's data as a float array of 16 elements
+		/// @return This matrix's data as a float array of 16 elements
 		Array<float, Matrix4x4::CellCount> AsFloat() const noexcept;
 
 		Matrix4x4 operator*(const Matrix4x4& other) const noexcept;

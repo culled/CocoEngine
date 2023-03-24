@@ -2,9 +2,7 @@
 
 namespace Coco::Input
 {
-	/// <summary>
-	/// Mouse buttons
-	/// </summary>
+	/// @brief Mouse buttons
 	enum class MouseButton
 	{
 		Left,
@@ -15,9 +13,7 @@ namespace Coco::Input
 		Unknown,
 	};
 
-    /// <summary>
-    /// Keyboard keys
-    /// </summary>
+    /// @brief Keyboard keys
     enum class KeyboardKey
     {
         Backspace = 0x08,

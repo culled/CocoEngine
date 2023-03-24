@@ -2,27 +2,27 @@
 
 namespace Coco
 {
-	FileModes operator&(FileModes a, FileModes b) noexcept
+	FileModeFlags operator&(FileModeFlags a, FileModeFlags b) noexcept
 	{
-		return static_cast<FileModes>(static_cast<int>(a) & static_cast<int>(b));
+		return static_cast<FileModeFlags>(static_cast<int>(a) & static_cast<int>(b));
 	}
 
-	void operator&=(FileModes& a, FileModes b) noexcept
+	void operator&=(FileModeFlags& a, FileModeFlags b) noexcept
 	{
-		a = static_cast<FileModes>(a & b);
+		a = static_cast<FileModeFlags>(a & b);
 	}
 
-	FileModes operator|(FileModes a, FileModes b) noexcept
+	FileModeFlags operator|(FileModeFlags a, FileModeFlags b) noexcept
 	{
-		return static_cast<FileModes>(static_cast<int>(a) | static_cast<int>(b));
+		return static_cast<FileModeFlags>(static_cast<int>(a) | static_cast<int>(b));
 	}
 
-	void operator|=(FileModes& a, FileModes b) noexcept
+	void operator|=(FileModeFlags& a, FileModeFlags b) noexcept
 	{
-		a = static_cast<FileModes>(a | b);
+		a = static_cast<FileModeFlags>(a | b);
 	}
 
-	bool operator>(FileModes a, int b) noexcept
+	bool operator>(FileModeFlags a, int b) noexcept
 	{
 		return static_cast<int>(a) > b;
 	}

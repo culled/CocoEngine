@@ -13,9 +13,7 @@ namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 
-	/// <summary>
-	/// Vulkan-implementation of a Buffer
-	/// </summary>
+	/// @brief Vulkan-implementation of a Buffer
 	class BufferVulkan final : public Buffer
 	{
 	private:
@@ -40,37 +38,29 @@ namespace Coco::Rendering::Vulkan
 		void* Lock(uint64_t offset, uint64_t size) final;
 		void Unlock() final;
 
-		/// <summary>
-		/// Gets the underlying Vulkan buffer
-		/// </summary>
-		/// <returns>The underlying Vulkan buffer</returns>
+		/// @brief Gets the underlying Vulkan buffer
+		/// @return The underlying Vulkan buffer
 		VkBuffer GetBuffer() const noexcept { return _buffer; }
 
 	private:
-		/// <summary>
-		/// Creates a Vulkan buffer
-		/// </summary>
-		/// <param name="size">The size of the buffer (in bytes)</param>
-		/// <param name="buffer">The buffer</param>
-		/// <param name="bufferMemory">The buffer memory</param>
-		/// <param name="bufferMemoryIndex">The index of memory used for the buffer</param>
+		/// @brief Creates a Vulkan buffer
+		/// @param size The size of the buffer (in bytes)
+		/// @param buffer Will be filled with the created buffer
+		/// @param bufferMemory Will be filled with the created buffer's memory
+		/// @param bufferMemoryIndex Will be filled with the memory index for the buffer
 		void CreateBuffer(uint64_t size, VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t& bufferMemoryIndex);
 
-		/// <summary>
-		/// Destroys a buffer
-		/// </summary>
-		/// <param name="buffer">The buffer</param>
-		/// <param name="bufferMemory">The buffer's memory</param>
-		void DestroyBuffer(VkBuffer buffer, VkDeviceMemory bufferMemory) noexcept;
+		/// @brief Destroys a buffer
+		/// @param buffer The buffer
+		/// @param bufferMemory The buffer memory
+		void DestroyBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory) noexcept;
 
-		/// <summary>
-		/// Copies data between buffers
-		/// </summary>
-		/// <param name="source">The buffer to copy from</param>
-		/// <param name="sourceOffset">The start offset to copy from</param>
-		/// <param name="destination">The buffer to copy to</param>
-		/// <param name="destinationOffset">The start offset to copy to</param>
-		/// <param name="size">The number of bytes to copy</param>
+		/// @brief Copies data between buffers
+		/// @param source The buffer to copy from
+		/// @param sourceOffset The start offset to copy from
+		/// @param destination The buffer to copy to
+		/// @param destinationOffset The start offset to copy to
+		/// @param size The number of bytes to copy
 		void CopyBuffer(VkBuffer source, uint64_t sourceOffset, VkBuffer destination, uint64_t destinationOffset, uint64_t size);
 	};
 }

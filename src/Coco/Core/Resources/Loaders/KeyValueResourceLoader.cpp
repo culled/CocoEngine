@@ -5,7 +5,7 @@
 namespace Coco
 {
 	KeyValueReader::KeyValueReader(File& file) : 
-		_file(&file), _currentIndentLevel(0), _currentLine(""), _currentVariable(""), _currentVariableValue("")
+		_file(&file), _currentIndentLevel(0), _currentLine(""), _currentKey(""), _currentValue("")
 	{}
 
 	int KeyValueReader::GetNextLineIndentLevel()
@@ -44,9 +44,9 @@ namespace Coco
 
 	void KeyValueReader::SetCurrentLine(const string& line)
 	{
-		_currentLine = TrimWhitespace(line);
+		_currentLine = line;
 
-		KeyValueResourceLoader::GetLinePair(_currentLine, _currentVariable, _currentVariableValue);
+		KeyValueResourceLoader::GetLinePair(_currentLine, _currentKey, _currentValue);
 		_currentIndentLevel = KeyValueResourceLoader::GetIndentationLevel(line);
 	}
 
@@ -69,12 +69,12 @@ namespace Coco
 		_file->WriteLine(_currentIndentStr + line);
 	}
 
-	void KeyValueWriter::WriteLine(const string& variable, const string& value)
+	void KeyValueWriter::WriteLine(const string& key, const string& value)
 	{
-		WriteLine(FormattedString("{}={}", variable, value));
+		WriteLine(FormattedString("{}={}", key, value));
 	}
 
-	KeyValueResourceLoader::KeyValueResourceLoader(ResourceLibrary* library, const string& basePath) : ResourceLoader(library, basePath)
+	KeyValueResourceLoader::KeyValueResourceLoader(ResourceLibrary* library) : ResourceLoader(library)
 	{}
 
 	int KeyValueResourceLoader::GetIndentationLevel(const string& line)
@@ -90,21 +90,25 @@ namespace Coco
 		}
 	}
 
-	void KeyValueResourceLoader::GetLinePair(const string& line, string& variable, string& value)
+	void KeyValueResourceLoader::GetLinePair(const string& line, string& key, string& value)
 	{
 		if (line.empty())
+		{
+			key = "";
+			value = "";
 			return;
+		}
 
 		size_t delimiter = line.find('=');
 
 		if (delimiter == string::npos)
 		{
-			variable = TrimWhitespace(line);
+			key = TrimWhitespace(line);
 			value = "";
 		}
 		else
 		{
-			variable = TrimWhitespace(line.substr(0, delimiter));
+			key = TrimWhitespace(line.substr(0, delimiter));
 			value = TrimWhitespace(line.substr(delimiter + 1));
 		}
 	}

@@ -12,39 +12,32 @@ namespace Coco
 	struct Vector4;
 	struct Color;
 
-	/// <summary>
-	/// Represents a 2D vector using integer coordinates
-	/// </summary>
+	/// @brief Represents a 2D vector using integer coordinates
 	struct COCOAPI Vector2Int
 	{
-		/// <summary>
-		/// A zero vector2int (0, 0)
-		/// </summary>
+		/// @brief A zero vector (0, 0)
 		static const Vector2Int Zero;
 
-		/// <summary>
-		/// A vector2int with 1 for each axis (1, 1)
-		/// </summary>
+		/// @brief A vector with 1 for each axis (1, 1)
 		static const Vector2Int One;
 
+		/// @brief The X component
 		int X = 0;
+		
+		/// @brief The Y component
 		int Y = 0;
 
 		Vector2Int() noexcept = default;
 		Vector2Int(int x, int y) noexcept;
 		virtual ~Vector2Int() = default;
 
-		/// <summary>
-		/// Parses a vector2int from a string
-		/// </summary>
-		/// <param name="str">The string</param>
-		/// <returns>The parsed vector2int</returns>
+		/// @brief Parses a Vector2Int from a string
+		/// @param str The string
+		/// @return The parsed Vector2Int
 		static Vector2Int Parse(const string& str);
 
-		/// <summary>
-		/// Converts this vector to a string
-		/// </summary>
-		/// <returns>This vector as a string</returns>
+		/// @brief Converts this vector to a string
+		/// @return This vector as a string
 		string ToString() const noexcept { return FormattedString("{}, {}", X, Y); }
 
 		Vector2Int operator+(const Vector2Int& other) const noexcept { return Vector2Int(X + other.X, Y + other.Y); }
@@ -73,42 +66,31 @@ namespace Coco
 		operator Vector2() const noexcept;
 	};
 
-	/// <summary>
-	/// Represents a 2D vector
-	/// </summary>
+	/// @brief Represents a 2D vector using decimal coordinates
 	struct COCOAPI Vector2
 	{
-		/// <summary>
-		/// A zero vector2 (0, 0)
-		/// </summary>
+		/// @brief A zero vector (0, 0)
 		static const Vector2 Zero;
 
-		/// <summary>
-		/// A vector2 with 1 for each axis (1, 1)
-		/// </summary>
+		/// @brief A vector with 1 for each axis (1, 1)
 		static const Vector2 One;
 
-		/// <summary>
-		/// A vector2 pointing to the right (1, 0)
-		/// </summary>
+		/// @brief A vector pointing to the right (1, 0)
 		static const Vector2 Right;
 
-		/// <summary>
-		/// A vector2 pointing to the left (-1, 0)
-		/// </summary>
+		/// @brief A vector pointing to the left (-1, 0)
 		static const Vector2 Left;
 
-		/// <summary>
-		/// A vector2 pointing up (0, 1)
-		/// </summary>
+		/// @brief A vector pointing up (0, 1)
 		static const Vector2 Up;
 
-		/// <summary>
-		/// A vector2 pointing down (0, -1)
-		/// </summary>
+		/// @brief A vector pointing down (0, -1)
 		static const Vector2 Down;
 
+		/// @brief The X component
 		double X = 0.0;
+
+		/// @brief The Y component
 		double Y = 0.0;
 
 		Vector2() = default;
@@ -116,74 +98,54 @@ namespace Coco
 		Vector2(const Vector3& vec) noexcept;
 		virtual ~Vector2() = default;
 
-		/// <summary>
-		/// Parses a vector2 from a string
-		/// </summary>
-		/// <param name="str">The string</param>
-		/// <returns>The parsed vector2</returns>
+		/// @brief Parses a Vector2 from a string
+		/// @param str The string
+		/// @return The parsed Vector2
 		static Vector2 Parse(const string& str);
 
-		/// <summary>
-		/// Returns the distance between two vectors
-		/// </summary>
-		/// <param name="a">The first vector</param>
-		/// <param name="b">The second vector</param>
-		/// <returns>The distance between the vectors</returns>
+		/// @brief Returns the distance between two vectors
+		/// @param a The first vector
+		/// @param b The second vector
+		/// @return The distance between the vectors
 		static double DistanceBetween(const Vector2& a, const Vector2& b) noexcept;
 
-		/// <summary>
-		/// Calculates the dot product of A and B
-		/// </summary>
-		/// <param name="a">The first vector</param>
-		/// <param name="b">The second vector</param>
-		/// <returns>The dot product</returns>
+		/// @brief Calculates the dot product of A and B
+		/// @param a The first vector
+		/// @param b The second vector
+		/// @return The dot product
 		static double Dot(const Vector2& a, const Vector2& b) noexcept { return a.Dot(b); }
 
-		/// <summary>
-		/// Gets the squared length of this vector
-		/// </summary>
-		/// <returns>The squared length</returns>
-		double GetLengthSquared() const noexcept { return X * X + Y * Y; }
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y; }
 
-		/// <summary>
-		/// Gets the length of this vector
-		/// </summary>
-		/// <returns>The length</returns>
+		/// @brief Gets the length of this vector
+		/// @return The length
 		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y); }
 
-		/// <summary>
-		/// Normalizes this vector
-		/// </summary>
-		/// <param name="safe">If true, a check will be done to ensure the vector has a non-zero length</param>
+		/// @brief Normalizes this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
 		void Normalize(bool safe = true) noexcept;
 
-		/// <summary>
-		/// Gets a normalized copy of this vector
-		/// </summary>
-		/// <param name="safe">If true, a check will be done to ensure the vector has a non-zero length</param>
-		/// <returns>A normalized copy of this vector</returns>
+		/// @brief Gets a normalized copy of this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		/// @return A normalized copy of this vector
 		Vector2 Normalized(bool safe = true) const noexcept;
 
-		/// <summary>
-		/// Compares if this vector equals another vector
-		/// </summary>
-		/// <param name="other">The other vector</param>
-		/// <param name="tolerance">The difference tolerance</param>
-		/// <returns>True if the two vectors are within the tolerance of each other</returns>
+		/// @brief Compares if this vector equals another vector
+		/// @param other The other vector
+		/// @param tolerance The difference tolerance
+		/// @return True if the two vectors are within the tolerance of each other
 		bool Equals(const Vector2& other, double tolerance = Math::Epsilon) const noexcept 
 		{ return Math::Approximately(X, other.X, tolerance) && Math::Approximately(Y, other.Y, tolerance); }
 
-		/// <summary>
-		/// Calculates the dot product of this vector with another vector
-		/// </summary>
-		/// <param name="other">The other vector</param>
-		/// <returns>The dot product of this vector and the other vector</returns>
+		/// @brief Calculates the dot product of this vector with another vector
+		/// @param other The other vector
+		/// @return The dot product of this vector and the other vector
 		double Dot(const Vector2& other) const noexcept { return X * other.X + Y * other.Y; }
 
-		/// <summary>
-		/// Converts this vector to a string
-		/// </summary>
-		/// <returns>This vector as a string</returns>
+		/// @brief Converts this vector to a string
+		/// @return This vector as a string
 		string ToString() const noexcept { return FormattedString("{}, {}", X, Y); }
 
 		Vector2 operator+(const Vector2& other) const noexcept { return Vector2(X + other.X, Y + other.Y); }
@@ -209,53 +171,40 @@ namespace Coco
 		bool operator!=(const Vector2& other) { return !Equals(other); }
 	};
 
-	/// <summary>
-	/// Represents a 3D vector
-	/// </summary>
+	/// @brief Represents a 3D vector using decimal coordinates
 	struct COCOAPI Vector3
 	{
-		/// <summary>
-		/// A zero vector3 (0, 0, 0)
-		/// </summary>
+		/// @brief A zero vector (0, 0, 0)
 		static const Vector3 Zero;
 
-		/// <summary>
-		/// A vector3 with 1 for each axis (1, 1, 1)
-		/// </summary>
+		/// @brief A vector with 1 for each axis (1, 1, 1)
 		static const Vector3 One;
 
-		/// <summary>
-		/// A vector3 pointing to the right (1, 0, 0)
-		/// </summary>
+		/// @brief A vector pointing to the right (1, 0, 0)
 		static const Vector3 Right;
 
-		/// <summary>
-		/// A vector3 pointing to the left (-1, 0, 0)
-		/// </summary>
+		/// @brief A vector pointing to the left (-1, 0, 0)
 		static const Vector3 Left;
 
-		/// <summary>
-		/// A vector3 pointing up (0, 0, 1)
-		/// </summary>
+		/// @brief A vector pointing up (0, 0, 1)
 		static const Vector3 Up;
 
-		/// <summary>
-		/// A vector3 pointing down (0, 0, -1)
-		/// </summary>
+		/// @brief A vector pointing down (0, 0, -1)
 		static const Vector3 Down;
 
-		/// <summary>
-		/// A vector3 pointing forward (0, 1, 0)
-		/// </summary>
+		/// @brief A vector pointing forward (0, 1, 0)
 		static const Vector3 Forwards;
 
-		/// <summary>
-		/// A vector3 pointing backward (0, -1, 0)
-		/// </summary>
+		/// @brief A vector pointing backward (0, -1, 0)
 		static const Vector3 Backwards;
 
+		/// @brief The X component
 		double X = 0.0;
+
+		/// @brief The Y component
 		double Y = 0.0;
+
+		/// @brief The Z component
 		double Z = 0.0;
 
 		Vector3() = default;
@@ -264,93 +213,67 @@ namespace Coco
 		Vector3(const struct Vector4& vec4) noexcept;
 		virtual ~Vector3() = default;
 
-		/// <summary>
-		/// Parses a vector3 from a string
-		/// </summary>
-		/// <param name="str">The string</param>
-		/// <returns>The parsed vector3</returns>
+		/// @brief Parses a Vector3 from a string
+		/// @param str The string
+		/// @return The parsed Vector3
 		static Vector3 Parse(const string& str);
 
-		/// <summary>
-		/// Returns the distance between two vectors
-		/// </summary>
-		/// <param name="a">The first vector</param>
-		/// <param name="b">The second vector</param>
-		/// <returns>The distance between the vectors</returns>
+		/// @brief Returns the distance between two vectors
+		/// @param a The first vector
+		/// @param b The second vector
+		/// @return The distance between the vectors
 		static double DistanceBetween(const Vector3& a, const Vector3& b) noexcept;
 
-		/// <summary>
-		/// Calculates the dot product of A and B
-		/// </summary>
-		/// <param name="a">The first vector</param>
-		/// <param name="b">The second vector</param>
-		/// <returns>The dot product</returns>
+		/// @brief Calculates the dot product of A and B
+		/// @param a The first vector
+		/// @param b The second vector
+		/// @return The dot product
 		static double Dot(const Vector3& a, const Vector3& b) noexcept { return a.Dot(b); }
 
-		/// <summary>
-		/// Calculates the cross product of A and B.
-		/// The resulting vector is orthogonal to both vectors.
-		/// </summary>
-		/// <param name="a">The first vector</param>
-		/// <param name="b">The second vector</param>
-		/// <returns>The cross product</returns>
+		/// @brief Calculates the cross product of A and B. The resulting vector is orthogonal to both vectors
+		/// @param a The first vector
+		/// @param b The second vector
+		/// @return The cross product
 		static Vector3 Cross(const Vector3& a, const Vector3& b) noexcept { return a.Cross(b); }
 
-		/// <summary>
-		/// Gets the squared length of this vector
-		/// </summary>
-		/// <returns>The squared length</returns>
-		double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z; }
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z; }
 
-		/// <summary>
-		/// Gets the length of this vector
-		/// </summary>
-		/// <returns>The length</returns>
+		/// @brief Gets the length of this vector
+		/// @return The length
 		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y + Z * Z); }
 
-		/// <summary>
-		/// Normalizes this vector
-		/// </summary>
-		/// <param name="safe">If true, a check will be done to ensure the vector has a non-zero length</param>
+		/// @brief Normalizes this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
 		void Normalize(bool safe = true) noexcept;
 
-		/// <summary>
-		/// Gets a normalized copy of this vector
-		/// </summary>
-		/// <param name="safe">If true, a check will be done to ensure the vector has a non-zero length</param>
-		/// <returns>A normalized copy of this vector</returns>
+		/// @brief Gets a normalized copy of this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		/// @return A normalized copy of this vector
 		Vector3 Normalized(bool safe = true) const noexcept;
 
-		/// <summary>
-		/// Compares if this vector equals another vector
-		/// </summary>
-		/// <param name="other">The other vector</param>
-		/// <param name="tolerance">The difference tolerance</param>
-		/// <returns>True if the two vectors are within the tolerance of each other</returns>
+		/// @brief Compares if this vector equals another vector
+		/// @param other The other vector
+		/// @param tolerance The difference tolerance
+		/// @return True if the two vectors are within the tolerance of each other
 		bool Equals(const Vector3& other, double tolerance = Math::Epsilon) const noexcept
 		{
 			return Math::Approximately(X, other.X, tolerance) && Math::Approximately(Y, other.Y, tolerance) && Math::Approximately(Z, other.Z, tolerance);
 		}
 
-		/// <summary>
-		/// Calculates the dot product of this vector with another vector
-		/// </summary>
-		/// <param name="other">The other vector</param>
-		/// <returns>The dot product of this vector and the other vector</returns>
+		/// @brief Calculates the dot product of this vector with another vector
+		/// @param other The other vector
+		/// @return The dot product of this vector and the other vector
 		double Dot(const Vector3& other) const noexcept { return X * other.X + Y * other.Y + Z * other.Z; }
 
-		/// <summary>
-		/// Calculates the cross product of this vector with another vector.
-		/// The resulting vector is orthogonal to both vectors.
-		/// </summary>
-		/// <param name="other">The other vector</param>
-		/// <returns>The cross product</returns>
+		/// @brief Calculates the cross product of this vector with another vector. The resulting vector is orthogonal to both vectors
+		/// @param other The other vector
+		/// @return The cross product
 		Vector3 Cross(const Vector3& other) const noexcept { return Vector3( Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X); }
 
-		/// <summary>
-		/// Converts this vector to a string
-		/// </summary>
-		/// <returns>This vector as a string</returns>
+		/// @brief Converts this vector to a string
+		/// @return This vector as a string
 		string ToString() const noexcept { return FormattedString("{}, {}, {}", X, Y, Z); }
 
 		Vector3 operator+(const Vector3& other) const noexcept { return Vector3(X + other.X, Y + other.Y, Z + other.Z); }
@@ -379,24 +302,25 @@ namespace Coco
 		bool operator!=(const Vector3& other) noexcept { return !Equals(other); }
 	};
 
-	/// <summary>
-	/// Represents a 4D vector
-	/// </summary>
+	/// @brief Represents a 4D vector using decimal coordinates
 	struct COCOAPI Vector4
 	{
-		/// <summary>
-		/// A zero vector4 (0, 0, 0, 0)
-		/// </summary>
+		/// @brief A zero vector (0, 0, 0, 0)
 		static const Vector4 Zero;
 
-		/// <summary>
-		/// A vector4 with 1 for each axis (1, 1, 1, 1)
-		/// </summary>
+		/// @brief A vector with 1 for each axis (1, 1, 1, 1)
 		static const Vector4 One;
 
+		/// @brief The X component
 		double X = 0.0;
+
+		/// @brief The Y component
 		double Y = 0.0;
+
+		/// @brief The Z component
 		double Z = 0.0;
+
+		/// @brief The W component
 		double W = 0.0;
 
 		Vector4() = default;
@@ -404,53 +328,39 @@ namespace Coco
 		Vector4(const Vector2& vec2, double z = 0.0, double w = 0.0) noexcept;
 		Vector4(const Vector3& vec3, double w = 0.0) noexcept;
 		virtual ~Vector4() = default;
-
-		/// <summary>
-		/// Parses a vector4 from a string
-		/// </summary>
-		/// <param name="str">The string</param>
-		/// <returns>The parsed vector4</returns>
+		
+		/// @brief Parses a Vector4 from a string
+		/// @param str The string
+		/// @return The parsed Vector4
 		static Vector4 Parse(const string& str);
 
-		/// <summary>
-		/// Calculates the dot product of A and B
-		/// </summary>
-		/// <param name="a">The first vector</param>
-		/// <param name="b">The second vector</param>
-		/// <returns>The dot product</returns>
+		/// @brief Calculates the dot product of A and B
+		/// @param a The first vector
+		/// @param b The second vector
+		/// @return The dot product
 		static double Dot(const Vector4& a, const Vector4& b) noexcept { return a.Dot(b); }
 
-		/// <summary>
-		/// Gets the squared length of this vector
-		/// </summary>
-		/// <returns>The squared length</returns>
-		double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z + W * W; }
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z + W * W; }
 
-		/// <summary>
-		/// Gets the length of this vector
-		/// </summary>
-		/// <returns>The length</returns>
+		/// @brief Gets the length of this vector
+		/// @return The length
 		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
 
-		/// <summary>
-		/// Normalizes this vector
-		/// </summary>
-		/// <param name="safe">If true, a check will be done to ensure the vector has a non-zero length</param>
+		/// @brief Normalizes this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
 		void Normalize(bool safe = true) noexcept;
 
-		/// <summary>
-		/// Gets a normalized copy of this vector
-		/// </summary>
-		/// <param name="safe">If true, a check will be done to ensure the vector has a non-zero length</param>
-		/// <returns>A normalized copy of this vector</returns>
+		/// @brief Gets a normalized copy of this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		/// @return A normalized copy of this vector
 		Vector4 Normalized(bool safe = true) const noexcept;
 
-		/// <summary>
-		/// Compares if this vector equals another vector
-		/// </summary>
-		/// <param name="other">The other vector</param>
-		/// <param name="tolerance">The difference tolerance</param>
-		/// <returns>True if the two vectors are within the tolerance of each other</returns>
+		/// @brief Compares if this vector equals another vector
+		/// @param other The other vector
+		/// @param tolerance The difference tolerance
+		/// @return True if the two vectors are within the tolerance of each other
 		bool Equals(const Vector4& other, double tolerance = Math::Epsilon) const noexcept
 		{
 			return Math::Approximately(X, other.X, tolerance) && 
@@ -459,17 +369,13 @@ namespace Coco
 				Math::Approximately(W, other.W, tolerance);
 		}
 
-		/// <summary>
-		/// Calculates the dot product of this vector with another vector
-		/// </summary>
-		/// <param name="other">The other vector</param>
-		/// <returns>The dot product of this vector and the other vector</returns>
+		/// @brief Calculates the dot product of this vector with another vector
+		/// @param other The other vector
+		/// @return The dot product of this vector and the other vector
 		double Dot(const Vector4& other) const noexcept { return X * other.X + Y * other.Y + Z * other.Z + W * other.W; }
 
-		/// <summary>
-		/// Converts this vector to a string
-		/// </summary>
-		/// <returns>This vector as a string</returns>
+		/// @brief Converts this vector to a string
+		/// @return This vector as a string
 		string ToString() const noexcept { return FormattedString("{}, {}, {}, {}", X, Y, Z, W); }
 
 		Vector4 operator+(const Vector4& other) const noexcept { return Vector4(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }

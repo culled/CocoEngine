@@ -29,17 +29,17 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	CommandBuffer* CommandBufferPoolVulkan::Allocate(bool isPrimary)
+	WeakManagedRef<CommandBuffer> CommandBufferPoolVulkan::Allocate(bool isPrimary)
 	{
-		_allocatedBuffers.Add(CreateManaged<CommandBufferVulkan>(isPrimary, _device, this));
-		const Managed<CommandBufferVulkan>& buffer = _allocatedBuffers.Last();
-		return buffer.get();
+		_allocatedBuffers.Add(CreateManagedRef<CommandBufferVulkan>(isPrimary, _device, this));
+		const ManagedRef<CommandBufferVulkan>& buffer = _allocatedBuffers.Last();
+		return WeakManagedRef<CommandBufferVulkan>(buffer);
 	}
 
-	void CommandBufferPoolVulkan::Free(CommandBuffer* buffer) noexcept
+	void CommandBufferPoolVulkan::Free(const WeakManagedRef<CommandBuffer>& buffer) noexcept
 	{
-		auto it = _allocatedBuffers.Find([buffer](const Managed<CommandBufferVulkan>& other) {
-			return buffer == other.get();
+		auto it = _allocatedBuffers.Find([buffer](const ManagedRef<CommandBufferVulkan>& other) {
+			return buffer.Get() == other.Get();
 			});
 
 		if (it != _allocatedBuffers.end())

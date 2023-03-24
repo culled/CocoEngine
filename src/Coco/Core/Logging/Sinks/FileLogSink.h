@@ -6,9 +6,7 @@
 
 namespace Coco::Logging
 {
-	/// <summary>
-	/// A LogSink that writes to a file
-	/// </summary>
+	/// @brief A LogSink that writes to a file
 	class COCOAPI FileLogSink final : public LogSink
 	{
 	private:

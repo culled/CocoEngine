@@ -79,6 +79,14 @@ namespace Coco
 		return CocoViewToRenderView * ortho;
 	}
 
+	Matrix4x4 Matrix4x4::CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) noexcept
+	{
+		const double halfHeight = size * 0.5;
+		const double halfWidth = halfHeight * aspectRatio;
+
+		return CreateOrthographicProjection(-halfWidth, halfWidth, halfHeight, -halfHeight, nearClip, farClip);
+	}
+
 	Matrix4x4 Matrix4x4::CreatePerspectiveProjection(double fieldOfViewRadians, double aspectRatio, double nearClip, double farClip) noexcept
 	{
 		Matrix4x4 perspective;

@@ -23,7 +23,7 @@ namespace Coco
 		}
 		catch (const Exception& ex)
 		{
-			platform->ShowPlatformMessageBox("Fatal error", string(ex.what()), true);
+			platform->ShowMessageBox("Fatal error", string(ex.what()), true);
 			DebuggerBreak();
 			return ExitCode::FatalError;
 		}
@@ -31,14 +31,14 @@ namespace Coco
 
 	TimeSpan Engine::GetRunningTime() const noexcept
 	{
-		return _platform->GetPlatformLocalTime() - _startTime;
+		return _platform->GetLocalTime() - _startTime;
 	}
 
 	Engine::Engine(Platform::IEnginePlatform* platform) :
 		_platform(platform)
 	{
 		_instance = this;
-		_startTime = _platform->GetPlatformLocalTime();
+		_startTime = _platform->GetLocalTime();
 		_logger = CreateManaged<Logging::Logger>("Coco");
 		_serviceManager = CreateManaged<EngineServiceManager>(this);
 		_mainLoop = CreateManaged<MainLoop>(_platform);
@@ -79,7 +79,7 @@ namespace Coco
 		catch (Exception ex)
 		{
 			LogFatal(_logger, FormattedString("Fatal error: {0}", ex.what()));
-			_platform->ShowPlatformMessageBox("Fatal error", string(ex.what()), true);
+			_platform->ShowMessageBox("Fatal error", string(ex.what()), true);
 
 			DebuggerBreak();
 			return ExitCode::FatalError;

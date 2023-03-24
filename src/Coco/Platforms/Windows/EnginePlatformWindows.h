@@ -3,6 +3,7 @@
 #include <Coco/Core/Platform/IEnginePlatform.h>
 
 #include <Coco/Windowing/IWindowingPlatform.h>
+#include <Coco/Rendering/IRenderingPlatform.h>
 #include "WindowsIncludes.h"
 
 namespace Coco::Input
@@ -12,10 +13,8 @@ namespace Coco::Input
 
 namespace Coco::Platform::Windows
 {
-    /// <summary>
-    /// Win32 platform implementation
-    /// </summary>
-    class COCOAPI EnginePlatformWindows final : public IEnginePlatform, public IWindowingPlatform
+    /// @brief Win32 platform implementation
+    class COCOAPI EnginePlatformWindows final : public IEnginePlatform, public IWindowingPlatform, public IRenderingPlatform
     {
     private:
         static const wchar_t* s_windowClassName;
@@ -40,77 +39,62 @@ namespace Coco::Platform::Windows
         EnginePlatformWindows& operator=(EnginePlatformWindows&&) = delete;
 
         void Start() final;
-        void GetPlatformCommandLineArguments(List<string>& arguments) const noexcept final;
+        void GetCommandLineArguments(List<string>& arguments) const noexcept final;
         void HandlePlatformMessages() noexcept final;
-        void GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept final;
-        DateTime GetPlatformUtcTime() const final;
-        DateTime GetPlatformLocalTime() const final;
-        double GetPlatformTimeSeconds() const final;
-        void WriteToPlatformConsole(const string& message, ConsoleColor color, bool isError) final;
-        void SetPlatformConsoleVisible(bool isVisible) noexcept final;
+        DateTime GetUtcTime() const final;
+        DateTime GetLocalTime() const final;
+        double GetRunningTimeSeconds() const final;
+        void WriteToConsole(const string& message, ConsoleColor color, bool isError) final;
+        void SetConsoleVisible(bool isVisible) noexcept final;
         void Sleep(unsigned long milliseconds) noexcept final;
-        void ShowPlatformMessageBox(const string& title, const string& message, bool isError) final;
+        void ShowMessageBox(const string& title, const string& message, bool isError) final;
 
         ManagedRef<Windowing::Window> CreatePlatformWindow(
             Windowing::WindowCreateParameters& createParameters, 
             Windowing::WindowingService* windowingService) final;
 
+        void GetRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept final;
+
     private:
-        /// <summary>
-        ///  Converts a wide character array to a string
-        /// </summary>
-        /// <param name="wideString">A wide character array</param>
-        /// <returns>A UTF-8 string representation of the input character array</returns>
+        /// @brief Converts a wide character array to a string
+        /// @param wideString A wide character array
+        /// @return A UTF-8 string representation of the input character array
         static string WideStringToString(const LPWSTR wideString);
 
-        /// <summary>
-        /// Converts a string to a wide string
-        /// </summary>
-        /// <param name="string">A string</param>
-        /// <returns>An equivalent wide string representation</returns>
+        /// @brief Converts a string to a wide string
+        /// @param string A string
+        /// @return An equivalent wide string representation
         static std::wstring StringToWideString(const string& string);
 
-        /// <summary>
-        /// Message processing callback
-        /// </summary>
-        /// <param name="windowHandle">The handle to the window</param>
-        /// <param name="message">The type of message</param>
-        /// <param name="wParam">Message WParams</param>
-        /// <param name="lParam">Message LParams</param>
-        /// <returns>A value for Windows</returns>
+        /// @brief Message processing callback
+        /// @param windowHandle The handle to the window
+        /// @param message The type of message
+        /// @param wParam Message WParams
+        /// @param lParam Message LParams
+        /// @return A value for Windows
         static LRESULT CALLBACK ProcessMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
 
-        /// <summary>
-        /// Dispatches a window-specific message to the intended window
-        /// </summary>
-        /// <param name="windowHandle">The window handle</param>
-        /// <param name="message">The type of message</param>
-        /// <param name="wParam">Message WParams</param>
-        /// <param name="lParam">Message LParams</param>
+        /// @brief Dispatches a window-specific message to the intended window
+        /// @param windowHandle The handle to the window
+        /// @param message The type of message
+        /// @param wParam Message WParams
+        /// @param lParam Message LParams
         static void HandleWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
-
-        /// <summary>
-        /// Handles an input-specific message
-        /// </summary>
-        /// <param name="windowHandle">The window handle</param>
-        /// <param name="message">The type of message</param>
-        /// <param name="wParam">Message WParams</param>
-        /// <param name="lParam">Message LParams</param>
+        
+        /// @brief Handles an input-specific message
+        /// @param windowHandle The handle to the window
+        /// @param message The type of message
+        /// @param wParam Message WParams
+        /// @param lParam Message LParams
         static void HandleInputMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
 
-        /// <summary>
-        /// Registers the window class with Windows
-        /// </summary>
+        /// @brief Registers the window class with Windows
         void RegisterWindowClass();
 
-        /// <summary>
-        /// Shows the console
-        /// </summary>
+        /// @brief Shows the console
         void ShowConsole() noexcept;
 
-        /// <summary>
-        /// Hides the console
-        /// </summary>
+        /// @brief Hides the console
         void HideConsole() noexcept;
     };
 }

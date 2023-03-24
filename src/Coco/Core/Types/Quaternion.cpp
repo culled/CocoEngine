@@ -1,6 +1,7 @@
 #include "Quaternion.h"
 
 #include "Matrix.h"
+#include "Vector.h"
 
 namespace Coco
 {
@@ -63,7 +64,7 @@ namespace Coco
 		}
 		else
 		{
-			const double theta0 = Math::ACos(dot);
+			const double theta0 = Math::Acos(dot);
 			const double theta = theta0 * alpha;
 			const double sinTheta = Math::Sin(theta);
 			const double sinTheta0 = Math::Sin(theta0);

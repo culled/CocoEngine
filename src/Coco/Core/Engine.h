@@ -13,9 +13,7 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// The core engine
-	/// </summary>
+	/// @brief The core engine
 	class COCOAPI Engine
 	{
 	private:
@@ -42,78 +40,54 @@ namespace Coco
 		Engine& operator=(const Engine&) = delete;
 		Engine& operator=(Engine&&) = delete;
 
-		/// <summary>
-		/// Called from the main entry to run the engine and client application
-		/// </summary>
-		/// <param name="platform">The platform for the engine to use</param>
-		/// <returns>The exit code from the engine</returns>
+		/// @brief Called from the main entry to run the engine and client application
+		/// @param platform The platform for the engine to use
+		/// @return The exit code from the engine
 		static ExitCode Run(Managed<Platform::IEnginePlatform> platform);
 
-		/// <summary>
-		/// Gets the engine instance
-		/// </summary>
-		/// <returns>The engine instace</returns>
+		/// @brief Gets the engine instance
+		/// @return The engine instace
 		static Engine* Get() noexcept { return _instance; }
 
-		/// <summary>
-		/// Gets the engine's logger
-		/// </summary>
-		/// <returns>The engine's logger</returns>
+		/// @brief Gets the engine's logger
+		/// @return The engine's logger
 		Logging::Logger* GetLogger() const noexcept { return _logger.get(); }
 
-		/// <summary>
-		/// Gets the engine's platform
-		/// </summary>
-		/// <returns>The engine's platform</returns>
+		/// @brief Gets the engine's platform
+		/// @return The engine's platform
 		Platform::IEnginePlatform* GetPlatform() const noexcept { return _platform; }
 
-		/// <summary>
-		/// Gets the client application
-		/// </summary>
-		/// <returns>The client application</returns>
+		/// @brief Gets the client application
+		/// @return The client application
 		Application* GetApplication() const noexcept { return _application.get(); }
 
-		/// <summary>
-		/// Gets the service manager
-		/// </summary>
-		/// <returns>The service manager</returns>
+		/// @brief Gets the service manager
+		/// @return The service manager
 		EngineServiceManager* GetServiceManager() const noexcept { return _serviceManager.get(); }
 
-		/// <summary>
-		/// Gets the main loop
-		/// </summary>
-		/// <returns>The main loop</returns>
+		/// @brief Gets the main loop
+		/// @return The main loop
 		MainLoop* GetMainLoop() const noexcept { return _mainLoop.get(); }
 
-		/// <summary>
-		/// Gets the resource library
-		/// </summary>
-		/// <returns>The resource library</returns>
+		/// @brief Gets the resource library
+		/// @return The resource library
 		ResourceLibrary* GetResourceLibrary() const noexcept { return _resourceLibrary.get(); }
 
-		/// <summary>
-		/// Sets the exit code for the engine. Will be used unless an error occurs
-		/// </summary>
-		/// <param name="code">The exit code</param>
+		/// @brief Sets the exit code for the engine. Will be used unless an error occurs
+		/// @param code The exit code
 		void SetExitCode(ExitCode code) noexcept { _exitCode = code; }
 
-		/// <summary>
-		/// Gets the current exit code for the engine
-		/// </summary>
-		/// <returns>The current exit code</returns>
+		/// @brief Gets the current exit code for the engine
+		/// @return The current exit code
 		ExitCode GetExitCode() const noexcept { return _exitCode; }
 
-		/// <summary>
-		/// Gets the amount of time the engine has been running
-		/// </summary>
-		/// <returns>The amount of time the engine has been running</returns>
+		/// @brief Gets the amount of time the engine has been running
+		/// @return The amount of time the engine has been running
 		TimeSpan GetRunningTime() const noexcept;
 
 	private:
-		/// <summary>
-		/// Runs the client application
-		/// </summary>
-		/// <returns>The return code from the application</returns>
+		/// @brief Runs the client application
+		/// @return The return code from the application
 		ExitCode Run();
 	};
 }

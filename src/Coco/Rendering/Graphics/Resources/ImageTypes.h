@@ -1,31 +1,30 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/API.h>
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Image pixel formats
-	/// </summary>
+	/// @brief Image pixel formats
 	enum class PixelFormat
 	{
+		/// @brief R, G, B, and A channels, each storing 8 bits
 		RGBA8,
+
+		/// @brief 24 bit depth channel with an 8 bit stencil channel
 		Depth24_Stencil8,
+
+		/// @brief An unknown format
 		Unknown
 	};
 
-	/// <summary>
-	/// Image color spaces
-	/// </summary>
+	/// @brief Image color spaces
 	enum class ColorSpace
 	{
 		sRGB,
 		Unknown
 	};
 
-	/// <summary>
-	/// Image dimension types
-	/// </summary>
+	/// @brief Image dimension types
 	enum class ImageDimensionType
 	{
 		OneDimensional,
@@ -38,6 +37,7 @@ namespace Coco::Rendering
 		CubeMapArray
 	};
 
+	/// @brief Usage flags for an image
 	enum class ImageUsageFlags
 	{
 		None				= 0,
@@ -52,101 +52,76 @@ namespace Coco::Rendering
 	COCOAPI void operator|=(ImageUsageFlags& a, ImageUsageFlags b) noexcept;
 	COCOAPI void operator&=(ImageUsageFlags& a, ImageUsageFlags b) noexcept;
 
-	/// <summary>
-	/// Gets if the given pixel format is a depth/stencil format
-	/// </summary>
-	/// <param name="format">The format</param>
-	/// <returns>True if the format is a depth/stencil format</returns>
+	/// @brief Gets if the given pixel format is a depth/stencil format
+	/// @param format The format
+	/// @return True if the format is a depth/stencil format
 	constexpr bool IsDepthStencilFormat(PixelFormat format) noexcept
 	{
 		return format == PixelFormat::Depth24_Stencil8;
 	}
 
-	/// <summary>
-	/// Gets the number of bytes per pixel for a pixel format
-	/// </summary>
-	/// <param name="format">The pixel format</param>
-	/// <returns>The number of bytes per pixel</returns>
+	/// @brief Gets the number of bytes per pixel for a pixel format
+	/// @param format The pixel format
+	/// @return The number of bytes per pixel
 	constexpr uint GetPixelFormatSize(PixelFormat format) noexcept
 	{
 		switch (format)
 		{
 		case PixelFormat::RGBA8:
+		case PixelFormat::Depth24_Stencil8:
 			return 4;
 		default:
 			return 0;
 		}
 	}
 
-	/// <summary>
-	/// Gets the number of channels for a pixel format
-	/// </summary>
-	/// <param name="format">The pixel format</param>
-	/// <returns>The number of channels</returns>
+	/// @brief Gets the number of channels for a pixel format
+	/// @param format The pixel format
+	/// @return The number of channels
 	constexpr uint GetPixelFormatChannelCount(PixelFormat format) noexcept
 	{
 		switch (format)
 		{
 		case PixelFormat::RGBA8:
 			return 4;
+		case PixelFormat::Depth24_Stencil8:
+			return 2;
 		default:
 			return 0;
 		}
 	}
 
-	/// <summary>
-	/// A description of an Image
-	/// </summary>
+	/// @brief A description of an Image
 	struct COCOAPI ImageDescription
 	{
-		/// <summary>
-		/// An empty image description
-		/// </summary>
+		/// @brief An empty image description
 		static const ImageDescription Empty;
 
-		/// <summary>
-		/// The pixel width of the image
-		/// </summary>
+		/// @brief The pixel width of the image
 		int Width = 1;
 
-		/// <summary>
-		/// The pixel height of the image
-		/// </summary>
+		/// @brief The pixel height of the image
 		int Height = 1;
 
-		/// <summary>
-		/// The pixel depth of the image
-		/// </summary>
+		/// @brief The pixel depth of the image
 		int Depth = 1;
 
-		/// <summary>
-		/// The number of layers in this image
-		/// </summary>
+		/// @brief The number of layers in this image
 		int Layers = 1;
 
-		/// <summary>
-		/// The number of mip maps this image has
-		/// </summary>
+		/// @brief The number of mip maps this image has
 		int MipCount = 1;
 
-		/// <summary>
-		/// The pixel format of this image
-		/// </summary>
+		/// @brief The pixel format of this image
 		PixelFormat PixelFormat = PixelFormat::Unknown;
 
-		/// <summary>
-		/// The color space of this image
-		/// </summary>
+		/// @brief The color space of this image
 		ColorSpace ColorSpace = ColorSpace::Unknown;
 
-		/// <summary>
-		/// The type of dimensions of this image
-		/// </summary>
+		/// @brief The type of dimensions of this image
 		ImageDimensionType DimensionType = ImageDimensionType::TwoDimensional;
 
-		/// <summary>
-		/// Usage flags for this image
-		/// </summary>
+		/// @brief Usage flags for this image
 		ImageUsageFlags UsageFlags = ImageUsageFlags::None;
 
 		ImageDescription() = default;

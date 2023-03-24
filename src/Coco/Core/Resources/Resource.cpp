@@ -4,26 +4,10 @@
 
 namespace Coco
 {
-	std::atomic<ResourceID> Resource::s_ResourceIndex = 0;
-
-	CachedResource::CachedResource(ResourceID id, ResourceVersion version) :
-		ID(id), Version(version)
-	{
-		UpdateTickUsed();
-	}
-
-	void CachedResource::UpdateTickUsed()
-	{
-		LastTickUsed = Engine::Get()->GetMainLoop()->GetTickCount();
-	}
-
-	bool CachedResource::ShouldPurge(uint64_t staleTickThreshold) const noexcept
-	{
-		return IsInvalid() || Engine::Get()->GetMainLoop()->GetTickCount() - LastTickUsed > staleTickThreshold;
-	}
-
+	std::atomic<ResourceID> Resource::s_resourceIndex = 0;
+	
 	Resource::Resource(const string& name, const string & namedType) noexcept : 
-		_id(GetNewID()), _typename(namedType), _name(name)
+		ID(GetNewID()), TypeName(namedType), Name(name)
 	{}
 	
 	Resource::Resource(const string& name, ResourceType type) noexcept : Resource(name, ResourceTypeToString(type))
@@ -31,6 +15,22 @@ namespace Coco
 
 	ResourceID Resource::GetNewID() noexcept
 	{
-		return s_ResourceIndex.fetch_add(1);
+		return s_resourceIndex.fetch_add(1);
+	}
+
+	CachedResource::CachedResource(ResourceID id, ResourceVersion version) :
+		ID(id), _version(version)
+	{
+		UpdateTickUsed();
+	}
+
+	void CachedResource::UpdateTickUsed()
+	{
+		_lastTickUsed = Engine::Get()->GetMainLoop()->GetTickCount();
+	}
+
+	bool CachedResource::ShouldPurge(uint64_t staleTickThreshold) const noexcept
+	{
+		return IsInvalid() || Engine::Get()->GetMainLoop()->GetTickCount() - _lastTickUsed > staleTickThreshold;
 	}
 }

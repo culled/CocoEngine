@@ -6,10 +6,8 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// Represents a value that can also be null
-	/// </summary>
-	/// <typeparam name="T">The type of the value</typeparam>
-	template<typename T>
-	using Optional = std::optional<T>;
+	/// @brief Represents a value that can also be null
+	/// @tparam ValueType 
+	template<typename ValueType>
+	using Optional = std::optional<ValueType>;
 }

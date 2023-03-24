@@ -42,12 +42,12 @@ namespace Coco::Rendering::Vulkan
 		LogTrace(_device->GetLogger(), "Destroyed Vulkan presenter");
 	}
 
-	void GraphicsPresenterVulkan::InitializeSurface(PresenterSurfaceInitializationInfo* surfaceInitInfo)
+	void GraphicsPresenterVulkan::InitializeSurface(const PresenterSurfaceInitializationInfo& surfaceInitInfo)
 	{
 		if (_surface != nullptr)
 			throw SurfaceInitializationException("No surface was given to initialize");
 
-		if (PresenterWin32SurfaceInitializationInfo* win32SurfaceInitInfo = dynamic_cast<PresenterWin32SurfaceInitializationInfo*>(surfaceInitInfo))
+		if (const PresenterWin32SurfaceInitializationInfo* win32SurfaceInitInfo = dynamic_cast<const PresenterWin32SurfaceInitializationInfo*>(&surfaceInitInfo))
 		{
 			VkWin32SurfaceCreateInfoKHR createInfo = {};
 			createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
@@ -224,7 +224,7 @@ namespace Coco::Rendering::Vulkan
 		return imageCount;
 	}
 
-	SwapchainSupportDetails GraphicsPresenterVulkan::GetSwapchainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface)
+	SwapchainSupportDetails GraphicsPresenterVulkan::GetSwapchainSupportDetails(const VkPhysicalDevice& device, const VkSurfaceKHR& surface)
 	{
 		SwapchainSupportDetails details = {};
 

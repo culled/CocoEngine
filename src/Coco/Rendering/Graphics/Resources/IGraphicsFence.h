@@ -4,9 +4,7 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A fence that can be used to make the host wait for an async GPU operation to complete
-	/// </summary>
+	/// @brief A fence that can be used to make the host wait for an async GPU operation to complete
 	class COCOAPI IGraphicsFence : public IGraphicsResource
 	{
 	protected:
@@ -21,21 +19,15 @@ namespace Coco::Rendering
 		IGraphicsFence& operator=(const IGraphicsFence&) = delete;
 		IGraphicsFence& operator=(IGraphicsFence&&) = delete;
 
-		/// <summary>
-		/// Gets if this fence has been signalled
-		/// </summary>
-		/// <returns>True if this fence has been signalled</returns>
+		/// @brief Gets if this fence has been signalled
+		/// @return True if this fence has been signalled
 		virtual bool IsSignalled() const noexcept = 0;
 
-		/// <summary>
-		/// Resets this fence
-		/// </summary>
+		/// @brief Resets this fence
 		virtual void Reset() = 0;
 
-		/// <summary>
-		/// Waits on this fence
-		/// </summary>
-		/// <param name="timeoutNs">The maximum timeout to wait for, in nanoseconds</param>
+		/// @brief Waits on this fence
+		/// @param timeoutNs The maximum timeout to wait for, in nanoseconds
 		virtual void Wait(uint64_t timeoutNs) = 0;
 	};
 }

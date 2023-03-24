@@ -6,9 +6,7 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// A generic exception
-	/// </summary>
+	/// @brief A generic exception
 	class COCOAPI Exception : public std::exception
 	{
 	public:
@@ -17,9 +15,7 @@ namespace Coco
 		virtual ~Exception() = default;
 	};
 
-	/// <summary>
-	/// An exception thrown when an index is out of an expected range
-	/// </summary>
+	/// @brief An exception thrown when an index is out of an expected range
 	class COCOAPI IndexOutOfRangeException : public Exception
 	{
 	public:
@@ -27,9 +23,7 @@ namespace Coco
 		virtual ~IndexOutOfRangeException() = default;
 	};
 
-	/// <summary>
-	/// An exception thrown when an operation is invalid for an object's current state
-	/// </summary>
+	/// @brief An exception thrown when an operation is invalid for an object's current state
 	class COCOAPI InvalidOperationException : public Exception
 	{
 	public:

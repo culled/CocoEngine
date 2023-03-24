@@ -19,68 +19,82 @@ namespace Coco::Rendering::Vulkan
 	class GraphicsDeviceVulkan;
 	class VulkanShader;
 
-	/// <summary>
-	/// Information for a RenderPass Subpass
-	/// </summary>
+	/// @brief Information for a RenderPass Subpass
 	struct SubpassInfo
 	{
+		/// @brief The color attachment descriptions
 		List<AttachmentDescription> ColorAttachments;
+
+		/// @brief The color attachment references
 		List<VkAttachmentReference> ColorAttachmentReferences;
+
+		/// @brief The depth-stencil attachment description
 		Optional<AttachmentDescription> DepthStencilAttachment;
+
+		/// @brief The depth-stencil attachment reference
 		Optional<VkAttachmentReference> DepthStencilAttachmentReference;
+
+		/// @brief Indices of attachments to preserve
 		List<uint32_t> PreserveAttachments;
 
+		/// @brief The subpass description
 		VkSubpassDescription SubpassDescription = {};
 	};
 
-	/// <summary>
-	/// A cached Vulkan renderpass
-	/// </summary>
+	/// @brief A cached Vulkan renderpass
 	struct CachedVulkanRenderPass final : public CachedResource
 	{
-		GraphicsDeviceVulkan* Device;
+		/// @brief A pointer to the graphics device
+		GraphicsDeviceVulkan* const Device;
+
+		/// @brief The pipeline that this render pass was created from
 		WeakRef<RenderPipeline> PipelineRef;
+
+		/// @brief The subpass infos of this render pass
 		List<SubpassInfo> Subpasses;
+
+		/// @brief The Vulkan render pass
 		VkRenderPass RenderPass = nullptr;
 
-		CachedVulkanRenderPass(GraphicsDeviceVulkan* device, Ref<RenderPipeline> pipeline);
+		CachedVulkanRenderPass(GraphicsDeviceVulkan* device, const Ref<RenderPipeline>& pipeline);
 		~CachedVulkanRenderPass() final;
 
 		bool IsInvalid() const noexcept final { return PipelineRef.expired(); }
 		bool NeedsUpdate() const noexcept final;
 
-		/// <summary>
-		/// Deletes the internal Vulkan renderpass
-		/// </summary>
-		void DeleteRenderPass() noexcept;
+		/// @brief Destroys the internal Vulkan renderpass
+		void DestroyRenderPass() noexcept;
 	};
 
-	/// <summary>
-	/// A cached Vulkan pipeline
-	/// </summary>
+	/// @brief A cached Vulkan pipeline
 	struct CachedVulkanPipeline final : public CachedResource
 	{
-		GraphicsDeviceVulkan* Device;
+		/// @brief A pointer to the graphics device
+		GraphicsDeviceVulkan* const Device;
+
+		/// @brief The pipeline that this pipeline was created from
 		WeakRef<RenderPipeline> PipelineRef;
+
+		/// @brief The shader that this pipeline was created from
 		WeakRef<Shader> ShaderRef;
+
+		/// @brief The Vulkan pipeline layout
 		VkPipelineLayout Layout = nullptr;
+
+		/// @brief The Vulkan pipeline
 		VkPipeline Pipeline = nullptr;
 
-		CachedVulkanPipeline(GraphicsDeviceVulkan* device, Ref<RenderPipeline> pipeline, Ref<Shader> shader);
+		CachedVulkanPipeline(GraphicsDeviceVulkan* device, const Ref<RenderPipeline>& pipeline, const Ref<Shader>& shader);
 		~CachedVulkanPipeline() final;
 
 		bool IsInvalid() const noexcept final { return PipelineRef.expired() || ShaderRef.expired(); }
 		bool NeedsUpdate() const noexcept final;
 
-		/// <summary>
-		/// Deletes the internal Vulkan pipeline and its layout
-		/// </summary>
-		void DeletePipeline() noexcept;
+		/// @brief Destroys the internal Vulkan pipeline and its layout
+		void DestroyPipeline() noexcept;
 	};
 
-	/// <summary>
-	/// A cache for global Vulkan objects (render passes, pipelines, and shaders)
-	/// </summary>
+	/// @brief A cache for global Vulkan objects (render passes, pipelines, and shaders)
 	class VulkanRenderCache
 	{
 	private:
@@ -96,65 +110,54 @@ namespace Coco::Rendering::Vulkan
 		VulkanRenderCache(GraphicsDeviceVulkan* device);
 		~VulkanRenderCache();
 
-		/// <summary>
-		/// Clears all cached objects
-		/// </summary>
+		/// @brief Clears all cached objects
 		void Invalidate() noexcept;
 
-		/// <summary>
-		/// Purges unused and invalid resources
-		/// </summary>
+		/// @brief Purges unused and invalid resources
 		void PurgeResources() noexcept;
 
-		/// <summary>
-		/// Gets or creates a VulkanRenderPass for a RenderPipeline
-		/// </summary>
-		/// <param name="renderPipeline">The render pipeline</param>
-		/// <returns>The VulkanRenderPass for the pipeline</returns>
-		Ref<CachedVulkanRenderPass> GetOrCreateRenderPass(Ref<RenderPipeline> renderPipeline);
+		/// @brief Gets or creates a render pass resource for a RenderPipeline
+		/// @param renderPipeline The pipeline
+		/// @return The render pass resource
+		Ref<CachedVulkanRenderPass> GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline);
 
-		/// <summary>
-		/// Gets or creates a VulkanPipeline for a render pass and shader combination
-		/// </summary>
-		/// <param name="renderPass">The render pass</param>
-		/// <param name="subpassName">The name of the subpass</param>
-		/// <param name="subpassIndex">The index of the subpass in the pipeline</param>
-		/// <param name="shader">The shader</param>
-		/// <returns>The VulkanPipeline for the shader and render pass</returns>
+		/// @brief Gets or creates a pipeline for a render pass and shader combination
+		/// @param renderPass The render pass
+		/// @param subpassName The name of the subpass
+		/// @param subpassIndex The index of the subpass in the pipeline
+		/// @param shader The shader
+		/// @param globalDescriptorLayout The layout for the global descriptors
+		/// @return The pipeline resource
 		Ref<CachedVulkanPipeline> GetOrCreatePipeline(
 			const CachedVulkanRenderPass& renderPass,
 			const string& subpassName,
 			uint32_t subpassIndex, 
-			Ref<Shader> shader,
-			VkDescriptorSetLayout globalDescriptorLayout);
+			const Ref<Shader>& shader,
+			const VkDescriptorSetLayout& globalDescriptorLayout);
 
-		/// <summary>
-		/// Gets or creates a VulkanShader for a shader
-		/// </summary>
-		/// <param name="shader">The shader</param>
-		/// <returns>The Vulkan-ready shader</returns>
-		Ref<VulkanShader> GetOrCreateVulkanShader(Ref<Shader> shader);
+		/// @brief Gets or creates a Vulkan shader for a shader
+		/// @param shader The shader
+		/// @return The Vulkan shader resource
+		Ref<VulkanShader> GetOrCreateVulkanShader(const Ref<Shader>& shader);
 
 	private:
-		/// <summary>
-		/// Creates a VulkanRenderPass for a RenderPipeline
-		/// </summary>
-		/// <param name="renderPipeline">The render pipeline</param>
+		/// @brief Creates a render pass
+		/// @param cachedRenderPass The cached resource that will hold the created render pass
 		void CreateRenderPass(CachedVulkanRenderPass& cachedRenderPass);
 
-		/// <summary>
-		/// Creates a VulkanPipeline for a render pass and shader combination
-		/// </summary>
-		/// <param name="renderPass">The render pass</param>
-		/// <param name="subpassName">The name of the subpass</param>
-		/// <param name="subpassIndex">The index of the subpass in the pipeline</param>
-		/// <param name="shader">The shader</param>
+		/// @brief Creates a pipeline
+		/// @param renderPass The render pass
+		/// @param subpassName The name of the subpass
+		/// @param subpassIndex The index of the subpass in the pipeline
+		/// @param shader The shader
+		/// @param globalDescriptorLayout The layout for the global descriptors
+		/// @param The cached resource that will hold the pipeline
 		void CreatePipeline(
 			const CachedVulkanRenderPass& renderPass,
 			const string& subpassName, 
 			uint32_t subpassIndex, 
 			const Ref<Shader>& shader,
-			VkDescriptorSetLayout globalDescriptorLayout,
+			const VkDescriptorSetLayout& globalDescriptorLayout,
 			CachedVulkanPipeline& cachedPipeline);
 	};
 }

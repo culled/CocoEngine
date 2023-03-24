@@ -6,17 +6,12 @@ namespace Coco
 {
 	ResourceLibrary::ResourceLibrary(const string& basePath) : BasePath(basePath)
 	{
-		// Load default loaders
+		// TODO: Load default loaders
 	}
 
 	Logging::Logger* ResourceLibrary::GetLogger() const noexcept
 	{
 		return Engine::Get()->GetLogger();
-	}
-
-	Ref<Resource> ResourceLibrary::GetOrLoadResource(ResourceType resourceType, const string& path)
-	{
-		return GetOrLoadResource(ResourceTypeToString(resourceType), path);
 	}
 
 	Ref<Resource> ResourceLibrary::GetOrLoadResource(const string& resourceType, const string& path)
@@ -37,7 +32,7 @@ namespace Coco
 	{
 		for (const auto& kvp : _loadedResources)
 		{
-			if (kvp.second->GetID() == id)
+			if (kvp.second->ID == id)
 			{
 				resource = kvp.second;
 				return true;
@@ -52,7 +47,7 @@ namespace Coco
 		if (path.empty())
 			throw InvalidOperationException("Path must not be empty");
 
-		ResourceLoader* loader = GetLoaderForResourceType(resource->GetTypename());
+		ResourceLoader* loader = GetLoaderForResourceType(resource->TypeName);
 
 		// Save to disk
 		loader->Save(resource, path);
@@ -68,30 +63,37 @@ namespace Coco
 		_loadedResources[path] = resource;
 	}
 
-	void ResourceLibrary::RemoveResource(Ref<Resource> resource) noexcept
-	{
-		const string& resourcePath = resource->GetFilePath();
-
-		if (resourcePath.empty())
-		{
-			LogWarning(GetLogger(), "Cannot remove a resource with no path");
-			return;
-		}
-
-		RemoveResource(resourcePath);
-	}
-
 	void ResourceLibrary::RemoveResource(const string& path) noexcept
 	{
 		auto it = _loadedResources.find(path);
 
 		if (it != _loadedResources.end())
+		{
 			_loadedResources.erase(it);
+		}
+		else
+		{
+			LogWarning(GetLogger(), FormattedString("Could not find a resource with path \"{}\" to remove", path));
+		}
+	}
+
+	void ResourceLibrary::RemoveResource(ResourceID id) noexcept
+	{
+		for (auto it = _loadedResources.begin(); it != _loadedResources.end(); it++)
+		{
+			if ((*it).second->ID == id)
+			{
+				_loadedResources.erase(it);
+				return;
+			}
+		}
+
+		LogWarning(GetLogger(), FormattedString("Could not find a resource with id {} to remove", id));
 	}
 
 	ResourceLoader* ResourceLibrary::GetLoaderForResourceType(const string& resourceTypename)
 	{
-		auto it = _resourceLoaders.find(resourceTypename);
+		const auto it = _resourceLoaders.find(resourceTypename);
 
 		if (it == _resourceLoaders.end())
 			throw InvalidOperationException(FormattedString(

@@ -4,7 +4,6 @@
 
 namespace Coco
 {
-
 	DateTime::DateTime(int64_t unixMilliseconds) noexcept :
 		_unixMilliseconds(unixMilliseconds)
 	{}

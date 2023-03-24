@@ -4,9 +4,7 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A generic rendering exception
-	/// </summary>
+	/// @brief A generic rendering exception
 	class COCOAPI RenderingException : public Exception
 	{
 	public:
@@ -14,9 +12,7 @@ namespace Coco::Rendering
 		virtual ~RenderingException() = default;
 	};
 
-	/// <summary>
-	/// An exception thrown when a rendering operation is invalid for an object's current state
-	/// </summary>
+	/// @brief An exception thrown when a rendering operation is invalid for an object's current state
 	class COCOAPI RenderingOperationException : public RenderingException
 	{
 	public:
@@ -24,9 +20,7 @@ namespace Coco::Rendering
 		virtual ~RenderingOperationException() = default;
 	};
 
-	/// <summary>
-	/// An exception thrown when a graphics platform fails to initialize
-	/// </summary>
+	/// @brief An exception thrown when a graphics platform fails to initialize
 	class COCOAPI GraphicsPlatformInitializeException : public RenderingException
 	{
 	public:
@@ -34,9 +28,7 @@ namespace Coco::Rendering
 		virtual ~GraphicsPlatformInitializeException() = default;
 	};
 
-	/// <summary>
-	/// An exception thrown when a buffer transfer fails
-	/// </summary>
+	/// @brief An exception thrown when a buffer transfer fails
 	class COCOAPI BufferTransferException : public RenderingException
 	{
 	public:
@@ -44,9 +36,7 @@ namespace Coco::Rendering
 		virtual ~BufferTransferException() = default;
 	};
 
-	/// <summary>
-	/// An exception thrown when a rendering surface cannot be initialized
-	/// </summary>
+	/// @brief An exception thrown when a rendering surface cannot be initialized
 	class COCOAPI SurfaceInitializationException : public RenderingException
 	{
 	public:

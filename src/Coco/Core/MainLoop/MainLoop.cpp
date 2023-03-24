@@ -17,7 +17,7 @@ namespace Coco
 		_isRunning = true;
 
 		// Set the current time to the current time
-		_currentTickTime = _platform->GetPlatformTimeSeconds();
+		_currentTickTime = _platform->GetRunningTimeSeconds();
 		_lastTickTime = _currentTickTime;
 
 		double preTickTime = _currentTickTime;
@@ -29,7 +29,7 @@ namespace Coco
 			// Without this, we wouldn't account for time spent suspended as the loop only partially runs while suspended
 			if (didTick)
 			{
-				preTickTime = _platform->GetPlatformTimeSeconds();
+				preTickTime = _platform->GetRunningTimeSeconds();
 				didTick = false;
 			}
 
@@ -45,7 +45,7 @@ namespace Coco
 			if (_tickListenersNeedSorting)
 				SortTickListeners();
 
-			_currentTickTime = _platform->GetPlatformTimeSeconds();
+			_currentTickTime = _platform->GetRunningTimeSeconds();
 			
 			// Calculate time since the last tick
 			_currentUnscaledDeltaTime = _currentTickTime - _lastTickTime;
@@ -65,7 +65,7 @@ namespace Coco
 
 			for (const Ref<MainLoopTickListener>& listener : listenersCopy)
 			{
-				listener->Tick(_currentDeltaTime);
+				listener->PurgeTick(_currentDeltaTime);
 			}
 
 			_lastTickTime = _currentTickTime;
@@ -123,18 +123,18 @@ namespace Coco
 
 		const double nextTickTime = _currentTickTime + (1.0 / _targetTickRate);
 
-		double timeRemaining = nextTickTime - _platform->GetPlatformTimeSeconds();
+		double timeRemaining = nextTickTime - _platform->GetRunningTimeSeconds();
 		double estimatedWait = 0;
 		int waitCount = 1;
 
 		// Sleep until we feel like sleeping would overshoot our target time
 		while (timeRemaining > estimatedWait)
 		{
-			const double waitStartTime = _platform->GetPlatformTimeSeconds();
+			const double waitStartTime = _platform->GetRunningTimeSeconds();
 
 			_platform->Sleep(1);
 
-			const double waitTime = _platform->GetPlatformTimeSeconds() - waitStartTime;
+			const double waitTime = _platform->GetRunningTimeSeconds() - waitStartTime;
 			timeRemaining -= waitTime;
 
 			const double delta = waitTime - estimatedWait;
@@ -144,7 +144,7 @@ namespace Coco
 		}
 
 		// Actively wait until our next tick time
-		while (_platform->GetPlatformTimeSeconds() < nextTickTime)
+		while (_platform->GetRunningTimeSeconds() < nextTickTime)
 		{}
 	}
 }

@@ -1,25 +1,24 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/API.h>
 
 #include <Coco/Core/Types/List.h>
 #include "../VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
 {
-	/// <summary>
-	/// Layout for a Vulkan descriptor set
-	/// </summary>
+	/// @brief Layout for a Vulkan descriptor set
 	struct VulkanDescriptorLayout
 	{
+		/// @brief The Vulkan descriptor set layout
 		VkDescriptorSetLayout Layout = nullptr;
+
+		/// @brief The bindings for the Vulkan descriptor set
 		List<VkDescriptorSetLayoutBinding> LayoutBindings;
 
-		/// <summary>
-		/// Gets the count for a descriptor type in this layout
-		/// </summary>
-		/// <param name="descriptorType">The type of descriptor to count</param>
-		/// <returns>The count of the descriptor type</returns>
+		/// @brief Gets the count for a descriptor type in this layout
+		/// @param descriptorType The type of descriptor to count
+		/// @return The count of the descriptor type
 		uint GetTypeCount(VkDescriptorType descriptorType) const noexcept;
 	};
 }

@@ -4,9 +4,7 @@
 
 namespace Coco::Platform
 {
-	/// <summary>
-	/// A generic exception thrown by an engine platform
-	/// </summary>
+	/// @brief A generic exception thrown by an engine platform
 	class COCOAPI EnginePlatformException : public Exception
 	{
 	public:
@@ -14,9 +12,7 @@ namespace Coco::Platform
 		virtual ~EnginePlatformException() = default;
 	};
 
-	/// <summary>
-	/// Thrown when an engine platform fails to initialize
-	/// </summary>
+	/// @brief Thrown when an engine platform fails to initialize
 	class COCOAPI EnginePlatformInitializeException : public EnginePlatformException
 	{
 	public:
@@ -24,9 +20,7 @@ namespace Coco::Platform
 		virtual ~EnginePlatformInitializeException() = default;
 	};
 
-	/// <summary>
-	/// Thrown when a platform operation fails
-	/// </summary>
+	/// @brief Thrown when a platform operation fails
 	class COCOAPI EnginePlatformOperationException : public EnginePlatformException
 	{
 	public:

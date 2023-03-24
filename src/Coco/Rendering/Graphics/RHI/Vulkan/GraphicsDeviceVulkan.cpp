@@ -166,7 +166,7 @@ namespace Coco::Rendering::Vulkan
 		return CreateManaged<GraphicsDeviceVulkan>(platform, physicalDevice, createParams);
 	}
 
-	bool GraphicsDeviceVulkan::InitializePresentQueue(VkSurfaceKHR surface) noexcept
+	bool GraphicsDeviceVulkan::InitializePresentQueue(const VkSurfaceKHR& surface) noexcept
 	{
 		if (_presentQueue.has_value())
 			return true;
@@ -302,17 +302,12 @@ namespace Coco::Rendering::Vulkan
 			_renderCache->PurgeResources();
 	}
 
-	uint64_t GraphicsDeviceVulkan::GetPaddedUniformBufferAlignment(uint64_t originalOffset) const noexcept
-	{
-		return RenderingUtilities::GetOffsetForAlignment(originalOffset, _minUniformBufferAlignment);
-	}
-
 	bool CompareDeviceRankings(const PhysicalDeviceRanking& a, const PhysicalDeviceRanking& b) noexcept
 	{
 		return a.Score > b.Score;
 	}
 
-	VkPhysicalDevice GraphicsDeviceVulkan::PickPhysicalDevice(VkInstance instance, const GraphicsDeviceCreationParameters& createParams)
+	VkPhysicalDevice GraphicsDeviceVulkan::PickPhysicalDevice(const VkInstance& instance, const GraphicsDeviceCreationParameters& createParams)
 	{
 		uint32_t deviceCount;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -337,7 +332,7 @@ namespace Coco::Rendering::Vulkan
 		return firstRank.Device;
 	}
 
-	int GraphicsDeviceVulkan::CalculateDeviceScore(VkPhysicalDevice device, const GraphicsDeviceCreationParameters& createParams) noexcept
+	int GraphicsDeviceVulkan::CalculateDeviceScore(const VkPhysicalDevice& device, const GraphicsDeviceCreationParameters& createParams) noexcept
 	{
 		int score = 0;
 		bool isMissingCriticalRequirement = false;
@@ -428,7 +423,7 @@ namespace Coco::Rendering::Vulkan
 		return isMissingCriticalRequirement ? -1 : score;
 	}
 
-	PhysicalDeviceQueueFamilyInfo GraphicsDeviceVulkan::GetQueueFamilyInfo(VkPhysicalDevice device) noexcept
+	PhysicalDeviceQueueFamilyInfo GraphicsDeviceVulkan::GetQueueFamilyInfo(const VkPhysicalDevice& device) noexcept
 	{
 		PhysicalDeviceQueueFamilyInfo queueFamilyInfos = {};
 
@@ -488,7 +483,7 @@ namespace Coco::Rendering::Vulkan
 		return queueFamilyInfos;
 	}
 
-	GraphicsDeviceMemoryFeatures GraphicsDeviceVulkan::GetDeviceMemoryFeatures(VkPhysicalDevice device) noexcept
+	GraphicsDeviceMemoryFeatures GraphicsDeviceVulkan::GetDeviceMemoryFeatures(const VkPhysicalDevice& device) noexcept
 	{
 		GraphicsDeviceMemoryFeatures memoryFeatures = {};
 
@@ -509,7 +504,7 @@ namespace Coco::Rendering::Vulkan
 		return memoryFeatures;
 	}
 
-	bool GraphicsDeviceVulkan::CheckQueuePresentSupport(VkSurfaceKHR surface, const Optional<Ref<VulkanQueue>>& queue) const noexcept
+	bool GraphicsDeviceVulkan::CheckQueuePresentSupport(const VkSurfaceKHR& surface, const Optional<Ref<VulkanQueue>>& queue) const noexcept
 	{
 		if (!queue.has_value())
 			return false;

@@ -6,15 +6,11 @@
 
 namespace Coco::Logging
 {
-	/// <summary>
-	/// A generic sink for log messages from a Logger
-	/// </summary>
+	/// @brief A generic sink for log messages from a Logger
 	class COCOAPI LogSink
 	{
 	public:
-		/// <summary>
-		/// The minimum level of messages that will be written to this sink
-		/// </summary>
+		/// @brief The minimum level of messages that will be written to this sink
 		const LogLevel MinimumLevel;
 
 	public:
@@ -28,11 +24,9 @@ namespace Coco::Logging
 		LogSink(LogLevel minimumLevel = LogLevel::Trace) noexcept;
 
 	public:
-		/// <summary>
-		/// Writes to this log sink
-		/// </summary>
-		/// <param name="level">The level of the message</param>
-		/// <param name="message">The message</param>
+		/// @brief Writes to this log sink
+		/// @param level The level of the message
+		/// @param message The message 
 		virtual void Write(LogLevel level, const string& message) noexcept = 0;
 	};
 }

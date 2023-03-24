@@ -1,12 +1,10 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/API.h>
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Generic platform-specific surface initialization info
-	/// </summary>
+	/// @brief Generic platform-specific surface initialization info
 	struct COCOAPI PresenterSurfaceInitializationInfo
 	{
 	protected:
@@ -16,19 +14,13 @@ namespace Coco::Rendering
 		virtual ~PresenterSurfaceInitializationInfo() = default;
 	};
 
-	/// <summary>
-	/// Windows surface initialization info
-	/// </summary>
+	/// @brief Windows surface initialization info
 	struct COCOAPI PresenterWin32SurfaceInitializationInfo : PresenterSurfaceInitializationInfo
 	{
-		/// <summary>
-		/// The handle to the window (HWND) for the surface
-		/// </summary>
+		/// @brief The handle to the window (HWND) for the surface
 		void* HWindow;
 
-		/// <summary>
-		/// The handle to the HINSTANCE
-		/// </summary>
+		/// @brief The handle to the HINSTANCE
 		void* HInstance;
 
 		PresenterWin32SurfaceInitializationInfo(void* hWnd, void* hInstance) noexcept : HWindow(hWnd), HInstance(hInstance) {}

@@ -7,13 +7,14 @@
 
 namespace Coco::Input
 {
-    /// <summary>
-    /// A service that handles input from peripherals
-    /// </summary>
+    /// @brief A service that handles input from peripherals
     class COCOAPI InputService : public EngineService
     {
     public:
+        /// @brief Priority for the tick handling input processing
         const static int ProcessTickPriority = -10000;
+
+        /// @brief Priority for the tick handling late input processing
         const static int LateProcessTickPriority = 10000;
 
     private:
@@ -21,7 +22,7 @@ namespace Coco::Input
         Managed<Mouse> _mouse;
 
     public:
-        InputService(Coco::Engine* engine);
+        InputService(EngineServiceManager* serviceManager);
         virtual ~InputService() override;
 
         InputService(const InputService&) = delete;
@@ -30,29 +31,21 @@ namespace Coco::Input
         InputService& operator=(const InputService&) = delete;
         InputService& operator=(InputService&&) = delete;
 
-        /// <summary>
-        /// Gets the current keyboard
-        /// </summary>
-        /// <returns>The current keyboard</returns>
+        /// @brief Gets the current keyboard
+        /// @return The current keyboard
         Keyboard* GetKeyboard() const noexcept { return _keyboard.get(); }
 
-        /// <summary>
-        /// Gets the current mouse
-        /// </summary>
-        /// <returns>The current mouse</returns>
+        /// @brief Gets the current mouse
+        /// @return The current mouse
         Mouse* GetMouse() const noexcept { return _mouse.get(); }
 
     private:
-        /// <summary>
-        /// Tick for updating the current state of the peripherals
-        /// </summary>
-        /// <param name="deltaTime">The number of seconds since the last tick</param>
+        /// @brief Tick for updating the current state of the peripherals
+        /// @param deltaTime The number of seconds since the last tick
         void Process(double deltaTime);
 
-        /// <summary>
-        /// Tick for updating the previous state of the peripherals
-        /// </summary>
-        /// <param name="deltaTime">The number of seconds since the last tick</param>
+        /// @brief Tick for updating the previous state of the peripherals
+       /// @param deltaTime The number of seconds since the last tick
         void LateProcess(double deltaTime) noexcept;
     };
 }

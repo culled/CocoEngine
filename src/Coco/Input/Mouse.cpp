@@ -2,6 +2,29 @@
 
 namespace Coco::Input
 {
+	MouseStateChange MouseStateChange::MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta) noexcept
+	{
+		MouseStateChange state = {};
+		state.Position = newPosition;
+		state.MoveDelta = delta;
+		return state;
+	}
+
+	MouseStateChange MouseStateChange::ScrollStateChange(const Vector2Int& scrollDelta) noexcept
+	{
+		MouseStateChange state = {};
+		state.ScrollDelta = scrollDelta;
+		return state;
+	}
+
+	MouseStateChange MouseStateChange::ButtonStateChange(MouseButton button, bool isPressed) noexcept
+	{
+		MouseStateChange state = {};
+		state.Button = button;
+		state.IsButtonPressed = isPressed;
+		return state;
+	}
+
 	void Mouse::UpdateButtonState(MouseButton button, bool isPressed)
 	{
 		const int index = static_cast<int>(button);

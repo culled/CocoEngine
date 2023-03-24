@@ -13,15 +13,11 @@ namespace Coco::Logging
 
 namespace Coco
 {
-	/// <summary>
-	/// A library that can save and load resources to disk
-	/// </summary>
+	/// @brief A library that can save and load resources to disk
 	class COCOAPI ResourceLibrary
 	{
 	public:
-		/// <summary>
-		/// The base path for all resources
-		/// </summary>
+		/// @brief The base path for all resources
 		const string BasePath;
 
 	private:
@@ -32,30 +28,26 @@ namespace Coco
 		ResourceLibrary(const string& basePath);
 		virtual ~ResourceLibrary() = default;
 
-		/// <summary>
-		/// Gets the logger for the resource library
-		/// </summary>
-		/// <returns>This library's logger</returns>
+		/// @brief Gets the logger for the resource library
+		/// @return This library's logger
 		Logging::Logger* GetLogger() const noexcept;
 
-		/// <summary>
-		/// Gets a full file path from a relative path
-		/// </summary>
-		/// <param name="relativePath">The relative path within the resource library base path</param>
-		/// <returns>The full file path</returns>
+		/// @brief Gets a full file path from a relative path
+		/// @param relativePath The relative path within the resource library base path
+		/// @return The full file path
 		string GetFullFilePath(const string& relativePath) const noexcept { return BasePath + relativePath; }
 
-		/// <summary>
-		/// Creates a loader
-		/// </summary>
-		/// <param name="...args">Arguments to pass to the loader</param>
+		/// @brief Creates a resource loader and adds it to this library's list of loaders
+		/// @tparam LoaderType 
+		/// @tparam ...Args 
+		/// @param ...args Arguments to pass to the loader
 		template<typename LoaderType, typename ... Args>
 		void CreateLoader(Args&& ... args)
 		{
 			static_assert(std::is_base_of_v<ResourceLoader, LoaderType>, "Only classes derived from ResourceLoader can be resource loaders");
 
-			Managed<LoaderType> loader = CreateManaged<LoaderType>(this, BasePath, std::forward<Args>(args)...);
-			const char* loaderType = loader->GetResourceTypename();
+			Managed<LoaderType> loader = CreateManaged<LoaderType>(this, std::forward<Args>(args)...);
+			const string loaderType = loader->GetResourceTypename();
 
 			if (_resourceLoaders.contains(loaderType))
 			{
@@ -66,62 +58,56 @@ namespace Coco
 			_resourceLoaders.emplace(loaderType, std::move(loader));
 		}
 
-		/// <summary>
-		/// Returns a resource by either loading it from disk or retrieving it if is already loaded
-		/// </summary>
-		/// <param name="resourceType">The type of resource</param>
-		/// <param name="path">The path to the resource, relative to this library's base path</param>
-		/// <returns>The loaded resource</returns>
-		Ref<Resource> GetOrLoadResource(ResourceType resourceType, const string& path);
+		/// @brief Returns a resource by either retrieving it or loading it from disk
+		/// @param resourceType The type of resource
+		/// @param path The path to the resource, relative to this library's base path
+		/// @return The loaded resource
+		Ref<Resource> GetOrLoadResource(const ResourceType resourceType, const string& path)
+		{
+			return GetOrLoadResource(ResourceTypeToString(resourceType), path);
+		}
 
-		/// <summary>
-		/// Returns a resource by either loading it from disk or retrieving it if is already loaded
-		/// </summary>
-		/// <param name="resourceType">The type of resource</param>
-		/// <param name="path">The path to the resource, relative to this library's base path</param>
-		/// <returns>The loaded resource</returns>
+		/// @brief Returns a resource by either retrieving it or loading it from disk
+		/// @param resourceType The type of resource
+		/// @param path The path to the resource, relative to this library's base path
+		/// @return The loaded resource
 		Ref<Resource> GetOrLoadResource(const string& resourceType, const string& path);
 
-		/// <summary>
-		/// Gets a loaded resource by its ID
-		/// </summary>
-		/// <param name="id">The resource ID</param>
-		/// <param name="resource">Will be set to the resource reference, if it is loaded</param>
-		/// <returns>True if the resource was found</returns>
+		/// @brief Gets a loaded resource by its ID
+		/// @param id The resource ID
+		/// @param resource Will be set to the resource reference, if it is loaded
+		/// @return True if the resource was found
 		bool Get(ResourceID id, Ref<Resource>& resource) const;
 
-		/// <summary>
-		/// Saves a resource to the given path and adds it to this library
-		/// </summary>
-		/// <param name="resource">The resource</param>
-		/// <param name="path">The path of the saved file, relative to this library's base path</param>
+		/// @brief Saves a resource to the given path and adds it to this library
+		/// @param resource The resource
+		/// @param path The path of the saved file, relative to this library's base path
 		void SaveResource(Ref<Resource> resource, const string& path);
 
-		/// <summary>
-		/// Adds a resource to this library without saving it
-		/// </summary>
-		/// <param name="resource">The resource</param>
-		/// <param name="path">The path of the saved file, relative to this library's base path</param>
+		/// @brief Adds a resource to this library without saving it
+		/// @param resource The resource
+		/// @param path The path of resource
 		void AddResource(Ref<Resource> resource, const string& path);
 
-		/// <summary>
-		/// Removes a resource from this library
-		/// </summary>
-		/// <param name="resource">The resource to remove (must have a valid file path)</param>
-		void RemoveResource(Ref<Resource> resource) noexcept;
+		/// @brief Removes a resource from this library
+		/// @param resource The resource to remove
+		void RemoveResource(Ref<Resource> resource) noexcept
+		{
+			RemoveResource(resource->ID);
+		}
 
-		/// <summary>
-		/// Removes a resource from this library
-		/// </summary>
-		/// <param name="path">The path of the resource to remove</param>
+		/// @brief Removes a resource from this library via its file path
+		/// @param path The path of the resource to remove
 		void RemoveResource(const string& path) noexcept;
 
+		/// @brief Removes a resource from this library via its ID
+		/// @param id The id of the resource to remove
+		void RemoveResource(ResourceID id) noexcept;
+
 	private:
-		/// <summary>
-		/// Tries to find a loader for the given resource type
-		/// </summary>
-		/// <param name="resourceTypename">The type of the resource</param>
-		/// <returns>A pointer to the loader instance</returns>
+		/// @brief Tries to find a loader for the given resource type
+		/// @param resourceTypename The type of the resource
+		/// @return A pointer to the loader instance
 		ResourceLoader* GetLoaderForResourceType(const string& resourceTypename);
 	};
 }

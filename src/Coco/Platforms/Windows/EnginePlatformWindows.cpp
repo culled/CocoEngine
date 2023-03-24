@@ -42,7 +42,7 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	void EnginePlatformWindows::GetPlatformCommandLineArguments(List<string>& arguments) const noexcept
+	void EnginePlatformWindows::GetCommandLineArguments(List<string>& arguments) const noexcept
 	{
 		int numArgs;
 		LPWSTR* rawArguments = ::CommandLineToArgvW(::GetCommandLineW(), &numArgs);
@@ -79,26 +79,7 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	void EnginePlatformWindows::GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept
-	{
-		try
-		{
-			switch (static_cast<Rendering::RenderingRHI>(renderingRHI))
-			{
-			case Rendering::RenderingRHI::Vulkan:
-				extensionNames.Add("VK_KHR_win32_surface");
-				break;
-			default:
-				break;
-			}
-		}
-		catch (const Exception& ex)
-		{
-			LogError(Engine::Get()->GetLogger(), FormattedString("Could not retreive platform rendering extensions: {}", ex.what()));
-		}
-	}
-
-	DateTime EnginePlatformWindows::GetPlatformUtcTime() const
+	DateTime EnginePlatformWindows::GetUtcTime() const
 	{
 		SYSTEMTIME systemTime = {};
 		GetSystemTime(&systemTime);
@@ -106,15 +87,15 @@ namespace Coco::Platform::Windows
 		return DateTime(systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds);
 	}
 
-	DateTime EnginePlatformWindows::GetPlatformLocalTime() const
+	DateTime EnginePlatformWindows::GetLocalTime() const
 	{
 		SYSTEMTIME localTime = {};
-		GetLocalTime(&localTime);
+		::GetLocalTime(&localTime);
 
 		return DateTime(localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds);
 	}
 
-	double EnginePlatformWindows::GetPlatformTimeSeconds() const
+	double EnginePlatformWindows::GetRunningTimeSeconds() const
 	{
 		LARGE_INTEGER cycles = {};
 		if (!QueryPerformanceCounter(&cycles))
@@ -123,7 +104,7 @@ namespace Coco::Platform::Windows
 		return static_cast<double>(cycles.QuadPart) * _secondsPerCycle;
 	}
 
-	void EnginePlatformWindows::WriteToPlatformConsole(const string& message, ConsoleColor color, bool isError)
+	void EnginePlatformWindows::WriteToConsole(const string& message, ConsoleColor color, bool isError)
 	{
 		if (!_isConsoleOpen)
 			ShowConsole();
@@ -173,7 +154,7 @@ namespace Coco::Platform::Windows
 		OutputDebugString(str.c_str());
 	}
 
-	void EnginePlatformWindows::SetPlatformConsoleVisible(bool isVisible) noexcept
+	void EnginePlatformWindows::SetConsoleVisible(bool isVisible) noexcept
 	{
 		if (isVisible == _isConsoleOpen)
 			return;
@@ -195,12 +176,31 @@ namespace Coco::Platform::Windows
 		return CreateManagedRef<WindowsWindow>(createParameters, windowingService, this);
 	}
 
+	void EnginePlatformWindows::GetRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept
+	{
+		try
+		{
+			switch (static_cast<Rendering::RenderingRHI>(renderingRHI))
+			{
+			case Rendering::RenderingRHI::Vulkan:
+				extensionNames.Add("VK_KHR_win32_surface");
+				break;
+			default:
+				break;
+			}
+		}
+		catch (const Exception& ex)
+		{
+			LogError(Engine::Get()->GetLogger(), FormattedString("Could not retreive platform rendering extensions: {}", ex.what()));
+		}
+	}
+
 	void EnginePlatformWindows::Sleep(unsigned long milliseconds) noexcept
 	{
 		::Sleep(milliseconds);
 	}
 
-	void EnginePlatformWindows::ShowPlatformMessageBox(const string& title, const string& message, bool isError)
+	void EnginePlatformWindows::ShowMessageBox(const string& title, const string& message, bool isError)
 	{
 #if UNICODE || _UNICODE
 		std::wstring titleStr = StringToWideString(title);

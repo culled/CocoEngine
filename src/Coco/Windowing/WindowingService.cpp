@@ -8,7 +8,7 @@
 
 namespace Coco::Windowing
 {
-	WindowingService::WindowingService(Coco::Engine* engine) : EngineService(engine)
+	WindowingService::WindowingService(EngineServiceManager* serviceManager) : EngineService(serviceManager)
 	{
 		RegisterTickListener(this, &WindowingService::RenderTick, WindowRenderPriority);
 	}
@@ -21,13 +21,13 @@ namespace Coco::Windowing
 
 	void WindowingService::StartImpl()
 	{
-		if (!this->Engine->GetServiceManager()->TryFindService<Rendering::RenderingService>(_renderingService))
+		if (!ServiceManager->TryFindService<Rendering::RenderingService>(_renderingService))
 			throw EngineServiceStartException("Could not find an active rendering service. The windowing service requires an active rendering service");
 	}
 
 	WeakManagedRef<Window> WindowingService::CreateNewWindow(WindowCreateParameters& createParameters)
 	{
-		if (Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(this->Engine->GetPlatform()))
+		if (Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(ServiceManager->Engine->GetPlatform()))
 		{
 			_windows.Add(platform->CreatePlatformWindow(createParameters, this));
 			const ManagedRef<Window>& window = _windows.Last();
@@ -61,7 +61,7 @@ namespace Coco::Windowing
 		// The main window closes with the application
 		if (window == _mainWindow.Get())
 		{
-			this->Engine->GetApplication()->Quit();
+			ServiceManager->Engine->GetApplication()->Quit();
 			return;
 		}
 

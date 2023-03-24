@@ -109,8 +109,7 @@ namespace Coco::Platform::Windows
 
 	void WindowsWindow::SetupPresenterSurface()
 	{
-		Rendering::PresenterWin32SurfaceInitializationInfo surfaceInitInfo(_handle, _instance);
-		Presenter->InitializeSurface(&surfaceInitInfo);
+		Presenter->InitializeSurface(Rendering::PresenterWin32SurfaceInitializationInfo(_handle, _instance));
 	}
 
 	void WindowsWindow::ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam)

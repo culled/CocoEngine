@@ -4,7 +4,7 @@
 
 namespace Coco::Input
 {
-	InputService::InputService(Coco::Engine* engine) : EngineService(engine),
+	InputService::InputService(EngineServiceManager* serviceManager) : EngineService(serviceManager),
 		_keyboard(CreateManaged<Keyboard>()),
 		_mouse(CreateManaged<Mouse>())
 	{

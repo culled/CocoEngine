@@ -4,22 +4,22 @@
 
 namespace Coco
 {
-	EngineService::EngineService(Coco::Engine* engine) : 
-		Engine(engine)
+	EngineService::EngineService(EngineServiceManager* serviceManager) :
+		ServiceManager(serviceManager)
 	{}
 
 	Logging::Logger* EngineService::GetLogger() const noexcept
 	{
-		return Engine->GetLogger();
+		return ServiceManager->Engine->GetLogger();
 	}
 
 	void EngineService::Start()
 	{
 		StartImpl();
 
-		MainLoop* loop = Engine->GetMainLoop();
+		MainLoop* loop = ServiceManager->Engine->GetMainLoop();
 
-		for (Ref<MainLoopTickListener>& listener : TickListeners)
+		for (const Ref<MainLoopTickListener>& listener : TickListeners)
 			loop->AddTickListener(listener);
 	}
 }

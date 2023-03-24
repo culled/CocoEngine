@@ -1,12 +1,10 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/API.h>
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Types of graphics devices
-	/// </summary>
+	/// @brief Types of graphics devices
 	enum class GraphicsDeviceType
 	{
 		Discrete,
@@ -15,45 +13,29 @@ namespace Coco::Rendering
 		Other
 	};
 
-	/// <summary>
-	/// Memory features for a GraphicsDevice
-	/// </summary>
+	/// @brief Memory features for a GraphicsDevice
 	struct COCOAPI GraphicsDeviceMemoryFeatures
 	{
-		/// <summary>
-		/// If true, this device support host visible local memory
-		/// </summary>
+		/// @brief If true, this device support host visible local memory
 		bool SupportsLocalHostBufferMemory = false;
 	};
 
-	/// <summary>
-	/// Parameters for choosing and creating a graphics device
-	/// </summary>
+	/// @brief Parameters for choosing and creating a graphics device
 	struct COCOAPI GraphicsDeviceCreationParameters
 	{
-		/// <summary>
-		/// The ideal type of rendering device to pick
-		/// </summary>
+		/// @brief The ideal type of rendering device to pick
 		GraphicsDeviceType PreferredDeviceType = GraphicsDeviceType::Discrete;
 
-		/// <summary>
-		/// If true, the device will be able to present images
-		/// </summary>
+		/// @brief If true, the device will be able to present images
 		bool SupportsPresentation = true;
 
-		/// <summary>
-		/// If true, the device will be required to support graphics operations
-		/// </summary>
+		/// @brief If true, the device will be required to support graphics operations
 		bool RequireGraphicsCapability = true;
 
-		/// <summary>
-		/// If true, the device will be required to support compute operations
-		/// </summary>
+		/// @brief If true, the device will be required to support compute operations
 		bool RequireComputeCapability = true;
 
-		/// <summary>
-		/// If true, the device will be required to support memory transfer operations
-		/// </summary>
+		/// @brief If true, the device will be required to support memory transfer operations
 		bool RequireTransferCapability = true;
 	};
 }

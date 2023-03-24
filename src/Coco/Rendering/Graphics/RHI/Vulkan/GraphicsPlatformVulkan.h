@@ -8,9 +8,7 @@ namespace Coco::Rendering::Vulkan
 {
     class GraphicsDeviceVulkan;
 
-    /// <summary>
-    /// Vulkan implementation of a GraphicsPlatform
-    /// </summary>
+    /// @brief Vulkan implementation of a GraphicsPlatform
     class GraphicsPlatformVulkan final : public GraphicsPlatform
     {
     private:
@@ -31,40 +29,30 @@ namespace Coco::Rendering::Vulkan
         Logging::Logger* GetLogger() const noexcept final;
         RenderingRHI GetRHI() const noexcept final { return RenderingRHI::Vulkan; }
         GraphicsDevice* GetDevice() const noexcept final;
-        void ResetDevice() final;
+        //void ResetDevice() final;
         WeakManagedRef<GraphicsPresenter> CreatePresenter() final;
         WeakManagedRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;
         WeakManagedRef<Image> CreateImage(const ImageDescription& description) final;
         WeakManagedRef<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) final;
 
-        /// <summary>
-        /// Gets the Vulkan instance
-        /// </summary>
-        /// <returns>The Vulkan instance</returns>
+        /// @brief Gets the Vulkan instance
+        /// @return The Vulkan instance
         VkInstance GetInstance() const noexcept { return _instance; }
 
     private:
-        /// <summary>
-        /// Checks for validation layer support
-        /// </summary>
-        /// <returns>True if this Vulkan runtime supports validation layers</returns>
+        /// @brief Checks for validation layer support
+        /// @return True if this Vulkan runtime supports validation layers
         static bool CheckValidationLayersSupport() noexcept;
 
-        /// <summary>
-        /// Constructs a debug messenger create info
-        /// </summary>
-        /// <returns>A debug messenger create info</returns>
+        /// @brief Constructs a debug messenger create info
+        /// @return A debug messenger create info
         VkDebugUtilsMessengerCreateInfoEXT GetDebugCreateInfo() const noexcept;
 
-        /// <summary>
-        /// Creates a debug messenger for the Vulkan instance
-        /// </summary>
-        /// <returns>True if the messenger was created</returns>
+        /// @brief Creates a debug messenger for the Vulkan instance
+        /// @return True if the messenger was created
         bool CreateDebugMessenger() noexcept;
 
-        /// <summary>
-        /// Destroys the active debug messenger for the Vulkan instance
-        /// </summary>
+        /// @brief Destroys the active debug messenger for the Vulkan instance
         void DestroyDebugMessenger() noexcept;
     };
 }

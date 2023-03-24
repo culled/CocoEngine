@@ -6,114 +6,82 @@ namespace Coco
 {
 	class File;
 
-	/// <summary>
-	/// A reader that can read lines in a file as key value pairs
-	/// </summary>
+	/// @brief A reader that can read lines in a file as key=value pairs
 	class COCOAPI KeyValueReader
 	{
 	private:
 		File* _file;
 		string _currentLine;
-		string _currentVariable;
-		string _currentVariableValue;
+		string _currentKey;
+		string _currentValue;
 		int _currentIndentLevel;
 
 	public:
 		KeyValueReader(File& file);
 		virtual ~KeyValueReader() = default;
 
-		/// <summary>
-		/// Gets the current line without any whitespace
-		/// </summary>
-		/// <returns>The current line</returns>
+		/// @brief Gets the current line
+		/// @return The current line
 		const string& GetCurrentLine() const { return _currentLine; }
 
-		/// <summary>
-		/// Gets the current variable
-		/// </summary>
-		/// <returns>The current variable</returns>
-		const string& GetVariable() const { return _currentVariable; }
+		/// @brief Gets the current key
+		/// @return The current key
+		const string& GetKey() const { return _currentKey; }
 
-		/// <summary>
-		/// Determines if the current line has a variable with the given name
-		/// </summary>
-		/// <param name="variableName">The name of the variable</param>
-		/// <returns>True if the current line has a variable matching the given name</returns>
-		bool IsVariable(const string& variableName) const { return _currentVariable == variableName; }
+		/// @brief Determines if the current line has a key with the given name
+		/// @param key The key
+		/// @return True if the current line has a key matching the given name
+		bool IsKey(const string& key) const { return _currentKey == key; }
 
-		/// <summary>
-		/// Gets the current variable as an integer
-		/// </summary>
-		/// <returns>The variable as an integer</returns>
-		const int GetVariableAsInt() const { return atoi(_currentVariable.c_str()); }
+		/// @brief Gets the current key as an integer
+		/// @return The current key as an integer
+		int GetKeyAsInt() const { return atoi(_currentKey.c_str()); }
 
-		/// <summary>
-		/// Gets the current variable as a boolean
-		/// </summary>
-		/// <returns>The variable as a boolean</returns>
-		const bool GetVariableAsBool() const { return atoi(_currentVariable.c_str()) == 1; }
+		/// @brief Gets the current key as a boolean
+		/// @return The current key as a boolean
+		bool GetKeyAsBool() const { return atoi(_currentKey.c_str()) == 1; }
 
-		/// <summary>
-		/// Gets the current variable value
-		/// </summary>
-		/// <returns>The current variable value, or an empty string if the line has no variable value</returns>
-		const string& GetVariableValue() const { return _currentVariableValue; }
+		/// @brief Gets the current value
+		/// @return The current value, or an empty string if the line has no value
+		const string& GetValue() const { return _currentValue; }
 
-		/// <summary>
-		/// Gets the current variable value as an integer
-		/// </summary>
-		/// <returns>The variable value as an integer</returns>
-		const int GetVariableValueAsInt() const { return atoi(_currentVariableValue.c_str()); }
+		/// @brief Gets the current value as an integer
+		/// @return The current value as an integer
+		int GetVariableValueAsInt() const { return atoi(_currentValue.c_str()); }
 
-		/// <summary>
-		/// Gets the current variable value as a boolean
-		/// </summary>
-		/// <returns>The variable value as a boolean</returns>
-		const bool GetVariableValueAsBool() const { return atoi(_currentVariableValue.c_str()) == 1; }
+		/// @brief Gets the current value as a boolean
+		/// @return The current value as a boolean
+		bool GetVariableValueAsBool() const { return atoi(_currentValue.c_str()) == 1; }
 
-		/// <summary>
-		/// Gets the indent level of the current line
-		/// </summary>
-		/// <returns>The indent level of the current line</returns>
-		const int GetCurrentIndentLevel() const { return _currentIndentLevel; }
+		/// @brief Gets the indent level of the current line
+		/// @return The indent level of the current line
+		constexpr int GetCurrentIndentLevel() const { return _currentIndentLevel; }
 
-		/// <summary>
-		/// Gets the indent level of the next line
-		/// </summary>
-		/// <returns>The indent level of the next line</returns>
+		/// @brief Gets the indent level of the next line
+		/// @return The indent level of the next line 
 		int GetNextLineIndentLevel();
 
-		/// <summary>
-		/// Reads the next line
-		/// </summary>
-		/// <returns>True if a line was read</returns>
+		/// @brief Reads the next line
+		/// @return True if a line was read
 		bool ReadLine();
 
-		/// <summary>
-		/// Reads until the next line is at the given indent level or less
-		/// </summary>
-		/// <param name="indentLevel">The desired indent level</param>
-		/// <returns>True if the next line is at the desired indent level</returns>
+		/// @brief Reads until the next line is at the given indent level or less
+		/// @param indentLevel The desired indent level
+		/// @return True if the next line is at the desired indent level
 		bool ReadUntilIndentLevel(int indentLevel);
 
-		/// <summary>
-		/// Reads the next line only if it is the given indent level
-		/// </summary>
-		/// <param name="indentLevel">The indent level</param>
-		/// <returns>True if the line was read</returns>
+		/// @brief Reads the next line only if it is the given indent level
+		/// @param indentLevel The indent level
+		/// @return True if the line was read
 		bool ReadIfIsIndentLevel(int indentLevel);
 
 	private:
-		/// <summary>
-		/// Sets the current line information
-		/// </summary>
-		/// <param name="line">The current line</param>
+		/// @brief Sets the current line information
+		/// @param line The current line
 		void SetCurrentLine(const string& line);
 	};
 
-	/// <summary>
-	/// A writer that can write key value pair lines to a file
-	/// </summary>
+	/// @brief A writer that can write key=value pair lines to a file
 	class COCOAPI KeyValueWriter
 	{
 	private:
@@ -126,63 +94,47 @@ namespace Coco
 		KeyValueWriter(File& file, bool useTabs = false);
 		virtual ~KeyValueWriter() = default;
 
-		/// <summary>
-		/// Sets the indent level for subsequent line writes
-		/// </summary>
-		/// <param name="indentLevel">The indent level for subsequent lines</param>
+		/// @brief Sets the indent level for subsequent line writes
+		/// @param indentLevel The indent level for subsequent lines
 		void SetIndentLevel(int indentLevel);
 
-		/// <summary>
-		/// Increments the indent level for subsequent line writes
-		/// </summary>
+		/// @brief Increments the indent level for subsequent line writes
 		void IncrementIndentLevel() { SetIndentLevel(_currentIndentLevel + 1); }
 
-		/// <summary>
-		/// Decrements the indent level for subsequent line writes
-		/// </summary>
+		/// @brief Decrements the indent level for subsequent line writes
 		void DecrementIndentLevel() { SetIndentLevel(Math::Max(_currentIndentLevel - 1, 0)); }
 
-		/// <summary>
-		/// Writes a line to the file
-		/// </summary>
-		/// <param name="line">The line to write</param>
+		/// @brief Writes a line to the file
+		/// @param line The line to write
 		void WriteLine(const string& line);
 
-		/// <summary>
-		/// Writes a key=value pair to the file
-		/// </summary>
-		/// <param name="variable">The key</param>
-		/// <param name="value">The value</param>
-		void WriteLine(const string& variable, const string& value);
+		/// @brief Writes a key=value pair to the file
+		/// @param key The key
+		/// @param value The value
+		void WriteLine(const string& key, const string& value);
 	};
 
-	/// <summary>
-	/// A loader that can save/load files in a key value pair format
-	/// </summary>
+	/// @brief A loader that can save/load files in a key=value pair format
 	class COCOAPI KeyValueResourceLoader : public ResourceLoader
 	{
 		friend KeyValueReader;
 
 	protected:
-		KeyValueResourceLoader(ResourceLibrary* library, const string& basePath);
+		KeyValueResourceLoader(ResourceLibrary* library);
 
 	public:
 		virtual ~KeyValueResourceLoader() = default;
 
 	protected:
-		/// <summary>
-		/// Gets the indentation level of a string (supports tabs and 4-space tabs)
-		/// </summary>
-		/// <param name="line">The line</param>
-		/// <returns>The indentation level</returns>
+		/// @brief Gets the indentation level of a string (supports tabs and 4-space tabs)
+		/// @param line The line
+		/// @return The indentation level
 		static int GetIndentationLevel(const string& line);
 
-		/// <summary>
-		/// Gets a key value pair from a line
-		/// </summary>
-		/// <param name="line">The line</param>
-		/// <param name="variable">The key</param>
-		/// <param name="value">The value, or an empty string if the line was not a key-value pair</param>
-		static void GetLinePair(const string& line, string& variable, string& value);
+		/// @brief Gets a key=value pair from a line
+		/// @param line The line
+		/// @param key Will be filled with the key
+		/// @param value Will be filled with the value, or an empty string if the line was not a key=value pair
+		static void GetLinePair(const string& line, string& key, string& value);
 	};
 }

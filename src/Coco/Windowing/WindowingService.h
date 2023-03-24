@@ -14,61 +14,50 @@ namespace Coco::Windowing
 {
     struct WindowCreateParameters;
 
-    /// <summary>
-    /// A service that manages GUI windows
-    /// </summary>
+    /// @brief A service that manages GUI windows
     class COCOAPI WindowingService final : public EngineService
     {
+        friend Window;
+
     public:
+        /// @brief Priority for the window render tick
         static const int WindowRenderPriority = 1000;
 
     private:
-        friend Window;
-
         List<ManagedRef<Window>> _windows;
         WeakManagedRef<Window> _mainWindow;
 
         Rendering::RenderingService* _renderingService = nullptr;
 
     public:
-        WindowingService(Coco::Engine* engine);
+        WindowingService(EngineServiceManager* serviceManager);
         ~WindowingService() final;
 
-        /// <summary>
-        /// Creates a window
-        /// </summary>
-        /// <param name="createParameters">Parameters to create the new window with</param>
-        /// <returns>The created window</returns>
+        /// @brief Creates a window
+        /// @param createParameters Parameters to create the new window with
+        /// @return The created window
         WeakManagedRef<Window> CreateNewWindow(WindowCreateParameters& createParameters);
 
-        /// <summary>
-        /// Gets the main window (if one has been created)
-        /// </summary>
-        /// <returns>The main window</returns>
+        /// @brief Gets the main window (if one has been created)
+        /// @return The main window
         WeakManagedRef<Window> GetMainWindow() const noexcept { return _mainWindow; }
 
-        /// <summary>
-        /// Attempts to find a window with the given ID
-        /// </summary>
-        /// <param name="windowId">The id of the window</param>
-        /// <param name="window">The pointer to the window with the given ID if it was found</param>
-        /// <returns>True if a window with the given ID was found</returns>
+        /// @brief Attempts to find a window with the given ID
+        /// @param windowId The id of the window
+        /// @param window Will be filled the window reference if it is found
+        /// @return True if a window with the given ID was found
         bool TryFindWindow(void* windowId, WeakManagedRef<Window>& window) const noexcept;
 
     protected:
         void StartImpl() final;
 
     private:
-        /// <summary>
-        /// Called when a window has closed
-        /// </summary>
-        /// <param name="window">The window that closed</param>
+        /// @brief Called when a window has closed
+        /// @param window The window that closed
         void WindowClosed(Window* window) noexcept;
 
-        /// <summary>
-        /// Callback for when all windows should render themselves
-        /// </summary>
-        /// <param name="deltaTime">The time since the last tick</param>
+        /// @brief Callback for when all windows should render themselves
+        /// @param deltaTime The time since the last tick
         void RenderTick(double deltaTime);
     };
 }

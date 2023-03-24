@@ -1,5 +1,7 @@
 #include "ImageTypes.h"
 
+#include <Coco/Core/Math/Math.h>
+
 namespace Coco::Rendering
 {
 	const ImageDescription ImageDescription::Empty = ImageDescription();

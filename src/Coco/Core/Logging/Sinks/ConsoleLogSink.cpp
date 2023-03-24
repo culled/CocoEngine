@@ -34,7 +34,7 @@ namespace Coco::Logging
 
 		try
 		{
-			Engine::Get()->GetPlatform()->WriteToPlatformConsole(message + "\n", color, level >= LogLevel::Error);
+			Engine::Get()->GetPlatform()->WriteToConsole(message + "\n", color, level >= LogLevel::Error);
 		}
 		catch(...)
 		{ }

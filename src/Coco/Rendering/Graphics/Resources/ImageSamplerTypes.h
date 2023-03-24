@@ -2,18 +2,14 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Image sampler filtering modes
-	/// </summary>
+	/// @brief Image sampler filtering modes
 	enum class FilterMode
 	{
 		Nearest,
 		Linear
 	};
 
-	/// <summary>
-	/// Image sampler repeat modes
-	/// </summary>
+	/// @brief Image sampler repeat modes
 	enum class RepeatMode
 	{
 		Repeat,

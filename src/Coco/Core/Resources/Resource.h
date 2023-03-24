@@ -7,55 +7,34 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// A resource ID
-	/// </summary>
+	/// @brief A resource ID
 	using ResourceID = uint64_t;
 
-	/// <summary>
-	/// A resource version number
-	/// </summary>
+	/// @brief A resource version number
 	using ResourceVersion = uint64_t;
 
-	/// <summary>
-	/// A generic cached resource
-	/// </summary>
-	struct CachedResource
-	{
-		ResourceID ID;
-		ResourceVersion Version;
-		uint64_t LastTickUsed;
-
-		CachedResource(ResourceID id, ResourceVersion version);
-		virtual ~CachedResource() = default;
-
-		virtual bool IsInvalid() const noexcept = 0;
-		virtual bool NeedsUpdate() const noexcept = 0;
-
-		void UpdateTickUsed();
-		bool ShouldPurge(uint64_t staleTickThreshold) const noexcept;
-	};
-
-	/// <summary>
-	/// A generic resource for the engine
-	/// </summary>
+	/// @brief A generic resource for the engine
 	class COCOAPI Resource
 	{
 		friend class ResourceLoader;
 
-	private:
-		static std::atomic<ResourceID> s_ResourceIndex;
-		ResourceID _id = InvalidID;
-		std::atomic<ResourceVersion> _version = 0;
-		string _typename;
-		string _filePath;
-		string _name;
-
 	public:
-		/// <summary>
-		/// An invalid ID
-		/// </summary>
+		/// @brief An invalid ID
 		constexpr static ResourceID InvalidID = Math::MaxValue<ResourceID>();
+
+		/// @brief The name of this resource
+		const string Name;
+
+		/// @brief The type of this resource
+		const string TypeName;
+
+		/// @brief The unique ID of this resource
+		const ResourceID ID;
+
+	private:
+		static std::atomic<ResourceID> s_resourceIndex;
+		std::atomic<ResourceVersion> _version = 0;
+		string _filePath;
 
 	protected:
 		Resource(const string& name, const string& namedType) noexcept;
@@ -69,59 +48,73 @@ namespace Coco
 		Resource(Resource&&) = delete;
 		Resource& operator=(Resource&&) = delete;
 
-		/// <summary>
-		/// Gets this resource's ID
-		/// </summary>
-		/// <returns>This resource's unique ID</returns>
-		ResourceID GetID() const noexcept { return _id; }
-
-		/// <summary>
-		/// Gets this resource's version number
-		/// </summary>
-		/// <returns>This resource's version number</returns>
+		/// @brief Gets this resource's version number
+		/// @return This resource's version number
 		ResourceVersion GetVersion() const noexcept { return _version; }
 
-		/// <summary>
-		/// Gets the type of this resource
-		/// </summary>
-		/// <returns>This resource's type</returns>
-		const string& GetTypename() const noexcept { return _typename; }
-
-		/// <summary>
-		/// Gets the path to the file this resource is loaded from (if any)
-		/// </summary>
-		/// <returns>The path to the file this resource is loaded from, or an empty string if this resource isn't saved to disk</returns>
+		/// @brief Gets the path to the file this resource is loaded from (if any)
+		/// @return The path to the file this resource is loaded from, or an empty string if this resource isn't saved to disk
 		const string& GetFilePath() const noexcept { return _filePath; }
 
-		/// <summary>
-		/// Gets the name of this resource
-		/// </summary>
-		/// <returns>This resource's name</returns>
-		const string& GetName() const noexcept { return _name; }
-
 	protected:
-		/// <summary>
-		/// Increments this resource's version number
-		/// </summary>
+		/// @brief Increments this resource's version number
 		void IncrementVersion() noexcept { _version++; }
 
-		/// <summary>
-		/// Sets this resource's version number
-		/// </summary>
-		/// <param name="version">The new version number</param>
+		/// @brief Sets this resource's version number
+		/// @param version The new version number
 		void SetVersion(ResourceVersion version) noexcept { _version.store(version); }
 
 	private:
-		/// <summary>
-		/// Gets a new unique ID
-		/// </summary>
-		/// <returns>A unique ID</returns>
+		/// @brief Gets a new unique ID
+		/// @return A unique ID
 		static ResourceID GetNewID() noexcept;
 
-		/// <summary>
-		/// Sets this resource's file path
-		/// </summary>
-		/// <param name="filePath">The file path</param>
+		/// @brief Sets this resource's file path
+		/// @param filePath The file path
 		void SetFilePath(const string& filePath) { _filePath = filePath; }
+	};
+
+	/// @brief A generic cached resource
+	class COCOAPI CachedResource
+	{
+	public:
+		/// @brief The ID of the resource that this cached resource references
+		const ResourceID ID;
+
+	private:
+		ResourceVersion _version;
+		uint64_t _lastTickUsed;
+
+	public:
+		CachedResource(ResourceID id, ResourceVersion version);
+		virtual ~CachedResource() = default;
+
+		/// @brief Gets the version of this cached resource
+		/// @return The version of this cached resource
+		constexpr ResourceVersion GetVersion() const noexcept { return _version; }
+
+		/// @brief Gets the last tick that this cached resource was used
+		/// @return The last this that this cached resource was used
+		constexpr uint64_t GetLastTickUsed() const noexcept { return _lastTickUsed; }
+
+		/// @brief Determines if this cached resource is invalid and can't be used anymore
+		/// @return True if this cached resource is invalid
+		virtual bool IsInvalid() const noexcept = 0;
+
+		/// @brief Determines if this cached resource needs to be updated
+		/// @return True if this cached resource should be updated
+		virtual bool NeedsUpdate() const noexcept = 0;
+
+		/// @brief Updates the last tick that this cached resource was used to the current tick
+		void UpdateTickUsed();
+
+		/// @brief Updates this cached resource's version
+		/// @param newVersion The new version
+		constexpr void UpdateVersion(ResourceVersion newVersion) noexcept { _version = newVersion; }
+
+		/// @brief Determines if this cached resource should be purged
+		/// @param staleTickThreshold The threshold for determining a stale cached resource
+		/// @return True if this cached resource should be purged
+		bool ShouldPurge(uint64_t staleTickThreshold) const noexcept;
 	};
 }

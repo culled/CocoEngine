@@ -4,43 +4,48 @@
 
 #include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/Map.h>
+#include "Graphics/Resources/BufferTypes.h"
 #include "Shader.h"
 #include "Texture.h"
-#include "Graphics/Resources/BufferTypes.h"
 
 namespace Coco::Rendering
 {
 	class MaterialInstance;
 
-	/// <summary>
-	/// A binding for a subshader to a material
-	/// </summary>
+	/// @brief A binding for a subshader to a material
 	struct SubshaderUniformBinding
 	{
+		/// @brief The offset of the uniform (in bytes)
 		uint64_t Offset;
+		
+		/// @brief The size of the binding (in bytes)
 		uint64_t Size = 0;
 
 		SubshaderUniformBinding(uint64_t offset) :
 			Offset(offset), Size(0) {}
 	};
 
-	/// <summary>
-	/// A material that can be used to modify the look of rendered geometry
-	/// </summary>
+	/// @brief Holds properties for a shader for modifying the look of rendered geometry
 	class COCOAPI Material : public RenderingResource
 	{
 		friend MaterialInstance;
 
 	public:
+		/// @brief The size of a Vector4 uniform
 		static constexpr uint Vector4Size = GetBufferDataFormatSize(BufferDataFormat::Vector4);
 
 	protected:
-		ResourceVersion PropertyMapVersion = 0;
+		/// @brief The shader that this material uses
 		Ref<Shader> Shader;
+
+		/// @brief The Vector4 properties of this material
 		Map<string, Vector4> Vector4Properties;
+
+		/// @brief The texture properties of this material
 		Map<string, Ref<Texture>> TextureProperties;
 
 	private:
+		ResourceVersion _propertyMapVersion = 0;
 		Map<string, SubshaderUniformBinding> _subshaderBindings;
 		List<uint8_t> _bufferData;
 		bool _isBufferDataDirty = true;
@@ -49,88 +54,54 @@ namespace Coco::Rendering
 		Material(Ref<Rendering::Shader> shader, const string& name = "");
 		virtual ~Material() override;
 
-		/// <summary>
-		/// Creates an instance of this material that allows for its properties to differ from this material
-		/// </summary>
-		/// <returns>An instance of this material</returns>
-		//Ref<MaterialInstance> CreateInstance() const;
-
-		/// <summary>
-		/// Gets the shader that this material uses
-		/// </summary>
-		/// <returns>The shader that this material uses</returns>
+		/// @brief Gets the shader that this material uses
+		/// @return The shader that this material uses
 		Ref<Rendering::Shader> GetShader() const noexcept { return Shader; }
 
-		/// <summary>
-		/// Sets a vector4 property
-		/// </summary>
-		/// <param name="name">The name of the vector4 property</param>
-		/// <param name="value">The vector4</param>
+		/// @brief Sets a Vector4 property
+		/// @param name The name of the Vector4 property
+		/// @param value The value
 		void SetVector4(const string& name, const Vector4& value);
 
-		/// <summary>
-		/// Gets a vector4 property
-		/// </summary>
-		/// <param name="name">The name of the vector4 property</param>
-		/// <returns>The vector4, or a default vector4 if no property was found</returns>
+		/// @brief Gets a Vector4 property
+		/// @param name The name of the Vector4 property
+		/// @return The Vector4, or a default Vector4 if no property was found
 		Vector4 GetVector4(const string& name) const;
 
-		/// <summary>
-		/// Gets all the vector4 properties that this material has
-		/// </summary>
-		/// <returns>This material's vector4 properties</returns>
-		const Map<string, Vector4> GetVector4Properties() const noexcept { return Vector4Properties; }
+		/// @brief Gets all the Vector4 properties that this material has
+		/// @return This material's Vector4 properties
+		const Map<string, Vector4>& GetVector4Properties() const noexcept { return Vector4Properties; }
 
-		/// <summary>
-		/// Sets a texture property
-		/// </summary>
-		/// <param name="name">The name of the texture property</param>
-		/// <param name="texture">The texture</param>
+		/// @brief Sets a texture property
+		/// @param name The name of the texture property
+		/// @param texture The texture
 		void SetTexture(const string& name, Ref<Texture> texture);
 
-		/// <summary>
-		/// Gets a texture property
-		/// </summary>
-		/// <param name="name">The name of the texture property</param>
-		/// <returns>The texture, or a null reference if no property was found</returns>
+		/// @brief Gets a texture property
+		/// @param name The name of the texture property
+		/// @return The texture, or a null reference if no property was found
 		Ref<Texture> GetTexture(const string& name) const;
 
-		/// <summary>
-		/// Gets all the texture properties that this material has
-		/// </summary>
-		/// <returns>This material's texture properties</returns>
-		const Map<string, Ref<Texture>> GetTextureProperties() const noexcept { return TextureProperties; }
+		/// @brief Gets all the texture properties that this material has
+		/// @return This material's texture properties
+		const Map<string, Ref<Texture>>& GetTextureProperties() const noexcept { return TextureProperties; }
 
-		/// <summary>
-		/// Gets uniform buffer data from this material's currently set properties
-		/// </summary>
-		/// <returns>This material's properties as a byte array</returns>
+		/// @brief Gets uniform buffer data from this material's currently set properties
+		/// @return This material's properties as a byte array
 		const List<uint8_t>& GetBufferData();
 
-		bool TryGetSubshaderBinding(const string& subshaderName, SubshaderUniformBinding*& binding);
+		/// @brief Tries to get a binding for a subshader with a given name
+		/// @param subshaderName The name of the subshader
+		/// @param binding Will be filled with a pointer to the binding if found
+		/// @return True if the binding was found
+		bool TryGetSubshaderBinding(const string& subshaderName, const SubshaderUniformBinding*& binding);
 
 	private:
-		/// <summary>
-		/// Updates the property maps from this material's shader
-		/// </summary>
-		/// <param name="forceUpdate">If true, the map will be updated regardless if it matches the version of the shader</param>
+		/// @brief Updates the property maps from this material's shader
+		/// @param forceUpdate If true, the map will be updated regardless if it matches the version of the shader
 		void UpdatePropertyMaps(bool forceUpdate);
 
-		/// <summary>
-		/// Updates this material's buffer data from its currently set properties
-		/// </summary>
+		/// @brief Updates this material's buffer data from its currently set properties
 		void UpdateBufferData();
 	};
-
-	// TODO: make this actually reference the parent material and override its properties
-
-	/// <summary>
-	/// An instance of a material that overrides properties from the parent material
-	/// </summary>
-	//class COCOAPI MaterialInstance : public Material
-	//{
-	//public:
-	//	MaterialInstance(const Material* material);
-	//	virtual ~MaterialInstance() override;
-	//};
 }

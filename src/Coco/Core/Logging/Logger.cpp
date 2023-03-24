@@ -7,9 +7,6 @@
 
 namespace Coco::Logging
 {
-	/// <summary>
-	/// Text representations of log levels
-	/// </summary>
 	const Array<const char*, 5> Logger::LogLevels = {
 		"Trace",
 		"Info",

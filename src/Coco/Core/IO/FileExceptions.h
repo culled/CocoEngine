@@ -4,9 +4,7 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// A generic file exception
-	/// </summary>
+	/// @brief A generic file exception
 	class COCOAPI FileException : public Exception
 	{
 	public:
@@ -14,9 +12,7 @@ namespace Coco
 		virtual ~FileException() = default;
 	};
 
-	/// <summary>
-	/// An exception when a file failes to open
-	/// </summary>
+	/// @brief An exception when a file failes to open
 	class COCOAPI FileOpenException : public FileException
 	{
 	public:

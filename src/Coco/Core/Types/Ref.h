@@ -6,70 +6,53 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// Class that manages the lifetime of an object and can be shared
-	/// </summary>
-	/// <typeparam name="T">The type of object</typeparam>
-	template<class T>
-	using Ref = std::shared_ptr<T>;
+	/// @brief Class that manages the lifetime of an object and can be shared
+	/// @tparam ValueType 
+	template<class ValueType>
+	using Ref = std::shared_ptr<ValueType>;
 	
-	/// <summary>
-	/// Creates a managed object that can be shared
-	/// </summary>
-	/// <typeparam name="T">The type of object</typeparam>
-	/// <typeparam name="...Args">Arguments to pass to the object constructor</typeparam>
-	/// <param name="...args">Arguments to pass to the object constructor</param>
-	/// <returns>A managed object that can be shared</returns>
-	template<class T, typename ... Args>
-	Ref<T> COCOAPI CreateRef(Args&& ... args)
+	/// @brief Creates a managed object that can be shared
+	/// @tparam ValueType 
+	/// @tparam ...Args 
+	/// @param ...args Arguments to pass to the object constructor
+	/// @return A managed object that can be shared
+	template<class ValueType, typename ... Args>
+	Ref<ValueType> COCOAPI CreateRef(Args&& ... args)
 	{
-		return std::make_shared<T>(std::forward<Args>(args)...);
+		return std::make_shared<ValueType>(std::forward<Args>(args)...);
 	}
 
-	//template<class To>
-	//using RefCast = std::static_pointer_cast<To>;
-	//
-	//template<class To>
-	//using SafeRefCast = std::dynamic_pointer_cast<To>;
-
-	/// <summary>
-	/// A weak reference to a reference
-	/// </summary>
-	/// <typeparam name="T">The type of object</typeparam>
-	template<class T>
-	using WeakRef = std::weak_ptr<T>;
+	/// @brief A weak reference to a reference
+	/// @tparam ValueType 
+	template<class ValueType>
+	using WeakRef = std::weak_ptr<ValueType>;
 	
-	/// <summary>
-	/// Class that manages the lifetime of an object
-	/// </summary>
-	/// <typeparam name="T">The type of managed object</typeparam>
-	/// <typeparam name="U">An optional deleter for the managed object</typeparam>
-	template<class T, typename U = std::default_delete<T>>
-	using Managed = std::unique_ptr<T, U>;
+	/// @brief Class that manages the lifetime of an object
+	/// @tparam ValueType 
+	/// @tparam U 
+	template<class ValueType, typename ValueDeleter = std::default_delete<ValueType>>
+	using Managed = std::unique_ptr<ValueType, ValueDeleter>;
 
-	/// <summary>
-	/// Creates a managed object that can be shared
-	/// </summary>
-	/// <typeparam name="T">The type of object</typeparam>
-	/// <typeparam name="...Args">Arguments to pass to the object constructor</typeparam>
-	/// <param name="...args">Arguments to pass to the object constructor</param>
-	/// <returns>A managed object</returns>
-	template<class T, typename ... Args>
-	Managed<T> COCOAPI CreateManaged(Args&& ... args)
+	/// @brief Creates a managed object
+	/// @tparam ValueType 
+	/// @tparam ...Args 
+	/// @param ...args Arguments to pass to the object constructor
+	/// @return A managed object
+	template<class ValueType, typename ... Args>
+	Managed<ValueType> COCOAPI CreateManaged(Args&& ... args)
 	{
-		return std::make_unique<T>(std::forward<Args>(args)...);
+		return std::make_unique<ValueType>(std::forward<Args>(args)...);
 	}
 
-	/// <summary>
-	/// Creates a managed object that can be shared
-	/// </summary>
-	/// <typeparam name="T">The type of object</typeparam>
-	/// <typeparam name="...Args">Arguments to pass to the object constructor</typeparam>
-	/// <param name="...args">Arguments to pass to the object constructor</param>
-	/// <returns>A managed object</returns>
-	template<class T, typename U, typename ... Args>
-	Managed<T, U> COCOAPI CreateManaged(Args&& ... args)
+	/// @brief Creates a managed object with a custom deleter
+	/// @tparam ValueType 
+	/// @tparam ...Args 
+	/// @tparam U 
+	/// @param ...args Arguments to pass to the object constructor
+	/// @return A managed object
+	template<class ValueType, typename U, typename ... Args>
+	Managed<ValueType, U> COCOAPI CreateManaged(Args&& ... args)
 	{
-		return std::make_unique<T, U>(std::forward<Args>(args)...);
+		return std::make_unique<ValueType, U>(std::forward<Args>(args)...);
 	}
 }

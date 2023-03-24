@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/API.h>
 
 #include <Coco/Core/Types/Version.h>
 #include <Coco/Rendering/ShaderTypes.h>
@@ -14,11 +14,9 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	/// <summary>
-	/// Converts a VkPhysicalDeviceType to a GraphicsDeviceType
-	/// </summary>
-	/// <param name="deviceType">The device type</param>
-	/// <returns>The converted device type</returns>
+	/// @brief Converts a VkPhysicalDeviceType to a GraphicsDeviceType
+	/// @param deviceType The device type
+	/// @return The converted device type
 	constexpr GraphicsDeviceType ToGraphicsDeviceType(VkPhysicalDeviceType deviceType) noexcept
 	{
 		switch (deviceType)
@@ -34,25 +32,19 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a version provided by Vulkan to a Version struct
-	/// </summary>
-	/// <param name="version">The Vulkan version</param>
-	/// <returns>The converted version</returns>
+	/// @brief Converts a version provided by Vulkan to a Version struct
+	/// @param version The Vulkan version
+	/// @return The converted version
 	Version ToVersion(uint32_t version) noexcept;
 
-	/// <summary>
-	/// Converts a Version struct to a Vulkan version
-	/// </summary>
-	/// <param name="version">The version</param>
-	/// <returns>The converted Vulkan version</returns>
+	/// @brief Converts a Version struct to a Vulkan version
+	/// @param version The version
+	/// @return The converted Vulkan version
 	uint32_t ToVkVersion(const Version& version) noexcept;
 
-	/// <summary>
-	/// Converts a VerticalSyncMode to a VkPresentModeKHR
-	/// </summary>
-	/// <param name="vsyncMode">The vsync mode</param>
-	/// <returns>The converted present mode</returns>
+	/// @brief Converts a VerticalSyncMode to a VkPresentModeKHR
+	/// @param vsyncMode The vsync mode
+	/// @return The converted VkPresentModeKHR
 	constexpr VkPresentModeKHR ToVkPresentMode(VerticalSyncMode vsyncMode) noexcept
 	{
 		switch (vsyncMode)
@@ -68,11 +60,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a VkPresentModeKHR to a VerticalSyncMode
-	/// </summary>
-	/// <param name="presentMode">The present mode</param>
-	/// <returns>The converted vertical sync mode</returns>
+	/// @brief Converts a VkPresentModeKHR to a VerticalSyncMode
+	/// @param presentMode The present mode
+	/// @return The converted VerticalSyncMode
 	constexpr VerticalSyncMode ToVerticalSyncMode(VkPresentModeKHR presentMode) noexcept
 	{
 		switch (presentMode)
@@ -88,11 +78,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a VkFormat to a PixelFormat
-	/// </summary>
-	/// <param name="format">The format</param>
-	/// <returns>The converted PixelFormat</returns>
+	/// @brief Converts a VkFormat to a PixelFormat
+	/// @param format The format
+	/// @return The converted PixelFormat
 	constexpr PixelFormat ToPixelFormat(VkFormat format) noexcept
 	{
 		switch (format)
@@ -106,11 +94,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a PixelFormat to a VkFormat
-	/// </summary>
-	/// <param name="format">The format</param>
-	/// <returns>The converted VkFormat</returns>
+	/// @brief Converts a PixelFormat to a VkFormat
+	/// @param format The format
+	/// @return The converted VkFormat
 	constexpr VkFormat ToVkFormat(PixelFormat format) noexcept
 	{
 		switch (format)
@@ -124,11 +110,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a VkColorSpaceKHR to a ColorSpace
-	/// </summary>
-	/// <param name="colorSpace">The color space</param>
-	/// <returns>The converted ColorSpace</returns>
+	/// @brief Converts a VkColorSpaceKHR to a ColorSpace
+	/// @param colorSpace The color space
+	/// @return The converted ColorSpace
 	constexpr ColorSpace ToColorSpace(VkColorSpaceKHR colorSpace) noexcept
 	{
 		switch (colorSpace)
@@ -140,11 +124,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a ColorSpace to a VkColorSpaceKHR
-	/// </summary>
-	/// <param name="colorSpace">The color space</param>
-	/// <returns>The converted VkColorSpaceKHR</returns>
+	/// @brief Converts a ColorSpace to a VkColorSpaceKHR
+	/// @param colorSpace The color space
+	/// @return The converted VkColorSpaceKHR
 	constexpr VkColorSpaceKHR ToVkColorSpace(ColorSpace colorSpace) noexcept
 	{
 		switch (colorSpace)
@@ -156,11 +138,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a ShaderStageType to a VkShaderStageFlagBits
-	/// </summary>
-	/// <param name="stage">The stage</param>
-	/// <returns>The converted VkShaderStageFlagBits</returns>
+	/// @brief Converts a ShaderStageType to a VkShaderStageFlagBits
+	/// @param stage The stage 
+	/// @return The converted VkShaderStageFlagBits
 	constexpr VkShaderStageFlagBits ToVkShaderStageFlagBits(ShaderStageType stage) noexcept
 	{
 		switch (stage)
@@ -180,11 +160,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a PolygonFillMode to a VkPolygonMode
-	/// </summary>
-	/// <param name="fillMode">The fill mode</param>
-	/// <returns>The converted VkPolygonMode</returns>
+	/// @brief Converts a PolygonFillMode to a VkPolygonMode
+	/// @param fillMode The fill mode
+	/// @return The converted VkPolygonMode
 	constexpr VkPolygonMode ToVkPolygonMode(PolygonFillMode fillMode) noexcept
 	{
 		switch (fillMode)
@@ -200,11 +178,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a TopologyMode to a VkPrimitiveTopology
-	/// </summary>
-	/// <param name="topologyMode">The topology mode</param>
-	/// <returns>The converted VkPrimitiveTopology</returns>
+	/// @brief Converts a TopologyMode to a VkPrimitiveTopology
+	/// @param topologyMode The topology mode
+	/// @return The converted VkPrimitiveTopology
 	constexpr VkPrimitiveTopology ToVkPrimativeTopology(TopologyMode topologyMode) noexcept
 	{
 		switch (topologyMode)
@@ -224,11 +200,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a CullMode to a VkCullModeFlags
-	/// </summary>
-	/// <param name="cullMode">The cull mode</param>
-	/// <returns>The converted VkCullModeFlags</returns>
+	/// @brief Converts a CullMode to a VkCullModeFlags
+	/// @param cullMode The cull mode 
+	/// @return The converted VkCullModeFlags
 	constexpr VkCullModeFlags ToVkCullModeFlags(CullMode cullMode) noexcept
 	{
 		switch (cullMode)
@@ -244,11 +218,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a DepthTestingMode to a VkCompareOp
-	/// </summary>
-	/// <param name="depthMode">The depth mode</param>
-	/// <returns>The converted VkCompareOp</returns>
+	/// @brief Converts a DepthTestingMode to a VkCompareOp
+	/// @param depthMode The depth mode
+	/// The converted VkCompareOp
 	constexpr VkCompareOp ToVkCompareOp(DepthTestingMode depthMode) noexcept
 	{
 		switch (depthMode)
@@ -272,11 +244,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a BlendOperation to a VkBlendOp
-	/// </summary>
-	/// <param name="blendOperation">The blend operation</param>
-	/// <returns>The converted VkBlendOp</returns>
+	/// @brief Converts a BlendOperation to a VkBlendOp
+	/// @param blendOperation The blend operation 
+	/// @return The converted VkBlendOp
 	constexpr VkBlendOp ToVkBlendOp(BlendOperation blendOperation) noexcept
 	{
 		switch (blendOperation)
@@ -296,11 +266,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a BlendFactorMode to a VkBlendFactor
-	/// </summary>
-	/// <param name="blendFactorMode">The blend factor mode</param>
-	/// <returns>The converted VkBlendFactor</returns>
+	/// @brief Converts a BlendFactorMode to a VkBlendFactor
+	/// @param blendFactorMode The blend factor mode
+	/// @return The converted VkBlendFactor
 	constexpr VkBlendFactor ToVkBlendFactor(BlendFactorMode blendFactorMode) noexcept
 	{
 		switch (blendFactorMode)
@@ -330,11 +298,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a BufferDataFormat to a VkFormat
-	/// </summary>
-	/// <param name="dataFormat">The buffer data format</param>
-	/// <returns>The converted VkFormat</returns>
+	/// @brief Converts a BufferDataFormat to a VkFormat
+	/// @param dataFormat The buffer data format
+	/// @return The converted VkFormat
 	constexpr VkFormat ToVkFormat(BufferDataFormat dataFormat) noexcept
 	{
 		switch (dataFormat)
@@ -360,25 +326,19 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts BufferUsageFlags to VkBufferUsageFlags
-	/// </summary>
-	/// <param name="usageFlags">The buffer usage flags</param>
-	/// <returns>The converted VkBufferUsageFlags</returns>
+	/// @brief Converts BufferUsageFlags to VkBufferUsageFlags
+	/// @param usageFlags The buffer usage flags
+	/// @return The converted VkBufferUsageFlags
 	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags) noexcept;
 
-	/// <summary>
-	/// Converts ImageUsageFlags to VkImageUsageFlags
-	/// </summary>
-	/// <param name="usageFlags">The image usage flags</param>
-	/// <returns>The converted VkImageUsageFlags</returns>
+	/// @brief Converts ImageUsageFlags to VkImageUsageFlags
+	/// @param usageFlags The image usage flags
+	/// @return The converted VkImageUsageFlags
 	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags) noexcept;
 
-	/// <summary>
-	/// Converts a FilterMode to a VkFilter
-	/// </summary>
-	/// <param name="filterMode">The filter mode</param>
-	/// <returns>The converted VkFilter</returns>
+	/// @brief Converts a FilterMode to a VkFilter
+	/// @param filterMode The filter mode
+	/// @return The converted VkFilter
 	constexpr VkFilter ToVkFilter(FilterMode filterMode) noexcept
 	{
 		switch (filterMode)
@@ -392,11 +352,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a FilterMode to a VkSamplerMipmapMode
-	/// </summary>
-	/// <param name="filterMode">The filter mode</param>
-	/// <returns>The converted VkSamplerMipmapMode</returns>
+	/// @brief Converts a FilterMode to a VkSamplerMipmapMode
+	/// @param filterMode The filter mode
+	/// @return The converted VkSamplerMipmapMode
 	constexpr VkSamplerMipmapMode ToVkSamplerMipmapMode(FilterMode filterMode) noexcept
 	{
 		switch (filterMode)
@@ -410,11 +368,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts a RepeatMode to a VkSamplerAddressMode
-	/// </summary>
-	/// <param name="repeatMode">The repeat mode</param>
-	/// <returns>The converted VkSamplerAddressMode</returns>
+	/// @brief Converts a RepeatMode to a VkSamplerAddressMode
+	/// @param repeatMode The repeat mode
+	/// @return The converted VkSamplerAddressMode
 	constexpr VkSamplerAddressMode ToVkSamplerAddressMode(RepeatMode repeatMode) noexcept
 	{
 		switch (repeatMode)
@@ -432,11 +388,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	/// <summary>
-	/// Converts an ImageDimensionType to a VkImageType
-	/// </summary>
-	/// <param name="dimensionType">The image dimension type</param>
-	/// <returns>The converted VkImageType</returns>
+	/// @brief Converts an ImageDimensionType to a VkImageType
+	/// @param dimensionType The image dimension type
+	/// @return The converted VkImageType
 	constexpr VkImageType ToVkImageType(ImageDimensionType dimensionType) noexcept
 	{
 		switch (dimensionType)

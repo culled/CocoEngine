@@ -6,71 +6,68 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// A resizable array of items
-	/// </summary>
-	template<typename T>
+	/// @brief A resizable array of items
+	/// @tparam ValueType 
+	template<typename ValueType>
 	class COCOAPI List
 	{
+	public:
+		/// @brief An iterator for the list
+		using Iterator = std::vector<ValueType>::iterator;
+
+		/// @brief A constant iterator for the list
+		using ConstIterator = std::vector<ValueType>::const_iterator;
+
+		/// @brief An reverse iterator for the list
+		using ReverseIterator = std::vector<ValueType>::reverse_iterator;
+
+		/// @brief A reverse constant iterator for the list
+		using ReverseConstIterator = std::vector<ValueType>::const_reverse_iterator;
+
 	private:
-		std::vector<T> _list;
+		std::vector<ValueType> _list;
 
 	public:
-		using Iterator = std::vector<T>::iterator;
-		using ConstIterator = std::vector<T>::const_iterator;
-		using ReverseIterator = std::vector<T>::reverse_iterator;
-		using ConstReverseIterator = std::vector<T>::const_reverse_iterator;
-
 		List() noexcept = default;
 		virtual ~List() = default;
 
 		List(uint64_t initialSize) : _list(initialSize) {}
-		List(std::initializer_list<T>&& items) : _list(items) {}
+		List(std::initializer_list<ValueType>&& items) : _list(items) {}
 
-		/// <summary>
-		/// Adds an item to this list
-		/// </summary>
-		/// <param name="item">The item to add</param>
-		constexpr void Add(T&& item) { _list.push_back(std::forward<T>(item)); }
+		/// @brief Adds an item to this list
+		/// @param item The item to add
+		constexpr void Add(ValueType&& item) { _list.push_back(std::forward<ValueType>(item)); }
 
-		/// <summary>
-		/// Adds an item to this list
-		/// </summary>
-		/// <param name="item">The item to add</param>
-		constexpr void Add(const T& item) { _list.push_back(item); }
+		/// @brief Adds an item to this list
+		/// @param item The item to add
+		constexpr void Add(const ValueType& item) { _list.push_back(item); }
 
-		/// <summary>
-		/// Inserts an item at the specified index
-		/// </summary>
-		/// <param name="index">The index that the item will be insterted at</param>
-		/// <param name="item">The item to insert</param>
-		void Insert(uint64_t index, T&& item)
+		/// @brief Inserts an item at the specified index
+		/// @param index The index that the item will be insterted at
+		/// @param item The item to insert
+		void Insert(uint64_t index, ValueType&& item)
 		{
-			if (index < 0 || index > Count())
+			if (index > Count())
 				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} <= {1}", index, Count()));
 
-			_list.insert(begin() + index, std::forward<T>(item));
+			_list.insert(begin() + index, std::forward<ValueType>(item));
 		}
 
-		/// <summary>
-		/// Inserts an item at the specified index
-		/// </summary>
-		/// <param name="index">The index that the item will be insterted at</param>
-		/// <param name="item">The item to insert</param>
-		void Insert(uint64_t index, const T& item)
+		/// @brief Inserts an item at the specified index
+		/// @param index The index that the item will be insterted at
+		/// @param item The item to insert
+		void Insert(uint64_t index, const ValueType& item)
 		{
-			if (index < 0 || index > Count())
+			if (index > Count())
 				throw IndexOutOfRangeException(FormattedString("Index must be 0 <= {0} <= {1}", index, Count()));
 
 			_list.insert(begin() + index, item);
 		}
 
-		/// <summary>
-		/// Removes the first occurance of an item from this list
-		/// </summary>
-		/// <param name="item">The item to remove</param>
-		/// <returns>True if the item was found and removed</returns>
-		bool Remove(const T& item) noexcept
+		/// @brief Removes the first occurance of an item from this list
+		/// @param item The item to remove
+		/// @return True if the item was found and removed
+		bool Remove(const ValueType& item) noexcept
 		{
 			Iterator it = Find(item);
 
@@ -80,13 +77,14 @@ namespace Coco
 			return false;
 		}
 
-		/// <summary>
-		/// Remove an item at the given iterator
-		/// </summary>
-		/// <param name="it">The iterator</param>
-		/// <returns>True if the item was erased successfully</returns>
+		/// @brief Remove an item at the given iterator
+		/// @param it The iterator
+		/// @return True if the item was erased successfully
 		bool Remove(Iterator it) noexcept
 		{
+			if (it == end())
+				return false;
+
 			try
 			{
 				_list.erase(it);
@@ -98,72 +96,50 @@ namespace Coco
 			}
 		}
 
-		/// <summary>
-		/// Erases an item at the given iterator and returns the element after the one erased or the list end if the element was the last one erased
-		/// </summary>
-		/// <param name="it">The iterator</param>
-		/// <returns>An iterator to the element after the one erased or the list end if the element was the last one erased</returns>
+		/// @brief Erases an item at the given iterator and returns the element after the one erased, or the list end if the element was the last one erased
+		/// @param it The iterator
+		/// @return An iterator to the element after the one erased, or the list end if the element was the last one erased
 		constexpr Iterator EraseAndGetNext(Iterator it) { return _list.erase(it); }
 
-		/// <summary>
-		/// Removes all items from this list
-		/// </summary>
+		/// @brief Removes all items from this list
 		constexpr void Clear() noexcept { _list.clear(); }
 
-		/// <summary>
-		/// Gets the number of items in this list
-		/// </summary>
-		/// <returns>The number of items in this list</returns>
+		/// @brief Gets the number of items in this list
+		/// @return The number of items in this list
 		constexpr uint64_t Count() const noexcept { return _list.size(); }
 
-		/// <summary>
-		/// Gets the first element in the list
-		/// </summary>
-		/// <returns>The first element of the list</returns>
-		constexpr T& First() noexcept { return _list.front(); }
+		/// @brief Gets the first element in the list
+		/// @return The first element of the list
+		constexpr ValueType& First() noexcept { return _list.front(); }
 
-		/// <summary>
-		/// Gets the first element in the list
-		/// </summary>
-		/// <returns>The first element of the list</returns>
-		constexpr const T& First() const noexcept { return _list.front(); }
+		/// @brief Gets the first element in the list
+		/// @return The first element of the list
+		constexpr const ValueType& First() const noexcept { return _list.front(); }
 
-		/// <summary>
-		/// Gets the last element in the list
-		/// </summary>
-		/// <returns>The last element in the list</returns>
-		constexpr T& Last() noexcept { return _list.back(); }
+		/// @brief Gets the last element in the list
+		/// @return The last element in the list
+		constexpr ValueType& Last() noexcept { return _list.back(); }
 
-		/// <summary>
-		/// Gets the last element in the list
-		/// </summary>
-		/// <returns>The last element in the list</returns>
-		constexpr const T& Last() const noexcept { return _list.back(); }
+		/// @brief Gets the last element in the list
+		/// @return The last element in the list
+		constexpr const ValueType& Last() const noexcept { return _list.back(); }
 
-		/// <summary>
-		/// Resizes this list to be the given size
-		/// </summary>
-		/// <param name="newSize">The new size of this list</param>
+		/// @brief Resizes this list to be a new size
+		/// @param newSize The new size for this list
 		constexpr void Resize(uint64_t newSize) { _list.resize(newSize); }
 
-		/// <summary>
-		/// Gets a pointer to this list's first item
-		/// </summary>
-		/// <returns>A pointer to this list's first item</returns>
-		constexpr const T* Data() const noexcept { return _list.data(); }
+		/// @brief Gets a pointer to this list's first item
+		/// @return A pointer to this list's first item
+		constexpr const ValueType* Data() const noexcept { return _list.data(); }
 
-		/// <summary>
-		/// Gets a pointer to this list's first item
-		/// </summary>
-		/// <returns>A pointer to this list's first item</returns>
-		constexpr T* Data() noexcept { return _list.data(); }
+		/// @brief Gets a pointer to this list's first item
+		/// @return A pointer to this list's first item
+		constexpr ValueType* Data() noexcept { return _list.data(); }
 
-		/// <summary>
-		/// Determines if a given element exists in this list
-		/// </summary>
-		/// <param name="item">The item to search for</param>
-		/// <returns>True if the item is found in this list</returns>
-		bool Contains(const T& item) const noexcept
+		/// @brief Determines if a given element exists in this list
+		/// @param item The item to search for
+		/// @return True if the item is found in this list
+		bool Contains(const ValueType& item) const noexcept
 		{
 			if (Find(item) != end())
 				return true;
@@ -171,12 +147,10 @@ namespace Coco
 			return false;
 		}
 
-		/// <summary>
-		/// Determines if a given element exists in this list by using a predicate function
-		/// </summary>
-		/// <param name="predicate">The function to test if the item is found</param>
-		/// <returns>True if the item is found in this list</returns>
-		bool Contains(std::function<bool(const T&)> predicate) const noexcept
+		/// @brief Determines if a given element exists in this list by using a predicate function
+		/// @param predicate The function to test if the item is found
+		/// @return True if the item is found in this list
+		bool Contains(std::function<bool(const ValueType&)> predicate) const noexcept
 		{
 			if (Find(predicate) != end())
 				return true;
@@ -184,119 +158,87 @@ namespace Coco
 			return false;
 		}
 
-		/// <summary>
-		/// Tries to find the given item in this list
-		/// </summary>
-		/// <param name="item">The item to find</param>
-		/// <returns>An iterator to the item if found, else the iterator will equal the end iterator</returns>
-		constexpr Iterator Find(const T& item)
+		/// @brief Tries to find the given item in this list
+		/// @param item The item to find
+		/// @return An iterator to the item if found, else the iterator will equal the end iterator
+		constexpr Iterator Find(const ValueType& item)
 		{
 			return std::find(begin(), end(), item);
 		}
 
-		/// <summary>
-		/// Tries to find the given item in this list
-		/// </summary>
-		/// <param name="item">The item to find</param>
-		/// <returns>An iterator to the item if found, else the iterator will equal the end iterator</returns>
-		constexpr ConstIterator Find(const T& item) const
+		/// @brief Tries to find the given item in this list
+		/// @param item The item to find
+		/// @return An iterator to the item if found, else the iterator will equal the end iterator
+		constexpr ConstIterator Find(const ValueType& item) const
 		{
 			return std::find(cbegin(), cend(), item);
 		}
 
-		/// <summary>
-		/// Tries to find the given item in this list using a predicate function
-		/// </summary>
-		/// <param name="predicate">The function to test if the item is found</param>
-		/// <returns>An iterator to the item if found, else the iterator will equal the end iterator</returns>
-		constexpr Iterator Find(std::function<bool(const T&)> predicate)
+		/// @brief Tries to find the given item in this list using a predicate function
+		/// @param predicate The function to test if the item is found
+		/// @return An iterator to the item if found, else the iterator will equal the end iterator
+		constexpr Iterator Find(std::function<bool(const ValueType&)> predicate)
 		{
 			return std::find_if(begin(), end(), predicate);
 		}
 
-		/// <summary>
-		/// Tries to find the given item in this list using a predicate function
-		/// </summary>
-		/// <param name="predicate">The function to test if the item is found</param>
-		/// <returns>An iterator to the item if found, else the iterator will equal the end iterator</returns>
-		constexpr ConstIterator Find(std::function<bool(const T&)> predicate) const
+		/// @brief Tries to find the given item in this list using a predicate function
+		/// @param predicate The function to test if the item is found
+		/// @return An iterator to the item if found, else the iterator will equal the end iterator
+		constexpr ConstIterator Find(std::function<bool(const ValueType&)> predicate) const
 		{
 			return std::find_if(cbegin(), cend(), predicate);
 		}
 
-		/// <summary>
-		/// Gets an iterator for the beginning of this list
-		/// </summary>
-		/// <returns>An iterator for the beginning of this list</returns>
+		/// @brief Gets an iterator for the beginning of this list
+		/// @return An iterator for the beginning of this list
 		constexpr Iterator begin() noexcept { return _list.begin(); }
 
-		/// <summary>
-		/// Gets an iterator for the beginning of this list
-		/// </summary>
-		/// <returns>An iterator for the beginning of this list</returns>
+		/// @brief Gets an iterator for the beginning of this list
+		/// @return An iterator for the beginning of this list
 		constexpr ConstIterator begin() const noexcept { return cbegin(); }
 
-		/// <summary>
-		/// Gets an iterator for the beginning of this list
-		/// </summary>
-		/// <returns>An iterator for the beginning of this list</returns>
+		/// @brief Gets an iterator for the beginning of this list
+		/// @return An iterator for the beginning of this list
 		constexpr ConstIterator cbegin() const noexcept { return _list.cbegin(); }
 
-		/// <summary>
-		/// Gets an iterator for the end of this list
-		/// </summary>
-		/// <returns>An iterator for the end of this list</returns>
+		/// @brief Gets an iterator for the end of this list
+		/// @return An iterator for the end of this list
 		constexpr Iterator end() noexcept { return _list.end(); }
 
-		/// <summary>
-		/// Gets an iterator for the end of this list
-		/// </summary>
-		/// <returns>An iterator for the end of this list</returns>
+		/// @brief Gets an iterator for the end of this list
+		/// @return An iterator for the end of this list
 		constexpr ConstIterator end() const noexcept { return cend(); }
 
-		/// <summary>
-		/// Gets an iterator for the end of this list
-		/// </summary>
-		/// <returns>An iterator for the end of this list</returns>
+		/// @brief Gets an iterator for the end of this list
+		/// @return An iterator for the end of this list
 		constexpr ConstIterator cend() const noexcept { return _list.cend(); }
 
-		/// <summary>
-		/// Gets an iterator for the beginning of this list reversed
-		/// </summary>
-		/// <returns>An iterator for the beginning of this list reversed</returns>
+		/// @brief Gets an iterator for the beginning of this list reversed
+		/// @return An iterator for the beginning of this list reversed
 		constexpr ReverseIterator rbegin() noexcept { return _list.rbegin(); }
 
-		/// <summary>
-		/// Gets an iterator for the beginning of this list reversed
-		/// </summary>
-		/// <returns>An iterator for the beginning of this list reversed</returns>
-		constexpr ConstReverseIterator rbegin() const noexcept { return crbegin(); }
+		/// @brief Gets an iterator for the beginning of this list reversed
+		/// @return An iterator for the beginning of this list reversed
+		constexpr ReverseConstIterator rbegin() const noexcept { return crbegin(); }
 
-		/// <summary>
-		/// Gets an iterator for the beginning of this list reversed
-		/// </summary>
-		/// <returns>An iterator for the beginning of this list reversed</returns>
-		constexpr ConstReverseIterator crbegin() const noexcept { return _list.crbegin(); }
+		/// @brief Gets an iterator for the beginning of this list reversed
+		/// @return An iterator for the beginning of this list reversed
+		constexpr ReverseConstIterator crbegin() const noexcept { return _list.crbegin(); }
 
-		/// <summary>
-		/// Gets an iterator for the end of this list reversed
-		/// </summary>
-		/// <returns>An iterator for the end of this list reversed</returns>
+		/// @brief Gets an iterator for the end of this list reversed
+		/// @return An iterator for the end of this list reversed
 		constexpr ReverseIterator rend() noexcept { return _list.rend(); }
 
-		/// <summary>
-		/// Gets an iterator for the end of this list reversed
-		/// </summary>
-		/// <returns>An iterator for the end of this list reversed</returns>
-		constexpr ConstReverseIterator rend() const noexcept { return crend(); }
+		/// @brief Gets an iterator for the end of this list reversed
+		/// @return An iterator for the end of this list reversed
+		constexpr ReverseConstIterator rend() const noexcept { return crend(); }
 
-		/// <summary>
-		/// Gets an iterator for the end of this list reversed
-		/// </summary>
-		/// <returns>An iterator for the end of this list reversed</returns>
-		constexpr ConstReverseIterator crend() const noexcept { return _list.crend(); }
+		/// @brief Gets an iterator for the end of this list reversed
+		/// @return An iterator for the end of this list reversed
+		constexpr ReverseConstIterator crend() const noexcept { return _list.crend(); }
 
-		T& operator[](uint64_t index) { return _list.at(index); }
-		const T& operator[](uint64_t index) const { return _list.at(index); }
+		ValueType& operator[](uint64_t index) { return _list.at(index); }
+		const ValueType& operator[](uint64_t index) const { return _list.at(index); }
 	};
 }

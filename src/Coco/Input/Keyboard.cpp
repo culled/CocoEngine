@@ -2,6 +2,14 @@
 
 namespace Coco::Input
 {
+	KeyboardStateChange KeyboardStateChange::KeyStateChange(KeyboardKey key, bool isPressed) noexcept
+	{
+		KeyboardStateChange state = {};
+		state.Key = key;
+		state.IsPressed = isPressed;
+		return state;
+	}
+
 	void Keyboard::UpdateKeyState(KeyboardKey key, bool isPressed)
 	{
 		const int index = static_cast<int>(key);

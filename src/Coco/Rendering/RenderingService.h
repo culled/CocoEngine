@@ -13,13 +13,14 @@ namespace Coco::Rendering
 {
     class Texture;
 
-    /// <summary>
-    /// A service that allows for rendering operations
-    /// </summary>
+    /// @brief A service that allows for rendering operations
     class COCOAPI RenderingService final : public EngineService
     {
     public:
-        static constexpr int TickPriority = 9000;
+        /// @brief The priority for the handler that purges cached resources
+        static constexpr int ResourcePurgeTickPriority = 9000;
+
+        /// @brief The frequency of cached resource purging (in seconds)
         static constexpr double PurgeFrequency = 1.0;
 
     private:
@@ -33,83 +34,58 @@ namespace Coco::Rendering
         double _timeSinceLastPurge = 0.0;
 
     public:
-        RenderingService(Coco::Engine* engine, const GraphicsPlatformCreationParameters& backendCreateParams);
+        RenderingService(EngineServiceManager* serviceManager, const GraphicsPlatformCreationParameters& backendCreateParams);
         ~RenderingService() final;
 
-        /// <summary>
-        /// Gets the active rendering service
-        /// </summary>
-        /// <returns>The active rendering service</returns>
+        /// @brief Gets the active rendering service
+        /// @return The active rendering service
         static RenderingService* Get() noexcept { return s_instance; }
 
-        /// <summary>
-        /// Gets the current graphics platform
-        /// </summary>
-        /// <returns>The current graphics platform</returns>
+        /// @brief Gets the current graphics platform
+        /// @return The current graphics platform
         GraphicsPlatform* GetPlatform() const noexcept { return _graphics.get(); }
 
-        /// <summary>
-        /// Creates a graphics presenter
-        /// </summary>
-        /// <returns>A graphics presenter</returns>
-        WeakManagedRef<GraphicsPresenter> CreatePresenter() const { return _graphics->CreatePresenter(); }
-
-        /// <summary>
-        /// Sets the default render pipeline to use
-        /// </summary>
-        /// <param name="pipeline">The default render pipeline to use</param>
+        /// @brief Sets the default render pipeline to use
+        /// @param pipeline The default render pipeline to use
         void SetDefaultPipeline(Ref<RenderPipeline> pipeline) noexcept { _defaultPipeline = pipeline; }
 
-        /// <summary>
-        /// Gets the default render pipeline
-        /// </summary>
-        /// <returns>The default render pipeline</returns>
+        /// @brief Gets the default render pipeline
+        /// @return The default render pipeline
         Ref<RenderPipeline> GetDefaultPipeline() const noexcept { return _defaultPipeline; }
 
-        /// <summary>
-        /// Gets the default diffuse texture
-        /// </summary>
-        /// <returns>The default diffuse texture</returns>
+        /// @brief Gets the default diffuse texture
+        /// @return The default diffuse texture
         Ref<Texture> GetDefaultDiffuseTexture() const noexcept { return _defaultDiffuseTexture; }
 
-        /// <summary>
-        /// Gets the default checker texture
-        /// </summary>
-        /// <returns>The default checker texture</returns>
+        /// @brief Gets the default checker texture
+        /// @return The default checker texture
         Ref<Texture> GetDefaultCheckerTexture() const noexcept { return _defaultCheckerTexture; }
 
-        /// <summary>
-        /// Renders using the default render pipeline for a graphics presenter
-        /// </summary>
-        /// <param name="presenter">The presenter</param>
+        /// @brief Renders using the default render pipeline for a graphics presenter
+        /// @param presenter The presenter
         void Render(GraphicsPresenter* presenter);
 
-        /// <summary>
-        /// Renders using a render pipeline for a graphics presenter
-        /// </summary>
-        /// <param name="presenter">The presenter</param>
-        /// <param name="pipeline">The render pipeline</param>
+        /// @brief Renders using a render pipeline for a graphics presenter
+        /// @param presenter The presenter
+        /// @param pipeline The render pipeline
+        /// @param camera The camera to render from
         void Render(GraphicsPresenter* presenter, Ref<RenderPipeline> pipeline, CameraComponent* camera);
 
     private:
-        /// <summary>
-        /// Performs rendering using a render pipeline
-        /// </summary>
-        /// <param name="pipeline">The render pipeline</param>
-        /// <param name="context">The render context</param>
+        /// @brief Performs rendering using a render pipeline
+        /// @param pipeline The render pipeline
+        /// @param context The render context
         void DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept;
-
-        /// <summary>
-        /// Creates the default diffuse texture
-        /// </summary>
+                
+        /// @brief Creates the default diffuse texture
         void CreateDefaultDiffuseTexture();
 
-        /// <summary>
-        /// Creates the default checker texture
-        /// </summary>
+        /// @brief Creates the default checker texture
         void CreateDefaultCheckerTexture();
 
-        void Tick(double deltaTime);
+        /// @brief The tick that purges cached resources
+        /// @param deltaTime The time since the last tick
+        void PurgeTick(double deltaTime);
     };
 }
 

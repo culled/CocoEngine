@@ -5,7 +5,7 @@
 
 namespace Coco::Rendering
 {
-	ShaderLoader::ShaderLoader(ResourceLibrary* library, const string& basePath) : KeyValueResourceLoader(library, basePath)
+	ShaderLoader::ShaderLoader(ResourceLibrary* library) : KeyValueResourceLoader(library)
 	{}
 
 	Ref<Resource> ShaderLoader::LoadImpl(const string& path)
@@ -13,15 +13,15 @@ namespace Coco::Rendering
 		string shaderName;
 		List<Subshader> subshaders;
 
-		File file = File::Open(path, FileModes::Read);
+		File file = File::Open(path, FileModeFlags::Read);
 		KeyValueReader reader(file);
 		while (reader.ReadLine())
 		{
-			if (reader.IsVariable("version") && reader.GetVariableValue() != "1")
+			if (reader.IsKey("version") && reader.GetValue() != "1")
 				throw InvalidOperationException("Mismatching shader versions");
-			else if (reader.IsVariable(s_shaderNameVariable))
-				shaderName = reader.GetVariableValue();
-			else if (reader.IsVariable(s_subshaderSection))
+			else if (reader.IsKey(s_shaderNameVariable))
+				shaderName = reader.GetValue();
+			else if (reader.IsKey(s_subshaderSection))
 				ReadSubshaders(reader, subshaders);
 		}
 
@@ -42,11 +42,11 @@ namespace Coco::Rendering
 	{
 		if (Shader* shader = dynamic_cast<Shader*>(resource.get()))
 		{
-			File file = File::Open(path, FileModes::Write);
+			File file = File::Open(path, FileModeFlags::Write);
 			KeyValueWriter writer(file);
 
 			writer.WriteLine("version", "1");
-			writer.WriteLine(s_shaderNameVariable, shader->GetName());
+			writer.WriteLine(s_shaderNameVariable, shader->Name);
 
 			writer.WriteLine(s_subshaderSection);
 			writer.IncrementIndentLevel();
@@ -109,25 +109,24 @@ namespace Coco::Rendering
 		while (reader.ReadIfIsIndentLevel(1))
 		{
 			Subshader subshader = {};
-			subshader.PassName = reader.GetVariable();
+			subshader.PassName = reader.GetKey();
 
 			while (reader.ReadIfIsIndentLevel(2))
 			{
-				if (reader.IsVariable(s_stagesSection))
+				if (reader.IsKey(s_stagesSection))
 					ReadSubshaderStages(reader, subshader.StageFiles);
-				else if (reader.IsVariable(s_stateSection))
+				else if (reader.IsKey(s_stateSection))
 					ReadSubshaderState(reader, subshader.PipelineState);
-				else if (reader.IsVariable(s_attributesSection))
+				else if (reader.IsKey(s_attributesSection))
 					ReadSubshaderAttributes(reader, subshader.Attributes);
-				else if (reader.IsVariable(s_descriptorsSection))
+				else if (reader.IsKey(s_descriptorsSection))
 					ReadSubshaderDescriptors(reader, subshader.Descriptors);
-				else if (reader.IsVariable(s_samplersSection))
+				else if (reader.IsKey(s_samplersSection))
 					ReadSubshaderSamplers(reader, subshader.Samplers);
-				else if (reader.IsVariable(s_subshaderBindStageVariable))
+				else if (reader.IsKey(s_subshaderBindStageVariable))
 					subshader.DescriptorBindingPoint = static_cast<ShaderStageType>(reader.GetVariableValueAsInt());
 			}
 
-			subshader.UpdateAttributeOffsets();
 			subshaders.Add(subshader);
 		}
 	}
@@ -136,8 +135,8 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			ShaderStageType stageType = static_cast<ShaderStageType>(reader.GetVariableAsInt());
-			stageFiles[stageType] = reader.GetVariableValue();
+			ShaderStageType stageType = static_cast<ShaderStageType>(reader.GetKeyAsInt());
+			stageFiles[stageType] = reader.GetValue();
 		}
 	}
 
@@ -145,17 +144,17 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			if (reader.IsVariable(s_stateTopologyModeVariable))
+			if (reader.IsKey(s_stateTopologyModeVariable))
 				state.TopologyMode = static_cast<TopologyMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsVariable(s_stateCullingModeVariable))
+			else if (reader.IsKey(s_stateCullingModeVariable))
 				state.CullingMode = static_cast<CullMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsVariable(s_stateFillModeVariable))
+			else if (reader.IsKey(s_stateFillModeVariable))
 				state.PolygonFillMode = static_cast<PolygonFillMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsVariable(s_stateEnableDepthClampingVariable))
+			else if (reader.IsKey(s_stateEnableDepthClampingVariable))
 				state.EnableDepthClamping = reader.GetVariableValueAsBool();
-			else if (reader.IsVariable(s_stateDepthTestingModeVariable))
+			else if (reader.IsKey(s_stateDepthTestingModeVariable))
 				state.DepthTestingMode = static_cast<DepthTestingMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsVariable(s_stateEnableDepthWriteVariable))
+			else if (reader.IsKey(s_stateEnableDepthWriteVariable))
 				state.EnableDepthWrite = reader.GetVariableValueAsBool();
 		}
 	}
@@ -164,7 +163,7 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			attributes.Add(ShaderVertexAttribute(static_cast<BufferDataFormat>(reader.GetVariableAsInt())));
+			attributes.Add(ShaderVertexAttribute(static_cast<BufferDataFormat>(reader.GetKeyAsInt())));
 		}
 	}
 
@@ -174,7 +173,7 @@ namespace Coco::Rendering
 		{
 			descriptors.Add(
 				ShaderDescriptor(
-					reader.GetVariable(), 
+					reader.GetKey(), 
 					static_cast<BufferDataFormat>(reader.GetVariableValueAsInt())
 				)
 			);
@@ -185,7 +184,7 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			samplers.Add(ShaderTextureSampler(reader.GetVariable()));
+			samplers.Add(ShaderTextureSampler(reader.GetKey()));
 		}
 	}
 }

@@ -9,17 +9,16 @@ namespace Coco
 	struct Vector2Int;
 	struct Vector2;
 
-	/// <summary>
-	/// A size with a width and height using integers
-	/// </summary>
+	/// @brief A size with a width and height using integers
 	struct COCOAPI SizeInt
 	{
-		/// <summary>
-		/// A zero size
-		/// </summary>
+		/// @brief A size with zero width and height
 		static const SizeInt Zero;
 
+		/// @brief The width
 		int Width = 0;
+
+		/// @brief The height
 		int Height = 0;
 
 		SizeInt() noexcept = default;
@@ -51,29 +50,26 @@ namespace Coco
 		operator Vector2() const noexcept;
 	};
 
-	/// <summary>
-	/// A size with a width and height using decimals
-	/// </summary>
+	/// @brief A size with a width and height using decimals
 	struct COCOAPI Size
 	{
-		/// <summary>
-		/// A zero size
-		/// </summary>
+		/// @brief A size with zero width and height
 		static const Size Zero;
 
+		/// @brief The width
 		double Width = 0;
+
+		/// @brief The height
 		double Height = 0;
 
 		Size() noexcept = default;
 		Size(double width, double height) noexcept;
 		virtual ~Size() = default;
 
-		/// <summary>
-		/// Compares if this size equals another size
-		/// </summary>
-		/// <param name="other">The other size</param>
-		/// <param name="tolerance">The difference tolerance</param>
-		/// <returns>True if the two sizes are within the tolerance of each other</returns>
+		/// @brief Compares if this size equals another size
+		/// @param other The other size
+		/// @param tolerance The difference tolerance
+		/// @return True if the two sizes are within the tolerance of each other
 		bool Equals(const Size& other, double tolerance = Math::Epsilon) const noexcept
 		{
 			return Math::Approximately(Width, other.Width, tolerance) && Math::Approximately(Height, other.Height, tolerance);

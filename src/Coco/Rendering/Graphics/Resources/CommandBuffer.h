@@ -9,15 +9,11 @@ namespace Coco::Rendering
 	class IGraphicsSemaphore;
 	class IGraphicsFence;
 
-	/// <summary>
-	/// A buffer that can record commands
-	/// </summary>
+	/// @brief A buffer that can record commands
 	class COCOAPI CommandBuffer : public IGraphicsResource
 	{
 	public:
-		/// <summary>
-		/// States of a command buffer
-		/// </summary>
+		/// @brief States of a command buffer
 		enum class CommandBufferState
 		{
 			Ready,
@@ -26,9 +22,12 @@ namespace Coco::Rendering
 			Submitted
 		};
 
+		/// @brief If true, this is a top-level buffer
+		const bool IsPrimary;
+
 	protected:
+		/// @brief The current state of this buffer
 		CommandBufferState CurrentState;
-		bool IsPrimary;
 
 	protected:
 		CommandBuffer(bool isPrimary) noexcept;
@@ -42,72 +41,54 @@ namespace Coco::Rendering
 		CommandBuffer& operator=(const CommandBuffer&) = delete;
 		CommandBuffer& operator=(CommandBuffer&&) = delete;
 
-		/// <summary>
-		/// Begins recording to this command buffer
-		/// </summary>
-		/// <param name="isSingleUse">If true, this buffer will only be submitted once</param>
-		/// <param name="isSimultaneousUse">If true, this buffer can be submitted to multiple queues</param>
+		/// @brief Begins recording to this command buffer
+		/// @param isSingleUse If true, this buffer will only be submitted once
+		/// @param isSimultaneousUse If true, this buffer can be submitted to multiple queues
 		virtual void Begin(bool isSingleUse, bool isSimultaneousUse);
 
-		/// <summary>
-		/// Ends recording to this command buffer
-		/// </summary>
+		/// @brief Ends recording to this command buffer
 		virtual void End();
 
-		/// <summary>
-		/// Submits this command buffer
-		/// </summary>
-		/// <param name="waitSemaphores">Semaphores to wait on before performing this buffer's work</param>
-		/// <param name="signalSemaphores">Semaphores to signal once this buffer's work has been completed</param>
-		/// <param name="signalFence">A fence to signal once this buffer's work has been completed</param>
+		/// @brief Submits this command buffer
+		/// @param waitSemaphores Semaphores to wait on before performing this buffer's work
+		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
+		/// @param signalFence A fence to signal once this buffer's work has been completed
 		virtual void Submit(
 			const List<IGraphicsSemaphore*>& waitSemaphores = {},
 			const List<IGraphicsSemaphore*>& signalSemaphores = {},
 			IGraphicsFence* signalFence = nullptr);
 
-		/// <summary>
-		/// Resets this command buffer
-		/// </summary>
+		/// @brief Resets this command buffer
 		virtual void Reset();
 
-		/// <summary>
-		/// Ends and submits this buffer
-		/// </summary>
-		/// <param name="waitSemaphores">Semaphores to wait on before performing this buffer's work</param>
-		/// <param name="signalSemaphores">Semaphores to signal once this buffer's work has been completed</param>
-		/// <param name="signalFence">A fence to signal once this buffer's work has been completed</param>
+		/// @brief Ends and submits this buffer
+		/// @param waitSemaphores Semaphores to wait on before performing this buffer's work
+		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
+		/// @param signalFence A fence to signal once this buffer's work has been completed
 		void EndAndSubmit(
 			const List<IGraphicsSemaphore*>& waitSemaphores = {},
 			const List<IGraphicsSemaphore*>& signalSemaphores = {},
 			IGraphicsFence* signalFence = nullptr);
 
 	protected:
-		/// <summary>
-		/// Implementation to begin recording this command buffer
-		/// </summary>
-		/// <param name="isSingleUse">If true, this buffer will only be submitted once</param>
-		/// <param name="isSimultaneousUse">If true, this buffer can be submitted to multiple queues</param>
+		/// @brief Implementation to begin recording this command buffer
+		/// @param isSingleUse If true, this buffer will only be submitted once
+		/// @param isSimultaneousUse If true, this buffer can be submitted to multiple queues
 		virtual void BeginImpl(bool isSingleUse, bool isSimultaneousUse) = 0;
 
-		/// <summary>
-		/// Implementation to end recording this command buffer
-		/// </summary>
+		/// @brief Implementation to end recording this command buffer
 		virtual void EndImpl() = 0;
 
-		/// <summary>
-		/// Implementation to submit this command buffer
-		/// </summary>
-		/// <param name="waitSemaphores">Semaphores to wait on before performing this buffer's work</param>
-		/// <param name="signalSemaphores">Semaphores to signal once this buffer's work has been completed</param>
-		/// <param name="signalFence">A fence to signal once this buffer's work has been completed</param>
+		/// @brief Implementation to submit this command buffer
+		/// @param waitSemaphores Semaphores to wait on before performing this buffer's work
+		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
+		/// @param signalFence A fence to signal once this buffer's work has been completed
 		virtual void SubmitImpl(
 			const List<IGraphicsSemaphore*>& waitSemaphores,
 			const List<IGraphicsSemaphore*>& signalSemaphores,
 			IGraphicsFence* signalFence) = 0;
 
-		/// <summary>
-		/// Implementation to reset this command buffer
-		/// </summary>
+		/// @brief Implementation to reset this command buffer
 		virtual void ResetImpl() = 0;
 	};
 }

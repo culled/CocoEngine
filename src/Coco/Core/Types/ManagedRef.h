@@ -9,9 +9,7 @@ namespace Coco
 	template <typename>
 	class ManagedRef;
 
-	/// <summary>
-	/// Shared control block for a ManagedRefs and WeakManagedRefs
-	/// </summary>
+	/// @brief Shared control block for a ManagedRefs and WeakManagedRefs
 	class ManagedRefControlBlock
 	{
 		template<typename>
@@ -28,26 +26,21 @@ namespace Coco
 		ManagedRefControlBlock& operator=(const ManagedRefControlBlock&) = delete;
 		ManagedRefControlBlock& operator=(ManagedRefControlBlock&&) = delete;
 
-		/// <summary>
-		/// Gets if the resource is still valid
-		/// </summary>
-		/// <returns>True if the resource is still valid</returns>
-		bool IsValid() const noexcept { return _resourceValid; }
+		/// @brief Gets if the resource is still valid
+		/// @return True if the resource is still valid
+		constexpr bool IsValid() const noexcept { return _resourceValid; }
 
 	private:
-		/// <summary>
-		/// Marks the resource as invalid
-		/// </summary>
-		void Invalidate() noexcept { _resourceValid = false; }
+		/// @brief Marks the resource as invalid
+		constexpr void Invalidate() noexcept { _resourceValid = false; }
 	};
 
 	template <typename>
 	class WeakManagedRef;
 
-	/// <summary>
-	/// Class that manages the lifetime of an object, but can have weak references to the object
-	/// </summary>
-	template<typename ObjectType>
+	/// @brief Class that manages the lifetime of an object, but can have weak references to the object
+	/// @tparam ValueType 
+	template<typename ValueType>
 	class COCOAPI ManagedRef
 	{
 		template<typename>
@@ -58,16 +51,16 @@ namespace Coco
 
 	private:
 		std::shared_ptr<ManagedRefControlBlock> _controlBlock = nullptr;
-		std::unique_ptr<ObjectType> _managedResource;
+		std::unique_ptr<ValueType> _managedResource;
 
 	public:
-		ManagedRef(ObjectType* object) : _managedResource(object), _controlBlock(std::make_shared<ManagedRefControlBlock>())
+		ManagedRef(ValueType* object) : _managedResource(object), _controlBlock(std::make_shared<ManagedRefControlBlock>())
 		{}
 
-		ManagedRef(ObjectType&& object) :  _managedResource(object), _controlBlock(std::make_shared<ManagedRefControlBlock>())
+		ManagedRef(ValueType&& object) :  _managedResource(object), _controlBlock(std::make_shared<ManagedRefControlBlock>())
 		{}
 
-		ManagedRef(std::unique_ptr<ObjectType> object) : _managedResource(std::move(object)), _controlBlock(std::make_shared<ManagedRefControlBlock>())
+		ManagedRef(std::unique_ptr<ValueType> object) : _managedResource(std::move(object)), _controlBlock(std::make_shared<ManagedRefControlBlock>())
 		{}
 
 		template<typename ObjectV>
@@ -95,36 +88,32 @@ namespace Coco
 			return *this;
 		}
 
-		/// <summary>
-		/// Gets the raw resource
-		/// </summary>
-		/// <returns>The raw resource</returns>
-		ObjectType* Get() const noexcept { return _managedResource.get(); }
+		/// @brief Gets the raw resource
+		/// @tparam ValueType 
+		/// @return The raw resource
+		ValueType* Get() const noexcept { return _managedResource.get(); }
 
-		/// <summary>
-		/// Gets the number of references to this managed resource
-		/// </summary>
-		/// <returns>The number of references to this managed resource</returns>
+		/// @brief Gets the number of references to this managed resource
+		/// @return The number of references to this managed resource
 		int GetUseCount() const noexcept { return _controlBlock.use_count() - 1; }
 
-		ObjectType* operator->()const noexcept { return _managedResource.get(); }
+		ValueType* operator->()const noexcept { return _managedResource.get(); }
 	};
 
-	/// <summary>
-	/// Creates a managed reference for a given type
-	/// </summary>
-	/// <param name="...args">Arguments to forward to the object's constructor</param>
-	/// <returns>A managed reference</returns>
-	template<typename ObjectType, typename ... Args>
-	ManagedRef<ObjectType> CreateManagedRef(Args&&... args)
+	/// @brief Creates a managed reference for a given type
+	/// @tparam ValueType
+	/// @tparam ...Args
+	/// @param managedRef Arguments to forward to the object's constructor
+	/// @return A managed reference
+	template<typename ValueType, typename ... Args>
+	ManagedRef<ValueType> CreateManagedRef(Args&&... args)
 	{
-		return ManagedRef<ObjectType>(CreateManaged<ObjectType>(std::forward<Args>(args)...));
+		return ManagedRef<ValueType>(CreateManaged<ValueType>(std::forward<Args>(args)...));
 	}
 
-	/// <summary>
-	/// A weak reference to a ManagedRef object
-	/// </summary>
-	template<typename ObjectType>
+	/// @brief A weak reference to a ManagedRef object
+	/// @tparam ValueType 
+	template<typename ValueType>
 	class COCOAPI WeakManagedRef
 	{
 		template<typename>
@@ -132,7 +121,7 @@ namespace Coco
 
 	private:
 		std::shared_ptr<ManagedRefControlBlock> _controlBlock;
-		ObjectType* _ptr;
+		ValueType* _ptr;
 
 	public:
 		WeakManagedRef() :
@@ -141,7 +130,7 @@ namespace Coco
 
 		template<typename ObjectV>
 		WeakManagedRef(const ManagedRef<ObjectV>& managedRef) :
-			_controlBlock(managedRef._controlBlock), _ptr(static_cast<ObjectType*>(managedRef.Get()))
+			_controlBlock(managedRef._controlBlock), _ptr(static_cast<ValueType*>(managedRef.Get()))
 		{}
 
 		WeakManagedRef(const WeakManagedRef& weakRef) : 
@@ -150,16 +139,16 @@ namespace Coco
 
 		template<typename ObjectV>
 		WeakManagedRef(const WeakManagedRef<ObjectV>& weakRef) :
-			_controlBlock(weakRef._controlBlock), _ptr(weakRef._ptr)
+			_controlBlock(weakRef._controlBlock), _ptr(static_cast<ValueType*>(weakRef._ptr))
 		{}
 
-		WeakManagedRef(WeakManagedRef&& weakRef) : 
+		WeakManagedRef(WeakManagedRef&& weakRef) noexcept : 
 			_controlBlock(std::move(weakRef._controlBlock)), _ptr(std::move(weakRef._ptr))
 		{}
 
 		template<typename ObjectV>
-		WeakManagedRef(WeakManagedRef<ObjectV>&& weakRef) :
-			_controlBlock(std::move(weakRef._controlBlock)), _ptr(std::move(weakRef._ptr))
+		WeakManagedRef(WeakManagedRef<ObjectV>&& weakRef) noexcept :
+			_controlBlock(std::move(weakRef._controlBlock)), _ptr(std::move(static_cast<ValueType*>(weakRef._ptr)))
 		{}
 
 		virtual ~WeakManagedRef()
@@ -167,11 +156,9 @@ namespace Coco
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Gets the raw resource
-		/// </summary>
-		/// <returns>The raw resource, or nullptr if the resource is invalid</returns>
-		ObjectType* Get() const noexcept
+		/// @brief Gets the raw resource
+		/// @return The raw resource, or nullptr if the resource is invalid
+		ValueType* Get() const noexcept
 		{
 			if (IsValid())
 			{
@@ -182,15 +169,11 @@ namespace Coco
 			return nullptr;
 		}
 
-		/// <summary>
-		/// Gets if the resource is valid
-		/// </summary>
-		/// <returns>True if the resource is valid</returns>
+		/// @brief Gets if the resource is valid
+		/// @return True if the resource is valid
 		bool IsValid() const noexcept { return _controlBlock && _controlBlock->IsValid(); }
 
-		/// <summary>
-		/// Invalidates this reference
-		/// </summary>
+		/// @brief Invalidates this weak reference
 		void Invalidate() noexcept
 		{
 			_controlBlock.reset();
@@ -213,6 +196,17 @@ namespace Coco
 			return *this;
 		}
 
-		ObjectType* operator->() const noexcept { return _ptr; }
+		ValueType* operator->() const noexcept { return _ptr; }
 	};
+
+	/// @brief Casts a weak managed ref
+	/// @tparam To 
+	/// @tparam From 
+	/// @param from The original reference
+	/// @return The casted reference
+	template<typename To, typename From>
+	WeakManagedRef<To> WeakManagedRefCast(const WeakManagedRef<From>& from)
+	{
+		return WeakManagedRef<To>(from);
+	}
 }

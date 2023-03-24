@@ -4,9 +4,7 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// An exception thrown when an engine service fails to start
-	/// </summary>
+	/// @brief An exception thrown when an engine service fails to start
 	class COCOAPI EngineServiceException : public Exception
 	{
 	public:
@@ -14,9 +12,7 @@ namespace Coco
 		virtual ~EngineServiceException() = default;
 	};
 
-	/// <summary>
-	/// An exception thrown when an engine service fails to start
-	/// </summary>
+	/// @brief An exception thrown when an engine service fails to start
 	class COCOAPI EngineServiceStartException : public EngineServiceException
 	{
 	public:

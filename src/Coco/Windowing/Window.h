@@ -14,34 +14,22 @@ namespace Coco::Windowing
 {
 	class WindowingService;
 
-	/// <summary>
-	/// Parameters for creating a window
-	/// </summary>
+	/// @brief Parameters for creating a window
 	struct COCOAPI WindowCreateParameters
 	{
-		/// <summary>
-		/// The title for the window
-		/// </summary>
+		/// @brief The title for the window
 		string Title;
 
-		/// <summary>
-		/// The initial size for the window, if starting in a windowed state
-		/// </summary>
+		/// @brief The initial size for the window, if starting in a windowed state
 		SizeInt InitialSize;
 
-		/// <summary>
-		/// If true, the window will be resizable/maximizable
-		/// </summary>
+		/// @brief If true, the window will be resizable/maximizable
 		bool IsResizable = true;
 
-		/// <summary>
-		/// If provided, the window's top-left corner will be located here
-		/// </summary>
+		/// @brief If provided, the window's top-left corner will be located here
 		Optional<Vector2Int> InitialPosition;
 
-		/// <summary>
-		/// The initial state for the window
-		/// </summary>
+		/// @brief The initial state for the window
 		WindowState InitialState = WindowState::Windowed;
 
 		WindowCreateParameters(const string& title, const SizeInt initialSize, bool isResizable = true, WindowState initialState = WindowState::Windowed) noexcept :
@@ -49,37 +37,25 @@ namespace Coco::Windowing
 		{}
 	};
 
-	/// <summary>
-	/// A GUI window
-	/// </summary>
+	/// @brief A GUI window
 	class COCOAPI Window
 	{
+	public:
+		/// @brief The windowing service
+		WindowingService* const WindowingService;
+
 	protected:
-		/// <summary>
-		/// The presenter for the window
-		/// </summary>
+		/// @brief The presenter for the window
 		WeakManagedRef<Rendering::GraphicsPresenter> Presenter;
 
-		/// <summary>
-		/// The windowing service
-		/// </summary>
-		WindowingService* WindowingService;
-
 	public:
-		/// <summary>
-		/// Invoked when the window is trying to close.
-		/// Setting the bool value to true means the close is cancelled
-		/// </summary>
+		/// @brief Invoked when the window is trying to close. Setting the bool value to true means the close is cancelled
 		Event<Window*, bool&> OnClosing;
 
-		/// <summary>
-		/// Invoked when the window has closed
-		/// </summary>
+		/// @brief Invoked when the window has closed
 		Event<Window*> OnClosed;
 
-		/// <summary>
-		/// Invoked when the window is resized
-		/// </summary>
+		/// @brief Invoked when the window is resized
 		Event<Window*, const SizeInt&> OnResized;
 
 	protected:
@@ -95,61 +71,41 @@ namespace Coco::Windowing
 		Window& operator=(const Window& other) = delete;
 		Window& operator=(Window&& other) = delete;
 
-		/// <summary>
-		/// Gets this window's presenter
-		/// </summary>
-		/// <returns>This window's presenter</returns>
+		/// @brief Gets this window's presenter
+		/// @return This window's presenter
 		Rendering::GraphicsPresenter* GetPresenter() const noexcept { return Presenter.Get(); }
 
-		/// <summary>
-		/// Gets the platform-specific ID for this window
-		/// </summary>
-		/// <returns>The ID for this window</returns>
+		/// @brief Gets the platform-specific ID for this window
+		/// @return The ID for this window
 		virtual void* GetID() const noexcept = 0;
 
-		/// <summary>
-		/// Gets the size of the window's client area
-		/// </summary>
-		/// <returns>The size of the window's client area</returns>
+		/// @brief Gets the size of the window's client area
+		/// @return The size of the window's client area
 		virtual SizeInt GetSize() const noexcept = 0;
 
-		/// <summary>
-		/// Shows this window
-		/// </summary>
+		/// @brief Gets the drawable size of the window's backbuffer
+		/// @return The size of the window's backbuffer
+		virtual SizeInt GetBackbufferSize() const noexcept = 0;
+
+		/// @brief Shows/restores this window
 		virtual void Show() = 0;
 
-		/// <summary>
-		/// Minimizes this window
-		/// </summary>
+		/// @brief Minimizes this window
 		virtual void Minimize() = 0;
 
-		/// <summary>
-		/// Gets if this window is visible (shown and not minimized)
-		/// </summary>
-		/// <returns>True if this window is visible</returns>
+		/// @brief Gets if this window is visible (shown and not minimized)
+		/// @return True if this window is visible
 		virtual bool GetIsVisible() const noexcept = 0;
 
-		/// <summary>
-		/// Requests this window to close
-		/// </summary>
-		/// <returns>True if this window will close</returns>
+		/// @brief Requests this window to close
+		/// @return True if this window will close
 		bool Close() noexcept;
 
 	protected:
-		/// <summary>
-		/// Called when the window has resized
-		/// </summary>
+		/// @brief Called when the window has resized
 		void HandleResized();
 
-		/// <summary>
-		/// Sets up the surface for the window presenter
-		/// </summary>
+		/// @brief Sets up the surface for the window presenter
 		virtual void SetupPresenterSurface() = 0;
-
-		/// <summary>
-		/// Gets the drawable size of the window's backbuffer
-		/// </summary>
-		/// <returns>The size of the window's backbuffer</returns>
-		virtual SizeInt GetBackbufferSize() const noexcept = 0;
 	};
 }

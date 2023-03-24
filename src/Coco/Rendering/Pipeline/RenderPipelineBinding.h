@@ -9,25 +9,17 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A mapped attachment description
-	/// </summary>
+	/// @brief A mapped attachment description
 	struct MappedAttachmentDescription
 	{
-		/// <summary>
-		/// The attachment description
-		/// </summary>
+		/// @brief The attachment description
 		AttachmentDescription AttachmentDescription = AttachmentDescription::Empty;
 
-		/// <summary>
-		/// The index of the pipeline attachment
-		/// </summary>
+		/// @brief The index of the pipeline attachment
 		uint PipelineAttachmentIndex = 0;
 	};
 
-	/// <summary>
-	/// A binding between an IRenderPass and a RenderPipeline
-	/// </summary>
+	/// @brief A binding between an IRenderPass and a RenderPipeline
 	class COCOAPI RenderPipelineBinding
 	{
 	private:
@@ -38,16 +30,12 @@ namespace Coco::Rendering
 		RenderPipelineBinding(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentMapping);
 		virtual ~RenderPipelineBinding();
 
-		/// <summary>
-		/// Gets the mapping between the pipeline attachments and this render pass's attachments
-		/// </summary>
-		/// <returns>The list of attachment mappings</returns>
-		List<MappedAttachmentDescription> GetMappedAttachmentDescriptions() const noexcept { return _mappedAttachmentDescriptions; }
+		/// @brief Gets the mapping between the pipeline attachments and this render pass's attachments
+		/// @return The list of attachment mappings
+		const List<MappedAttachmentDescription>& GetMappedAttachmentDescriptions() const noexcept { return _mappedAttachmentDescriptions; }
 
-		/// <summary>
-		/// Gets the bound render pass
-		/// </summary>
-		/// <returns>The render pass</returns>
+		/// @brief Gets the bound render pass
+		/// @return The render pass
 		Ref<IRenderPass> GetRenderPass() noexcept { return _renderPass; }
 	};
 }

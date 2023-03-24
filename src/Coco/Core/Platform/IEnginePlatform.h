@@ -8,9 +8,7 @@
 
 namespace Coco::Platform
 {
-	/// <summary>
-	/// An interface for communicating with the underlying platform the engine is running on
-	/// </summary>
+	/// @brief An interface for communicating with the underlying platform the engine is running on
 	class COCOAPI IEnginePlatform
 	{
 	protected:
@@ -19,74 +17,46 @@ namespace Coco::Platform
 	public:
 		virtual ~IEnginePlatform() = default;
 
-		/// <summary>
-		/// Called when the engine has initialized and all services have started
-		/// </summary>
+		/// @brief Called when the engine has initialized and all services have started
 		virtual void Start() = 0;
 
-		/// <summary>
-		/// Gets the command line arguments passed to the application
-		/// </summary>
-		/// <param name="arguments">A list that will be populated with the command line arguments</param>
-		virtual void GetPlatformCommandLineArguments(List<string>& arguments) const noexcept = 0;
+		/// @brief Gets the command line arguments passed to the application
+		/// @param arguments A list that will be populated with the command line arguments
+		virtual void GetCommandLineArguments(List<string>& arguments) const noexcept = 0;
 
-		/// <summary>
-		/// Called by the engine when platform-specific messages should be handled
-		/// </summary>
+		/// @brief Called by the engine when platform-specific messages should be handled
 		virtual void HandlePlatformMessages() = 0;
 
-		/// <summary>
-		/// Called to fill out the neccessary rendering extensions for the given render hardware interface
-		/// </summary>
-		/// <param name="renderingRHIEnum">The type of the render hardware interface being used</param>
-		/// <param name="includePresentationExtensions">If true, extensions for presenting should be included</param>
-		/// <param name="extensionNames">A list that will be populated with the required render extensions</param>
-		virtual void GetPlatformRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept = 0;
+		/// @brief Gets the current UTC time from the platform
+		/// @return The current UTC time
+		virtual DateTime GetUtcTime() const = 0;
 
-		/// <summary>
-		/// Gets the current UTC time from the platform
-		/// </summary>
-		/// <returns>The current UTC time</returns>
-		virtual DateTime GetPlatformUtcTime() const = 0;
+		/// @brief Gets the current local time from the platform
+		/// @return The current local time 
+		virtual DateTime GetLocalTime() const = 0;
 
-		/// <summary>
-		/// Gets the current local time from the platform
-		/// </summary>
-		/// <returns>The current local time</returns>
-		virtual DateTime GetPlatformLocalTime() const = 0;
+		/// @brief Gets the amount of time the machine has been running
+		/// @return The number of seconds the machine has been running
+		virtual double GetRunningTimeSeconds() const = 0;
 
-		/// <summary>
-		/// Gets the amount of time the machine has been running
-		/// </summary>
-		/// <returns>The number of seconds the machine has been running</returns>
-		virtual double GetPlatformTimeSeconds() const = 0;
-
-		/// <summary>
-		/// Writes a message to the platform's console output
-		/// </summary>
-		/// <param name="message">The message to write</param>
-		/// <param name="color">The color of the message's text</param>
-		/// <param name="isError">If true, the message will be written to the error stream</param>
-		virtual void WriteToPlatformConsole(const string& message, ConsoleColor color, bool isError) = 0;
+		/// @brief Writes a message to the platform's console output
+		/// @param message The message to write
+		/// @param color The color of the message's text
+		/// @param isError If true, the message will be written to the error stream
+		virtual void WriteToConsole(const string& message, ConsoleColor color, bool isError) = 0;
 		
-		/// <summary>
-		/// Sets if the platform's console window is visible
-		/// </summary>
-		/// <param name="isVisible">If true, the console will be visible/opened, else it will be invisible/closed</param>
-		virtual void SetPlatformConsoleVisible(bool isVisible) = 0;
+		/// @brief Sets the visibility of the platform's console window
+		/// @param isVisible If true, the console will be visible/opened, else it will be invisible/closed
+		virtual void SetConsoleVisible(bool isVisible) = 0;
 
-		/// <summary>
-		/// Causes the main program thread to sleep for the given amount of time
-		/// </summary>
-		/// <param name="milliseconds">The number of milliseconds to sleep</param>
+		/// @brief Causes the main program thread to sleep for the given amount of time
+		/// @param milliseconds The number of milliseconds to sleep
 		virtual void Sleep(unsigned long milliseconds) = 0;
 
-		/// <summary>
-		/// Shows a message box on the platform
-		/// </summary>
-		/// <param name="title">The title</param>
-		/// <param name="message">The message</param>
-		/// <param name="isError">If true, the message box will display for an error</param>
-		virtual void ShowPlatformMessageBox(const string& title, const string& message, bool isError) = 0;
+		/// @brief Shows a pop-up message box on the platform
+		/// @param title The title
+		/// @param message The message
+		/// @param isError If true, the message box will display for an error
+		virtual void ShowMessageBox(const string& title, const string& message, bool isError) = 0;
 	};
 }

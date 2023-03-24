@@ -2,9 +2,7 @@
 
 namespace Coco::Logging
 {
-	/// <summary>
-	/// Log message levels
-	/// </summary>
+	/// @brief Log message levels
 	enum class LogLevel
 	{
 		Trace,

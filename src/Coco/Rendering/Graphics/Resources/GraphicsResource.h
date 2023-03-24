@@ -4,6 +4,7 @@
 
 namespace Coco::Rendering
 {
+	/// @brief A resource that the graphics device owns and manages the lifetime of
 	class COCOAPI IGraphicsResource
 	{
 	protected:

@@ -20,13 +20,6 @@ namespace Coco
 		Logger.reset();
 	}
 
-
-	/// <summary>
-	/// Creates an application for a given engine
-	/// </summary>
-	/// <param name="engine">The engine</param>
-	/// <returns>The created application</returns>
-
 	Managed<Application> Application::Create(Coco::Engine* engine)
 	{
 		return CreateApplication(engine);

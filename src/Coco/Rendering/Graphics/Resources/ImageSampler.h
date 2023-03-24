@@ -6,14 +6,17 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A sampler for an image
-	/// </summary>
+	/// @brief A sampler for an image
 	class COCOAPI ImageSampler : public IGraphicsResource
 	{
 	protected:
+		/// @brief The filter mode
 		FilterMode FilterMode;
+
+		/// @brief The repeat mode
 		RepeatMode RepeatMode;
+
+		/// @brief The maximum amount of anisotropy to use
 		uint MaxAnisotropy;
 
 	protected:
@@ -28,22 +31,16 @@ namespace Coco::Rendering
 		ImageSampler& operator=(const ImageSampler&) = delete;
 		ImageSampler& operator=(ImageSampler&&) = delete;
 
-		/// <summary>
-		/// Gets this sampler's filter mode
-		/// </summary>
-		/// <returns>The filter mode</returns>
-		Rendering::FilterMode GetFilterMode() const noexcept { return FilterMode; }
+		/// @brief Gets this sampler's filter mode
+		/// @return The filter mode
+		constexpr Rendering::FilterMode GetFilterMode() const noexcept { return FilterMode; }
 
-		/// <summary>
-		/// Gets this sampler's repeat mode
-		/// </summary>
-		/// <returns>The repeat mode</returns>
-		Rendering::RepeatMode GetRepeatMode() const noexcept { return RepeatMode; }
+		/// @brief Gets this sampler's repeat mode
+		/// @return The repeat mode
+		constexpr Rendering::RepeatMode GetRepeatMode() const noexcept { return RepeatMode; }
 
-		/// <summary>
-		/// Gets this sampler's maximum anisotropy
-		/// </summary>
-		/// <returns>The maximum anisotropy</returns>
-		uint GetMaxAnisotropy() const noexcept { return MaxAnisotropy; }
+		/// @brief Gets this sampler's maximum anisotropy
+		/// @return The maximum anisotropy
+		constexpr uint GetMaxAnisotropy() const noexcept { return MaxAnisotropy; }
 	};
 }

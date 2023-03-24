@@ -12,30 +12,23 @@ namespace Coco
 {
 	class Engine;
 
-	/// <summary>
-	/// Base class for a client application that the engine runs
-	/// </summary>
+	/// @brief Base class for a client application that the engine runs
 	class COCOAPI Application
 	{
 	public:
-		/// <summary>
-		/// The name of the application
-		/// </summary>
+		/// @brief The name of the application
 		const string Name;
 
-		/// <summary>
-		/// Invoked when the application is trying to quit.
-		/// Setting the bool value to true means the quit is cancelled
-		/// </summary>
+		/// @brief Invoked when the application is trying to quit. Setting the bool value to true means the quit is cancelled
 		Event<bool&> OnQuitting;
 
-		/// <summary>
-		/// Invoked when the application has quit
-		/// </summary>
+		/// @brief Invoked when the application has quit
 		Event<> OnQuit;
 
+		/// @brief A pointer the engine
+		Engine* const Engine;
+
 	protected:
-		Engine* Engine;
 		Managed<Logging::Logger> Logger;
 
 	protected:
@@ -51,22 +44,16 @@ namespace Coco
 		Application& operator=(const Application&) = delete;
 		Application& operator=(Application&&) = delete;
 
-		/// <summary>
-		/// Creates an application for a given engine
-		/// </summary>
-		/// <param name="engine">The engine</param>
-		/// <returns>The created application</returns>
+		/// @brief Creates an application for a given engine
+		/// @param engine The engine
+		/// @return The created application
 		static Managed<Application> Create(Coco::Engine* engine);
 
-		/// <summary>
-		/// Called right before the main loop begins, but after all other engine initialization has happened
-		/// </summary>
+		/// @brief Called right before the main loop begins, but after all other engine initialization has happened
 		virtual void Start() = 0;
 
-		/// <summary>
-		/// Requests this application to quit
-		/// </summary>
-		/// <returns>True if the application will quit</returns>
+		/// @brief Requests this application to quit
+		/// @return True if the application will quit
 		bool Quit() noexcept;
 
 		// TEMPORARY -------------------------------------

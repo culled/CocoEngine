@@ -21,19 +21,20 @@ namespace Coco::Rendering::Vulkan
 	class ImageVulkan;
 	class RenderContextVulkan;
 
-	/// <summary>
-	/// Support details for a swapchain
-	/// </summary>
+	/// @brief Support details for a swapchain
 	struct SwapchainSupportDetails
 	{
+		/// @brief The surface capabilities
 		VkSurfaceCapabilitiesKHR SurfaceCapabilities;
+
+		/// @brief A list of supported surface formats
 		List<VkSurfaceFormatKHR> SurfaceFormats;
+
+		/// @brief A list of supported present modes
 		List<VkPresentModeKHR> PresentModes;
 	};
 
-    /// <summary>
-    /// Vulkan implentation of a GraphicsPresenter
-    /// </summary>
+    /// @brief Vulkan implentation of a GraphicsPresenter
     class GraphicsPresenterVulkan final : public GraphicsPresenter
     {
 	private:
@@ -57,7 +58,7 @@ namespace Coco::Rendering::Vulkan
 		GraphicsPresenterVulkan(GraphicsDevice* device);
 		~GraphicsPresenterVulkan() final;
 
-		void InitializeSurface(PresenterSurfaceInitializationInfo* surfaceInitInfo) final;
+		void InitializeSurface(const PresenterSurfaceInitializationInfo& surfaceInitInfo) final;
 		bool IsSurfaceInitialized() const noexcept final { return _surface != nullptr; }
 
 		void SetBackbufferSize(const SizeInt& backbufferSize) noexcept final;
@@ -70,72 +71,53 @@ namespace Coco::Rendering::Vulkan
 		bool Present(RenderContext* renderContext) final;
 
 	private:
-		/// <summary>
-		/// Picks a present mode to use from the supported modes
-		/// </summary>
-		/// <param name="preferredVSyncMode">The desired vsync mode</param>
-		/// <param name="supportDetails">Swapchain support details</param>
-		/// <returns>The present mode to use</returns>
+		/// @brief Picks a present mode to use from the supported modes
+		/// @param preferredVSyncMode The desired vsync mode
+		/// @param supportDetails Swapchain support details
+		/// @return The present mode to use
 		static VkPresentModeKHR PickPresentMode(VerticalSyncMode preferredVSyncMode, const SwapchainSupportDetails& supportDetails) noexcept;
 
-		/// <summary>
-		/// Picks a surface format to use from the supported formats
-		/// </summary>
-		/// <param name="supportDetails">Swapchain support details</param>
-		/// <returns>The surface format to use</returns>
+		/// @brief Picks a surface format to use from the supported formats
+		/// @param supportDetails Swapchain support details
+		/// @return The surface format to use
 		static VkSurfaceFormatKHR PickSurfaceFormat(const SwapchainSupportDetails& supportDetails) noexcept;
 
-		/// <summary>
-		/// Picks an extent for the backbuffer to use from the supported capabilities
-		/// </summary>
-		/// <param name="preferredSize">The desired size of the backbuffer</param>
-		/// <param name="supportDetails">Swapchain support details</param>
-		/// <returns>The extent to use</returns>
+		/// @brief Picks an extent for the backbuffer to use from the supported capabilities
+		/// @param preferredSize The desired size of the backbuffer
+		/// @param supportDetails Swapchain support details
+		/// @return The extent to use
 		static VkExtent2D PickBackbufferExtent(const SizeInt& preferredSize, const SwapchainSupportDetails& supportDetails) noexcept;
 
-		/// <summary>
-		/// Picks the number of backbuffers to use from the supported capabilities
-		/// </summary>
-		/// <param name="preferredCount">The desired number of images</param>
-		/// <param name="supportDetails">Swapchain support details</param>
-		/// <returns>The number of images to use</returns>
+		/// @brief Picks the number of backbuffers to use from the supported capabilities
+		/// @param preferredCount The desired number of images
+		/// @param supportDetails Swapchain support details
+		/// @return The number of images to use
 		static uint32_t PickBackbufferCount(int preferredCount, const SwapchainSupportDetails& supportDetails) noexcept;
 
-		/// <summary>
-		/// Gets details about what the swapchain supports
-		/// </summary>
-		/// <param name="device">The physical device</param>
-		/// <param name="surface">The surface</param>
-		/// <returns>The swapchain support details</returns>
-		static SwapchainSupportDetails GetSwapchainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface);
+		/// @brief Gets details about what the swapchain supports
+		/// @param device The physical device
+		/// @param surface The surface
+		/// @return The swapchain support details
+		static SwapchainSupportDetails GetSwapchainSupportDetails(const VkPhysicalDevice& device, const VkSurfaceKHR& surface);
 
-		/// <summary>
-		/// Creates or recreates the swapchain using the currently set parameters
-		/// </summary>
+		/// @brief Creates or recreates the swapchain using the currently set parameters
+		/// @return True if the swapchain is up to date
 		bool EnsureSwapchainIsUpdated();
 
-		/// <summary>
-		/// Creates/recreates the swapchain
-		/// </summary>
-		/// <param name="vsyncMode">The vsync mode to use</param>
-		/// <param name="backbufferSize">The size of the backbuffers to use</param>
-		/// <param name="backbufferCount">The number of backbuffers to create</param>
-		/// <returns>True if the swapchain was created</returns>
+		/// @brief Creates/recreates the swapchain
+		/// @param vsyncMode The vsync mode to use
+		/// @param backbufferSize The size of the backbuffers to use
+		/// @param backbufferCount The number of backbuffers to create
+		/// @return True if the swapchain was created
 		bool CreateSwapchain(VerticalSyncMode vsyncMode, const SizeInt& backbufferSize, int backbufferCount);
 
-		/// <summary>
-		/// Destroys all objects created from a swapchain
-		/// </summary>
+		/// @brief Destroys all objects created from a swapchain
 		void DestroySwapchainObjects() noexcept;
 
-		/// <summary>
-		/// Creates/recreates the render contexts used for rendering frames
-		/// </summary>
+		/// @brief Creates/recreates the render contexts used for rendering frames
 		void RecreateRenderContexts();
 
-		/// <summary>
-		/// Destroys the current render contexts
-		/// </summary>
+		/// @brief Destroys the current render contexts
 		void DestroyRenderContexts() noexcept;
     };
 }

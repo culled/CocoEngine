@@ -43,7 +43,7 @@ namespace Coco::Rendering
 		_renderPasses.Clear();
 	}
 
-	List<RenderPipelineAttachmentDescription> RenderPipeline::GetPipelineAttachmentDescriptions()
+	const List<RenderPipelineAttachmentDescription>& RenderPipeline::GetPipelineAttachmentDescriptions()
 	{
 		if (_attachmentDescriptionsDirty)
 			GatherPipelineAttachmentDescriptions();
@@ -59,7 +59,7 @@ namespace Coco::Rendering
 		return binding;
 	}
 
-	bool RenderPipeline::RemoveRenderPass(RenderPipelineBinding* renderPassBinding) noexcept
+	bool RenderPipeline::RemoveRenderPass(const RenderPipelineBinding*& renderPassBinding) noexcept
 	{
 		try
 		{

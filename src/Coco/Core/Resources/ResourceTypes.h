@@ -2,9 +2,7 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// Types of builtin resources
-	/// </summary>
+	/// @brief Types of built-in resources
 	enum class ResourceType
 	{
 		Text,
@@ -16,11 +14,9 @@ namespace Coco
 		RenderPipeline,
 	};
 
-	/// <summary>
-	/// Converts a resource type to its string representation
-	/// </summary>
-	/// <param name="type">The resource type</param>
-	/// <returns>The string representation of the resource type</returns>
+	/// @brief Converts a resource type to its string representation
+	/// @param type The resource type
+	/// @return The string representation of the resource type
 	constexpr const char* ResourceTypeToString(ResourceType type)
 	{
 		switch (type)

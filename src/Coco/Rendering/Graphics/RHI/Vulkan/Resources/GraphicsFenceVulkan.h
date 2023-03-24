@@ -13,9 +13,7 @@ namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 
-	/// <summary>
-	/// Vulkan-implementation of a GraphicsFence
-	/// </summary>
+	/// @brief Vulkan-implementation of a GraphicsFence
 	class GraphicsFenceVulkan final : public IGraphicsFence
 	{
 	private:
@@ -30,10 +28,8 @@ namespace Coco::Rendering::Vulkan
 		void Reset() final;
 		void Wait(uint64_t timeoutNs) final;
 
-		/// <summary>
-		/// Gets the underlying VkFence
-		/// </summary>
-		/// <returns>The underlying fence</returns>
+		/// @brief Gets the underlying VkFence
+		/// @return The underlying fence
 		VkFence GetFence() const { return _fence; }
 	};
 }

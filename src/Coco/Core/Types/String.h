@@ -7,32 +7,29 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// A generic string of characters
-	/// </summary>
+	/// @brief A generic string of characters
 	using string = std::string;
 
-	/// <summary>
-	/// Creates a string integrating a number of arguments.
-	/// Ex: FormattedString("{0} {1}", "Hello", "Coco") would output "Hello Coco"
-	/// </summary>
-	/// <typeparam name="...Args"></typeparam>
-	/// <param name="str">The format for the string</param>
-	/// <param name="...args">The arguments that correspond to places in the format string</param>
-	/// <returns>A formatted string</returns>
+	/// @brief Creates a string integrating a number of arguments. Ex: FormattedString("{0} {1}", "Hello", "Coco") would output "Hello Coco"
+	/// @tparam ...Args 
+	/// @param str The format for the string
+	/// @param ...args The arguments that correspond to places in the format string
+	/// @return A string
 	template<typename ... Args>
 	string FormattedString(const string str, Args&& ... args)
 	{
 		return std::vformat(str, std::make_format_args(std::forward<Args>(args)...));
 	}
 
-	/// <summary>
-	/// Returns a string with all leading and trailing whitespace removed
-	/// </summary>
-	/// <param name="str">The string to trim</param>
-	/// <returns>The input string with leading and trailing whitespace removed</returns>
+	/// @brief Returns a string with all leading and trailing whitespace removed
+	/// @param str The string to trim
+	/// @return The input string with leading and trailing whitespace removed
 	COCOAPI string TrimWhitespace(const string& str);
 
+	/// @brief Converts a basic type to a string
+	/// @tparam T 
+	/// @param value The value
+	/// @return The value as a string
 	template<typename T>
 	COCOAPI string ToString(const T& value) { return std::to_string(value); }
 }

@@ -3,7 +3,7 @@
 
 namespace Coco
 {
-	EngineServiceManager::EngineServiceManager(Engine* engine) : _engine(engine)
+	EngineServiceManager::EngineServiceManager(Coco::Engine* engine) : Engine(engine)
 	{}
 
 	EngineServiceManager::~EngineServiceManager()

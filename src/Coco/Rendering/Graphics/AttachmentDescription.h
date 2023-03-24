@@ -1,65 +1,43 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/API.h>
 
 #include "Resources/ImageTypes.h"
 #include "GraphicsPipelineTypes.h"
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A description for an attachment used by a render pass
-	/// </summary>
+	/// @brief A description for an attachment used by a render pass
 	struct COCOAPI AttachmentDescription
 	{
-		/// <summary>
-		/// An empty/unused attachment
-		/// </summary>
+		/// @brief An empty/unused attachment
 		static const AttachmentDescription Empty;
 
-		/// <summary>
-		/// The pixel format of this attachment
-		/// </summary>
+		/// @brief The pixel format of this attachment
 		PixelFormat PixelFormat = PixelFormat::Unknown;
 
-		/// <summary>
-		/// The color space of this attachment
-		/// </summary>
+		/// @brief The color space of this attachment
 		ColorSpace ColorSpace = ColorSpace::Unknown;
 
-		/// <summary>
-		/// If true, this attachment uses blending of some sort
-		/// </summary>
+		/// @brief If true, this attachment uses blending of some sort
 		bool UsesBlending = false;
 
-		/// <summary>
-		/// The blend factor for the color source
-		/// </summary>
+		/// @brief The blend factor for the color source
 		BlendFactorMode ColorSourceFactor = BlendFactorMode::One;
 
-		/// <summary>
-		/// The blend factor for the color destination
-		/// </summary>
+		/// @brief The blend factor for the color destination
 		BlendFactorMode ColorDestinationFactor = BlendFactorMode::Zero;
 
-		/// <summary>
-		/// The operation to use for combining the source and destination colors
-		/// </summary>
+		/// @brief The operation to use for combining the source and destination colors
 		BlendOperation ColorBlendOperation = BlendOperation::Add;
 
-		/// <summary>
-		/// The blend factor for the alpha source
-		/// </summary>
+		/// @brief The blend factor for the alpha source
 		BlendFactorMode AlphaSourceBlendFactor = BlendFactorMode::One;
 
-		/// <summary>
-		/// The blend factor for the alpha destination
-		/// </summary>
+		/// @brief The blend factor for the alpha destination
 		BlendFactorMode AlphaDestinationBlendFactor = BlendFactorMode::Zero;
 
-		/// <summary>
-		/// The operation to use for combining the source and destination alphas
-		/// </summary>
+		/// @brief The operation to use for combining the source and destination alphas
 		BlendOperation AlphaBlendOperation = BlendOperation::Add;
 
 		AttachmentDescription() = default;

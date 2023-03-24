@@ -1,6 +1,7 @@
 #include "GraphicsPlatformVulkan.h"
 
 #include <Coco/Rendering/RenderingService.h>
+#include <Coco/Rendering/IRenderingPlatform.h>
 #include <Coco/Core/Application.h>
 #include <Coco/Core/Engine.h>
 #include "Resources/GraphicsPresenterVulkan.h"
@@ -53,6 +54,14 @@ namespace Coco::Rendering::Vulkan
 	GraphicsPlatformVulkan::GraphicsPlatformVulkan(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams) :
 		GraphicsPlatform(renderingService, creationParams), _deviceCreationParams(creationParams.DeviceCreateParams)
 	{
+		List<string> platformExtensionNames;
+
+		Platform::IRenderingPlatform* renderingPlatform = dynamic_cast<Platform::IRenderingPlatform*>(Engine::Get()->GetPlatform());
+		if (renderingPlatform == nullptr)
+			throw RenderingException("Platform does not support rendering");
+
+		renderingPlatform->GetRenderingExtensions(static_cast<int>(GetRHI()), SupportsPresentation, platformExtensionNames);
+
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pEngineName = "Coco";
@@ -62,9 +71,6 @@ namespace Coco::Rendering::Vulkan
 		appInfo.apiVersion = VK_API_VERSION_1_2; // TODO: option to choose api version?
 
 		List<const char*> requestedExtensionNames;
-		List<string> platformExtensionNames;
-
-		Engine::Get()->GetPlatform()->GetPlatformRenderingExtensions(static_cast<int>(GetRHI()), SupportsPresentation, platformExtensionNames);
 
 		for (const string& extension : platformExtensionNames)
 			requestedExtensionNames.Add(extension.c_str());
@@ -143,13 +149,13 @@ namespace Coco::Rendering::Vulkan
 
 	GraphicsDevice* GraphicsPlatformVulkan::GetDevice() const noexcept { return _device.get(); }
 
-	void GraphicsPlatformVulkan::ResetDevice()
-	{
-		// TODO: handle how to reinitialize resources!
-		LogInfo(GetLogger(), "Resetting graphics device...");
-		_device = GraphicsDeviceVulkan::Create(*this, _deviceCreationParams);
-		LogInfo(GetLogger(), "Graphics device reset");
-	}
+	//void GraphicsPlatformVulkan::ResetDevice()
+	//{
+	//	// TODO: handle how to reinitialize resources!
+	//	LogInfo(GetLogger(), "Resetting graphics device...");
+	//	_device = GraphicsDeviceVulkan::Create(*this, _deviceCreationParams);
+	//	LogInfo(GetLogger(), "Graphics device reset");
+	//}
 
 	WeakManagedRef<GraphicsPresenter> GraphicsPlatformVulkan::CreatePresenter()
 	{

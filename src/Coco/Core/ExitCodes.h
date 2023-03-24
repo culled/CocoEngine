@@ -4,9 +4,7 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// Exit codes for the engine/application
-	/// </summary>
+	/// @brief Exit codes for the engine/application
 	enum class ExitCode
 	{
 		Ok = 0,

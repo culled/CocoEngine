@@ -24,7 +24,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	CachedVulkanFramebuffer::CachedVulkanFramebuffer(GraphicsDeviceVulkan* device, Ref<RenderPipeline> pipeline) : CachedResource(pipeline->GetID(), pipeline->GetVersion()),
+	CachedVulkanFramebuffer::CachedVulkanFramebuffer(GraphicsDeviceVulkan* device, Ref<RenderPipeline> pipeline) : CachedResource(pipeline->ID, pipeline->GetVersion()),
 		Device(device), PipelineRef(pipeline)
 	{}
 
@@ -37,7 +37,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		if (Ref<RenderPipeline> pipeline = PipelineRef.lock())
 		{
-			return Framebuffer == nullptr || FramebufferSize == SizeInt::Zero || this->Version != pipeline->GetVersion();
+			return Framebuffer == nullptr || FramebufferSize == SizeInt::Zero || this->GetVersion() != pipeline->GetVersion();
 		}
 
 		return false;
@@ -65,7 +65,7 @@ namespace Coco::Rendering::Vulkan
 		if (!_device->GetGraphicsCommandPool(_pool))
 			throw VulkanRenderingException("A graphics command pool needs to be created for rendering");
 
-		_commandBuffer = static_cast<CommandBufferVulkan*>(_pool->Allocate(true));
+		_commandBuffer = _pool->Allocate(true);
 
 		_globalUBO = _device->CreateResource<BufferVulkan>(
 			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
@@ -100,7 +100,7 @@ namespace Coco::Rendering::Vulkan
 		_renderTargets.Clear();
 
 		_pool->Free(_commandBuffer);
-		_commandBuffer = nullptr;
+		_commandBuffer.Invalidate();
 		_pool = nullptr;
 
 		_imageAvailableSemaphore.Invalidate();
@@ -470,7 +470,7 @@ namespace Coco::Rendering::Vulkan
 		const Subshader* subshader;
 		if (!shader->TryGetSubshader(subshaderName, subshader))
 			throw RenderingException(FormattedString("Could not find a subshader in \"{}\" for pass {}",
-				shader->GetName(),
+				shader->Name,
 				subshaderName
 			));
 
@@ -479,7 +479,7 @@ namespace Coco::Rendering::Vulkan
 			return false;
 
 		CachedMaterialResource& materialResource = _renderCache->GetMaterialResource(material);
-		const ResourceID materialID = material->GetID();
+		const ResourceID materialID = material->ID;
 
 		// Use the cached descriptor set if it exists
 		if (_materialDescriptorSets.contains(materialID))
@@ -487,22 +487,22 @@ namespace Coco::Rendering::Vulkan
 
 		// Get the vulkan shader and this subshader's descriptor layout
 		Ref<VulkanShader> vulkanShader = _device->GetRenderCache()->GetOrCreateVulkanShader(shader);
-		VulkanDescriptorLayout layout;
-		if (!vulkanShader->TryGetDescriptorSetLayout(subshaderName, layout))
-			throw RenderingException(FormattedString("Could not find a descriptor layout for subshader \"{}\" in shader \"{}\"",
+		const VulkanSubshader* vulkanSubshader;
+		if (!vulkanShader->TryGetSubshader(subshaderName, vulkanSubshader))
+			throw RenderingException(FormattedString("Could not find a Vulkan subshader for subshader \"{}\" in shader \"{}\"",
 				subshaderName,
-				shader->GetName()
+				shader->Name
 			));
 
 		// Get the shader resource
 		CachedShaderResource& shaderResource = _renderCache->GetShaderResource(vulkanShader);
 
 		// Allocate this material's descriptor set
-		set = shaderResource.Pool->GetOrAllocateSet(layout, materialID);
+		set = shaderResource.Pool->GetOrAllocateSet(vulkanSubshader->DescriptorLayout, materialID);
 		_materialDescriptorSets[materialID] = set;
 
 		// Get the material's binding for this subshader
-		SubshaderUniformBinding* subshaderBinding = nullptr;
+		const SubshaderUniformBinding* subshaderBinding = nullptr;
 		material->TryGetSubshaderBinding(subshaderName, subshaderBinding);
 
 		VkDescriptorBufferInfo bufferInfo = {};
@@ -547,7 +547,7 @@ namespace Coco::Rendering::Vulkan
 				throw RenderingException(FormattedString(
 					"The Vulkan sampler or Vulkan image reference for \"{}\" is empty for shader \"{}\"", 
 					textureSampler.Name, 
-					_currentShader->GetName()
+					_currentShader->Name
 				));
 
 			const ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.Get());

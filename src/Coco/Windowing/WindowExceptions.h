@@ -4,9 +4,7 @@
 
 namespace Coco::Windowing
 {
-	/// <summary>
-	/// A generic window exception
-	/// </summary>
+	/// @brief A generic window exception
 	class COCOAPI WindowException : public Exception
 	{
 	public:
@@ -14,9 +12,7 @@ namespace Coco::Windowing
 		virtual ~WindowException() = default;
 	};
 
-	/// <summary>
-	/// An exception thrown when a window fails to create
-	/// </summary>
+	/// @brief An exception thrown when a window fails to create
 	class COCOAPI WindowCreateException : public WindowException
 	{
 	public:
@@ -24,9 +20,7 @@ namespace Coco::Windowing
 		virtual ~WindowCreateException() = default;
 	};
 
-	/// <summary>
-	/// An exception thrown when a window operation fails
-	/// </summary>
+	/// @brief An exception thrown when a window operation fails
 	class COCOAPI WindowOperationException : public WindowException
 	{
 	public:

@@ -11,9 +11,7 @@ namespace Coco::Rendering
 {
 	class RenderingService;
 
-	/// <summary>
-	/// A Resource that has access to the RenderingService
-	/// </summary>
+	/// @brief A Resource that has access to the RenderingService
 	class COCOAPI RenderingResource : public Resource
 	{
 	protected:
@@ -23,16 +21,12 @@ namespace Coco::Rendering
 		virtual ~RenderingResource() = default;
 
 	protected:
-		/// <summary>
-		/// Gets the rendering service's logger
-		/// </summary>
-		/// <returns>The rendering service's logger</returns>
+		/// @brief Gets the rendering service's logger
+		/// @return The rendering service's logger
 		Logging::Logger* GetRenderingLogger() const;
 
-		/// <summary>
-		/// Ensures that there is an active rendering service and returns it
-		/// </summary>
-		/// <returns>The active rendering service</returns>
+		/// @brief Ensures that there is an active rendering service and returns it
+		/// @return The active rendering service
 		RenderingService* EnsureRenderingService() const;
 	};
 }

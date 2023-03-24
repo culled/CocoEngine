@@ -12,27 +12,19 @@ namespace Coco::Rendering::Vulkan
     class VulkanRenderCache;
     class CommandBufferPoolVulkan;
 
-    /// <summary>
-    /// A ranking for a VkPhysicalDevice
-    /// </summary>
+    /// @brief A ranking for a VkPhysicalDevice
     struct PhysicalDeviceRanking
     {
-        /// <summary>
-        /// The physical device
-        /// </summary>
+        /// @brief The physical device
         VkPhysicalDevice Device;
 
-        /// <summary>
-        /// The device's score
-        /// </summary>
+        /// @brief The device's score
         int Score;
 
         PhysicalDeviceRanking(VkPhysicalDevice device, int score) noexcept;
     };
 
-    /// <summary>
-    /// Queue families that can be used on a physical device
-    /// </summary>
+    /// @brief Queue families that can be used on a physical device
     struct PhysicalDeviceQueueFamilyInfo
     {
         Optional<int> GraphicsQueueFamily;
@@ -40,15 +32,11 @@ namespace Coco::Rendering::Vulkan
         Optional<int> ComputeQueueFamily;
     };
 
-    /// <summary>
-    /// Vulkan implementation of a GraphicsDevice
-    /// </summary>
+    /// @brief Vulkan implementation of a GraphicsDevice
     class GraphicsDeviceVulkan final : public GraphicsDevice
     {
     public:
-        /// <summary>
-        /// The platform that this device belongs to
-        /// </summary>
+        /// @brief The platform that this device belongs to
         const GraphicsPlatformVulkan* VulkanPlatform;
 
     private:
@@ -78,159 +66,114 @@ namespace Coco::Rendering::Vulkan
 
         Logging::Logger* GetLogger() const noexcept final;
         string GetName() const noexcept final { return _name; }
-        GraphicsDeviceType GetType() const noexcept final { return _deviceType; }
+        constexpr GraphicsDeviceType GetType() const noexcept final { return _deviceType; }
         Version GetDriverVersion() const noexcept final { return _driverVersion; }
         Version GetAPIVersion() const noexcept final { return _apiVersion; }
-        void WaitForIdle() noexcept final;
         const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const noexcept final { return _memoryFeatures; };
-        uint GetMinimumBufferAlignment() const noexcept final { return _minUniformBufferAlignment; }
+        constexpr uint GetMinimumBufferAlignment() const noexcept final { return _minUniformBufferAlignment; }
+        void WaitForIdle() noexcept final;
 
-        /// <summary>
-        /// Creates a graphics device with the given parameters
-        /// </summary>
-        /// <param name="platform">The platform creating the device</param>
-        /// <param name="createParams">The parameters for creating the device</param>
-        /// <returns>A created graphics device</returns>
+        /// @brief Creates a graphics device with the given parameters
+        /// @param platform The platform creating the device
+        /// @param createParams The parameters for creating the device
+        /// @return The created graphics device
         static Managed<GraphicsDeviceVulkan> Create(const GraphicsPlatformVulkan& platform, const GraphicsDeviceCreationParameters& createParams);
 
-        /// <summary>
-        /// Gets the Vulkan physical device that this graphics device uses
-        /// </summary>
-        /// <returns>The Vulkan physical device</returns>
+        /// @brief Gets the Vulkan physical device that this graphics device uses
+        /// @return The Vulkan physical device
         VkPhysicalDevice GetPhysicalDevice() const noexcept { return _physicalDevice; }
 
-        /// <summary>
-        /// Gets the Vulkan logical device that this graphics device uses
-        /// </summary>
-        /// <returns>The Vulkan logical device</returns>
+        /// @brief Gets the Vulkan logical device that this graphics device uses
+        /// @return The Vulkan logical device
         VkDevice GetDevice() const noexcept { return _device; }
 
-        /// <summary>
-        /// Gets this device's Vulkan render cache
-        /// </summary>
-        /// <returns>The Vulkan render cache</returns>
+        /// @brief Gets this device's Vulkan render cache
+        /// @return This device's Vulkan render cache
         VulkanRenderCache* GetRenderCache() const noexcept { return _renderCache.get(); }
 
-        /// <summary>
-        /// Attempts to initialize the present queue with the given surface
-        /// </summary>
-        /// <param name="surface">The surface to use for initialization</param>
-        /// <returns>True if the present queue is initialized</returns>
-        bool InitializePresentQueue(VkSurfaceKHR surface) noexcept;
+        /// @brief Attempts to initialize the present queue with the given surface
+        /// @param surface The surface to use for initialization
+        /// @return True if the present queue is initialized
+        bool InitializePresentQueue(const VkSurfaceKHR& surface) noexcept;
 
-        /// <summary>
-        /// Gets the graphics queue, if the device supports it
-        /// </summary>
-        /// <param name="graphicsQueue">The queue reference that will be filled out if this device has a graphics queue</param>
-        /// <returns>True if this device has a graphics queue</returns>
+        /// @brief Gets the graphics queue, if the device supports it
+        /// @param graphicsQueue Will be filled out if this device has a graphics queue
+        /// @return True if this device has a graphics queue
         bool GetGraphicsQueue(Ref<VulkanQueue>& graphicsQueue) const noexcept;
 
-        /// <summary>
-        /// Gets the transfer queue, if the device supports it
-        /// </summary>
-        /// <param name="transferQueue">The queue reference that will be filled out if this device has a transfer queue</param>
-        /// <returns>True if this device has a transfer queue</returns>
+        /// @brief Gets the transfer queue, if the device supports it
+        /// @param transferQueue Will be filled out if this device has a transfer queue
+        /// @return True if this device has a transfer queue
         bool GetTransferQueue(Ref<VulkanQueue>& transferQueue) const noexcept;
 
-        /// <summary>
-        /// Gets the compute queue, if the device supports it
-        /// </summary>
-        /// <param name="computeQueue">The queue reference that will be filled out if this device has a compute queue</param>
-        /// <returns>True if this device has a compute queue</returns>
+        /// @brief Gets the compute queue, if the device supports it
+        /// @param computeQueue Will be filled out if this device has a compute queue
+        /// @return True if this device has a compute queue
         bool GetComputeQueue(Ref<VulkanQueue>& computeQueue) const noexcept;
 
-        /// <summary>
-        /// Gets the present queue, if the device supports it
-        /// </summary>
-        /// <param name="presentQueue">The queue reference that will be filled out if this device has a present queue</param>
-        /// <returns>True if this device has a present queue</returns>
+        /// @brief Gets the present queue, if the device supports it
+        /// @param presentQueue Will be filled out if this device has a present queue
+        /// @return True if this device has a present queue
         bool GetPresentQueue(Ref<VulkanQueue>& presentQueue) const noexcept;
 
-        /// <summary>
-        /// Gets this device's command pool for the graphics queue (if a graphics queue has been created)
-        /// </summary>
-        /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
-        /// <returns>True if the graphics command pool exists</returns>
+        /// @brief Gets this device's command pool for the graphics queue (if one has been created)
+        /// @param poolPtr Will be filled out with the graphics command pool if this device has a graphics queue
+        /// @return True if the graphics command pool was retrieved
         bool GetGraphicsCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
 
-        /// <summary>
-        /// Gets this device's command pool for the transfer queue (if a transfer queue has been created)
-        /// </summary>
-        /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
-        /// <returns>True if the transfer command pool exists</returns>
+        /// @brief Gets this device's command pool for the transfer queue (if one has been created)
+        /// @param poolPtr Will be filled out with the transfer command pool if this device has a transfer queue
+        /// @return True if the transfer command pool was retrieved
         bool GetTransferCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
 
-        /// <summary>
-        /// Gets this device's command pool for the compute queue (if a compute queue has been created)
-        /// </summary>
-        /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
-        /// <returns>True if the compute command pool exists</returns>
+        /// @brief Gets this device's command pool for the compute queue (if one has been created)
+        /// @param poolPtr Will be filled out with the compute command pool if this device has a compute queue
+        /// @return True if the compute command pool was retrieved
         bool GetComputeCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
 
-        /// <summary>
-        /// Gets this device's command pool for the present queue (if a present queue has been initialized)
-        /// </summary>
-        /// <param name="poolPtr">A pointer reference that will be filled with a pointer to the pool if it exists</param>
-        /// <returns>True if the present command pool exists</returns>
+        /// @brief Gets this device's command pool for the present queue (if one has been created)
+        /// @param poolPtr Will be filled out with the present command pool if this device has a present queue
+        /// @return True if the present command pool was retrieved
         bool GetPresentCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
 
-        /// <summary>
-        /// Finds a memory index for a type of memory
-        /// </summary>
-        /// <param name="type">The type of memory</param>
-        /// <param name="memoryProperties">Memory properties</param>
-        /// <param name="memoryIndex">The memory index</param>
-        /// <returns>True if a valid memory index was found, or false if one could not be found</returns>
+        /// @brief Finds a memory index for a type of memory
+        /// @param type The type of memory
+        /// @param memoryProperties The memory property flags
+        /// @param memoryIndex Will be set to the index of the memory to use
+        /// @return True if a valid memory index was found
         bool FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const noexcept;
-
-        /// <summary>
-        /// Pads out an offset to align with this device's minimum uniform buffer alignment
-        /// </summary>
-        /// <param name="originalOffset">The original offset</param>
-        /// <returns>An adjusted offset that respects this device's minimum uniform buffer alignment
-        uint64_t GetPaddedUniformBufferAlignment(uint64_t originalOffset) const noexcept;
 
     protected:
         void OnPurgeUnusedResources() noexcept final;
 
     private:
-        /// <summary>
-        /// Picks a suitable physical device to use given the parameters
-        /// </summary>
-        /// <param name="instance">The Vulkan instance</param>
-        /// <param name="createParams">Parameters for picking the device</param>
-        /// <returns>The physical device that should be used</returns>
-        static VkPhysicalDevice PickPhysicalDevice(VkInstance instance, const GraphicsDeviceCreationParameters& createParams);
+        /// @brief Picks a suitable physical device to use given the parameters
+        /// @param instance the Vulkan instance
+        /// @param createParams Parameters for picking the physical device
+        /// @return A suitable physical device
+        static VkPhysicalDevice PickPhysicalDevice(const VkInstance& instance, const GraphicsDeviceCreationParameters& createParams);
 
-        /// <summary>
-        /// Calculates a score for a physical device
-        /// </summary>
-        /// <param name="device">The device</param>
-        /// <param name="createParams">Parameters that the device should satisfy</param>
-        /// <returns>The device's score, or -1 if the device doesn't meet a neccessary requirment</returns>
-        static int CalculateDeviceScore(VkPhysicalDevice device, const GraphicsDeviceCreationParameters& createParams) noexcept;
+        /// @brief Calculates a score for a physical device
+        /// @param device The physical device
+        /// @param createParams Parameters for picking the physical device
+        /// @return A score for the device
+        static int CalculateDeviceScore(const VkPhysicalDevice& device, const GraphicsDeviceCreationParameters& createParams) noexcept;
 
-        /// <summary>
-        /// Gets the information about a device's queue families
-        /// </summary>
-        /// <param name="device">The device</param>
-        /// <returns>Information about the device's queue families</returns>
-        static PhysicalDeviceQueueFamilyInfo GetQueueFamilyInfo(VkPhysicalDevice device) noexcept;
+        /// @brief Gets the information about a device's queue families
+        /// @param device The physical device
+        /// @return Information about the device's queue families
+        static PhysicalDeviceQueueFamilyInfo GetQueueFamilyInfo(const VkPhysicalDevice& device) noexcept;
 
-        /// <summary>
-        /// Gets the memory features for a physical device
-        /// </summary>
-        /// <param name="device">The physical device</param>
-        /// <returns>The device's memory features</returns>
-        static GraphicsDeviceMemoryFeatures GetDeviceMemoryFeatures(VkPhysicalDevice device) noexcept;
+        /// @brief Gets the memory features for a physical device
+        /// @param device The physical device
+        /// @return Memory features for the device
+        static GraphicsDeviceMemoryFeatures GetDeviceMemoryFeatures(const VkPhysicalDevice& device) noexcept;
 
-        /// <summary>
-        /// Checks if a queue supports surfaces
-        /// </summary>
-        /// <param name="surface">The surface to check with</param>
-        /// <param name="queue">The queue to check</param>
-        /// <returns>True if the given queue supports surfaces</returns>
-        bool CheckQueuePresentSupport(VkSurfaceKHR surface, const Optional<Ref<VulkanQueue>>& queue) const noexcept;
+        /// @brief Checks if a queue supports surfaces
+        /// @param surface The surface
+        /// @param queue The queue to check for support
+        /// @return True if the given queue supports presenting the given surface
+        bool CheckQueuePresentSupport(const VkSurfaceKHR& surface, const Optional<Ref<VulkanQueue>>& queue) const noexcept;
     };
 }
 

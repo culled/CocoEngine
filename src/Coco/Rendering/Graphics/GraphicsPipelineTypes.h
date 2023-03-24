@@ -2,9 +2,7 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Types of topology that can be rendered
-	/// </summary>
+	/// @brief Types of topology that can be rendered
 	enum class TopologyMode
 	{
 		Points,
@@ -14,9 +12,7 @@ namespace Coco::Rendering
 		TriangleStrip
 	};
 
-	/// <summary>
-	/// Polygon fill modes
-	/// </summary>
+	/// @brief Polygon fill modes
 	enum class PolygonFillMode
 	{
 		Point,
@@ -24,9 +20,7 @@ namespace Coco::Rendering
 		Fill
 	};
 
-	/// <summary>
-	/// Culling modes for geometry
-	/// </summary>
+	/// @brief Culling modes for geometry
 	enum class CullMode
 	{
 		None,
@@ -35,9 +29,7 @@ namespace Coco::Rendering
 		Both
 	};
 
-	/// <summary>
-	/// Depth testing modes
-	/// </summary>
+	/// @brief Depth testing modes
 	enum class DepthTestingMode
 	{
 		Never,
@@ -50,9 +42,7 @@ namespace Coco::Rendering
 		Always
 	};
 
-	/// <summary>
-	/// Factors for blending channels
-	/// </summary>
+	/// @brief Factors for blending channels
 	enum class BlendFactorMode
 	{
 		Zero,
@@ -67,9 +57,7 @@ namespace Coco::Rendering
 		OneMinusDestinationAlpha,
 	};
 
-	/// <summary>
-	/// Operations for blending channels
-	/// </summary>
+	/// @brief Operations for blending channels
 	enum class BlendOperation
 	{
 		Add,

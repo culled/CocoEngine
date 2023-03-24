@@ -15,9 +15,7 @@ namespace Coco::Rendering
 	class Material;
 	class Mesh;
 
-	/// <summary>
-	/// An object that holds global uniform data that can be directly pushed to a shader
-	/// </summary>
+	/// @brief An object that holds global uniform data that can be directly pushed to a shader
 	struct GlobalUniformObject
 	{
 		float Projection[4 * 4];	// 64 bytes
@@ -28,48 +26,37 @@ namespace Coco::Rendering
 		GlobalUniformObject(const RenderView* renderView) noexcept;
 
 	private:
-		/// <summary>
-		/// Populates a float array pointer with matrix values
-		/// </summary>
-		/// <param name="destinationMatrixPtr">The pointer to the first element of the float array</param>
-		/// <param name="sourceMatrix">The matrix</param>
-		void PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix) noexcept;
+		/// @brief Populates a float array pointer with matrix values
+		/// @param destinationMatrixPtr The pointer to the first element of the float array
+		/// @param sourceMatrix The matrix
+		static void PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix) noexcept;
 	};
 
-	/// <summary>
-	/// A context that can be used for rendering
-	/// </summary>
+	/// @brief A context that can be used for rendering
 	class COCOAPI RenderContext : public IGraphicsResource
 	{
 		friend RenderPipeline;
 
 	protected:
-		/// <summary>
-		/// The render view used for rendering
-		/// </summary>
+		/// @brief The render view used for rendering
 		Ref<RenderView> RenderView;
 
-		/// <summary>
-		/// The render pipeline being used for rendering
-		/// </summary>
+		/// @brief The render pipeline being used for rendering
 		Ref<RenderPipeline> CurrentPipeline;
 
-		/// <summary>
-		/// The currently rendering render pass
-		/// </summary>
+		/// @brief The currently rendering render pass
 		Ref<IRenderPass> CurrentRenderPass = nullptr;
 
-		/// <summary>
-		/// The index in the RenderPipeline of the current render pass
-		/// </summary>
+		/// @brief The index in the RenderPipeline of the current render pass
 		uint CurrentRenderPassIndex = 0;
 
-		/// <summary>
-		/// The global uniform object
-		/// </summary>
+		/// @brief The global uniform object
 		GlobalUniformObject GlobalUO;
 
+		/// @brief The number of draw calls this render
 		uint64_t DrawCallCount = 0;
+
+		/// @brief The number of triangles drawn this render
 		uint64_t TrianglesDrawn = 0;
 
 	protected:
@@ -84,93 +71,65 @@ namespace Coco::Rendering
 		RenderContext& operator=(const RenderContext&) = delete;
 		RenderContext& operator=(RenderContext&&) = delete;
 
-		/// <summary>
-		/// Begins rendering for a scene
-		/// </summary>
-		/// <returns>True if the context began rendering successfully</returns>
+		/// @brief Begins rendering for a scene
+		/// @param renderView The view used for rendering
+		/// @param pipeline The render pipeline to use
+		/// @return True if rendering began successfully
 		bool Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline);
 
-		/// <summary>
-		/// Ends rendering for a scene
-		/// </summary>
+		/// @brief Ends rendering for a scene
 		void End();
 
-		/// <summary>
-		/// Resets this context to begin rendering a new scene
-		/// </summary>
+		/// @brief Resets this context to begin rendering a new scene
 		void Reset();
 
-		/// <summary>
-		/// Sets the rectangle of the viewport to use
-		/// </summary>
-		/// <param name="rect">The viewport rectangle</param>
+		/// @brief Sets the rectangle of the viewport to use
+		/// @param rect The viewport rectangle
 		virtual void SetViewport(const RectInt& rect) = 0;
 
-		/// <summary>
-		/// Sets the given shader as the one that will be used to draw subsequent geometry
-		/// </summary>
-		/// <param name="shader">The shader to use</param>
-		virtual void UseShader(Ref<Shader> shader) = 0;
-
-		/// <summary>
-		/// Sets the given material as the one that will be used to draw subsequent geometry
-		/// </summary>
-		/// <param name="material">The material to use</param>
-		virtual void UseMaterial(Ref<Material> material) = 0;
-
-		/// <summary>
-		/// Draws a mesh
-		/// </summary>
-		/// <param name="mesh">The mesh to draw</param>
-		/// <param name="modelMatrix">The model matrix</param>
-		virtual void Draw(const Mesh* mesh, const Matrix4x4& modelMatrix) = 0;
-
-		/// <summary>
-		/// Restores the viewport to the size and offset specified by the RenderView
-		/// </summary>
+		/// @brief Restores the viewport to the size and offset specified by the RenderView
 		void RestoreViewport();
 
-		/// <summary>
-		/// Gets if this render context can be immediately used for rendering
-		/// </summary>
-		/// <returns>True if this render context can immediately be used for rendering</returns>
+		/// @brief Sets the given shader as the one that will be used to draw subsequent geometry
+		/// @param shader The shader to use
+		virtual void UseShader(Ref<Shader> shader) = 0;
+
+		/// @brief Sets the given material as the one that will be used to draw subsequent geometry
+		/// @param material The material to use
+		virtual void UseMaterial(Ref<Material> material) = 0;
+
+		/// @brief Draws a mesh
+		/// @param mesh The mesh to draw
+		/// @param modelMatrix The model matrix
+		virtual void Draw(const Mesh* mesh, const Matrix4x4& modelMatrix) = 0;
+
+		/// @brief Gets if this render context can be immediately used for rendering
+		/// @return True if this render context can immediately be used for rendering
 		virtual bool IsAvaliableForRendering() noexcept = 0;
 
-		/// <summary>
-		/// Waits for this render context's rendering to complete
-		/// </summary>
+		/// @brief Waits for this render context's rendering to complete
 		virtual void WaitForRenderingCompleted() = 0;
 
-		/// <summary>
-		/// Gets the drawing stats for the last frame
-		/// </summary>
-		/// <param name="drawCallCount">Will be set to the number of draw calls</param>
-		/// <param name="trianglesDrawn">Will be set to the number of triangles</param>
+		/// @brief Gets the drawing stats for the last frame
+		/// @param drawCallCount Will be set to the number of draw calls
+		/// @param trianglesDrawn Will be set to the number of triangles
 		void GetLastFrameStats(uint64_t& drawCallCount, uint64_t trianglesDrawn) const noexcept;
 
 	protected:
-		/// <summary>
-		/// Called when this render context is starting to render a scene
-		/// </summary>
-		/// <returns>True if rendering started successfully</returns>
+		/// @brief Called when this render context is starting to render a scene
+		/// @return True if rendering started successfully
 		virtual bool BeginImpl() = 0;
 
-		/// <summary>
-		/// Ends rendering the current scene 
-		/// </summary>
+		/// @brief Called when this render context ends rendering the current scene
 		virtual void EndImpl() = 0;
 
-		/// <summary>
-		/// Resets this context
-		/// </summary>
+		/// @brief Called when this render context should reset
 		virtual void ResetImpl() = 0;
 
 	private:
-		/// <summary>
-		/// Sets the current render pass
-		/// </summary>
-		/// <param name="renderPass">The render pass</param>
-		/// <param name="passIndex">The index of the pass in the current render pipeline</param>
+		/// @brief Sets the current render pass
+		/// @param renderPass The render pass
+		/// @param passIndex The index of the pass in the current render pipeline
 		void SetCurrentRenderPass(Ref<IRenderPass> renderPass, uint passIndex) noexcept;
 	};
 }

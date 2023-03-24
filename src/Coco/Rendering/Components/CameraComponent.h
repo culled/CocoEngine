@@ -8,9 +8,7 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A camera component
-	/// </summary>
+	/// @brief A camera component that can render a scene from a perspective
 	class COCOAPI CameraComponent : public EntityComponent
 	{
 	private:
@@ -32,85 +30,67 @@ namespace Coco::Rendering
 		CameraComponent() = default;
 		virtual ~CameraComponent() = default;
 
-		/// <summary>
-		/// Gets the type of projection that this camera is using
-		/// </summary>
-		/// <returns>The type of projection that this camera is using</returns>
+		/// @brief Gets the type of projection that this camera is using
+		/// @return The type of projection that this camera is using
 		ProjectionType GetProjectionType() const noexcept { return _projectionType; }
 
-		/// <summary>
-		/// Sets this camera to use a perspective projection
-		/// </summary>
-		/// <param name="fieldOfView">The horizontal field of view (in degrees)</param>
-		/// <param name="aspectRatio">The aspect ratio</param>
-		/// <param name="nearClipDistance">The near clip distance</param>
-		/// <param name="farClipDistance">The far clip distance</param>
+		/// @brief Sets this camera to use a perspective projection
+		/// @param fieldOfView The vertical field of view (in degrees)
+		/// @param aspectRatio The aspect ratio
+		/// @param nearClipDistance The near clip distance
+		/// @param farClipDistance The far clip distance
 		void SetPerspectiveProjection(double fieldOfView, double aspectRatio, double nearClipDistance, double farClipDistance) noexcept;
 
-		/// <summary>
-		/// Sets this camera to use an orthographic projection
-		/// </summary>
-		/// <param name="size">The size of the projection</param>
-		/// <param name="aspectRatio">The aspect ratio</param>
-		/// <param name="nearClipDistance">The near clip distance</param>
-		/// <param name="farClipDistance">The far clip distance</param>
+		/// @brief Sets this camera to use an orthographic projection
+		/// @param size The size of the projection
+		/// @param aspectRatio The aspect ratio
+		/// @param nearClipDistance The near clip distance
+		/// @param farClipDistance The far clip distance
 		void SetOrthographicProjection(double size, double aspectRatio, double nearClipDistance, double farClipDistance) noexcept;
 
-		/// <summary>
-		/// Sets this camera to use a custom projection matrix
-		/// </summary>
-		/// <param name="projection">The custom projection matrix</param>
+		/// @brief Sets this camera to use a custom projection matrix
+		/// @param projection The custom projection matrix
 		void SetCustomProjection(const Matrix4x4& projection) noexcept;
 
-		/// <summary>
-		/// Gets this camera's current projection matrix
-		/// </summary>
-		/// <returns>The current projection matrix</returns>
+		/// @brief Gets this camera's current projection matrix
+		/// @return The current projection matrix
 		Matrix4x4 GetProjectionMatrix() noexcept;
 
+		/// @brief Sets this camera's current view matrix
+		/// @param view The view matrix
 		void SetViewMatrix(const Matrix4x4& view) noexcept { _viewMatrix = view; }
+
+		/// @brief Gets this camera's current view matrix
+		/// @return The current view matrix
 		Matrix4x4 GetViewMatrix() const noexcept { return _viewMatrix; }
 
-		/// <summary>
-		/// Sets this camera's aspect ratio
-		/// </summary>
-		/// <param name="aspectRatio">The new aspect ratio</param>
+		/// @brief Sets this camera's aspect ratio
+		/// @param aspectRatio The new aspect ratio
 		void SetAspectRatio(double aspectRatio) noexcept;
 
-		/// <summary>
-		/// Gets this camera's current aspect ratio
-		/// </summary>
-		/// <returns>This camera's current aspect ratio</returns>
+		/// @brief Gets this camera's current aspect ratio
+		/// @return This camera's current aspect ratio
 		double GetAspectRatio() const noexcept { return _aspectRatio; }
 
-		/// <summary>
-		/// Sets this camera's near clip plane distance
-		/// </summary>
-		/// <param name="nearClipDistance">The new near clip plane distance</param>
+		/// @brief Sets this camera's near clip plane distance
+		/// @param nearClipDistance The new near clip plane distance
 		void SetNearClipDistance(double nearClipDistance) noexcept;
 
-		/// <summary>
-		/// Gets this camera's current near clip plane distance
-		/// </summary>
-		/// <returns>This camera's current near clip plane distance</returns>
+		/// @brief Gets this camera's current near clip plane distance
+		/// @return This camera's current near clip plane distance
 		double GetNearClipDistance() const noexcept { return _nearClipDistance; }
 
-		/// <summary>
-		/// Sets this camera's far clip plane distance
-		/// </summary>
-		/// <param name="farClipDistance">The new far clip plane distance</param>
+		/// @brief Sets this camera's far clip plane distance
+		/// @param farClipDistance The new far clip plane distance
 		void SetFarClipDistance(double farClipDistance) noexcept;
 
-		/// <summary>
-		/// Gets this camera's current far clip plane distance
-		/// </summary>
-		/// <returns>This camera's current far clip plane distance</returns>
+		/// @brief Gets this camera's current far clip plane distance
+		/// @return This camera's current far clip plane distance
 		double GetFarClipDistance() const noexcept { return _farClipDistance; }
 
 	private:
-		/// <summary>
-		/// Updates the internal projection matrix based on the projection type
-		/// </summary>
+		/// @brief Updates the internal projection matrix based on the projection type
+		/// @return 
 		void UpdateProjectionMatrix() noexcept;
 	};
 }

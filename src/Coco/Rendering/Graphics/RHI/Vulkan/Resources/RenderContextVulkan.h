@@ -31,14 +31,19 @@ namespace Coco::Rendering::Vulkan
 	struct CachedVulkanRenderPass;
 	struct CachedVulkanPipeline;
 
-	/// <summary>
-	/// A cached Vulkan framebuffer
-	/// </summary>
+	/// @brief A cached Vulkan framebuffer
 	struct CachedVulkanFramebuffer final : public CachedResource
 	{
-		GraphicsDeviceVulkan* Device;
+		/// @brief A pointer to a Vulkan graphics device
+		GraphicsDeviceVulkan* const Device;
+		
+		/// @brief The pipeline that this framebuffer was created from
 		WeakRef<RenderPipeline> PipelineRef;
+
+		/// @brief The size of the framebuffer
 		SizeInt FramebufferSize = SizeInt::Zero;
+
+		/// @brief The Vulkan framebuffer
 		VkFramebuffer Framebuffer = nullptr;
 
 		CachedVulkanFramebuffer(GraphicsDeviceVulkan* device, Ref<RenderPipeline> pipeline);
@@ -47,25 +52,19 @@ namespace Coco::Rendering::Vulkan
 		bool IsInvalid() const noexcept final { return PipelineRef.expired(); }
 		bool NeedsUpdate() const noexcept final;
 
-		/// <summary>
-		/// Checks if this cached framebuffer needs to be updated
-		/// </summary>
-		/// <param name="framebufferSize">The desired size of the framebuffer</param>
-		/// <returns>True if this resource should be updated</returns>
+		/// @brief Checks if this cached framebuffer needs to be updated
+		/// @param framebufferSize The desired size of the framebuffer
+		/// @return True if this resource should be updated
 		bool NeedsUpdate(const SizeInt& framebufferSize) const noexcept
 		{
 			return NeedsUpdate() || FramebufferSize != framebufferSize;
 		}
 
-		/// <summary>
-		/// Destroys the framebuffer
-		/// </summary>
+		/// @brief Destroys the framebuffer
 		void DestroyFramebuffer() noexcept;
 	};
 
-	/// <summary>
-	/// Vulkan-implementation of a RenderContext
-	/// </summary>
+	/// @brief Vulkan-implementation of a RenderContext
 	class RenderContextVulkan final : public RenderContext
 	{
 	private:
@@ -76,7 +75,7 @@ namespace Coco::Rendering::Vulkan
 		RenderingService* _renderingService;
 		GraphicsDeviceVulkan* _device;
 		CommandBufferPoolVulkan* _pool;
-		CommandBufferVulkan* _commandBuffer;
+		WeakManagedRef<CommandBufferVulkan> _commandBuffer;
 		WeakManagedRef<GraphicsSemaphoreVulkan> _imageAvailableSemaphore;
 		WeakManagedRef<GraphicsSemaphoreVulkan> _renderingCompleteSemaphore;
 		WeakManagedRef<GraphicsFenceVulkan> _renderingCompleteFence;
@@ -112,28 +111,20 @@ namespace Coco::Rendering::Vulkan
 		bool IsAvaliableForRendering() noexcept final { return _renderingCompleteFence->IsSignalled(); }
 		void WaitForRenderingCompleted() final;
 
-		/// <summary>
-		/// Sets the render targets for this render context to use
-		/// </summary>
-		/// <param name="renderTargets">The render targets to use</param>
+		/// @brief Sets the render targets for this render context to use
+		/// @param renderTargets The render targets to use
 		void SetRenderTargets(const List<WeakManagedRef<ImageVulkan>>& renderTargets);
 
-		/// <summary>
-		/// Gets the render targets that this context is using
-		/// </summary>
-		/// <returns>The render targets that this context is using</returns>
-		List<WeakManagedRef<ImageVulkan>> GetRenderTargets() const noexcept { return _renderTargets; }
+		/// @brief Gets the render targets that this context is using
+		/// @return The render targets that this context is using
+		const List<WeakManagedRef<ImageVulkan>>& GetRenderTargets() const noexcept { return _renderTargets; }
 
-		/// <summary>
-		/// Gets the Vulkan semaphore that should be used to signal when the backbuffer is available
-		/// </summary>
-		/// <returns>The image available semaphore</returns>
+		/// @brief Gets the Vulkan semaphore that should be used to signal when the backbuffer is available
+		/// @return The image available semaphore
 		VkSemaphore GetImageAvailableSemaphore() const noexcept { return _imageAvailableSemaphore->GetSemaphore(); }
 
-		/// <summary>
-		/// Gets the Vulkan semaphore that is signaled when rendering has completed
-		/// </summary>
-		/// <returns>The render complete semaphore</returns>
+		/// @brief Gets the Vulkan semaphore that is signaled when rendering has completed
+		/// @return The render complete semaphore
 		VkSemaphore GetRenderCompleteSemaphore() const noexcept { return _renderingCompleteSemaphore->GetSemaphore(); }
 
 	protected:
@@ -142,32 +133,26 @@ namespace Coco::Rendering::Vulkan
 		virtual void ResetImpl() final;
 
 	private:
-		/// <summary>
-		/// Attempts to flush all state changes and bind the current state
-		/// </summary>
+		/// @brief Attempts to flush all state changes and bind the current state
+		/// @return True if the state is bound
 		bool FlushStateChanges();
 
-		/// <summary>
-		/// Ensures a framebuffer is created for the current pipeline and render pass using the current render targets
-		/// </summary>
+		/// @brief Ensures a framebuffer is created for the current pipeline and render pass using the current render targets
 		void EnsureFramebufferUpdated();
 
-		/// <summary>
-		/// Creates the global descriptor set
-		/// </summary>
+		/// @brief Creates the global descriptor set
 		void CreateGlobalDescriptorSet();
 
-		/// <summary>
-		/// Creates a descriptor set for the currently bound material instance
-		/// </summary>
-		/// <param name="set">The descriptor set for the currently bound material</param>
-		/// <returns>True if the descriptor set was successfully retrieved</param>
+		/// @brief Creates a descriptor set for the currently bound material instance
+		/// @param subshaderName The name of the subshader to use
+		/// @param shader The shader to use
+		/// @param material The material to use
+		/// @param set Will be filled out with the descriptor set
+		/// @return True if the descriptor set was created
 		bool GetOrAllocateMaterialDescriptorSet(const string& subshaderName, const Ref<Shader>& shader, const Ref<Material>& material, VkDescriptorSet& set);
 
-		/// <summary>
-		/// Event handler for the device purging resources
-		/// </summary>
-		/// <returns>If the event was handled</returns>
+		/// @brief Event handler for the device purging resources
+		/// @return If the event was handled
 		bool HandlePurgeResources();
 	};
 }

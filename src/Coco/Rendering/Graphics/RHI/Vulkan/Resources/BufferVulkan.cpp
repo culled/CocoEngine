@@ -33,8 +33,6 @@ namespace Coco::Rendering::Vulkan
 
 		DestroyBuffer(_buffer, _bufferMemory);
 
-		_buffer = nullptr;
-		_bufferMemory = nullptr;
 		_size = 0;
 	}
 
@@ -120,7 +118,7 @@ namespace Coco::Rendering::Vulkan
 		AssertVkResult(vkAllocateMemory(_device->GetDevice(), &allocateInfo, nullptr, &bufferMemory));
 	}
 
-	void BufferVulkan::DestroyBuffer(VkBuffer buffer, VkDeviceMemory bufferMemory) noexcept
+	void BufferVulkan::DestroyBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory) noexcept
 	{
 		// Wait for operations potentially using the buffer to finish before destroying it
 		_device->WaitForIdle();
@@ -130,10 +128,14 @@ namespace Coco::Rendering::Vulkan
 			vkFreeMemory(_device->GetDevice(), bufferMemory, nullptr);
 		}
 
+		bufferMemory = nullptr;
+
 		if (buffer != nullptr)
 		{
 			vkDestroyBuffer(_device->GetDevice(), buffer, nullptr);
 		}
+
+		buffer = nullptr;
 	}
 
 	void BufferVulkan::CopyBuffer(VkBuffer source, uint64_t sourceOffset, VkBuffer destination, uint64_t destinationOffset, uint64_t size)
@@ -144,7 +146,7 @@ namespace Coco::Rendering::Vulkan
 			throw BufferTransferException("Cannot copy buffer without a transfer queue");
 
 		// Start a command buffer for copying the data
-		CommandBufferVulkan* buffer = static_cast<CommandBufferVulkan*>(pool->Allocate(true));
+		WeakManagedRef<CommandBufferVulkan> buffer = pool->Allocate(true);
 		buffer->Begin(true, false);
 
 		VkBufferCopy copyRegion = {};

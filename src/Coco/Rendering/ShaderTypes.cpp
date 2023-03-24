@@ -3,7 +3,7 @@
 namespace Coco::Rendering
 {
 	ShaderVertexAttribute::ShaderVertexAttribute(BufferDataFormat dataFormat) noexcept :
-		DataFormat(dataFormat), DataOffset(0)
+		DataFormat(dataFormat), _dataOffset(0)
 	{}
 
 	ShaderDescriptor::ShaderDescriptor(const string& name, BufferDataFormat type) noexcept :
@@ -39,7 +39,7 @@ namespace Coco::Rendering
 
 		for (ShaderVertexAttribute& attr : Attributes)
 		{
-			attr.DataOffset = offset;
+			attr._dataOffset = offset;
 			offset += GetBufferDataFormatSize(attr.DataFormat);
 		}
 	}

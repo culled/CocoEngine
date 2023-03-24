@@ -76,7 +76,7 @@ namespace Coco::Rendering
 		if (_projectionType == ProjectionType::Perspective)
 		{
 			_projectionMatrix = Matrix4x4::CreatePerspectiveProjection(
-				Math::Deg2Rad(_perspectiveFieldOfView * 0.5), 
+				Math::Deg2Rad(_perspectiveFieldOfView), 
 				_aspectRatio, 
 				_nearClipDistance, 
 				_farClipDistance);
@@ -84,10 +84,8 @@ namespace Coco::Rendering
 		else
 		{
 			_projectionMatrix = Matrix4x4::CreateOrthographicProjection(
-				-_orthographicSize * _aspectRatio, 
-				_orthographicSize * _aspectRatio, 
 				_orthographicSize, 
-				-_orthographicSize, 
+				_aspectRatio, 
 				_nearClipDistance, 
 				_farClipDistance);
 		}

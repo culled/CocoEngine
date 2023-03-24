@@ -14,9 +14,7 @@ namespace Coco::Rendering
 {
 	class Texture;
 
-	/// <summary>
-	/// A loader for material files (*.cmaterial)
-	/// </summary>
+	/// @brief A loader for material files (*.cmaterial)
 	class MaterialLoader final : public KeyValueResourceLoader
 	{
 	private:
@@ -27,18 +25,30 @@ namespace Coco::Rendering
 		static constexpr const char* s_textureSection = "texture";
 
 	public:
-		MaterialLoader(ResourceLibrary* library, const string& basePath);
+		MaterialLoader(ResourceLibrary* library);
 		~MaterialLoader() final = default;
 
-		const char* GetResourceTypename() const noexcept final { return ResourceTypeToString(ResourceType::Material); }
+		string GetResourceTypename() const noexcept final { return ResourceTypeToString(ResourceType::Material); }
 
 	protected:
 		Ref<Resource> LoadImpl(const string& path) final;
 		void SaveImpl(const Ref<Resource>& resource, const string& path) final;
 
 	private:
+		/// @brief Reads the properties section for a material
+		/// @param reader The reader
+		/// @param vec4Properties Will be filled with the Vector4 properties
+		/// @param textureProperties Will be filled with the texture properties
 		void ReadPropertiesSection(KeyValueReader& reader, Map<string, Vector4>& vec4Properties, Map<string, string>& textureProperties);
+
+		/// @brief Reads the Vector4 properties section for a material
+		/// @param reader The reader
+		/// @param vec4Properties Will be filled with the Vector4 properties
 		void ReadVector4Section(KeyValueReader& reader, Map<string, Vector4>& vec4Properties);
+
+		/// @brief Reads the texture properties section for a material
+		/// @param reader The reader
+		/// @param textureProperties Will be filled with the texture properties
 		void ReadTextureSection(KeyValueReader& reader, Map<string, string>& textureProperties);
 	};
 }

@@ -4,19 +4,24 @@
 
 namespace Coco
 {
-	/// <summary>
-	/// Types of file modes
-	/// </summary>
-	enum class FileModes
+	/// @brief Flags for modes of opening files
+	enum class FileModeFlags
 	{
-		None = 0x00,
-		Read = 0x01,
-		Write = 0x02,
-		Binary = 0x04,
+		/// @brief An invalid file mode
+		None = 0,
+
+		/// @brief The file can be read from
+		Read = 1 << 0,
+
+		/// @brief The file can be written to
+		Write = 1 << 1,
+
+		/// @brief The file will be interpreted as binary data
+		Binary = 1 << 2,
 	};
 
-	COCOAPI FileModes operator&(FileModes a, FileModes b) noexcept;
-	COCOAPI void operator&=(FileModes& a, FileModes b) noexcept;
-	COCOAPI FileModes operator|(FileModes a, FileModes b) noexcept;
-	COCOAPI void operator|=(FileModes& a, FileModes b) noexcept;
+	COCOAPI FileModeFlags operator&(FileModeFlags a, FileModeFlags b) noexcept;
+	COCOAPI void operator&=(FileModeFlags& a, FileModeFlags b) noexcept;
+	COCOAPI FileModeFlags operator|(FileModeFlags a, FileModeFlags b) noexcept;
+	COCOAPI void operator|=(FileModeFlags& a, FileModeFlags b) noexcept;
 }

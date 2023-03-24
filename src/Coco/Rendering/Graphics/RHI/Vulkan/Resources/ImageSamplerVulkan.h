@@ -13,9 +13,7 @@ namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 
-	/// <summary>
-	/// Vulkan-implementation of an image sampler
-	/// </summary>
+	/// @brief Vulkan-implementation of an image sampler
 	class ImageSamplerVulkan final : public ImageSampler
 	{
 	private:
@@ -26,10 +24,8 @@ namespace Coco::Rendering::Vulkan
 		ImageSamplerVulkan(GraphicsDevice* device, Rendering::FilterMode filterMode, Rendering::RepeatMode repeatMode, uint maxAnisotropy);
 		~ImageSamplerVulkan() final;
 
-		/// <summary>
-		/// Gets the underlying Vulkan sampler
-		/// </summary>
-		/// <returns>The underlying Vulkan sampler</returns>
+		/// @brief Gets the underlying VkSampler
+		/// @return The underlying Vulkan sampler
 		VkSampler GetSampler() const noexcept { return _sampler; }
 	};
 }

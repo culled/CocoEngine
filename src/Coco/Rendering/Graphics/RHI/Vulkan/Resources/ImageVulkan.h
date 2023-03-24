@@ -15,9 +15,7 @@ namespace Coco::Rendering::Vulkan
 	class BufferVulkan;
 	class CommandBufferVulkan;
 
-	/// <summary>
-	/// Vulkan-implementation of an Image
-	/// </summary>
+	/// @brief Vulkan-implementation of an Image
 	class ImageVulkan final : public Image
 	{
 	private:
@@ -33,50 +31,32 @@ namespace Coco::Rendering::Vulkan
 		ImageVulkan(GraphicsDevice* device, ImageDescription description);
 		~ImageVulkan() final;
 
-		/// <summary>
-		/// Sets raw pixel data for this image
-		/// </summary>
-		/// <param name="offset">The offset in the buffer to start placing pixel data</param>
-		/// <param name="size">The size of the pixel data</param>
-		/// <param name="pixelData">The raw pixel data</param>
 		void SetPixelData(uint64_t offset, uint64_t size, const void* pixelData) final;
 
-		/// <summary>
-		/// Gets the VkImage object
-		/// </summary>
-		/// <returns>The VkImage</returns>
+		/// @brief Gets the underlying VkImage
+		/// @return The underlying Vulkan image
 		VkImage GetImage() const noexcept { return _image; }
 
-		/// <summary>
-		/// Gets the native view onto the image
-		/// </summary>
-		/// <returns>The native view onto the image</returns>
+		/// @brief Gets the native view onto the image
+		/// @return The native view onto the image
 		VkImageView GetNativeView() const noexcept { return _nativeView; }
 
-		/// <summary>
-		/// Copies image data from a buffer using a command buffer
-		/// </summary>
-		/// <param name="commandBuffer">The command buffer</param>
-		/// <param name="buffer">The buffer to copy data from</param>
+		/// @brief Copies image data from a buffer using a command buffer
+		/// @param commandBuffer The command buffer
+		/// @param buffer The buffer to copy data from
 		void CopyFromBuffer(const CommandBufferVulkan* commandBuffer, BufferVulkan* buffer);
 
-		/// <summary>
-		/// Transitions this image between layouts
-		/// </summary>
-		/// <param name="commandBuffer">The command buffer</param>
-		/// <param name="from">The layout to transition from</param>
-		/// <param name="to">The layout to transition to</param>
+		/// @brief Transitions this image between layouts
+		/// @param commandBuffer The command buffer
+		/// @param from The layout to transition from
+		/// @param to The layout to transition to
 		void TransitionLayout(const CommandBufferVulkan* commandBuffer, VkImageLayout from, VkImageLayout to);
 
 	private:
-		/// <summary>
-		/// Creates an image from the current description
-		/// </summary>
+		/// @brief Creates an image from the current description
 		void CreateImageFromDescription();
 
-		/// <summary>
-		/// Creates the native image view for the image
-		/// </summary>
+		/// @brief Creates the native image view for the image
 		void CreateNativeImageView();
 	};
 }

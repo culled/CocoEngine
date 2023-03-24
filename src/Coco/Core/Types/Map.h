@@ -5,12 +5,10 @@
 #include <map>
 
 namespace Coco
-{
-	/// <summary>
-	/// A collection that stores key-value pairs
-	/// </summary>
-	/// <typeparam name="T">The type of key</typeparam>
-	/// <typeparam name="U">The type of value</typeparam>
-	template<typename T, typename U>
-	using Map = std::map<T, U>;
+{	
+	/// @brief A collection that stores key-value pairs
+	/// @tparam KeyType 
+	/// @tparam ValueType 
+	template<typename KeyType, typename ValueType>
+	using Map = std::map<KeyType, ValueType>;
 }

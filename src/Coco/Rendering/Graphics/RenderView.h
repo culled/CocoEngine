@@ -8,29 +8,19 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Contains all neccessary information to render a scene from a specific view
-	/// </summary>
+	/// @brief Contains all neccessary information to render a scene from a specific view
 	struct COCOAPI RenderView
 	{
-		/// <summary>
-		/// The viewport rectangle
-		/// </summary>
+		/// @brief The viewport rectangle
 		const RectInt ViewportRect;
 
-		/// <summary>
-		/// The clear color for the render
-		/// </summary>
+		/// @brief The clear color for the render
 		const Color ClearColor;
 
-		/// <summary>
-		/// The projection matrix used for rendering
-		/// </summary>
+		/// @brief The projection matrix used for rendering
 		const Matrix4x4 Projection;
 
-		/// <summary>
-		/// The view matrix used for rendering
-		/// </summary>
+		/// @brief The view matrix used for rendering
 		const Matrix4x4 View;
 
 		RenderView(const RectInt& viewportRect, const Color& clearColor, const Matrix4x4& projection, const Matrix4x4& view) noexcept;

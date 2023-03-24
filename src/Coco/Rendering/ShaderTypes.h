@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include <Coco/Core/API.h>
 
+#include <Coco/Core/Types/String.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/List.h>
 #include "Graphics/Resources/BufferTypes.h"
@@ -9,9 +10,7 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// Types of shader stages
-	/// </summary>
+	/// @brief Types of shader stages
 	enum class ShaderStageType
 	{
 		Vertex,
@@ -21,101 +20,77 @@ namespace Coco::Rendering
 		Compute
 	};
 
-	/// <summary>
-	/// Types of shader descriptors
-	/// </summary>
+	/// @brief Types of shader descriptors
 	enum class ShaderDescriptorType
 	{
 		UniformVector4
 	};
 
-	/// <summary>
-	/// An attribute that represents a kind of data within a contiguous vertex buffer
-	/// </summary>
+	/// @brief An attribute that represents a kind of data within a contiguous vertex buffer
 	struct COCOAPI ShaderVertexAttribute
 	{
-		/// <summary>
-		/// The format of the data for this attribute
-		/// </summary>
-		BufferDataFormat DataFormat;
+		friend struct Subshader;
 
-		/// <summary>
-		/// The auto-calculated offset from the start of the vertex data structure of this attribute
-		/// </summary>
-		uint32_t DataOffset;
+	private:
+		/// @brief The auto-calculated offset from the start of the vertex data structure of this attribute
+		uint32_t _dataOffset;
+
+	public:
+		/// @brief The format of the data for this attribute
+		const BufferDataFormat DataFormat;
 
 		ShaderVertexAttribute(BufferDataFormat dataFormat) noexcept;
+
+		/// @brief Gets the auto-calculated offset from the start of the vertex data structure of this attribute
+		/// @return The offset from the start of the vertex data structure of this attribute
+		constexpr uint32_t GetDataOffset() const noexcept { return _dataOffset; }
 	};
 
-	/// <summary>
-	/// A descriptor for a shader
-	/// </summary>
+	/// @brief A descriptor for a shader
 	struct COCOAPI ShaderDescriptor
 	{
-		/// <summary>
-		/// The descriptor name (used for referencing from materials)
-		/// </summary>
-		string Name;
+		/// @brief The descriptor name (used for referencing from materials)
+		const string Name;
 
-		/// <summary>
-		/// The type of descriptor
-		/// </summary>
-		BufferDataFormat Type;
+		/// @brief The type of descriptor
+		const BufferDataFormat Type;
 
 		ShaderDescriptor(const string& name, BufferDataFormat type) noexcept;
 	};
 
-	/// <summary>
-	/// A texture sampler for a shader
-	/// </summary>
+	/// @brief A texture sampler for a shader
 	struct COCOAPI ShaderTextureSampler
 	{
-		/// <summary>
-		/// The descriptor name (used for referencing from materials)
-		/// </summary>
-		string Name;
+		/// @brief The descriptor name (used for referencing from materials)
+		const string Name;
 
 		ShaderTextureSampler(const string& name) noexcept;
 	};
 
-	/// <summary>
-	/// A render-pass specific shader
-	/// </summary>
+	/// @brief A render-pass specific shader
 	struct COCOAPI Subshader
 	{
-		/// <summary>
-		/// The name of the render pass that uses this subshader
-		/// </summary>
+		friend class Shader;
+
+		/// @brief The name of the render pass that uses this subshader
 		string PassName;
 
-		/// <summary>
-		/// Files for each stage of this subshader
-		/// </summary>
+		/// @brief Files for each stage of this subshader
 		Map<ShaderStageType, string> StageFiles;
 
-		/// <summary>
-		/// The graphics pipeline state that this subshader requires
-		/// </summary>
+		/// @brief The graphics pipeline state that this subshader requires
 		GraphicsPipelineState PipelineState;
 
-		/// <summary>
-		/// Vertex shader attributes for this subshader
-		/// </summary>
+		/// @brief Vertex shader attributes for this subshader
 		List<ShaderVertexAttribute> Attributes;
 
-		/// <summary>
-		/// Descriptors for this subshader
-		/// </summary>
+		/// @brief Descriptors for this subshader
 		List<ShaderDescriptor> Descriptors;
 
-		/// <summary>
-		/// Texture samplers for this subshader
-		/// </summary>
+		/// @brief Texture samplers for this subshader
 		List<ShaderTextureSampler> Samplers;
 
-		/// <summary>
-		/// The point in the render pipeline when the descriptors should be bound
-		/// </summary>
+		/// @brief The point in the render pipeline when the descriptors should be bound
 		ShaderStageType DescriptorBindingPoint = ShaderStageType::Fragment;
 
 		Subshader() = default;
@@ -129,9 +104,8 @@ namespace Coco::Rendering
 			const List<ShaderTextureSampler>& samplers,
 			ShaderStageType bindPoint = ShaderStageType::Fragment) noexcept;
 
-		/// <summary>
-		/// Updates this subshader's vertex attribute offsets
-		/// </summary>
+	private:
+		/// @brief Updates this subshader's vertex attribute offsets
 		void UpdateAttributeOffsets() noexcept;
 	};
 

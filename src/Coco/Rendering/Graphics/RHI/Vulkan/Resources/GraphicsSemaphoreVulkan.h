@@ -13,9 +13,7 @@ namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 
-	/// <summary>
-	/// Vulkan-implementation of a GraphicsSemaphore
-	/// </summary>
+	/// @brief Vulkan-implementation of a GraphicsSemaphore
 	class GraphicsSemaphoreVulkan final : public IGraphicsSemaphore
 	{
 	private:
@@ -26,10 +24,8 @@ namespace Coco::Rendering::Vulkan
 		GraphicsSemaphoreVulkan(GraphicsDevice* device);
 		~GraphicsSemaphoreVulkan() final;
 
-		/// <summary>
-		/// Gets the underlying VkSemaphore
-		/// </summary>
-		/// <returns>The underlying Vulkan semaphore</returns>
+		/// @brief Gets the underlying VkSemaphore
+		/// @return The underlying Vulkan semaphore
 		VkSemaphore GetSemaphore() const noexcept { return _semaphore; }
 	};
 }

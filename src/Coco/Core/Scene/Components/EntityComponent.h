@@ -4,6 +4,7 @@
 
 namespace Coco
 {
+	/// @brief A generic component that can be added to entities
 	class COCOAPI EntityComponent
 	{
 	public:

@@ -9,13 +9,13 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	CachedShaderResource::CachedShaderResource(Ref<VulkanShader> shader) : CachedResource(shader->ID, shader->Version), ShaderRef(shader)
+	CachedShaderResource::CachedShaderResource(const Ref<VulkanShader>& shader) : CachedResource(shader->ID, shader->GetVersion()), ShaderRef(shader)
 	{}
 
 	bool CachedShaderResource::NeedsUpdate() const noexcept
 	{
 		if (Ref<VulkanShader> shader = ShaderRef.lock())
-			return !Pool.IsValid() || shader->Version != this->Version;
+			return !Pool.IsValid() || shader->GetVersion() != this->GetVersion();
 
 		return false;
 	}
@@ -25,16 +25,16 @@ namespace Coco::Rendering::Vulkan
 		Ref<VulkanShader> shader = ShaderRef.lock();
 
 		Pool = device->CreateResource<VulkanDescriptorPool>(MaxSets, shader->GetDescriptorLayouts());
-		this->Version = shader->Version;
+		this->UpdateVersion(shader->GetVersion());
 	}
 
-	CachedMaterialResource::CachedMaterialResource(Ref<Material> material) : CachedResource(material->GetID(), material->GetVersion()), MaterialRef(material)
+	CachedMaterialResource::CachedMaterialResource(const Ref<Material>& material) : CachedResource(material->ID, material->GetVersion()), MaterialRef(material)
 	{}
 
 	bool CachedMaterialResource::NeedsUpdate() const noexcept
 	{
 		if (Ref<Material> mat = MaterialRef.lock())
-			return BufferOffset == Math::MaxValue<uint64_t>() || BufferIndex == Math::MaxValue<uint>() || mat->GetVersion() != this->Version;
+			return BufferOffset == Math::MaxValue<uint64_t>() || BufferIndex == Math::MaxValue<uint>() || mat->GetVersion() != this->GetVersion();
 
 		return false;
 	}
@@ -44,7 +44,7 @@ namespace Coco::Rendering::Vulkan
 		uint8_t* dst = bufferMemory + BufferOffset;
 		std::memcpy(dst, materialData, materialDataLength);
 
-		this->Version = MaterialRef.lock()->GetVersion();
+		this->UpdateVersion(MaterialRef.lock()->GetVersion());
 	}
 
 	void CachedMaterialResource::InvalidateBufferRegion()
@@ -69,7 +69,7 @@ namespace Coco::Rendering::Vulkan
 		_materialUBOs.Clear();
 	}
 
-	CachedShaderResource& RenderContextVulkanCache::GetShaderResource(Ref<VulkanShader> shader)
+	CachedShaderResource& RenderContextVulkanCache::GetShaderResource(const Ref<VulkanShader>& shader)
 	{
 		if (!_shaderCache.contains(shader->ID))
 			_shaderCache.emplace(shader->ID, CachedShaderResource(shader));
@@ -85,12 +85,12 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
-	CachedMaterialResource& RenderContextVulkanCache::GetMaterialResource(Ref<Material> material)
+	CachedMaterialResource& RenderContextVulkanCache::GetMaterialResource(const Ref<Material>& material)
 	{
-		if (!_materialCache.contains(material->GetID()))
-			_materialCache.emplace(material->GetID(), CachedMaterialResource(material));
+		if (!_materialCache.contains(material->ID))
+			_materialCache.emplace(material->ID, CachedMaterialResource(material));
 
-		CachedMaterialResource& resource = _materialCache.at(material->GetID());
+		CachedMaterialResource& resource = _materialCache.at(material->ID);
 		Assert(resource.IsInvalid() == false);
 
 		resource.UpdateTickUsed();
@@ -156,13 +156,10 @@ namespace Coco::Rendering::Vulkan
 			shaderKVP.second.Pool->FreeSets();
 	}
 
-
-	/// <summary>
-	/// Gets the material buffer
-	/// </summary>
-	/// <returns>The material buffer</returns>
-
-	WeakManagedRef<BufferVulkan> RenderContextVulkanCache::GetMaterialBuffer(uint bufferIndex) const noexcept { return _materialUBOs[bufferIndex].Buffer; }
+	WeakManagedRef<BufferVulkan> RenderContextVulkanCache::GetMaterialBuffer(uint bufferIndex) const noexcept
+	{
+		return _materialUBOs[bufferIndex].Buffer;
+	}
 
 	void RenderContextVulkanCache::PurgeResources() noexcept
 	{

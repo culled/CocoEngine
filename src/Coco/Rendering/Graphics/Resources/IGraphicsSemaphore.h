@@ -4,9 +4,7 @@
 
 namespace Coco::Rendering
 {
-	/// <summary>
-	/// A semaphore that can be used to order operations on the GPU
-	/// </summary>
+	/// @brief A semaphore that can be used to order operations on the GPU
 	class COCOAPI IGraphicsSemaphore : public IGraphicsResource
 	{
 	protected:

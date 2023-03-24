@@ -9,46 +9,41 @@
 
 namespace Coco
 {
-	class Engine;
+	class EngineServiceManager;
 
-	/// <summary>
-	/// A class that provides a service to the engine
-	/// </summary>
+	/// @brief Provides a service to the engine
 	class COCOAPI EngineService
 	{
+	public:
+		/// @brief A pointer to the servie manager
+		EngineServiceManager* const ServiceManager;
+
 	protected:
-		Engine* Engine;
+		/// @brief Tick listeners for this service
 		List<Ref<MainLoopTickListener>> TickListeners;
 
 	protected:
-		EngineService(Coco::Engine* engine);
+		EngineService(EngineServiceManager* serviceManager);
 
 	public:
 		virtual ~EngineService() = default;
 
-		/// <summary>
-		/// Gets this service's logger
-		/// </summary>
-		/// <returns>This service's logger</returns>
+		/// @brief Gets this service's logger
+		/// @return This service's logger
 		virtual Logging::Logger* GetLogger() const noexcept;
 
-		/// <summary>
-		/// Called when the service should start executing
-		/// </summary>
+		/// @brief Starts this service
 		void Start();
 
 	protected:
-		/// <summary>
-		/// Called when the service should start executing
-		/// </summary>
+		/// @brief Called when the service should start
 		virtual void StartImpl() {}
 
-		/// <summary>
-		/// Sets a tick listener to be registered when this service starts
-		/// </summary>
-		/// <param name="instance">The instance</param>
-		/// <param name="handlerFunction">The tick function</param>
-		/// <param name="priority">The priority of the listener</param>
+		/// @brief Sets a tick listener to be registered when this service starts
+		/// @tparam ObjectT 
+		/// @param instance The instance
+		/// @param handlerFunction The tick function
+		/// @param priority The priority of the listener
 		template<typename ObjectT>
 		void RegisterTickListener(ObjectT* instance, void(ObjectT::* handlerFunction)(double), int priority)
 		{
