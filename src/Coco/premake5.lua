@@ -30,6 +30,8 @@ project "Coco"
 
     -- Engine service files
     filter { "options:service-input or options:services-all" }
+        defines { "COCO_SERVICE_INPUT"}
+
         files
         {
             "Input/**.h",
@@ -37,6 +39,8 @@ project "Coco"
         }
 
     filter { "options:service-rendering or options:services-all" }
+        defines { "COCO_SERVICE_RENDERING"}
+
         files
         {
             "Rendering/*.h",
@@ -54,6 +58,8 @@ project "Coco"
         }
 
     filter { "options:service-windowing or options:service-rendering or options:services-all" }
+        defines { "COCO_SERVICE_WINDOWING"}
+
         files
         {
             "Windowing/**.h",
@@ -127,11 +133,21 @@ project "Coco"
     filter { "options:platform-windows or options:platforms-all" }
         files
         {
-            "Platforms/Windows/**.h",
-            "Platforms/Windows/**.cpp",
+            "Platforms/Windows/APIWindows.h",
+            "Platforms/Windows/EnginePlatformWindows.h",
+            "Platforms/Windows/EnginePlatformWindows.cpp",
+            "Platforms/Windows/EntryWindows.cpp",
+            "Platforms/Windows/WindowsIncludes.h",
         }
 
         systemversion "latest"
+
+    filter { "options:platform-windows or options:platforms-all", "options:service-windowing or options:services-all" }
+        files
+        {
+            "Platforms/Windows/WindowsWindow.h",
+            "Platforms/Windows/WindowsWindow.cpp",
+        }
 
     filter { "options:platform-mac or options:platforms-all" }
         files

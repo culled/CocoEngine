@@ -1,20 +1,28 @@
 #include "EnginePlatformWindows.h"
 
 #include "WindowsIncludes.h"
-#include "WindowsWindow.h"
 
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Logging/Logger.h>
 #include <Coco/Core/Services/EngineServiceManager.h>
+
+#ifdef COCO_SERVICE_WINDOWING
+#include "WindowsWindow.h"
+#endif // COCO_SERVICE_WINDOWING
+
+#ifdef COCO_SERVICE_INPUT
 #include <Coco/Input/InputService.h>
 #include <Coco/Input/Keyboard.h>
 #include <Coco/Input/Mouse.h>
+#endif // COCO_SERVICE_INPUT
+
+#ifdef COCO_SERVICE_RENDERING
 #include <Coco/Rendering/Graphics/GraphicsPlatformTypes.h>
+#endif // COCO_SERVICE_RENDERING
 
 namespace Coco::Platform::Windows
 {
 	const wchar_t* EnginePlatformWindows::s_windowClassName = L"CocoWindowClass";
-	Input::InputService* EnginePlatformWindows::_inputService = nullptr;
 
 	EnginePlatformWindows::EnginePlatformWindows(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) :
 		_instance(hInstance)
@@ -35,11 +43,13 @@ namespace Coco::Platform::Windows
 
 	void EnginePlatformWindows::Start()
 	{
-		if (!Engine::Get()->GetServiceManager()->TryFindService<Input::InputService>(_inputService))
+#ifdef COCO_SERVICE_INPUT
+		if (!Engine::Get()->GetServiceManager()->TryFindService<Input::InputService>(s_inputService))
 		{
 			LogWarning(Engine::Get()->GetLogger(), "Could not find an input service. Input will not be handled");
-			_inputService = nullptr;
+			s_inputService = nullptr;
 		}
+#endif // COCO_SERVICE_INPUT
 	}
 
 	void EnginePlatformWindows::GetCommandLineArguments(List<string>& arguments) const noexcept
@@ -146,7 +156,7 @@ namespace Coco::Platform::Windows
 		std::wstring str = StringToWideString(message);
 #else
 		std::string str = message;
-#endif
+#endif // UNICODE || _UNICODE
 
 		LPDWORD charactersWritten = 0;
 		WriteConsole(outputHandle, str.c_str(), static_cast<DWORD>(str.length()), charactersWritten, 0);
@@ -169,22 +179,18 @@ namespace Coco::Platform::Windows
 		}
 	}
 
-	ManagedRef<Windowing::Window> EnginePlatformWindows::CreatePlatformWindow(
-		Windowing::WindowCreateParameters& createParameters, 
-		Windowing::WindowingService* windowingService)
-	{
-		return CreateManagedRef<WindowsWindow>(createParameters, windowingService, this);
-	}
-
 	void EnginePlatformWindows::GetRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept
 	{
+#ifdef COCO_SERVICE_RENDERING
 		try
 		{
 			switch (static_cast<Rendering::RenderingRHI>(renderingRHI))
 			{
+#ifdef COCO_RENDERING_VULKAN
 			case Rendering::RenderingRHI::Vulkan:
 				extensionNames.Add("VK_KHR_win32_surface");
 				break;
+#endif // COCO_RENDERING_VULKAN
 			default:
 				break;
 			}
@@ -193,6 +199,18 @@ namespace Coco::Platform::Windows
 		{
 			LogError(Engine::Get()->GetLogger(), FormattedString("Could not retreive platform rendering extensions: {}", ex.what()));
 		}
+#endif // COCO_SERVICE_RENDERING
+	}
+
+	ManagedRef<Windowing::Window> EnginePlatformWindows::CreatePlatformWindow(
+		Windowing::WindowCreateParameters& createParameters, 
+		Windowing::WindowingService* windowingService)
+	{
+#ifdef COCO_SERVICE_WINDOWING
+		return CreateManagedRef<WindowsWindow>(createParameters, windowingService, this);
+#else
+		throw InvalidOperationException("Windowing support was not included");
+#endif // COCO_SERVICE_WINDOWING
 	}
 
 	void EnginePlatformWindows::Sleep(unsigned long milliseconds) noexcept
@@ -249,6 +267,7 @@ namespace Coco::Platform::Windows
 	{
 		switch (message)
 		{
+#ifdef COCO_SERVICE_WINDOWING
 		case WM_NCCREATE:
 		case WM_CREATE:
 		{
@@ -258,9 +277,6 @@ namespace Coco::Platform::Windows
 			SetWindowLongPtr(windowHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(windowPtr));
 			break;
 		}
-		case WM_ERASEBKGND:
-			// Erasing will be handled by us to prevent flicker
-			return 1;
 		case WM_CLOSE: // A window has been requested to close
 			HandleWindowMessage(windowHandle, message, wParam, lParam);
 			return 0;
@@ -270,6 +286,11 @@ namespace Coco::Platform::Windows
 		case WM_MOVE: // A window has finished moving
 			HandleWindowMessage(windowHandle, message, wParam, lParam);
 			break;
+#endif
+		case WM_ERASEBKGND:
+			// Erasing will be handled by us to prevent flicker
+			return 1;
+#ifdef COCO_SERVICE_INPUT
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 		case WM_KEYUP:
@@ -290,6 +311,7 @@ namespace Coco::Platform::Windows
 		case WM_XBUTTONUP:
 			HandleInputMessage(windowHandle, message, wParam, lParam);
 			break;
+#endif
 		default:
 			break;
 		}
@@ -299,6 +321,7 @@ namespace Coco::Platform::Windows
 
 	void EnginePlatformWindows::HandleWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
+#ifdef COCO_SERVICE_WINDOWING
 		LONG_PTR userPtr = GetWindowLongPtr(windowHandle, GWLP_USERDATA);
 		WindowsWindow* windowsWindow = reinterpret_cast<WindowsWindow*>(userPtr);
 
@@ -309,29 +332,35 @@ namespace Coco::Platform::Windows
 		}
 
 		windowsWindow->ProcessMessage(message, wParam, lParam);
+#endif // COCO_SERVICE_WINDOWING
 	}
+
+#ifdef COCO_SERVICE_INPUT
+	Input::InputService* EnginePlatformWindows::s_inputService = nullptr;
+#endif // COCO_SERVICE_INPUT
 
 	void EnginePlatformWindows::HandleInputMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
-		if (_inputService == nullptr)
+#ifdef COCO_SERVICE_INPUT
+		if (s_inputService == nullptr)
 			return;
 
 		switch (message)
 		{
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
-			_inputService->GetKeyboard()->UpdateKeyState(static_cast<Input::KeyboardKey>(wParam), true);
+			s_inputService->GetKeyboard()->UpdateKeyState(static_cast<Input::KeyboardKey>(wParam), true);
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			_inputService->GetKeyboard()->UpdateKeyState(static_cast<Input::KeyboardKey>(wParam), false);
+			s_inputService->GetKeyboard()->UpdateKeyState(static_cast<Input::KeyboardKey>(wParam), false);
 			break;
 		case WM_MOUSEMOVE:
 		{
 			const int x = GET_X_LPARAM(lParam);
 			const int y = GET_Y_LPARAM(lParam);
 
-			_inputService->GetMouse()->UpdatePositionState(Vector2Int(x, y));
+			s_inputService->GetMouse()->UpdatePositionState(Vector2Int(x, y));
 			break;
 		}
 		case WM_MOUSEWHEEL:
@@ -343,7 +372,7 @@ namespace Coco::Platform::Windows
 				// Flatten the z delta to be platform-independent
 				yDelta = (yDelta >= 0) ? 1 : -1;
 
-				_inputService->GetMouse()->UpdateScrollState(Vector2Int(0, yDelta));
+				s_inputService->GetMouse()->UpdateScrollState(Vector2Int(0, yDelta));
 			}
 
 			break;
@@ -353,9 +382,9 @@ namespace Coco::Platform::Windows
 		case WM_LBUTTONUP:
 		{
 			if (message == WM_LBUTTONDBLCLK)
-				_inputService->GetMouse()->DoubleClicked(Input::MouseButton::Left);
+				s_inputService->GetMouse()->DoubleClicked(Input::MouseButton::Left);
 
-			_inputService->GetMouse()->UpdateButtonState(Input::MouseButton::Left, message != WM_LBUTTONUP);
+			s_inputService->GetMouse()->UpdateButtonState(Input::MouseButton::Left, message != WM_LBUTTONUP);
 			break;
 		}
 		case WM_MBUTTONDOWN:
@@ -363,9 +392,9 @@ namespace Coco::Platform::Windows
 		case WM_MBUTTONUP:
 		{
 			if (message == WM_MBUTTONDBLCLK)
-				_inputService->GetMouse()->DoubleClicked(Input::MouseButton::Middle);
+				s_inputService->GetMouse()->DoubleClicked(Input::MouseButton::Middle);
 
-			_inputService->GetMouse()->UpdateButtonState(Input::MouseButton::Middle, message != WM_MBUTTONUP);
+			s_inputService->GetMouse()->UpdateButtonState(Input::MouseButton::Middle, message != WM_MBUTTONUP);
 			break;
 		}
 		case WM_RBUTTONDOWN:
@@ -373,9 +402,9 @@ namespace Coco::Platform::Windows
 		case WM_RBUTTONUP:
 		{
 			if (message == WM_RBUTTONDBLCLK)
-				_inputService->GetMouse()->DoubleClicked(Input::MouseButton::Right);
+				s_inputService->GetMouse()->DoubleClicked(Input::MouseButton::Right);
 
-			_inputService->GetMouse()->UpdateButtonState(Input::MouseButton::Right, message != WM_RBUTTONUP);
+			s_inputService->GetMouse()->UpdateButtonState(Input::MouseButton::Right, message != WM_RBUTTONUP);
 			break;
 		}
 		case WM_XBUTTONDOWN:
@@ -385,14 +414,15 @@ namespace Coco::Platform::Windows
 			const Input::MouseButton button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? Input::MouseButton::Button3 : Input::MouseButton::Button4;
 
 			if (message == WM_XBUTTONDBLCLK)
-				_inputService->GetMouse()->DoubleClicked(button);
+				s_inputService->GetMouse()->DoubleClicked(button);
 
-			_inputService->GetMouse()->UpdateButtonState(button, message != WM_XBUTTONUP);
+			s_inputService->GetMouse()->UpdateButtonState(button, message != WM_XBUTTONUP);
 			break;
 		}
 		default:
 			break;
 		}
+#endif // COCO_SERVICE_INPUT
 	}
 
 	void EnginePlatformWindows::RegisterWindowClass()

@@ -2,9 +2,10 @@
 
 #include <Coco/Core/Platform/IEnginePlatform.h>
 
-#include <Coco/Windowing/IWindowingPlatform.h>
-#include <Coco/Rendering/IRenderingPlatform.h>
 #include "WindowsIncludes.h"
+
+#include <Coco/Rendering/IRenderingPlatform.h>
+#include <Coco/Windowing/IWindowingPlatform.h>
 
 namespace Coco::Input
 {
@@ -18,15 +19,19 @@ namespace Coco::Platform::Windows
     {
     private:
         static const wchar_t* s_windowClassName;
-        static Input::InputService* _inputService;
+
+#if COCO_SERVICE_INPUT
+        static Input::InputService* s_inputService;
+#endif
 
         HINSTANCE _instance;
         bool _isConsoleOpen = false;
         double _secondsPerCycle;
         LARGE_INTEGER _clockFrequency;
 
+#ifdef COCO_SERVICE_WINDOWING
         friend class WindowsWindow;
-
+#endif
 
     public:
         EnginePlatformWindows(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow);
@@ -49,11 +54,11 @@ namespace Coco::Platform::Windows
         void Sleep(unsigned long milliseconds) noexcept final;
         void ShowMessageBox(const string& title, const string& message, bool isError) final;
 
+        void GetRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept final;
+
         ManagedRef<Windowing::Window> CreatePlatformWindow(
             Windowing::WindowCreateParameters& createParameters, 
             Windowing::WindowingService* windowingService) final;
-
-        void GetRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept final;
 
     private:
         /// @brief Converts a wide character array to a string
@@ -80,7 +85,7 @@ namespace Coco::Platform::Windows
         /// @param wParam Message WParams
         /// @param lParam Message LParams
         static void HandleWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
-        
+
         /// @brief Handles an input-specific message
         /// @param windowHandle The handle to the window
         /// @param message The type of message
