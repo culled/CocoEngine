@@ -27,7 +27,7 @@ project "CocoSandbox"
         "Coco",
     }
 
-    filter "options:vulkan-enabled"
+    filter { "options:renderRHI-vulkan or options:renderRHIs-all" }
         defines { "COCO_RENDERING_VULKAN"}
 
         libdirs
@@ -40,7 +40,7 @@ project "CocoSandbox"
             "vulkan-1.lib"
         }
 
-    filter {"system:windows", "options:vulkan-enabled"}
+    filter {"system:windows", "options:renderRHI-vulkan or options:renderRHIs-all"}
         -- TEMPORARY
         postbuildcommands
         {
@@ -55,7 +55,7 @@ project "CocoSandbox"
             "echo Shaders compiled"
         }
 
-    filter "configurations:Debug"
+    filter { "configurations:Debug" }
         defines
         { 
             "COCO_LOG_TRACE",
@@ -68,6 +68,6 @@ project "CocoSandbox"
         runtime "Debug"
         symbols "on"
         
-    filter "configurations:Release"
+    filter { "configurations:Release" }
         runtime "Release"
         optimize "on"
