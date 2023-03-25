@@ -6,19 +6,7 @@
 namespace Coco::Rendering
 {
 	Mesh::Mesh(const string& name) : RenderingResource(name, ResourceType::Mesh)
-	{
-		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
-
-		_vertexBuffer = platform->CreateBuffer(
-			VertexBufferSize, 
-			BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Vertex,
-			true);
-
-		_indexBuffer = platform->CreateBuffer(
-			IndexBufferSize, 
-			BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Index, 
-			true);
-	}
+	{}
 
 	Mesh::~Mesh()
 	{
@@ -50,6 +38,7 @@ namespace Coco::Rendering
 			return true;
 
 		RenderingService* renderingService = EnsureRenderingService();
+		GraphicsPlatform* platform = renderingService->GetPlatform();
 
 		try
 		{
@@ -68,14 +57,26 @@ namespace Coco::Rendering
 					_vertexIndices.Count()));
 			}
 
+			_vertexCount = _vertexPositions.Count();
+			_indexCount = _vertexIndices.Count();
+
+			const uint64_t vertexBufferSize = _vertexCount * sizeof(VertexData);
+			const uint64_t indexBufferSize = _indexCount * sizeof(uint32_t);
+
 			if (!_vertexBuffer.IsValid())
-				throw InvalidOperationException("Lost vertex buffer resource");
+				_vertexBuffer = platform->CreateBuffer(
+					vertexBufferSize,
+					BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Vertex,
+					true);
 
 			if (!_indexBuffer.IsValid())
-				throw InvalidOperationException("Lost index buffer resource");
+				_indexBuffer = platform->CreateBuffer(
+					indexBufferSize,
+					BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Index,
+					true);
 
 			WeakManagedRef<Buffer> stagingBuffer = renderingService->GetPlatform()->CreateBuffer(
-				VertexBufferSize,
+				vertexBufferSize,
 				BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
 				true);
 
@@ -94,15 +95,13 @@ namespace Coco::Rendering
 			// Upload vertex data
 			stagingBuffer->LoadData(0, vertexData);
 			stagingBuffer->CopyTo(0, _vertexBuffer.Get(), 0, sizeof(VertexData) * vertexData.Count());
-			_vertexCount = vertexData.Count();
 
 			// Resize for index data
-			stagingBuffer->Resize(IndexBufferSize, false);
+			stagingBuffer->Resize(indexBufferSize, false);
 
 			// Upload index data
 			stagingBuffer->LoadData(0, _vertexIndices);
 			stagingBuffer->CopyTo(0, _indexBuffer.Get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
-			_indexCount = _vertexIndices.Count();
 
 			stagingBuffer.Invalidate();
 
@@ -123,6 +122,9 @@ namespace Coco::Rendering
 				"Failed to upload mesh data: {}",
 				ex.what()
 			));
+
+			_vertexCount = 0;
+			_indexCount = 0;
 
 			return false;
 		}

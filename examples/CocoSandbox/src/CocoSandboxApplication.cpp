@@ -35,7 +35,6 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	Rendering::GraphicsPlatformCreationParameters createParams(Name, Rendering::RenderingRHI::Vulkan);
 	_renderService = engine->GetServiceManager()->CreateService<Rendering::RenderingService>(createParams);
 
-
 	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
 
 	// Setup our basic shader
@@ -182,5 +181,4 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	// Update mesh data on the GPU if it is dirty
 	if (_mesh->GetIsDirty())
 		_mesh->UploadData();
-
 }

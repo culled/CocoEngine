@@ -12,20 +12,13 @@ namespace Coco::Rendering
 	/// @brief Vertex data that can be sent to the GPU
 	struct VertexData
 	{
-		float Position[3];
-		float UV0[2];
+		float Position[3];	// 12 bytes
+		float UV0[2];		// 8 bytes
 	};
 
 	/// @brief Holds vertex and index data for rendering geometry
 	class COCOAPI Mesh : public RenderingResource
 	{
-	public:
-		/// @brief The size of the vertex buffer (in bytes)
-		static constexpr uint64_t VertexBufferSize = sizeof(VertexData) * 1024 * 1024;
-
-		/// @brief The size of the index buffer (in bytes)
-		static constexpr uint64_t IndexBufferSize = sizeof(uint32_t) * VertexBufferSize * 3;
-
 	private:
 		WeakManagedRef<Buffer> _vertexBuffer;
 		WeakManagedRef<Buffer> _indexBuffer;
