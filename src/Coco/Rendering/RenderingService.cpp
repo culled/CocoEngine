@@ -7,6 +7,8 @@
 #include "Loaders/ShaderLoader.h"
 #include "Loaders/MaterialLoader.h"
 #include "Texture.h"
+#include "Components/MeshRendererComponent.h"
+#include <Coco/Core/Scene/Components/TransformComponent.h>
 
 namespace Coco::Rendering
 {
@@ -37,11 +39,20 @@ namespace Coco::Rendering
 		_graphics.reset();
 	}
 
-	void RenderingService::Render(GraphicsPresenter* presenter)
+	void RenderingService::Render(const WeakManagedRef<GraphicsPresenter>& presenter)
 	{
 		if (_defaultPipeline)
 		{
-			Render(presenter, _defaultPipeline, ServiceManager->Engine->GetApplication()->GetCamera().get());
+			Ref<Scene> scene = Engine::Get()->GetApplication()->GetScene();
+			List<Ref<SceneEntity>> cameras = scene->GetEntitiesWithComponent<CameraComponent>();
+
+			if (cameras.Count() == 0)
+			{
+				LogError(GetLogger(), "Failed to render presenter: No camera to render from");
+				return;
+			}
+
+			Render(presenter, _defaultPipeline, cameras.First()->GetComponent<CameraComponent>());
 		}
 		else
 		{
@@ -49,22 +60,40 @@ namespace Coco::Rendering
 		}
 	}
 
-	void RenderingService::Render(GraphicsPresenter* presenter, Ref<RenderPipeline> pipeline, CameraComponent* camera)
+	void RenderingService::Render(const WeakManagedRef<GraphicsPresenter>& presenter, const Ref<RenderPipeline>& pipeline, CameraComponent* camera)
 	{
 		SizeInt size = presenter->GetBackbufferSize();
 
 		// Make sure the camera matches our rendering aspect ratio
 		camera->SetAspectRatio(static_cast<double>(size.Width) / size.Height);
 
-		// TODO: create this from the scene graph
-		Ref<RenderView> view = CreateRef<RenderView>(RectInt(Vector2Int::Zero, size), pipeline->GetClearColor(), camera->GetProjectionMatrix(), camera->GetViewMatrix());
-
-		// Acquire the render context that we'll be using
+		// Acquire the render context and backbuffer that we'll be using
 		RenderContext* renderContext;
-		if (!presenter->GetRenderContext(renderContext))
+		WeakManagedRef<Image> backbuffer;
+		if (!presenter->PrepareForRender(renderContext, backbuffer))
 		{
-			LogError(GetLogger(), "Failed to get RenderContext from render presenter");
+			LogError(GetLogger(), "Failed to prepare presenter for rendering");
 			return;
+		}
+
+		camera->SetRenderTargetOverrides({ backbuffer });
+
+		Ref<RenderView> view = CreateRef<RenderView>(
+			RectInt(Vector2Int::Zero, size), 
+			pipeline->GetClearColor(), 
+			camera->GetProjectionMatrix(), 
+			camera->GetViewMatrix(),
+			camera->GetRenderTargets(pipeline));
+
+		// Add objects from the scene graph
+		Ref<Scene> scene = Engine::Get()->GetApplication()->GetScene();
+		List<Ref<SceneEntity>> renderEntities = scene->GetEntitiesWithComponent<MeshRendererComponent>();
+
+		for (const Ref<SceneEntity>& entity : renderEntities)
+		{
+			MeshRendererComponent* renderComp = entity->GetComponent<MeshRendererComponent>();
+			TransformComponent* transformComp = entity->GetComponent<TransformComponent>();
+			view->AddRenderObject(renderComp->GetMesh(), renderComp->GetMaterial(), transformComp->GetTransformMatrix());
 		}
 
 		// Actually render with the pipeline

@@ -3,10 +3,7 @@
 #include "Core.h"
 #include "Logging/Logger.h"
 #include "Events/Event.h"
-
-// TEMPORARY -----------------------------------------------
-#include <Coco/Rendering/Components/CameraComponent.h>
-// TEMPORARY -----------------------------------------------
+#include "Scene/Scene.h"
 
 namespace Coco
 {
@@ -30,6 +27,7 @@ namespace Coco
 
 	protected:
 		Managed<Logging::Logger> Logger;
+		Ref<Scene> Scene;
 
 	protected:
 		Application(Coco::Engine* engine, const string& name);
@@ -57,7 +55,7 @@ namespace Coco
 		bool Quit() noexcept;
 
 		// TEMPORARY -------------------------------------
-		virtual Ref<Rendering::CameraComponent> GetCamera() const noexcept = 0;
+		virtual Ref<Coco::Scene> GetScene() const noexcept { return Scene; }
 		// TEMPORARY -------------------------------------
 	};
 }

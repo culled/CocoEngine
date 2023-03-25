@@ -9,6 +9,7 @@
 namespace Coco::Rendering
 {
 	class RenderContext;
+	class Image;
 
 	/// @brief A presenter that can be used with a window for displaying rendered images
 	class COCOAPI GraphicsPresenter : public IGraphicsResource
@@ -46,8 +47,9 @@ namespace Coco::Rendering
 
 		/// @brief Gets a render context that can be used for rendering
 		/// @param renderContext Will be set to an acquired render context
+		/// @param backbuffer Will be set to the backbuffer image to use for rendering
 		/// @return True if a render context was acquired
-		virtual bool GetRenderContext(RenderContext*& renderContext) = 0;
+		virtual bool PrepareForRender(RenderContext*& renderContext, WeakManagedRef<Image>& backbuffer) = 0;
 
 		/// @brief Queues the given render context for presentation
 		/// @param renderContext The render context

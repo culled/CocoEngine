@@ -43,13 +43,14 @@ namespace Coco::Rendering
 	void RenderContext::End()
 	{
 		EndImpl();
+
+		RenderView.reset();
+		CurrentPipeline.reset();
+		CurrentRenderPass.reset();
 	}
 
 	void RenderContext::Reset()
 	{
-		RenderView.reset();
-		CurrentPipeline.reset();
-		CurrentRenderPass.reset();
 		CurrentRenderPassIndex = 0;
 
 		DrawCallCount = 0;

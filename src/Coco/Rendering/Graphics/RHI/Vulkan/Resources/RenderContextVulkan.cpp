@@ -11,7 +11,9 @@
 #include "../VulkanUtilities.h"
 #include "../GraphicsDeviceVulkan.h"
 #include "../GraphicsPlatformVulkan.h"
-#include "../VulkanShader.h"
+#include "../Cache/VulkanSubshader.h"
+#include "../Cache/VulkanRenderPass.h"
+#include "../Cache/VulkanPipeline.h"
 #include "../VulkanRenderCache.h"
 #include "ImageVulkan.h"
 #include "ImageSamplerVulkan.h"
@@ -20,7 +22,6 @@
 #include "BufferVulkan.h"
 #include "RenderContextVulkanCache.h"
 #include "CommandBufferPoolVulkan.h"
-
 
 namespace Coco::Rendering::Vulkan
 {
@@ -97,7 +98,6 @@ namespace Coco::Rendering::Vulkan
 
 		_signalSemaphores.Clear();
 		_waitSemaphores.Clear();
-		_renderTargets.Clear();
 
 		_pool->Free(_commandBuffer);
 		_commandBuffer.Invalidate();
@@ -128,61 +128,60 @@ namespace Coco::Rendering::Vulkan
 		vkCmdSetScissor(_commandBuffer->GetCmdBuffer(), 0, 1, &scissor);
 	}
 
-	void RenderContextVulkan::UseShader(Ref<Shader> shader)
+	void RenderContextVulkan::UseShader(ResourceID shaderID)
 	{
 		// No need to change if the same shader is used
-		if (shader.get() == _currentShader.get())
+		if (_currentShader == shaderID)
 			return;
 
 		_stateChanges.insert(RenderContextStateChange::Shader);
-		_currentShader = shader;
+		_currentShader = shaderID;
 
 		// Reset the pipeline and material as we're using a different shader
 		_currentPipeline = nullptr;
-		_currentMaterial = nullptr;
+		_currentMaterial = Resource::InvalidID;
 	}
 
-	void RenderContextVulkan::UseMaterial(Ref<Material> material)
+	void RenderContextVulkan::UseMaterial(ResourceID materialID)
 	{
 		// No need to change if the same material is used
-		if (material.get() == _currentMaterial.get())
+		if (_currentMaterial == materialID)
 			return;
 
-		// Bind the material shader
-		if (material.get() != nullptr)
-			UseShader(material->GetShader());
+		// Bind the material's shader
+		if (materialID != Resource::InvalidID)
+		{
+			const MaterialRenderData& materialData = RenderView->Materials.at(materialID);
+			UseShader(materialData.ShaderID);
+		}
 		else
-			UseShader(nullptr);
+		{
+			UseShader(Resource::InvalidID);
+		}
 
 		_stateChanges.insert(RenderContextStateChange::Material);
-		_currentMaterial = material;
+		_currentMaterial = materialID;
 	}
 
-	void RenderContextVulkan::SetRenderTargets(const List<WeakManagedRef<ImageVulkan>>& renderTargets)
+	void RenderContextVulkan::Draw(const ObjectRenderData& objectData)
 	{
-		// TODO: Make a way to tell if the same render targets are used to prevent recreating framebuffer every frame
-		if(_framebuffer)
-			_framebuffer->DestroyFramebuffer();
+		const MeshRenderData& meshData = RenderView->Meshs.at(objectData.MeshData);
 
-		_renderTargets = renderTargets;
-	}
-
-	void RenderContextVulkan::Draw(const Mesh* mesh, const Matrix4x4& modelMatrix)
-	{
 		// Sanity checks
-		WeakManagedRef<Buffer> vertexBufferRef = mesh->GetVertexBuffer();
-		WeakManagedRef<Buffer> indexBufferRef = mesh->GetIndexBuffer();
-		if (!vertexBufferRef.IsValid() || !indexBufferRef.IsValid())
+		if (!meshData.VertexBuffer.IsValid() || !meshData.IndexBuffer.IsValid())
 		{
 			LogError(_renderingService->GetLogger(), "Mesh has no index and/or vertex buffer. Skipping...");
 			return;
 		}
 
-		if (vertexBufferRef->GetSize() == 0 || indexBufferRef->GetSize() == 0)
+		if (meshData.VertexCount == 0 || meshData.IndexCount == 0)
 		{
 			LogError(_renderingService->GetLogger(), "Mesh has no index and/or vertex data. Skipping...");
 			return;
 		}
+
+		// Bind the object's material
+		UseMaterial(objectData.MaterialData);
 
 		// Flush the pipeline state
 		if (!FlushStateChanges())
@@ -193,21 +192,21 @@ namespace Coco::Rendering::Vulkan
 
 		// Bind the vertex buffer
 		Array<VkDeviceSize, 1> offsets = { 0 };
-		const BufferVulkan* vertexBuffer = static_cast<BufferVulkan*>(vertexBufferRef.Get());
+		const BufferVulkan* vertexBuffer = static_cast<BufferVulkan*>(meshData.VertexBuffer.Get());
 		VkBuffer vertexVkBuffer = vertexBuffer->GetBuffer();
 		vkCmdBindVertexBuffers(_commandBuffer->GetCmdBuffer(), 0, 1, &vertexVkBuffer, offsets.data());
 
 		// Bind the index buffer
-		const BufferVulkan* indexBuffer = static_cast<BufferVulkan*>(indexBufferRef.Get());
+		const BufferVulkan* indexBuffer = static_cast<BufferVulkan*>(meshData.IndexBuffer.Get());
 		vkCmdBindIndexBuffer(_commandBuffer->GetCmdBuffer(), indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		// Push the model matrix
-		Array<float, Matrix4x4::CellCount> modelMat = modelMatrix.AsFloat();
-		vkCmdPushConstants(_commandBuffer->GetCmdBuffer(), _currentPipeline->Layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * Matrix4x4::CellCount, modelMat.data());
+		Array<float, Matrix4x4::CellCount> modelMat = objectData.ModelMatrix.AsFloat();
+		vkCmdPushConstants(_commandBuffer->GetCmdBuffer(), _currentPipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * Matrix4x4::CellCount, modelMat.data());
 
-		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), static_cast<uint>(mesh->GetIndexCount()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), static_cast<uint>(meshData.IndexCount), 1, 0, 0, 0);
 
-		TrianglesDrawn += mesh->GetIndexCount() / 3;
+		TrianglesDrawn += meshData.IndexCount / 3;
 	}
 
 	void RenderContextVulkan::WaitForRenderingCompleted()
@@ -232,7 +231,7 @@ namespace Coco::Rendering::Vulkan
 
 			VkRenderPassBeginInfo beginInfo = {};
 			beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			beginInfo.renderPass = _renderPass->RenderPass;
+			beginInfo.renderPass = _renderPass->GetRenderPass();
 			beginInfo.framebuffer = _framebuffer->Framebuffer;
 
 			beginInfo.renderArea.offset.x =	static_cast<uint32_t>(RenderView->ViewportRect.Offset.X);
@@ -292,9 +291,10 @@ namespace Coco::Rendering::Vulkan
 			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to end VulkanRenderContext: {}", ex.what()));
 		}
 
-		_currentMaterial.reset();
-		_currentShader.reset();
+		_currentMaterial = Resource::InvalidID;
+		_currentShader = Resource::InvalidID;
 		_currentPipeline.reset();
+		_renderPass.reset();
 	}
 
 	void RenderContextVulkan::ResetImpl()
@@ -305,8 +305,8 @@ namespace Coco::Rendering::Vulkan
 
 		// Clear all currently bound items
 		_stateChanges.clear();
-		_currentShader.reset();
-		_currentMaterial.reset();
+		_currentShader = Resource::InvalidID;
+		_currentMaterial = Resource::InvalidID;
 		_currentPipeline = nullptr;
 
 		// Reset render syncronization objects
@@ -330,41 +330,43 @@ namespace Coco::Rendering::Vulkan
 				throw RenderingException("A render pass was not set");
 
 			// We need to have a shader bound to draw anything
-			if (_currentShader.get() == nullptr)
+			if (_currentShader == Resource::InvalidID)
 				throw RenderingException("No shader was bound");
+
+			const ShaderRenderData& shaderData = RenderView->Shaders.at(_currentShader);
+			Ref<VulkanSubshader> subshader = _device->GetRenderCache()->GetOrCreateVulkanSubshader(CurrentRenderPass->GetName(), shaderData);
 
 			if (_stateChanges.contains(RenderContextStateChange::Shader))
 			{
 				_currentPipeline = _device->GetRenderCache()->GetOrCreatePipeline(
-					*_renderPass,
-					CurrentRenderPass->GetName(),
+					_renderPass,
+					subshader,
 					CurrentRenderPassIndex,
-					_currentShader,
 					_globalDescriptor.Layout);
 
-				vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, _currentPipeline->Pipeline);
+				vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, _currentPipeline->GetPipeline());
 
 				// Bind the global descriptor set
 				vkCmdBindDescriptorSets(
 					_commandBuffer->GetCmdBuffer(),
 					VK_PIPELINE_BIND_POINT_GRAPHICS,
-					_currentPipeline->Layout,
+					_currentPipeline->GetPipelineLayout(),
 					s_globalDescriptorSetIndex, 1, &_globalDescriptorSet,
 					0, 0);
 			}
 
 			// Rendering without a material is fine
-			if (_stateChanges.contains(RenderContextStateChange::Material) && _currentMaterial.get() != nullptr)
+			if (_stateChanges.contains(RenderContextStateChange::Material) && _currentMaterial != Resource::InvalidID)
 			{
 				VkDescriptorSet set;
 				
-				if (GetOrAllocateMaterialDescriptorSet(CurrentRenderPass->GetName(), _currentShader, _currentMaterial, set))
+				if (GetOrAllocateMaterialDescriptorSet(subshader, _currentMaterial, set))
 				{
 					// Bind the material descriptor set
 					vkCmdBindDescriptorSets(
 						_commandBuffer->GetCmdBuffer(),
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
-						_currentPipeline->Layout,
+						_currentPipeline->GetPipelineLayout(),
 						s_materialDescriptorSetIndex, 1, &set,
 						0, 0);
 				}
@@ -379,10 +381,6 @@ namespace Coco::Rendering::Vulkan
 		}
 		catch (const RenderingException& ex)
 		{
-			_currentPipeline = nullptr;
-			_currentShader = nullptr;
-			_currentMaterial = nullptr;
-
 			LogError(_renderingService->GetLogger(), FormattedString("Failed binding pipeline state: {}", ex.what()));
 			stateBound = false;
 		}
@@ -393,6 +391,9 @@ namespace Coco::Rendering::Vulkan
 
 	void RenderContextVulkan::EnsureFramebufferUpdated()
 	{
+		// TODO: cache framebuffer
+		_framebuffer.reset();
+
 		// Create the cached resource if necessary
 		if (_framebuffer == nullptr || _framebuffer->IsInvalid())
 			_framebuffer = CreateRef<CachedVulkanFramebuffer>(_device, CurrentPipeline);
@@ -404,18 +405,19 @@ namespace Coco::Rendering::Vulkan
 
 			VkFramebufferCreateInfo framebufferInfo = {};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			framebufferInfo.renderPass = _renderPass->RenderPass;
+			framebufferInfo.renderPass = _renderPass->GetRenderPass();
 			framebufferInfo.width = static_cast<uint32_t>(RenderView->ViewportRect.Size.Width);
 			framebufferInfo.height = static_cast<uint32_t>(RenderView->ViewportRect.Size.Height);
 			framebufferInfo.layers = 1;
 
 			List<VkImageView> renderTargets;
-			for (const WeakManagedRef<ImageVulkan> renderTarget : _renderTargets)
+			for (const WeakManagedRef<Image> renderTarget : RenderView->RenderTargets)
 			{
 				if (!renderTarget.IsValid())
 					throw VulkanRenderingException("Render target resource was invalid");
 
-				renderTargets.Add(renderTarget->GetNativeView());
+				ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(renderTarget.Get());
+				renderTargets.Add(vulkanImage->GetNativeView());
 			}
 
 			framebufferInfo.attachmentCount = static_cast<uint32_t>(renderTargets.Count());
@@ -464,49 +466,39 @@ namespace Coco::Rendering::Vulkan
 		vkUpdateDescriptorSets(_device->GetDevice(), 1, &descriptorWrite, 0, nullptr);
 	}
 
-	bool RenderContextVulkan::GetOrAllocateMaterialDescriptorSet(const string& subshaderName, const Ref<Shader>& shader, const Ref<Material>& material, VkDescriptorSet& set)
+	bool RenderContextVulkan::GetOrAllocateMaterialDescriptorSet(const Ref<VulkanSubshader>& subshader, ResourceID materialID, VkDescriptorSet& set)
 	{
-		// Get the subshader
-		const Subshader* subshader;
-		if (!shader->TryGetSubshader(subshaderName, subshader))
-			throw RenderingException(FormattedString("Could not find a subshader in \"{}\" for pass {}",
-				shader->Name,
-				subshaderName
-			));
-
-		// Early out if no descriptors
-		if (subshader->Descriptors.Count() == 0 && subshader->Samplers.Count() == 0)
-			return false;
-
-		CachedMaterialResource& materialResource = _renderCache->GetMaterialResource(material);
-		const ResourceID materialID = material->ID;
-
 		// Use the cached descriptor set if it exists
 		if (_materialDescriptorSets.contains(materialID))
-			return _materialDescriptorSets.at(materialID);
+		{
+			set = _materialDescriptorSets.at(materialID);
+			return true;
+		}
 
-		// Get the vulkan shader and this subshader's descriptor layout
-		Ref<VulkanShader> vulkanShader = _device->GetRenderCache()->GetOrCreateVulkanShader(shader);
-		const VulkanSubshader* vulkanSubshader;
-		if (!vulkanShader->TryGetSubshader(subshaderName, vulkanSubshader))
-			throw RenderingException(FormattedString("Could not find a Vulkan subshader for subshader \"{}\" in shader \"{}\"",
-				subshaderName,
-				shader->Name
-			));
+		const Subshader& subshaderInfo = subshader->GetSubshader();
+
+		// Early out if no descriptors
+		if (subshaderInfo.Descriptors.Count() == 0 && subshaderInfo.Samplers.Count() == 0)
+			return false;
 
 		// Get the shader resource
-		CachedShaderResource& shaderResource = _renderCache->GetShaderResource(vulkanShader);
+		CachedSubshaderResource& subshaderResource = _renderCache->GetSubshaderResource(subshader);
 
 		// Allocate this material's descriptor set
-		set = shaderResource.Pool->GetOrAllocateSet(vulkanSubshader->DescriptorLayout, materialID);
+		set = subshaderResource.Pool->GetOrAllocateSet(subshader->GetDescriptorLayout(), materialID);
 		_materialDescriptorSets[materialID] = set;
+
+		const MaterialRenderData& materialData = RenderView->Materials.at(materialID);
+
+		CachedMaterialResource& materialResource = _renderCache->GetMaterialResource(materialData);
 
 		// Get the material's binding for this subshader
 		const SubshaderUniformBinding* subshaderBinding = nullptr;
-		material->TryGetSubshaderBinding(subshaderName, subshaderBinding);
+		if (materialData.SubshaderBindings.contains(subshader->SubshaderName))
+			subshaderBinding = &materialData.SubshaderBindings.at(subshader->SubshaderName);
 
 		VkDescriptorBufferInfo bufferInfo = {};
-		List<VkDescriptorImageInfo> imageInfos(subshader->Samplers.Count());
+		List<VkDescriptorImageInfo> imageInfos(subshaderInfo.Samplers.Count());
 		List<VkWriteDescriptorSet> descriptorWrites(imageInfos.Count() + (subshaderBinding != nullptr ? 1 : 0));
 
 		uint32_t bindingIndex = 0;
@@ -531,24 +523,30 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		// Write texture bindings
-		for (uint32_t i = 0; i < subshader->Samplers.Count(); i++)
+		for (uint32_t i = 0; i < subshaderInfo.Samplers.Count(); i++)
 		{
-			const ShaderTextureSampler& textureSampler = subshader->Samplers[i];
+			const ShaderTextureSampler& textureSampler = subshaderInfo.Samplers[i];
 
-			Ref<Texture> texture = material->GetTexture(textureSampler.Name);
+			ResourceID textureID = materialData.Samplers.contains(textureSampler.Name) ? materialData.Samplers.at(textureSampler.Name) : Resource::InvalidID;
 
-			if (!texture)
-				texture = _renderingService->GetDefaultCheckerTexture();
+			WeakManagedRef<Image> image;
+			WeakManagedRef<ImageSampler> sampler;
 
-			WeakManagedRef<Image> image = texture->GetImage();
-			WeakManagedRef<ImageSampler> sampler = texture->GetSampler();
+			if (textureID != Resource::InvalidID)
+			{
+				const TextureRenderData& textureData = RenderView->Textures.at(textureID);
+				image = textureData.Image;
+				sampler = textureData.Sampler;
+			}
+			else
+			{
+				Ref<Texture> defaultTexture = _renderingService->GetDefaultCheckerTexture();
+				image = defaultTexture->GetImage();
+				sampler = defaultTexture->GetSampler();
+			}
 
 			if (!image.IsValid() || !sampler.IsValid())
-				throw RenderingException(FormattedString(
-					"The Vulkan sampler or Vulkan image reference for \"{}\" is empty for shader \"{}\"", 
-					textureSampler.Name, 
-					_currentShader->Name
-				));
+				throw RenderingException(FormattedString("The sampler or image reference for \"{}\" is empty", textureSampler.Name));
 
 			const ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.Get());
 			const ImageSamplerVulkan* vulkanSampler = static_cast<ImageSamplerVulkan*>(sampler.Get());

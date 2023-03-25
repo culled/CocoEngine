@@ -8,6 +8,11 @@
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/RenderingService.h>
 #include <Coco/Rendering/MeshPrimitives.h>
+#include <Coco/Core/Scene/Components/TransformComponent.h>
+#include <Coco/Rendering/Components/CameraComponent.h>
+#include <Coco/Rendering/Components/MeshRendererComponent.h>
+
+#include "HelloTriangleRenderPass.h"
 
 MainApplication(CocoSandboxApplication)
 
@@ -30,15 +35,8 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	Rendering::GraphicsPlatformCreationParameters createParams(Name, Rendering::RenderingRHI::Vulkan);
 	_renderService = engine->GetServiceManager()->CreateService<Rendering::RenderingService>(createParams);
 
-	Ref<Rendering::RenderPipeline> pipeline = CreateRef<Rendering::RenderPipeline>();
-	pipeline->SetClearColor(Color(0.1, 0.2, 0.3));
 
 	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
-
-	_camera = CreateRef<CameraComponent>();
-	_camera->SetPerspectiveProjection(90.0, 1.0, 0.1, 100.0);
-	//_camera->SetOrthographicProjection(10.0, 1.0, 0.1, 100.0);
-	_cameraPosition = Vector3(0.0, 0.0, 0.0);
 
 	// Setup our basic shader
 	_shader = std::static_pointer_cast<Shader>(
@@ -69,15 +67,35 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 
 	_mesh = MeshPrimitives::CreateFromVertices(vertexPositions, vertexUVs, vertexIndices);
 
-	_meshTransform = Matrix4x4::CreateWithTranslation(Vector3(0.0, 0.0, 0.0));
+	_obj = CreateRef<SceneEntity>();
+	_obj->AddComponent<TransformComponent>();
+	_obj->AddComponent<MeshRendererComponent>(_mesh, _material);
+	Scene->AddEntity(_obj);
+
+	_obj2 = CreateRef<SceneEntity>();
+	TransformComponent* obj2Transform = _obj2->AddComponent<TransformComponent>();
+	obj2Transform->SetPosition(Vector3(0, 30, 0));
+	obj2Transform->SetRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
+	_obj2->AddComponent<MeshRendererComponent>(_mesh, _material);
+	Scene->AddEntity(_obj2);
 
 	// Setup our render pipeline
+	Ref<Rendering::RenderPipeline> pipeline = CreateRef<Rendering::RenderPipeline>();
+	pipeline->SetClearColor(Color(0.1, 0.2, 0.3));
+
 	List<int> attachmentMapping;
 	attachmentMapping.Add(0);
 
-	_rp = CreateRef<HelloTriangleRenderPass>(_mesh, _meshTransform, _material);
-	pipeline->AddRenderPass(_rp, attachmentMapping);
+	pipeline->AddRenderPass(CreateRef<HelloTriangleRenderPass>(), attachmentMapping);
 	_renderService->SetDefaultPipeline(pipeline);
+
+	_camera = CreateRef<SceneEntity>();
+	_camera->AddComponent<TransformComponent>();
+	CameraComponent* cameraComponent = _camera->AddComponent<CameraComponent>();
+	cameraComponent->SetPerspectiveProjection(90.0, 1.0, 0.1, 100.0);
+	//_camera->SetOrthographicProjection(10.0, 1.0, 0.1, 100.0);
+
+	Scene->AddEntity(_camera);
 
 	LogInfo(Logger, "Sandbox application created");
 }
@@ -114,6 +132,9 @@ void CocoSandboxApplication::Start()
 
 void CocoSandboxApplication::Tick(double deltaTime)
 {
+	TransformComponent* cameraTransform = _camera->GetComponent<TransformComponent>();
+	CameraComponent* camera = _camera->GetComponent<CameraComponent>();
+
 	Vector2 mouseDelta = _inputService->GetMouse()->GetDelta();
 
 	_cameraEulerAngles.Z -= mouseDelta.X * 0.005;
@@ -142,15 +163,14 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	if (keyboard->IsKeyPressed(Input::KeyboardKey::Q))
 		velocity += orientation * Vector3::Down * 5.0;
 
-	_cameraPosition += velocity * deltaTime;
+	cameraTransform->SetPosition(cameraTransform->GetPosition() + velocity * deltaTime);
+	cameraTransform->SetRotation(orientation);
 
-	Matrix4x4 transform = Matrix4x4::CreateTransform(_cameraPosition, orientation, Vector3::One);
+	camera->SetViewMatrix(cameraTransform->GetTransformMatrix().Inverted());
 
-	_camera->SetViewMatrix(transform.Inverted());
-
-	//const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
-	//const double a = Math::Sin(t) * 0.5 + 0.5;
-	//_material->SetVector4("_BaseColor", Color(a, a, a, 1.0));
+	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
+	const double a = Math::Sin(t) * 0.5 + 0.5;
+	_material->SetVector4("_BaseColor", Color(a, a, a, 1.0));
 
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{
@@ -159,5 +179,8 @@ void CocoSandboxApplication::Tick(double deltaTime)
 		_material->SetTexture("_MainTex", _texture);
 	}
 
-	_rp->UpdateMeshTransform(_meshTransform);
+	// Update mesh data on the GPU if it is dirty
+	if (_mesh->GetIsDirty())
+		_mesh->UploadData();
+
 }

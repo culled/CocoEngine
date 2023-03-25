@@ -6,6 +6,7 @@
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/Set.h>
+#include <Coco/Core/Types/Optional.h>
 #include "../VulkanIncludes.h"
 #include "GraphicsFenceVulkan.h"
 #include "GraphicsSemaphoreVulkan.h"
@@ -28,8 +29,9 @@ namespace Coco::Rendering::Vulkan
 	class CommandBufferVulkan;
 	class BufferVulkan;
 	class VulkanDescriptorPool;
-	struct CachedVulkanRenderPass;
-	struct CachedVulkanPipeline;
+	class VulkanRenderPass;
+	class VulkanPipeline;
+	class VulkanSubshader;
 
 	/// @brief A cached Vulkan framebuffer
 	struct CachedVulkanFramebuffer final : public CachedResource
@@ -90,34 +92,27 @@ namespace Coco::Rendering::Vulkan
 		WeakManagedRef<VulkanDescriptorPool> _globalDescriptorPool;
 		VkDescriptorSet _globalDescriptorSet;
 
-		Set<RenderContextStateChange> _stateChanges;
-		Ref<CachedVulkanRenderPass> _renderPass = nullptr;
+		Ref<VulkanRenderPass> _renderPass = nullptr;
 		Ref<CachedVulkanFramebuffer> _framebuffer = nullptr;
-		List<WeakManagedRef<ImageVulkan>> _renderTargets;
-		Ref<CachedVulkanPipeline> _currentPipeline = nullptr;
 
-		Ref<Shader> _currentShader;
-		Ref<Material> _currentMaterial;
+		Set<RenderContextStateChange> _stateChanges;
+		ResourceID _currentShader = Resource::InvalidID;
+		ResourceID _currentMaterial = Resource::InvalidID;
+		Ref<VulkanPipeline> _currentPipeline = nullptr;
 		Map<ResourceID, VkDescriptorSet> _materialDescriptorSets;
+
+		int _backbufferIndex = -1;
 
 	public:
 		RenderContextVulkan(GraphicsDevice* device);
 		~RenderContextVulkan() final;
 
 		void SetViewport(const RectInt& rect) final;
-		void UseShader(Ref<Shader> shader) final;
-		void UseMaterial(Ref<Material> material) final;
-		void Draw(const Mesh* mesh, const Matrix4x4& modelMatrix) final;
+		void UseShader(ResourceID shaderID) final;
+		void UseMaterial(ResourceID materialID) final;
+		void Draw(const ObjectRenderData& objectData) final;
 		bool IsAvaliableForRendering() noexcept final { return _renderingCompleteFence->IsSignalled(); }
 		void WaitForRenderingCompleted() final;
-
-		/// @brief Sets the render targets for this render context to use
-		/// @param renderTargets The render targets to use
-		void SetRenderTargets(const List<WeakManagedRef<ImageVulkan>>& renderTargets);
-
-		/// @brief Gets the render targets that this context is using
-		/// @return The render targets that this context is using
-		const List<WeakManagedRef<ImageVulkan>>& GetRenderTargets() const noexcept { return _renderTargets; }
 
 		/// @brief Gets the Vulkan semaphore that should be used to signal when the backbuffer is available
 		/// @return The image available semaphore
@@ -127,6 +122,8 @@ namespace Coco::Rendering::Vulkan
 		/// @return The render complete semaphore
 		VkSemaphore GetRenderCompleteSemaphore() const noexcept { return _renderingCompleteSemaphore->GetSemaphore(); }
 
+		constexpr void SetBackbufferIndex(int backbufferIndex) { _backbufferIndex = backbufferIndex; }
+		constexpr int GetBackbufferIndex() const { return _backbufferIndex; }
 	protected:
 		virtual bool BeginImpl() final;
 		virtual void EndImpl() final;
@@ -144,12 +141,11 @@ namespace Coco::Rendering::Vulkan
 		void CreateGlobalDescriptorSet();
 
 		/// @brief Creates a descriptor set for the currently bound material instance
-		/// @param subshaderName The name of the subshader to use
-		/// @param shader The shader to use
-		/// @param material The material to use
+		/// @param subshader The subshader to use
+		/// @param materialID The ID of the material to use
 		/// @param set Will be filled out with the descriptor set
 		/// @return True if the descriptor set was created
-		bool GetOrAllocateMaterialDescriptorSet(const string& subshaderName, const Ref<Shader>& shader, const Ref<Material>& material, VkDescriptorSet& set);
+		bool GetOrAllocateMaterialDescriptorSet(const Ref<VulkanSubshader>& subshader, ResourceID materialID, VkDescriptorSet& set);
 
 		/// @brief Event handler for the device purging resources
 		/// @return If the event was handled

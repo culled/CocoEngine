@@ -4,10 +4,14 @@
 
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/Size.h>
+#include <Coco/Core/Types/List.h>
 #include "CameraComponentTypes.h"
 
 namespace Coco::Rendering
 {
+	class Image;
+	class RenderPipeline;
+
 	/// @brief A camera component that can render a scene from a perspective
 	class COCOAPI CameraComponent : public EntityComponent
 	{
@@ -26,8 +30,10 @@ namespace Coco::Rendering
 
 		bool _isProjectionMatrixDirty = true;
 
+		List<WeakManagedRef<Image>> _renderTargetOverrides;
+
 	public:
-		CameraComponent() = default;
+		CameraComponent(SceneEntity* entity);
 		virtual ~CameraComponent() = default;
 
 		/// @brief Gets the type of projection that this camera is using
@@ -87,6 +93,15 @@ namespace Coco::Rendering
 		/// @brief Gets this camera's current far clip plane distance
 		/// @return This camera's current far clip plane distance
 		double GetFarClipDistance() const noexcept { return _farClipDistance; }
+
+		/// @brief Sets the rendertarget overrides to use
+		/// @param renderTargets The rendertargets to use
+		void SetRenderTargetOverrides(const List<WeakManagedRef<Image>>& renderTargets) { _renderTargetOverrides = renderTargets; }
+
+		/// @brief Gets rendertargets that match the given pipeline's attachment layout
+		/// @param pipeline The pipeline
+		/// @return A list of render targets
+		List<WeakManagedRef<Image>> GetRenderTargets(const Ref<RenderPipeline>& pipeline);
 
 	private:
 		/// @brief Updates the internal projection matrix based on the projection type

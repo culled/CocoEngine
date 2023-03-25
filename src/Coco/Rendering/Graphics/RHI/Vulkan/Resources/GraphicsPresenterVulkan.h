@@ -67,7 +67,7 @@ namespace Coco::Rendering::Vulkan
 		void SetVSyncMode(VerticalSyncMode mode) noexcept final;
 		VerticalSyncMode GetVSyncMode() const noexcept final { return _vsyncMode; }
 
-		bool GetRenderContext(RenderContext*& renderContext) final;
+		bool PrepareForRender(RenderContext*& renderContext, WeakManagedRef<Image>& backbuffer) final;
 		bool Present(RenderContext* renderContext) final;
 
 	private:

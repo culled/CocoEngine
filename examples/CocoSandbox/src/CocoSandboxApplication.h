@@ -10,8 +10,7 @@
 #include <Coco/Rendering/Material.h>
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Rendering/Mesh.h>
-
-#include "HelloTriangleRenderPass.h"
+#include <Coco/Core/Scene/Scene.h>
 
 namespace Coco
 {
@@ -48,26 +47,24 @@ private:
 	Coco::Rendering::RenderingService* _renderService;
 	Coco::Windowing::WindowingService* _windowService;
 	Coco::WeakManagedRef<Coco::Windowing::Window> _window;
-	Coco::Ref<Coco::Rendering::CameraComponent> _camera;
-	Coco::Vector3 _cameraPosition;
-	Coco::Vector3 _cameraEulerAngles;
 
 	Coco::Ref<Coco::Rendering::Shader> _shader;
 	Coco::Ref<Coco::Rendering::Material> _material;
 	Coco::Ref<Coco::Rendering::Texture> _texture;
 	uint _textureIndex = 0;
 
-	Coco::Ref<Coco::Rendering::Mesh> _mesh;
-	Coco::Matrix4x4 _meshTransform;
+	Coco::Ref<Coco::SceneEntity> _camera;
+	Coco::Vector3 _cameraEulerAngles;
 
-	Coco::Ref<HelloTriangleRenderPass> _rp;
+	Coco::Ref<Coco::SceneEntity> _obj;
+	Coco::Ref<Coco::SceneEntity> _obj2;
+	Coco::Ref<Coco::Rendering::Mesh> _mesh;
 
 public:
 	CocoSandboxApplication(Coco::Engine* engine);
 	~CocoSandboxApplication() final;
 
 	void Start() final;
-	Coco::Ref<Coco::Rendering::CameraComponent> GetCamera() const noexcept final { return _camera; }
 
 	void Tick(double deltaTime);
 };

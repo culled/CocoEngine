@@ -3,48 +3,47 @@
 #include <Coco/Core/Logging/Logger.h>
 #include <Coco/Rendering/Material.h>
 #include "../GraphicsDeviceVulkan.h"
-#include "../VulkanShader.h"
+#include "../Cache/VulkanSubshader.h"
 #include "VulkanDescriptorPool.h"
 #include "BufferVulkan.h"
+#include <Coco/Rendering/Graphics/RenderView.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	CachedShaderResource::CachedShaderResource(const Ref<VulkanShader>& shader) : CachedResource(shader->ID, shader->GetVersion()), ShaderRef(shader)
+	CachedSubshaderResource::CachedSubshaderResource(uint64_t key, const Ref<VulkanSubshader>& subshader) : 
+		CachedResource(key, subshader->GetVersion()), SubshaderRef(subshader)
 	{}
 
-	bool CachedShaderResource::NeedsUpdate() const noexcept
+	bool CachedSubshaderResource::NeedsUpdate() const noexcept
 	{
-		if (Ref<VulkanShader> shader = ShaderRef.lock())
-			return !Pool.IsValid() || shader->GetVersion() != this->GetVersion();
+		if (Ref<VulkanSubshader> subshader = SubshaderRef.lock())
+			return !Pool.IsValid() || subshader->GetVersion() != GetVersion();
 
 		return false;
 	}
 
-	void CachedShaderResource::Update(GraphicsDeviceVulkan* device)
+	void CachedSubshaderResource::Update(GraphicsDeviceVulkan* device)
 	{
-		Ref<VulkanShader> shader = ShaderRef.lock();
+		Ref<VulkanSubshader> subshader = SubshaderRef.lock();
 
-		Pool = device->CreateResource<VulkanDescriptorPool>(MaxSets, shader->GetDescriptorLayouts());
-		this->UpdateVersion(shader->GetVersion());
+		Pool = device->CreateResource<VulkanDescriptorPool>(MaxSets, List<VulkanDescriptorLayout>({ subshader->GetDescriptorLayout() }));
+		UpdateVersion(subshader->GetVersion());
 	}
 
-	CachedMaterialResource::CachedMaterialResource(const Ref<Material>& material) : CachedResource(material->ID, material->GetVersion()), MaterialRef(material)
+	CachedMaterialResource::CachedMaterialResource(const MaterialRenderData& materialData) : CachedResource(materialData.ID, materialData.Version)
 	{}
 
-	bool CachedMaterialResource::NeedsUpdate() const noexcept
+	bool CachedMaterialResource::NeedsUpdate(const MaterialRenderData& materialData) const noexcept
 	{
-		if (Ref<Material> mat = MaterialRef.lock())
-			return BufferOffset == Math::MaxValue<uint64_t>() || BufferIndex == Math::MaxValue<uint>() || mat->GetVersion() != this->GetVersion();
-
-		return false;
+		return BufferOffset == Math::MaxValue<uint64_t>() || BufferIndex == Math::MaxValue<uint>() || materialData.Version != GetVersion();
 	}
 
-	void CachedMaterialResource::Update(uint8_t* bufferMemory, const uint8_t* materialData, uint64_t materialDataLength)
+	void CachedMaterialResource::Update(uint8_t* bufferMemory, const MaterialRenderData& materialData)
 	{
 		uint8_t* dst = bufferMemory + BufferOffset;
-		std::memcpy(dst, materialData, materialDataLength);
+		std::memcpy(dst, materialData.UniformData.Data(), materialData.UniformData.Count());
 
-		this->UpdateVersion(MaterialRef.lock()->GetVersion());
+		UpdateVersion(materialData.Version);
 	}
 
 	void CachedMaterialResource::InvalidateBufferRegion()
@@ -69,12 +68,15 @@ namespace Coco::Rendering::Vulkan
 		_materialUBOs.Clear();
 	}
 
-	CachedShaderResource& RenderContextVulkanCache::GetShaderResource(const Ref<VulkanShader>& shader)
+	CachedSubshaderResource& RenderContextVulkanCache::GetSubshaderResource(const Ref<VulkanSubshader>& subshader)
 	{
-		if (!_shaderCache.contains(shader->ID))
-			_shaderCache.emplace(shader->ID, CachedShaderResource(shader));
+		std::hash<string> hasher;
+		const uint64_t key = Math::CombineHashes(0, subshader->ShaderID, hasher(subshader->SubshaderName));
 
-		CachedShaderResource& resource = _shaderCache.at(shader->ID);
+		if (!_shaderCache.contains(key))
+			_shaderCache.emplace(key, CachedSubshaderResource(key, subshader));
+
+		CachedSubshaderResource& resource = _shaderCache.at(key);
 		Assert(resource.IsInvalid() == false);
 
 		resource.UpdateTickUsed();
@@ -85,23 +87,20 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
-	CachedMaterialResource& RenderContextVulkanCache::GetMaterialResource(const Ref<Material>& material)
+	CachedMaterialResource& RenderContextVulkanCache::GetMaterialResource(const MaterialRenderData& materialData)
 	{
-		if (!_materialCache.contains(material->ID))
-			_materialCache.emplace(material->ID, CachedMaterialResource(material));
+		if (!_materialCache.contains(materialData.ID))
+			_materialCache.emplace(materialData.ID, CachedMaterialResource(materialData));
 
-		CachedMaterialResource& resource = _materialCache.at(material->ID);
-		Assert(resource.IsInvalid() == false);
+		CachedMaterialResource& resource = _materialCache.at(materialData.ID);
 
 		resource.UpdateTickUsed();
 
 		// Update the material data if needed
-		if (resource.NeedsUpdate())
+		if (resource.NeedsUpdate(materialData))
 		{
-			const List<uint8_t>& data = material->GetBufferData();
-
 			// Choose a new place in the buffers if this resource needs to expand
-			if (data.Count() > resource.BufferSize)
+			if (materialData.UniformData.Count() > resource.BufferSize)
 			{
 				if (resource.BufferIndex != Math::MaxValue<uint>() && _materialUBOs.Count() > 0)
 				{
@@ -110,7 +109,7 @@ namespace Coco::Rendering::Vulkan
 				}
 
 				// Find a new buffer region
-				resource.BufferSize = data.Count();
+				resource.BufferSize = materialData.UniformData.Count();
 				FindBufferRegion(resource.BufferSize, resource.BufferIndex, resource.BufferOffset);
 
 				Assert(resource.BufferIndex != Math::MaxValue<uint>());
@@ -123,7 +122,7 @@ namespace Coco::Rendering::Vulkan
 			if (buffer.MappedMemory == nullptr)
 				buffer.MappedMemory = reinterpret_cast<uint8_t*>(buffer.Buffer->Lock(0, s_materialBufferSize));
 
-			resource.Update(buffer.MappedMemory, data.Data(), data.Count());
+			resource.Update(buffer.MappedMemory, materialData);
 		}
 
 		return resource;
@@ -168,7 +167,7 @@ namespace Coco::Rendering::Vulkan
 		auto shaderIt = _shaderCache.begin();
 		while (shaderIt != _shaderCache.end())
 		{
-			const CachedShaderResource& resource = (*shaderIt).second;
+			const CachedSubshaderResource& resource = (*shaderIt).second;
 
 			if (resource.ShouldPurge(s_staleTickCount))
 			{

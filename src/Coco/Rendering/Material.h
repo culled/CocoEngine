@@ -7,23 +7,11 @@
 #include "Graphics/Resources/BufferTypes.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "MaterialTypes.h"
 
 namespace Coco::Rendering
 {
 	class MaterialInstance;
-
-	/// @brief A binding for a subshader to a material
-	struct SubshaderUniformBinding
-	{
-		/// @brief The offset of the uniform (in bytes)
-		uint64_t Offset;
-		
-		/// @brief The size of the binding (in bytes)
-		uint64_t Size = 0;
-
-		SubshaderUniformBinding(uint64_t offset) :
-			Offset(offset), Size(0) {}
-	};
 
 	/// @brief Holds properties for a shader for modifying the look of rendered geometry
 	class COCOAPI Material : public RenderingResource
@@ -95,6 +83,10 @@ namespace Coco::Rendering
 		/// @param binding Will be filled with a pointer to the binding if found
 		/// @return True if the binding was found
 		bool TryGetSubshaderBinding(const string& subshaderName, const SubshaderUniformBinding*& binding);
+
+		/// @brief Gets the map of subshader bindings to this material's uniform buffer data
+		/// @return The map of subshader bindings
+		Map<string, SubshaderUniformBinding> GetSubshaderBindings() const noexcept { return _subshaderBindings; }
 
 	private:
 		/// @brief Updates the property maps from this material's shader

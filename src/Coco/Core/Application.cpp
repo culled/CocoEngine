@@ -13,6 +13,8 @@ namespace Coco
 		Engine(engine), Name(name)
 	{
 		Logger = CreateManaged<Logging::Logger>(name);
+
+		Scene = CreateRef<Coco::Scene>();
 	}
 
 	Application::~Application()

@@ -141,7 +141,7 @@ namespace Coco
 		/// @return True if the item is found in this list
 		bool Contains(const ValueType& item) const noexcept
 		{
-			if (Find(item) != end())
+			if (Find(item) != cend())
 				return true;
 
 			return false;
@@ -152,7 +152,7 @@ namespace Coco
 		/// @return True if the item is found in this list
 		bool Contains(std::function<bool(const ValueType&)> predicate) const noexcept
 		{
-			if (Find(predicate) != end())
+			if (Find(predicate) != cend())
 				return true;
 
 			return false;

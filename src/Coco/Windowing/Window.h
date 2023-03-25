@@ -73,7 +73,7 @@ namespace Coco::Windowing
 
 		/// @brief Gets this window's presenter
 		/// @return This window's presenter
-		Rendering::GraphicsPresenter* GetPresenter() const noexcept { return Presenter.Get(); }
+		WeakManagedRef<Rendering::GraphicsPresenter> GetPresenter() const noexcept { return Presenter; }
 
 		/// @brief Gets the platform-specific ID for this window
 		/// @return The ID for this window

@@ -8,26 +8,26 @@
 
 namespace Coco::Rendering
 {
-	class Material;
+	struct MaterialRenderData;
 }
 
 namespace Coco::Rendering::Vulkan
 {
-	class VulkanShader;
+	class VulkanSubshader;
 	class GraphicsDeviceVulkan;
 	class BufferVulkan;
 	class VulkanDescriptorPool;
 
-	/// @brief A cached shader resource
-	struct CachedShaderResource : public CachedResource
+	/// @brief A cached subshader resource
+	struct CachedSubshaderResource : public CachedResource
 	{
 		const uint MaxSets = 512;
 		WeakManagedRef<VulkanDescriptorPool> Pool;
-		WeakRef<VulkanShader> ShaderRef;
+		WeakRef<VulkanSubshader> SubshaderRef;
 
-		CachedShaderResource(const Ref<VulkanShader>& shader);
+		CachedSubshaderResource(uint64_t key, const Ref<VulkanSubshader>& subshader);
 
-		bool IsInvalid() const noexcept final { return ShaderRef.expired(); }
+		bool IsInvalid() const noexcept final { return SubshaderRef.expired(); }
 		bool NeedsUpdate() const noexcept final;
 
 		/// @brief Updates this cached resource
@@ -41,18 +41,19 @@ namespace Coco::Rendering::Vulkan
 		uint BufferIndex = Math::MaxValue<uint>();
 		uint64_t BufferOffset = Math::MaxValue<uint64_t>();
 		uint64_t BufferSize = 0;
-		WeakRef<Material> MaterialRef;
 
-		CachedMaterialResource(const Ref<Material>& material);
+		CachedMaterialResource(const MaterialRenderData& materialData);
 
-		bool IsInvalid() const noexcept final { return MaterialRef.expired(); }
-		bool NeedsUpdate() const noexcept final;
+		bool IsInvalid() const noexcept final { return false; }
+		bool NeedsUpdate() const noexcept final { return false; }
+
+		bool NeedsUpdate(const MaterialRenderData& materialData) const noexcept;
 
 		/// @brief Updates this cached material's region of data in the material buffer
 		/// @param bufferMemory The memory of the buffer
 		/// @param materialData The material data
 		/// @param materialDataLength The size of the material data
-		void Update(uint8_t* bufferMemory, const uint8_t* materialData, uint64_t materialDataLength);
+		void Update(uint8_t* bufferMemory, const MaterialRenderData& materialData);
 
 		/// @brief Invalidates this cached material's region of data
 		void InvalidateBufferRegion();
@@ -87,7 +88,7 @@ namespace Coco::Rendering::Vulkan
 		static constexpr double s_fragmentFlushThreshold = 0.5;
 
 		GraphicsDeviceVulkan* _device;
-		Map<ResourceID, CachedShaderResource> _shaderCache;
+		Map<ResourceID, CachedSubshaderResource> _shaderCache;
 		Map<ResourceID, CachedMaterialResource> _materialCache;
 
 		List<MaterialBuffer> _materialUBOs;
@@ -96,15 +97,15 @@ namespace Coco::Rendering::Vulkan
 		RenderContextVulkanCache(GraphicsDeviceVulkan* device);
 		virtual ~RenderContextVulkanCache();
 
-		/// @brief Gets a shader resource, updating its last used tick
-		/// @param shader The shader that the resource points to
-		/// @return The cached resource for the shader
-		CachedShaderResource& GetShaderResource(const Ref<VulkanShader>& shader);
+		/// @brief Gets a subshader resource, updating its last used tick
+		/// @param subshader The subshader that the resource points to
+		/// @return The cached resource for the subshader
+		CachedSubshaderResource& GetSubshaderResource(const Ref<VulkanSubshader>& subshader);
 
 		/// @brief Gets a material resource, updating its last used tick
-		/// @param material The material that the resource points to
-		/// @return The cached resource for the material
-		CachedMaterialResource& GetMaterialResource(const Ref<Material>& material);
+		/// @param materialData The material data that the resource points to
+		/// @return The cached resource for the material data
+		CachedMaterialResource& GetMaterialResource(const MaterialRenderData& materialData);
 
 		/// @brief Flushes any pending material changes to the material buffers
 		void FlushMaterialChanges();

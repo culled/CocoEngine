@@ -84,7 +84,7 @@ namespace Coco::Rendering::Vulkan
 		_isSwapchainDirty = true;
 	}
 
-	bool GraphicsPresenterVulkan::GetRenderContext(RenderContext*& renderContext)
+	bool GraphicsPresenterVulkan::PrepareForRender(RenderContext*& renderContext, WeakManagedRef<Image>& backbuffer)
 	{
 		if (!EnsureSwapchainIsUpdated())
 			return false;
@@ -115,8 +115,8 @@ namespace Coco::Rendering::Vulkan
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 			throw VulkanOperationException(result, "Failed to acquire backbuffer image index: {}");
 
-		currentContext->SetRenderTargets({ _backbuffers[imageIndex] });
-
+		currentContext->SetBackbufferIndex(static_cast<int>(imageIndex));
+		backbuffer = _backbuffers[imageIndex];
 		renderContext = currentContext.Get();
 		return true;
 	}
@@ -129,27 +129,17 @@ namespace Coco::Rendering::Vulkan
 			throw VulkanRenderingException("Device must have a valid present queue to present");
 
 		RenderContextVulkan* vulkanRenderContext = static_cast<RenderContextVulkan*>(renderContext);
-		uint imageIndex = 0;
-		bool imageFound = false;
+		int imageIndex = vulkanRenderContext->GetBackbufferIndex();
 
-		// TODO: just save the image index in the RenderContext?
-		List<WeakManagedRef<ImageVulkan>> renderTargets = vulkanRenderContext->GetRenderTargets();
-		for (int i = 0; i < _backbuffers.Count(); i++)
+		if (imageIndex == -1)
 		{
-			if (renderTargets.Contains([buffer = _backbuffers[i]](const WeakManagedRef<ImageVulkan>& other) { return other.Get() == buffer.Get(); }))
-			{
-				imageIndex = i;
-				imageFound = true;
-				break;
-			}
-		}
-
-		if (!imageFound)
-		{
-			LogError(_device->GetLogger(), "Could not find backbuffer for render context");
+			LogError(_device->GetLogger(), "Could not find this presenter's backbuffer in the RenderContext's RenderView's render targets");
 			return false;
 		}
 
+		uint backbufferIndex = static_cast<uint>(imageIndex);
+
+		vulkanRenderContext->SetBackbufferIndex(-1);
 		VkSemaphore waitSemaphore = vulkanRenderContext->GetRenderCompleteSemaphore();
 
 		VkPresentInfoKHR presentInfo = {};
@@ -158,7 +148,7 @@ namespace Coco::Rendering::Vulkan
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pSwapchains = &_swapchain;
 		presentInfo.swapchainCount = 1;
-		presentInfo.pImageIndices = &imageIndex;
+		presentInfo.pImageIndices = &backbufferIndex;
 
 		const VkResult result = vkQueuePresentKHR(presentQueue->Queue, &presentInfo);
 

@@ -37,7 +37,7 @@ namespace Coco::Rendering
 
 	public:
 		/// @brief The format of the data for this attribute
-		const BufferDataFormat DataFormat;
+		BufferDataFormat DataFormat;
 
 		ShaderVertexAttribute(BufferDataFormat dataFormat) noexcept;
 
@@ -50,10 +50,10 @@ namespace Coco::Rendering
 	struct COCOAPI ShaderDescriptor
 	{
 		/// @brief The descriptor name (used for referencing from materials)
-		const string Name;
+		string Name;
 
 		/// @brief The type of descriptor
-		const BufferDataFormat Type;
+		BufferDataFormat Type;
 
 		ShaderDescriptor(const string& name, BufferDataFormat type) noexcept;
 	};
@@ -62,7 +62,7 @@ namespace Coco::Rendering
 	struct COCOAPI ShaderTextureSampler
 	{
 		/// @brief The descriptor name (used for referencing from materials)
-		const string Name;
+		string Name;
 
 		ShaderTextureSampler(const string& name) noexcept;
 	};
@@ -108,5 +108,4 @@ namespace Coco::Rendering
 		/// @brief Updates this subshader's vertex attribute offsets
 		void UpdateAttributeOffsets() noexcept;
 	};
-
 }

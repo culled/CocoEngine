@@ -1,7 +1,13 @@
 #include "CameraComponent.h"
 
+#include "../Pipeline/RenderPipeline.h"
+#include "../Graphics/Resources/Image.h"
+
 namespace Coco::Rendering
 {
+	CameraComponent::CameraComponent(SceneEntity* entity) : EntityComponent(entity)
+	{}
+
 	void CameraComponent::SetPerspectiveProjection(double fieldOfView, double aspectRatio, double nearClipDistance, double farClipDistance) noexcept
 	{
 		_projectionType = ProjectionType::Perspective;
@@ -66,6 +72,12 @@ namespace Coco::Rendering
 		_farClipDistance = Math::Max(farClipDistance, Math::Epsilon);
 
 		_isProjectionMatrixDirty = true;
+	}
+
+	List<WeakManagedRef<Image>> CameraComponent::GetRenderTargets(const Ref<RenderPipeline>& pipeline)
+	{
+		// TODO: build this from the pipeline
+		return _renderTargetOverrides;
 	}
 
 	void CameraComponent::UpdateProjectionMatrix() noexcept

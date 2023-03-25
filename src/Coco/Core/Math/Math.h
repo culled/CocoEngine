@@ -161,5 +161,27 @@ namespace Coco
 		/// @return The base raised by the exponent
 		template<typename T>
 		static constexpr T Pow(T base, T exponent) noexcept { return std::pow(base, exponent); }
+
+		/// @brief Combines hashes using a seed
+		/// @tparam T 
+		/// @tparam ...Hashes 
+		/// @param seed The seed to use when combining
+		/// @param value The first hash
+		/// @param ...hashes The remaining hashes
+		/// @return The combined hash
+		template<typename ... Hashes>
+		static constexpr uint64_t CombineHashes(uint64_t seed, uint64_t value, Hashes... hashes)
+		{
+			// https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
+			std::hash<uint64_t> hasher;
+			seed ^= hasher(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+			return CombineHashes(seed, hashes...);
+		}
+
+		private:
+			/// @brief Combines hashes using a seed
+			/// @param seed The seed to use when combining
+			/// @return The combined hash
+			static constexpr uint64_t CombineHashes(uint64_t seed) { return seed; }
 	};
 }

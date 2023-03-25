@@ -71,6 +71,10 @@ namespace Coco::Rendering
 		RenderContext& operator=(const RenderContext&) = delete;
 		RenderContext& operator=(RenderContext&&) = delete;
 
+		/// @brief Gets the RenderView that this context is rendering with
+		/// @return The current RenderView (only valid between Start() and End() calls)
+		Ref<Rendering::RenderView> GetRenderView() const noexcept { return RenderView; }
+		
 		/// @brief Begins rendering for a scene
 		/// @param renderView The view used for rendering
 		/// @param pipeline The render pipeline to use
@@ -91,17 +95,16 @@ namespace Coco::Rendering
 		void RestoreViewport();
 
 		/// @brief Sets the given shader as the one that will be used to draw subsequent geometry
-		/// @param shader The shader to use
-		virtual void UseShader(Ref<Shader> shader) = 0;
+		/// @param shaderID The ID of the shader to use
+		virtual void UseShader(ResourceID shaderID) = 0;
 
 		/// @brief Sets the given material as the one that will be used to draw subsequent geometry
-		/// @param material The material to use
-		virtual void UseMaterial(Ref<Material> material) = 0;
+		/// @param materialID The ID of the material to use
+		virtual void UseMaterial(ResourceID materialID) = 0;
 
-		/// @brief Draws a mesh
-		/// @param mesh The mesh to draw
-		/// @param modelMatrix The model matrix
-		virtual void Draw(const Mesh* mesh, const Matrix4x4& modelMatrix) = 0;
+		/// @brief Draws an object
+		/// @param objectData The object to draw
+		virtual void Draw(const ObjectRenderData& objectData) = 0;
 
 		/// @brief Gets if this render context can be immediately used for rendering
 		/// @return True if this render context can immediately be used for rendering
