@@ -337,7 +337,7 @@ namespace Coco::Rendering::Vulkan
 				1,
 				ToPixelFormat(surfaceFormat.format),
 				ToColorSpace(surfaceFormat.colorSpace),
-				ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled);
+				ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled | ImageUsageFlags::Presented);
 
 			// Get backbuffer images
 			uint32_t backbufferImageCount;

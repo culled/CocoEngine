@@ -38,13 +38,13 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
 
 	// Setup our basic shader
-	_shader = std::static_pointer_cast<Shader>(
+	_shader = RefCast<Shader>(
 		engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Shader, "shaders/built-in/ObjectShader.cshader")
 		);
-	_texture = std::static_pointer_cast<Texture>(
+	_texture = RefCast<Texture>(
 		engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Texture, s_textureFiles.at(0))
 		);
-	_material = std::static_pointer_cast<Material>(
+	_material = RefCast<Material>(
 		engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Material, "materials/testMaterial.cmaterial")
 		);
 
@@ -174,7 +174,7 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{
 		_textureIndex = (_textureIndex + 1) % static_cast<uint>(s_textureFiles.size());
-		_texture = std::static_pointer_cast<Texture>(Engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Texture, s_textureFiles.at(_textureIndex)));
+		_texture = RefCast<Texture>(Engine->GetResourceLibrary()->GetOrLoadResource(ResourceType::Texture, s_textureFiles.at(_textureIndex)));
 		_material->SetTexture("_MainTex", _texture);
 	}
 

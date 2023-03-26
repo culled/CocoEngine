@@ -45,6 +45,7 @@ namespace Coco::Rendering
 		TransferDestination = 1 << 1,
 		Sampled				= 1 << 2,
 		RenderTarget		= 1 << 3,
+		Presented			= 1 << 4,
 	};
 
 	COCOAPI ImageUsageFlags operator|(ImageUsageFlags a, ImageUsageFlags b) noexcept;
