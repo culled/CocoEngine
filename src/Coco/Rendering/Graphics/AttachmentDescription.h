@@ -19,8 +19,8 @@ namespace Coco::Rendering
 		/// @brief The color space of this attachment
 		ColorSpace ColorSpace = ColorSpace::Unknown;
 
-		/// @brief If true, this attachment uses blending of some sort
-		bool UsesBlending = false;
+		/// @brief If true, this attachment should be preserved between frames
+		bool ShouldPreserve = false;
 
 		/// @brief The blend factor for the color source
 		BlendFactorMode ColorSourceFactor = BlendFactorMode::One;
@@ -29,7 +29,7 @@ namespace Coco::Rendering
 		BlendFactorMode ColorDestinationFactor = BlendFactorMode::Zero;
 
 		/// @brief The operation to use for combining the source and destination colors
-		BlendOperation ColorBlendOperation = BlendOperation::Add;
+		BlendOperation ColorBlendOperation = BlendOperation::None;
 
 		/// @brief The blend factor for the alpha source
 		BlendFactorMode AlphaSourceBlendFactor = BlendFactorMode::One;
@@ -38,10 +38,10 @@ namespace Coco::Rendering
 		BlendFactorMode AlphaDestinationBlendFactor = BlendFactorMode::Zero;
 
 		/// @brief The operation to use for combining the source and destination alphas
-		BlendOperation AlphaBlendOperation = BlendOperation::Add;
+		BlendOperation AlphaBlendOperation = BlendOperation::None;
 
 		AttachmentDescription() = default;
-		AttachmentDescription(Rendering::PixelFormat pixelFormat, Rendering::ColorSpace colorSpace, bool usesBlending) noexcept;
+		AttachmentDescription(Rendering::PixelFormat pixelFormat, Rendering::ColorSpace colorSpace, bool shouldPreserve) noexcept;
 
 		bool operator ==(const AttachmentDescription& other) const noexcept;
 		bool operator !=(const AttachmentDescription& other) const noexcept { return !(*this == other); }

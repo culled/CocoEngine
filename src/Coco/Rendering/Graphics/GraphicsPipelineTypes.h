@@ -60,6 +60,7 @@ namespace Coco::Rendering
 	/// @brief Operations for blending channels
 	enum class BlendOperation
 	{
+		None,
 		Add,
 		Subtract,
 		ReverseSubtract,

@@ -113,7 +113,8 @@ namespace Coco::Rendering::Vulkan
 		{
 			VkPipelineColorBlendAttachmentState blendState = {};
 			blendState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-			blendState.blendEnable = attachments[i].UsesBlending;
+			blendState.blendEnable = attachments[i].ColorBlendOperation != BlendOperation::None || 
+				attachments[i].AlphaBlendOperation != BlendOperation::None;
 			blendState.srcColorBlendFactor = ToVkBlendFactor(attachments[i].ColorSourceFactor);
 			blendState.dstColorBlendFactor = ToVkBlendFactor(attachments[i].ColorDestinationFactor);
 			blendState.colorBlendOp = ToVkBlendOp(attachments[i].ColorBlendOperation);

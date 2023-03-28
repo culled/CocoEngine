@@ -587,18 +587,43 @@ namespace Coco::Rendering::Vulkan
 
 	void RenderContextVulkan::AddPreRenderPassImageTransitions()
 	{
+		const auto& pipelineAttachments = CurrentPipeline->GetPipelineAttachmentDescriptions();
+
+		for (uint64_t i = 0; i < RenderView->RenderTargets.Count(); i++)
+		{
+			// Don't bother transitioning layouts for attachments that aren't preserved
+			if (!pipelineAttachments[i].Description.ShouldPreserve)
+				continue;
+
+			const WeakManagedRef<Image>& rt = RenderView->RenderTargets[i];
+
+			VkImageLayout layout = ToAttachmentLayout(pipelineAttachments[i].Description.PixelFormat);
+
+			ImageVulkan* image = static_cast<ImageVulkan*>(rt.Get());
+			image->TransitionLayout(
+				_commandBuffer.Get(),
+				layout
+			);
+		}
 	}
 
 	void RenderContextVulkan::AddPostRenderPassImageTransitions()
 	{
-		for (const auto& rt : RenderView->RenderTargets)
+		const auto& pipelineAttachments = CurrentPipeline->GetPipelineAttachmentDescriptions();
+
+		for (uint64_t i = 0; i < RenderView->RenderTargets.Count(); i++)
 		{
+			const WeakManagedRef<Image>& rt = RenderView->RenderTargets[i];
+
+			VkImageLayout layout = ToAttachmentLayout(pipelineAttachments[i].Description.PixelFormat);
+
+			ImageVulkan* image = static_cast<ImageVulkan*>(rt.Get());
+			image->SetCurrentLayout(layout);
+
 			if ((rt->GetDescription().UsageFlags & ImageUsageFlags::Presented) == ImageUsageFlags::Presented)
 			{
-				ImageVulkan* image = static_cast<ImageVulkan*>(rt.Get());
 				image->TransitionLayout(
-					_commandBuffer.Get(), 
-					VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 
+					_commandBuffer.Get(),  
 					VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
 				);
 			}

@@ -69,9 +69,9 @@ namespace Coco::Rendering::Vulkan
 		WeakManagedRef<CommandBufferVulkan> commandBuffer = pool->Allocate(true);
 		commandBuffer->Begin(true, false);
 
-		TransitionLayout(commandBuffer.Get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		TransitionLayout(commandBuffer.Get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		CopyFromBuffer(commandBuffer.Get(), staging.Get());
-		TransitionLayout(commandBuffer.Get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		TransitionLayout(commandBuffer.Get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		commandBuffer->EndAndSubmit();
 		pool->WaitForQueue();
@@ -99,8 +99,11 @@ namespace Coco::Rendering::Vulkan
 		vkCmdCopyBufferToImage(commandBuffer->GetCmdBuffer(), buffer->GetBuffer(), _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 	}
 
-	void ImageVulkan::TransitionLayout(const CommandBufferVulkan* commandBuffer, VkImageLayout from, VkImageLayout to)
+	void ImageVulkan::TransitionLayout(const CommandBufferVulkan* commandBuffer, VkImageLayout to)
 	{
+		if (_currentLayout == to || to == VK_IMAGE_LAYOUT_UNDEFINED)
+			return;
+
 		Ref<VulkanQueue> graphicsQueue;
 
 		if (!_device->GetComputeQueue(graphicsQueue))
@@ -108,7 +111,7 @@ namespace Coco::Rendering::Vulkan
 
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.oldLayout = from;
+		barrier.oldLayout = _currentLayout;
 		barrier.newLayout = to;
 		barrier.srcQueueFamilyIndex = graphicsQueue->QueueFamily;
 		barrier.dstQueueFamilyIndex = graphicsQueue->QueueFamily;
@@ -123,7 +126,7 @@ namespace Coco::Rendering::Vulkan
 		VkPipelineStageFlags sourceStage;
 		VkPipelineStageFlags destinationStage;
 
-		switch (from)
+		switch (_currentLayout)
 		{
 		case VK_IMAGE_LAYOUT_UNDEFINED:
 		{			
@@ -143,9 +146,21 @@ namespace Coco::Rendering::Vulkan
 			sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 			break;
 		}
+		case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+		{
+			barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			sourceStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			break;
+		}
+		case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+		{
+			barrier.srcAccessMask = 0;
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			break;
+		}
 		default:
 			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Transitioning from {} is unsupported",
-				string_VkImageLayout(from)
+				string_VkImageLayout(_currentLayout)
 			));
 			return;
 		}
@@ -170,12 +185,26 @@ namespace Coco::Rendering::Vulkan
 			destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 			break;
 		}
+		case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+		{
+			barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			break;
+		}
+		case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+		{
+			barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+			destinationStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			break;
+		}
 		default:
 			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Transitioning to {} is unsupported",
 				string_VkImageLayout(to)
 			));
 			return;
 		}
+
+		_currentLayout = to;
 
 		vkCmdPipelineBarrier(
 			commandBuffer->GetCmdBuffer(),

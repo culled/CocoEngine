@@ -4,15 +4,19 @@ namespace Coco::Rendering
 {
 	const AttachmentDescription AttachmentDescription::Empty = {};
 
-	AttachmentDescription::AttachmentDescription(Rendering::PixelFormat pixelFormat, Rendering::ColorSpace colorSpace, bool usesBlending) noexcept :
-		PixelFormat(pixelFormat), ColorSpace(colorSpace), UsesBlending(usesBlending)
+	AttachmentDescription::AttachmentDescription(
+		Rendering::PixelFormat pixelFormat, 
+		Rendering::ColorSpace colorSpace, 
+		bool shouldPreserve
+	) noexcept :
+		PixelFormat(pixelFormat), ColorSpace(colorSpace), ShouldPreserve(shouldPreserve)
 	{}
 
 	bool AttachmentDescription::operator==(const AttachmentDescription& other) const noexcept
 	{
 		return PixelFormat == other.PixelFormat &&
 			ColorSpace == other.ColorSpace &&
-			UsesBlending == other.UsesBlending &&
+			ShouldPreserve == other.ShouldPreserve &&
 			ColorSourceFactor == other.ColorSourceFactor &&
 			ColorDestinationFactor == other.ColorDestinationFactor &&
 			ColorBlendOperation == other.ColorBlendOperation &&

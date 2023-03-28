@@ -251,6 +251,8 @@ namespace Coco::Rendering::Vulkan
 	{
 		switch (blendOperation)
 		{
+		case BlendOperation::None:
+			return VK_BLEND_OP_ADD;
 		case BlendOperation::Add:
 			return VK_BLEND_OP_ADD;
 		case BlendOperation::Subtract:
@@ -407,5 +409,11 @@ namespace Coco::Rendering::Vulkan
 		default:
 			return VK_IMAGE_TYPE_2D;
 		}
+	}
+
+	constexpr VkImageLayout ToAttachmentLayout(PixelFormat format)
+	{
+		return IsDepthStencilFormat(format) ?
+			VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 }

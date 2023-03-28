@@ -25,6 +25,7 @@ namespace Coco::Rendering::Vulkan
 		VkDeviceMemory _imageMemory = nullptr;
 		GraphicsDeviceVulkan* _device;
 		uint32_t _memoryIndex = 0;
+		VkImageLayout _currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 	public:
 		ImageVulkan(GraphicsDevice* device, ImageDescription description, VkImage image);
@@ -48,9 +49,12 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Transitions this image between layouts
 		/// @param commandBuffer The command buffer
-		/// @param from The layout to transition from
 		/// @param to The layout to transition to
-		void TransitionLayout(const CommandBufferVulkan* commandBuffer, VkImageLayout from, VkImageLayout to);
+		void TransitionLayout(const CommandBufferVulkan* commandBuffer, VkImageLayout to);
+
+		/// @brief Sets the current layout of this image
+		/// @param layout The new layout
+		constexpr void SetCurrentLayout(VkImageLayout layout) { _currentLayout = layout; }
 
 	private:
 		/// @brief Creates an image from the current description
