@@ -45,9 +45,6 @@ namespace Coco::Rendering::Vulkan
 		// Create attachment descriptions for all pipeline attachments
 		for (const RenderPipelineAttachmentDescription& pipelineAttachment : pipelineAttachments)
 		{
-			const VkImageLayout imageLayout = IsDepthStencilFormat(pipelineAttachment.Description.PixelFormat) ?
-				VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
 			VkAttachmentDescription description = {};
 			description.samples = VK_SAMPLE_COUNT_1_BIT; // TODO: msaa
 			description.format = ToVkFormat(pipelineAttachment.Description.PixelFormat);
@@ -55,8 +52,8 @@ namespace Coco::Rendering::Vulkan
 			description.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // TODO: temporal effects
 			description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			description.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // TEMPORARY
-			description.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // TEMPORARY
+			description.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // TODO: temporal effects
+			description.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 			attachments.Add(description);
 		}

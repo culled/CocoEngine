@@ -229,6 +229,8 @@ namespace Coco::Rendering::Vulkan
 
 			_commandBuffer->Begin(true, false);
 
+			AddPreRenderPassImageTransitions();
+
 			VkRenderPassBeginInfo beginInfo = {};
 			beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			beginInfo.renderPass = _renderPass->GetRenderPass();
@@ -282,6 +284,9 @@ namespace Coco::Rendering::Vulkan
 					signalSemaphores.Add(semaphore.Get());
 
 			vkCmdEndRenderPass(_commandBuffer->GetCmdBuffer());
+
+			AddPostRenderPassImageTransitions();
+
 			_commandBuffer->EndAndSubmit(waitSemaphores, signalSemaphores, _renderingCompleteFence.Get());
 
 			_currentState = RenderContextState::DrawCallsSubmitted;
@@ -578,5 +583,25 @@ namespace Coco::Rendering::Vulkan
 		_renderCache->PurgeResources();
 
 		return false;
+	}
+
+	void RenderContextVulkan::AddPreRenderPassImageTransitions()
+	{
+	}
+
+	void RenderContextVulkan::AddPostRenderPassImageTransitions()
+	{
+		for (const auto& rt : RenderView->RenderTargets)
+		{
+			if ((rt->GetDescription().UsageFlags & ImageUsageFlags::Presented) == ImageUsageFlags::Presented)
+			{
+				ImageVulkan* image = static_cast<ImageVulkan*>(rt.Get());
+				image->TransitionLayout(
+					_commandBuffer.Get(), 
+					VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 
+					VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+				);
+			}
+		}
 	}
 }

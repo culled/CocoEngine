@@ -123,33 +123,57 @@ namespace Coco::Rendering::Vulkan
 		VkPipelineStageFlags sourceStage;
 		VkPipelineStageFlags destinationStage;
 
-		if (from == VK_IMAGE_LAYOUT_UNDEFINED && to == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+		switch (from)
 		{
-			// Don't care about the old layout, so transition to optimal layout for the underlying implementation
+		case VK_IMAGE_LAYOUT_UNDEFINED:
+		{			
 			barrier.srcAccessMask = 0;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-			// Start copying from any stage
 			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			break;
 		}
-		else if (from == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && to == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
 		{
-			// Transitioning from a transfer destination to a shader read-only layout
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-			// Start copying from the transfer to the fragment stage
 			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			break;
 		}
-		else
+		case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
 		{
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString(
-				"Transitioning from {} to {} is unsupported currently", 
-					string_VkImageLayout(from), 
-					string_VkImageLayout(to)
-				));
+			barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			break;
+		}
+		default:
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Transitioning from {} is unsupported",
+				string_VkImageLayout(from)
+			));
+			return;
+		}
+
+		switch (to)
+		{
+		case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+		{
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			break;
+		}
+		case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+		{
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			break;
+		}
+		case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+		{
+			barrier.dstAccessMask = 0;
+			destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			break;
+		}
+		default:
+			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Transitioning to {} is unsupported",
+				string_VkImageLayout(to)
+			));
 			return;
 		}
 

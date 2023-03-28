@@ -122,8 +122,14 @@ namespace Coco::Rendering::Vulkan
 		/// @return The render complete semaphore
 		VkSemaphore GetRenderCompleteSemaphore() const noexcept { return _renderingCompleteSemaphore->GetSemaphore(); }
 
+		/// @brief Sets the index of the backbuffer image being used
+		/// @param backbufferIndex The index of the backbuffer image being used
 		constexpr void SetBackbufferIndex(int backbufferIndex) { _backbufferIndex = backbufferIndex; }
+
+		/// @brief Gets the index of the backbuffer image being used (if it was set)
+		/// @return The index of the backbuffer image being used
 		constexpr int GetBackbufferIndex() const { return _backbufferIndex; }
+
 	protected:
 		virtual bool BeginImpl() final;
 		virtual void EndImpl() final;
@@ -150,5 +156,11 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Event handler for the device purging resources
 		/// @return If the event was handled
 		bool HandlePurgeResources();
+
+		/// @brief Adds any necessary pre-render pass image transitions to the render targets
+		void AddPreRenderPassImageTransitions();
+
+		/// @brief Adds any necessary post-render pass image transitions to the render targets
+		void AddPostRenderPassImageTransitions();
 	};
 }
