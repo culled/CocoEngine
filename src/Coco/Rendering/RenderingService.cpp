@@ -83,7 +83,7 @@ namespace Coco::Rendering
 			pipeline->GetClearColor(), 
 			camera->GetProjectionMatrix(), 
 			camera->GetViewMatrix(),
-			camera->GetRenderTargets(pipeline));
+			camera->GetRenderTargets(pipeline, size));
 
 		// Add objects from the scene graph
 		Ref<Scene> scene = Engine::Get()->GetApplication()->GetScene();

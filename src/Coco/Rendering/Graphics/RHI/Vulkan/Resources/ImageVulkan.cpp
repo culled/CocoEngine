@@ -219,6 +219,11 @@ namespace Coco::Rendering::Vulkan
 
 	void ImageVulkan::CreateImageFromDescription()
 	{
+		const bool isDepthFormat = IsDepthStencilFormat(Description.PixelFormat);
+
+		//VkFormatProperties formatProperties;
+		//vkGetPhysicalDeviceFormatProperties(_device->GetPhysicalDevice(), ToVkFormat(Description.PixelFormat), &formatProperties);
+
 		VkImageCreateInfo create = {};
 		create.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		create.extent.width = static_cast<uint32_t>(Description.Width);
@@ -229,8 +234,8 @@ namespace Coco::Rendering::Vulkan
 		create.imageType = ToVkImageType(Description.DimensionType);
 		create.format = ToVkFormat(Description.PixelFormat);
 		create.tiling = VK_IMAGE_TILING_OPTIMAL;
-		create.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		create.usage = ToVkImageUsageFlags(Description.UsageFlags);
+		create.initialLayout = _currentLayout;
+		create.usage = ToVkImageUsageFlags(Description.UsageFlags, Description.PixelFormat);
 		create.samples = VK_SAMPLE_COUNT_1_BIT; // TODO: multiple samples
 		create.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // TODO: configurable sharing mode
 
@@ -257,6 +262,8 @@ namespace Coco::Rendering::Vulkan
 
 	void ImageVulkan::CreateNativeImageView()
 	{
+		const bool isDepthFormat = IsDepthStencilFormat(Description.PixelFormat);
+
 		VkImageViewCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		createInfo.format = ToVkFormat(Description.PixelFormat);
@@ -267,7 +274,8 @@ namespace Coco::Rendering::Vulkan
 		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
 		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
-		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		createInfo.subresourceRange.aspectMask = isDepthFormat ?
+			VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 		createInfo.subresourceRange.baseMipLevel = 0;
 		createInfo.subresourceRange.levelCount = static_cast<uint32_t>(Description.MipCount);
 		createInfo.subresourceRange.baseArrayLayer = 0;

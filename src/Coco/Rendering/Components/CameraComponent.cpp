@@ -2,9 +2,34 @@
 
 #include "../Pipeline/RenderPipeline.h"
 #include "../Graphics/Resources/Image.h"
+#include "../RenderingService.h"
 
 namespace Coco::Rendering
 {
+	ImageCache::ImageCache(const Ref<RenderPipeline>& pipeline) : CachedResource(pipeline->ID, pipeline->GetVersion()),
+		PipelineRef(pipeline)
+	{}
+
+	bool ImageCache::NeedsUpdate() const noexcept
+	{
+		if (Ref<RenderPipeline> pipeline = PipelineRef.lock())
+		{
+			return pipeline->GetVersion() == GetVersion() ||
+				Images.size() == 0 ||
+				std::any_of(Images.cbegin(), Images.cend(), [](const auto& it) {
+					return !it.second.IsValid();
+					});
+		}
+		return false;
+	}
+
+	void ImageCache::Update(const Map<int, WeakManagedRef<Image>>& images)
+	{
+		Images = images;
+		
+		UpdateVersion(PipelineRef.lock()->GetVersion());
+	}
+
 	CameraComponent::CameraComponent(SceneEntity* entity) : EntityComponent(entity)
 	{}
 
@@ -74,10 +99,82 @@ namespace Coco::Rendering
 		_isProjectionMatrixDirty = true;
 	}
 
-	List<WeakManagedRef<Image>> CameraComponent::GetRenderTargets(const Ref<RenderPipeline>& pipeline)
+	List<WeakManagedRef<Image>> CameraComponent::GetRenderTargets(const Ref<RenderPipeline>& pipeline, const SizeInt& size)
 	{
-		// TODO: build this from the pipeline
-		return _renderTargetOverrides;
+		const List<RenderPipelineAttachmentDescription>& attachments = pipeline->GetPipelineAttachmentDescriptions();
+
+		// Get the cached images for this pipeline
+		if (!_imageCache.contains(pipeline->ID))
+			_imageCache.emplace(pipeline->ID, ImageCache(pipeline));
+
+		ImageCache& resource = _imageCache.at(pipeline->ID);
+		resource.UpdateTickUsed();
+
+		List<int> overrideMappings(_renderTargetOverrides.Count());
+		List<WeakManagedRef<Image>> renderTargets(attachments.Count());
+		Map<int, WeakManagedRef<Image>>& generatedImages = resource.Images;
+
+		for (int i = 0; i < _renderTargetOverrides.Count(); i++)
+			overrideMappings[i] = i;
+
+		for (int i = 0; i < attachments.Count(); i++)
+		{
+			const RenderPipelineAttachmentDescription& pipelineAttachment = attachments[i];
+
+			// Try to find an override that matches the needed attachment
+			for (auto it = overrideMappings.begin(); it != overrideMappings.end(); it++)
+			{
+				const WeakManagedRef<Image>& rtOverride = _renderTargetOverrides[*it];
+
+				if (!rtOverride.IsValid())
+				{
+					it = overrideMappings.EraseAndGetNext(it);
+					continue;
+				}
+
+				if (pipelineAttachment.Description.PixelFormat == rtOverride->GetDescription().PixelFormat &&
+					pipelineAttachment.Description.ColorSpace == rtOverride->GetDescription().ColorSpace)
+				{
+					renderTargets[i] = rtOverride;
+					it = overrideMappings.EraseAndGetNext(it);
+					break;
+				}
+			}
+
+			if (!renderTargets[i].IsValid())
+			{
+				ImageDescription attachmentDescription(
+					size.Width, size.Height,
+					1,
+					pipelineAttachment.Description.PixelFormat,
+					pipelineAttachment.Description.ColorSpace,
+					ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled | ImageUsageFlags::TransferSource
+				);
+
+				bool generateImage = true;
+
+				// No render target override for this attachment, so use a cached one (it if exists)
+				if (generatedImages.contains(i))
+				{
+					const WeakManagedRef<Image>& image = generatedImages.at(i);
+					if (image.IsValid() && image->GetDescription() == attachmentDescription)
+					{
+						// Reuse a cached image
+						renderTargets[i] = image;
+						generateImage = false;
+					}
+				}
+				
+				if(generateImage)
+				{
+					renderTargets[i] = EnsureRenderingService()->GetPlatform()->CreateImage(attachmentDescription);
+
+					generatedImages.at(i) = renderTargets[i];
+				}
+			}
+		}
+
+		return renderTargets;
 	}
 
 	void CameraComponent::UpdateProjectionMatrix() noexcept
@@ -103,5 +200,15 @@ namespace Coco::Rendering
 		}
 
 		_isProjectionMatrixDirty = false;
+	}
+
+	RenderingService* CameraComponent::EnsureRenderingService() const
+	{
+		RenderingService* renderService = RenderingService::Get();
+
+		if (renderService == nullptr)
+			throw Exception("No active rendering service found");
+
+		return renderService;
 	}
 }

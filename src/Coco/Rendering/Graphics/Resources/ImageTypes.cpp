@@ -37,6 +37,14 @@ namespace Coco::Rendering
 		}
 	}
 
+	bool ImageDescription::operator==(const ImageDescription& other) const noexcept
+	{
+		return Width == other.Width && Height == other.Height && Depth == other.Depth &&
+			PixelFormat == other.PixelFormat && ColorSpace == other.ColorSpace &&
+			MipCount == other.MipCount && 
+			UsageFlags == other.UsageFlags;
+	}
+
 	ImageUsageFlags operator|(ImageUsageFlags a, ImageUsageFlags b) noexcept
 	{
 		return static_cast<ImageUsageFlags>(static_cast<int>(a) | static_cast<int>(b));

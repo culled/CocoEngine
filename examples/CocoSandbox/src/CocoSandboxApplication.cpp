@@ -82,8 +82,7 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	Ref<Rendering::RenderPipeline> pipeline = CreateRef<Rendering::RenderPipeline>();
 	pipeline->SetClearColor(Color(0.1, 0.2, 0.3));
 
-	List<int> attachmentMapping;
-	attachmentMapping.Add(0);
+	List<int> attachmentMapping = { 0, 1 };
 
 	pipeline->AddRenderPass(CreateRef<HelloTriangleRenderPass>(), attachmentMapping);
 	_renderService->SetDefaultPipeline(pipeline);

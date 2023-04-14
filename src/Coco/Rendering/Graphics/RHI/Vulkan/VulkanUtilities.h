@@ -87,8 +87,8 @@ namespace Coco::Rendering::Vulkan
 		{
 		case VK_FORMAT_R8G8B8A8_UNORM:
 			return PixelFormat::RGBA8;
-		case VK_FORMAT_D24_UNORM_S8_UINT:
-			return PixelFormat::Depth24_Stencil8;
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
+			return PixelFormat::Depth32_Stencil8;
 		default:
 			return PixelFormat::Unknown;
 		}
@@ -103,8 +103,8 @@ namespace Coco::Rendering::Vulkan
 		{
 		case PixelFormat::RGBA8:
 			return VK_FORMAT_R8G8B8A8_UNORM;
-		case PixelFormat::Depth24_Stencil8:
-			return VK_FORMAT_D24_UNORM_S8_UINT;
+		case PixelFormat::Depth32_Stencil8:
+			return VK_FORMAT_D32_SFLOAT_S8_UINT;
 		default:
 			return VK_FORMAT_UNDEFINED;
 		}
@@ -336,7 +336,7 @@ namespace Coco::Rendering::Vulkan
 	/// @brief Converts ImageUsageFlags to VkImageUsageFlags
 	/// @param usageFlags The image usage flags
 	/// @return The converted VkImageUsageFlags
-	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags) noexcept;
+	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags, PixelFormat pixelFormat) noexcept;
 
 	/// @brief Converts a FilterMode to a VkFilter
 	/// @param filterMode The filter mode
@@ -414,6 +414,6 @@ namespace Coco::Rendering::Vulkan
 	constexpr VkImageLayout ToAttachmentLayout(PixelFormat format)
 	{
 		return IsDepthStencilFormat(format) ?
-			VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 }

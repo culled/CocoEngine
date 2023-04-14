@@ -10,6 +10,7 @@ List<AttachmentDescription> HelloTriangleRenderPass::GetAttachmentDescriptions()
 {
     List<AttachmentDescription> attachments;
     attachments.Add(AttachmentDescription(PixelFormat::RGBA8, ColorSpace::sRGB, false));
+    attachments.Add(AttachmentDescription(PixelFormat::Depth32_Stencil8, ColorSpace::sRGB, false));
     return attachments;
 }
 

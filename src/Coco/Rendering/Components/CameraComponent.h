@@ -1,16 +1,37 @@
 #pragma once
 
 #include <Coco/Core/Scene/Components/EntityComponent.h>
+#include <Coco/Core/Resources/Resource.h>
 
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/List.h>
+#include <Coco/Core/Types/Map.h>
 #include "CameraComponentTypes.h"
 
 namespace Coco::Rendering
 {
 	class Image;
 	class RenderPipeline;
+	class RenderingService;
+
+	/// @brief A cached set of images for a pipeline
+	class ImageCache final : public CachedResource
+	{
+	public:
+		WeakRef<RenderPipeline> PipelineRef;
+		Map<int, WeakManagedRef<Image>> Images;
+
+		ImageCache(const Ref<RenderPipeline>& pipeline);
+		~ImageCache() final = default;
+
+		bool IsInvalid() const noexcept final { return PipelineRef.expired(); }
+		bool NeedsUpdate() const noexcept final;
+
+		/// @brief Updates this cache of images
+		/// @param images The images to cache
+		void Update(const Map<int, WeakManagedRef<Image>>& images);
+	};
 
 	/// @brief A camera component that can render a scene from a perspective
 	class COCOAPI CameraComponent : public EntityComponent
@@ -31,6 +52,7 @@ namespace Coco::Rendering
 		bool _isProjectionMatrixDirty = true;
 
 		List<WeakManagedRef<Image>> _renderTargetOverrides;
+		Map<ResourceID, ImageCache> _imageCache;
 
 	public:
 		CameraComponent(SceneEntity* entity);
@@ -101,11 +123,14 @@ namespace Coco::Rendering
 		/// @brief Gets rendertargets that match the given pipeline's attachment layout
 		/// @param pipeline The pipeline
 		/// @return A list of render targets
-		List<WeakManagedRef<Image>> GetRenderTargets(const Ref<RenderPipeline>& pipeline);
+		List<WeakManagedRef<Image>> GetRenderTargets(const Ref<RenderPipeline>& pipeline, const SizeInt& size);
 
 	private:
 		/// @brief Updates the internal projection matrix based on the projection type
-		/// @return 
 		void UpdateProjectionMatrix() noexcept;
+
+		/// @brief Ensures there is an active rendering service and returns it
+		/// @return The active rendering service
+		RenderingService* EnsureRenderingService() const;
 	};
 }

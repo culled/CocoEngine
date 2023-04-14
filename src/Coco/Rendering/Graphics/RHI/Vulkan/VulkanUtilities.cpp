@@ -46,7 +46,7 @@ namespace Coco::Rendering::Vulkan
 		return flags;
 	}
 
-	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags) noexcept
+	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags, PixelFormat pixelFormat) noexcept
 	{
 		VkImageUsageFlags flags = 0;
 
@@ -60,7 +60,12 @@ namespace Coco::Rendering::Vulkan
 			flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
 
 		if ((usageFlags & ImageUsageFlags::RenderTarget) == ImageUsageFlags::RenderTarget)
-			flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		{
+			if(IsDepthStencilFormat(pixelFormat))
+				flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			else
+				flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		}
 
 		return flags;
 	}

@@ -10,8 +10,8 @@ namespace Coco::Rendering
 		/// @brief R, G, B, and A channels, each storing 8 bits
 		RGBA8,
 
-		/// @brief 24 bit depth channel with an 8 bit stencil channel
-		Depth24_Stencil8,
+		/// @brief 32 bit depth channel with an 8 bit stencil channel
+		Depth32_Stencil8,
 
 		/// @brief An unknown format
 		Unknown
@@ -58,7 +58,7 @@ namespace Coco::Rendering
 	/// @return True if the format is a depth/stencil format
 	constexpr bool IsDepthStencilFormat(PixelFormat format) noexcept
 	{
-		return format == PixelFormat::Depth24_Stencil8;
+		return format == PixelFormat::Depth32_Stencil8;
 	}
 
 	/// @brief Gets the number of bytes per pixel for a pixel format
@@ -69,8 +69,8 @@ namespace Coco::Rendering
 		switch (format)
 		{
 		case PixelFormat::RGBA8:
-		case PixelFormat::Depth24_Stencil8:
-			return 4;
+		case PixelFormat::Depth32_Stencil8:
+			return 5;
 		default:
 			return 0;
 		}
@@ -85,7 +85,7 @@ namespace Coco::Rendering
 		{
 		case PixelFormat::RGBA8:
 			return 4;
-		case PixelFormat::Depth24_Stencil8:
+		case PixelFormat::Depth32_Stencil8:
 			return 2;
 		default:
 			return 0;
@@ -138,5 +138,7 @@ namespace Coco::Rendering
 			Rendering::PixelFormat pixelFormat,
 			Rendering::ColorSpace colorSpace,
 			ImageUsageFlags usageFlags) noexcept;
+
+		bool operator==(const ImageDescription& other) const noexcept;
 	};
 }

@@ -241,15 +241,39 @@ namespace Coco::Rendering::Vulkan
 			beginInfo.renderArea.extent.width = static_cast<uint32_t>(RenderView->ViewportRect.Size.Width);
 			beginInfo.renderArea.extent.height = static_cast<uint32_t>(RenderView->ViewportRect.Size.Height);
 
-			const VkClearValue clearValue = { {{
-					static_cast<float>(RenderView->ClearColor.R),
-					static_cast<float>(RenderView->ClearColor.G),
-					static_cast<float>(RenderView->ClearColor.B),
-					static_cast<float>(RenderView->ClearColor.A)
-				}} };
+			// TODO: configurable clear values?
+			const VkClearColorValue colorClearValue = { 0.0f, 0.0f, 0.0f, 1.0f };
+			const VkClearDepthStencilValue depthClearValue = { 1.0f, 0 };
 
-			beginInfo.clearValueCount = 1;
-			beginInfo.pClearValues = &clearValue;
+			List<VkClearValue> clearValues(RenderView->RenderTargets.Count());
+
+			// Set clear clear color for each render target
+			for (int i = 0; i < clearValues.Count(); i++)
+			{
+				if (IsDepthStencilFormat(RenderView->RenderTargets[i]->GetDescription().PixelFormat))
+				{
+					clearValues[i].depthStencil = depthClearValue;
+				}
+				else
+				{
+					if (i == 0)
+					{
+						clearValues[i].color = {
+							static_cast<float>(RenderView->ClearColor.R),
+							static_cast<float>(RenderView->ClearColor.G),
+							static_cast<float>(RenderView->ClearColor.B),
+							static_cast<float>(RenderView->ClearColor.A)
+						};;
+					}
+					else
+					{
+						clearValues[i].color = colorClearValue;
+					}
+				}				
+			}
+
+			beginInfo.clearValueCount = static_cast<uint32_t>(clearValues.Count());
+			beginInfo.pClearValues = clearValues.Data();
 
 			vkCmdBeginRenderPass(_commandBuffer->GetCmdBuffer(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
