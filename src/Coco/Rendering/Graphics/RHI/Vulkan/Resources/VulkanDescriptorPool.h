@@ -23,7 +23,7 @@ namespace Coco::Rendering::Vulkan
 		GraphicsDeviceVulkan* _device;
 
 		uint _maxDescriptorSets;
-		Map<uint64_t, VkDescriptorSet> _allocatedDescriptorSets;
+		UnorderedMap<uint64_t, VkDescriptorSet> _allocatedDescriptorSets;
 		List<VulkanDescriptorLayout> _descriptorSetLayouts;
 
 		VkDescriptorPool _pool;

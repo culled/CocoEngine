@@ -31,7 +31,7 @@ namespace Coco::Rendering
 		ResourceVersion Version;
 
 		/// @brief The subshaders that this shader uses
-		Map<string, Subshader> Subshaders;
+		UnorderedMap<string, Subshader> Subshaders;
 
 		ShaderRenderData(ResourceID id, ResourceVersion version) : 
 			ID(id), Version(version)
@@ -74,10 +74,10 @@ namespace Coco::Rendering
 		List<uint8_t> UniformData;
 
 		/// @brief Bindings between subshaders and their places in this material's uniform data
-		Map<string, SubshaderUniformBinding> SubshaderBindings;
+		UnorderedMap<string, SubshaderUniformBinding> SubshaderBindings;
 
 		/// @brief The textures that this material samples
-		Map<string, ResourceID> Samplers;
+		UnorderedMap<string, ResourceID> Samplers;
 
 		MaterialRenderData(ResourceID id, ResourceVersion version, ResourceID shaderID, const List<uint8_t>& uniformData) : 
 			ID(id), Version(version), ShaderID(shaderID), UniformData(uniformData)
@@ -152,16 +152,16 @@ namespace Coco::Rendering
 		List<WeakManagedRef<Image>> RenderTargets;
 
 		/// @brief The shaders used for rendering
-		Map<ResourceID, ShaderRenderData> Shaders;
+		UnorderedMap<ResourceID, ShaderRenderData> Shaders;
 
 		/// @brief The textures used for rendering
-		Map<ResourceID, TextureRenderData> Textures;
+		UnorderedMap<ResourceID, TextureRenderData> Textures;
 
 		/// @brief The materials used for rendering
-		Map<ResourceID, MaterialRenderData> Materials;
+		UnorderedMap<ResourceID, MaterialRenderData> Materials;
 
 		/// @brief The meshes used for rendering
-		Map<ResourceID, MeshRenderData> Meshs;
+		UnorderedMap<ResourceID, MeshRenderData> Meshs;
 
 		/// @brief The objects being rendered
 		List<ObjectRenderData> Objects;

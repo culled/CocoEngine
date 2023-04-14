@@ -50,7 +50,7 @@ namespace Coco::Rendering
 		/// @brief Reads the stages of a subshader from a file
 		/// @param reader The reader
 		/// @param stageFiles Will be filled with subshader stage files
-		void ReadSubshaderStages(KeyValueReader& reader, Map<ShaderStageType, string>& stageFiles);
+		void ReadSubshaderStages(KeyValueReader& reader, UnorderedMap<ShaderStageType, string>& stageFiles);
 
 		/// @brief Reads a GraphicsPipelineState for a subshader
 		/// @param reader The reader

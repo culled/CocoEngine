@@ -23,7 +23,7 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	void ImageCache::Update(const Map<int, WeakManagedRef<Image>>& images)
+	void ImageCache::Update(const UnorderedMap<int, WeakManagedRef<Image>>& images)
 	{
 		Images = images;
 		
@@ -112,7 +112,7 @@ namespace Coco::Rendering
 
 		List<int> overrideMappings(_renderTargetOverrides.Count());
 		List<WeakManagedRef<Image>> renderTargets(attachments.Count());
-		Map<int, WeakManagedRef<Image>>& generatedImages = resource.Images;
+		UnorderedMap<int, WeakManagedRef<Image>>& generatedImages = resource.Images;
 
 		for (int i = 0; i < _renderTargetOverrides.Count(); i++)
 			overrideMappings[i] = i;
@@ -169,7 +169,7 @@ namespace Coco::Rendering
 				{
 					renderTargets[i] = EnsureRenderingService()->GetPlatform()->CreateImage(attachmentDescription);
 
-					generatedImages.at(i) = renderTargets[i];
+					generatedImages[i] = renderTargets[i];
 				}
 			}
 		}

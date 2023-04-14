@@ -19,8 +19,8 @@ namespace Coco::Rendering
 
 		string name;
 		string shaderPath;
-		Map<string, Vector4> vec4Properties;
-		Map<string, string> textureProperties;
+		UnorderedMap<string, Vector4> vec4Properties;
+		UnorderedMap<string, string> textureProperties;
 
 		while (reader.ReadLine())
 		{
@@ -97,7 +97,10 @@ namespace Coco::Rendering
 		}
 	}
 
-	void MaterialLoader::ReadPropertiesSection(KeyValueReader& reader, Map<string, Vector4>& vec4Properties, Map<string, string>& textureProperties)
+	void MaterialLoader::ReadPropertiesSection(
+		KeyValueReader& reader, 
+		UnorderedMap<string, Vector4>& vec4Properties,
+		UnorderedMap<string, string>& textureProperties)
 	{
 		while (reader.ReadIfIsIndentLevel(1))
 		{
@@ -108,7 +111,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void MaterialLoader::ReadVector4Section(KeyValueReader& reader, Map<string, Vector4>& vec4Properties)
+	void MaterialLoader::ReadVector4Section(KeyValueReader& reader, UnorderedMap<string, Vector4>& vec4Properties)
 	{
 		while (reader.ReadIfIsIndentLevel(2))
 		{
@@ -116,7 +119,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void MaterialLoader::ReadTextureSection(KeyValueReader& reader, Map<string, string>& textureProperties)
+	void MaterialLoader::ReadTextureSection(KeyValueReader& reader, UnorderedMap<string, string>& textureProperties)
 	{
 		while (reader.ReadIfIsIndentLevel(2))
 		{

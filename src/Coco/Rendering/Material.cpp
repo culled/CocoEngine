@@ -116,8 +116,8 @@ namespace Coco::Rendering
 		if (!forceUpdate && _propertyMapVersion == Shader->GetVersion())
 			return;
 
-		Map<string, Vector4> vec4Properties;
-		Map<string, Ref<Texture>> textureProperties;
+		UnorderedMap<string, Vector4> vec4Properties;
+		UnorderedMap<string, Ref<Texture>> textureProperties;
 
 		List<Subshader> subshaders = Shader->GetSubshaders();
 
@@ -184,7 +184,7 @@ namespace Coco::Rendering
 
 		for (const Subshader& subshader : subshaders)
 		{
-			Map<string, SubshaderUniformBinding>::iterator bindingIt = _subshaderBindings.end();
+			UnorderedMap<string, SubshaderUniformBinding>::iterator bindingIt = _subshaderBindings.end();
 			if (subshader.Descriptors.Count() > 0)
 				bindingIt = _subshaderBindings.emplace(subshader.PassName, SubshaderUniformBinding(offset)).first;
 

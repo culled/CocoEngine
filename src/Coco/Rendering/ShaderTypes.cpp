@@ -16,7 +16,7 @@ namespace Coco::Rendering
 
 	Subshader::Subshader(
 		const string& name,
-		const Map<ShaderStageType, string>& stageFiles,
+		const UnorderedMap<ShaderStageType, string>& stageFiles,
 		const GraphicsPipelineState& pipelineState,
 		const List<ShaderVertexAttribute>& attributes,
 		const List<ShaderDescriptor>& descriptors,

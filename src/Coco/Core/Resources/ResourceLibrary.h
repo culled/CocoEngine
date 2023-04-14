@@ -21,8 +21,8 @@ namespace Coco
 		const string BasePath;
 
 	private:
-		Map<string, Ref<Resource>> _loadedResources;
-		Map<string, Managed<ResourceLoader>> _resourceLoaders;
+		UnorderedMap<string, Ref<Resource>> _loadedResources;
+		UnorderedMap<string, Managed<ResourceLoader>> _resourceLoaders;
 
 	public:
 		ResourceLibrary(const string& basePath);

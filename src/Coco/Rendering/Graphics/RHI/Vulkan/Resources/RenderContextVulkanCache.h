@@ -88,8 +88,8 @@ namespace Coco::Rendering::Vulkan
 		static constexpr double s_fragmentFlushThreshold = 0.5;
 
 		GraphicsDeviceVulkan* _device;
-		Map<ResourceID, CachedSubshaderResource> _shaderCache;
-		Map<ResourceID, CachedMaterialResource> _materialCache;
+		UnorderedMap<ResourceID, CachedSubshaderResource> _shaderCache;
+		UnorderedMap<ResourceID, CachedMaterialResource> _materialCache;
 
 		List<MaterialBuffer> _materialUBOs;
 

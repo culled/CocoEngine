@@ -22,7 +22,7 @@ namespace Coco::Rendering::Vulkan
 	struct CachedShader final : public CachedResource
 	{
 		/// @brief Cached subshaders of this shader
-		Map<string, Ref<VulkanSubshader>> Subshaders;
+		UnorderedMap<string, Ref<VulkanSubshader>> Subshaders;
 
 		CachedShader(const ShaderRenderData& shaderData);
 		~CachedShader() final = default;
@@ -39,9 +39,9 @@ namespace Coco::Rendering::Vulkan
 
 		GraphicsDeviceVulkan* _device;
 
-		Map<ResourceID, Ref<VulkanRenderPass>> _renderPassCache;
-		Map<uint64_t, Ref<VulkanPipeline>> _pipelineCache;
-		Map<ResourceID, Ref<CachedShader>> _shaderCache;
+		UnorderedMap<ResourceID, Ref<VulkanRenderPass>> _renderPassCache;
+		UnorderedMap<uint64_t, Ref<VulkanPipeline>> _pipelineCache;
+		UnorderedMap<ResourceID, Ref<CachedShader>> _shaderCache;
 
 	public:
 		VulkanRenderCache(GraphicsDeviceVulkan* device);

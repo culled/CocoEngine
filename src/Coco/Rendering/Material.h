@@ -27,14 +27,14 @@ namespace Coco::Rendering
 		Ref<Shader> Shader;
 
 		/// @brief The Vector4 properties of this material
-		Map<string, Vector4> Vector4Properties;
+		UnorderedMap<string, Vector4> Vector4Properties;
 
 		/// @brief The texture properties of this material
-		Map<string, Ref<Texture>> TextureProperties;
+		UnorderedMap<string, Ref<Texture>> TextureProperties;
 
 	private:
 		ResourceVersion _propertyMapVersion = 0;
-		Map<string, SubshaderUniformBinding> _subshaderBindings;
+		UnorderedMap<string, SubshaderUniformBinding> _subshaderBindings;
 		List<uint8_t> _bufferData;
 		bool _isBufferDataDirty = true;
 
@@ -58,7 +58,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets all the Vector4 properties that this material has
 		/// @return This material's Vector4 properties
-		const Map<string, Vector4>& GetVector4Properties() const noexcept { return Vector4Properties; }
+		const UnorderedMap<string, Vector4>& GetVector4Properties() const noexcept { return Vector4Properties; }
 
 		/// @brief Sets a texture property
 		/// @param name The name of the texture property
@@ -72,7 +72,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets all the texture properties that this material has
 		/// @return This material's texture properties
-		const Map<string, Ref<Texture>>& GetTextureProperties() const noexcept { return TextureProperties; }
+		const UnorderedMap<string, Ref<Texture>>& GetTextureProperties() const noexcept { return TextureProperties; }
 
 		/// @brief Gets uniform buffer data from this material's currently set properties
 		/// @return This material's properties as a byte array
@@ -86,7 +86,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets the map of subshader bindings to this material's uniform buffer data
 		/// @return The map of subshader bindings
-		Map<string, SubshaderUniformBinding> GetSubshaderBindings() const noexcept { return _subshaderBindings; }
+		const UnorderedMap<string, SubshaderUniformBinding>& GetSubshaderBindings() const noexcept { return _subshaderBindings; }
 
 	private:
 		/// @brief Updates the property maps from this material's shader

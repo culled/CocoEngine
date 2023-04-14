@@ -20,7 +20,7 @@ namespace Coco::Rendering
 	{
 	public:
 		WeakRef<RenderPipeline> PipelineRef;
-		Map<int, WeakManagedRef<Image>> Images;
+		UnorderedMap<int, WeakManagedRef<Image>> Images;
 
 		ImageCache(const Ref<RenderPipeline>& pipeline);
 		~ImageCache() final = default;
@@ -30,7 +30,7 @@ namespace Coco::Rendering
 
 		/// @brief Updates this cache of images
 		/// @param images The images to cache
-		void Update(const Map<int, WeakManagedRef<Image>>& images);
+		void Update(const UnorderedMap<int, WeakManagedRef<Image>>& images);
 	};
 
 	/// @brief A camera component that can render a scene from a perspective
@@ -52,7 +52,7 @@ namespace Coco::Rendering
 		bool _isProjectionMatrixDirty = true;
 
 		List<WeakManagedRef<Image>> _renderTargetOverrides;
-		Map<ResourceID, ImageCache> _imageCache;
+		UnorderedMap<ResourceID, ImageCache> _imageCache;
 
 	public:
 		CameraComponent(SceneEntity* entity);

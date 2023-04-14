@@ -131,7 +131,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void ShaderLoader::ReadSubshaderStages(KeyValueReader& reader, Map<ShaderStageType, string>& stageFiles)
+	void ShaderLoader::ReadSubshaderStages(KeyValueReader& reader, UnorderedMap<ShaderStageType, string>& stageFiles)
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{

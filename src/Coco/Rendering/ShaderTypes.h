@@ -76,7 +76,7 @@ namespace Coco::Rendering
 		string PassName;
 
 		/// @brief Files for each stage of this subshader
-		Map<ShaderStageType, string> StageFiles;
+		UnorderedMap<ShaderStageType, string> StageFiles;
 
 		/// @brief The graphics pipeline state that this subshader requires
 		GraphicsPipelineState PipelineState;
@@ -97,7 +97,7 @@ namespace Coco::Rendering
 
 		Subshader(
 			const string& name,
-			const Map<ShaderStageType, string>& stageFiles,
+			const UnorderedMap<ShaderStageType, string>& stageFiles,
 			const GraphicsPipelineState& pipelineState,
 			const List<ShaderVertexAttribute>& attributes,
 			const List<ShaderDescriptor>& descriptors,

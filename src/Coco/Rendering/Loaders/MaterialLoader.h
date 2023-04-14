@@ -39,16 +39,19 @@ namespace Coco::Rendering
 		/// @param reader The reader
 		/// @param vec4Properties Will be filled with the Vector4 properties
 		/// @param textureProperties Will be filled with the texture properties
-		void ReadPropertiesSection(KeyValueReader& reader, Map<string, Vector4>& vec4Properties, Map<string, string>& textureProperties);
+		void ReadPropertiesSection(
+			KeyValueReader& reader, 
+			UnorderedMap<string, Vector4>& vec4Properties, 
+			UnorderedMap<string, string>& textureProperties);
 
 		/// @brief Reads the Vector4 properties section for a material
 		/// @param reader The reader
 		/// @param vec4Properties Will be filled with the Vector4 properties
-		void ReadVector4Section(KeyValueReader& reader, Map<string, Vector4>& vec4Properties);
+		void ReadVector4Section(KeyValueReader& reader, UnorderedMap<string, Vector4>& vec4Properties);
 
 		/// @brief Reads the texture properties section for a material
 		/// @param reader The reader
 		/// @param textureProperties Will be filled with the texture properties
-		void ReadTextureSection(KeyValueReader& reader, Map<string, string>& textureProperties);
+		void ReadTextureSection(KeyValueReader& reader, UnorderedMap<string, string>& textureProperties);
 	};
 }

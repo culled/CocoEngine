@@ -99,7 +99,7 @@ namespace Coco::Rendering::Vulkan
 		ResourceID _currentShader = Resource::InvalidID;
 		ResourceID _currentMaterial = Resource::InvalidID;
 		Ref<VulkanPipeline> _currentPipeline = nullptr;
-		Map<ResourceID, VkDescriptorSet> _materialDescriptorSets;
+		UnorderedMap<ResourceID, VkDescriptorSet> _materialDescriptorSets;
 
 		int _backbufferIndex = -1;
 
