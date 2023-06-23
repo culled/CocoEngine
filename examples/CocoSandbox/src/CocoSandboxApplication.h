@@ -10,7 +10,6 @@
 #include <Coco/Rendering/Material.h>
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Rendering/Mesh.h>
-#include <Coco/Core/Scene/Scene.h>
 
 namespace Coco
 {
@@ -34,6 +33,13 @@ namespace Coco::Rendering
 	class RenderingService;
 }
 
+namespace Coco::ECS
+{
+	class ECSService;
+	class Entity;
+}
+
+
 class CocoSandboxApplication final : public Coco::Application
 {
 private:
@@ -53,12 +59,12 @@ private:
 	Coco::Ref<Coco::Rendering::Texture> _texture;
 	uint _textureIndex = 0;
 
-	Coco::Ref<Coco::SceneEntity> _camera;
 	Coco::Vector3 _cameraEulerAngles;
 
-	Coco::Ref<Coco::SceneEntity> _obj;
-	Coco::Ref<Coco::SceneEntity> _obj2;
 	Coco::Ref<Coco::Rendering::Mesh> _mesh;
+
+	Coco::ECS::ECSService* _ecsService;
+	Coco::Ref<Coco::ECS::Entity> _cameraEntity;
 
 public:
 	CocoSandboxApplication(Coco::Engine* engine);

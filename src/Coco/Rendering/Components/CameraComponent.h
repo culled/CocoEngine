@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Coco/Core/Scene/Components/EntityComponent.h>
+/*#include <Coco/Core/Scene/Components/EntityComponent.h>
 #include <Coco/Core/Resources/Resource.h>
 
 #include <Coco/Core/Types/Matrix.h>
@@ -133,4 +133,4 @@ namespace Coco::Rendering
 		/// @return The active rendering service
 		RenderingService* EnsureRenderingService() const;
 	};
-}
+}*/

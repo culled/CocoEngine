@@ -3,7 +3,6 @@
 #include "Core.h"
 #include "Logging/Logger.h"
 #include "Events/Event.h"
-#include "Scene/Scene.h"
 
 namespace Coco
 {
@@ -27,7 +26,6 @@ namespace Coco
 
 	protected:
 		Managed<Logging::Logger> Logger;
-		Ref<Scene> Scene;
 
 	protected:
 		Application(Coco::Engine* engine, const string& name);
@@ -53,10 +51,6 @@ namespace Coco
 		/// @brief Requests this application to quit
 		/// @return True if the application will quit
 		bool Quit() noexcept;
-
-		// TEMPORARY -------------------------------------
-		virtual Ref<Coco::Scene> GetScene() const noexcept { return Scene; }
-		// TEMPORARY -------------------------------------
 	};
 }
 

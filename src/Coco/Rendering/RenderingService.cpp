@@ -8,7 +8,6 @@
 #include "Loaders/MaterialLoader.h"
 #include "Texture.h"
 #include "Components/MeshRendererComponent.h"
-#include <Coco/Core/Scene/Components/TransformComponent.h>
 
 namespace Coco::Rendering
 {
@@ -43,16 +42,16 @@ namespace Coco::Rendering
 	{
 		if (_defaultPipeline)
 		{
-			Ref<Scene> scene = Engine::Get()->GetApplication()->GetScene();
-			List<Ref<SceneEntity>> cameras = scene->GetEntitiesWithComponent<CameraComponent>();
+			//Ref<Scene> scene = Engine::Get()->GetApplication()->GetScene();
+			//List<Ref<SceneEntity>> cameras = scene->GetEntitiesWithComponent<CameraComponent>();
 
-			if (cameras.Count() == 0)
-			{
-				LogError(GetLogger(), "Failed to render presenter: No camera to render from");
-				return;
-			}
+			//if (cameras.Count() == 0)
+			//{
+			//	LogError(GetLogger(), "Failed to render presenter: No camera to render from");
+			//	return;
+			//}
 
-			Render(presenter, _defaultPipeline, cameras.First()->GetComponent<CameraComponent>());
+			//Render(presenter, _defaultPipeline, cameras.First()->GetComponent<CameraComponent>());
 		}
 		else
 		{
@@ -60,7 +59,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void RenderingService::Render(const WeakManagedRef<GraphicsPresenter>& presenter, const Ref<RenderPipeline>& pipeline, CameraComponent* camera)
+	/*void RenderingService::Render(const WeakManagedRef<GraphicsPresenter>& presenter, const Ref<RenderPipeline>& pipeline, CameraComponent* camera)
 	{
 		SizeInt size = presenter->GetBackbufferSize();
 
@@ -86,15 +85,15 @@ namespace Coco::Rendering
 			camera->GetRenderTargets(pipeline, size));
 
 		// Add objects from the scene graph
-		Ref<Scene> scene = Engine::Get()->GetApplication()->GetScene();
-		List<Ref<SceneEntity>> renderEntities = scene->GetEntitiesWithComponent<MeshRendererComponent>();
+		//Ref<Scene> scene = Engine::Get()->GetApplication()->GetScene();
+		//List<Ref<SceneEntity>> renderEntities = scene->GetEntitiesWithComponent<MeshRendererComponent>();
 
-		for (const Ref<SceneEntity>& entity : renderEntities)
-		{
-			MeshRendererComponent* renderComp = entity->GetComponent<MeshRendererComponent>();
-			TransformComponent* transformComp = entity->GetComponent<TransformComponent>();
-			view->AddRenderObject(renderComp->GetMesh(), renderComp->GetMaterial(), transformComp->GetTransformMatrix());
-		}
+		//for (const Ref<SceneEntity>& entity : renderEntities)
+		//{
+		//	MeshRendererComponent* renderComp = entity->GetComponent<MeshRendererComponent>();
+		//	TransformComponent* transformComp = entity->GetComponent<TransformComponent>();
+		//	view->AddRenderObject(renderComp->GetMesh(), renderComp->GetMaterial(), transformComp->GetTransformMatrix());
+		//}
 
 		// Actually render with the pipeline
 		renderContext->Begin(view, pipeline);
@@ -106,7 +105,7 @@ namespace Coco::Rendering
 		{
 			LogError(GetLogger(), "Failed to present");
 		}
-	}
+	}*/
 
 	void RenderingService::DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept
 	{

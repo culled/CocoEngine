@@ -74,6 +74,10 @@ namespace Coco
 		/// @return A rotation matrix
 		Matrix4x4 ToRotationMatrix() const noexcept;
 
+		/// @brief Gets this rotation as euler angles
+		/// @return The euler angles that this rotation represents
+		Vector3 ToEulerAngles() const noexcept;
+
 		Quaternion operator*(const Quaternion& other) const noexcept;
 		void operator*=(const Quaternion& other) noexcept { *this = *this * other; }
 

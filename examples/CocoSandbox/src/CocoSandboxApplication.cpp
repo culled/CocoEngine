@@ -8,9 +8,12 @@
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/RenderingService.h>
 #include <Coco/Rendering/MeshPrimitives.h>
-#include <Coco/Core/Scene/Components/TransformComponent.h>
-#include <Coco/Rendering/Components/CameraComponent.h>
-#include <Coco/Rendering/Components/MeshRendererComponent.h>
+//#include <Coco/Core/Scene/Components/TransformComponent.h>
+//#include <Coco/Rendering/Components/CameraComponent.h>
+//#include <Coco/Rendering/Components/MeshRendererComponent.h>
+#include <Coco/ECS/ECSService.h>
+#include <Coco/ECS/Entity.h>
+#include <Coco/ECS/Components/TransformComponent.h>
 
 #include "HelloTriangleRenderPass.h"
 
@@ -66,17 +69,17 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 
 	_mesh = MeshPrimitives::CreateFromVertices(vertexPositions, vertexUVs, vertexIndices);
 
-	_obj = CreateRef<SceneEntity>();
-	_obj->AddComponent<TransformComponent>();
-	_obj->AddComponent<MeshRendererComponent>(_mesh, _material);
-	Scene->AddEntity(_obj);
-
-	_obj2 = CreateRef<SceneEntity>();
-	TransformComponent* obj2Transform = _obj2->AddComponent<TransformComponent>();
-	obj2Transform->SetPosition(Vector3(0, 30, 0));
-	obj2Transform->SetRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
-	_obj2->AddComponent<MeshRendererComponent>(_mesh, _material);
-	Scene->AddEntity(_obj2);
+	//_obj = CreateRef<SceneEntity>();
+	//_obj->AddComponent<TransformComponent>();
+	//_obj->AddComponent<MeshRendererComponent>(_mesh, _material);
+	//Scene->AddEntity(_obj);
+	//
+	//_obj2 = CreateRef<SceneEntity>();
+	//TransformComponent* obj2Transform = _obj2->AddComponent<TransformComponent>();
+	//obj2Transform->SetPosition(Vector3(0, 30, 0));
+	//obj2Transform->SetRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
+	//_obj2->AddComponent<MeshRendererComponent>(_mesh, _material);
+	//Scene->AddEntity(_obj2);
 
 	// Setup our render pipeline
 	Ref<Rendering::RenderPipeline> pipeline = CreateRef<Rendering::RenderPipeline>();
@@ -87,13 +90,17 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	pipeline->AddRenderPass(CreateRef<HelloTriangleRenderPass>(), attachmentMapping);
 	_renderService->SetDefaultPipeline(pipeline);
 
-	_camera = CreateRef<SceneEntity>();
-	_camera->AddComponent<TransformComponent>();
-	CameraComponent* cameraComponent = _camera->AddComponent<CameraComponent>();
-	cameraComponent->SetPerspectiveProjection(90.0, 1.0, 0.1, 100.0);
-	//_camera->SetOrthographicProjection(10.0, 1.0, 0.1, 100.0);
+	//_camera = CreateRef<SceneEntity>();
+	//_camera->AddComponent<TransformComponent>();
+	//CameraComponent* cameraComponent = _camera->AddComponent<CameraComponent>();
+	//cameraComponent->SetPerspectiveProjection(90.0, 1.0, 0.1, 100.0);
+	////_camera->SetOrthographicProjection(10.0, 1.0, 0.1, 100.0);
+	//
+	//Scene->AddEntity(_camera);
 
-	Scene->AddEntity(_camera);
+	_ecsService = engine->GetServiceManager()->CreateService<ECS::ECSService>();
+	_cameraEntity = _ecsService->CreateEntity("Camera");
+	ECS::TransformComponent* cameraTransform = _cameraEntity->AddComponent<ECS::TransformComponent>();
 
 	LogInfo(Logger, "Sandbox application created");
 }
@@ -130,8 +137,8 @@ void CocoSandboxApplication::Start()
 
 void CocoSandboxApplication::Tick(double deltaTime)
 {
-	TransformComponent* cameraTransform = _camera->GetComponent<TransformComponent>();
-	CameraComponent* camera = _camera->GetComponent<CameraComponent>();
+	ECS::TransformComponent* cameraTransform = _cameraEntity->GetComponent<ECS::TransformComponent>();
+	//CameraComponent* camera = _camera->GetComponent<CameraComponent>();
 
 	Vector2 mouseDelta = _inputService->GetMouse()->GetDelta();
 
@@ -161,10 +168,10 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	if (keyboard->IsKeyPressed(Input::KeyboardKey::Q))
 		velocity += orientation * Vector3::Down * 5.0;
 
-	cameraTransform->SetPosition(cameraTransform->GetPosition() + velocity * deltaTime);
-	cameraTransform->SetRotation(orientation);
+	cameraTransform->SetLocalPosition(cameraTransform->GetLocalPosition() + velocity * deltaTime);
+	cameraTransform->SetLocalRotation(orientation);
 
-	camera->SetViewMatrix(cameraTransform->GetTransformMatrix().Inverted());
+	//camera->SetViewMatrix(cameraTransform->GetTransformMatrix().Inverted());
 
 	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
 	const double a = Math::Sin(t) * 0.5 + 0.5;

@@ -141,6 +141,18 @@ namespace Coco
 		return mat;
 	}
 
+	Vector3 Quaternion::ToEulerAngles() const noexcept
+	{
+		Vector3 eulerAngles;
+
+		// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+		eulerAngles.X = Math::Atan2(2.0 * (W * X + Y * Z), 1.0 - 2.0 * (X * X + Y * Y));
+		eulerAngles.Y = Math::Asin(2.0 * (W * Y - X * Z));
+		eulerAngles.Z = Math::Atan2(2.0 * (W * Z + X * Y), 1.0 - 2.0 * (Y * Y + Z * Z));
+
+		return eulerAngles;
+	}
+
 	Quaternion Quaternion::operator*(const Quaternion& other) const noexcept
 	{
 		Quaternion result;

@@ -194,6 +194,14 @@ namespace Coco
 		/// @return A vector that points backwards
 		Vector3 GetBackwardVector() const noexcept { return -GetForwardVector(); }
 
+		/// @brief Gets the position component of this transform matrix
+		/// @return This matrix's position
+		Vector3 GetPosition() const noexcept { return Vector3(Data[m14], Data[m24], Data[m34]); }
+
+		/// @brief Gets the scale component of this transform matrix
+		/// @return This matrix's scale
+		Vector3 GetScale() const noexcept { return Vector3(Data[m11], Data[m22], Data[m33]); }
+
 		/// @brief Gets this matrix's data as a float array of 16 elements
 		/// @return This matrix's data as a float array of 16 elements
 		Array<float, Matrix4x4::CellCount> AsFloat() const noexcept;

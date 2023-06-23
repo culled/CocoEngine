@@ -1,6 +1,6 @@
 #include "CameraComponent.h"
 
-#include "../Pipeline/RenderPipeline.h"
+/*#include "../Pipeline/RenderPipeline.h"
 #include "../Graphics/Resources/Image.h"
 #include "../RenderingService.h"
 
@@ -211,4 +211,4 @@ namespace Coco::Rendering
 
 		return renderService;
 	}
-}
+}*/

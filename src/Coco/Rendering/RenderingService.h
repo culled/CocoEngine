@@ -69,7 +69,7 @@ namespace Coco::Rendering
         /// @param presenter The presenter
         /// @param pipeline The render pipeline
         /// @param camera The camera to render from
-        void Render(const WeakManagedRef<GraphicsPresenter>& presenter, const Ref<RenderPipeline>& pipeline, CameraComponent* camera);
+        //void Render(const WeakManagedRef<GraphicsPresenter>& presenter, const Ref<RenderPipeline>& pipeline, CameraComponent* camera);
 
     private:
         /// @brief Performs rendering using a render pipeline

@@ -77,4 +77,15 @@ namespace Coco
 	{
 		return std::dynamic_pointer_cast<ToType>(from);
 	}
+
+	/// @brief Downcasts a Managed without checking if it actually is the given type
+	/// @tparam ToType 
+	/// @tparam FromType 
+	/// @param from The starting reference
+	/// @return A down-casted reference
+	template<typename ToType, typename FromType>
+	Managed<ToType> ManagedCast(const Managed<FromType>& from)
+	{
+		return std::static_pointer_cast<ToType>(from);
+	}
 }
