@@ -5,12 +5,15 @@
 #include <Coco/Core/Types/Set.h>
 #include <Coco/Core/Types/Map.h>
 #include "EntityTypes.h"
+#include "SceneTypes.h"
 #include "EntityComponentList.h"
 #include <type_traits>
+#include <tuple>
 
 namespace Coco::ECS
 {
 	class Entity;
+	class Scene;
 
 	class ECSService : public EngineService
 	{
@@ -19,10 +22,12 @@ namespace Coco::ECS
 
 	private:
 		static ECSService* _instance;
+
 		Managed<MappedMemoryPool<Entity, MaxEntities>> _entities;
 		Set<EntityID> _queuedEntitiesToDestroy;
 		UnorderedMap<const char*, Managed<IEntityComponentList>> _componentLists;
-
+		List<Managed<Scene>> _scenes;
+		SceneID _nextSceneID = RootSceneID;
 
 	public:
 		/// @brief Priority for the tick handling entities
@@ -43,8 +48,12 @@ namespace Coco::ECS
 
 		Entity& GetEntityParent(EntityID entityID);
 		bool TryGetEntityParent(EntityID entityID, Entity*& entity);
+		bool IsDescendantOfEntity(EntityID entityID, EntityID parentID);
 
-		void QueueEntityDestroy(EntityID entityID);
+		void QueueDestroyEntity(EntityID entityID);
+		void DestroyEntity(EntityID entityID);
+		
+		List<PackedSetData<Entity>>& GetEntities() { return _entities->GetSparseSet().Data(); }
 
 		template<typename ComponentType, typename ... Args>
 		ComponentType& AddComponent(EntityID entityID, Args&& ... args)
@@ -65,10 +74,47 @@ namespace Coco::ECS
 		}
 
 		template<typename ComponentType>
+		bool HasComponents(EntityID entityID) const
+		{
+			const char* type = typeid(ComponentType).name();
+
+			auto* list = GetGenericComponentList(type);
+
+			if (list == nullptr)
+				return false;
+
+			return list->HasComponent(entityID);
+		}
+
+		template<typename ComponentType, typename SecondComponentType, typename ... ComponentTypes>
+		bool HasComponents(EntityID entityID) const
+		{
+			const char* type = typeid(ComponentType).name();
+
+			auto* list = GetGenericComponentList(type);
+
+			if (list == nullptr)
+				return false;
+			
+			return list->HasComponent(entityID) && HasComponents<SecondComponentType, ComponentTypes...>(entityID);
+		}
+
+		template<typename ComponentType>
 		bool RemoveComponent(EntityID entityID)
 		{
 			return GetComponentList<ComponentType>()->RemoveComponent(entityID);
 		}
+
+		Scene* CreateScene(const string& name = "", SceneID parentID = RootSceneID);
+		Scene* GetRootScene() { return GetScene(RootSceneID); }
+		Scene* GetScene(SceneID sceneID);
+		bool TryGetScene(SceneID sceneID, Scene*& scene);
+		bool IsDescendantOfScene(SceneID sceneID, SceneID parentID);
+		bool IsEntityInScene(EntityID entityID, SceneID sceneID);
+		void SetEntityScene(EntityID entityID, SceneID sceneID);
+		void DestroyScene(SceneID sceneID);
+
+		List<EntityID> GetSceneEntityIDs(SceneID scene) const;
 
 	private:
 		/// @brief Tick for updating any entities
@@ -86,6 +132,35 @@ namespace Coco::ECS
 			}
 
 			return static_cast<EntityComponentList<ComponentType, MaxEntities>*>(_componentLists.at(key).get());
+		}
+
+		template<typename ComponentType>
+		const EntityComponentList<ComponentType, MaxEntities>* GetComponentList() const
+		{
+			const char* key = typeid(ComponentType).name();
+
+			if (!_componentLists.contains(key))
+			{
+				_componentLists.try_emplace(key, CreateManaged<EntityComponentList<ComponentType, MaxEntities>>());
+			}
+
+			return static_cast<EntityComponentList<ComponentType, MaxEntities>*>(_componentLists.at(key).get());
+		}
+
+		IEntityComponentList* GetGenericComponentList(const char* listKey)
+		{
+			if (!_componentLists.contains(listKey))
+				return nullptr;
+
+			return _componentLists.at(listKey).get();
+		}
+
+		const IEntityComponentList* GetGenericComponentList(const char* listKey) const
+		{
+			if (!_componentLists.contains(listKey))
+				return nullptr;
+
+			return _componentLists.at(listKey).get();
 		}
 	};
 }

@@ -1,18 +1,18 @@
 #include "CameraComponent.h"
 
-/*#include "../Pipeline/RenderPipeline.h"
-#include "../Graphics/Resources/Image.h"
-#include "../RenderingService.h"
+#include <Coco/Rendering/Pipeline/RenderPipeline.h>
+#include <Coco/Rendering/Graphics/Resources/Image.h>
+#include <Coco/Rendering/RenderingService.h>
 
-namespace Coco::Rendering
+namespace Coco::ECS
 {
-	ImageCache::ImageCache(const Ref<RenderPipeline>& pipeline) : CachedResource(pipeline->ID, pipeline->GetVersion()),
+	ImageCache::ImageCache(const Ref<Rendering::RenderPipeline>& pipeline) : CachedResource(pipeline->ID, pipeline->GetVersion()),
 		PipelineRef(pipeline)
 	{}
 
 	bool ImageCache::NeedsUpdate() const noexcept
 	{
-		if (Ref<RenderPipeline> pipeline = PipelineRef.lock())
+		if (Ref<Rendering::RenderPipeline> pipeline = PipelineRef.lock())
 		{
 			return pipeline->GetVersion() == GetVersion() ||
 				Images.size() == 0 ||
@@ -23,14 +23,14 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	void ImageCache::Update(const UnorderedMap<int, WeakManagedRef<Image>>& images)
+	void ImageCache::Update(const UnorderedMap<int, WeakManagedRef<Rendering::Image>>& images)
 	{
 		Images = images;
 		
 		UpdateVersion(PipelineRef.lock()->GetVersion());
 	}
 
-	CameraComponent::CameraComponent(SceneEntity* entity) : EntityComponent(entity)
+	CameraComponent::CameraComponent(EntityID ownerID) : EntityComponent(ownerID)
 	{}
 
 	void CameraComponent::SetPerspectiveProjection(double fieldOfView, double aspectRatio, double nearClipDistance, double farClipDistance) noexcept
@@ -61,7 +61,7 @@ namespace Coco::Rendering
 		_isProjectionMatrixDirty = false;
 	}
 
-	Matrix4x4 CameraComponent::GetProjectionMatrix() noexcept
+	const Matrix4x4& CameraComponent::GetProjectionMatrix() noexcept
 	{
 		if (_isProjectionMatrixDirty)
 			UpdateProjectionMatrix();
@@ -99,32 +99,32 @@ namespace Coco::Rendering
 		_isProjectionMatrixDirty = true;
 	}
 
-	List<WeakManagedRef<Image>> CameraComponent::GetRenderTargets(const Ref<RenderPipeline>& pipeline, const SizeInt& size)
+	List<WeakManagedRef<Rendering::Image>> CameraComponent::GetRenderTargets(const Ref<Rendering::RenderPipeline>& pipeline, const SizeInt& size)
 	{
-		const List<RenderPipelineAttachmentDescription>& attachments = pipeline->GetPipelineAttachmentDescriptions();
+		const List<Rendering::RenderPipelineAttachmentDescription>& attachments = pipeline->GetPipelineAttachmentDescriptions();
 
 		// Get the cached images for this pipeline
 		if (!_imageCache.contains(pipeline->ID))
-			_imageCache.emplace(pipeline->ID, ImageCache(pipeline));
+			_imageCache.emplace(pipeline->ID, CreateRef<ImageCache>(ImageCache(pipeline)));
 
-		ImageCache& resource = _imageCache.at(pipeline->ID);
-		resource.UpdateTickUsed();
+		Ref<ImageCache>& resource = _imageCache.at(pipeline->ID);
+		resource->UpdateTickUsed();
 
 		List<int> overrideMappings(_renderTargetOverrides.Count());
-		List<WeakManagedRef<Image>> renderTargets(attachments.Count());
-		UnorderedMap<int, WeakManagedRef<Image>>& generatedImages = resource.Images;
+		List<WeakManagedRef<Rendering::Image>> renderTargets(attachments.Count());
+		UnorderedMap<int, WeakManagedRef<Rendering::Image>>& generatedImages = resource->Images;
 
 		for (int i = 0; i < _renderTargetOverrides.Count(); i++)
 			overrideMappings[i] = i;
 
 		for (int i = 0; i < attachments.Count(); i++)
 		{
-			const RenderPipelineAttachmentDescription& pipelineAttachment = attachments[i];
+			const Rendering::RenderPipelineAttachmentDescription& pipelineAttachment = attachments[i];
 
 			// Try to find an override that matches the needed attachment
 			for (auto it = overrideMappings.begin(); it != overrideMappings.end(); it++)
 			{
-				const WeakManagedRef<Image>& rtOverride = _renderTargetOverrides[*it];
+				const WeakManagedRef<Rendering::Image>& rtOverride = _renderTargetOverrides[*it];
 
 				if (!rtOverride.IsValid())
 				{
@@ -143,12 +143,12 @@ namespace Coco::Rendering
 
 			if (!renderTargets[i].IsValid())
 			{
-				ImageDescription attachmentDescription(
+				Rendering::ImageDescription attachmentDescription(
 					size.Width, size.Height,
 					1,
 					pipelineAttachment.Description.PixelFormat,
 					pipelineAttachment.Description.ColorSpace,
-					ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled | ImageUsageFlags::TransferSource
+					Rendering::ImageUsageFlags::RenderTarget | Rendering::ImageUsageFlags::Sampled | Rendering::ImageUsageFlags::TransferSource
 				);
 
 				bool generateImage = true;
@@ -156,7 +156,7 @@ namespace Coco::Rendering
 				// No render target override for this attachment, so use a cached one (it if exists)
 				if (generatedImages.contains(i))
 				{
-					const WeakManagedRef<Image>& image = generatedImages.at(i);
+					const WeakManagedRef<Rendering::Image>& image = generatedImages.at(i);
 					if (image.IsValid() && image->GetDescription() == attachmentDescription)
 					{
 						// Reuse a cached image
@@ -175,6 +175,24 @@ namespace Coco::Rendering
 		}
 
 		return renderTargets;
+	}
+
+	Ref<Rendering::RenderView> CameraComponent::GetRenderView(
+		const Ref<Rendering::RenderPipeline>& pipeline,
+		const SizeInt& backbufferSize,
+		const List<WeakManagedRef<Rendering::Image>>& backbuffers)
+	{
+		// Make sure the camera matches our rendering aspect ratio
+		SetAspectRatio(static_cast<double>(backbufferSize.Width) / backbufferSize.Height);
+
+		SetRenderTargetOverrides(backbuffers);
+
+		return CreateRef<Rendering::RenderView>(
+			RectInt(Vector2Int::Zero, backbufferSize),
+			pipeline->GetClearColor(),
+			GetProjectionMatrix(),
+			GetViewMatrix(),
+			GetRenderTargets(pipeline, backbufferSize));
 	}
 
 	void CameraComponent::UpdateProjectionMatrix() noexcept
@@ -202,13 +220,13 @@ namespace Coco::Rendering
 		_isProjectionMatrixDirty = false;
 	}
 
-	RenderingService* CameraComponent::EnsureRenderingService() const
+	Rendering::RenderingService* CameraComponent::EnsureRenderingService() const
 	{
-		RenderingService* renderService = RenderingService::Get();
+		Rendering::RenderingService* renderService = Rendering::RenderingService::Get();
 
 		if (renderService == nullptr)
 			throw Exception("No active rendering service found");
 
 		return renderService;
 	}
-}*/
+}

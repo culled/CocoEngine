@@ -10,6 +10,9 @@ namespace Coco::ECS
 	{
 	public:
 		virtual ~IEntityComponentList() = default;
+
+		virtual bool HasComponent(EntityID entityID) const = 0;
+		virtual bool RemoveComponent(EntityID entityID) = 0;
 	};
 
 	template <typename ComponentType, int MaxComponents>
@@ -27,12 +30,12 @@ namespace Coco::ECS
 			return _components.Get(entity);
 		}
 
-		bool HasComponent(EntityID entity) const
+		virtual bool HasComponent(EntityID entity) const final
 		{
 			return _components.Contains(entity);
 		}
 
-		bool RemoveComponent(EntityID entity)
+		virtual bool RemoveComponent(EntityID entity) final
 		{
 			return _components.Remove(entity);
 		}

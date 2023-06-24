@@ -49,6 +49,7 @@ private:
 	};
 
 	Coco::Ref<Coco::MainLoopTickListener> _tickListener;
+	Coco::Ref<Coco::MainLoopTickListener> _renderTickListener;
 	Coco::Input::InputService* _inputService;
 	Coco::Rendering::RenderingService* _renderService;
 	Coco::Windowing::WindowingService* _windowService;
@@ -73,5 +74,6 @@ public:
 	void Start() final;
 
 	void Tick(double deltaTime);
+	void RenderTick(double deltaTime);
 };
 

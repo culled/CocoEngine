@@ -7,7 +7,6 @@
 #include "Loaders/ShaderLoader.h"
 #include "Loaders/MaterialLoader.h"
 #include "Texture.h"
-#include "Components/MeshRendererComponent.h"
 
 namespace Coco::Rendering
 {
@@ -38,34 +37,27 @@ namespace Coco::Rendering
 		_graphics.reset();
 	}
 
-	void RenderingService::Render(const WeakManagedRef<GraphicsPresenter>& presenter)
+	void RenderingService::Render(
+		const WeakManagedRef<GraphicsPresenter>& presenter,
+		ICameraDataProvider* cameraDataProvider,
+		ISceneDataProvider* sceneDataProvider)
 	{
 		if (_defaultPipeline)
 		{
-			//Ref<Scene> scene = Engine::Get()->GetApplication()->GetScene();
-			//List<Ref<SceneEntity>> cameras = scene->GetEntitiesWithComponent<CameraComponent>();
-
-			//if (cameras.Count() == 0)
-			//{
-			//	LogError(GetLogger(), "Failed to render presenter: No camera to render from");
-			//	return;
-			//}
-
-			//Render(presenter, _defaultPipeline, cameras.First()->GetComponent<CameraComponent>());
+			Render(presenter, _defaultPipeline, cameraDataProvider, sceneDataProvider);
 		}
 		else
 		{
-			LogError(GetLogger(), "Failed to render presenter: No render pipeline was given and no default render pipeline has been set");
+			LogError(GetLogger(), "Failed to render: No render pipeline was given and no default render pipeline has been set");
 		}
 	}
 
-	/*void RenderingService::Render(const WeakManagedRef<GraphicsPresenter>& presenter, const Ref<RenderPipeline>& pipeline, CameraComponent* camera)
+	void RenderingService::Render(
+		const WeakManagedRef<GraphicsPresenter>& presenter,
+		const Ref<RenderPipeline>& pipeline,
+		ICameraDataProvider* cameraDataProvider,
+		ISceneDataProvider* sceneDataProvider)
 	{
-		SizeInt size = presenter->GetBackbufferSize();
-
-		// Make sure the camera matches our rendering aspect ratio
-		camera->SetAspectRatio(static_cast<double>(size.Width) / size.Height);
-
 		// Acquire the render context and backbuffer that we'll be using
 		RenderContext* renderContext;
 		WeakManagedRef<Image> backbuffer;
@@ -75,25 +67,11 @@ namespace Coco::Rendering
 			return;
 		}
 
-		camera->SetRenderTargetOverrides({ backbuffer });
-
-		Ref<RenderView> view = CreateRef<RenderView>(
-			RectInt(Vector2Int::Zero, size), 
-			pipeline->GetClearColor(), 
-			camera->GetProjectionMatrix(), 
-			camera->GetViewMatrix(),
-			camera->GetRenderTargets(pipeline, size));
+		// Create our render view using the provider for camera data
+		Ref<RenderView> view = cameraDataProvider->GetRenderView(pipeline, presenter->GetBackbufferSize(), { backbuffer });
 
 		// Add objects from the scene graph
-		//Ref<Scene> scene = Engine::Get()->GetApplication()->GetScene();
-		//List<Ref<SceneEntity>> renderEntities = scene->GetEntitiesWithComponent<MeshRendererComponent>();
-
-		//for (const Ref<SceneEntity>& entity : renderEntities)
-		//{
-		//	MeshRendererComponent* renderComp = entity->GetComponent<MeshRendererComponent>();
-		//	TransformComponent* transformComp = entity->GetComponent<TransformComponent>();
-		//	view->AddRenderObject(renderComp->GetMesh(), renderComp->GetMaterial(), transformComp->GetTransformMatrix());
-		//}
+		sceneDataProvider->GetSceneData(view);
 
 		// Actually render with the pipeline
 		renderContext->Begin(view, pipeline);
@@ -105,7 +83,7 @@ namespace Coco::Rendering
 		{
 			LogError(GetLogger(), "Failed to present");
 		}
-	}*/
+	}
 
 	void RenderingService::DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept
 	{

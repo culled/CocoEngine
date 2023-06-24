@@ -17,7 +17,7 @@ namespace Coco::ECS
 		Vector3 _localPosition = Vector3::Zero;
 		Vector3 _localEulerAngles = Vector3::Zero;
 		Quaternion _localRotation = Quaternion::Identity;
-		Vector3 _localScale = Vector3::Zero;
+		Vector3 _localScale = Vector3::One;
 
 		bool _isGlobalTransformMatrixDirty = false;
 		Matrix4x4 _globalTransformMatrix = Matrix4x4::Identity;

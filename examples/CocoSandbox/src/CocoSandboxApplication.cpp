@@ -8,12 +8,12 @@
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/RenderingService.h>
 #include <Coco/Rendering/MeshPrimitives.h>
-//#include <Coco/Core/Scene/Components/TransformComponent.h>
-//#include <Coco/Rendering/Components/CameraComponent.h>
-//#include <Coco/Rendering/Components/MeshRendererComponent.h>
 #include <Coco/ECS/ECSService.h>
 #include <Coco/ECS/Entity.h>
 #include <Coco/ECS/Components/TransformComponent.h>
+#include <Coco/ECS/Components/CameraComponent.h>
+#include <Coco/ECS/Components/MeshRendererComponent.h>
+#include <Coco/ECS/Scene.h>
 
 #include "HelloTriangleRenderPass.h"
 
@@ -23,7 +23,8 @@ using namespace Coco;
 
 CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) : 
 	Coco::Application(engine, "Coco Sandbox"),
-	_tickListener(new Coco::MainLoopTickListener(this, &CocoSandboxApplication::Tick, 0))
+	_tickListener(new Coco::MainLoopTickListener(this, &CocoSandboxApplication::Tick, 0)),
+	_renderTickListener(new Coco::MainLoopTickListener(this, &CocoSandboxApplication::RenderTick, 10000))
 {
 	Ref<Logging::ConsoleLogSink> consoleSink = CreateRef<Logging::ConsoleLogSink>(Logging::LogLevel::Trace);
 	Logger->AddSink(consoleSink);
@@ -69,6 +70,7 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 
 	_mesh = MeshPrimitives::CreateFromVertices(vertexPositions, vertexUVs, vertexIndices);
 
+
 	//_obj = CreateRef<SceneEntity>();
 	//_obj->AddComponent<TransformComponent>();
 	//_obj->AddComponent<MeshRendererComponent>(_mesh, _material);
@@ -90,17 +92,24 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	pipeline->AddRenderPass(CreateRef<HelloTriangleRenderPass>(), attachmentMapping);
 	_renderService->SetDefaultPipeline(pipeline);
 
-	//_camera = CreateRef<SceneEntity>();
-	//_camera->AddComponent<TransformComponent>();
-	//CameraComponent* cameraComponent = _camera->AddComponent<CameraComponent>();
-	//cameraComponent->SetPerspectiveProjection(90.0, 1.0, 0.1, 100.0);
-	////_camera->SetOrthographicProjection(10.0, 1.0, 0.1, 100.0);
-	//
-	//Scene->AddEntity(_camera);
-
 	_ecsService = engine->GetServiceManager()->CreateService<ECS::ECSService>();
 	_cameraEntityID = _ecsService->CreateEntity("Camera");
+
 	_ecsService->AddComponent<ECS::TransformComponent>(_cameraEntityID);
+
+	ECS::CameraComponent& camera = _ecsService->AddComponent<ECS::CameraComponent>(_cameraEntityID);
+	camera.SetPerspectiveProjection(90.0, 1.0, 0.1, 100.0);
+
+	ECS::EntityID obj = _ecsService->CreateEntity("1");
+	_ecsService->AddComponent<ECS::TransformComponent>(obj);
+	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj, _mesh, _material);
+
+	ECS::EntityID obj2 = _ecsService->CreateEntity("2");
+	auto& obj2Transform = _ecsService->AddComponent<ECS::TransformComponent>(obj2);
+	obj2Transform.SetLocalPosition(Vector3(0, 30, 0));
+	obj2Transform.SetLocalRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
+
+	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, _mesh, _material);
 
 	LogInfo(Logger, "Sandbox application created");
 }
@@ -108,6 +117,7 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 CocoSandboxApplication::~CocoSandboxApplication()
 {
 	this->Engine->GetMainLoop()->RemoveTickListener(_tickListener);
+	this->Engine->GetMainLoop()->RemoveTickListener(_renderTickListener);
 	_tickListener.reset();
 
 	LogInfo(Logger, "Sandbox application destroyed");
@@ -131,6 +141,7 @@ void CocoSandboxApplication::Start()
 		};
 
 	this->Engine->GetMainLoop()->AddTickListener(_tickListener);
+	this->Engine->GetMainLoop()->AddTickListener(_renderTickListener);
 
 	LogInfo(Logger, "Sandbox application started");
 }
@@ -169,8 +180,8 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	cameraTransform.SetLocalPosition(cameraTransform.GetLocalPosition() + velocity * deltaTime);
 	cameraTransform.SetLocalRotation(orientation);
 
-	//CameraComponent* camera = _camera->GetComponent<CameraComponent>();
-	//camera->SetViewMatrix(cameraTransform->GetTransformMatrix().Inverted());
+	ECS::CameraComponent& camera = _ecsService->GetComponent<ECS::CameraComponent>(_cameraEntityID);
+	camera.SetViewMatrix(cameraTransform.GetGlobalTransformMatrix().Inverted());
 
 	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
 	const double a = Math::Sin(t) * 0.5 + 0.5;
@@ -186,4 +197,14 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	// Update mesh data on the GPU if it is dirty
 	if (_mesh->GetIsDirty())
 		_mesh->UploadData();
+}
+
+void CocoSandboxApplication::RenderTick(double deltaTime)
+{
+	auto windows = _windowService->GetRenderableWindows();
+
+	for (auto& window : windows)
+	{
+		_renderService->Render(window->GetPresenter(), &_ecsService->GetComponent<ECS::CameraComponent>(_cameraEntityID), _ecsService->GetRootScene());
+	}
 }

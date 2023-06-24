@@ -1,5 +1,7 @@
 #include "ECSService.h"
+
 #include "Entity.h"
+#include "Scene.h"
 
 namespace Coco::ECS
 {
@@ -11,6 +13,9 @@ namespace Coco::ECS
 		_instance = this;
 
 		RegisterTickListener(this, &ECSService::Process, ProcessTickPriority);
+
+		// Create the root scene
+		CreateScene();
 	}
 
 	ECSService::~ECSService()
@@ -44,7 +49,7 @@ namespace Coco::ECS
 
 		for (const auto& entity : *(_entities.get()))
 		{
-			if (entity._parentID == entity)
+			if (entity._parentID == entity._id)
 				children.Add(entity._id);
 		}
 
@@ -57,7 +62,7 @@ namespace Coco::ECS
 
 		for (auto& entity : *(_entities.get()))
 		{
-			if (entity._parentID == entity)
+			if (entity._parentID == entity._id)
 				children.Add(&entity);
 		}
 
@@ -78,12 +83,107 @@ namespace Coco::ECS
 		return TryGetEntity(child->GetParentID(), entity);
 	}
 
-	void ECSService::QueueEntityDestroy(EntityID entityID)
+	bool ECSService::IsDescendantOfEntity(EntityID entityID, EntityID parentID)
+	{
+		if (entityID == parentID)
+			return true;
+
+		Entity* parent = nullptr;
+
+		if (!TryGetEntityParent(entityID, parent))
+			return false;
+
+		return parent->GetID() == parentID || IsDescendantOfEntity(parent->GetID(), parentID);
+	}
+
+	void ECSService::QueueDestroyEntity(EntityID entityID)
 	{
 		_queuedEntitiesToDestroy.emplace(entityID);
+	}
+	
+	void ECSService::DestroyEntity(EntityID entityID)
+	{
+		// Release the entity and any of its descendants
+		for (const auto& entity : *(_entities.get()))
+		{
+			if (IsDescendantOfEntity(entity._id, entityID))
+				_entities->Release(entity._id);
+		}
+	}
+
+	Scene* ECSService::CreateScene(const string& name, SceneID parentID)
+	{
+		_scenes.Add(CreateManaged<Scene>(_nextSceneID, name, parentID));
+		_nextSceneID++;
+
+		return _scenes.Last().get();
+	}
+
+	Scene* ECSService::GetScene(SceneID sceneID)
+	{
+		const auto it = _scenes.Find([sceneID](const auto& scene) { return scene->_id == sceneID; });
+
+		if (it == _scenes.end())
+			return nullptr;
+
+		return (*it).get();
+	}
+
+	bool ECSService::TryGetScene(SceneID sceneID, Scene*& scene)
+	{
+		scene = GetScene(sceneID);
+		return scene == nullptr;
+	}
+
+	bool ECSService::IsDescendantOfScene(SceneID sceneID, SceneID parentID)
+	{
+		if (sceneID == parentID || parentID == RootSceneID)
+			return true;
+
+		Scene* parent = GetScene(parentID);
+
+		if (parent == nullptr)
+			return false;
+
+		return parent->GetID() == parentID || IsDescendantOfScene(parent->GetID(), parentID);
+	}
+
+	bool ECSService::IsEntityInScene(EntityID entityID, SceneID sceneID)
+	{
+		return IsDescendantOfScene(GetEntity(entityID).GetSceneID(), sceneID);
+	}
+
+	void ECSService::SetEntityScene(EntityID entityID, SceneID sceneID)
+	{
+		for (auto& entity : *(_entities.get()))
+		{
+			if (IsDescendantOfEntity(entity._id, entityID))
+				entity._sceneID = sceneID;
+		}
+	}
+
+	void ECSService::DestroyScene(SceneID sceneID)
+	{
+		for (const auto& entity : *(_entities.get()))
+		{
+			if (entity._sceneID == sceneID)
+				QueueDestroyEntity(entity._id);
+		}
+	}
+
+	List<EntityID> ECSService::GetSceneEntityIDs(SceneID scene) const
+	{
+		List<EntityID> sceneEntities;
+		return sceneEntities;
 	}
 
 	void ECSService::Process(double deltaTime)
 	{
+		for (const auto& entityID : _queuedEntitiesToDestroy)
+		{
+			DestroyEntity(entityID);
+		}
+
+		_queuedEntitiesToDestroy.clear();
 	}
 }

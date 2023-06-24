@@ -2,10 +2,10 @@
 
 namespace Coco::ECS
 {
-	Entity::Entity() : Entity(InvalidEntityID, "Null", InvalidEntityID)
+	Entity::Entity() : Entity(InvalidEntityID, "Null", InvalidSceneID, InvalidEntityID)
 	{}
 
-	Entity::Entity(EntityID id, const string& name, EntityID parentID) : _id(id), _name(name), _parentID(parentID)
+	Entity::Entity(EntityID id, const string& name, SceneID sceneID, EntityID parentID) : _id(id), _name(name), _sceneID(sceneID), _parentID(parentID)
 	{}
 
 	void Entity::SetParent(const Entity& parent)

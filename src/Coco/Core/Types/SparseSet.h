@@ -74,8 +74,10 @@ namespace Coco
 		Array<uint64_t, Size> _sparseSet;
 
 	public:
-		SparseSet() : _sparseSet{ InvalidIndex }
+		SparseSet()
 		{
+			for (uint64_t i = 0; i < Size; i++)
+				_sparseSet[i] = InvalidIndex;
 		}
 
 		SparseSet(uint64_t capacity) : SparseSet(), _data(capacity)
@@ -116,7 +118,7 @@ namespace Coco
 
 		bool Remove(uint64_t index)
 		{
-			auto it = _data.Find([index](const ValueType& value) { return value.SparseIndex == index; });
+			auto it = _data.Find([index](const PackedSetData<ValueType>& value) { return value.SparseIndex == index; });
 
 			if (it == _data.end())
 				return false;
@@ -126,21 +128,25 @@ namespace Coco
 			_data.Swap(it, endElementIt);
 			_data.Remove(endElementIt);
 
-			const ValueType& swappedValue = *it;
+			const PackedSetData<ValueType>& swappedValue = *it;
 
 			_sparseSet[swappedValue.SparseIndex] = std::distance(_data.begin(), it);
 			_sparseSet[index] = InvalidIndex;
+
+			return true;
 		}
 
 		uint64_t GetNextIndex() const
 		{
-			auto it = std::find(_sparseSet.cbegin(), _sparseSet.cend(), InvalidIndex);
+			const auto it = std::find(_sparseSet.cbegin(), _sparseSet.cend(), InvalidIndex);
 
 			if (it == _sparseSet.cend())
 				return InvalidIndex;
 
 			return std::distance(_sparseSet.cbegin(), it);
 		}
+
+		List<PackedSetData<ValueType>>& Data() { return _data; }
 
 		Iterator begin() { return Iterator(_data.Data(), 0); }
 		Iterator end() { return Iterator(_data.Data(), _data.Count()); }

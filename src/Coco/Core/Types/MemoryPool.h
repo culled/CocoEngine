@@ -48,6 +48,8 @@ namespace Coco
 			return _set.Remove(index);
 		}
 
+		SparseSet<ValueType, PoolSize>& GetSparseSet() { return _set; }
+
 		Iterator begin() { return _set.begin(); }
 		Iterator end() { return _set.end(); }
 		Iterator rbegin() { return _set.rbegin(); }

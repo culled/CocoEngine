@@ -2,6 +2,7 @@
 
 #include <Coco/Core/Core.h>
 #include "EntityTypes.h"
+#include "SceneTypes.h"
 #include "ECSService.h"
 
 namespace Coco::ECS
@@ -12,12 +13,13 @@ namespace Coco::ECS
 		EntityID _id;
 		string _name;
 		EntityID _parentID;
+		SceneID _sceneID;
 
 		friend ECSService;
 
 	public:
 		Entity();
-		Entity(EntityID id, const string& name = "", EntityID parentID = InvalidEntityID);
+		Entity(EntityID id, const string& name, SceneID sceneID, EntityID parentID = InvalidEntityID);
 
 		bool operator==(const Entity& other) const { return _id == other._id; }
 		bool operator!=(const Entity& other) const { return _id != other._id; }
@@ -30,6 +32,8 @@ namespace Coco::ECS
 		void SetParent(const Entity& parent);
 		EntityID GetParentID() const { return _parentID; }
 		bool TryGetParent(Entity*& parent);
+
+		SceneID GetSceneID() const { return _sceneID; }
 
 		List<Entity*> GetChildren() const;
 

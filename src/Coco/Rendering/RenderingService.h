@@ -2,12 +2,13 @@
 
 #include <Coco/Core/Services/EngineService.h>
 
-#include "Components/CameraComponent.h"
 #include "Pipeline/RenderPipeline.h"
 #include "Graphics/GraphicsPlatform.h"
 #include "Graphics/Resources/GraphicsPresenter.h"
 #include "Graphics/Resources/RenderContext.h"
 #include "Graphics/Resources/Buffer.h"
+#include "Providers/ICameraDataProvider.h"
+#include "Providers/ISceneDataProvider.h"
 
 namespace Coco::Rendering
 {
@@ -63,13 +64,23 @@ namespace Coco::Rendering
 
         /// @brief Renders using the default render pipeline for a graphics presenter
         /// @param presenter The presenter
-        void Render(const WeakManagedRef<GraphicsPresenter>& presenter);
+        /// @param cameraDataProvider The provider for the camera data
+        /// @param sceneDataProvider The provider for the scene data
+        void Render(
+            const WeakManagedRef<GraphicsPresenter>& presenter, 
+            ICameraDataProvider* cameraDataProvider,
+            ISceneDataProvider* sceneDataProvider);
 
         /// @brief Renders using a render pipeline for a graphics presenter
         /// @param presenter The presenter
         /// @param pipeline The render pipeline
-        /// @param camera The camera to render from
-        //void Render(const WeakManagedRef<GraphicsPresenter>& presenter, const Ref<RenderPipeline>& pipeline, CameraComponent* camera);
+        /// @param cameraDataProvider The provider for the camera data
+        /// @param sceneDataProvider The provider for the scene data
+        void Render(
+            const WeakManagedRef<GraphicsPresenter>& presenter, 
+            const Ref<RenderPipeline>& pipeline, 
+            ICameraDataProvider* cameraDataProvider, 
+            ISceneDataProvider* sceneDataProvider);
 
     private:
         /// @brief Performs rendering using a render pipeline

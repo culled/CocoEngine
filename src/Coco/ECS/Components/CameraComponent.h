@@ -1,28 +1,31 @@
 #pragma once
 
-/*#include <Coco/Core/Scene/Components/EntityComponent.h>
+#include "../EntityComponent.h"
 #include <Coco/Core/Resources/Resource.h>
 
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Map.h>
-#include "CameraComponentTypes.h"
+#include <Coco/Rendering/Providers/ICameraDataProvider.h>
 
 namespace Coco::Rendering
 {
 	class Image;
 	class RenderPipeline;
-	class RenderingService;
+}
+
+namespace Coco::ECS
+{
 
 	/// @brief A cached set of images for a pipeline
 	class ImageCache final : public CachedResource
 	{
 	public:
-		WeakRef<RenderPipeline> PipelineRef;
-		UnorderedMap<int, WeakManagedRef<Image>> Images;
+		WeakRef<Rendering::RenderPipeline> PipelineRef;
+		UnorderedMap<int, WeakManagedRef<Rendering::Image>> Images;
 
-		ImageCache(const Ref<RenderPipeline>& pipeline);
+		ImageCache(const Ref<Rendering::RenderPipeline>& pipeline);
 		~ImageCache() final = default;
 
 		bool IsInvalid() const noexcept final { return PipelineRef.expired(); }
@@ -30,12 +33,21 @@ namespace Coco::Rendering
 
 		/// @brief Updates this cache of images
 		/// @param images The images to cache
-		void Update(const UnorderedMap<int, WeakManagedRef<Image>>& images);
+		void Update(const UnorderedMap<int, WeakManagedRef<Rendering::Image>>& images);
 	};
 
 	/// @brief A camera component that can render a scene from a perspective
-	class COCOAPI CameraComponent : public EntityComponent
+	class COCOAPI CameraComponent : public EntityComponent, public Rendering::ICameraDataProvider
 	{
+	public:
+		/// @brief Types of camera projections
+		enum class ProjectionType
+		{
+			Perspective,
+			Orthographic,
+			Custom
+		};
+
 	private:
 		ProjectionType _projectionType = ProjectionType::Custom;
 
@@ -51,11 +63,11 @@ namespace Coco::Rendering
 
 		bool _isProjectionMatrixDirty = true;
 
-		List<WeakManagedRef<Image>> _renderTargetOverrides;
-		UnorderedMap<ResourceID, ImageCache> _imageCache;
+		List<WeakManagedRef<Rendering::Image>> _renderTargetOverrides;
+		UnorderedMap<ResourceID, Ref<ImageCache>> _imageCache;
 
 	public:
-		CameraComponent(SceneEntity* entity);
+		CameraComponent(EntityID owner);
 		virtual ~CameraComponent() = default;
 
 		/// @brief Gets the type of projection that this camera is using
@@ -82,7 +94,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets this camera's current projection matrix
 		/// @return The current projection matrix
-		Matrix4x4 GetProjectionMatrix() noexcept;
+		const Matrix4x4& GetProjectionMatrix() noexcept;
 
 		/// @brief Sets this camera's current view matrix
 		/// @param view The view matrix
@@ -90,7 +102,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets this camera's current view matrix
 		/// @return The current view matrix
-		Matrix4x4 GetViewMatrix() const noexcept { return _viewMatrix; }
+		const Matrix4x4& GetViewMatrix() const noexcept { return _viewMatrix; }
 
 		/// @brief Sets this camera's aspect ratio
 		/// @param aspectRatio The new aspect ratio
@@ -118,12 +130,17 @@ namespace Coco::Rendering
 
 		/// @brief Sets the rendertarget overrides to use
 		/// @param renderTargets The rendertargets to use
-		void SetRenderTargetOverrides(const List<WeakManagedRef<Image>>& renderTargets) { _renderTargetOverrides = renderTargets; }
+		void SetRenderTargetOverrides(const List<WeakManagedRef<Rendering::Image>>& renderTargets) { _renderTargetOverrides = renderTargets; }
 
 		/// @brief Gets rendertargets that match the given pipeline's attachment layout
 		/// @param pipeline The pipeline
 		/// @return A list of render targets
-		List<WeakManagedRef<Image>> GetRenderTargets(const Ref<RenderPipeline>& pipeline, const SizeInt& size);
+		List<WeakManagedRef<Rendering::Image>> GetRenderTargets(const Ref<Rendering::RenderPipeline>& pipeline, const SizeInt& size);
+
+		virtual Ref<Rendering::RenderView> GetRenderView(
+			const Ref<Rendering::RenderPipeline>& pipeline,
+			const SizeInt& backbufferSize,
+			const List<WeakManagedRef<Rendering::Image>>& backbuffers);
 
 	private:
 		/// @brief Updates the internal projection matrix based on the projection type
@@ -131,6 +148,6 @@ namespace Coco::Rendering
 
 		/// @brief Ensures there is an active rendering service and returns it
 		/// @return The active rendering service
-		RenderingService* EnsureRenderingService() const;
+		Rendering::RenderingService* EnsureRenderingService() const;
 	};
-}*/
+}
