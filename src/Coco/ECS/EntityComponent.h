@@ -1,13 +1,14 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-#include "EntityData.h"
+#include "EntityTypes.h"
 
 namespace Coco::ECS
 {
+
 	struct COCOAPI EntityComponent
 	{
-		const EntityID Owner;
+		EntityID Owner;
 
 		EntityComponent(EntityID owner);
 		virtual ~EntityComponent() = default;

@@ -10,6 +10,7 @@
 #include <Coco/Rendering/Material.h>
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Rendering/Mesh.h>
+#include <Coco/ECS/Entity.h>
 
 namespace Coco
 {
@@ -36,7 +37,6 @@ namespace Coco::Rendering
 namespace Coco::ECS
 {
 	class ECSService;
-	class Entity;
 }
 
 
@@ -64,7 +64,7 @@ private:
 	Coco::Ref<Coco::Rendering::Mesh> _mesh;
 
 	Coco::ECS::ECSService* _ecsService;
-	Coco::Ref<Coco::ECS::Entity> _cameraEntity;
+	Coco::ECS::EntityID _cameraEntityID;
 
 public:
 	CocoSandboxApplication(Coco::Engine* engine);

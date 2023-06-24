@@ -22,7 +22,6 @@ namespace Coco::ECS
 		bool _isGlobalTransformMatrixDirty = false;
 		Matrix4x4 _globalTransformMatrix = Matrix4x4::Identity;
 
-		EntityID _parent = InvalidEntityID;
 		bool _inheritParentTransform = true;
 
 	public:
@@ -35,8 +34,6 @@ namespace Coco::ECS
 
 		void SetInheritParentTransform(bool inheritParentTransform);
 		bool GetInheritParentTransform() const { return _inheritParentTransform; }
-
-		void SetParent(EntityID entity);
 
 		void SetLocalPosition(const Vector3& position);
 		const Vector3& GetLocalPosition() const { return _localPosition; }
@@ -52,8 +49,6 @@ namespace Coco::ECS
 
 		//void SetGlobalPosition(const Vector3& position);
 		Vector3 GetGlobalPosition();
-
-		List<EntityID> GetChildren() const;
 
 	private:
 		void InvalidateTransform();

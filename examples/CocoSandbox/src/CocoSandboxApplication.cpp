@@ -99,8 +99,8 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	//Scene->AddEntity(_camera);
 
 	_ecsService = engine->GetServiceManager()->CreateService<ECS::ECSService>();
-	_cameraEntity = _ecsService->CreateEntity("Camera");
-	ECS::TransformComponent* cameraTransform = _cameraEntity->AddComponent<ECS::TransformComponent>();
+	_cameraEntityID = _ecsService->CreateEntity("Camera");
+	_ecsService->AddComponent<ECS::TransformComponent>(_cameraEntityID);
 
 	LogInfo(Logger, "Sandbox application created");
 }
@@ -137,9 +137,6 @@ void CocoSandboxApplication::Start()
 
 void CocoSandboxApplication::Tick(double deltaTime)
 {
-	ECS::TransformComponent* cameraTransform = _cameraEntity->GetComponent<ECS::TransformComponent>();
-	//CameraComponent* camera = _camera->GetComponent<CameraComponent>();
-
 	Vector2 mouseDelta = _inputService->GetMouse()->GetDelta();
 
 	_cameraEulerAngles.Z -= mouseDelta.X * 0.005;
@@ -168,9 +165,11 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	if (keyboard->IsKeyPressed(Input::KeyboardKey::Q))
 		velocity += orientation * Vector3::Down * 5.0;
 
-	cameraTransform->SetLocalPosition(cameraTransform->GetLocalPosition() + velocity * deltaTime);
-	cameraTransform->SetLocalRotation(orientation);
+	ECS::TransformComponent& cameraTransform = _ecsService->GetComponent<ECS::TransformComponent>(_cameraEntityID);
+	cameraTransform.SetLocalPosition(cameraTransform.GetLocalPosition() + velocity * deltaTime);
+	cameraTransform.SetLocalRotation(orientation);
 
+	//CameraComponent* camera = _camera->GetComponent<CameraComponent>();
 	//camera->SetViewMatrix(cameraTransform->GetTransformMatrix().Inverted());
 
 	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();

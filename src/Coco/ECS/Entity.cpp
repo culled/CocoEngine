@@ -1,13 +1,28 @@
 #include "Entity.h"
-#include "EntityManager.h"
 
 namespace Coco::ECS
 {
-	Entity::Entity(EntityData& data) : _data(data)
+	Entity::Entity() : Entity(InvalidEntityID, "Null", InvalidEntityID)
 	{}
 
-	void Entity::Destroy()
+	Entity::Entity(EntityID id, const string& name, EntityID parentID) : _id(id), _name(name), _parentID(parentID)
+	{}
+
+	void Entity::SetParent(const Entity& parent)
 	{
-		ECSService::Get()->QueueEntityDestroy(GetID());
+		if (parent == *this)
+			return;
+
+		_parentID = parent._id;
+	}
+
+	bool Entity::TryGetParent(Entity*& parent)
+	{
+		return ECSService::Get()->TryGetEntity(_parentID, parent);
+	}
+
+	List<Entity*> Entity::GetChildren() const
+	{
+		return ECSService::Get()->GetEntityChildren(_id);
 	}
 }

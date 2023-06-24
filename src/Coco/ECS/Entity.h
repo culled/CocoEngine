@@ -1,50 +1,60 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-#include "EntityData.h"
+#include "EntityTypes.h"
 #include "ECSService.h"
 
 namespace Coco::ECS
 {
 	class Entity
 	{
+	private:
+		EntityID _id;
+		string _name;
+		EntityID _parentID;
+
+		friend ECSService;
+
 	public:
-		Entity(EntityData& data);
+		Entity();
+		Entity(EntityID id, const string& name = "", EntityID parentID = InvalidEntityID);
 
-		EntityID GetID() const { return _data.ID; }
+		bool operator==(const Entity& other) const { return _id == other._id; }
+		bool operator!=(const Entity& other) const { return _id != other._id; }
 
-		void SetName(string name) { _data.Name = name; }
-		string GetName() const { return _data.Name; }
+		EntityID GetID() const { return _id; }
 
-		void Destroy();
+		void SetName(string name) { _name = name; }
+		const string& GetName() const { return _name; }
+
+		void SetParent(const Entity& parent);
+		EntityID GetParentID() const { return _parentID; }
+		bool TryGetParent(Entity*& parent);
+
+		List<Entity*> GetChildren() const;
 
 		template<typename ComponentType, typename ... Args>
-		ComponentType* AddComponent(Args&& ... args)
+		ComponentType& AddComponent(Args&& ... args)
 		{
-			return ECSService::Get()->AddComponent<ComponentType>(GetID(), std::forward(args)...);
+			return ECSService::Get()->AddComponent<ComponentType>(_id, std::forward<Args>(args)...);
 		}
 
-		template<class ComponentType>
+		template<typename ComponentType>
+		ComponentType& GetComponent()
+		{
+			return ECSService::Get()->GetComponent<ComponentType>(_id);
+		}
+
+		template<typename ComponentType>
 		bool HasComponent() const
 		{
-			return ECSService::Get()->HasComponent<ComponentType>(GetID());
+			return ECSService::Get()->HasComponent<ComponentType>(_id);
 		}
 
-		template<typename ComponentType, typename ... Args>
-		ComponentType* GetComponent(Args&& ... args)
+		template<typename ComponentType>
+		bool RemoveComponent()
 		{
-			return ECSService::Get()->GetComponent<ComponentType>(GetID());
+			return ECSService::Get()->RemoveComponent<ComponentType>(_id);
 		}
-
-		template<class ComponentType>
-		void RemoveComponent()
-		{
-			ECSService::Get()->RemoveComponent<ComponentType>(GetID());
-		}
-
-	private:
-		EntityData& _data;
-
-		friend class EntityManager;
 	};
 }

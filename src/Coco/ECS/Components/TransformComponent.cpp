@@ -1,5 +1,6 @@
 #include "TransformComponent.h"
 #include "../ECSService.h"
+#include "../Entity.h"
 
 namespace Coco::ECS
 {
@@ -29,11 +30,6 @@ namespace Coco::ECS
 	void TransformComponent::SetInheritParentTransform(bool inheritParentTransform)
 	{
 		_inheritParentTransform = inheritParentTransform;
-	}
-
-	void TransformComponent::SetParent(EntityID entity)
-	{
-		_parent = entity;
 	}
 
 	void TransformComponent::SetLocalPosition(const Vector3& position)
@@ -76,35 +72,16 @@ namespace Coco::ECS
 		return _globalTransformMatrix.GetPosition();
 	}
 
-	List<EntityID> TransformComponent::GetChildren() const
-	{
-		ECSService* ecs = ECSService::Get();
-
-		const auto entities = ecs->GetEntitiesWithComponent<TransformComponent>();
-
-		List<EntityID> children;
-
-		for (const auto& entity : entities)
-		{
-			TransformComponent* transform = ecs->GetComponent<TransformComponent>(entity);
-
-			if (transform->_parent != InvalidEntityID && transform->_parent == Owner)
-				children.Add(transform->Owner);
-		}
-
-		return children;
-	}
-
 	void TransformComponent::InvalidateTransform()
 	{
 		ECSService* ecs = ECSService::Get();
-		const auto children = GetChildren();
-
-		for (const auto& child : children)
+		const auto childrenIDs = ecs->GetEntityChildrenIDs(Owner);
+		
+		for (const auto& childID : childrenIDs)
 		{
-			ecs->GetComponent<TransformComponent>(child)->InvalidateTransform();
+			ecs->GetComponent<TransformComponent>(childID).InvalidateTransform();
 		}
-
+		
 		_isLocalTransformMatrixDirty = true;
 		_isGlobalTransformMatrixDirty = true;
 	}
@@ -123,16 +100,19 @@ namespace Coco::ECS
 		if (!_isGlobalTransformMatrixDirty)
 			return;
 
-		if (_inheritParentTransform && _parent != InvalidEntityID)
+		ECSService* ecs = ECSService::Get();
+		Entity* parent = nullptr;
+		
+		if (_inheritParentTransform && ecs->TryGetEntityParent(Owner, parent))
 		{
-			TransformComponent* parentTransform = ECSService::Get()->GetComponent<TransformComponent>(_parent);
-			_globalTransformMatrix = _localTransformMatrix * parentTransform->GetGlobalTransformMatrix();
+			TransformComponent& parentTransform = ecs->GetComponent<TransformComponent>(parent->GetID());
+			_globalTransformMatrix = _localTransformMatrix * parentTransform.GetGlobalTransformMatrix();
 		}
 		else
 		{
 			_globalTransformMatrix = GetLocalTransformMatrix();
 		}
-
+		
 		_isGlobalTransformMatrixDirty = false;
 	}
 }

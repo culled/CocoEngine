@@ -190,6 +190,11 @@ namespace Coco
 			return std::find_if(cbegin(), cend(), predicate);
 		}
 
+		constexpr void Swap(Iterator a, Iterator b)
+		{
+			std::swap(*a, *b);
+		}
+
 		/// @brief Gets an iterator for the beginning of this list
 		/// @return An iterator for the beginning of this list
 		constexpr Iterator begin() noexcept { return _list.begin(); }
