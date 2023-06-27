@@ -16,7 +16,24 @@ namespace Coco
 		ValueType Data = {};
 
 		PackedSetData() = default;
-		PackedSetData(uint64_t index, ValueType& data) : SparseIndex(index), Data(data) {}
+		PackedSetData(uint64_t index, ValueType&& data) : SparseIndex(index), Data(std::move(data)) {}
+
+		PackedSetData(const PackedSetData&) = delete;
+		PackedSetData& operator=(const PackedSetData&) = delete;
+
+		PackedSetData(PackedSetData&& other)
+		{
+			SparseIndex = other.SparseIndex;
+			Data = std::move(other.Data);
+		}
+
+		PackedSetData& operator=(PackedSetData&& other)
+		{
+			SparseIndex = other.SparseIndex;
+			Data = std::move(other.Data);
+
+			return *this;
+		}
 	};
 
 	template<typename ValueType, uint64_t Size>
@@ -66,6 +83,9 @@ namespace Coco
 
 			friend constexpr difference_type operator-(const Iterator& a, const Iterator& b) { return a._offset - b._offset; }
 		};
+
+		using PackedIterator = List<PackedSetData<ValueType>>::Iterator;
+
 	public:
 		static constexpr uint64_t InvalidIndex = Math::MaxValue<uint64_t>();
 
@@ -86,7 +106,7 @@ namespace Coco
 
 		ValueType& Add(uint64_t index, ValueType&& value)
 		{
-			_data.Add(PackedSetData<ValueType>(index, value));
+			_data.Add(PackedSetData<ValueType>(index, std::forward<ValueType>(value)));
 			_sparseSet[index] = _data.Count() - 1;
 
 			return _data.Last().Data;
@@ -118,20 +138,20 @@ namespace Coco
 
 		bool Remove(uint64_t index)
 		{
-			auto it = _data.Find([index](const PackedSetData<ValueType>& value) { return value.SparseIndex == index; });
+			PackedIterator it = _data.Find([index](const PackedSetData<ValueType>& value) { return value.SparseIndex == index; });
 
 			if (it == _data.end())
 				return false;
 
-			// Move the end element to the deleted element's spot and delete the last element
-			auto endElementIt = _data.end() - 1;
-			_data.Swap(it, endElementIt);
-			_data.Remove(endElementIt);
+			// Move the end element's data to the deleted element's data
+			PackedIterator endElementIt = _data.end() - 1;
+			it->Data = std::move(endElementIt->Data);
 
-			const PackedSetData<ValueType>& swappedValue = *it;
-
-			_sparseSet[swappedValue.SparseIndex] = std::distance(_data.begin(), it);
+			// Update the index in the sparse set to point to the moved element
+			_sparseSet[endElementIt->SparseIndex] = std::distance(_data.begin(), it);
 			_sparseSet[index] = InvalidIndex;
+
+			_data.Remove(endElementIt);
 
 			return true;
 		}

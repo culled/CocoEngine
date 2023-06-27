@@ -10,6 +10,7 @@ namespace Coco::ECS
 	{
 		EntityID Owner;
 
+		EntityComponent();
 		EntityComponent(EntityID owner);
 		virtual ~EntityComponent() = default;
 	};

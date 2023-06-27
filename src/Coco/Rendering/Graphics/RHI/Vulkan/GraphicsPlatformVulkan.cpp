@@ -129,7 +129,7 @@ namespace Coco::Rendering::Vulkan
 
 	GraphicsPlatformVulkan::~GraphicsPlatformVulkan()
 	{
-		_device.reset();
+		_device.Reset();
 
 		if (_debugMessenger != nullptr)
 		{
@@ -145,9 +145,9 @@ namespace Coco::Rendering::Vulkan
 		LogTrace(GetLogger(), "Destroyed Vulkan graphics platform");
 	}
 
-	Logging::Logger* GraphicsPlatformVulkan::GetLogger() const noexcept { return RenderService->GetLogger(); }
+	Logging::Logger* GraphicsPlatformVulkan::GetLogger() noexcept { return RenderService->GetLogger(); }
 
-	GraphicsDevice* GraphicsPlatformVulkan::GetDevice() const noexcept { return _device.get(); }
+	GraphicsDevice* GraphicsPlatformVulkan::GetDevice() noexcept { return _device.Get(); }
 
 	//void GraphicsPlatformVulkan::ResetDevice()
 	//{
@@ -157,24 +157,24 @@ namespace Coco::Rendering::Vulkan
 	//	LogInfo(GetLogger(), "Graphics device reset");
 	//}
 
-	WeakManagedRef<GraphicsPresenter> GraphicsPlatformVulkan::CreatePresenter()
+	Ref<GraphicsPresenter> GraphicsPlatformVulkan::CreatePresenter()
 	{
 		return _device->CreateResource<GraphicsPresenterVulkan>();
 	}
 
-	WeakManagedRef<Buffer> GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
+	Ref<Buffer> GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
 	{
 		return _device->CreateResource<BufferVulkan>(usageFlags, size, bindOnCreate);
 	}
 
-	WeakManagedRef<Image> GraphicsPlatformVulkan::CreateImage(const ImageDescription& description)
+	Ref<Image> GraphicsPlatformVulkan::CreateImage(const ImageDescription& description)
 	{
 		return _device->CreateResource<ImageVulkan>(description);
 	}
 
-	WeakManagedRef<ImageSampler> GraphicsPlatformVulkan::CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy)
+	Ref<ImageSampler> GraphicsPlatformVulkan::CreateImageSampler(const ImageSamplerProperties& properties)
 	{
-		return _device->CreateResource<ImageSamplerVulkan>(filterMode, repeatMode, maxAnisotropy);
+		return _device->CreateResource<ImageSamplerVulkan>(properties);
 	}
 
 	bool GraphicsPlatformVulkan::CheckValidationLayersSupport() noexcept
@@ -201,7 +201,7 @@ namespace Coco::Rendering::Vulkan
 		return false;
 	}
 
-	VkDebugUtilsMessengerCreateInfoEXT GraphicsPlatformVulkan::GetDebugCreateInfo() const noexcept
+	VkDebugUtilsMessengerCreateInfoEXT GraphicsPlatformVulkan::GetDebugCreateInfo() noexcept
 	{
 		VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;

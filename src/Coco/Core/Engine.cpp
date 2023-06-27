@@ -11,14 +11,14 @@ namespace Coco
 {
 	Engine* Engine::_instance = nullptr;
 
-	ExitCode Engine::Run(Managed<Platform::IEnginePlatform> platform)
+	ExitCode Engine::Run(ManagedRef<Platform::IEnginePlatform> platform)
 	{
-		if(platform.get() == nullptr)
+		if(platform.Get() == nullptr)
 			return ExitCode::FatalError;
 
 		try
 		{
-			Managed<Engine> engine = CreateManaged<Engine>(platform.get());
+			ManagedRef<Engine> engine = CreateManagedRef<Engine>(platform.Get());
 			return engine->Run();
 		}
 		catch (const Exception& ex)
@@ -38,11 +38,12 @@ namespace Coco
 		_platform(platform)
 	{
 		_instance = this;
+
 		_startTime = _platform->GetLocalTime();
-		_logger = CreateManaged<Logging::Logger>("Coco");
-		_serviceManager = CreateManaged<EngineServiceManager>(this);
-		_mainLoop = CreateManaged<MainLoop>(_platform);
-		_resourceLibrary = CreateManaged<ResourceLibrary>("assets/");
+		_logger = CreateManagedRef<Logging::Logger>("Coco");
+		_serviceManager = CreateManagedRef<EngineServiceManager>(this);
+		_mainLoop = CreateManagedRef<MainLoop>(_platform);
+		_resourceLibrary = CreateManagedRef<ResourceLibrary>("assets/");
 
 		_application = Application::Create(this);
 
@@ -53,11 +54,11 @@ namespace Coco
 	{
 		LogTrace(_logger, "Shutting down engine...");
 
-		_application.reset();
-		_resourceLibrary.reset();
-		_serviceManager.reset();
-		_mainLoop.reset();
-		_logger.reset();
+		_application.Reset();
+		_resourceLibrary.Reset();
+		_serviceManager.Reset();
+		_mainLoop.Reset();
+		_logger.Reset();
 	}
 
 	ExitCode Engine::Run()

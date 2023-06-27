@@ -25,7 +25,7 @@ namespace Coco
 		Engine* const Engine;
 
 	protected:
-		Managed<Logging::Logger> Logger;
+		ManagedRef<Logging::Logger> Logger;
 
 	protected:
 		Application(Coco::Engine* engine, const string& name);
@@ -43,7 +43,7 @@ namespace Coco
 		/// @brief Creates an application for a given engine
 		/// @param engine The engine
 		/// @return The created application
-		static Managed<Application> Create(Coco::Engine* engine);
+		static ManagedRef<Application> Create(Coco::Engine* engine);
 
 		/// @brief Called right before the main loop begins, but after all other engine initialization has happened
 		virtual void Start() = 0;
@@ -55,5 +55,5 @@ namespace Coco
 }
 
 /// Macro that adds a factory to create the application instance. Should be added in the cpp file for the client application
-#define MainApplication(AppClass) Coco::Managed<Coco::Application> CreateApplication(Coco::Engine* engine) { return Coco::CreateManaged<AppClass>(engine); }
+#define MainApplication(AppClass) Coco::ManagedRef<Coco::Application> CreateApplication(Coco::Engine* engine) { return Coco::CreateManagedRef<AppClass>(engine); }
 

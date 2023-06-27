@@ -46,7 +46,7 @@ namespace Coco::Windowing
 
 	protected:
 		/// @brief The presenter for the window
-		WeakManagedRef<Rendering::GraphicsPresenter> Presenter;
+		Ref<Rendering::GraphicsPresenter> Presenter;
 
 	public:
 		/// @brief Invoked when the window is trying to close. Setting the bool value to true means the close is cancelled
@@ -73,7 +73,7 @@ namespace Coco::Windowing
 
 		/// @brief Gets this window's presenter
 		/// @return This window's presenter
-		WeakManagedRef<Rendering::GraphicsPresenter> GetPresenter() const noexcept { return Presenter; }
+		Ref<Rendering::GraphicsPresenter> GetPresenter() const noexcept { return Presenter; }
 
 		/// @brief Gets the platform-specific ID for this window
 		/// @return The ID for this window

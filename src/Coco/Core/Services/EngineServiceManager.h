@@ -18,7 +18,7 @@ namespace Coco
 
 	private:
 		bool _isStarted = false;
-		Map<const char*, Managed<EngineService>> _services;
+		Map<std::type_index, ManagedRef<EngineService>> _services;
 
 	public:
 		EngineServiceManager(Coco::Engine* engine);
@@ -40,17 +40,17 @@ namespace Coco
 		{
 			static_assert(std::is_base_of<EngineService, ServiceType>::value, "Can only create services derived from EngineService");
 
-			const char* typeName = typeid(ServiceType).name();
+			std::type_index type = typeid(ServiceType);
 
-			if (!_services.contains(typeName))
+			if (!_services.contains(type))
 			{
-				auto it = _services.emplace(typeName, CreateManaged<ServiceType>(this, std::forward<Args>(args)...)).first;
+				auto it = _services.emplace(type, CreateManagedRef<ServiceType>(this, std::forward<Args>(args)...)).first;
 
 				if (_isStarted)
 					(*it).second->Start();
 			}
 
-			return static_cast<ServiceType*>(_services.at(typeName).get());
+			return static_cast<ServiceType*>(_services.at(type).Get());
 		}
 
 		/// @brief Tries to find a service and returns it
@@ -58,17 +58,16 @@ namespace Coco
 		/// @param servicePtr A pointer that will be assigned to the service if it is found
 		/// @return True if a service of the given type has been registered
 		template<typename ServiceType>
-		bool TryFindService(ServiceType*& servicePtr) const noexcept
+		bool TryFindService(ServiceType*& servicePtr) noexcept
 		{
-			const auto& it = _services.find(typeid(ServiceType).name());
+			const auto& it = _services.find(typeid(ServiceType));
 
 			if (it != _services.cend())
 			{
-				servicePtr = static_cast<ServiceType*>((*it).second.get());
+				servicePtr = static_cast<ServiceType*>((*it).second.Get());
 				return true;
 			}
 
-			servicePtr = nullptr;
 			return false;
 		}
 

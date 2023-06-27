@@ -48,12 +48,12 @@ namespace Coco::Rendering
 		ResourceVersion Version;
 
 		/// @brief The image that the texture uses
-		WeakManagedRef<Image> Image;
+		Ref<Image> Image;
 
 		/// @brief The sampler that the texture uses
-		WeakManagedRef<ImageSampler> Sampler;
+		Ref<ImageSampler> Sampler;
 
-		TextureRenderData(ResourceID id, ResourceVersion version, const WeakManagedRef<Rendering::Image>& image, const WeakManagedRef<ImageSampler>& sampler) : 
+		TextureRenderData(ResourceID id, ResourceVersion version, const Ref<Rendering::Image>& image, const Ref<ImageSampler>& sampler) : 
 			ID(id), Version(version), Image(image), Sampler(sampler)
 		{}
 	};
@@ -94,13 +94,13 @@ namespace Coco::Rendering
 		ResourceVersion Version;
 
 		/// @brief The vertex buffer that the mesh uses
-		WeakManagedRef<Buffer> VertexBuffer;
+		Ref<Buffer> VertexBuffer;
 
 		/// @brief The number of vertices in the vertex buffer
 		uint64_t VertexCount;
 
 		/// @brief The index buffer that the mesh uses
-		WeakManagedRef<Buffer> IndexBuffer;
+		Ref<Buffer> IndexBuffer;
 
 		/// @brief The number of vertex indices in the index buffer
 		uint64_t IndexCount;
@@ -108,9 +108,9 @@ namespace Coco::Rendering
 		MeshRenderData(
 			ResourceID id, 
 			ResourceVersion version, 
-			const WeakManagedRef<Buffer>& vertexBuffer, 
+			const Ref<Buffer>& vertexBuffer, 
 			uint64_t vertexCount, 
-			const WeakManagedRef<Buffer>& indexBuffer, 
+			const Ref<Buffer>& indexBuffer, 
 			uint64_t indexCount) :
 			ID(id), Version(version), VertexBuffer(vertexBuffer), VertexCount(vertexCount), IndexBuffer(indexBuffer), IndexCount(indexCount)
 		{}
@@ -149,7 +149,7 @@ namespace Coco::Rendering
 		const Matrix4x4 View;
 
 		/// @brief The render targets used for rendering
-		List<WeakManagedRef<Image>> RenderTargets;
+		List<Ref<Image>> RenderTargets;
 
 		/// @brief The shaders used for rendering
 		UnorderedMap<ResourceID, ShaderRenderData> Shaders;
@@ -171,29 +171,31 @@ namespace Coco::Rendering
 			const Color& clearColor, 
 			const Matrix4x4& projection, 
 			const Matrix4x4& view, 
-			const List<WeakManagedRef<Image>>& renderTargets
+			const List<Ref<Image>>& renderTargets
 		) noexcept;
+
+		~RenderView();
 		
 		/// @brief Adds an object to be rendered
 		/// @param mesh The object's mesh
 		/// @param material The object's material
 		/// @param modelMatrix The model matrix for the object
-		void AddRenderObject(const Ref<Mesh>& mesh, const Ref<Material>& material, const Matrix4x4& modelMatrix);
+		void AddRenderObject(Ref<Mesh> mesh, Ref<Material> material, const Matrix4x4& modelMatrix);
 
 		/// @brief Adds a shader that will be used for rendering
 		/// @param shader The shader
-		void AddShader(const Ref<Shader>& shader);
+		void AddShader(Ref<Shader> shader);
 
 		/// @brief Adds a texture that will be used for rendering
 		/// @param texture The texture
-		void AddTexture(const Ref<Texture>& texture);
+		void AddTexture(Ref<Texture> texture);
 
 		/// @brief Adds a material that will be used for rendering
 		/// @param material The material
-		void AddMaterial(const Ref<Material>& material);
+		void AddMaterial(Ref<Material> material);
 
 		/// @brief Adds a mesh that will be used for rendering
 		/// @param mesh The mesh
-		void AddMesh(const Ref<Mesh>& mesh);
+		void AddMesh(Ref<Mesh> mesh);
 	};
 }

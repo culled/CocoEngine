@@ -18,9 +18,7 @@ namespace Coco::Windowing
 	}
 
 	Window::~Window()
-	{
-		Presenter.Invalidate();
-	}
+	{}
 
 	bool Window::Close() noexcept
 	{

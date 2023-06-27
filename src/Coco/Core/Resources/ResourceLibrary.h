@@ -2,9 +2,13 @@
 
 #include <Coco/Core/Core.h>
 
+#include <Coco/Core/Logging/Logger.h>
 #include <Coco/Core/Types/Map.h>
 #include "Resource.h"
-#include "ResourceLoader.h"
+#include "FileResource.h"
+#include "ResourceSerializer.h"
+#include <atomic>
+#include <Coco/Core/IO/File.h>
 
 namespace Coco::Logging
 {
@@ -13,20 +17,23 @@ namespace Coco::Logging
 
 namespace Coco
 {
-	/// @brief A library that can save and load resources to disk
+	/// @brief A library that holds Resources
 	class COCOAPI ResourceLibrary
 	{
 	public:
-		/// @brief The base path for all resources
+		static constexpr uint64_t DefaultTickLifetime = 10000;
+
+		/// @brief The base path for all FileResources
 		const string BasePath;
 
 	private:
-		UnorderedMap<string, Ref<Resource>> _loadedResources;
-		UnorderedMap<string, Managed<ResourceLoader>> _resourceLoaders;
+		std::atomic<ResourceID> _resourceID;
+		UnorderedMap<ResourceID, ManagedRef<Resource>> _resources;
+		UnorderedMap<std::type_index, ManagedRef<ResourceSerializer>> _serializers;
 
 	public:
-		ResourceLibrary(const string& basePath);
-		virtual ~ResourceLibrary() = default;
+		ResourceLibrary(const string& basePath = "");
+		virtual ~ResourceLibrary();
 
 		/// @brief Gets the logger for the resource library
 		/// @return This library's logger
@@ -37,77 +44,132 @@ namespace Coco
 		/// @return The full file path
 		string GetFullFilePath(const string& relativePath) const noexcept { return BasePath + relativePath; }
 
-		/// @brief Creates a resource loader and adds it to this library's list of loaders
-		/// @tparam LoaderType 
+		/// @brief Creates a resource serializer and adds it to this library's list of serializers
+		/// @tparam SerializerType 
 		/// @tparam ...Args 
-		/// @param ...args Arguments to pass to the loader
-		template<typename LoaderType, typename ... Args>
-		void CreateLoader(Args&& ... args)
+		/// @param ...args Arguments to pass to the serializer
+		template<typename SerializerType, typename ... Args>
+		void AddSerializer(Args&& ... args)
 		{
-			static_assert(std::is_base_of_v<ResourceLoader, LoaderType>, "Only classes derived from ResourceLoader can be resource loaders");
+			static_assert(std::is_base_of_v<ResourceSerializer, SerializerType>, "Only classes derived from ResourceSerializer can be resource serializers");
 
-			Managed<LoaderType> loader = CreateManaged<LoaderType>(this, std::forward<Args>(args)...);
-			const string loaderType = loader->GetResourceTypename();
+			ManagedRef<SerializerType> serializer = CreateManagedRef<SerializerType>(this, std::forward<Args>(args)...);
+			const std::type_index serializerType = serializer->GetResourceType();
 
-			if (_resourceLoaders.contains(loaderType))
+			if (_serializers.contains(serializerType))
 			{
-				LogWarning(GetLogger(), FormattedString("A loader for \"{}\" resource types has already been created", loaderType));
+				LogWarning(GetLogger(), FormattedString("A serializer for \"{}\" resource types has already been created", serializerType.name()));
 				return;
 			}
 
-			_resourceLoaders.emplace(loaderType, std::move(loader));
+			_serializers.try_emplace(serializerType, std::move(serializer));
 		}
 
-		/// @brief Returns a resource by either retrieving it or loading it from disk
-		/// @param resourceType The type of resource
-		/// @param path The path to the resource, relative to this library's base path
-		/// @return The loaded resource
-		Ref<Resource> GetOrLoadResource(const ResourceType resourceType, const string& path)
+		template<typename ResourceType, typename ... Args>
+		Ref<ResourceType> CreateResource(const string& name, uint64_t tickLifetime, Args&& ... args)
 		{
-			return GetOrLoadResource(ResourceTypeToString(resourceType), path);
+			ResourceID id = GetNextResourceID();
+
+			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, name, tickLifetime, std::forward<Args>(args)...));
+
+			if (id > _resourceID)
+				_resourceID = id + 1;
+
+			Ref<Resource> resource = result.first->second;
+			resource->UpdateTickUsed();
+
+			return static_cast<Ref<ResourceType>>(result.first->second);
 		}
 
-		/// @brief Returns a resource by either retrieving it or loading it from disk
-		/// @param resourceType The type of resource
-		/// @param path The path to the resource, relative to this library's base path
-		/// @return The loaded resource
-		Ref<Resource> GetOrLoadResource(const string& resourceType, const string& path);
-
-		/// @brief Gets a loaded resource by its ID
-		/// @param id The resource ID
-		/// @param resource Will be set to the resource reference, if it is loaded
-		/// @return True if the resource was found
-		bool Get(ResourceID id, Ref<Resource>& resource) const;
-
-		/// @brief Saves a resource to the given path and adds it to this library
-		/// @param resource The resource
-		/// @param path The path of the saved file, relative to this library's base path
-		void SaveResource(Ref<Resource> resource, const string& path);
-
-		/// @brief Adds a resource to this library without saving it
-		/// @param resource The resource
-		/// @param path The path of resource
-		void AddResource(Ref<Resource> resource, const string& path);
-
-		/// @brief Removes a resource from this library
-		/// @param resource The resource to remove
-		void RemoveResource(Ref<Resource> resource) noexcept
+		template<typename ResourceType>
+		Ref<ResourceType> DeserializeResource(const string& name, uint64_t tickLifetime, const string& data)
 		{
-			RemoveResource(resource->ID);
+			ResourceID id = GetNextResourceID();
+			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, name, tickLifetime));
+
+			Ref<ResourceType> resource = static_cast<Ref<ResourceType>>(result.first->second);
+			DeserializeResource(data, resource);
+			return resource;
 		}
 
-		/// @brief Removes a resource from this library via its file path
-		/// @param path The path of the resource to remove
-		void RemoveResource(const string& path) noexcept;
+		template<typename ResourceType>
+		Ref<ResourceType> GetResource(ResourceID id)
+		{
+			Ref<Resource> resource = GetResource(id);
 
-		/// @brief Removes a resource from this library via its ID
-		/// @param id The id of the resource to remove
-		void RemoveResource(ResourceID id) noexcept;
+			if (resource->GetType() != typeid(ResourceType))
+				return Ref<ResourceType>();
+
+			return static_cast<Ref<ResourceType>>(resource);
+		}
+
+		Ref<Resource> GetResource(ResourceID id);
+
+		template<typename ResourceType>
+		Ref<ResourceType> Load(uint64_t tickLifetime, const string& path)
+		{
+			string fullPath = GetFullFilePath(path);
+
+			auto it = std::find_if(_resources.begin(), _resources.end(), [fullPath](const auto& kvp) {
+				if (const FileResource* file = dynamic_cast<const FileResource*>(kvp.second.Get()))
+				{
+					return file->GetFilePath() == fullPath;
+				}
+				else
+				{
+					return false;
+				}
+			});
+
+			if (it != _resources.end())
+			{
+				Ref<Resource> resource = it->second;
+				if (resource->GetType() != typeid(ResourceType))
+				{
+					LogError(GetLogger(), FormattedString(
+						"Attempted to load file \"{}\" as {}, but it was already loaded as {}",
+						path,
+						typeid(ResourceType).name(),
+						resource->GetType().name()));
+
+					return Ref<ResourceType>();
+				}
+
+				return static_cast<Ref<ResourceType>>(resource);
+			}
+
+			Ref<ResourceType> resource = CreateResource<ResourceType>("", tickLifetime);
+			
+			string text = File::ReadAllText(fullPath);
+			DeserializeResource(text, resource.Get());
+
+			if (FileResource* file = dynamic_cast<FileResource*>(resource.Get()))
+			{
+				file->SetFilePath(path);
+			}
+
+			return resource;
+		}
+
+		bool HasResource(ResourceID id) const;
+		uint64_t GetResourceCount() const { return _resources.size(); }
+
+		/// @brief Purges the resource. By default, resources are only destroyed if they have no outside users
+		/// @param id The id of the resource
+		/// @param forcePurge If true, the resource will be destroyed regardless if the number of users using it. Be careful with this as it may invalidate references
+		void PurgeResource(ResourceID id, bool forcePurge = false);
+
+		string SerializeResource(const Ref<Resource>& resource);
+		void DeserializeResource(const string& data, Resource* resource);
+
+		uint64_t PurgeStaleResources();
 
 	private:
-		/// @brief Tries to find a loader for the given resource type
-		/// @param resourceTypename The type of the resource
-		/// @return A pointer to the loader instance
-		ResourceLoader* GetLoaderForResourceType(const string& resourceTypename);
+		/// @brief Tries to find a serializer for the given resource type
+		/// @param resourceType The type of the resource
+		/// @return A pointer to the serializer instance
+		ResourceSerializer* GetSerializerForResourceType(std::type_index resourceType);
+
+		ResourceID GetNextResourceID();
 	};
 }

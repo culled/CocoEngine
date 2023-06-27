@@ -1,16 +1,16 @@
 #pragma once
 
-#include "GraphicsResource.h"
+#include <Coco/Rendering/RenderingResource.h>
 
 #include <Coco/Core/Types/List.h>
 
 namespace Coco::Rendering
 {
-	class IGraphicsSemaphore;
-	class IGraphicsFence;
+	class GraphicsSemaphore;
+	class GraphicsFence;
 
 	/// @brief A buffer that can record commands
-	class COCOAPI CommandBuffer : public IGraphicsResource
+	class COCOAPI CommandBuffer : public RenderingResource
 	{
 	public:
 		/// @brief States of a command buffer
@@ -29,10 +29,8 @@ namespace Coco::Rendering
 		/// @brief The current state of this buffer
 		CommandBufferState CurrentState;
 
-	protected:
-		CommandBuffer(bool isPrimary) noexcept;
-
 	public:
+		CommandBuffer(ResourceID id, const string& name, uint64_t lifetime, bool isPrimary) noexcept;
 		virtual ~CommandBuffer() = default;
 
 		CommandBuffer(const CommandBuffer&) = delete;
@@ -54,9 +52,9 @@ namespace Coco::Rendering
 		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
 		/// @param signalFence A fence to signal once this buffer's work has been completed
 		virtual void Submit(
-			const List<IGraphicsSemaphore*>& waitSemaphores = {},
-			const List<IGraphicsSemaphore*>& signalSemaphores = {},
-			IGraphicsFence* signalFence = nullptr);
+			const List<GraphicsSemaphore*>& waitSemaphores = {},
+			const List<GraphicsSemaphore*>& signalSemaphores = {},
+			GraphicsFence* signalFence = nullptr);
 
 		/// @brief Resets this command buffer
 		virtual void Reset();
@@ -66,9 +64,9 @@ namespace Coco::Rendering
 		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
 		/// @param signalFence A fence to signal once this buffer's work has been completed
 		void EndAndSubmit(
-			const List<IGraphicsSemaphore*>& waitSemaphores = {},
-			const List<IGraphicsSemaphore*>& signalSemaphores = {},
-			IGraphicsFence* signalFence = nullptr);
+			const List<GraphicsSemaphore*>& waitSemaphores = {},
+			const List<GraphicsSemaphore*>& signalSemaphores = {},
+			GraphicsFence* signalFence = nullptr);
 
 	protected:
 		/// @brief Implementation to begin recording this command buffer
@@ -84,9 +82,9 @@ namespace Coco::Rendering
 		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
 		/// @param signalFence A fence to signal once this buffer's work has been completed
 		virtual void SubmitImpl(
-			const List<IGraphicsSemaphore*>& waitSemaphores,
-			const List<IGraphicsSemaphore*>& signalSemaphores,
-			IGraphicsFence* signalFence) = 0;
+			const List<GraphicsSemaphore*>& waitSemaphores,
+			const List<GraphicsSemaphore*>& signalSemaphores,
+			GraphicsFence* signalFence) = 0;
 
 		/// @brief Implementation to reset this command buffer
 		virtual void ResetImpl() = 0;

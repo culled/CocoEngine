@@ -2,14 +2,19 @@
 
 #include "../GraphicsDeviceVulkan.h"
 #include "../VulkanUtilities.h"
-#include "CommandBufferPoolVulkan.h"
+#include "../CommandBufferPoolVulkan.h"
 #include "CommandBufferVulkan.h"
 
 namespace Coco::Rendering::Vulkan
 {
-	BufferVulkan::BufferVulkan(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags, uint64_t size, bool createBound) : 
-		Buffer(usageFlags),
-		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice)), _size(size)
+	BufferVulkan::BufferVulkan(ResourceID id,
+		const string& name,
+		uint64_t lifetime,
+		BufferUsageFlags usageFlags,
+		uint64_t size,
+		bool bindOnCreate) :
+		GraphicsResource<GraphicsDeviceVulkan, Buffer>(id, name, lifetime, usageFlags),
+		_size(size)
 	{
 		// TODO: configurable memory properties?
 		uint localHostMemory = _device->GetMemoryFeatures().SupportsLocalHostBufferMemory ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0;
@@ -23,7 +28,7 @@ namespace Coco::Rendering::Vulkan
 
 		CreateBuffer(size, _buffer, _bufferMemory, _memoryIndex);
 
-		if (createBound)
+		if (bindOnCreate)
 			Bind(0);
 	}
 
@@ -140,13 +145,13 @@ namespace Coco::Rendering::Vulkan
 
 	void BufferVulkan::CopyBuffer(VkBuffer source, uint64_t sourceOffset, VkBuffer destination, uint64_t destinationOffset, uint64_t size)
 	{
-		CommandBufferPoolVulkan* pool;
+		Ref<CommandBufferPoolVulkan> pool;
 
 		if (!_device->GetTransferCommandPool(pool))
 			throw BufferTransferException("Cannot copy buffer without a transfer queue");
 
 		// Start a command buffer for copying the data
-		WeakManagedRef<CommandBufferVulkan> buffer = pool->Allocate(true);
+		Ref<CommandBufferVulkan> buffer = pool->Allocate(true);
 		buffer->Begin(true, false);
 
 		VkBufferCopy copyRegion = {};

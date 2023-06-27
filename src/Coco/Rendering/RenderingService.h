@@ -24,10 +24,12 @@ namespace Coco::Rendering
         /// @brief The frequency of cached resource purging (in seconds)
         static constexpr double PurgeFrequency = 1.0;
 
+        static constexpr uint64_t DefaultGraphicsResourceTickLifetime = 10000;
+
     private:
         static RenderingService* s_instance;
 
-        Managed<GraphicsPlatform> _graphics;
+        ManagedRef<GraphicsPlatform> _graphics;
         Ref<RenderPipeline> _defaultPipeline;
         Ref<Texture> _defaultDiffuseTexture;
         Ref<Texture> _defaultCheckerTexture;
@@ -44,7 +46,7 @@ namespace Coco::Rendering
 
         /// @brief Gets the current graphics platform
         /// @return The current graphics platform
-        GraphicsPlatform* GetPlatform() const noexcept { return _graphics.get(); }
+        GraphicsPlatform* GetPlatform() noexcept { return _graphics.Get(); }
 
         /// @brief Sets the default render pipeline to use
         /// @param pipeline The default render pipeline to use
@@ -52,22 +54,22 @@ namespace Coco::Rendering
 
         /// @brief Gets the default render pipeline
         /// @return The default render pipeline
-        Ref<RenderPipeline> GetDefaultPipeline() const noexcept { return _defaultPipeline; }
+        Ref<RenderPipeline> GetDefaultPipeline() noexcept { return _defaultPipeline; }
 
         /// @brief Gets the default diffuse texture
         /// @return The default diffuse texture
-        Ref<Texture> GetDefaultDiffuseTexture() const noexcept { return _defaultDiffuseTexture; }
+        Ref<Texture> GetDefaultDiffuseTexture() noexcept { return _defaultDiffuseTexture; }
 
         /// @brief Gets the default checker texture
         /// @return The default checker texture
-        Ref<Texture> GetDefaultCheckerTexture() const noexcept { return _defaultCheckerTexture; }
+        Ref<Texture> GetDefaultCheckerTexture() noexcept { return _defaultCheckerTexture; }
 
         /// @brief Renders using the default render pipeline for a graphics presenter
         /// @param presenter The presenter
         /// @param cameraDataProvider The provider for the camera data
         /// @param sceneDataProvider The provider for the scene data
         void Render(
-            const WeakManagedRef<GraphicsPresenter>& presenter, 
+            Ref<GraphicsPresenter> presenter, 
             ICameraDataProvider* cameraDataProvider,
             ISceneDataProvider* sceneDataProvider);
 
@@ -77,8 +79,8 @@ namespace Coco::Rendering
         /// @param cameraDataProvider The provider for the camera data
         /// @param sceneDataProvider The provider for the scene data
         void Render(
-            const WeakManagedRef<GraphicsPresenter>& presenter, 
-            const Ref<RenderPipeline>& pipeline, 
+            Ref<GraphicsPresenter> presenter, 
+            Ref<RenderPipeline> pipeline, 
             ICameraDataProvider* cameraDataProvider, 
             ISceneDataProvider* sceneDataProvider);
 

@@ -6,32 +6,35 @@
 
 namespace Coco::ECS
 {
-	ImageCache::ImageCache(const Ref<Rendering::RenderPipeline>& pipeline) : CachedResource(pipeline->ID, pipeline->GetVersion()),
-		PipelineRef(pipeline)
+	PipelineImageCache::PipelineImageCache(ResourceID id, const string& name, uint64_t tickLifetime, const Ref<Rendering::RenderPipeline>& pipeline) :
+		Resource(id, name, tickLifetime),
+		Pipeline(pipeline), _pipelineVersion(pipeline->GetVersion())
 	{}
 
-	bool ImageCache::NeedsUpdate() const noexcept
+	bool PipelineImageCache::NeedsUpdate() const noexcept
 	{
-		if (Ref<Rendering::RenderPipeline> pipeline = PipelineRef.lock())
-		{
-			return pipeline->GetVersion() == GetVersion() ||
-				Images.size() == 0 ||
-				std::any_of(Images.cbegin(), Images.cend(), [](const auto& it) {
-					return !it.second.IsValid();
-					});
-		}
-		return false;
+		if (!Pipeline.IsValid())
+			return false;
+
+		return Pipeline->GetVersion() != _pipelineVersion ||
+			Images.size() == 0 ||
+			std::any_of(Images.cbegin(), Images.cend(), [](const auto& it) {
+				return !it.second.IsValid();
+				});
 	}
 
-	void ImageCache::Update(const UnorderedMap<int, WeakManagedRef<Rendering::Image>>& images)
+	void PipelineImageCache::Update(const UnorderedMap<int, Ref<Rendering::Image>>& images)
 	{
 		Images = images;
-		
-		UpdateVersion(PipelineRef.lock()->GetVersion());
+		_pipelineVersion = Pipeline->GetVersion();
+
+		this->IncrementVersion();
 	}
 
 	CameraComponent::CameraComponent(EntityID ownerID) : EntityComponent(ownerID)
-	{}
+	{
+		_imageCache = CreateManagedRef<ResourceCache<PipelineImageCache>>(ResourceLibrary::DefaultTickLifetime);
+	}
 
 	void CameraComponent::SetPerspectiveProjection(double fieldOfView, double aspectRatio, double nearClipDistance, double farClipDistance) noexcept
 	{
@@ -99,20 +102,22 @@ namespace Coco::ECS
 		_isProjectionMatrixDirty = true;
 	}
 
-	List<WeakManagedRef<Rendering::Image>> CameraComponent::GetRenderTargets(const Ref<Rendering::RenderPipeline>& pipeline, const SizeInt& size)
+	List<Ref<Rendering::Image>> CameraComponent::GetRenderTargets(Ref<Rendering::RenderPipeline> pipeline, const SizeInt& size)
 	{
 		const List<Rendering::RenderPipelineAttachmentDescription>& attachments = pipeline->GetPipelineAttachmentDescriptions();
 
-		// Get the cached images for this pipeline
-		if (!_imageCache.contains(pipeline->ID))
-			_imageCache.emplace(pipeline->ID, CreateRef<ImageCache>(ImageCache(pipeline)));
+		const ResourceID id = pipeline->GetID();
+		PipelineImageCache* resource;
 
-		Ref<ImageCache>& resource = _imageCache.at(pipeline->ID);
-		resource->UpdateTickUsed();
+		// Get the cached images for this pipeline
+		if (!_imageCache->Has(id))
+			resource = _imageCache->Create(id, pipeline);
+		else
+			resource = _imageCache->Get(id);
 
 		List<int> overrideMappings(_renderTargetOverrides.Count());
-		List<WeakManagedRef<Rendering::Image>> renderTargets(attachments.Count());
-		UnorderedMap<int, WeakManagedRef<Rendering::Image>>& generatedImages = resource->Images;
+		List<Ref<Rendering::Image>> renderTargets(attachments.Count());
+		UnorderedMap<int, Ref<Rendering::Image>>& generatedImages = resource->Images;
 
 		for (int i = 0; i < _renderTargetOverrides.Count(); i++)
 			overrideMappings[i] = i;
@@ -124,7 +129,7 @@ namespace Coco::ECS
 			// Try to find an override that matches the needed attachment
 			for (auto it = overrideMappings.begin(); it != overrideMappings.end(); it++)
 			{
-				const WeakManagedRef<Rendering::Image>& rtOverride = _renderTargetOverrides[*it];
+				const Ref<Rendering::Image>& rtOverride = _renderTargetOverrides[*it];
 
 				if (!rtOverride.IsValid())
 				{
@@ -156,7 +161,7 @@ namespace Coco::ECS
 				// No render target override for this attachment, so use a cached one (it if exists)
 				if (generatedImages.contains(i))
 				{
-					const WeakManagedRef<Rendering::Image>& image = generatedImages.at(i);
+					const Ref<Rendering::Image>& image = generatedImages.at(i);
 					if (image.IsValid() && image->GetDescription() == attachmentDescription)
 					{
 						// Reuse a cached image
@@ -177,17 +182,17 @@ namespace Coco::ECS
 		return renderTargets;
 	}
 
-	Ref<Rendering::RenderView> CameraComponent::GetRenderView(
-		const Ref<Rendering::RenderPipeline>& pipeline,
+	ManagedRef<Rendering::RenderView> CameraComponent::GetRenderView(
+		Ref<Rendering::RenderPipeline> pipeline,
 		const SizeInt& backbufferSize,
-		const List<WeakManagedRef<Rendering::Image>>& backbuffers)
+		const List<Ref<Rendering::Image>>& backbuffers)
 	{
 		// Make sure the camera matches our rendering aspect ratio
 		SetAspectRatio(static_cast<double>(backbufferSize.Width) / backbufferSize.Height);
 
 		SetRenderTargetOverrides(backbuffers);
 
-		return CreateRef<Rendering::RenderView>(
+		return CreateManagedRef<Rendering::RenderView>(
 			RectInt(Vector2Int::Zero, backbufferSize),
 			pipeline->GetClearColor(),
 			GetProjectionMatrix(),

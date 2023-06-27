@@ -42,31 +42,18 @@ namespace Coco
 				continue;
 			}
 
-			if (_tickListenersNeedSorting)
-				SortTickListeners();
+			PreTick(preTickTime);
 
-			_currentTickTime = _platform->GetRunningTimeSeconds();
-			
-			// Calculate time since the last tick
-			_currentUnscaledDeltaTime = _currentTickTime - _lastTickTime;
+			_isPerfomingTick = true;
 
-			// Optionally remove the time spent processing messages/suspended, preventing massive delta times while caught in a message process loop
-			if (!_useAbsoluteTiming)
-				_currentUnscaledDeltaTime -= _currentTickTime - preTickTime;
-
-			_currentUnscaledRunningTime += _currentUnscaledDeltaTime;
-
-			// Scaled delta and running times
-			_currentDeltaTime = _currentUnscaledDeltaTime * _timeScale;
-			_currentRunningTime += _currentDeltaTime;
-
-			// Copy the tick listeners so that we don't have issues if a listener removes themselves during the tick
-			List<Ref<MainLoopTickListener>> listenersCopy = _tickListeners;
-
-			for (const Ref<MainLoopTickListener>& listener : listenersCopy)
+			for (ManagedRef<MainLoopTickListener>& listener : _tickListeners)
 			{
-				listener->PurgeTick(_currentDeltaTime);
+				listener->Tick(_currentDeltaTime);
 			}
+
+			_isPerfomingTick = false;
+
+			PostTick();
 
 			_lastTickTime = _currentTickTime;
 			_tickCount++;
@@ -88,17 +75,18 @@ namespace Coco
 		_isSuspended = isSuspended;
 	}
 
-	void MainLoop::AddTickListener(Ref<MainLoopTickListener> tickListener)
-	{
-		_tickListeners.Add(tickListener);
-		_tickListenersNeedSorting = true;
-	}
-
 	void MainLoop::RemoveTickListener(const Ref<MainLoopTickListener>& tickListener) noexcept
 	{
+		// Queue removals if listeners are removed during a tick
+		if (_isPerfomingTick)
+		{
+			_tickListenersToRemove.Add(tickListener);
+			return;
+		}
+
 		try
 		{
-			_tickListeners.Remove(tickListener);
+			_tickListeners.RemoveAll([tickListener](const auto& other) { return other.Get() == tickListener.Get(); });
 		}
 		catch(...)
 		{ }
@@ -108,6 +96,36 @@ namespace Coco
 	{
 		// If true, a gets placed before b
 		return a->Priority < b->Priority;
+	}
+
+	void MainLoop::PreTick(double preTickTime)
+	{
+		if (_tickListenersNeedSorting)
+			SortTickListeners();
+
+		_currentTickTime = _platform->GetRunningTimeSeconds();
+
+		// Calculate time since the last tick
+		_currentUnscaledDeltaTime = _currentTickTime - _lastTickTime;
+
+		// Optionally remove the time spent processing messages/suspended, preventing massive delta times while caught in a message process loop
+		if (!_useAbsoluteTiming)
+			_currentUnscaledDeltaTime -= _currentTickTime - preTickTime;
+
+		_currentUnscaledRunningTime += _currentUnscaledDeltaTime;
+
+		// Scaled delta and running times
+		_currentDeltaTime = _currentUnscaledDeltaTime * _timeScale;
+		_currentRunningTime += _currentDeltaTime;
+	}
+
+	void MainLoop::PostTick()
+	{
+		// Safely remove any queued listeners
+		for (const auto& listener : _tickListenersToRemove)
+			RemoveTickListener(listener);
+
+		_tickListenersToRemove.Clear();
 	}
 
 	void MainLoop::SortTickListeners() noexcept

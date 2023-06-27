@@ -24,12 +24,12 @@ namespace Coco::Logging
 		_logSinks.Clear();
 	}
 
-	void Logger::AddSink(Ref<LogSink> sink)
+	void Logger::AddSink(SharedRef<LogSink> sink)
 	{
-		_logSinks.Add(std::forward<Ref<LogSink>>(sink));
+		_logSinks.Add(sink);
 	}
 
-	void Logger::RemoveSink(const Ref<LogSink>& sink)
+	void Logger::RemoveSink(const SharedRef<LogSink>& sink)
 	{
 		_logSinks.Remove(sink);
 	}
@@ -50,7 +50,7 @@ namespace Coco::Logging
 			message);
 
 		// Write the full log message to all sinks with a lower minimum level than the message
-		for (const Ref<LogSink>& sink : _logSinks)
+		for (SharedRef<LogSink>& sink : _logSinks)
 		{
 			if (sink->MinimumLevel <= level)
 				sink->Write(level, formattedMessage);

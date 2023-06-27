@@ -15,7 +15,7 @@ namespace Coco::Rendering
 	class COCOAPI RenderingResource : public Resource
 	{
 	protected:
-		RenderingResource(const string& name, ResourceType type);
+		RenderingResource(ResourceID id, const string& name, uint64_t tickLifetime);
 
 	public:
 		virtual ~RenderingResource() = default;

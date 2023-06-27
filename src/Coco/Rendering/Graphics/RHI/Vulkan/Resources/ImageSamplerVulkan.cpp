@@ -5,27 +5,27 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	ImageSamplerVulkan::ImageSamplerVulkan(GraphicsDevice* device, Rendering::FilterMode filterMode, Rendering::RepeatMode repeatMode, uint maxAnisotropy) : 
-		ImageSampler(filterMode, repeatMode, maxAnisotropy), _device(static_cast<GraphicsDeviceVulkan*>(device))
+	ImageSamplerVulkan::ImageSamplerVulkan(ResourceID id, const string& name, uint64_t lifetime, const ImageSamplerProperties& properties) :
+		GraphicsResource<GraphicsDeviceVulkan, ImageSampler>(id, name, lifetime, properties)
 	{
 		VkSamplerCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		createInfo.magFilter = ToVkFilter(FilterMode);
-		createInfo.minFilter = ToVkFilter(FilterMode);
+		createInfo.magFilter = ToVkFilter(_properties.FilterMode);
+		createInfo.minFilter = ToVkFilter(_properties.FilterMode);
 
 		// TODO: individual repeat modes?
-		createInfo.addressModeU = ToVkSamplerAddressMode(RepeatMode);
-		createInfo.addressModeV = ToVkSamplerAddressMode(RepeatMode);
-		createInfo.addressModeW = ToVkSamplerAddressMode(RepeatMode);
+		createInfo.addressModeU = ToVkSamplerAddressMode(_properties.RepeatMode);
+		createInfo.addressModeV = ToVkSamplerAddressMode(_properties.RepeatMode);
+		createInfo.addressModeW = ToVkSamplerAddressMode(_properties.RepeatMode);
 
-		createInfo.anisotropyEnable = maxAnisotropy > 0;
-		createInfo.maxAnisotropy = static_cast<float>(maxAnisotropy);
+		createInfo.anisotropyEnable = _properties.MaxAnisotropy > 0;
+		createInfo.maxAnisotropy = static_cast<float>(_properties.MaxAnisotropy);
 
 		createInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
 		createInfo.unnormalizedCoordinates = VK_FALSE;
 		createInfo.compareEnable = VK_TRUE;
 		createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-		createInfo.mipmapMode = ToVkSamplerMipmapMode(FilterMode);
+		createInfo.mipmapMode = ToVkSamplerMipmapMode(_properties.FilterMode);
 		createInfo.mipLodBias = 0.0f;
 		createInfo.minLod = 0.0f;
 		createInfo.maxLod = 0.0f;

@@ -1,8 +1,11 @@
 #pragma once
 
 #include <Coco/Core/Resources/Resource.h>
+#include <Coco/Core/Resources/ResourceCache.h>
 
-#include <Coco/Core/Types/Map.h>
+#include "Resources/Cache/VulkanPipeline.h"
+#include "Resources/Cache/VulkanRenderPass.h"
+#include "Resources/Cache/VulkanShader.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -14,34 +17,16 @@ namespace Coco::Rendering
 namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
-	class VulkanSubshader;
-	class VulkanRenderPass;
-	class VulkanPipeline;
-
-	/// @brief A cached shader resource
-	struct CachedShader final : public CachedResource
-	{
-		/// @brief Cached subshaders of this shader
-		UnorderedMap<string, Ref<VulkanSubshader>> Subshaders;
-
-		CachedShader(const ShaderRenderData& shaderData);
-		~CachedShader() final = default;
-
-		bool IsInvalid() const noexcept final { return false; }
-		bool NeedsUpdate() const noexcept final { return false; }
-	};
 
 	/// @brief A cache for global Vulkan objects (render passes, pipelines, and shaders)
 	class VulkanRenderCache
 	{
 	private:
-		static constexpr uint64_t s_staleTickCount = 500;
-
 		GraphicsDeviceVulkan* _device;
 
-		UnorderedMap<ResourceID, Ref<VulkanRenderPass>> _renderPassCache;
-		UnorderedMap<uint64_t, Ref<VulkanPipeline>> _pipelineCache;
-		UnorderedMap<ResourceID, Ref<CachedShader>> _shaderCache;
+		ManagedRef<ResourceCache<VulkanRenderPass>> _renderPassCache;
+		ManagedRef<ResourceCache<VulkanPipeline>> _pipelineCache;
+		ManagedRef<ResourceCache<VulkanShader>> _shaderCache;
 
 	public:
 		VulkanRenderCache(GraphicsDeviceVulkan* device);
@@ -56,7 +41,7 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Gets or creates a render pass resource for a RenderPipeline
 		/// @param renderPipeline The render pipeline
 		/// @return The VulkanRenderPass resource
-		Ref<VulkanRenderPass> GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline);
+		VulkanRenderPass* GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline);
 
 		/// @brief Gets or creates a pipeline for a render pass and shader combination
 		/// @param renderPass The render pass
@@ -64,9 +49,10 @@ namespace Coco::Rendering::Vulkan
 		/// @param subpassIndex The index of the subpass in the pipeline
 		/// @param globalDescriptorLayout The layout for the global descriptors
 		/// @return The VulkanPipeline resource
-		Ref<VulkanPipeline> GetOrCreatePipeline(
-			const Ref<VulkanRenderPass>& renderPass,
-			const Ref<VulkanSubshader>& subshader,
+		VulkanPipeline* GetOrCreatePipeline(
+			VulkanRenderPass* renderPass,
+			VulkanShader* shader,
+			const string& subshaderName,
 			uint32_t subpassIndex, 
 			const VkDescriptorSetLayout& globalDescriptorLayout);
 
@@ -74,6 +60,6 @@ namespace Coco::Rendering::Vulkan
 		/// @param subshaderName The name of the subshader
 		/// @param shaderData The shader data
 		/// @return The Vulkan subshader resource
-		Ref<VulkanSubshader> GetOrCreateVulkanSubshader(const string& subshaderName, const ShaderRenderData& shaderData);
+		VulkanShader* GetOrCreateVulkanShader(const ShaderRenderData& shaderData);
 	};
 }

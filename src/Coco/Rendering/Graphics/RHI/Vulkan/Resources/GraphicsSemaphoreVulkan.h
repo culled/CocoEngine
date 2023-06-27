@@ -1,28 +1,25 @@
 #pragma once
 
-#include <Coco/Rendering/Graphics/Resources/IGraphicsSemaphore.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsSemaphore.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsResource.h>
 
 #include "../VulkanIncludes.h"
-
-namespace Coco::Rendering
-{
-	class GraphicsDevice;
-}
 
 namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 
 	/// @brief Vulkan-implementation of a GraphicsSemaphore
-	class GraphicsSemaphoreVulkan final : public IGraphicsSemaphore
+	class GraphicsSemaphoreVulkan final : public GraphicsResource<GraphicsDeviceVulkan, GraphicsSemaphore>
 	{
 	private:
 		VkSemaphore _semaphore = nullptr;
-		GraphicsDeviceVulkan* _device;
 
 	public:
-		GraphicsSemaphoreVulkan(GraphicsDevice* device);
+		GraphicsSemaphoreVulkan(ResourceID id, const string& name, uint64_t lifetime);
 		~GraphicsSemaphoreVulkan() final;
+
+		DefineResourceType(GraphicsSemaphoreVulkan)
 
 		/// @brief Gets the underlying VkSemaphore
 		/// @return The underlying Vulkan semaphore

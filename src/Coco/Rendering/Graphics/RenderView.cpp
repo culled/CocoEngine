@@ -15,26 +15,36 @@ namespace Coco::Rendering
 		const Color& clearColor, 
 		const Matrix4x4& projection, 
 		const Matrix4x4& view,
-		const List<WeakManagedRef<Image>>& renderTargets
+		const List<Ref<Image>>& renderTargets
 	) noexcept :
 		ViewportRect(viewportRect), ClearColor(clearColor), Projection(projection), View(view), RenderTargets(renderTargets)
 	{}
 
-	void RenderView::AddRenderObject(const Ref<Mesh>& mesh, const Ref<Material>& material, const Matrix4x4& modelMatrix)
+	RenderView::~RenderView()
+	{
+		RenderTargets.Clear();
+		Shaders.clear();
+		Textures.clear();
+		Materials.clear();
+		Meshs.clear();
+		Objects.Clear();
+	}
+
+	void RenderView::AddRenderObject(Ref<Mesh> mesh, Ref<Material> material, const Matrix4x4& modelMatrix)
 	{
 		AddMaterial(material);
 		AddMesh(mesh);
 
-		Objects.Add(ObjectRenderData(mesh->ID, material->ID, modelMatrix));
+		Objects.Add(ObjectRenderData(mesh->GetID(), material->GetID(), modelMatrix));
 	}
 
-	void RenderView::AddShader(const Ref<Shader>& shader)
+	void RenderView::AddShader(Ref<Shader> shader)
 	{
-		if (Shaders.contains(shader->ID))
+		if (Shaders.contains(shader->GetID()))
 			return;
 
-		Shaders.emplace(shader->ID, ShaderRenderData(shader->ID, shader->GetVersion()));
-		ShaderRenderData& shaderData = Shaders.at(shader->ID);
+		Shaders.emplace(shader->GetID(), ShaderRenderData(shader->GetID(), shader->GetVersion()));
+		ShaderRenderData& shaderData = Shaders.at(shader->GetID());
 
 		for (const Subshader& subshader : shader->GetSubshaders())
 		{
@@ -42,27 +52,27 @@ namespace Coco::Rendering
 		}
 	}
 
-	void RenderView::AddTexture(const Ref<Texture>& texture)
+	void RenderView::AddTexture(Ref<Texture> texture)
 	{
-		if (Textures.contains(texture->ID))
+		if (Textures.contains(texture->GetID()))
 			return;
 
-		Textures.emplace(texture->ID, TextureRenderData(texture->ID, texture->GetVersion(), texture->GetImage(), texture->GetSampler()));
+		Textures.emplace(texture->GetID(), TextureRenderData(texture->GetID(), texture->GetVersion(), texture->GetImage(), texture->GetSampler()));
 	}
 
-	void RenderView::AddMaterial(const Ref<Material>& material)
+	void RenderView::AddMaterial(Ref<Material> material)
 	{
-		if (Materials.contains(material->ID))
+		if (Materials.contains(material->GetID()))
 			return;
 
 		Ref<Shader> shader = material->GetShader();
-		ResourceID shaderID = shader != nullptr ? shader->ID : Resource::InvalidID;
+		ResourceID shaderID = shader.IsValid() ? shader->GetID() : Resource::InvalidID;
 
-		if (shader != nullptr)
+		if (shader.IsValid())
 			AddShader(shader);
 
-		Materials.emplace(material->ID, MaterialRenderData(material->ID, material->GetVersion(), shaderID, material->GetBufferData()));
-		MaterialRenderData& materialData = Materials.at(material->ID);
+		Materials.emplace(material->GetID(), MaterialRenderData(material->GetID(), material->GetVersion(), shaderID, material->GetBufferData()));
+		MaterialRenderData& materialData = Materials.at(material->GetID());
 
 		for (const auto& kvp : material->GetSubshaderBindings())
 			materialData.SubshaderBindings.emplace(kvp.first, kvp.second);
@@ -71,10 +81,10 @@ namespace Coco::Rendering
 		{
 			Ref<Texture> texture = kvp.second;
 
-			if (texture != nullptr)
+			if (texture.IsValid())
 			{
 				AddTexture(texture);
-				materialData.Samplers.emplace(kvp.first, texture->ID);
+				materialData.Samplers.emplace(kvp.first, texture->GetID());
 			}
 			else
 			{
@@ -83,11 +93,11 @@ namespace Coco::Rendering
 		}
 	}
 
-	void RenderView::AddMesh(const Ref<Mesh>& mesh)
+	void RenderView::AddMesh(Ref<Mesh> mesh)
 	{
-		if (Meshs.contains(mesh->ID))
+		if (Meshs.contains(mesh->GetID()))
 			return;
 
-		Meshs.emplace(mesh->ID, MeshRenderData(mesh->ID, mesh->GetVersion(), mesh->GetVertexBuffer(), mesh->GetVertexCount(), mesh->GetIndexBuffer(), mesh->GetIndexCount()));
+		Meshs.emplace(mesh->GetID(), MeshRenderData(mesh->GetID(), mesh->GetVersion(), mesh->GetVertexBuffer(), mesh->GetVertexCount(), mesh->GetIndexBuffer(), mesh->GetIndexCount()));
 	}
 }

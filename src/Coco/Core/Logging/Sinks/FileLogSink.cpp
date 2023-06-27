@@ -4,7 +4,7 @@ namespace Coco::Logging
 {
 	FileLogSink::FileLogSink(LogLevel minimumLevel, const string& file) : LogSink(minimumLevel)
 	{
-		_file = CreateManaged<File>(file, FileModeFlags::Write);
+		_file = CreateManagedRef<File>(file, FileModeFlags::Write);
 	}
 
 	FileLogSink::~FileLogSink()
@@ -16,7 +16,7 @@ namespace Coco::Logging
 		catch (...)
 		{}
 
-		_file.reset();
+		_file.Reset();
 	}
 
 	void FileLogSink::Write(LogLevel level, const string& message) noexcept

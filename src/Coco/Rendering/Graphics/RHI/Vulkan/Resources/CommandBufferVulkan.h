@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Rendering/Graphics/Resources/CommandBuffer.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsResource.h>
 
 #include "../VulkanIncludes.h"
 
@@ -10,16 +11,17 @@ namespace Coco::Rendering::Vulkan
 	class GraphicsDeviceVulkan;
 
 	/// @brief Vulkan-implementation of a CommandBuffer
-	class CommandBufferVulkan final : public CommandBuffer
+	class CommandBufferVulkan final : public GraphicsResource<GraphicsDeviceVulkan, CommandBuffer>
 	{
 	private:
 		VkCommandBuffer _commandBuffer = nullptr;
-		GraphicsDeviceVulkan* _device;
 		CommandBufferPoolVulkan* _pool;
 
 	public:
-		CommandBufferVulkan(bool isPrimary, GraphicsDeviceVulkan* device, CommandBufferPoolVulkan* pool);
+		CommandBufferVulkan(ResourceID id, const string& name, uint64_t lifetime, bool isPrimary, CommandBufferPoolVulkan* pool);
 		~CommandBufferVulkan() final;
+
+		DefineResourceType(CommandBufferVulkan)
 
 		/// @brief Gets the underlying Vulkan command buffer
 		/// @return The underlying Vulkan command buffer
@@ -29,9 +31,9 @@ namespace Coco::Rendering::Vulkan
 		void BeginImpl(bool isSingleUse, bool isSimultaneousUse) final;
 		void EndImpl() override;
 		void SubmitImpl(
-			const List<IGraphicsSemaphore*>& waitSemaphores,
-			const List<IGraphicsSemaphore*>& signalSemaphores,
-			IGraphicsFence* signalFence) final;
+			const List<GraphicsSemaphore*>& waitSemaphores,
+			const List<GraphicsSemaphore*>& signalSemaphores,
+			GraphicsFence* signalFence) final;
 		void ResetImpl() final;
 	};
 }

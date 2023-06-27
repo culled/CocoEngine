@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Services/EngineService.h>
+#include <Coco/Core/MainLoop/MainLoopTickListener.h>
 
 #include "Keyboard.h"
 #include "Mouse.h"
@@ -18,8 +19,8 @@ namespace Coco::Input
         const static int LateProcessTickPriority = 10000;
 
     private:
-        Managed<Keyboard> _keyboard;
-        Managed<Mouse> _mouse;
+        ManagedRef<Keyboard> _keyboard;
+        ManagedRef<Mouse> _mouse;
 
     public:
         InputService(EngineServiceManager* serviceManager);
@@ -33,11 +34,11 @@ namespace Coco::Input
 
         /// @brief Gets the current keyboard
         /// @return The current keyboard
-        Keyboard* GetKeyboard() const noexcept { return _keyboard.get(); }
+        Keyboard* GetKeyboard() noexcept { return _keyboard.Get(); }
 
         /// @brief Gets the current mouse
         /// @return The current mouse
-        Mouse* GetMouse() const noexcept { return _mouse.get(); }
+        Mouse* GetMouse() noexcept { return _mouse.Get(); }
 
     private:
         /// @brief Tick for updating the current state of the peripherals

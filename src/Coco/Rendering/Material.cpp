@@ -6,15 +6,26 @@
 
 namespace Coco::Rendering
 {
-	Material::Material(Ref<Rendering::Shader> shader, const string& name) : RenderingResource(name, ResourceType::Material),
+	Material::Material(ResourceID id, const string& name, uint64_t tickLifetime) : RenderingResource(id, name, tickLifetime)
+	{}
+
+	Material::Material(ResourceID id, const string& name, uint64_t tickLifetime, Ref<Rendering::Shader> shader) : RenderingResource(id, name, tickLifetime),
 		Shader(shader)
 	{
 		UpdatePropertyMaps(true);
 	}
 
 	Material::~Material()
+	{}
+
+	void Material::SetShader(Ref<Rendering::Shader> shader)
 	{
-		Shader.reset();
+		if (shader == Shader)
+			return;
+
+		Shader = shader;
+		UpdatePropertyMaps(true);
+		IncrementVersion();
 	}
 
 	//Ref<MaterialInstance> Material::CreateInstance() const
@@ -36,7 +47,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->Name, name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->GetName(), name));
 		}
 	}
 
@@ -50,7 +61,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->Name, name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->GetName(), name));
 			return Vector4::Zero;
 		}
 	}
@@ -68,7 +79,7 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->Name, name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->GetName(), name));
 		}
 	}
 
@@ -82,8 +93,8 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->Name, name));
-			return nullptr;
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->GetName(), name));
+			return Ref<Texture>();
 		}
 	}
 
@@ -157,7 +168,7 @@ namespace Coco::Rendering
 				if (TextureProperties.contains(sampler.Name))
 					textureProperties[sampler.Name] = TextureProperties[sampler.Name];
 				else
-					textureProperties[sampler.Name] = nullptr;
+					textureProperties[sampler.Name] = Ref<Texture>();
 				break;
 			}
 		}

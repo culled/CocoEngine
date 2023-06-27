@@ -324,7 +324,7 @@ namespace Coco::Platform::Windows
 #ifdef COCO_SERVICE_WINDOWING
 		LONG_PTR userPtr = GetWindowLongPtr(windowHandle, GWLP_USERDATA);
 		WindowsWindow* windowsWindow = reinterpret_cast<WindowsWindow*>(userPtr);
-
+		
 		if (windowsWindow == nullptr)
 		{
 			LogWarning(Coco::Engine::Get()->GetLogger(), "Window handle was null");

@@ -96,6 +96,34 @@ namespace Coco
 			}
 		}
 
+		/// @brief Removes all elements that satisfy the given predicate function
+		/// @param predicate The function to test each element against. Returning true will remove the element
+		/// @return The number of elements removed
+		int RemoveAll(std::function<bool(const ValueType&)> predicate) noexcept
+		{
+			auto it = cbegin();
+			int removed = 0;
+
+			while (it != cend())
+			{
+				if (predicate(*it))
+				{
+					try
+					{
+						it = _list.erase(it);
+						removed++;
+					}
+					catch (...) { }
+				}
+				else
+				{
+					it++;
+				}
+			}
+
+			return removed;
+		}
+
 		/// @brief Erases an item at the given iterator and returns the element after the one erased, or the list end if the element was the last one erased
 		/// @param it The iterator
 		/// @return An iterator to the element after the one erased, or the list end if the element was the last one erased
@@ -190,11 +218,6 @@ namespace Coco
 			return std::find_if(cbegin(), cend(), predicate);
 		}
 
-		constexpr void Swap(Iterator a, Iterator b)
-		{
-			std::swap(*a, *b);
-		}
-
 		/// @brief Gets an iterator for the beginning of this list
 		/// @return An iterator for the beginning of this list
 		constexpr Iterator begin() noexcept { return _list.begin(); }
@@ -245,5 +268,44 @@ namespace Coco
 
 		ValueType& operator[](uint64_t index) { return _list.at(index); }
 		const ValueType& operator[](uint64_t index) const { return _list.at(index); }
+
+		/// @brief Transforms objects of this list into a list of a different type using a conversion function
+		/// @tparam OtherType The type of each object in the new list
+		/// @param converter The converter function that will be run for each element of this list. It should return an object of the new list type
+		/// @return A transformed list
+		template<typename OtherType>
+		List<OtherType> Transform(std::function<OtherType(ValueType&)> converter)
+		{
+			List<OtherType> other;
+
+			for (auto& e : _list)
+				other.Add(converter(e));
+
+			return other;
+		}
+
+		/// @brief Tests if every element satisfies the given predicate function
+		/// @param predicate The function to test for each element. Must return true if the element passes
+		/// @return True if all elements pass the predicate function
+		bool All(std::function<bool(const ValueType&)> predicate) const
+		{
+			for (const auto& e : _list)
+				if (!predicate(e))
+					return false;
+
+			return true;
+		}
+
+		/// @brief Tests if at least one element satisfies the given predicate function
+		/// @param predicate The function to test for each element. Must return true if the element passes
+		/// @return True if any element passes the predicate function
+		bool Any(std::function<bool(const ValueType&)> predicate) const
+		{
+			for (const auto& e : _list)
+				if (predicate(e))
+					return true;
+
+			return false;
+		}
 	};
 }

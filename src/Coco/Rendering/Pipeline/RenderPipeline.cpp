@@ -33,7 +33,7 @@ namespace Coco::Rendering
 		IsUsedInFirstPipelinePass = FirstUsePassIndex == 0;
 	}
 
-	RenderPipeline::RenderPipeline(const string& name) : RenderingResource(name, ResourceType::RenderPipeline),
+	RenderPipeline::RenderPipeline(ResourceID id, const string& name, uint64_t tickLifetime) : RenderingResource(id, name, tickLifetime),
 		_clearColor(Color::Black)
 	{}
 
@@ -51,20 +51,19 @@ namespace Coco::Rendering
 		return _attachmentDescriptions;
 	}
 
-	RenderPipelineBinding* RenderPipeline::AddRenderPass(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentBindings)
+	Ref<RenderPipelineBinding> RenderPipeline::AddRenderPass(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentBindings)
 	{
-		RenderPipelineBinding* binding = new RenderPipelineBinding(renderPass, passToPipelineAttachmentBindings);
-		_renderPasses.Add(Managed<RenderPipelineBinding>(binding));
+		_renderPasses.Add(CreateManagedRef<RenderPipelineBinding>(renderPass, passToPipelineAttachmentBindings));
 		_attachmentDescriptionsDirty = true;
-		return binding;
+		return _renderPasses.Last();
 	}
 
-	bool RenderPipeline::RemoveRenderPass(const RenderPipelineBinding*& renderPassBinding) noexcept
+	bool RenderPipeline::RemoveRenderPass(const Ref<RenderPipelineBinding>& renderPassBinding) noexcept
 	{
 		try
 		{
-			auto it = _renderPasses.Find([renderPassBinding](const Managed<RenderPipelineBinding>& other) {
-				return renderPassBinding == other.get();
+			auto it = _renderPasses.Find([renderPassBinding](const auto& other) {
+				return renderPassBinding.Get() == other.Get();
 				});
 
 			if (it != _renderPasses.end())
@@ -80,13 +79,13 @@ namespace Coco::Rendering
 		return false;
 	}
 
-	List<RenderPipelineBinding*> RenderPipeline::GetPasses() const
+	List<Ref<RenderPipelineBinding>> RenderPipeline::GetPasses()
 	{
-		List<RenderPipelineBinding*> passes;
+		List<Ref<RenderPipelineBinding>> passes;
 
-		for (const Managed<RenderPipelineBinding>& binding : _renderPasses)
+		for (auto& binding : _renderPasses)
 		{
-			passes.Add(binding.get());
+			passes.Add(binding);
 		}
 
 		return passes;
@@ -117,7 +116,7 @@ namespace Coco::Rendering
 
 		for (int rpI = 0; rpI < _renderPasses.Count(); rpI++)
 		{
-			const Managed<RenderPipelineBinding>& binding = _renderPasses[rpI];
+			const ManagedRef<RenderPipelineBinding>& binding = _renderPasses[rpI];
 			List<MappedAttachmentDescription> mappedPassAttachments = binding->GetMappedAttachmentDescriptions();
 
 			for (int i = 0; i < mappedPassAttachments.Count(); i++)

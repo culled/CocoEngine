@@ -1,10 +1,10 @@
 #include "CommandBuffer.h"
-#include "IGraphicsSemaphore.h"
-#include "IGraphicsFence.h"
+#include "GraphicsSemaphore.h"
+#include "GraphicsFence.h"
 
 namespace Coco::Rendering
 {
-	CommandBuffer::CommandBuffer(bool isPrimary) noexcept :
+	CommandBuffer::CommandBuffer(ResourceID id, const string& name, uint64_t lifetime, bool isPrimary) noexcept : RenderingResource(id, name, lifetime),
 		IsPrimary(isPrimary), CurrentState(CommandBufferState::Ready)
 	{
 	}
@@ -21,7 +21,7 @@ namespace Coco::Rendering
 		CurrentState = CommandBufferState::RecordingEnded;
 	}
 
-	void CommandBuffer::Submit(const List<IGraphicsSemaphore*>& waitSemaphores, const List<IGraphicsSemaphore*>& signalSemaphores, IGraphicsFence* signalFence)
+	void CommandBuffer::Submit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence)
 	{
 		SubmitImpl(waitSemaphores, signalSemaphores, signalFence);
 		CurrentState = CommandBufferState::Submitted;
@@ -34,9 +34,9 @@ namespace Coco::Rendering
 	}
 
 	void CommandBuffer::EndAndSubmit(
-		const List<IGraphicsSemaphore*>& waitSemaphores,
-		const List<IGraphicsSemaphore*>& signalSemaphores,
-		IGraphicsFence* signalFence)
+		const List<GraphicsSemaphore*>& waitSemaphores,
+		const List<GraphicsSemaphore*>& signalSemaphores,
+		GraphicsFence* signalFence)
 	{
 		End();
 		Submit(waitSemaphores, signalSemaphores, signalFence);

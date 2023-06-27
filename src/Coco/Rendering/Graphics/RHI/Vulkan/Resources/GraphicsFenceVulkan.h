@@ -1,28 +1,25 @@
 #pragma once
 
-#include <Coco/Rendering/Graphics/Resources/IGraphicsFence.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsFence.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsResource.h>
 
 #include "../VulkanIncludes.h"
-
-namespace Coco::Rendering
-{
-	class GraphicsDevice;
-}
 
 namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 
 	/// @brief Vulkan-implementation of a GraphicsFence
-	class GraphicsFenceVulkan final : public IGraphicsFence
+	class GraphicsFenceVulkan final : public GraphicsResource<GraphicsDeviceVulkan, GraphicsFence>
 	{
 	private:
 		VkFence _fence = nullptr;
-		GraphicsDeviceVulkan* _device;
 
 	public:
-		GraphicsFenceVulkan(GraphicsDevice* device, bool startSignalled);
+		GraphicsFenceVulkan(ResourceID id, const string& name, uint64_t lifetime, bool startSignalled);
 		~GraphicsFenceVulkan() final;
+
+		DefineResourceType(GraphicsFenceVulkan)
 
 		bool IsSignalled() const noexcept final;
 		void Reset() final;

@@ -1,4 +1,5 @@
 #include "MeshPrimitives.h"
+#include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering
 {
@@ -181,7 +182,7 @@ namespace Coco::Rendering
 
 	Ref<Mesh> MeshPrimitives::CreateFromVertices(const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices)
 	{
-		Ref<Mesh> mesh = CreateRef<Mesh>();
+		Ref<Mesh> mesh = Engine::Get()->GetResourceLibrary()->CreateResource<Mesh>("", ResourceLibrary::DefaultTickLifetime);
 		mesh->SetPositions(positions);
 		mesh->SetUVs(uvs);
 		mesh->SetIndices(indices);

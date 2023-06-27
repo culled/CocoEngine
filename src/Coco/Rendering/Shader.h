@@ -16,8 +16,9 @@ namespace Coco::Rendering
 		List<Subshader> _subshaders;
 
 	public:
-		Shader(const string& name = "");
-		virtual ~Shader() = default;
+		Shader(ResourceID id, const string& name, uint64_t tickLifetime);
+
+		DefineResourceType(Shader)
 
 		/// @brief Tries to find a subshader with the given name
 		/// @param name The name of the subshader

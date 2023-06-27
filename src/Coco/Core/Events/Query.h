@@ -23,7 +23,7 @@ namespace Coco
 		using HandlerID = uint64_t;
 
 	private:
-		List<Ref<HandlerType>> _handlers;
+		List<SharedRef<HandlerType>> _handlers;
 
 	public:
 		Query() = default;
@@ -45,11 +45,10 @@ namespace Coco
 		/// @param function The query handler function pointer
 		/// @return A handler for the query
 		template<typename ObjectType>
-		Ref<HandlerType> AddHandler(ObjectType* object, ReturnType(ObjectType::* function)(Args...))
+		WeakSharedRef<HandlerType> AddHandler(ObjectType* object, ReturnType(ObjectType::* function)(Args...))
 		{
-			Ref<ObjectQueryHandler<ObjectType, ReturnType, Args...>> handler = CreateRef<ObjectQueryHandler<ObjectType, ReturnType, Args...>>(object, function);
-			AddHandler(handler);
-			return handler;
+			AddHandler(CreateSharedRef<ObjectQueryHandler<ObjectType, ReturnType, Args...>>(object, function));
+			return _handlers.First();
 		}
 
 		/// @brief Adds a generic query function handler
@@ -57,14 +56,13 @@ namespace Coco
 		/// @return A handler for the query
 		Ref<HandlerType> AddHandler(const HandlerFunctionType& handlerFunction)
 		{
-			Ref<HandlerType> handler = CreateRef<HandlerType>(handlerFunction);
-			AddHandler(handler);
-			return handler;
+			AddHandler(CreateSharedRef<HandlerType>(handlerFunction));
+			return _handlers.First();
 		}
 
 		/// @brief Adds an existing query handler
 		/// @param handler A query handler reference
-		void AddHandler(const Ref<HandlerType>& handler)
+		void AddHandler(SharedRef<HandlerType>&& handler)
 		{
 			_handlers.Insert(0, handler);
 		}
@@ -77,8 +75,8 @@ namespace Coco
 		template<typename ObjectType>
 		bool RemoveHandler(ObjectType* object, ReturnType(ObjectType::* function)(Args...)) noexcept
 		{
-			auto it = _handlers.Find([object, function](const Ref<HandlerType>& other) noexcept {
-				if (ObjectQueryHandler<ObjectType, ReturnType, Args...>* otherPtr = dynamic_cast<ObjectQueryHandler<ObjectType, ReturnType, Args...>*>(other.get()))
+			auto it = _handlers.Find([object, function](const SharedRef<HandlerType>& other) noexcept {
+				if (ObjectQueryHandler<ObjectType, ReturnType, Args...>* otherPtr = dynamic_cast<ObjectQueryHandler<ObjectType, ReturnType, Args...>*>(other.Get()))
 				{
 					return otherPtr->Equals(object, function);
 				}
@@ -99,7 +97,7 @@ namespace Coco
 		/// @return True if the query handler was found and removed
 		bool RemoveHandler(HandlerID handlerID) noexcept
 		{
-			auto it = _handlers.Find([handlerID](const Ref<HandlerType>& other) noexcept {
+			auto it = _handlers.Find([handlerID](const SharedRef<HandlerType>& other) noexcept {
 				return other->ID == handlerID;
 				});
 
@@ -112,9 +110,13 @@ namespace Coco
 		/// @brief Removes a query handler
 		/// @param handler The query handler to remove
 		/// @return True if the handler was found and removed
-		bool RemoveHandler(const Ref<HandlerType>& handler) noexcept
+		bool RemoveHandler(const WeakSharedRef<HandlerType>& handler) noexcept
 		{
-			return _handlers.Remove(handler);
+			if (!handler.IsValid())
+				return false;
+
+			SharedRef<HandlerType> lock = handler.Lock();
+			return RemoveHandler(lock->ID);
 		}
 
 		/// @brief Invokes this query and sets the value to the first handler's return value
@@ -123,9 +125,9 @@ namespace Coco
 		/// @return If the query was handled
 		bool Invoke(ReturnType* value, Args... params)
 		{
-			List<Ref<HandlerType>> handlersCopy = _handlers;
+			List<SharedRef<HandlerType>> handlersCopy = _handlers;
 
-			for (const Ref<HandlerType>& handler : handlersCopy)
+			for (const SharedRef<HandlerType>& handler : handlersCopy)
 			{
 				if ((*handler)(value, params...))
 					return true;
@@ -139,7 +141,7 @@ namespace Coco
 			return Invoke(value, params...);
 		}
 
-		Ref<HandlerType> operator +=(const HandlerFunctionType& handlerFunction)
+		WeakSharedRef<HandlerType> operator +=(const HandlerFunctionType& handlerFunction)
 		{
 			return AddHandler(handlerFunction);
 		}
@@ -149,7 +151,7 @@ namespace Coco
 			return RemoveHandler(handlerID);
 		}
 
-		bool operator -=(const Ref<HandlerType>& handler)
+		bool operator -=(const WeakSharedRef<HandlerType>& handler)
 		{
 			return RemoveHandler(handler);
 		}

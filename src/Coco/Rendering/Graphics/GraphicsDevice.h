@@ -2,11 +2,12 @@
 
 #include <Coco/Core/Core.h>
 
+#include <Coco/Core/Events/Event.h>
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Version.h>
-#include <Coco/Core/Types/ManagedRef.h>
-#include <Coco/Core/Events/Event.h>
+#include <Coco/Core/Resources/ResourceLibrary.h>
 #include "GraphicsDeviceTypes.h"
+#include "../RenderingResource.h"
 
 namespace Coco::Logging
 {
@@ -15,8 +16,6 @@ namespace Coco::Logging
 
 namespace Coco::Rendering
 {
-	class IGraphicsResource;
-
 	/// @brief A graphics device that can perform rendering-related operations
 	class COCOAPI GraphicsDevice
 	{
@@ -26,10 +25,10 @@ namespace Coco::Rendering
 
 	protected:
 		/// @brief The list of resources this device manages
-		List<ManagedRef<IGraphicsResource>> Resources;
+		ManagedRef<ResourceLibrary> Resources;
 
 	protected:
-		GraphicsDevice() = default;
+		GraphicsDevice();
 
 	public:
 		virtual ~GraphicsDevice() = default;
@@ -42,7 +41,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets this graphics devices's logger
 		/// @return This graphics platform's logger
-		virtual Logging::Logger* GetLogger() const noexcept = 0;
+		virtual Logging::Logger* GetLogger() noexcept = 0;
 
 		/// @brief Gets the name of this device
 		/// @return This device's name
@@ -77,20 +76,17 @@ namespace Coco::Rendering
 		/// @param ...args The arguments to pass to the resource's constructor
 		/// @return A handle to the resource
 		template<typename ResourceType, typename ... Args>
-		WeakManagedRef<ResourceType> CreateResource(Args&& ... args)
+		Ref<ResourceType> CreateResource(Args&& ... args)
 		{
-			static_assert(std::is_base_of_v<IGraphicsResource, ResourceType>, "The resource must be derived from IGraphicsResource");
-
-			Resources.Add(CreateManagedRef<ResourceType>(this, std::forward<Args>(args)...));
-			return WeakManagedRef<ResourceType>(Resources.Last());
+			static_assert(std::is_base_of_v<RenderingResource, ResourceType>, "The resource must be derived from RenderingResource");
+		
+			return Resources->CreateResource<ResourceType>("", RenderingService::DefaultGraphicsResourceTickLifetime, std::forward<Args>(args)...);
 		}
 
-		/// @brief Purges unused graphics resources
-		void PurgeUnusedResources() noexcept;
+		void PurgeResource(const Ref<Resource>& resource, bool forcePurge = false);
 
-	protected:
-		/// @brief Called when this device purges resources
-		virtual void OnPurgeUnusedResources() noexcept {}
+		/// @brief Purges unused graphics resources
+		virtual void PurgeUnusedResources() noexcept;
 	};
 }
 

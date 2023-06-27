@@ -10,47 +10,54 @@ namespace Coco::Rendering
 	/// @brief A texture that can be used for rendering images
 	class COCOAPI Texture : public RenderingResource
 	{
+		friend class TextureSerializer;
+
 	private:
-		WeakManagedRef<Image> _image;
+		Ref<Image> _image;
 		ImageUsageFlags _usageFlags;
-		WeakManagedRef<ImageSampler> _sampler;
-		FilterMode _filterMode = FilterMode::Linear;
-		RepeatMode _repeatMode = RepeatMode::Repeat;
-		uint _maxAnisotropy = 0;
+		Ref<ImageSampler> _sampler;
+		ImageSamplerProperties _samplerProperties;
 		string _imageFilePath;
 
 	public:
 		Texture(
+			ResourceID id,
+			const string& name,
+			uint64_t tickLifetime);
+
+		Texture(
+			ResourceID id,
+			const string& name,
+			uint64_t tickLifetime,
 			int width, 
 			int height, 
 			PixelFormat pixelFormat, 
 			ColorSpace colorSpace, 
 			ImageUsageFlags usageFlags, 
-			FilterMode filterMode = FilterMode::Linear,
-			RepeatMode repeatMode = RepeatMode::Repeat,
-			uint maxAnisotropy = 16,
-			const string& name = ""
+			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default
 		);
 
 		Texture(
+			ResourceID id,
+			const string& name,
+			uint64_t tickLifetime,
 			const ImageDescription& description,
-			FilterMode filterMode = FilterMode::Linear,
-			RepeatMode repeatMode = RepeatMode::Repeat,
-			uint maxAnisotropy = 16,
-			const string& name = ""
+			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default
 		);
 
 		Texture(
+			ResourceID id,
+			const string& name,
+			uint64_t tickLifetime,
 			const string& filePath,
 			ImageUsageFlags usageFlags,
-			FilterMode filterMode = FilterMode::Linear,
-			RepeatMode repeatMode = RepeatMode::Repeat,
-			uint maxAnisotropy = 16,
-			int channelCount = 4,
-			const string& name = ""
+			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default,
+			int channelCount = 4
 		);
 
-		virtual ~Texture();
+		~Texture() override;
+
+		DefineResourceType(Texture)
 
 		/// @brief Sets the pixel data for this texture
 		/// @param offset The offset in the texture memory to start loading pixel data into
@@ -62,31 +69,21 @@ namespace Coco::Rendering
 		/// @param repeatMode The repeat mode
 		/// @param filterMode The filter mode
 		/// @param maxAnisotropy The maximum amount of anisotropy to use
-		void SetSamplerProperties(RepeatMode repeatMode, FilterMode filterMode, uint maxAnisotropy);
+		void SetSamplerProperties(const ImageSamplerProperties& samplerProperties);
 
 		/// @brief Gets the image description of this texture
 		/// @return The image description of this texture
 		ImageDescription GetDescription() const noexcept;
 
-		/// @brief Gets the repeat mode for this texture's sampler
-		/// @return This texture's repeat mode
-		constexpr RepeatMode GetRepeatMode() const noexcept { return _repeatMode; }
-
-		/// @brief Gets the filter mode for this texture's sampler
-		/// @return This texture's filter mode
-		constexpr FilterMode GetFilterMode() const noexcept { return _filterMode; }
-		
-		/// @brief Gets the maximum amount of anisotropy that this texture's sampler will use
-		/// @return The maximum amount of anisotropy that this texture's sampler will use
-		constexpr uint GetMaxAnisotropy() const noexcept { return _maxAnisotropy; }
+		const ImageSamplerProperties& GetSamplerProperties() const { return _samplerProperties; }
 
 		/// @brief Gets the image that backs this texture
 		/// @return The image that backs this texture
-		WeakManagedRef<Image> GetImage() const noexcept { return _image; }
+		Ref<Image> GetImage() const noexcept { return _image; }
 
 		/// @brief Gets this texture's sampler
 		/// @return This texture's sampler
-		WeakManagedRef<ImageSampler> GetSampler() const noexcept { return _sampler; }
+		Ref<ImageSampler> GetSampler() const noexcept { return _sampler; }
 
 		/// @brief Loads image data from a file into this texture
 		/// @param filePath The path of the image file

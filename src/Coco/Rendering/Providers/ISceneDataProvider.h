@@ -11,6 +11,6 @@ namespace Coco::Rendering
 	public:
 		/// @brief Fills the given render view with data for geometry that should be rendered
 		/// @param renderView The RenderView
-		virtual void GetSceneData(Ref<RenderView>& renderView) = 0;
+		virtual void GetSceneData(Ref<RenderView> renderView) = 0;
 	};
 }

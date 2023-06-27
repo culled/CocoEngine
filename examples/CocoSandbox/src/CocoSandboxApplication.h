@@ -51,16 +51,14 @@ private:
 	Coco::Ref<Coco::MainLoopTickListener> _tickListener;
 	Coco::Ref<Coco::MainLoopTickListener> _renderTickListener;
 	Coco::Input::InputService* _inputService;
-	Coco::Rendering::RenderingService* _renderService;
 	Coco::Windowing::WindowingService* _windowService;
-	Coco::WeakManagedRef<Coco::Windowing::Window> _window;
+	Coco::Ref<Coco::Windowing::Window> _window;
 
+	Coco::Rendering::RenderingService* _renderService;
 	Coco::Ref<Coco::Rendering::Shader> _shader;
 	Coco::Ref<Coco::Rendering::Material> _material;
 	Coco::Ref<Coco::Rendering::Texture> _texture;
 	uint _textureIndex = 0;
-
-	Coco::Vector3 _cameraEulerAngles;
 
 	Coco::Ref<Coco::Rendering::Mesh> _mesh;
 

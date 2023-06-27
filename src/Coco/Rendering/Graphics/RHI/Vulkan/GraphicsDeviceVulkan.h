@@ -4,13 +4,13 @@
 
 #include <Coco/Core/Types/Optional.h>
 #include "VulkanIncludes.h"
+#include "CommandBufferPoolVulkan.h"
+#include "VulkanRenderCache.h"
 
 namespace Coco::Rendering::Vulkan
 {
     class GraphicsPlatformVulkan;
     struct VulkanQueue;
-    class VulkanRenderCache;
-    class CommandBufferPoolVulkan;
 
     /// @brief A ranking for a VkPhysicalDevice
     struct PhysicalDeviceRanking
@@ -35,11 +35,9 @@ namespace Coco::Rendering::Vulkan
     /// @brief Vulkan implementation of a GraphicsDevice
     class GraphicsDeviceVulkan final : public GraphicsDevice
     {
-    public:
-        /// @brief The platform that this device belongs to
-        const GraphicsPlatformVulkan* VulkanPlatform;
-
     private:
+        GraphicsPlatformVulkan* _platform = nullptr;
+
         VkPhysicalDevice _physicalDevice = nullptr;
         VkDevice _device = nullptr;
 
@@ -50,21 +48,21 @@ namespace Coco::Rendering::Vulkan
         GraphicsDeviceMemoryFeatures _memoryFeatures = {};
         uint _minUniformBufferAlignment;
 
-        Optional<Ref<VulkanQueue>> _graphicsQueue;
-        Optional<Ref<VulkanQueue>> _transferQueue;
-        Optional<Ref<VulkanQueue>> _computeQueue;
-        Optional<Ref<VulkanQueue>> _presentQueue;
+        Optional<SharedRef<VulkanQueue>> _graphicsQueue;
+        Optional<SharedRef<VulkanQueue>> _transferQueue;
+        Optional<SharedRef<VulkanQueue>> _computeQueue;
+        Optional<SharedRef<VulkanQueue>> _presentQueue;
 
-        Managed<VulkanRenderCache> _renderCache;
-        Optional<Managed<CommandBufferPoolVulkan>> _graphicsCommandPool;
-        Optional<Managed<CommandBufferPoolVulkan>> _transferCommandPool;
-        Optional<Managed<CommandBufferPoolVulkan>> _computeCommandPool;
+        ManagedRef<VulkanRenderCache> _renderCache;
+        Optional<ManagedRef<CommandBufferPoolVulkan>> _graphicsCommandPool;
+        Optional<ManagedRef<CommandBufferPoolVulkan>> _transferCommandPool;
+        Optional<ManagedRef<CommandBufferPoolVulkan>> _computeCommandPool;
 
     public:
-        GraphicsDeviceVulkan(const GraphicsPlatformVulkan& platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
+        GraphicsDeviceVulkan(GraphicsPlatformVulkan& platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
         ~GraphicsDeviceVulkan() final;
 
-        Logging::Logger* GetLogger() const noexcept final;
+        Logging::Logger* GetLogger() noexcept final;
         string GetName() const noexcept final { return _name; }
         constexpr GraphicsDeviceType GetType() const noexcept final { return _deviceType; }
         Version GetDriverVersion() const noexcept final { return _driverVersion; }
@@ -77,7 +75,9 @@ namespace Coco::Rendering::Vulkan
         /// @param platform The platform creating the device
         /// @param createParams The parameters for creating the device
         /// @return The created graphics device
-        static Managed<GraphicsDeviceVulkan> Create(const GraphicsPlatformVulkan& platform, const GraphicsDeviceCreationParameters& createParams);
+        static ManagedRef<GraphicsDeviceVulkan> Create(GraphicsPlatformVulkan& platform, const GraphicsDeviceCreationParameters& createParams);
+
+        GraphicsPlatformVulkan* GetVulkanPlatform() { return _platform; }
 
         /// @brief Gets the Vulkan physical device that this graphics device uses
         /// @return The Vulkan physical device
@@ -89,7 +89,7 @@ namespace Coco::Rendering::Vulkan
 
         /// @brief Gets this device's Vulkan render cache
         /// @return This device's Vulkan render cache
-        VulkanRenderCache* GetRenderCache() const noexcept { return _renderCache.get(); }
+        VulkanRenderCache* GetRenderCache() noexcept { return _renderCache.Get(); }
 
         /// @brief Attempts to initialize the present queue with the given surface
         /// @param surface The surface to use for initialization
@@ -119,22 +119,22 @@ namespace Coco::Rendering::Vulkan
         /// @brief Gets this device's command pool for the graphics queue (if one has been created)
         /// @param poolPtr Will be filled out with the graphics command pool if this device has a graphics queue
         /// @return True if the graphics command pool was retrieved
-        bool GetGraphicsCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
+        bool GetGraphicsCommandPool(Ref<CommandBufferPoolVulkan>& poolPtr) const noexcept;
 
         /// @brief Gets this device's command pool for the transfer queue (if one has been created)
         /// @param poolPtr Will be filled out with the transfer command pool if this device has a transfer queue
         /// @return True if the transfer command pool was retrieved
-        bool GetTransferCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
+        bool GetTransferCommandPool(Ref<CommandBufferPoolVulkan>& poolPtr) const noexcept;
 
         /// @brief Gets this device's command pool for the compute queue (if one has been created)
         /// @param poolPtr Will be filled out with the compute command pool if this device has a compute queue
         /// @return True if the compute command pool was retrieved
-        bool GetComputeCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
+        bool GetComputeCommandPool(Ref<CommandBufferPoolVulkan>& poolPtr) const noexcept;
 
         /// @brief Gets this device's command pool for the present queue (if one has been created)
         /// @param poolPtr Will be filled out with the present command pool if this device has a present queue
         /// @return True if the present command pool was retrieved
-        bool GetPresentCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept;
+        bool GetPresentCommandPool(Ref<CommandBufferPoolVulkan>& poolPtr) const noexcept;
 
         /// @brief Finds a memory index for a type of memory
         /// @param type The type of memory
@@ -143,8 +143,7 @@ namespace Coco::Rendering::Vulkan
         /// @return True if a valid memory index was found
         bool FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const noexcept;
 
-    protected:
-        void OnPurgeUnusedResources() noexcept final;
+        void PurgeUnusedResources() noexcept override;
 
     private:
         /// @brief Picks a suitable physical device to use given the parameters

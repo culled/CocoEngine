@@ -12,11 +12,10 @@ namespace Coco::Windowing
 
 	WindowingService::~WindowingService()
 	{
-		_mainWindow.Invalidate();
 		_windows.Clear();
 	}
 
-	WeakManagedRef<Window> WindowingService::CreateNewWindow(WindowCreateParameters& createParameters)
+	Ref<Window> WindowingService::CreateNewWindow(WindowCreateParameters& createParameters)
 	{
 		if (Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(ServiceManager->Engine->GetPlatform()))
 		{
@@ -32,7 +31,7 @@ namespace Coco::Windowing
 		throw WindowCreateException("Current platform does not support windows");
 	}
 
-	bool WindowingService::TryFindWindow(void* windowId, WeakManagedRef<Window>& window) const noexcept
+	bool WindowingService::TryFindWindow(void* windowId, Ref<Window>& window) const noexcept
 	{
 		const auto it = _windows.Find([windowId](const ManagedRef<Window>& other) noexcept {
 			return windowId == other->GetID();
@@ -47,9 +46,9 @@ namespace Coco::Windowing
 		return false;
 	}
 
-	List<WeakManagedRef<Window>> WindowingService::GetRenderableWindows() const noexcept
+	List<Ref<Window>> WindowingService::GetRenderableWindows() const noexcept
 	{
-		List<WeakManagedRef<Window>> renderableWindows;
+		List<Ref<Window>> renderableWindows;
 
 		for (const ManagedRef<Window>& window : _windows)
 		{

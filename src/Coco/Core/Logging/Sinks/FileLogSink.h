@@ -10,7 +10,7 @@ namespace Coco::Logging
 	class COCOAPI FileLogSink final : public LogSink
 	{
 	private:
-		Managed<File> _file;
+		ManagedRef<File> _file;
 
 	public:
 		FileLogSink(LogLevel minimumLevel, const string& file);

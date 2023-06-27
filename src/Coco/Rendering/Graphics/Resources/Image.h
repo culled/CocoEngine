@@ -1,22 +1,21 @@
 #pragma once
 
-#include "GraphicsResource.h"
+#include <Coco/Rendering/RenderingResource.h>
 
 #include "ImageTypes.h"
 
 namespace Coco::Rendering
 {
 	/// @brief A representation of an image on the GPU
-	class COCOAPI Image : public IGraphicsResource
+	class COCOAPI Image : public RenderingResource
 	{
 	protected:
 		/// @brief The description for this image
 		ImageDescription Description;
 
-	protected:
-		Image(ImageDescription description) noexcept;
-
 	public:
+		Image(ResourceID id, const string& name, uint64_t lifetime, ImageDescription description) noexcept;
+
 		virtual ~Image() = default;
 
 		Image(const Image&) = delete;

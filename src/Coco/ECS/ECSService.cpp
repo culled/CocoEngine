@@ -2,17 +2,18 @@
 
 #include "Entity.h"
 #include "Scene.h"
+#include <Coco/Core/Engine.h>
 
 namespace Coco::ECS
 {
 	ECSService* ECSService::_instance = nullptr;
 
 	ECSService::ECSService(EngineServiceManager* serviceManager) : EngineService(serviceManager), 
-		_entities(CreateManaged<MappedMemoryPool<Entity, MaxEntities>>())
+		_entities(CreateManagedRef<MappedMemoryPool<Entity, MaxEntities>>())
 	{
 		_instance = this;
 
-		RegisterTickListener(this, &ECSService::Process, ProcessTickPriority);
+		serviceManager->Engine->GetMainLoop()->CreateTickListener(this, &ECSService::Process, ProcessTickPriority);
 
 		// Create the root scene
 		CreateScene();
@@ -20,7 +21,7 @@ namespace Coco::ECS
 
 	ECSService::~ECSService()
 	{
-		_entities.reset();
+		_entities.Reset();
 	}
 
 	EntityID ECSService::CreateEntity(const string& name, EntityID parentID)
@@ -47,7 +48,7 @@ namespace Coco::ECS
 	{
 		List<EntityID> children;
 
-		for (const auto& entity : *(_entities.get()))
+		for (const auto& entity : *(_entities.Get()))
 		{
 			if (entity._parentID == entity._id)
 				children.Add(entity._id);
@@ -60,7 +61,7 @@ namespace Coco::ECS
 	{
 		List<Entity*> children;
 
-		for (auto& entity : *(_entities.get()))
+		for (auto& entity : *(_entities.Get()))
 		{
 			if (entity._parentID == entity._id)
 				children.Add(&entity);
@@ -104,7 +105,7 @@ namespace Coco::ECS
 	void ECSService::DestroyEntity(EntityID entityID)
 	{
 		// Release the entity and any of its descendants
-		for (const auto& entity : *(_entities.get()))
+		for (const auto& entity : *(_entities.Get()))
 		{
 			if (IsDescendantOfEntity(entity._id, entityID))
 				_entities->Release(entity._id);
@@ -113,10 +114,10 @@ namespace Coco::ECS
 
 	Scene* ECSService::CreateScene(const string& name, SceneID parentID)
 	{
-		_scenes.Add(CreateManaged<Scene>(_nextSceneID, name, parentID));
+		_scenes.Add(CreateManagedRef<Scene>(_nextSceneID, name, parentID));
 		_nextSceneID++;
 
-		return _scenes.Last().get();
+		return _scenes.Last().Get();
 	}
 
 	Scene* ECSService::GetScene(SceneID sceneID)
@@ -126,7 +127,7 @@ namespace Coco::ECS
 		if (it == _scenes.end())
 			return nullptr;
 
-		return (*it).get();
+		return (*it).Get();
 	}
 
 	bool ECSService::TryGetScene(SceneID sceneID, Scene*& scene)
@@ -155,7 +156,7 @@ namespace Coco::ECS
 
 	void ECSService::SetEntityScene(EntityID entityID, SceneID sceneID)
 	{
-		for (auto& entity : *(_entities.get()))
+		for (auto& entity : *(_entities.Get()))
 		{
 			if (IsDescendantOfEntity(entity._id, entityID))
 				entity._sceneID = sceneID;
@@ -164,7 +165,7 @@ namespace Coco::ECS
 
 	void ECSService::DestroyScene(SceneID sceneID)
 	{
-		for (const auto& entity : *(_entities.get()))
+		for (const auto& entity : *(_entities.Get()))
 		{
 			if (entity._sceneID == sceneID)
 				QueueDestroyEntity(entity._id);

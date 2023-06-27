@@ -25,6 +25,7 @@ namespace Coco::ECS
 		bool _inheritParentTransform = true;
 
 	public:
+		TransformComponent() = default;
 		TransformComponent(EntityID owner);
 
 		void SetLocalTransformMatrix(const Matrix4x4& matrix);

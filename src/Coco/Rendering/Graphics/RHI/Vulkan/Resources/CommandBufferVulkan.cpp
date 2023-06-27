@@ -1,14 +1,15 @@
 #include "CommandBufferVulkan.h"
 
 #include "../GraphicsDeviceVulkan.h"
-#include "CommandBufferPoolVulkan.h"
+#include "../CommandBufferPoolVulkan.h"
 #include "GraphicsSemaphoreVulkan.h"
 #include "GraphicsFenceVulkan.h"
 
 namespace Coco::Rendering::Vulkan
 {
-	CommandBufferVulkan::CommandBufferVulkan(bool isPrimary, GraphicsDeviceVulkan* device, CommandBufferPoolVulkan* pool) : CommandBuffer(isPrimary),
-		_device(device), _pool(pool)
+	CommandBufferVulkan::CommandBufferVulkan(ResourceID id, const string& name, uint64_t lifetime, bool isPrimary, CommandBufferPoolVulkan* pool) : 
+		GraphicsResource<GraphicsDeviceVulkan, CommandBuffer>(id, name, lifetime, isPrimary),
+		_pool(pool)
 	{
 		VkCommandBufferAllocateInfo allocateInfo = {};
 		allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -52,9 +53,9 @@ namespace Coco::Rendering::Vulkan
 	}
 
 	void CommandBufferVulkan::SubmitImpl(
-		const List<IGraphicsSemaphore*>& waitSemaphores,
-		const List<IGraphicsSemaphore*>& signalSemaphores,
-		IGraphicsFence* signalFence)
+		const List<GraphicsSemaphore*>& waitSemaphores,
+		const List<GraphicsSemaphore*>& signalSemaphores,
+		GraphicsFence* signalFence)
 	{
 		List<VkSemaphore> vulkanWaitSemaphores;
 

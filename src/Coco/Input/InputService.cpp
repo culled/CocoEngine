@@ -5,17 +5,18 @@
 namespace Coco::Input
 {
 	InputService::InputService(EngineServiceManager* serviceManager) : EngineService(serviceManager),
-		_keyboard(CreateManaged<Keyboard>()),
-		_mouse(CreateManaged<Mouse>())
+		_keyboard(CreateManagedRef<Keyboard>()),
+		_mouse(CreateManagedRef<Mouse>())
 	{
-		RegisterTickListener(this, &InputService::Process, ProcessTickPriority);
-		RegisterTickListener(this, &InputService::LateProcess, LateProcessTickPriority);
+		MainLoop* mainLoop = serviceManager->Engine->GetMainLoop();
+		mainLoop->CreateTickListener(this, &InputService::Process, ProcessTickPriority);
+		mainLoop->CreateTickListener(this, &InputService::LateProcess, LateProcessTickPriority);
 	}
 
 	InputService::~InputService()
 	{
-		_keyboard.reset();
-		_mouse.reset();
+		_keyboard.Reset();
+		_mouse.Reset();
 	}
 
 	void InputService::Process(double deltaTime)

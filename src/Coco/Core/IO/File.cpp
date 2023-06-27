@@ -143,7 +143,7 @@ namespace Coco
 		CheckHandle();
 
 		List<char> chars(charactersToRead);
-		_handle.get(chars.Data(), charactersToRead);
+		_handle.read(chars.Data(), charactersToRead);
 
 		const uint64_t charactersRead = _handle.gcount();
 		if (charactersRead < charactersToRead)
@@ -164,7 +164,7 @@ namespace Coco
 
 		_handle.seekg(current);
 
-		return ReadText(GetSize());
+		return ReadText(length);
 	}
 
 	void File::WriteText(const string& text)

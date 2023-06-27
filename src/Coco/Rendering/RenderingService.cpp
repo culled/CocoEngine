@@ -3,9 +3,9 @@
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Types/Array.h>
 #include "Graphics/GraphicsDevice.h"
-#include "Loaders/TextureLoader.h"
-#include "Loaders/ShaderLoader.h"
-#include "Loaders/MaterialLoader.h"
+#include "Serializers/TextureSerializer.h"
+#include "Serializers/ShaderSerializer.h"
+#include "Serializers/MaterialSerializer.h"
 #include "Texture.h"
 
 namespace Coco::Rendering
@@ -21,24 +21,21 @@ namespace Coco::Rendering
 		CreateDefaultDiffuseTexture();
 		CreateDefaultCheckerTexture();
 
-		RegisterTickListener(this, &RenderingService::PurgeTick, ResourcePurgeTickPriority);
+		ServiceManager->Engine->GetMainLoop()->CreateTickListener(this, &RenderingService::PurgeTick, ResourcePurgeTickPriority);
 
 		ResourceLibrary* resourceLibrary = ServiceManager->Engine->GetResourceLibrary();
-		resourceLibrary->CreateLoader<TextureLoader>();
-		resourceLibrary->CreateLoader<ShaderLoader>();
-		resourceLibrary->CreateLoader<MaterialLoader>();
+		resourceLibrary->AddSerializer<TextureSerializer>();
+		resourceLibrary->AddSerializer<ShaderSerializer>();
+		resourceLibrary->AddSerializer<MaterialSerializer>();
 	}
 
 	RenderingService::~RenderingService()
 	{
-		_defaultPipeline.reset();
-		_defaultDiffuseTexture.reset();
-		_defaultCheckerTexture.reset();
-		_graphics.reset();
+		_graphics.Reset();
 	}
 
 	void RenderingService::Render(
-		const WeakManagedRef<GraphicsPresenter>& presenter,
+		Ref<GraphicsPresenter> presenter,
 		ICameraDataProvider* cameraDataProvider,
 		ISceneDataProvider* sceneDataProvider)
 	{
@@ -53,14 +50,14 @@ namespace Coco::Rendering
 	}
 
 	void RenderingService::Render(
-		const WeakManagedRef<GraphicsPresenter>& presenter,
-		const Ref<RenderPipeline>& pipeline,
+		Ref<GraphicsPresenter> presenter,
+		Ref<RenderPipeline> pipeline,
 		ICameraDataProvider* cameraDataProvider,
 		ISceneDataProvider* sceneDataProvider)
 	{
 		// Acquire the render context and backbuffer that we'll be using
-		RenderContext* renderContext;
-		WeakManagedRef<Image> backbuffer;
+		Ref<RenderContext> renderContext;
+		Ref<Image> backbuffer;
 		if (!presenter->PrepareForRender(renderContext, backbuffer))
 		{
 			LogError(GetLogger(), "Failed to prepare presenter for rendering");
@@ -68,14 +65,14 @@ namespace Coco::Rendering
 		}
 
 		// Create our render view using the provider for camera data
-		Ref<RenderView> view = cameraDataProvider->GetRenderView(pipeline, presenter->GetBackbufferSize(), { backbuffer });
+		ManagedRef<RenderView> view = cameraDataProvider->GetRenderView(pipeline, presenter->GetBackbufferSize(), { backbuffer });
 
 		// Add objects from the scene graph
 		sceneDataProvider->GetSceneData(view);
 
 		// Actually render with the pipeline
 		renderContext->Begin(view, pipeline);
-		DoRender(pipeline.get(), renderContext);
+		DoRender(pipeline.Get(), renderContext.Get());
 		renderContext->End();
 
 		// Submit the render data to the gpu and present
@@ -107,7 +104,9 @@ namespace Coco::Rendering
 		constexpr int size = 32;
 		constexpr int channels = 4;
 
-		_defaultDiffuseTexture = CreateRef<Texture>(
+		_defaultDiffuseTexture = ServiceManager->Engine->GetResourceLibrary()->CreateResource<Texture>(
+			"RenderingService::DefaultDiffuseTexture", 
+			Resource::MaxLifetime,
 			size, size,
 			PixelFormat::RGBA8, ColorSpace::sRGB,
 			ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
@@ -129,11 +128,13 @@ namespace Coco::Rendering
 		constexpr int size = 32;
 		constexpr int channels = 4;
 
-		_defaultCheckerTexture = CreateRef<Texture>(
+		_defaultCheckerTexture = ServiceManager->Engine->GetResourceLibrary()->CreateResource<Texture>(
+			"RenderingService::DefaultCheckerTexture",
+			Resource::MaxLifetime,
 			size, size,
 			PixelFormat::RGBA8, ColorSpace::sRGB,
 			ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled,
-			FilterMode::Nearest);
+			ImageSamplerProperties(ImageFilterMode::Nearest, ImageSamplerProperties::Default.RepeatMode, ImageSamplerProperties::Default.MaxAnisotropy));
 
 		List<uint8_t> pixelData(size * size * channels);
 
@@ -164,7 +165,7 @@ namespace Coco::Rendering
 
 		if (_timeSinceLastPurge > PurgeFrequency)
 		{
-			if(_graphics != nullptr && _graphics->GetDevice() != nullptr)
+			if(_graphics.IsValid() && _graphics->GetDevice() != nullptr)
 				_graphics->GetDevice()->PurgeUnusedResources();
 
 			_timeSinceLastPurge = 0.0;

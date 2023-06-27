@@ -23,7 +23,7 @@ namespace Coco
 		using HandlerID = uint64_t;
 
 	private:
-		List<Ref<HandlerType>> _handlers;
+		List<SharedRef<HandlerType>> _handlers;
 
 	public:
 
@@ -46,28 +46,25 @@ namespace Coco
 		/// @param function The event handler function pointer
 		/// @return A handler for the event
 		template<typename ObjectType>
-		Ref<HandlerType> AddHandler(ObjectType* object, bool(ObjectType::* function)(Args...))
+		WeakSharedRef<HandlerType> AddHandler(ObjectType* object, bool(ObjectType::* function)(Args...))
 		{
-			Ref<ObjectQueryHandler<ObjectType, bool, Args...>> handler = CreateRef<ObjectQueryHandler<ObjectType, bool, Args...>>(object, function);
-			AddHandler(handler);
-			return handler;
+			return AddHandler(CreateSharedRef<ObjectQueryHandler<ObjectType, bool, Args...>>(object, function));
 		}
 
 		/// @brief Adds a generic event function handler
 		/// @param handlerFunction The event handler function
 		/// @return A handler for the event
-		Ref<HandlerType> AddHandler(const HandlerFunctionType& handlerFunction)
+		WeakSharedRef<HandlerType> AddHandler(const HandlerFunctionType& handlerFunction)
 		{
-			Ref<HandlerType> handler = CreateRef<HandlerType>(handlerFunction);
-			AddHandler(handler);
-			return handler;
+			return AddHandler(CreateSharedRef<HandlerType>(handlerFunction));
 		}
 
 		/// @brief Adds an existing event handler
 		/// @param handler A handler reference
-		void AddHandler(const Ref<HandlerType>& handler)
+		WeakSharedRef<HandlerType> AddHandler(SharedRef<HandlerType>&& handler)
 		{
 			_handlers.Insert(0, handler);
+			return _handlers.First();
 		}
 
 		/// @brief Removes an instance and member function event handler
@@ -78,8 +75,8 @@ namespace Coco
 		template<typename ObjectType>
 		bool RemoveHandler(ObjectType* object, bool(ObjectType::* function)(Args...)) noexcept
 		{
-			auto it = _handlers.Find([object, function](const Ref<HandlerType>& other) noexcept {
-				if (ObjectQueryHandler<ObjectType, bool, Args...>* otherPtr = dynamic_cast<ObjectQueryHandler<ObjectType, bool, Args...>*>(other.get()))
+			auto it = _handlers.Find([object, function](const SharedRef<HandlerType>& other) noexcept {
+				if (const ObjectQueryHandler<ObjectType, bool, Args...>* otherPtr = dynamic_cast<const ObjectQueryHandler<ObjectType, bool, Args...>*>(other.Get()))
 				{
 					return otherPtr->Equals(object, function);
 				}
@@ -100,7 +97,7 @@ namespace Coco
 		/// @return True if the handler was found and removed
 		bool RemoveHandler(HandlerID handlerID) noexcept
 		{
-			auto it = _handlers.Find([handlerID](const Ref<HandlerType>& other) noexcept {
+			auto it = _handlers.Find([handlerID](const SharedRef<HandlerType>& other) noexcept {
 				return other->ID == handlerID;
 				});
 
@@ -113,9 +110,13 @@ namespace Coco
 		/// @brief Removes an event handler
 		/// @param handler The handler to remove
 		/// @return True if the handler was found and removed
-		bool RemoveHandler(const Ref<HandlerType>& handler) noexcept
+		bool RemoveHandler(const WeakSharedRef<HandlerType>& handler) noexcept
 		{
-			return _handlers.Remove(handler);
+			if (!handler.IsValid())
+				return false;
+
+			SharedRef<HandlerType> lock = handler.Lock();
+			return RemoveHandler(lock->ID);
 		}
 
 		/// @brief Invokes this event
@@ -123,13 +124,13 @@ namespace Coco
 		/// @return True if this event was handled
 		bool Invoke(Args... params)
 		{
-			List<Ref<HandlerType>> handlersCopy = _handlers;
+			List<SharedRef<HandlerType>> handlersCopy = _handlers;
 
 			bool handled = false;
 
-			for (const Ref<HandlerType>& handler : handlersCopy)
+			for (SharedRef<HandlerType>& handler : handlersCopy)
 			{
-				(*handler)(&handled, params...);
+				(*handler.Get())(&handled, params...);
 
 				if (handled)
 					break;
@@ -143,7 +144,7 @@ namespace Coco
 			Invoke(params...);
 		}
 
-		Ref<HandlerType> operator +=(const HandlerFunctionType& handlerFunction)
+		WeakSharedRef<HandlerType> operator +=(const HandlerFunctionType& handlerFunction)
 		{
 			return AddHandler(handlerFunction);
 		}
@@ -153,7 +154,7 @@ namespace Coco
 			return RemoveHandler(handlerID);
 		}
 
-		bool operator -=(const Ref<HandlerType>& handler)
+		bool operator -=(const WeakSharedRef<HandlerType>& handler)
 		{
 			return RemoveHandler(handler);
 		}

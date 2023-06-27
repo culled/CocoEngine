@@ -4,24 +4,17 @@
 
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Map.h>
-#include "VulkanDescriptorSet.h"
+#include "../VulkanDescriptorSet.h"
 #include "../VulkanIncludes.h"
-
-namespace Coco::Rendering
-{
-	class GraphicsDevice;
-}
 
 namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 
 	/// @brief Manages a pool of descriptor sets
-	class VulkanDescriptorPool final : public IGraphicsResource
+	class VulkanDescriptorPool final : public GraphicsResource<GraphicsDeviceVulkan, RenderingResource>
 	{
 	private:
-		GraphicsDeviceVulkan* _device;
-
 		uint _maxDescriptorSets;
 		UnorderedMap<uint64_t, VkDescriptorSet> _allocatedDescriptorSets;
 		List<VulkanDescriptorLayout> _descriptorSetLayouts;
@@ -29,8 +22,15 @@ namespace Coco::Rendering::Vulkan
 		VkDescriptorPool _pool;
 
 	public:
-		VulkanDescriptorPool(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanDescriptorLayout>& descriptorSetLayouts);
+		VulkanDescriptorPool(
+			ResourceID id, 
+			const string& name, 
+			uint64_t tickLifetime, 
+			uint maxSets, 
+			const List<VulkanDescriptorLayout>& descriptorSetLayouts);
 		~VulkanDescriptorPool() final;
+
+		DefineResourceType(VulkanDescriptorPool)
 
 		/// @brief Gets or allocates a descriptor set linked to the given unique key
 		/// @param layout The layout to allocate descriptors for

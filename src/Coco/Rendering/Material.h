@@ -39,8 +39,13 @@ namespace Coco::Rendering
 		bool _isBufferDataDirty = true;
 
 	public:
-		Material(Ref<Rendering::Shader> shader, const string& name = "");
-		virtual ~Material() override;
+		Material(ResourceID id, const string& name, uint64_t tickLifetime);
+		Material(ResourceID id, const string& name, uint64_t tickLifetime, Ref<Rendering::Shader> shader);
+		~Material() override;
+
+		DefineResourceType(Material)
+
+		void SetShader(Ref<Rendering::Shader> shader);
 
 		/// @brief Gets the shader that this material uses
 		/// @return The shader that this material uses

@@ -4,9 +4,15 @@
 
 namespace Coco
 {
-	ResourceLibrary::ResourceLibrary(const string& basePath) : BasePath(basePath)
+	ResourceLibrary::ResourceLibrary(const string& basePath) : BasePath(basePath), _resourceID(0)
 	{
 		// TODO: Load default loaders
+	}
+
+	ResourceLibrary::~ResourceLibrary()
+	{
+		_resources.clear();
+		_serializers.clear();
 	}
 
 	Logging::Logger* ResourceLibrary::GetLogger() const noexcept
@@ -14,93 +20,79 @@ namespace Coco
 		return Engine::Get()->GetLogger();
 	}
 
-	Ref<Resource> ResourceLibrary::GetOrLoadResource(const string& resourceType, const string& path)
+	Ref<Resource> ResourceLibrary::GetResource(ResourceID id)
 	{
-		// Get the resource if it already is loaded
-		if (_loadedResources.contains(path))
-			return _loadedResources.at(path);
+		if (!_resources.contains(id))
+			return Ref<Resource>();
 
-		ResourceLoader* loader = GetLoaderForResourceType(resourceType);
-
-		Ref<Resource> resource = loader->Load(path);
-		_loadedResources.emplace(path, resource);
-
+		Ref<Resource> resource = _resources.at(id);
+		resource->UpdateTickUsed();
 		return resource;
 	}
 
-	bool ResourceLibrary::Get(ResourceID id, Ref<Resource>& resource) const
+	bool ResourceLibrary::HasResource(ResourceID id) const
 	{
-		for (const auto& kvp : _loadedResources)
+		return _resources.contains(id);
+	}
+
+	void ResourceLibrary::PurgeResource(ResourceID id, bool forcePurge)
+	{
+		if (!_resources.contains(id))
+			return;
+
+		Ref<Resource> resource = _resources.at(id);
+
+		if(forcePurge || resource.GetUseCount() <= 1)
+			_resources.erase(id);
+	}
+
+	string ResourceLibrary::SerializeResource(const Ref<Resource>& resource)
+	{
+		return GetSerializerForResourceType(resource->GetType())->Serialize(resource);
+	}
+
+	void ResourceLibrary::DeserializeResource(const string& data, Resource* resource)
+	{
+		GetSerializerForResourceType(resource->GetType())->Deserialize(data, resource);
+	}
+
+	uint64_t ResourceLibrary::PurgeStaleResources()
+	{
+		auto it = _resources.begin();
+		uint64_t purgeCount = 0;
+
+		while (it != _resources.end())
 		{
-			if (kvp.second->ID == id)
+			// Only purge resources that haven't been used in a while and have no current users 
+			if (it->second->IsStale() && it->second.GetUseCount() == 1)
 			{
-				resource = kvp.second;
-				return true;
+				it = _resources.erase(it);
+				purgeCount++;
+			}
+			else
+			{
+				it++;
 			}
 		}
 
-		return false;
+		return purgeCount;
 	}
 
-	void ResourceLibrary::SaveResource(Ref<Resource> resource, const string& path)
+	ResourceSerializer* ResourceLibrary::GetSerializerForResourceType(std::type_index resourceType)
 	{
-		if (path.empty())
-			throw InvalidOperationException("Path must not be empty");
+		const auto it = _serializers.find(resourceType);
 
-		ResourceLoader* loader = GetLoaderForResourceType(resource->TypeName);
-
-		// Save to disk
-		loader->Save(resource, path);
-
-		AddResource(resource, path);
-	}
-
-	void ResourceLibrary::AddResource(Ref<Resource> resource, const string& path)
-	{
-		if (path.empty())
-			throw InvalidOperationException("Path must not be empty");
-
-		_loadedResources[path] = resource;
-	}
-
-	void ResourceLibrary::RemoveResource(const string& path) noexcept
-	{
-		auto it = _loadedResources.find(path);
-
-		if (it != _loadedResources.end())
-		{
-			_loadedResources.erase(it);
-		}
-		else
-		{
-			LogWarning(GetLogger(), FormattedString("Could not find a resource with path \"{}\" to remove", path));
-		}
-	}
-
-	void ResourceLibrary::RemoveResource(ResourceID id) noexcept
-	{
-		for (auto it = _loadedResources.begin(); it != _loadedResources.end(); it++)
-		{
-			if ((*it).second->ID == id)
-			{
-				_loadedResources.erase(it);
-				return;
-			}
-		}
-
-		LogWarning(GetLogger(), FormattedString("Could not find a resource with id {} to remove", id));
-	}
-
-	ResourceLoader* ResourceLibrary::GetLoaderForResourceType(const string& resourceTypename)
-	{
-		const auto it = _resourceLoaders.find(resourceTypename);
-
-		if (it == _resourceLoaders.end())
+		if (it == _serializers.end())
 			throw InvalidOperationException(FormattedString(
-				"A loader has not been registered for the object type \"{}\"",
-				resourceTypename
+				"A serializer has not been registered for the object type \"{}\"",
+				resourceType.name()
 			));
 
-		return (*it).second.get();
+		return (*it).second.Get();
+	}
+
+	ResourceID ResourceLibrary::GetNextResourceID()
+	{
+		return _resourceID.fetch_add(1);
 	}
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Rendering/Graphics/Resources/RenderContext.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsResource.h>
 
 #include <Coco/Core/Resources/Resource.h>
 #include <Coco/Core/Types/List.h>
@@ -10,13 +11,12 @@
 #include "../VulkanIncludes.h"
 #include "GraphicsFenceVulkan.h"
 #include "GraphicsSemaphoreVulkan.h"
-#include "VulkanDescriptorSet.h"
+#include "../VulkanDescriptorSet.h"
+#include "../RenderContextVulkanCache.h"
 
 namespace Coco::Rendering
 {
-	class RenderingService;
 	class RenderPipeline;
-	class GraphicsDevice;
 }
 
 namespace Coco::Rendering::Vulkan
@@ -24,88 +24,54 @@ namespace Coco::Rendering::Vulkan
 	class GraphicsDeviceVulkan;
 	class ImageVulkan;
 	class RenderCacheVulkan;
-	class RenderContextVulkanCache;
 	class CommandBufferPoolVulkan;
 	class CommandBufferVulkan;
 	class BufferVulkan;
 	class VulkanDescriptorPool;
 	class VulkanRenderPass;
 	class VulkanPipeline;
-	class VulkanSubshader;
-
-	/// @brief A cached Vulkan framebuffer
-	struct CachedVulkanFramebuffer final : public CachedResource
-	{
-		/// @brief A pointer to a Vulkan graphics device
-		GraphicsDeviceVulkan* const Device;
-		
-		/// @brief The pipeline that this framebuffer was created from
-		WeakRef<RenderPipeline> PipelineRef;
-
-		/// @brief The size of the framebuffer
-		SizeInt FramebufferSize = SizeInt::Zero;
-
-		/// @brief The Vulkan framebuffer
-		VkFramebuffer Framebuffer = nullptr;
-
-		CachedVulkanFramebuffer(GraphicsDeviceVulkan* device, Ref<RenderPipeline> pipeline);
-		virtual ~CachedVulkanFramebuffer();
-
-		bool IsInvalid() const noexcept final { return PipelineRef.expired(); }
-		bool NeedsUpdate() const noexcept final;
-
-		/// @brief Checks if this cached framebuffer needs to be updated
-		/// @param framebufferSize The desired size of the framebuffer
-		/// @return True if this resource should be updated
-		bool NeedsUpdate(const SizeInt& framebufferSize) const noexcept
-		{
-			return NeedsUpdate() || FramebufferSize != framebufferSize;
-		}
-
-		/// @brief Destroys the framebuffer
-		void DestroyFramebuffer() noexcept;
-	};
+	class VulkanShader;
+	class VulkanFramebuffer;
 
 	/// @brief Vulkan-implementation of a RenderContext
-	class RenderContextVulkan final : public RenderContext
+	class RenderContextVulkan final : public GraphicsResource<GraphicsDeviceVulkan, RenderContext>
 	{
 	private:
-		static constexpr uint s_globalDescriptorSetIndex = 0;
-		static constexpr uint s_materialDescriptorSetIndex = 1;
-		static constexpr uint64_t s_staleTickCount = 500;
+		static constexpr uint _globalDescriptorSetIndex = 0;
+		static constexpr uint _materialDescriptorSetIndex = 1;
 
-		RenderingService* _renderingService;
-		GraphicsDeviceVulkan* _device;
-		CommandBufferPoolVulkan* _pool;
-		WeakManagedRef<CommandBufferVulkan> _commandBuffer;
-		WeakManagedRef<GraphicsSemaphoreVulkan> _imageAvailableSemaphore;
-		WeakManagedRef<GraphicsSemaphoreVulkan> _renderingCompleteSemaphore;
-		WeakManagedRef<GraphicsFenceVulkan> _renderingCompleteFence;
-		Managed<RenderContextVulkanCache> _renderCache;
+		Ref<CommandBufferPoolVulkan> _pool;
+		Ref<CommandBufferVulkan> _commandBuffer;
+		Ref<GraphicsSemaphoreVulkan> _imageAvailableSemaphore;
+		Ref<GraphicsSemaphoreVulkan> _renderingCompleteSemaphore;
+		Ref<GraphicsFenceVulkan> _renderingCompleteFence;
+		ManagedRef<RenderContextVulkanCache> _renderCache;
 
 		RenderContextState _currentState;
-		List<WeakManagedRef<GraphicsSemaphoreVulkan>> _signalSemaphores;
-		List<WeakManagedRef<GraphicsSemaphoreVulkan>> _waitSemaphores;
+		List<Ref<GraphicsSemaphoreVulkan>> _frameSignalSemaphores;
+		List<Ref<GraphicsSemaphoreVulkan>> _frameWaitSemaphores;
 
-		WeakManagedRef<BufferVulkan> _globalUBO;
+		Ref<BufferVulkan> _globalUBO;
 		VulkanDescriptorLayout _globalDescriptor;
-		WeakManagedRef<VulkanDescriptorPool> _globalDescriptorPool;
+		Ref<VulkanDescriptorPool> _globalDescriptorPool;
 		VkDescriptorSet _globalDescriptorSet;
 
-		Ref<VulkanRenderPass> _renderPass = nullptr;
-		Ref<CachedVulkanFramebuffer> _framebuffer = nullptr;
+		VulkanRenderPass* _currentRenderPass = nullptr;
+		VulkanFramebuffer* _currentFramebuffer = nullptr;
 
 		Set<RenderContextStateChange> _stateChanges;
 		ResourceID _currentShader = Resource::InvalidID;
 		ResourceID _currentMaterial = Resource::InvalidID;
-		Ref<VulkanPipeline> _currentPipeline = nullptr;
+		VulkanPipeline* _currentPipeline = nullptr;
 		UnorderedMap<ResourceID, VkDescriptorSet> _materialDescriptorSets;
 
 		int _backbufferIndex = -1;
 
 	public:
-		RenderContextVulkan(GraphicsDevice* device);
+		RenderContextVulkan(ResourceID id, const string& name, uint64_t lifetime);
 		~RenderContextVulkan() final;
+
+		DefineResourceType(RenderContextVulkan)
 
 		void SetViewport(const RectInt& rect) final;
 		void UseShader(ResourceID shaderID) final;
@@ -140,9 +106,6 @@ namespace Coco::Rendering::Vulkan
 		/// @return True if the state is bound
 		bool FlushStateChanges();
 
-		/// @brief Ensures a framebuffer is created for the current pipeline and render pass using the current render targets
-		void EnsureFramebufferUpdated();
-
 		/// @brief Creates the global descriptor set
 		void CreateGlobalDescriptorSet();
 
@@ -151,7 +114,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param materialID The ID of the material to use
 		/// @param set Will be filled out with the descriptor set
 		/// @return True if the descriptor set was created
-		bool GetOrAllocateMaterialDescriptorSet(const Ref<VulkanSubshader>& subshader, ResourceID materialID, VkDescriptorSet& set);
+		bool GetOrAllocateMaterialDescriptorSet(VulkanShader* shader, const string& passName, ResourceID materialID, VkDescriptorSet& set);
 
 		/// @brief Event handler for the device purging resources
 		/// @return If the event was handled

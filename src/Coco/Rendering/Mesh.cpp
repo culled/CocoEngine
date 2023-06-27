@@ -5,13 +5,14 @@
 
 namespace Coco::Rendering
 {
-	Mesh::Mesh(const string& name) : RenderingResource(name, ResourceType::Mesh)
+	Mesh::Mesh(ResourceID id, const string& name, uint64_t tickLifetime) : RenderingResource(id, name, tickLifetime)
 	{}
 
 	Mesh::~Mesh()
 	{
-		_vertexBuffer.Invalidate();
-		_indexBuffer.Invalidate();
+		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
+		platform->PurgeResource(_vertexBuffer);
+		platform->PurgeResource(_indexBuffer);
 	}
 
 	void Mesh::SetPositions(const List<Vector3>& positions)
@@ -37,8 +38,7 @@ namespace Coco::Rendering
 		if (!_isDirty)
 			return true;
 
-		RenderingService* renderingService = EnsureRenderingService();
-		GraphicsPlatform* platform = renderingService->GetPlatform();
+		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
 
 		try
 		{
@@ -75,7 +75,7 @@ namespace Coco::Rendering
 					BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Index,
 					true);
 
-			WeakManagedRef<Buffer> stagingBuffer = renderingService->GetPlatform()->CreateBuffer(
+			Ref<Buffer> stagingBuffer = platform->CreateBuffer(
 				vertexBufferSize,
 				BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
 				true);
@@ -103,7 +103,7 @@ namespace Coco::Rendering
 			stagingBuffer->LoadData(0, _vertexIndices);
 			stagingBuffer->CopyTo(0, _indexBuffer.Get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
 
-			stagingBuffer.Invalidate();
+			platform->PurgeResource(stagingBuffer);
 
 			if (deleteLocalData)
 			{
@@ -118,7 +118,7 @@ namespace Coco::Rendering
 		}
 		catch (const Exception& ex)
 		{
-			LogError(renderingService->GetLogger(), FormattedString(
+			LogError(platform->GetLogger(), FormattedString(
 				"Failed to upload mesh data: {}",
 				ex.what()
 			));

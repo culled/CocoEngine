@@ -30,7 +30,7 @@ namespace Coco
 		bool _isBlocked = false;
 
 	public:
-		QueryHandler(const HandlerFunctionType& handlerFunction) : _handler(handlerFunction), ID(++_handlerIdCounter)
+		QueryHandler(HandlerFunctionType handlerFunction) : _handler(handlerFunction), ID(++_handlerIdCounter)
 		{}
 
 		virtual ~QueryHandler() = default;

@@ -20,8 +20,8 @@ namespace Coco::Rendering
 	class COCOAPI Mesh : public RenderingResource
 	{
 	private:
-		WeakManagedRef<Buffer> _vertexBuffer;
-		WeakManagedRef<Buffer> _indexBuffer;
+		Ref<Buffer> _vertexBuffer;
+		Ref<Buffer> _indexBuffer;
 
 		List<Vector3> _vertexPositions;
 		List<Vector2> _vertexUV0s;
@@ -33,8 +33,10 @@ namespace Coco::Rendering
 		bool _isDirty = false;
 
 	public:
-		Mesh(const string& name = "");
-		virtual ~Mesh();
+		Mesh(ResourceID id, const string& name, uint64_t tickLifetime);
+		~Mesh() override;
+
+		DefineResourceType(Mesh)
 
 		/// @brief Sets vertex positions for this mesh. NOTE: this will define the number of vertices this mesh has
 		/// @param positions The list of vertex positions
@@ -59,11 +61,11 @@ namespace Coco::Rendering
 
 		/// @brief Gets this mesh's vertex buffer
 		/// @return The vertex buffer
-		WeakManagedRef<Buffer> GetVertexBuffer() const noexcept { return _vertexBuffer; }
+		Ref<Buffer> GetVertexBuffer() const noexcept { return _vertexBuffer; }
 
 		/// @brief Gets this mesh's index buffer
 		/// @return The index buffer
-		WeakManagedRef<Buffer> GetIndexBuffer() const noexcept { return _indexBuffer; }
+		Ref<Buffer> GetIndexBuffer() const noexcept { return _indexBuffer; }
 
 		/// @brief Gets the number of vertices in this mesh
 		/// @return The number of vertices

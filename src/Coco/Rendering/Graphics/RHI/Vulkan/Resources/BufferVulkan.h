@@ -1,23 +1,18 @@
 #pragma once
 
 #include <Coco/Rendering/Graphics/Resources/Buffer.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsResource.h>
 
 #include "../VulkanIncludes.h"
-
-namespace Coco::Rendering
-{
-	class GraphicsDevice;
-}
 
 namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
 
 	/// @brief Vulkan-implementation of a Buffer
-	class BufferVulkan final : public Buffer
+	class BufferVulkan final : public GraphicsResource<GraphicsDeviceVulkan, Buffer>
 	{
 	private:
-		GraphicsDeviceVulkan* _device;
 		uint64_t _size;
 		VkBuffer _buffer = nullptr;
 		VkDeviceMemory _bufferMemory = nullptr;
@@ -28,8 +23,16 @@ namespace Coco::Rendering::Vulkan
 		bool _isLocked = false;
 
 	public:
-		BufferVulkan(GraphicsDevice* owningDevice, BufferUsageFlags usageFlags, uint64_t size, bool createBound);
+		BufferVulkan(
+			ResourceID id, 
+			const string& name, 
+			uint64_t lifetime, 
+			BufferUsageFlags usageFlags, 
+			uint64_t size, 
+			bool bindOnCreate);
 		~BufferVulkan() final;
+
+		DefineResourceType(BufferVulkan)
 
 		void Resize(uint64_t newSize, bool copyOldData) final;
 		void CopyTo(uint64_t sourceOffset, Buffer* destination, uint64_t destinationOffset, uint64_t size) final;

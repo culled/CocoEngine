@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GraphicsResource.h"
+#include <Coco/Rendering/RenderingResource.h>
 
 #include <Coco/Core/Types/List.h>
 #include "BufferTypes.h"
@@ -8,16 +8,14 @@
 namespace Coco::Rendering
 {
 	/// @brief A buffer that holds contiguous data for a graphics device
-	class COCOAPI Buffer : public IGraphicsResource
+	class COCOAPI Buffer : public RenderingResource
 	{
 	public:
 		/// @brief The usage flags of this buffer
 		const BufferUsageFlags UsageFlags;
 
-	protected:
-		Buffer(BufferUsageFlags usageFlags) noexcept;
-
 	public:
+		Buffer(ResourceID id, const string& name, uint64_t lifetime, BufferUsageFlags usageFlags) noexcept;
 		virtual ~Buffer() = default;
 
 		Buffer() = delete;

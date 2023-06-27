@@ -2,7 +2,7 @@
 
 namespace Coco::Rendering
 {
-	Buffer::Buffer(BufferUsageFlags usageFlags) noexcept :
+	Buffer::Buffer(ResourceID id, const string& name, uint64_t lifetime, BufferUsageFlags usageFlags) noexcept : RenderingResource(id, name, lifetime),
 		UsageFlags(usageFlags)
 	{}
 }

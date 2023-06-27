@@ -41,8 +41,8 @@ namespace Coco
 	private:
 		friend class MainLoop;
 
-		/// @brief Called by the main loop everytick
+		/// @brief Called by the main loop every tick
 		/// @param deltaTime The time between ticks (in seconds)
-		void PurgeTick(double deltaTime);
+		void Tick(double deltaTime);
 	};
 }

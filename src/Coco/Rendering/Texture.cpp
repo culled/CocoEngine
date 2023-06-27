@@ -8,46 +8,49 @@
 
 namespace Coco::Rendering
 {
+	Texture::Texture(ResourceID id, const string& name, uint64_t tickLifetime) : RenderingResource(id, name, tickLifetime)
+	{}
+
 	Texture::Texture(
+		ResourceID id,
+		const string& name,
+		uint64_t tickLifetime,
 		int width,
 		int height,
 		PixelFormat pixelFormat,
 		ColorSpace colorSpace,
 		ImageUsageFlags usageFlags,
-		FilterMode filterMode,
-		RepeatMode repeatMode,
-		uint maxAnisotropy,
-		const string& name
-	) : RenderingResource(name, ResourceType::Texture),
-		_usageFlags(usageFlags), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
+		const ImageSamplerProperties& samplerProperties
+	) : RenderingResource(id, name, tickLifetime),
+		_usageFlags(usageFlags), _samplerProperties(samplerProperties)
 	{
 		RecreateImageFromDescription(ImageDescription(width, height, 1, pixelFormat, colorSpace, usageFlags));
 		RecreateInternalSampler();
 	}
 
 	Texture::Texture(
+		ResourceID id,
+		const string& name,
+		uint64_t tickLifetime,
 		const ImageDescription& description, 
-		FilterMode filterMode, 
-		RepeatMode repeatMode, 
-		uint maxAnisotropy,
-		const string& name
-	) : RenderingResource(name, ResourceType::Texture),
-		_usageFlags(description.UsageFlags), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
+		const ImageSamplerProperties& samplerProperties
+	) : RenderingResource(id, name, tickLifetime),
+		_usageFlags(description.UsageFlags), _samplerProperties(samplerProperties)
 	{
 		RecreateImageFromDescription(description);
 		RecreateInternalSampler();
 	}
 
 	Texture::Texture(
+		ResourceID id,
+		const string& name,
+		uint64_t tickLifetime,
 		const string& filePath, 
 		ImageUsageFlags usageFlags, 
-		FilterMode filterMode, 
-		RepeatMode repeatMode, 
-		uint maxAnisotropy, 
-		int channelCount,
-		const string& name
-	) : RenderingResource(name, ResourceType::Texture),
-		_usageFlags(usageFlags), _filterMode(filterMode), _repeatMode(repeatMode), _maxAnisotropy(maxAnisotropy)
+		const ImageSamplerProperties& samplerProperties,
+		int channelCount
+	) : RenderingResource(id, name, tickLifetime),
+		_usageFlags(usageFlags), _samplerProperties(samplerProperties)
 	{
 		LoadFromFile(filePath, channelCount);
 		RecreateInternalSampler();
@@ -55,8 +58,13 @@ namespace Coco::Rendering
 
 	Texture::~Texture()
 	{
-		_sampler.Invalidate();
-		_image.Invalidate();
+		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
+
+		if(_image.IsValid())
+			platform->PurgeResource(_image);
+
+		if(_sampler.IsValid())
+			platform->PurgeResource(_sampler);
 	}
 
 	ImageDescription Texture::GetDescription() const noexcept
@@ -73,11 +81,9 @@ namespace Coco::Rendering
 		IncrementVersion();
 	}
 
-	void Texture::SetSamplerProperties(RepeatMode repeatMode, FilterMode filterMode, uint maxAnisotropy)
+	void Texture::SetSamplerProperties(const ImageSamplerProperties& samplerProperties)
 	{
-		_repeatMode = repeatMode;
-		_filterMode = filterMode;
-		_maxAnisotropy = maxAnisotropy;
+		_samplerProperties = samplerProperties;
 
 		RecreateInternalSampler();
 		IncrementVersion();
@@ -85,8 +91,6 @@ namespace Coco::Rendering
 
 	bool Texture::LoadFromFile(const string& filePath, int imageChannelCount)
 	{
-		RenderingService* renderService = EnsureRenderingService();
-
 		// Set Y = 0 to the top
 		stbi_set_flip_vertically_on_load(true);
 
@@ -94,15 +98,15 @@ namespace Coco::Rendering
 		ImageDescription description = {};
 		description.UsageFlags = _usageFlags;
 
-		const string fullFilePath = Engine::Get()->GetResourceLibrary()->GetFullFilePath(filePath);
-
 		// Load in the image data from the file
 		int actualChannelCount;
-		uint8_t* rawImageData = stbi_load(fullFilePath.c_str(), &description.Width, &description.Height, &actualChannelCount, imageChannelCount);
+		uint8_t* rawImageData = stbi_load(filePath.c_str(), &description.Width, &description.Height, &actualChannelCount, imageChannelCount);
+
+		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
 
 		if (rawImageData == nullptr || stbi_failure_reason())
 		{
-			LogError(renderService->GetLogger(), FormattedString("Failed to load image data from \"{}\": {}", filePath, stbi_failure_reason()));
+			LogError(platform->GetLogger(), FormattedString("Failed to load image data from \"{}\": {}", filePath, stbi_failure_reason()));
 
 			// Free the image data if it was somehow loaded
 			if (rawImageData != nullptr)
@@ -138,40 +142,57 @@ namespace Coco::Rendering
 
 		// Hold onto the old image data just in-case the transfer fails
 		ResourceVersion oldVersion = GetVersion();
-		WeakManagedRef<Image> oldImage = _image;
+		Ref<Image> oldImage = _image;
 
 		try
 		{
 			// Load the image data into this texture
-			RecreateImageFromDescription(description);
-			SetPixels(0, byteSize, rawImageData);
-			_imageFilePath = filePath;
+			_image = platform->CreateImage(description);
+			_image->SetPixelData(0, byteSize, rawImageData);
 		}
 		catch (const Exception& ex)
 		{
-			LogError(renderService->GetLogger(), FormattedString("Failed to transfer image data into backend: {}", ex.what()));
+			LogError(platform->GetLogger(), FormattedString("Failed to transfer image data into backend: {}", ex.what()));
 
 			// Revert to the previous image data
+			platform->PurgeResource(_image);
 			_image = oldImage;
 			SetVersion(oldVersion);
 
 			return false;
 		}
 
+		if(oldImage.IsValid())
+			platform->PurgeResource(oldImage);
+
+		IncrementVersion();
+
+		_imageFilePath = filePath;
+
 		stbi_image_free(rawImageData);
 
-		LogTrace(renderService->GetLogger(), FormattedString("Loaded image \"{}\"", filePath));
+		LogTrace(platform->GetLogger(), FormattedString("Loaded image \"{}\"", filePath));
 
 		return true;
 	}
 
 	void Texture::RecreateImageFromDescription(const ImageDescription& newDescription)
 	{
-		_image = EnsureRenderingService()->GetPlatform()->CreateImage(newDescription);
+		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
+
+		if(_image.IsValid())
+			platform->PurgeResource(_image);
+
+		_image = platform->CreateImage(newDescription);
 	}
 
 	void Texture::RecreateInternalSampler()
 	{
-		_sampler = EnsureRenderingService()->GetPlatform()->CreateImageSampler(_filterMode, _repeatMode, _maxAnisotropy);
+		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
+
+		if (_sampler.IsValid())
+			platform->PurgeResource(_sampler);
+
+		_sampler = platform->CreateImageSampler(_samplerProperties);
 	}
 }

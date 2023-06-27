@@ -1,7 +1,9 @@
 #pragma once
 
 #include "../EntityComponent.h"
+#include <Coco/Core/Resources/ResourceCache.h>
 #include <Coco/Core/Resources/Resource.h>
+#include <Coco/Core/Resources/ResourceLibrary.h>
 
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/Size.h>
@@ -19,21 +21,26 @@ namespace Coco::ECS
 {
 
 	/// @brief A cached set of images for a pipeline
-	class ImageCache final : public CachedResource
+	class PipelineImageCache final : public Resource
 	{
+	private:
+		ResourceVersion _pipelineVersion;
+
 	public:
-		WeakRef<Rendering::RenderPipeline> PipelineRef;
-		UnorderedMap<int, WeakManagedRef<Rendering::Image>> Images;
+		Ref<Rendering::RenderPipeline> Pipeline;
+		UnorderedMap<int, Ref<Rendering::Image>> Images;
 
-		ImageCache(const Ref<Rendering::RenderPipeline>& pipeline);
-		~ImageCache() final = default;
+		PipelineImageCache(ResourceID id, const string& name, uint64_t tickLifetime, const Ref<Rendering::RenderPipeline>& pipeline);
+		~PipelineImageCache() final = default;
 
-		bool IsInvalid() const noexcept final { return PipelineRef.expired(); }
-		bool NeedsUpdate() const noexcept final;
+		DefineResourceType(PipelineImageCache)
+
+		bool IsValid() const noexcept { return Pipeline.IsValid(); }
+		bool NeedsUpdate() const noexcept;
 
 		/// @brief Updates this cache of images
 		/// @param images The images to cache
-		void Update(const UnorderedMap<int, WeakManagedRef<Rendering::Image>>& images);
+		void Update(const UnorderedMap<int, Ref<Rendering::Image>>& images);
 	};
 
 	/// @brief A camera component that can render a scene from a perspective
@@ -63,12 +70,56 @@ namespace Coco::ECS
 
 		bool _isProjectionMatrixDirty = true;
 
-		List<WeakManagedRef<Rendering::Image>> _renderTargetOverrides;
-		UnorderedMap<ResourceID, Ref<ImageCache>> _imageCache;
+		List<Ref<Rendering::Image>> _renderTargetOverrides;
+		ManagedRef<ResourceCache<PipelineImageCache>> _imageCache;
 
 	public:
+		CameraComponent() = default;
 		CameraComponent(EntityID owner);
+
 		virtual ~CameraComponent() = default;
+
+		CameraComponent(CameraComponent&& other) noexcept : EntityComponent(std::move(other))
+		{
+			_projectionType = other._projectionType;
+
+			_projectionMatrix = std::move(other._projectionMatrix);
+			_viewMatrix = std::move(other._viewMatrix);
+
+			_nearClipDistance = other._nearClipDistance;
+			_farClipDistance = other._farClipDistance;
+
+			_perspectiveFieldOfView = other._perspectiveFieldOfView;
+			_orthographicSize = other._orthographicSize;
+			_aspectRatio = other._aspectRatio;
+
+			_isProjectionMatrixDirty = other._isProjectionMatrixDirty;
+
+			_renderTargetOverrides = std::move(other._renderTargetOverrides);
+			_imageCache = std::move(other._imageCache);
+		}
+
+		CameraComponent& operator=(CameraComponent&& other) noexcept
+		{
+			_projectionType = other._projectionType;
+
+			_projectionMatrix = std::move(other._projectionMatrix);
+			_viewMatrix = std::move(other._viewMatrix);
+
+			_nearClipDistance = other._nearClipDistance;
+			_farClipDistance = other._farClipDistance;
+
+			_perspectiveFieldOfView = other._perspectiveFieldOfView;
+			_orthographicSize = other._orthographicSize;
+			_aspectRatio = other._aspectRatio;
+
+			_isProjectionMatrixDirty = other._isProjectionMatrixDirty;
+
+			_renderTargetOverrides = std::move(other._renderTargetOverrides);
+			_imageCache = std::move(other._imageCache);
+
+			return *this;
+		}
 
 		/// @brief Gets the type of projection that this camera is using
 		/// @return The type of projection that this camera is using
@@ -130,17 +181,17 @@ namespace Coco::ECS
 
 		/// @brief Sets the rendertarget overrides to use
 		/// @param renderTargets The rendertargets to use
-		void SetRenderTargetOverrides(const List<WeakManagedRef<Rendering::Image>>& renderTargets) { _renderTargetOverrides = renderTargets; }
+		void SetRenderTargetOverrides(const List<Ref<Rendering::Image>>& renderTargets) { _renderTargetOverrides = renderTargets; }
 
 		/// @brief Gets rendertargets that match the given pipeline's attachment layout
 		/// @param pipeline The pipeline
 		/// @return A list of render targets
-		List<WeakManagedRef<Rendering::Image>> GetRenderTargets(const Ref<Rendering::RenderPipeline>& pipeline, const SizeInt& size);
+		List<Ref<Rendering::Image>> GetRenderTargets(Ref<Rendering::RenderPipeline> pipeline, const SizeInt& size);
 
-		virtual Ref<Rendering::RenderView> GetRenderView(
-			const Ref<Rendering::RenderPipeline>& pipeline,
+		ManagedRef<Rendering::RenderView> GetRenderView(
+			Ref<Rendering::RenderPipeline> pipeline,
 			const SizeInt& backbufferSize,
-			const List<WeakManagedRef<Rendering::Image>>& backbuffers);
+			const List<Ref<Rendering::Image>>& backbuffers) final;
 
 	private:
 		/// @brief Updates the internal projection matrix based on the projection type

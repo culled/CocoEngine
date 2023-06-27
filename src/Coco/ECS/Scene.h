@@ -28,6 +28,6 @@ namespace Coco::ECS
 		void SetParent(SceneID parentID) { _parentID = parentID; }
 		SceneID GetParentID() const { return _parentID; }
 
-		virtual void GetSceneData(Ref<Rendering::RenderView>& renderView) final;
+		virtual void GetSceneData(Ref<Rendering::RenderView> renderView) final;
 	};
 }

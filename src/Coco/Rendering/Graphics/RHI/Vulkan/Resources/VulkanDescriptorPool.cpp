@@ -6,9 +6,15 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanDescriptorPool::VulkanDescriptorPool(GraphicsDevice* owningDevice, uint maxSets, const List<VulkanDescriptorLayout>& descriptorSetLayouts) :
-		_device(static_cast<GraphicsDeviceVulkan*>(owningDevice)),
-		_maxDescriptorSets(maxSets), _descriptorSetLayouts(descriptorSetLayouts)
+	VulkanDescriptorPool::VulkanDescriptorPool(
+		ResourceID id,
+		const string& name,
+		uint64_t tickLifetime,
+		uint maxSets,
+		const List<VulkanDescriptorLayout>& descriptorSetLayouts) : 
+		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name, tickLifetime),
+		_maxDescriptorSets(maxSets), 
+		_descriptorSetLayouts(descriptorSetLayouts)
 	{
 		List<VkDescriptorPoolSize> poolSizes;
 
@@ -78,11 +84,11 @@ namespace Coco::Rendering::Vulkan
 		}
 		catch (const Exception& ex)
 		{
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Unable to free descriptor sets: {}", ex.what()));
+			LogError(_device->GetLogger(), FormattedString("Unable to free descriptor sets: {}", ex.what()));
 		}
 		catch(...)
 		{
-			LogError(_device->VulkanPlatform->GetLogger(), "Unable to free descriptor sets: {}");
+			LogError(_device->GetLogger(), "Unable to free descriptor sets: {}");
 		}
 
 		_allocatedDescriptorSets.clear();

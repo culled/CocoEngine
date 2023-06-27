@@ -8,6 +8,11 @@
 #include "Resources/BufferTypes.h"
 #include "GraphicsPlatformTypes.h"
 
+namespace Coco
+{
+	class Resource;
+}
+
 namespace Coco::Logging
 {
 	class Logger;
@@ -48,11 +53,11 @@ namespace Coco::Rendering
 		/// @param renderingService The rendering service
 		/// @param creationParams Platform creation parameters
 		/// @return A created graphics platform
-		static Managed<GraphicsPlatform> CreatePlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);
+		static ManagedRef<GraphicsPlatform> CreatePlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);
 
 		/// @brief Gets this graphics platform's logger
 		/// @return This graphics platform's logger
-		virtual Logging::Logger* GetLogger() const noexcept = 0;
+		virtual Logging::Logger* GetLogger() noexcept = 0;
 
 		/// @brief Gets the render hardware interface that this platform uses
 		/// @return The render hardware interface that this platform uses
@@ -60,32 +65,34 @@ namespace Coco::Rendering
 
 		/// @brief Gets the graphics device that is used for rendering
 		/// @return The graphics device that is used for rendering
-		virtual GraphicsDevice* GetDevice() const noexcept = 0;
+		virtual GraphicsDevice* GetDevice() noexcept = 0;
 
 		/// @brief Resets the graphics device
 		//virtual void ResetDevice() = 0;
 
 		/// @brief Creates a graphics presenter
 		/// @return A graphics presenter
-		virtual WeakManagedRef<GraphicsPresenter> CreatePresenter() = 0;
+		virtual Ref<GraphicsPresenter> CreatePresenter() = 0;
 
 		/// @brief Creates a data buffer
 		/// @param size The size of the buffer (in bytes)
 		/// @param usageFlags Flags for how the buffer will be used
 		/// @param bindOnCreate If true, the buffer will be bound after it is created
 		/// @return The created buffer
-		virtual WeakManagedRef<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
+		virtual Ref<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
 
 		/// @brief Creates an image
 		/// @param description The description for the image
 		/// @return The created image
-		virtual WeakManagedRef<Image> CreateImage(const ImageDescription& description) = 0;
+		virtual Ref<Image> CreateImage(const ImageDescription& description) = 0;
 
 		/// @brief Creates an image sampler
 		/// @param filterMode The filter mode
 		/// @param repeatMode The repeat mode
 		/// @param maxAnisotropy The maximum anisotropy
 		/// @return The created image sampler
-		virtual WeakManagedRef<ImageSampler> CreateImageSampler(FilterMode filterMode, RepeatMode repeatMode, uint maxAnisotropy) = 0;
+		virtual Ref<ImageSampler> CreateImageSampler(const ImageSamplerProperties& properties) = 0;
+
+		virtual void PurgeResource(const Ref<Resource>& resource, bool forcePurge = false);
 	};
 }

@@ -23,10 +23,10 @@ namespace Coco::ECS
 	private:
 		static ECSService* _instance;
 
-		Managed<MappedMemoryPool<Entity, MaxEntities>> _entities;
+		ManagedRef<MappedMemoryPool<Entity, MaxEntities>> _entities;
 		Set<EntityID> _queuedEntitiesToDestroy;
-		UnorderedMap<const char*, Managed<IEntityComponentList>> _componentLists;
-		List<Managed<Scene>> _scenes;
+		UnorderedMap<std::type_index, ManagedRef<IEntityComponentList>> _componentLists;
+		List<ManagedRef<Scene>> _scenes;
 		SceneID _nextSceneID = RootSceneID;
 
 	public:
@@ -76,9 +76,7 @@ namespace Coco::ECS
 		template<typename ComponentType>
 		bool HasComponents(EntityID entityID) const
 		{
-			const char* type = typeid(ComponentType).name();
-
-			auto* list = GetGenericComponentList(type);
+			const IEntityComponentList* list = GetGenericComponentList(typeid(ComponentType));
 
 			if (list == nullptr)
 				return false;
@@ -89,9 +87,7 @@ namespace Coco::ECS
 		template<typename ComponentType, typename SecondComponentType, typename ... ComponentTypes>
 		bool HasComponents(EntityID entityID) const
 		{
-			const char* type = typeid(ComponentType).name();
-
-			auto* list = GetGenericComponentList(type);
+			const IEntityComponentList* list = GetGenericComponentList(typeid(ComponentType));
 
 			if (list == nullptr)
 				return false;
@@ -124,43 +120,43 @@ namespace Coco::ECS
 		template<typename ComponentType>
 		EntityComponentList<ComponentType, MaxEntities>* GetComponentList()
 		{
-			const char* key = typeid(ComponentType).name();
+			std::type_index key = typeid(ComponentType);
 
 			if (!_componentLists.contains(key))
 			{
-				_componentLists.try_emplace(key, CreateManaged<EntityComponentList<ComponentType, MaxEntities>>());
+				_componentLists.try_emplace(key, CreateManagedRef<EntityComponentList<ComponentType, MaxEntities>>());
 			}
 
-			return static_cast<EntityComponentList<ComponentType, MaxEntities>*>(_componentLists.at(key).get());
+			return static_cast<EntityComponentList<ComponentType, MaxEntities>*>(_componentLists.at(key).Get());
 		}
 
 		template<typename ComponentType>
 		const EntityComponentList<ComponentType, MaxEntities>* GetComponentList() const
 		{
-			const char* key = typeid(ComponentType).name();
+			std::type_index key = typeid(ComponentType);
 
 			if (!_componentLists.contains(key))
 			{
-				_componentLists.try_emplace(key, CreateManaged<EntityComponentList<ComponentType, MaxEntities>>());
+				_componentLists.try_emplace(key, CreateManagedRef<EntityComponentList<ComponentType, MaxEntities>>());
 			}
 
-			return static_cast<EntityComponentList<ComponentType, MaxEntities>*>(_componentLists.at(key).get());
+			return static_cast<EntityComponentList<ComponentType, MaxEntities>*>(_componentLists.at(key).Get());
 		}
 
-		IEntityComponentList* GetGenericComponentList(const char* listKey)
+		IEntityComponentList* GetGenericComponentList(const std::type_index& listKey)
 		{
 			if (!_componentLists.contains(listKey))
 				return nullptr;
 
-			return _componentLists.at(listKey).get();
+			return _componentLists.at(listKey).Get();
 		}
 
-		const IEntityComponentList* GetGenericComponentList(const char* listKey) const
+		const IEntityComponentList* GetGenericComponentList(const std::type_index& listKey) const
 		{
 			if (!_componentLists.contains(listKey))
 				return nullptr;
 
-			return _componentLists.at(listKey).get();
+			return _componentLists.at(listKey).Get();
 		}
 	};
 }

@@ -65,7 +65,7 @@ namespace Coco::Logging
 	class COCOAPI Logger
 	{
 	private:
-		List<Ref<LogSink>> _logSinks;
+		List<SharedRef<LogSink>> _logSinks;
 
 	public:
 		/// @brief Text representations of log levels
@@ -87,11 +87,11 @@ namespace Coco::Logging
 
 		/// @brief Adds a sink to this logger
 		/// @param sink The sink to add
-		void AddSink(Ref<LogSink> sink);
+		void AddSink(SharedRef<LogSink> sink);
 
 		/// @brief Removes a sink from this logger
 		/// @param sink The sink to remove
-		void RemoveSink(const Ref<LogSink>& sink);
+		void RemoveSink(const SharedRef<LogSink>& sink);
 
 		/// @brief Writes a message with a log level to this logger's sinks
 		/// @param level The level of the message

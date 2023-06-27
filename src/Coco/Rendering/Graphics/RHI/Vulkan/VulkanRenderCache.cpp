@@ -1,22 +1,20 @@
 #include "VulkanRenderCache.h"
 
 #include <Coco/Core/Logging/Logger.h>
+#include <Coco/Core/Resources/ResourceLibrary.h>
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 #include <Coco/Rendering/Graphics/GraphicsPipelineState.h>
 #include "../../RenderView.h"
 #include "GraphicsDeviceVulkan.h"
-#include "Cache/VulkanSubshader.h"
-#include "Cache/VulkanRenderPass.h"
-#include "Cache/VulkanPipeline.h"
-#include "Resources/VulkanDescriptorSet.h"
+#include "VulkanDescriptorSet.h"
 
 namespace Coco::Rendering::Vulkan
 {
-	CachedShader::CachedShader(const ShaderRenderData& shaderData) : CachedResource(shaderData.ID, shaderData.Version) 
-	{}
-
 	VulkanRenderCache::VulkanRenderCache(GraphicsDeviceVulkan* device) :
-		_device(device)
+		_device(device), 
+		_pipelineCache(CreateManagedRef<ResourceCache<VulkanPipeline>>(RenderingService::DefaultGraphicsResourceTickLifetime)),
+		_renderPassCache(CreateManagedRef<ResourceCache<VulkanRenderPass>>(RenderingService::DefaultGraphicsResourceTickLifetime)),
+		_shaderCache(CreateManagedRef<ResourceCache<VulkanShader>>(RenderingService::DefaultGraphicsResourceTickLifetime))
 	{}
 
 	VulkanRenderCache::~VulkanRenderCache()
@@ -26,60 +24,21 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanRenderCache::Invalidate() noexcept
 	{
-		_renderPassCache.clear();
-		_pipelineCache.clear();
-		_shaderCache.clear();
+		_renderPassCache->Invalidate();
+		_pipelineCache->Invalidate();
+		_shaderCache->Invalidate();
 	}
 
 	void VulkanRenderCache::PurgeResources() noexcept
 	{
 		// Purge renderpass cache
-		uint64_t renderPassesPurged = 0;
-		auto renderPassIt = _renderPassCache.begin();
-		while (renderPassIt != _renderPassCache.end())
-		{
-			const Ref<VulkanRenderPass>& resource = (*renderPassIt).second;
-
-			if (resource->ShouldPurge(s_staleTickCount))
-			{
-				renderPassIt = _renderPassCache.erase(renderPassIt);
-				renderPassesPurged++;
-			}
-			else
-				renderPassIt++;
-		}
+		int renderPassesPurged = _renderPassCache->PurgeStaleResources();
 
 		// Purge pipeline cache
-		uint64_t pipelinesPurged = 0;
-		auto pipelineIt = _pipelineCache.begin();
-		while (pipelineIt != _pipelineCache.end())
-		{
-			const Ref<VulkanPipeline>& resource = (*pipelineIt).second;
-
-			if (resource->ShouldPurge(s_staleTickCount))
-			{
-				pipelineIt = _pipelineCache.erase(pipelineIt);
-				pipelinesPurged++;
-			}
-			else
-				pipelineIt++;
-		}
+		int pipelinesPurged = _pipelineCache->PurgeStaleResources();
 
 		// Purge shader cache
-		uint64_t shadersPurged = 0;
-		auto shaderIt = _shaderCache.begin();
-		while (shaderIt != _shaderCache.end())
-		{
-			const Ref<CachedShader>& resource = (*shaderIt).second;
-
-			if (resource->ShouldPurge(s_staleTickCount))
-			{
-				shaderIt = _shaderCache.erase(shaderIt);
-				shadersPurged++;
-			}
-			else
-				shaderIt++;
-		}
+		int shadersPurged = _shaderCache->PurgeStaleResources();
 
 		if (renderPassesPurged > 0 || pipelinesPurged > 0 || shadersPurged > 0)
 			LogTrace(_device->GetLogger(), FormattedString(
@@ -90,21 +49,24 @@ namespace Coco::Rendering::Vulkan
 			));
 	}
 
-	Ref<VulkanRenderPass> VulkanRenderCache::GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline)
+	VulkanRenderPass* VulkanRenderCache::GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline)
 	{
-		const ResourceID id = renderPipeline->ID;
+		const ResourceID id = renderPipeline->GetID();
+		VulkanRenderPass* resource;
 
-		if (!_renderPassCache.contains(id) || _renderPassCache.at(id)->IsInvalid())
-			_renderPassCache[id] = CreateRef<VulkanRenderPass>(_device, renderPipeline);
+		if (!_renderPassCache->Has(id))
+			resource = _renderPassCache->Create(id, _device, renderPipeline);
+		else
+			resource = _renderPassCache->Get(id);
 
-		Ref<VulkanRenderPass>& resource = _renderPassCache[id];
-		Assert(resource->IsInvalid() == false);
+		if (!resource->IsValid())
+			resource->ReBind(renderPipeline);
 
-		resource->UpdateTickUsed();
+		Assert(resource->IsValid());
 
 		if (resource->NeedsUpdate())
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan RenderPass for pipeline {}", renderPipeline->ID));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan RenderPass for pipeline {}", renderPipeline->GetID()));
 
 			try
 			{
@@ -119,29 +81,30 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
-	Ref<VulkanPipeline> VulkanRenderCache::GetOrCreatePipeline(
-		const Ref<VulkanRenderPass>& renderPass,
-		const Ref<VulkanSubshader>& subshader,
+	VulkanPipeline* VulkanRenderCache::GetOrCreatePipeline(
+		VulkanRenderPass* renderPass,
+		VulkanShader* shader,
+		const string& subshaderName,
 		uint32_t subpassIndex,
 		const VkDescriptorSetLayout& globalDescriptorLayout)
 	{
-		const uint64_t key = Math::CombineHashes(0, renderPass->ID, subshader->ShaderID);
+		const ResourceID id = VulkanPipeline::GetResourceID(renderPass, shader);
+		VulkanPipeline* resource;
 
-		if (!_pipelineCache.contains(key) || _pipelineCache.at(key)->IsInvalid())
-			_pipelineCache[key] = CreateRef<VulkanPipeline>(_device, renderPass, subshader, subpassIndex);
+		if (!_pipelineCache->Has(id))
+			resource = _pipelineCache->Create(id, renderPass, shader, subshaderName, subpassIndex);
+		else
+			resource = _pipelineCache->Get(id);
 
-		Ref<VulkanPipeline>& resource = _pipelineCache[key];
-		Assert(resource->IsInvalid() == false);
+		Assert(resource->IsValid());
 
-		resource->UpdateTickUsed();
-
-		if (resource->NeedsUpdate())
+		if (resource->NeedsUpdate(renderPass, shader))
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subshader \"{}\" and render pass {}", subshader->SubshaderName, renderPass->ID));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subshader \"{}\" and render pass {}", subshaderName, renderPass->GetID()));
 
 			try
 			{
-				resource->Update(globalDescriptorLayout);
+				resource->Update(renderPass, shader, globalDescriptorLayout);
 			}
 			catch (const Exception& ex)
 			{
@@ -155,22 +118,21 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
-	Ref<VulkanSubshader> VulkanRenderCache::GetOrCreateVulkanSubshader(const string& subshaderName, const ShaderRenderData& shaderData)
+	VulkanShader* VulkanRenderCache::GetOrCreateVulkanShader(const ShaderRenderData& shaderData)
 	{
-		if (!_shaderCache.contains(shaderData.ID))
-			_shaderCache.emplace(shaderData.ID, CreateRef<CachedShader>(shaderData));
+		const ResourceID id = shaderData.ID;
+		VulkanShader* resource;
 
-		Ref<CachedShader>& shaderResource = _shaderCache.at(shaderData.ID);
-		if (!shaderResource->Subshaders.contains(subshaderName))
-			shaderResource->Subshaders.emplace(subshaderName, CreateRef<VulkanSubshader>(_device, shaderData, subshaderName));
+		if (!_shaderCache->Has(id))
+			resource = _shaderCache->Create(id, _device, shaderData);
+		else
+			resource = _shaderCache->Get(id);
 
-		Ref<VulkanSubshader>& resource = shaderResource->Subshaders.at(subshaderName);
-
-		shaderResource->UpdateTickUsed();
+		Assert(resource->IsValid());
 
 		if (resource->NeedsUpdate(shaderData))
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan shader for shader {}, pass \"{}\"", shaderData.ID, subshaderName));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan shader for shader {}", shaderData.ID));
 
 			try
 			{

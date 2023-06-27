@@ -24,8 +24,11 @@ namespace Coco
 		bool _isSuspended = false;
 		bool _useAbsoluteTiming = false;
 
-		List<Ref<MainLoopTickListener>> _tickListeners;
+		List<ManagedRef<MainLoopTickListener>> _tickListeners;
 		bool _tickListenersNeedSorting = false;
+
+		bool _isPerfomingTick = false;
+		List<Ref<MainLoopTickListener>> _tickListenersToRemove;
 
 		double _currentTickTime = 0.0;
 		double _lastTickTime = 0.0;
@@ -69,9 +72,16 @@ namespace Coco
 		/// @return If true, this loop is using absolute timing
 		constexpr bool GetUseAbsoluteTiming() const noexcept { return _useAbsoluteTiming; }
 
-		/// @brief Adds a tick listener to the main loop
-		/// @param tickListener The listener to add
-		void AddTickListener(Ref<MainLoopTickListener> tickListener);
+		/// @brief Creates a tick listener on the main loop
+		/// @param args Arguments to pass to the listener's constructor
+		template<typename ObjectType>
+		Ref<MainLoopTickListener> CreateTickListener(ObjectType* object, void(ObjectType::* handlerFunction)(double), int priority)
+		{
+			_tickListeners.Add(CreateManagedRef<MainLoopTickListener>(object, handlerFunction, priority));
+			_tickListenersNeedSorting = true;
+
+			return _tickListeners.Last();
+		}
 
 		/// @brief Removes a tick listener from the main loop
 		/// @param tickListener The listener to remove
@@ -119,6 +129,13 @@ namespace Coco
 		/// @param b The second listener
 		/// @return True if listener A should be placed before listener B
 		static bool CompareTickListeners(const Ref<MainLoopTickListener>& a, const Ref<MainLoopTickListener>& b) noexcept;
+
+		/// @brief Called immediately before a tick runs
+		/// @param preTickTime The time that this tick would've executed if it wasn't held up by suspension/processing loops
+		void PreTick(double preTickTime);
+
+		/// @brief Called immediately after a tick finishes 
+		void PostTick();
 
 		/// @brief Sorts the list of tick listeners
 		void SortTickListeners() noexcept;

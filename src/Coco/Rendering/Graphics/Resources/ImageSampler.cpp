@@ -2,7 +2,13 @@
 
 namespace Coco::Rendering
 {
-	ImageSampler::ImageSampler(Rendering::FilterMode filterMode, Rendering::RepeatMode repeatMode, uint maxAnisotropy) noexcept :
-		FilterMode(filterMode), RepeatMode(repeatMode), MaxAnisotropy(maxAnisotropy)
+	ImageSampler::ImageSampler(
+		ResourceID id, 
+		const string& name, 
+		uint64_t lifetime, 
+		const ImageSamplerProperties& properties
+	) noexcept : 
+		RenderingResource(id, name, lifetime),
+		_properties(properties)
 	{}
 }

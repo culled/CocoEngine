@@ -4,7 +4,7 @@
 
 namespace Coco::Rendering
 {
-    RenderingResource::RenderingResource(const string& name, ResourceType type) : Resource(name, type)
+    RenderingResource::RenderingResource(ResourceID id, const string& name, uint64_t tickLifetime) : Resource(id, name, tickLifetime)
     {}
 
     Logging::Logger* RenderingResource::GetRenderingLogger() const

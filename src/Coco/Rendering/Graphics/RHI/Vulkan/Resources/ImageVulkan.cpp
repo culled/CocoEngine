@@ -6,22 +6,23 @@
 #include "../VulkanUtilities.h"
 #include "../VulkanQueue.h"
 #include "BufferVulkan.h"
-#include "CommandBufferPoolVulkan.h"
+#include "../CommandBufferPoolVulkan.h"
 #include "CommandBufferVulkan.h"
 
 #include <vulkan/vk_enum_string_helper.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	ImageVulkan::ImageVulkan(GraphicsDevice* device, ImageDescription description, VkImage image) : 
-		Image(description),
-		_device(static_cast<GraphicsDeviceVulkan*>(device)), _image(image), _isManagedInternally(true)
+	ImageVulkan::ImageVulkan(ResourceID id, const string& name, uint64_t lifetime, const ImageDescription& description, VkImage image) :
+		GraphicsResource<GraphicsDeviceVulkan, Image>(id, name, lifetime, description),
+		_image(image), _isManagedInternally(true)
 	{
 		CreateNativeImageView();
 	}
 
-	ImageVulkan::ImageVulkan(GraphicsDevice* device, ImageDescription description) : Image(description),
-		_device(static_cast<GraphicsDeviceVulkan*>(device)), _isManagedInternally(false)
+	ImageVulkan::ImageVulkan(ResourceID id, const string& name, uint64_t lifetime, const ImageDescription& description) : 
+		GraphicsResource<GraphicsDeviceVulkan, Image>(id, name, lifetime, description),
+		_isManagedInternally(false)
 	{
 		CreateImageFromDescription();
 		CreateNativeImageView();
@@ -47,7 +48,7 @@ namespace Coco::Rendering::Vulkan
 
 	void ImageVulkan::SetPixelData(uint64_t offset, uint64_t size, const void* pixelData)
 	{
-		CommandBufferPoolVulkan* pool;
+		Ref<CommandBufferPoolVulkan> pool;
 		if (!_device->GetGraphicsCommandPool(pool))
 			throw VulkanRenderingException("A graphics queue is required to transfer pixel data");
 
@@ -59,14 +60,14 @@ namespace Coco::Rendering::Vulkan
 				imageSize
 			));
 
-		WeakManagedRef<BufferVulkan> staging = _device->CreateResource<BufferVulkan>(
+		Ref<BufferVulkan> staging = _device->CreateResource<BufferVulkan>(
 			BufferUsageFlags::HostVisible | BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination,
 			imageSize,
 			true);
 
 		staging->LoadData(offset, size, pixelData);
 
-		WeakManagedRef<CommandBufferVulkan> commandBuffer = pool->Allocate(true);
+		Ref<CommandBufferVulkan> commandBuffer = pool->Allocate(true);
 		commandBuffer->Begin(true, false);
 
 		TransitionLayout(commandBuffer.Get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -77,7 +78,7 @@ namespace Coco::Rendering::Vulkan
 		pool->WaitForQueue();
 		pool->Free(commandBuffer);
 
-		staging.Invalidate();
+		_device->PurgeResource(staging, true);
 	}
 
 	void ImageVulkan::CopyFromBuffer(const CommandBufferVulkan* commandBuffer, BufferVulkan* buffer)
@@ -159,7 +160,7 @@ namespace Coco::Rendering::Vulkan
 			break;
 		}
 		default:
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Transitioning from {} is unsupported",
+			LogError(_device->GetLogger(), FormattedString("Transitioning from {} is unsupported",
 				string_VkImageLayout(_currentLayout)
 			));
 			return;
@@ -198,7 +199,7 @@ namespace Coco::Rendering::Vulkan
 			break;
 		}
 		default:
-			LogError(_device->VulkanPlatform->GetLogger(), FormattedString("Transitioning to {} is unsupported",
+			LogError(_device->GetLogger(), FormattedString("Transitioning to {} is unsupported",
 				string_VkImageLayout(to)
 			));
 			return;

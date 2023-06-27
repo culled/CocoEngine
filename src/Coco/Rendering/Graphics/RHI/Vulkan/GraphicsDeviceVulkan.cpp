@@ -5,8 +5,6 @@
 #include "../../../RenderingUtilities.h"
 #include "GraphicsPlatformVulkan.h"
 #include "VulkanQueue.h"
-#include "VulkanRenderCache.h"
-#include "Resources/CommandBufferPoolVulkan.h"
 #include "VulkanUtilities.h"
 
 namespace Coco::Rendering::Vulkan
@@ -15,8 +13,8 @@ namespace Coco::Rendering::Vulkan
 		Device(device), Score(score)
 	{}
 
-	GraphicsDeviceVulkan::GraphicsDeviceVulkan(const GraphicsPlatformVulkan& platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams) :
-		VulkanPlatform(&platform), _physicalDevice(physicalDevice)
+	GraphicsDeviceVulkan::GraphicsDeviceVulkan(GraphicsPlatformVulkan& platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams) :
+		_platform(&platform), _physicalDevice(physicalDevice)
 	{
 		// Get basic device info
 		VkPhysicalDeviceProperties deviceProperties = {};
@@ -84,28 +82,28 @@ namespace Coco::Rendering::Vulkan
 		{
 			VkQueue queue;
 			vkGetDeviceQueue(_device, static_cast<uint32_t>(queueFamily), 0, &queue);
-			Ref<VulkanQueue> queueRef = CreateRef<VulkanQueue>(queue, queueFamily);
+			SharedRef<VulkanQueue> queueRef = CreateSharedRef<VulkanQueue>(queue, queueFamily);
 
 			if (!_graphicsQueue.has_value() && queueFamilies.GraphicsQueueFamily.has_value() && queueFamilies.GraphicsQueueFamily.value() == queueFamily)
 			{
 				_graphicsQueue = queueRef;
-				_graphicsCommandPool = CreateManaged<CommandBufferPoolVulkan>(this, _graphicsQueue.value());
+				_graphicsCommandPool = CreateManagedRef<CommandBufferPoolVulkan>(this, _graphicsQueue.value());
 			}
 
 			if (!_transferQueue.has_value() && queueFamilies.TransferQueueFamily.has_value() && queueFamilies.TransferQueueFamily.value() == queueFamily)
 			{
 				_transferQueue = queueRef;
-				_transferCommandPool = CreateManaged<CommandBufferPoolVulkan>(this, _transferQueue.value());
+				_transferCommandPool = CreateManagedRef<CommandBufferPoolVulkan>(this, _transferQueue.value());
 			}
 
 			if (!_computeQueue.has_value() && queueFamilies.ComputeQueueFamily.has_value() && queueFamilies.ComputeQueueFamily.value() == queueFamily)
 			{
 				_computeQueue = queueRef;
-				_computeCommandPool = CreateManaged<CommandBufferPoolVulkan>(this, _computeQueue.value());
+				_computeCommandPool = CreateManagedRef<CommandBufferPoolVulkan>(this, _computeQueue.value());
 			}
 		}
 
-		_renderCache = CreateManaged<VulkanRenderCache>(this);
+		_renderCache = CreateManagedRef<VulkanRenderCache>(this);
 
 		LogInfo(GetLogger(), FormattedString(
 			"Using Vulkan on {} - Driver version {}, API version {}",
@@ -120,10 +118,10 @@ namespace Coco::Rendering::Vulkan
 		// Wait for any async work to finish
 		WaitForIdle();
 
-		_renderCache.reset();
+		_renderCache.Reset();
 
-		LogTrace(GetLogger(), FormattedString("Destroying {} graphic resources", Resources.Count()));
-		Resources.Clear();
+		LogTrace(GetLogger(), FormattedString("Destroying {} graphic resources", Resources->GetResourceCount()));
+		Resources.Reset();
 
 		_graphicsQueue.reset();
 		_transferQueue.reset();
@@ -131,13 +129,13 @@ namespace Coco::Rendering::Vulkan
 		_presentQueue.reset();
 
 		if (_graphicsCommandPool.has_value())
-			_graphicsCommandPool.value().reset();
+			_graphicsCommandPool.value().Reset();
 
 		if (_transferCommandPool.has_value())
-			_transferCommandPool.value().reset();
+			_transferCommandPool.value().Reset();
 
 		if (_computeCommandPool.has_value())
-			_computeCommandPool.value().reset();
+			_computeCommandPool.value().Reset();
 
 		if (_device != nullptr)
 		{
@@ -150,9 +148,9 @@ namespace Coco::Rendering::Vulkan
 		LogTrace(GetLogger(), "Destroyed Vulkan device");
 	}
 
-	Logging::Logger* GraphicsDeviceVulkan::GetLogger() const noexcept
+	Logging::Logger* GraphicsDeviceVulkan::GetLogger() noexcept
 	{
-		return VulkanPlatform->GetLogger();
+		return _platform->GetLogger();
 	}
 
 	void GraphicsDeviceVulkan::WaitForIdle() noexcept
@@ -160,10 +158,10 @@ namespace Coco::Rendering::Vulkan
 		vkDeviceWaitIdle(_device);
 	}
 
-	Managed<GraphicsDeviceVulkan> GraphicsDeviceVulkan::Create(const GraphicsPlatformVulkan& platform, const GraphicsDeviceCreationParameters& createParams)
+	ManagedRef<GraphicsDeviceVulkan> GraphicsDeviceVulkan::Create(GraphicsPlatformVulkan& platform, const GraphicsDeviceCreationParameters& createParams)
 	{
 		VkPhysicalDevice physicalDevice = PickPhysicalDevice(platform.GetInstance(), createParams);
-		return CreateManaged<GraphicsDeviceVulkan>(platform, physicalDevice, createParams);
+		return CreateManagedRef<GraphicsDeviceVulkan>(platform, physicalDevice, createParams);
 	}
 
 	bool GraphicsDeviceVulkan::InitializePresentQueue(const VkSurfaceKHR& surface) noexcept
@@ -231,51 +229,47 @@ namespace Coco::Rendering::Vulkan
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::GetGraphicsCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept
+	bool GraphicsDeviceVulkan::GetGraphicsCommandPool(Ref<CommandBufferPoolVulkan>& poolPtr) const noexcept
 	{
 		if (_graphicsCommandPool.has_value())
 		{
-			poolPtr = _graphicsCommandPool.value().get();
+			poolPtr = _graphicsCommandPool.value();
 			return true;
 		}
 
-		poolPtr = nullptr;
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::GetTransferCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept
+	bool GraphicsDeviceVulkan::GetTransferCommandPool(Ref<CommandBufferPoolVulkan>& poolPtr) const noexcept
 	{
 		if (_transferCommandPool.has_value())
 		{
-			poolPtr = _transferCommandPool.value().get();
+			poolPtr = _transferCommandPool.value();
 			return true;
 		}
 
-		poolPtr = nullptr;
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::GetComputeCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept
+	bool GraphicsDeviceVulkan::GetComputeCommandPool(Ref<CommandBufferPoolVulkan>& poolPtr) const noexcept
 	{
 		if (_computeCommandPool.has_value())
 		{
-			poolPtr = _computeCommandPool.value().get();
+			poolPtr = _computeCommandPool.value();
 			return true;
 		}
 
-		poolPtr = nullptr;
 		return false;
 	}
 
-	bool GraphicsDeviceVulkan::GetPresentCommandPool(CommandBufferPoolVulkan*& poolPtr) const noexcept
+	bool GraphicsDeviceVulkan::GetPresentCommandPool(Ref<CommandBufferPoolVulkan>& poolPtr) const noexcept
 	{
 		if (_computeCommandPool.has_value())
 		{
-			poolPtr = _computeCommandPool.value().get();
+			poolPtr = _computeCommandPool.value();
 			return true;
 		}
 
-		poolPtr = nullptr;
 		return false;
 	}
 
@@ -296,9 +290,11 @@ namespace Coco::Rendering::Vulkan
 		return false;
 	}
 
-	void GraphicsDeviceVulkan::OnPurgeUnusedResources() noexcept
+	void GraphicsDeviceVulkan::PurgeUnusedResources() noexcept
 	{
-		if(_renderCache != nullptr)
+		GraphicsDevice::PurgeUnusedResources();
+
+		if(_renderCache.IsValid())
 			_renderCache->PurgeResources();
 	}
 

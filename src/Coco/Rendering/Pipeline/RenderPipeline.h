@@ -53,14 +53,16 @@ namespace Coco::Rendering
 	class COCOAPI RenderPipeline : public RenderingResource
 	{
 	private:
-		List<Managed<RenderPipelineBinding>> _renderPasses;
+		List<ManagedRef<RenderPipelineBinding>> _renderPasses;
 		List<RenderPipelineAttachmentDescription> _attachmentDescriptions;
 		bool _attachmentDescriptionsDirty = false;
 		Color _clearColor;
 
 	public:
-		RenderPipeline(const string& name = "");
-		virtual ~RenderPipeline();
+		RenderPipeline(ResourceID id, const string& name, uint64_t tickLifetime);
+		~RenderPipeline() override;
+
+		DefineResourceType(RenderPipeline)
 
 		/// @brief Gets the render pipeline attachment descriptions for this pipeline
 		/// @return This pipeline's attachment descriptions
@@ -72,16 +74,16 @@ namespace Coco::Rendering
 		/// @param renderPass The pass to add
 		/// @param passToPipelineAttachmentBindings A mapping from the render pass's attachments to the pipeline's attachments
 		/// @return A binding
-		RenderPipelineBinding* AddRenderPass(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentBindings);
+		Ref<RenderPipelineBinding> AddRenderPass(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentBindings);
 
 		/// @brief Removes a binding and its render pass from this pipeline
 		/// @param renderPassBinding The binding to the renderpass
 		/// @return True if the binding was found and removed
-		bool RemoveRenderPass(const RenderPipelineBinding*& renderPassBinding) noexcept;
+		bool RemoveRenderPass(const Ref<RenderPipelineBinding>& renderPassBinding) noexcept;
 
 		/// @brief Gets the list of render passes in this pipeline
 		/// @return The passes in this pipeline
-		List<RenderPipelineBinding*> GetPasses() const;
+		List<Ref<RenderPipelineBinding>> GetPasses();
 
 		/// @brief Sets the clear color of this render pipeline
 		/// @param color The clear color

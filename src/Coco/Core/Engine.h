@@ -22,12 +22,12 @@ namespace Coco
 		DateTime _startTime;
 
 		ExitCode _exitCode = ExitCode::Ok;
-		Managed<Logging::Logger> _logger;
+		ManagedRef<Logging::Logger> _logger;
 		Platform::IEnginePlatform* _platform;
-		Managed<Application> _application;
-		Managed<EngineServiceManager> _serviceManager;
-		Managed<MainLoop> _mainLoop;
-		Managed<ResourceLibrary> _resourceLibrary;
+		ManagedRef<Application> _application;
+		ManagedRef<EngineServiceManager> _serviceManager;
+		ManagedRef<MainLoop> _mainLoop;
+		ManagedRef<ResourceLibrary> _resourceLibrary;
 
 	public:
 		Engine(Platform::IEnginePlatform* platform);
@@ -43,7 +43,7 @@ namespace Coco
 		/// @brief Called from the main entry to run the engine and client application
 		/// @param platform The platform for the engine to use
 		/// @return The exit code from the engine
-		static ExitCode Run(Managed<Platform::IEnginePlatform> platform);
+		static ExitCode Run(ManagedRef<Platform::IEnginePlatform> platform);
 
 		/// @brief Gets the engine instance
 		/// @return The engine instace
@@ -51,27 +51,27 @@ namespace Coco
 
 		/// @brief Gets the engine's logger
 		/// @return The engine's logger
-		Logging::Logger* GetLogger() const noexcept { return _logger.get(); }
+		Logging::Logger* GetLogger() noexcept { return _logger.Get(); }
 
 		/// @brief Gets the engine's platform
 		/// @return The engine's platform
-		Platform::IEnginePlatform* GetPlatform() const noexcept { return _platform; }
+		Platform::IEnginePlatform* GetPlatform() noexcept { return _platform; }
 
 		/// @brief Gets the client application
 		/// @return The client application
-		Application* GetApplication() const noexcept { return _application.get(); }
+		Application* GetApplication() noexcept { return _application.Get(); }
 
 		/// @brief Gets the service manager
 		/// @return The service manager
-		EngineServiceManager* GetServiceManager() const noexcept { return _serviceManager.get(); }
+		EngineServiceManager* GetServiceManager() noexcept { return _serviceManager.Get(); }
 
 		/// @brief Gets the main loop
 		/// @return The main loop
-		MainLoop* GetMainLoop() const noexcept { return _mainLoop.get(); }
+		MainLoop* GetMainLoop() noexcept { return _mainLoop.Get(); }
 
 		/// @brief Gets the resource library
 		/// @return The resource library
-		ResourceLibrary* GetResourceLibrary() const noexcept { return _resourceLibrary.get(); }
+		ResourceLibrary* GetResourceLibrary() noexcept { return _resourceLibrary.Get(); }
 
 		/// @brief Sets the exit code for the engine. Will be used unless an error occurs
 		/// @param code The exit code

@@ -5,24 +5,8 @@
 
 namespace Coco::Rendering
 {
-	GlobalUniformObject::GlobalUniformObject() noexcept :
-		Projection{0.0f}, View{0.0f}, Padding{0}
+	RenderContext::RenderContext(ResourceID id, const string& name, uint64_t lifetime) : RenderingResource(id, name, lifetime)
 	{}
-
-	GlobalUniformObject::GlobalUniformObject(const RenderView* renderView) noexcept :
-		Padding{ 0 }
-	{
-		PopulateMatrix(&Projection[0], renderView->Projection);
-		PopulateMatrix(&View[0], renderView->View);
-	}
-
-	void GlobalUniformObject::PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix) noexcept
-	{
-		for (int i = 0; i < 16; i++)
-		{
-			destinationMatrixPtr[i] = static_cast<float>(sourceMatrix.Data[i]);
-		}
-	}
 
 	bool RenderContext::Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline)
 	{
@@ -35,7 +19,7 @@ namespace Coco::Rendering
 
 		CurrentPipeline = pipeline;
 		RenderView = renderView;
-		GlobalUO = GlobalUniformObject(renderView.get());
+		GlobalUO = GlobalUniformObject(renderView.Get());
 
 		return BeginImpl();
 	}
@@ -44,9 +28,9 @@ namespace Coco::Rendering
 	{
 		EndImpl();
 
-		RenderView.reset();
-		CurrentPipeline.reset();
-		CurrentRenderPass.reset();
+		RenderView = Ref<Rendering::RenderView>();
+		CurrentPipeline = Ref<RenderPipeline>();
+		CurrentRenderPass = Ref<IRenderPass>();
 	}
 
 	void RenderContext::Reset()

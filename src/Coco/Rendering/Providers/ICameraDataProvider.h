@@ -15,9 +15,9 @@ namespace Coco::Rendering
 		/// @param backbufferSize The size of the backbuffers
 		/// @param backbuffers The backbuffers that will be rendered to
 		/// @return A render view
-		virtual Ref<RenderView> GetRenderView(
-			const Ref<RenderPipeline>& pipeline, 
+		virtual ManagedRef<RenderView> GetRenderView(
+			Ref<RenderPipeline> pipeline, 
 			const SizeInt& backbufferSize, 
-			const List<WeakManagedRef<Image>>& backbuffers) = 0;
+			const List<Ref<Image>>& backbuffers) = 0;
 	};
 }

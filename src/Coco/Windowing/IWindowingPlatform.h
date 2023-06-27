@@ -2,7 +2,7 @@
 
 #include <Coco/Core/API.h>
 
-#include <Coco/Core/Types/ManagedRef.h>
+#include <Coco/Core/Types/Refs/ManagedRef.h>
 #include "Window.h"
 #include "WindowingService.h"
 

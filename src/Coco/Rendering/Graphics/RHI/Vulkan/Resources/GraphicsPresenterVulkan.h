@@ -1,15 +1,11 @@
 #pragma once
 
 #include <Coco/Rendering/Graphics/Resources/GraphicsPresenter.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsResource.h>
 
 #include <Coco/Core/Types/List.h>
 #include "../VulkanIncludes.h"
 #include "../../../Resources/ImageTypes.h"
-
-namespace Coco::Rendering
-{
-	class GraphicsDevice;
-}
 
 namespace Coco::Rendering::Vulkan
 {
@@ -35,11 +31,9 @@ namespace Coco::Rendering::Vulkan
 	};
 
     /// @brief Vulkan implentation of a GraphicsPresenter
-    class GraphicsPresenterVulkan final : public GraphicsPresenter
+    class GraphicsPresenterVulkan final : public GraphicsResource<GraphicsDeviceVulkan, GraphicsPresenter>
     {
 	private:
-		GraphicsDeviceVulkan* _device;
-
 		VerticalSyncMode _vsyncMode = VerticalSyncMode::Enabled;
 		SizeInt _backbufferSize;
 		ImageDescription _backbufferDescription;
@@ -49,14 +43,16 @@ namespace Coco::Rendering::Vulkan
 
 		bool _isSwapchainDirty = true;
 
-		List<WeakManagedRef<ImageVulkan>> _backbuffers;
-		List<WeakManagedRef<RenderContextVulkan>> _renderContexts;
+		List<Ref<ImageVulkan>> _backbuffers;
+		List<Ref<RenderContextVulkan>> _renderContexts;
 		
 		uint _currentFrame = 0;
 
 	public:
-		GraphicsPresenterVulkan(GraphicsDevice* device);
+		GraphicsPresenterVulkan(ResourceID id, const string& name, uint64_t lifetime);
 		~GraphicsPresenterVulkan() final;
+
+		DefineResourceType(GraphicsPresenterVulkan)
 
 		void InitializeSurface(const PresenterSurfaceInitializationInfo& surfaceInitInfo) final;
 		bool IsSurfaceInitialized() const noexcept final { return _surface != nullptr; }
@@ -67,8 +63,8 @@ namespace Coco::Rendering::Vulkan
 		void SetVSyncMode(VerticalSyncMode mode) noexcept final;
 		VerticalSyncMode GetVSyncMode() const noexcept final { return _vsyncMode; }
 
-		bool PrepareForRender(RenderContext*& renderContext, WeakManagedRef<Image>& backbuffer) final;
-		bool Present(RenderContext* renderContext) final;
+		bool PrepareForRender(Ref<RenderContext>& renderContext, Ref<Image>& backbuffer) final;
+		bool Present(Ref<RenderContext> renderContext) final;
 
 	private:
 		/// @brief Picks a present mode to use from the supported modes

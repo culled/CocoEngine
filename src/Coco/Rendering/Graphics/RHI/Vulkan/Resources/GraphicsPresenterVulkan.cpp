@@ -16,8 +16,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	GraphicsPresenterVulkan::GraphicsPresenterVulkan(GraphicsDevice* device) :
-		_device(static_cast<GraphicsDeviceVulkan*>(device))
+	GraphicsPresenterVulkan::GraphicsPresenterVulkan(ResourceID id, const string& name, uint64_t lifetime) :
+		GraphicsResource<GraphicsDeviceVulkan, GraphicsPresenter>(id, name, lifetime)
 	{}
 
 	GraphicsPresenterVulkan::~GraphicsPresenterVulkan()
@@ -35,7 +35,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (_surface != nullptr)
 		{
-			vkDestroySurfaceKHR(_device->VulkanPlatform->GetInstance(), _surface, nullptr);
+			vkDestroySurfaceKHR(_device->GetVulkanPlatform()->GetInstance(), _surface, nullptr);
 			_surface = nullptr;
 		}
 
@@ -54,7 +54,7 @@ namespace Coco::Rendering::Vulkan
 			createInfo.hwnd = static_cast<HWND>(win32SurfaceInitInfo->HWindow);
 			createInfo.hinstance = static_cast<HINSTANCE>(win32SurfaceInitInfo->HInstance);
 
-			AssertVkResult(vkCreateWin32SurfaceKHR(_device->VulkanPlatform->GetInstance(), &createInfo, nullptr, &_surface));
+			AssertVkResult(vkCreateWin32SurfaceKHR(_device->GetVulkanPlatform()->GetInstance(), &createInfo, nullptr, &_surface));
 
 			_isSwapchainDirty = true;
 
@@ -84,14 +84,14 @@ namespace Coco::Rendering::Vulkan
 		_isSwapchainDirty = true;
 	}
 
-	bool GraphicsPresenterVulkan::PrepareForRender(RenderContext*& renderContext, WeakManagedRef<Image>& backbuffer)
+	bool GraphicsPresenterVulkan::PrepareForRender(Ref<RenderContext>& renderContext, Ref<Image>& backbuffer)
 	{
 		if (!EnsureSwapchainIsUpdated())
 			return false;
 
 		_currentFrame = (_currentFrame + 1) % static_cast<uint>(_backbuffers.Count());
 
-		WeakManagedRef<RenderContextVulkan>& currentContext = _renderContexts[_currentFrame];
+		Ref<RenderContextVulkan> currentContext = _renderContexts[_currentFrame];
 		Assert(currentContext.IsValid());
 		
 		// Wait until a fresh frame is ready
@@ -117,18 +117,18 @@ namespace Coco::Rendering::Vulkan
 
 		currentContext->SetBackbufferIndex(static_cast<int>(imageIndex));
 		backbuffer = _backbuffers[imageIndex];
-		renderContext = currentContext.Get();
+		renderContext = currentContext;
 		return true;
 	}
 
-	bool GraphicsPresenterVulkan::Present(RenderContext* renderContext)
+	bool GraphicsPresenterVulkan::Present(Ref<RenderContext> renderContext)
 	{
 		Ref<VulkanQueue> presentQueue;
 
 		if (!_device->GetPresentQueue(presentQueue))
 			throw VulkanRenderingException("Device must have a valid present queue to present");
 
-		RenderContextVulkan* vulkanRenderContext = static_cast<RenderContextVulkan*>(renderContext);
+		Ref<RenderContextVulkan> vulkanRenderContext = static_cast<Ref<RenderContextVulkan>>(renderContext);
 		int imageIndex = vulkanRenderContext->GetBackbufferIndex();
 
 		if (imageIndex == -1)
@@ -381,6 +381,9 @@ namespace Coco::Rendering::Vulkan
 
 	void GraphicsPresenterVulkan::DestroySwapchainObjects() noexcept
 	{
+		for (const auto& backbuffer : _backbuffers)
+			_device->PurgeResource(backbuffer);
+
 		_backbuffers.Clear();
 
 		_isSwapchainDirty = true;
@@ -403,6 +406,9 @@ namespace Coco::Rendering::Vulkan
 
 	void GraphicsPresenterVulkan::DestroyRenderContexts() noexcept
 	{
+		for (const auto& context : _renderContexts)
+			_device->PurgeResource(context);
+
 		LogTrace(_device->GetLogger(), FormattedString("Released {} render contexts", _renderContexts.Count()));
 
 		_renderContexts.Clear();

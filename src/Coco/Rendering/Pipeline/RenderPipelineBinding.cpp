@@ -27,7 +27,6 @@ namespace Coco::Rendering
 
 	RenderPipelineBinding::~RenderPipelineBinding()
 	{
-		_renderPass.reset();
 		_mappedAttachmentDescriptions.Clear();
 	}
 }

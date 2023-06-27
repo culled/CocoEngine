@@ -15,7 +15,7 @@ namespace Coco::Input
 namespace Coco::Platform::Windows
 {
     /// @brief Win32 platform implementation
-    class COCOAPI EnginePlatformWindows final : public IEnginePlatform, public IWindowingPlatform, public IRenderingPlatform
+    class COCOAPI EnginePlatformWindows final : public IEnginePlatform, public IRenderingPlatform, public IWindowingPlatform
     {
     private:
         static const wchar_t* s_windowClassName;

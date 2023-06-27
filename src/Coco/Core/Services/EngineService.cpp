@@ -12,14 +12,4 @@ namespace Coco
 	{
 		return ServiceManager->Engine->GetLogger();
 	}
-
-	void EngineService::Start()
-	{
-		StartImpl();
-
-		MainLoop* loop = ServiceManager->Engine->GetMainLoop();
-
-		for (const Ref<MainLoopTickListener>& listener : TickListeners)
-			loop->AddTickListener(listener);
-	}
 }

@@ -1,13 +1,9 @@
 #pragma once
 
 #include <Coco/Rendering/Graphics/Resources/Image.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsResource.h>
 
 #include "../VulkanIncludes.h"
-
-namespace Coco::Rendering
-{
-	class GraphicsDevice;
-}
 
 namespace Coco::Rendering::Vulkan
 {
@@ -16,21 +12,22 @@ namespace Coco::Rendering::Vulkan
 	class CommandBufferVulkan;
 
 	/// @brief Vulkan-implementation of an Image
-	class ImageVulkan final : public Image
+	class ImageVulkan final : public GraphicsResource<GraphicsDeviceVulkan, Image>
 	{
 	private:
 		bool _isManagedInternally;
 		VkImage _image = nullptr;
 		VkImageView _nativeView = nullptr;
 		VkDeviceMemory _imageMemory = nullptr;
-		GraphicsDeviceVulkan* _device;
 		uint32_t _memoryIndex = 0;
 		VkImageLayout _currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 	public:
-		ImageVulkan(GraphicsDevice* device, ImageDescription description, VkImage image);
-		ImageVulkan(GraphicsDevice* device, ImageDescription description);
+		ImageVulkan(ResourceID id, const string& name, uint64_t lifetime, const ImageDescription& description, VkImage image);
+		ImageVulkan(ResourceID id, const string& name, uint64_t lifetime, const ImageDescription& description);
 		~ImageVulkan() final;
+
+		DefineResourceType(ImageVulkan)
 
 		void SetPixelData(uint64_t offset, uint64_t size, const void* pixelData) final;
 

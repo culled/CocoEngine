@@ -338,52 +338,52 @@ namespace Coco::Rendering::Vulkan
 	/// @return The converted VkImageUsageFlags
 	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags, PixelFormat pixelFormat) noexcept;
 
-	/// @brief Converts a FilterMode to a VkFilter
+	/// @brief Converts a ImageFilterMode to a VkFilter
 	/// @param filterMode The filter mode
 	/// @return The converted VkFilter
-	constexpr VkFilter ToVkFilter(FilterMode filterMode) noexcept
+	constexpr VkFilter ToVkFilter(ImageFilterMode filterMode) noexcept
 	{
 		switch (filterMode)
 		{
-		case FilterMode::Nearest:
+		case ImageFilterMode::Nearest:
 			return VK_FILTER_NEAREST;
-		case FilterMode::Linear:
+		case ImageFilterMode::Linear:
 			return VK_FILTER_LINEAR;
 		default:
 			return VK_FILTER_NEAREST;
 		}
 	}
 
-	/// @brief Converts a FilterMode to a VkSamplerMipmapMode
+	/// @brief Converts a ImageFilterMode to a VkSamplerMipmapMode
 	/// @param filterMode The filter mode
 	/// @return The converted VkSamplerMipmapMode
-	constexpr VkSamplerMipmapMode ToVkSamplerMipmapMode(FilterMode filterMode) noexcept
+	constexpr VkSamplerMipmapMode ToVkSamplerMipmapMode(ImageFilterMode filterMode) noexcept
 	{
 		switch (filterMode)
 		{
-		case FilterMode::Nearest:
+		case ImageFilterMode::Nearest:
 			return VK_SAMPLER_MIPMAP_MODE_NEAREST;
-		case FilterMode::Linear:
+		case ImageFilterMode::Linear:
 			return VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		default:
 			return VK_SAMPLER_MIPMAP_MODE_NEAREST;
 		}
 	}
 
-	/// @brief Converts a RepeatMode to a VkSamplerAddressMode
+	/// @brief Converts a ImageRepeatMode to a VkSamplerAddressMode
 	/// @param repeatMode The repeat mode
 	/// @return The converted VkSamplerAddressMode
-	constexpr VkSamplerAddressMode ToVkSamplerAddressMode(RepeatMode repeatMode) noexcept
+	constexpr VkSamplerAddressMode ToVkSamplerAddressMode(ImageRepeatMode repeatMode) noexcept
 	{
 		switch (repeatMode)
 		{
-		case RepeatMode::Clamp:
+		case ImageRepeatMode::Clamp:
 			return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		case RepeatMode::Repeat:
+		case ImageRepeatMode::Repeat:
 			return VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		case RepeatMode::Mirror:
+		case ImageRepeatMode::Mirror:
 			return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-		case RepeatMode::MirrorOnce:
+		case ImageRepeatMode::MirrorOnce:
 			return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
 		default:
 			return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;

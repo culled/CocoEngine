@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GraphicsResource.h"
+#include <Coco/Rendering/RenderingResource.h>
 
 #include <Coco/Core/Types/Size.h>
 #include "GraphicsPresenterTypes.h"
@@ -12,12 +12,10 @@ namespace Coco::Rendering
 	class Image;
 
 	/// @brief A presenter that can be used with a window for displaying rendered images
-	class COCOAPI GraphicsPresenter : public IGraphicsResource
+	class COCOAPI GraphicsPresenter : public RenderingResource
 	{
-	protected:
-		GraphicsPresenter() = default;
-
 	public:
+		GraphicsPresenter(ResourceID id, const string& name, uint64_t lifetime) : RenderingResource(id, name, lifetime) {}
 		virtual ~GraphicsPresenter() = default;
 
 		/// @brief Initializes a surface for a window
@@ -49,11 +47,11 @@ namespace Coco::Rendering
 		/// @param renderContext Will be set to an acquired render context
 		/// @param backbuffer Will be set to the backbuffer image to use for rendering
 		/// @return True if a render context was acquired
-		virtual bool PrepareForRender(RenderContext*& renderContext, WeakManagedRef<Image>& backbuffer) = 0;
+		virtual bool PrepareForRender(Ref<RenderContext>& renderContext, Ref<Image>& backbuffer) = 0;
 
 		/// @brief Queues the given render context for presentation
 		/// @param renderContext The render context
 		/// @return True if the frame was queued for presenting
-		virtual bool Present(RenderContext* renderContext) = 0;
+		virtual bool Present(Ref<RenderContext> renderContext) = 0;
 	};
 }

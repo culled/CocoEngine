@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GraphicsResource.h"
+#include <Coco/Rendering/RenderingResource.h>
 
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
@@ -15,25 +15,8 @@ namespace Coco::Rendering
 	class Material;
 	class Mesh;
 
-	/// @brief An object that holds global uniform data that can be directly pushed to a shader
-	struct GlobalUniformObject
-	{
-		float Projection[4 * 4];	// 64 bytes
-		float View[4 * 4];			// 64 bytes
-		uint8_t Padding[128];		// 128 bytes - padding
-
-		GlobalUniformObject() noexcept;
-		GlobalUniformObject(const RenderView* renderView) noexcept;
-
-	private:
-		/// @brief Populates a float array pointer with matrix values
-		/// @param destinationMatrixPtr The pointer to the first element of the float array
-		/// @param sourceMatrix The matrix
-		static void PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix) noexcept;
-	};
-
 	/// @brief A context that can be used for rendering
-	class COCOAPI RenderContext : public IGraphicsResource
+	class COCOAPI RenderContext : public RenderingResource
 	{
 		friend RenderPipeline;
 
@@ -45,7 +28,7 @@ namespace Coco::Rendering
 		Ref<RenderPipeline> CurrentPipeline;
 
 		/// @brief The currently rendering render pass
-		Ref<IRenderPass> CurrentRenderPass = nullptr;
+		Ref<IRenderPass> CurrentRenderPass;
 
 		/// @brief The index in the RenderPipeline of the current render pass
 		uint CurrentRenderPassIndex = 0;
@@ -59,10 +42,8 @@ namespace Coco::Rendering
 		/// @brief The number of triangles drawn this render
 		uint64_t TrianglesDrawn = 0;
 
-	protected:
-		RenderContext() = default;
-
 	public:
+		RenderContext(ResourceID id, const string& name, uint64_t lifetime);
 		virtual ~RenderContext() = default;
 
 		RenderContext(const RenderContext&) = delete;
