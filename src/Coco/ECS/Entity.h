@@ -29,7 +29,7 @@ namespace Coco::ECS
 		void SetName(string name) { _name = name; }
 		const string& GetName() const { return _name; }
 
-		void SetParent(const Entity& parent);
+		void SetParentID(const EntityID& parentID);
 		EntityID GetParentID() const { return _parentID; }
 		bool TryGetParent(Entity*& parent);
 

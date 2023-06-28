@@ -106,7 +106,7 @@ namespace Coco::ECS
 		if (_inheritParentTransform && ecs->TryGetEntityParent(Owner, parent))
 		{
 			TransformComponent& parentTransform = ecs->GetComponent<TransformComponent>(parent->GetID());
-			_globalTransformMatrix = _localTransformMatrix * parentTransform.GetGlobalTransformMatrix();
+			_globalTransformMatrix = GetLocalTransformMatrix() * parentTransform.GetGlobalTransformMatrix();
 		}
 		else
 		{

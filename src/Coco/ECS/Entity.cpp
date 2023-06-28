@@ -8,12 +8,12 @@ namespace Coco::ECS
 	Entity::Entity(EntityID id, const string& name, SceneID sceneID, EntityID parentID) : _id(id), _name(name), _sceneID(sceneID), _parentID(parentID)
 	{}
 
-	void Entity::SetParent(const Entity& parent)
+	void Entity::SetParentID(const EntityID& parentID)
 	{
-		if (parent == *this)
+		if (parentID == _id)
 			return;
 
-		_parentID = parent._id;
+		_parentID = parentID;
 	}
 
 	bool Entity::TryGetParent(Entity*& parent)

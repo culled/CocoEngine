@@ -48,10 +48,10 @@ namespace Coco::ECS
 	{
 		List<EntityID> children;
 
-		for (const auto& entity : *(_entities.Get()))
+		for (const auto& child : *(_entities.Get()))
 		{
-			if (entity._parentID == entity._id)
-				children.Add(entity._id);
+			if (child._parentID == entity)
+				children.Add(child._id);
 		}
 
 		return children;

@@ -91,6 +91,7 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 
 	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, _mesh, _material);
 
+	//_ecsService->GetEntity(obj2).SetParentID(_cameraEntityID);
 
 	_tickListener = Engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::Tick, 0);
 	_renderTickListener = Engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::RenderTick, 10000);
