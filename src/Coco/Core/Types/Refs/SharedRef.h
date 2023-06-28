@@ -97,6 +97,9 @@ namespace Coco
 		{
 			DestroyIfUnused();
 
+			if (this->_controlBlock)
+				this->_controlBlock->RemoveUse();
+
 			this->_controlBlock = std::make_shared<RefControlBlock>(resource);
 			this->_resource = resource;
 		}
