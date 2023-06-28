@@ -10,7 +10,7 @@ namespace Coco::Rendering::Vulkan
 {
 
 	VulkanSubshader::VulkanSubshader(GraphicsDeviceVulkan* device, const Subshader& subshaderData) :
-		_device(device), _name(subshaderData.PassName), _subshader(subshaderData)
+		_device(device), _name(subshaderData.PassName), _subshader(subshaderData), _isValid(true)
 	{
 		// Load subshader modules
 		for (const auto& subshaderStagesKVP : _subshader.StageFiles)
@@ -61,9 +61,34 @@ namespace Coco::Rendering::Vulkan
 		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &createInfo, nullptr, &_descriptorLayout.Layout));
 	}
 
+	VulkanSubshader::VulkanSubshader(VulkanSubshader&& other) noexcept :
+		_name(std::move(other._name)),
+		_device(std::move(other._device)),
+		_shaderStages(std::move(other._shaderStages)),
+		_descriptorLayout(std::move(other._descriptorLayout)),
+		_subshader(std::move(other._subshader)), 
+		_isValid(true)
+	{
+		other._isValid = false;
+	}
+
+	VulkanSubshader& VulkanSubshader::operator=(VulkanSubshader&& other) noexcept
+	{
+		_name = std::move(other._name);
+		_device = std::move(other._device);
+		_shaderStages = std::move(other._shaderStages);
+		_descriptorLayout = std::move(other._descriptorLayout);
+		_subshader = std::move(other._subshader);
+		_isValid = true;
+		other._isValid = false;
+
+		return *this;
+	}
+
 	VulkanSubshader::~VulkanSubshader()
 	{
-		DestroyShaderObjects();
+		if(_isValid)
+			DestroyShaderObjects();
 	}
 
 	void VulkanSubshader::DestroyShaderObjects() noexcept
@@ -132,7 +157,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		return GetOriginalVersion() != shaderData.Version || _subshaders.size() == 0 ||
 			std::any_of(_subshaders.cbegin(), _subshaders.cend(), [](const auto& kvp) {
-				return kvp.second->_shaderStages.Count() == 0 || kvp.second->_descriptorLayout.Layout == nullptr;
+				return kvp.second._shaderStages.Count() == 0 || kvp.second._descriptorLayout.Layout == nullptr;
 			});
 	}
 
@@ -143,16 +168,16 @@ namespace Coco::Rendering::Vulkan
 		// Recreate all subshaders
 		for (const auto& subshaderData : shaderData.Subshaders)
 		{
-			_subshaders.try_emplace(subshaderData.first, CreateManagedRef<VulkanSubshader>(_device, subshaderData.second));
+			_subshaders.try_emplace(subshaderData.first, VulkanSubshader(_device, subshaderData.second));
 		}
 
 		UpdateOriginalVersion(shaderData.Version);
 		IncrementVersion();
 	}
 
-	Ref<VulkanSubshader> VulkanShader::GetSubshader(const string& name)
+	VulkanSubshader* VulkanShader::GetSubshader(const string& name)
 	{
-		return _subshaders.at(name);
+		return &_subshaders.at(name);
 	}
 	
 	List<VulkanDescriptorLayout> VulkanShader::GetDescriptorLayouts()
@@ -160,7 +185,7 @@ namespace Coco::Rendering::Vulkan
 		List<VulkanDescriptorLayout> layouts;
 
 		for (auto& subshader : _subshaders)
-			layouts.Add(subshader.second->GetDescriptorLayout());
+			layouts.Add(subshader.second.GetDescriptorLayout());
 
 		return layouts;
 	}

@@ -46,9 +46,17 @@ namespace Coco::Rendering::Vulkan
 		List<VulkanShaderStage> _shaderStages;
 		VulkanDescriptorLayout _descriptorLayout;
 		Subshader _subshader;
+		bool _isValid;
 
 	public:
 		VulkanSubshader(GraphicsDeviceVulkan* device, const Subshader& subshaderData);
+
+		VulkanSubshader(const VulkanSubshader&) = delete;
+		VulkanSubshader(VulkanSubshader&& other) noexcept;
+
+		VulkanSubshader& operator=(const VulkanSubshader&) = delete;
+		VulkanSubshader& operator=(VulkanSubshader&& other) noexcept;
+
 		~VulkanSubshader();
 
 		/// @brief Gets the stages for this subshader
@@ -80,7 +88,7 @@ namespace Coco::Rendering::Vulkan
 	{
 	private:
 		GraphicsDeviceVulkan* _device;
-		UnorderedMap<string, ManagedRef<VulkanSubshader>> _subshaders;
+		UnorderedMap<string, VulkanSubshader> _subshaders;
 
 	public:
 		VulkanShader(ResourceID id, const string& name, uint64_t tickLifetime, GraphicsDeviceVulkan* device, const ShaderRenderData& shaderData);
@@ -101,7 +109,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param shaderData The shader data
 		void Update(const ShaderRenderData& shaderData);
 
-		Ref<VulkanSubshader> GetSubshader(const string& name);
+		VulkanSubshader* GetSubshader(const string& name);
 
 		List<VulkanDescriptorLayout> GetDescriptorLayouts();
 	};

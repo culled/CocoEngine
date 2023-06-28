@@ -46,7 +46,7 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanPipeline::CreatePipeline(VulkanRenderPass* renderPass, VulkanShader* shader, const VkDescriptorSetLayout& globalDescriptorLayout)
 	{
-		Ref<VulkanSubshader> vulkanSubshader = shader->GetSubshader(_subshaderName);
+		VulkanSubshader* vulkanSubshader = shader->GetSubshader(_subshaderName);
 		const Subshader& subshader = vulkanSubshader->GetSubshader();
 
 		List<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH };

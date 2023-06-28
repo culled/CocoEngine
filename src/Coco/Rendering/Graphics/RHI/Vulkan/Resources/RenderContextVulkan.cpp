@@ -433,7 +433,7 @@ namespace Coco::Rendering::Vulkan
 			return true;
 		}
 
-		Ref<VulkanSubshader> subshader = shader->GetSubshader(passName);
+		VulkanSubshader* subshader = shader->GetSubshader(passName);
 		const Subshader& subshaderInfo = subshader->GetSubshader();
 
 		// Early out if no descriptors

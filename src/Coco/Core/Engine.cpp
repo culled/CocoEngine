@@ -58,6 +58,8 @@ namespace Coco
 		_resourceLibrary.Reset();
 		_serviceManager.Reset();
 		_mainLoop.Reset();
+
+		LogTrace(_logger, "Bye bye ;)");
 		_logger.Reset();
 	}
 
