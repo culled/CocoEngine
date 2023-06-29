@@ -59,7 +59,6 @@ namespace Coco::ECS
 		ProjectionType _projectionType = ProjectionType::Custom;
 
 		Matrix4x4 _projectionMatrix = Matrix4x4::Identity;
-		Matrix4x4 _viewMatrix = Matrix4x4::Identity;
 
 		double _nearClipDistance = 0.1;
 		double _farClipDistance = 100.0;
@@ -84,7 +83,6 @@ namespace Coco::ECS
 			_projectionType = other._projectionType;
 
 			_projectionMatrix = std::move(other._projectionMatrix);
-			_viewMatrix = std::move(other._viewMatrix);
 
 			_nearClipDistance = other._nearClipDistance;
 			_farClipDistance = other._farClipDistance;
@@ -101,10 +99,11 @@ namespace Coco::ECS
 
 		CameraComponent& operator=(CameraComponent&& other) noexcept
 		{
+			EntityComponent::operator=(std::move(other));
+
 			_projectionType = other._projectionType;
 
 			_projectionMatrix = std::move(other._projectionMatrix);
-			_viewMatrix = std::move(other._viewMatrix);
 
 			_nearClipDistance = other._nearClipDistance;
 			_farClipDistance = other._farClipDistance;
@@ -147,13 +146,9 @@ namespace Coco::ECS
 		/// @return The current projection matrix
 		const Matrix4x4& GetProjectionMatrix() noexcept;
 
-		/// @brief Sets this camera's current view matrix
-		/// @param view The view matrix
-		void SetViewMatrix(const Matrix4x4& view) noexcept { _viewMatrix = view; }
-
-		/// @brief Gets this camera's current view matrix
-		/// @return The current view matrix
-		const Matrix4x4& GetViewMatrix() const noexcept { return _viewMatrix; }
+		/// @brief Gets this camera's view matrix
+		/// @return The view matrix
+		const Matrix4x4& GetViewMatrix() const noexcept;
 
 		/// @brief Sets this camera's aspect ratio
 		/// @param aspectRatio The new aspect ratio

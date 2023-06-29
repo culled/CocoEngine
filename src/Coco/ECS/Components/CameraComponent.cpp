@@ -3,6 +3,8 @@
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 #include <Coco/Rendering/Graphics/Resources/Image.h>
 #include <Coco/Rendering/RenderingService.h>
+#include "../ECSService.h"
+#include "TransformComponent.h"
 
 namespace Coco::ECS
 {
@@ -70,6 +72,16 @@ namespace Coco::ECS
 			UpdateProjectionMatrix();
 
 		return _projectionMatrix;
+	}
+
+	const Matrix4x4& CameraComponent::GetViewMatrix() const noexcept
+	{
+		ECSService* ecs = ECSService::Get();
+
+		if (!ecs->HasComponent<TransformComponent>(_owner))
+			return Matrix4x4::Identity;
+
+		return ecs->GetComponent<TransformComponent>(_owner).GetInverseGlobalTransformMatrix();
 	}
 
 	void CameraComponent::SetAspectRatio(double aspectRatio) noexcept

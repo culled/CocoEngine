@@ -67,7 +67,12 @@ namespace Coco::ECS
 		template<typename ComponentType>
 		bool HasComponent(EntityID entityID) const
 		{
-			return GetComponentList<ComponentType>()->HasComponent(entityID);
+			const EntityComponentList<ComponentType, MaxEntities>* list = GetComponentList<ComponentType>();
+
+			if (list == nullptr)
+				return false;
+
+			return list->HasComponent(entityID);
 		}
 
 		template<typename ComponentType>
@@ -134,10 +139,10 @@ namespace Coco::ECS
 
 			if (!_componentLists.contains(key))
 			{
-				_componentLists.try_emplace(key, CreateManagedRef<EntityComponentList<ComponentType, MaxEntities>>());
+				return nullptr;
 			}
 
-			return static_cast<EntityComponentList<ComponentType, MaxEntities>*>(_componentLists.at(key).Get());
+			return static_cast<const EntityComponentList<ComponentType, MaxEntities>*>(_componentLists.at(key).Get());
 		}
 
 		IEntityComponentList* GetGenericComponentList(const std::type_index& listKey)

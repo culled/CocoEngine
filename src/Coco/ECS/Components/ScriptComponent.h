@@ -13,7 +13,7 @@ namespace Coco::ECS
 		ECSService* _ecs;
 
 	public:
-		ScriptComponent() = default;
+		ScriptComponent();
 		ScriptComponent(EntityID owner);
 
 		virtual ~ScriptComponent() = default;
