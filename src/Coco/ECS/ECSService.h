@@ -1,20 +1,17 @@
 #pragma once
 
 #include <Coco/Core/Services/EngineService.h>
-#include <Coco/Core/Types/MemoryPool.h>
 #include <Coco/Core/Types/Set.h>
+#include <Coco/Core/Types/MemoryPool.h>
 #include <Coco/Core/Types/Map.h>
-#include "EntityTypes.h"
-#include "SceneTypes.h"
+#include "Entity.h"
+#include "Scene.h"
 #include "EntityComponentList.h"
 #include <type_traits>
 #include <tuple>
 
 namespace Coco::ECS
 {
-	class Entity;
-	class Scene;
-
 	class ECSService : public EngineService
 	{
 	public:
@@ -53,7 +50,7 @@ namespace Coco::ECS
 		void QueueDestroyEntity(EntityID entityID);
 		void DestroyEntity(EntityID entityID);
 		
-		List<PackedSetData<Entity>>& GetEntities() { return _entities->GetSparseSet().Data(); }
+		List<PackedSetData<Entity>>& GetEntities();
 
 		template<typename ComponentType, typename ... Args>
 		ComponentType& AddComponent(EntityID entityID, Args&& ... args)

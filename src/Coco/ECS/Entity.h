@@ -1,9 +1,10 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
+
+#include <Coco/Core/Types/List.h>
 #include "EntityTypes.h"
 #include "SceneTypes.h"
-#include "ECSService.h"
 
 namespace Coco::ECS
 {
@@ -15,7 +16,7 @@ namespace Coco::ECS
 		EntityID _parentID;
 		SceneID _sceneID;
 
-		friend ECSService;
+		friend class ECSService;
 
 	public:
 		Entity();
@@ -36,29 +37,5 @@ namespace Coco::ECS
 		SceneID GetSceneID() const { return _sceneID; }
 
 		List<Entity*> GetChildren() const;
-
-		template<typename ComponentType, typename ... Args>
-		ComponentType& AddComponent(Args&& ... args)
-		{
-			return ECSService::Get()->AddComponent<ComponentType>(_id, std::forward<Args>(args)...);
-		}
-
-		template<typename ComponentType>
-		ComponentType& GetComponent()
-		{
-			return ECSService::Get()->GetComponent<ComponentType>(_id);
-		}
-
-		template<typename ComponentType>
-		bool HasComponent() const
-		{
-			return ECSService::Get()->HasComponent<ComponentType>(_id);
-		}
-
-		template<typename ComponentType>
-		bool RemoveComponent()
-		{
-			return ECSService::Get()->RemoveComponent<ComponentType>(_id);
-		}
 	};
 }

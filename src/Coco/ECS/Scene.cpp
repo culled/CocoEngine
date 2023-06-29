@@ -2,7 +2,9 @@
 
 #include "Components/MeshRendererComponent.h"
 #include "Components/TransformComponent.h"
+#include "Components/ScriptComponent.h"
 #include "Entity.h"
+#include "SceneView.h"
 
 namespace Coco::ECS
 {
@@ -19,6 +21,17 @@ namespace Coco::ECS
 			TransformComponent& transform = ecs->GetComponent<TransformComponent>(entityID);
 	
 			renderView->AddRenderObject(renderer.GetMesh(), renderer.GetMaterial(), transform.GetGlobalTransformMatrix());
+		}
+	}
+
+	void Scene::Tick(double deltaTime)
+	{
+		ECSService* ecs = ECSService::Get();
+
+		for (const auto& entityID : SceneView<ScriptComponent>(*this))
+		{
+			ScriptComponent& script = ecs->GetComponent<ScriptComponent>(entityID);
+			script.Tick(deltaTime);
 		}
 	}
 }

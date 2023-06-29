@@ -112,6 +112,8 @@ namespace Coco::ECS
 		}
 	}
 
+	List<PackedSetData<Entity>>& ECSService::GetEntities() { return _entities->GetSparseSet().Data(); }
+
 	Scene* ECSService::CreateScene(const string& name, SceneID parentID)
 	{
 		_scenes.Add(CreateManagedRef<Scene>(_nextSceneID, name, parentID));
@@ -180,6 +182,8 @@ namespace Coco::ECS
 
 	void ECSService::Process(double deltaTime)
 	{
+		GetRootScene()->Tick(deltaTime);
+
 		for (const auto& entityID : _queuedEntitiesToDestroy)
 		{
 			DestroyEntity(entityID);

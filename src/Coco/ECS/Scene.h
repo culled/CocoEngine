@@ -3,7 +3,6 @@
 #include <Coco/Core/Core.h>
 
 #include "SceneTypes.h"
-#include "SceneView.h"
 #include <Coco/Rendering/Providers/ISceneDataProvider.h>
 
 namespace Coco::ECS
@@ -29,5 +28,8 @@ namespace Coco::ECS
 		SceneID GetParentID() const { return _parentID; }
 
 		virtual void GetSceneData(Ref<Rendering::RenderView> renderView) final;
+
+	protected:
+		void Tick(double deltaTime);
 	};
 }

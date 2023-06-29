@@ -6,11 +6,14 @@ namespace Coco
 {
 	/// @brief Class that controls the lifetime of an object, but can distribute non-owning references to it
 	/// @tparam ValueType The object's type
-	template<typename ValueType>
+	template<typename ValueType, typename Deleter = std::default_delete<ValueType>>
 	class ManagedRef : public Ref<ValueType>
 	{
-		template<typename>
+		template<typename ValueType, typename Deleter>
 		friend class ManagedRef;
+
+	private:
+		std::unique_ptr<Deleter> _deleter;
 
 	public:
 		template<typename ... Args>
@@ -19,6 +22,7 @@ namespace Coco
 			ManagedRef ref;
 			ref._controlBlock = std::make_shared<RefControlBlock>(typeid(ValueType));
 			ref._resource = new ValueType(std::forward<Args>(args)...);
+			ref._deleter = std::make_unique<Deleter>();
 
 			return ref;
 		}
@@ -90,7 +94,8 @@ namespace Coco
 
 			if (this->_resource != nullptr)
 			{
-				delete this->_resource;
+				//delete this->_resource;
+				(*_deleter)(this->_resource);
 				this->_resource = nullptr;
 			}
 		}
@@ -105,5 +110,16 @@ namespace Coco
 	ManagedRef<ValueType> CreateManagedRef(Args&&... args)
 	{
 		return ManagedRef<ValueType>::Create(std::forward<Args>(args)...);
+	}
+
+	/// @brief Creates a managed reference for a given type
+	/// @tparam ValueType
+	/// @tparam ...Args
+	/// @param args Arguments to forward to the object's constructor
+	/// @return A managed reference
+	template<typename ValueType, typename Deleter, typename ... Args>
+	ManagedRef<ValueType, Deleter> CreateManagedRefWithDeleter(Args&&... args)
+	{
+		return ManagedRef<ValueType, Deleter>::Create(std::forward<Args>(args)...);
 	}
 }

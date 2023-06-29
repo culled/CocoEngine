@@ -1,4 +1,5 @@
 #include "Entity.h"
+#include "ECSService.h"
 
 namespace Coco::ECS
 {
