@@ -45,7 +45,7 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	_material = engine->GetResourceLibrary()->Load<Material>(ResourceLibrary::DefaultTickLifetime, "materials/testMaterial.cmaterial");
 
 	//_material = CreateRef<Material>(_shader);
-	//_material->SetVector4("_BaseColor", Color::White);
+	_material->SetVector4("_BaseColor", Color::White);
 	//_material->SetTexture("_MainTex", _texture);
 
 	// Setup our basic mesh
@@ -75,7 +75,7 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	_ecsService = engine->GetServiceManager()->CreateService<ECS::ECSService>();
 	_cameraEntityID = _ecsService->CreateEntity("Camera");
 
-	_ecsService->AddComponent<ECS::TransformComponent>(_cameraEntityID);
+	auto& transform = _ecsService->AddComponent<ECS::TransformComponent>(_cameraEntityID);
 
 	ECS::CameraComponent& camera = _ecsService->AddComponent<ECS::CameraComponent>(_cameraEntityID);
 	camera.SetPerspectiveProjection(90.0, 1.0, 0.1, 100.0);
@@ -89,9 +89,10 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	obj2Transform.SetLocalPosition(Vector3(0, 30, 0));
 	obj2Transform.SetLocalRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
 
-	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, _mesh, _material);
+	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, MeshPrimitives::CreateBox(Vector3::One * 5.0), _material);
 
-	//_ecsService->GetEntity(obj2).SetParentID(_cameraEntityID);
+	_ecsService->GetEntity(obj2).SetParentID(_cameraEntityID);
+	_obj2ID = obj2;
 
 	_tickListener = Engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::Tick, 0);
 	_renderTickListener = Engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::RenderTick, 10000);
@@ -161,7 +162,6 @@ void CocoSandboxApplication::Tick(double deltaTime)
 
 	if (keyboard->IsKeyPressed(Input::KeyboardKey::Q))
 		velocity += orientation * Vector3::Down * 5.0;
-
 	
 	cameraTransform.SetLocalPosition(cameraTransform.GetLocalPosition() + velocity * deltaTime);
 	cameraTransform.SetLocalRotation(orientation);
@@ -169,9 +169,9 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	ECS::CameraComponent& camera = _ecsService->GetComponent<ECS::CameraComponent>(_cameraEntityID);
 	camera.SetViewMatrix(cameraTransform.GetGlobalTransformMatrix().Inverted());
 
-	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
-	const double a = Math::Sin(t) * 0.5 + 0.5;
-	_material->SetVector4("_BaseColor", Color(a, a, a, 1.0));
+	//const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
+	//const double a = Math::Sin(t) * 0.5 + 0.5;
+	//_material->SetVector4("_BaseColor", Color(a, a, a, 1.0));
 	
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{
@@ -183,6 +183,16 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	// Update mesh data on the GPU if it is dirty
 	if (_mesh->GetIsDirty())
 		_mesh->UploadData();
+
+	auto& obj2Mesh = _ecsService->GetComponent<ECS::MeshRendererComponent>(_obj2ID);
+	if (obj2Mesh.GetMesh()->GetIsDirty())
+		obj2Mesh.GetMesh()->UploadData();
+	
+	if (keyboard->WasKeyJustPressed(Input::KeyboardKey::F))
+	{
+		auto& obj2Transform = _ecsService->GetComponent<ECS::TransformComponent>(_obj2ID);
+		obj2Transform.SetGlobalPosition(obj2Transform.GetGlobalPosition() + Vector3(0.0, 10.0, 0.0));
+	}
 }
 
 void CocoSandboxApplication::RenderTick(double deltaTime)

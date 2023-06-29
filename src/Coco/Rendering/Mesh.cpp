@@ -11,8 +11,12 @@ namespace Coco::Rendering
 	Mesh::~Mesh()
 	{
 		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
-		platform->PurgeResource(_vertexBuffer);
-		platform->PurgeResource(_indexBuffer);
+
+		if(_vertexBuffer.IsValid())
+			platform->PurgeResource(_vertexBuffer);
+
+		if(_indexBuffer.IsValid())
+			platform->PurgeResource(_indexBuffer);
 	}
 
 	void Mesh::SetPositions(const List<Vector3>& positions)

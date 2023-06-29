@@ -27,10 +27,22 @@ namespace Coco
 			Normalize();
 	}
 
-	Quaternion::Quaternion(const Vector3& eulerAngles, bool normalize) noexcept : Quaternion(Vector3::Up, eulerAngles.Z, normalize)
+	Quaternion::Quaternion(const Vector3& eulerAngles, bool normalize) noexcept
 	{
-		*this *= Quaternion(Vector3::Right, eulerAngles.X, normalize);
-		*this *= Quaternion(Vector3::Forwards, eulerAngles.Y, normalize);	
+		const Vector3 halfAngles = eulerAngles * 0.5;
+
+		// Pitch (X), Roll (Y), Yaw (Z)
+		const double cx = Math::Cos(halfAngles.X);
+		const double sx = Math::Sin(halfAngles.X);
+		const double cy = Math::Cos(halfAngles.Y);
+		const double sy = Math::Sin(halfAngles.Y);
+		const double cz = Math::Cos(halfAngles.Z);
+		const double sz = Math::Sin(halfAngles.Z);
+
+		W = (cz * cx * cy) - (sz * sx * sy);
+		X = (cz * sx * cy) - (sz * cx * sy);
+		Y = (sz * sx * cy) + (cz * cx * sy);
+		Z = (cz * sx * sy) + (sz * cx * cy);
 	}
 
 	Quaternion Quaternion::Slerp(const Quaternion& from, const Quaternion& to, double alpha) noexcept
@@ -125,18 +137,30 @@ namespace Coco
 
 		Quaternion q = Normalized();
 
+		const double xx = q.X * q.X;
+		const double xy = q.X * q.Y;
+		const double xz = q.X * q.Z;
+		const double xw = q.X * q.W;
+
+		const double yy = q.Y * q.Y;
+		const double yz = q.Y * q.Z;
+		const double yw = q.Y * q.W;
+
+		const double zz = q.Z * q.Z;
+		const double zw = q.Z * q.W;
+
 		// https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
-		mat.Data[Matrix4x4::m11] = 1.0 - 2.0 * q.Y * q.Y - 2.0 * q.Z * q.Z;
-		mat.Data[Matrix4x4::m21] = 2.0 * q.X * q.Y + 2.0 * q.Z * q.W;
-		mat.Data[Matrix4x4::m31] = 2.0 * q.X * q.Z - 2.0 * q.Y * q.W;
+		mat.Data[Matrix4x4::m11] = 1.0 - 2.0 * (yy + zz);
+		mat.Data[Matrix4x4::m12] = 2.0 * (xy - zw);
+		mat.Data[Matrix4x4::m13] = 2.0 * (xz + yw);
 
-		mat.Data[Matrix4x4::m12] = 2.0 * q.X * q.Y - 2.0 * q.Z * q.W;
-		mat.Data[Matrix4x4::m22] = 1.0 - 2.0 * q.X * q.X - 2.0 * q.Z * q.Z;
-		mat.Data[Matrix4x4::m32] = 2.0 * q.Y * q.Z + 2.0 * q.X * q.W;
+		mat.Data[Matrix4x4::m21] = 2.0 * (xy + zw);
+		mat.Data[Matrix4x4::m22] = 1.0 - 2.0 * (xx + zz);
+		mat.Data[Matrix4x4::m23] = 2.0 * (yz - xw);
 
-		mat.Data[Matrix4x4::m13] = 2.0 * q.X * q.Z + 2.0 * q.Y * q.W;
-		mat.Data[Matrix4x4::m23] = 2.0 * q.Y * q.Z - 2.0 * q.X * q.W;
-		mat.Data[Matrix4x4::m33] = 1.0 - 2.0 * q.X * q.X - 2.0 * q.Y * q.Y;
+		mat.Data[Matrix4x4::m31] = 2.0 * (xz - yw);
+		mat.Data[Matrix4x4::m32] = 2.0 * (yz + xw);
+		mat.Data[Matrix4x4::m33] = 1.0 - 2.0 * (xx + yy);
 
 		return mat;
 	}
@@ -146,9 +170,34 @@ namespace Coco
 		Vector3 eulerAngles;
 
 		// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-		eulerAngles.X = Math::Atan2(2.0 * (W * X + Y * Z), 1.0 - 2.0 * (X * X + Y * Y));
-		eulerAngles.Y = Math::Asin(2.0 * (W * Y - X * Z));
-		eulerAngles.Z = Math::Atan2(2.0 * (W * Z + X * Y), 1.0 - 2.0 * (Y * Y + Z * Z));
+
+		const double w2 = W * W;
+		const double x2 = X * X;
+		const double y2 = Y * Y;
+		const double z2 = Z * Z;
+		const double unitLength = w2 + x2 + y2 + z2;
+		const double abcd = W * X + Y * Z;
+
+		if (abcd > (0.5 - Math::Epsilon) * unitLength)
+		{
+			eulerAngles.Z = 2.0 * Math::Atan2(Y, W);
+			eulerAngles.X = Math::PI * 0.5;
+			eulerAngles.Y = 0.0;
+		}
+		else if (abcd < (-0.5 + Math::Epsilon) * unitLength)
+		{
+			eulerAngles.Z = -2.0 * Math::Atan2(Y, W);
+			eulerAngles.X = -Math::PI * 0.5;
+			eulerAngles.Y = 0.0;
+		}
+		else
+		{
+			const double adbc = W * Z - X * Y;
+			const double acbd = W * Y - X * Z;
+			eulerAngles.Z = Math::Atan2(2.0 * adbc, 1.0 - 2.0 * (z2 + x2));
+			eulerAngles.X = Math::Asin(2.0 * abcd / unitLength);
+			eulerAngles.Y = Math::Atan2(2.0 * acbd, 1.0 - 2.0 * (y2 + x2));
+		}
 
 		return eulerAngles;
 	}

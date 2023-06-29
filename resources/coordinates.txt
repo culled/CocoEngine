@@ -8,14 +8,14 @@ Coordinate system: Right-handed
 +Z = Up
 
 
-	     (Z) (Y)
-		|  /
-		| /
-		|/
+	   (Z) (Y)
+	    |  /
+	    | /
+	    |/
 (-X)--------+--------(X)
-	     /|
-	    / |
-	   /  |
+	   /|
+	  / |
+	 /  |
        (-Y)(-Z)
 
 Positive rotation = turn counter clockwise

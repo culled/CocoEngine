@@ -323,6 +323,62 @@ namespace Coco
 		return std::move(data);
 	}
 
+	Vector3 Matrix4x4::AsPosition() const noexcept
+	{
+		return Vector3(Data[m14], Data[m24], Data[m34]);
+	}
+
+	Quaternion Matrix4x4::AsRotation() const noexcept
+	{
+		// https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+		const double t = Data[m11] + Data[m22] + Data[m33];
+		Quaternion result;
+
+		if (t > 0)
+		{
+			const double s = Math::Sqrt(t + 1.0) * 2.0;
+			result.W = 0.25 * s;
+			result.X = (Data[m32] - Data[m23]) / s;
+			result.Y = (Data[m13] - Data[m31]) / s;
+			result.Z = (Data[m21] - Data[m12]) / s;
+		}
+		else if (Data[m11] > Data[m22] && Data[m11] > Data[m33])
+		{
+			const double s = Math::Sqrt(1.0 + Data[m11] - Data[m22] - Data[m33]) * 2.0;
+			result.W = (Data[m32] - Data[m23]) / s;
+			result.X = 0.25 * s;
+			result.Y = (Data[m12] - Data[m21]) / s;
+			result.Z = (Data[m13] - Data[m31]) / s;
+		}
+		else if (Data[m22] > Data[m33])
+		{
+			const double s = Math::Sqrt(1.0 + Data[m22] - Data[m11] - Data[m33]) * 2.0;
+			result.W = (Data[m13] - Data[m31]) / s;
+			result.X = (Data[m12] - Data[m21]) / s;
+			result.Y = 0.25 * s;
+			result.Z = (Data[m23] - Data[m32]) / s;
+		}
+		else
+		{
+			const double s = Math::Sqrt(1.0 + Data[m22] - Data[m11] - Data[m33]) * 2.0;
+			result.W = (Data[m21] - Data[m12]) / s;
+			result.X = (Data[m13] - Data[m31]) / s;
+			result.Y = (Data[m23] - Data[m32]) / s;
+			result.Z = 0.25 * s;
+		}
+
+		return result;
+	}
+
+	Vector3 Matrix4x4::AsScale() const noexcept
+	{
+		return Vector3(
+			Math::Sqrt(Data[m11] * Data[m11] + Data[m21] * Data[m21] + Data[m31] * Data[m31]),
+			Math::Sqrt(Data[m12] * Data[m12] + Data[m22] * Data[m22] + Data[m32] * Data[m32]),
+			Math::Sqrt(Data[m13] * Data[m13] + Data[m23] * Data[m23] + Data[m33] * Data[m33])
+			);
+	}
+
 	Matrix4x4 Matrix4x4::operator*(const Matrix4x4& other) const noexcept
 	{
 		Matrix4x4 result;
@@ -346,5 +402,19 @@ namespace Coco
 		}
 
 		return result;
+	}
+
+	Vector4 Matrix4x4::operator*(const Vector4& vector) const noexcept
+	{
+		return Vector4(
+			vector.X * Data[m11] + vector.Y * Data[m12] + vector.Z * Data[m13] + vector.W * Data[m14],
+			vector.X * Data[m21] + vector.Y * Data[m22] + vector.Z * Data[m23] + vector.W * Data[m24],
+			vector.X * Data[m31] + vector.Y * Data[m32] + vector.Z * Data[m33] + vector.W * Data[m34],
+			vector.X * Data[m41] + vector.Y * Data[m42] + vector.Z * Data[m43] + vector.W * Data[m44]);
+	}
+
+	Quaternion Matrix4x4::operator*(const Quaternion& rotation) const noexcept
+	{
+		return (*this * rotation.ToRotationMatrix()).AsRotation();
 	}
 }

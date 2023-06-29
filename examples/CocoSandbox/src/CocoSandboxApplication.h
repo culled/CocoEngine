@@ -64,6 +64,7 @@ private:
 
 	Coco::ECS::ECSService* _ecsService;
 	Coco::ECS::EntityID _cameraEntityID;
+	Coco::ECS::EntityID _obj2ID;
 
 public:
 	CocoSandboxApplication(Coco::Engine* engine);
