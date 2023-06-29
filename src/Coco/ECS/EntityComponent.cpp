@@ -2,9 +2,9 @@
 
 namespace Coco::ECS
 {
-	EntityComponent::EntityComponent() : Owner(InvalidEntityID)
+	EntityComponent::EntityComponent() : _owner(InvalidEntityID)
 	{}
 
-	EntityComponent::EntityComponent(EntityID owner) : Owner(owner)
+	EntityComponent::EntityComponent(EntityID owner) : _owner(owner)
 	{}
 }

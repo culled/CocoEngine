@@ -38,6 +38,15 @@ project "Coco"
             "Input/**.cpp",
         }
 
+    filter { "options:service-ecs or options:services-all" }
+        defines { "COCO_SERVICE_ECS"}
+
+        files
+        {
+            "ECS/**.h",
+            "ECS/**.cpp",
+        }
+
     filter { "options:service-rendering or options:services-all" }
         defines { "COCO_SERVICE_RENDERING"}
 
@@ -53,8 +62,8 @@ project "Coco"
             "Rendering/Graphics/Resources/**.cpp",
             "Rendering/Pipeline/**.h",
             "Rendering/Pipeline/**.cpp",
-            "Rendering/Loaders/**.h",
-            "Rendering/Loaders/**.cpp",
+            "Rendering/Serializers/**.h",
+            "Rendering/Serializers/**.cpp",
         }
 
     filter { "options:service-windowing or options:service-rendering or options:services-all" }

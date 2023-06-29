@@ -74,12 +74,12 @@ namespace Coco::Rendering
 		/// @param renderPass The pass to add
 		/// @param passToPipelineAttachmentBindings A mapping from the render pass's attachments to the pipeline's attachments
 		/// @return A binding
-		Ref<RenderPipelineBinding> AddRenderPass(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentBindings);
+		Ref<RenderPipelineBinding> AddRenderPass(SharedRef<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentBindings);
 
 		/// @brief Removes a binding and its render pass from this pipeline
 		/// @param renderPassBinding The binding to the renderpass
 		/// @return True if the binding was found and removed
-		bool RemoveRenderPass(const Ref<RenderPipelineBinding>& renderPassBinding) noexcept;
+		bool RemoveRenderPass(const SharedRef<RenderPipelineBinding>& renderPassBinding) noexcept;
 
 		/// @brief Gets the list of render passes in this pipeline
 		/// @return The passes in this pipeline

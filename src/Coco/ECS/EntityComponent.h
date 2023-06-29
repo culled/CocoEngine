@@ -5,11 +5,12 @@
 
 namespace Coco::ECS
 {
-
-	struct COCOAPI EntityComponent
+	class COCOAPI EntityComponent
 	{
-		EntityID Owner;
+	protected:
+		EntityID _owner;
 
+	public:
 		EntityComponent();
 		EntityComponent(EntityID owner);
 		virtual ~EntityComponent() = default;

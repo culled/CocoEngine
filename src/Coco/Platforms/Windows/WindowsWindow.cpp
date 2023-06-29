@@ -10,7 +10,11 @@
 
 namespace Coco::Platform::Windows
 {
-	WindowsWindow::WindowsWindow(Coco::Windowing::WindowCreateParameters& createParameters, Coco::Windowing::WindowingService* windowingService, EnginePlatformWindows* platform) :
+	WindowsWindow::WindowsWindow(
+		const Coco::Windowing::WindowCreateParameters& createParameters, 
+		Coco::Windowing::WindowingService* windowingService, 
+		EnginePlatformWindows* platform
+	) :
 		Window(windowingService), _instance(platform->_instance), _size(createParameters.InitialSize)
 	{
 #if UNICODE || _UNICODE

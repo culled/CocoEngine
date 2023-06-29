@@ -25,7 +25,7 @@ namespace Coco::Windowing
         /// @brief Creates a window
         /// @param createParameters Parameters to create the new window with
         /// @return The created window
-        Ref<Window> CreateNewWindow(WindowCreateParameters& createParameters);
+        Ref<Window> CreateNewWindow(const WindowCreateParameters& createParameters);
 
         /// @brief Gets the main window (if one has been created)
         /// @return The main window

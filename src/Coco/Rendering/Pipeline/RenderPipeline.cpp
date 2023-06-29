@@ -51,14 +51,14 @@ namespace Coco::Rendering
 		return _attachmentDescriptions;
 	}
 
-	Ref<RenderPipelineBinding> RenderPipeline::AddRenderPass(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentBindings)
+	Ref<RenderPipelineBinding> RenderPipeline::AddRenderPass(SharedRef<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentBindings)
 	{
 		_renderPasses.Add(CreateManagedRef<RenderPipelineBinding>(renderPass, passToPipelineAttachmentBindings));
 		_attachmentDescriptionsDirty = true;
 		return _renderPasses.Last();
 	}
 
-	bool RenderPipeline::RemoveRenderPass(const Ref<RenderPipelineBinding>& renderPassBinding) noexcept
+	bool RenderPipeline::RemoveRenderPass(const SharedRef<RenderPipelineBinding>& renderPassBinding) noexcept
 	{
 		try
 		{

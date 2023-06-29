@@ -160,7 +160,7 @@ namespace Coco::ECS
 	void TransformComponent::InvalidateTransform()
 	{
 		ECSService* ecs = ECSService::Get();
-		const auto childrenIDs = ecs->GetEntityChildrenIDs(Owner);
+		const auto childrenIDs = ecs->GetEntityChildrenIDs(_owner);
 		
 		for (const auto& childID : childrenIDs)
 		{
@@ -205,7 +205,7 @@ namespace Coco::ECS
 		ECSService* ecs = ECSService::Get();
 		Entity* parent = nullptr;
 
-		if (_inheritParentTransform && ecs->TryGetEntityParent(Owner, parent))
+		if (_inheritParentTransform && ecs->TryGetEntityParent(_owner, parent))
 		{
 			parentTransform = &ecs->GetComponent<TransformComponent>(parent->GetID());
 			return true;

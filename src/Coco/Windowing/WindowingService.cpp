@@ -15,7 +15,7 @@ namespace Coco::Windowing
 		_windows.Clear();
 	}
 
-	Ref<Window> WindowingService::CreateNewWindow(WindowCreateParameters& createParameters)
+	Ref<Window> WindowingService::CreateNewWindow(const WindowCreateParameters& createParameters)
 	{
 		if (Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(ServiceManager->Engine->GetPlatform()))
 		{

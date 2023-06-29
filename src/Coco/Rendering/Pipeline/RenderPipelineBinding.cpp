@@ -2,7 +2,7 @@
 
 namespace Coco::Rendering
 {
-	RenderPipelineBinding::RenderPipelineBinding(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentMapping) :
+	RenderPipelineBinding::RenderPipelineBinding(SharedRef<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentMapping) :
 		_renderPass(renderPass)
 	{
 		List<AttachmentDescription> passAttachments = renderPass->GetAttachmentDescriptions();

@@ -57,7 +57,7 @@ namespace Coco::Platform::Windows
         void GetRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept final;
 
         ManagedRef<Windowing::Window> CreatePlatformWindow(
-            Windowing::WindowCreateParameters& createParameters, 
+            const Windowing::WindowCreateParameters& createParameters, 
             Windowing::WindowingService* windowingService) final;
 
     private:

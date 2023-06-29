@@ -203,7 +203,7 @@ namespace Coco::Platform::Windows
 	}
 
 	ManagedRef<Windowing::Window> EnginePlatformWindows::CreatePlatformWindow(
-		Windowing::WindowCreateParameters& createParameters, 
+		const Windowing::WindowCreateParameters& createParameters, 
 		Windowing::WindowingService* windowingService)
 	{
 #ifdef COCO_SERVICE_WINDOWING

@@ -20,7 +20,7 @@ namespace Coco::Platform::Windows
         SizeInt _size;
 
     public:
-        WindowsWindow(Coco::Windowing::WindowCreateParameters& createParameters, Coco::Windowing::WindowingService* windowingService, EnginePlatformWindows* platform);
+        WindowsWindow(const Coco::Windowing::WindowCreateParameters& createParameters, Coco::Windowing::WindowingService* windowingService, EnginePlatformWindows* platform);
         ~WindowsWindow() final;
 
         WindowsWindow() = delete;

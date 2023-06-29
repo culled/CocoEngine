@@ -23,11 +23,11 @@ namespace Coco::Rendering
 	class COCOAPI RenderPipelineBinding
 	{
 	private:
-		Ref<IRenderPass> _renderPass;
+		SharedRef<IRenderPass> _renderPass;
 		List<MappedAttachmentDescription> _mappedAttachmentDescriptions;
 
 	public:
-		RenderPipelineBinding(Ref<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentMapping);
+		RenderPipelineBinding(SharedRef<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentMapping);
 		virtual ~RenderPipelineBinding();
 
 		/// @brief Gets the mapping between the pipeline attachments and this render pass's attachments
@@ -36,6 +36,6 @@ namespace Coco::Rendering
 
 		/// @brief Gets the bound render pass
 		/// @return The render pass
-		Ref<IRenderPass> GetRenderPass() noexcept { return _renderPass; }
+		SharedRef<IRenderPass> GetRenderPass() noexcept { return _renderPass; }
 	};
 }
