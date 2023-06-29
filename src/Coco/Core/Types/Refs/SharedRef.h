@@ -6,10 +6,10 @@ namespace Coco
 {
 	/// @brief A shared reference to an object that gets destroyed when the last SharedRef that references it is destroyed
 	/// @tparam ValueType The type of object
-	template<typename ValueType>
+	template<typename ValueType, typename Deleter = std::default_delete<ValueType>>
 	class SharedRef : public Ref<ValueType>
 	{
-		template<typename>
+		template<typename, typename>
 		friend class SharedRef;
 
 		template<typename>
@@ -35,8 +35,7 @@ namespace Coco
 			return ref;
 		}
 
-		SharedRef()
-		{}
+		SharedRef() = default;
 
 		SharedRef(const SharedRef<ValueType>& object) noexcept : Ref<ValueType>(object)
 		{}
@@ -107,14 +106,15 @@ namespace Coco
 	private:
 		void DestroyIfUnused()
 		{
-			if (!this->_controlBlock || this->GetUseCount() > 0)
+			if (!this->_controlBlock || this->GetUseCount() > 1)
 				return;
 
 			this->_controlBlock->SetResourceType(typeid(std::nullptr_t));
 
 			if (this->_resource != nullptr)
 			{
-				delete this->_resource;
+				Deleter deleter{};
+				deleter(this->_resource);
 
 				this->_resource = nullptr;
 			}
@@ -130,7 +130,17 @@ namespace Coco
 	SharedRef<ValueType> CreateSharedRef(Args&&... args)
 	{
 		return SharedRef<ValueType>::Create(std::forward<Args>(args)...);
-		//return SharedRef<ValueType>(std::forward<Args>(args)...);
+	}
+
+	/// @brief Creates a shared reference for a given object type
+	/// @tparam ValueType The type of object
+	/// @tparam ...Args Arguments for the object' constructor
+	/// @param args Arguments to forward to the object's constructor
+	/// @return A shared reference to the object
+	template<typename ValueType, typename Deleter, typename ... Args>
+	SharedRef<ValueType, Deleter> CreateSharedRefWithDeleter(Args&&... args)
+	{
+		return SharedRef<ValueType, Deleter>::Create(std::forward<Args>(args)...);
 	}
 
 	/// @brief A weak reference to a SharedRef that doesn't add to the user count unless it is locked

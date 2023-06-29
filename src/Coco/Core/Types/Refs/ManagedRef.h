@@ -9,11 +9,8 @@ namespace Coco
 	template<typename ValueType, typename Deleter = std::default_delete<ValueType>>
 	class ManagedRef : public Ref<ValueType>
 	{
-		template<typename ValueType, typename Deleter>
+		template<typename, typename>
 		friend class ManagedRef;
-
-	private:
-		std::unique_ptr<Deleter> _deleter;
 
 	public:
 		template<typename ... Args>
@@ -22,7 +19,6 @@ namespace Coco
 			ManagedRef ref;
 			ref._controlBlock = std::make_shared<RefControlBlock>(typeid(ValueType));
 			ref._resource = new ValueType(std::forward<Args>(args)...);
-			ref._deleter = std::make_unique<Deleter>();
 
 			return ref;
 		}
@@ -94,8 +90,8 @@ namespace Coco
 
 			if (this->_resource != nullptr)
 			{
-				//delete this->_resource;
-				(*_deleter)(this->_resource);
+				Deleter deleter{};
+				deleter(this->_resource);
 				this->_resource = nullptr;
 			}
 		}
