@@ -4,19 +4,24 @@
 
 namespace Coco::ECS
 {
-	ScriptComponent::ScriptComponent()
+	AttachedScript::AttachedScript() : _ecs(ECSService::Get())
 	{
-		Engine* engine = Engine::Get();
-
-		if (!engine->GetServiceManager()->TryFindService<ECSService>(_ecs))
+		if (_ecs == nullptr)
 			throw Exception("Could not find an active ECSService");
 	}
 
-	ScriptComponent::ScriptComponent(EntityID owner) : EntityComponent(owner)
+	ScriptComponent::ScriptComponent(EntityID owner, ManagedRef<AttachedScript>&& script) : EntityComponent(owner),
+		_script(std::move(script))
 	{
-		Engine* engine = Engine::Get();
+		_script->_entityID = owner;
+		_script->Start();
+	}
 
-		if (!engine->GetServiceManager()->TryFindService<ECSService>(_ecs))
-			throw Exception("Could not find an active ECSService");
+	void ScriptComponent::Tick(double deltaTime)
+	{
+		if (!_script.IsValid())
+			return;
+
+		_script->Tick(deltaTime);
 	}
 }

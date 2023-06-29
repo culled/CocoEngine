@@ -40,7 +40,7 @@ namespace Coco
 		if (!_resources.contains(id))
 			return;
 
-		Ref<Resource> resource = _resources.at(id);
+		Ref<Resource>& resource = _resources.at(id);
 
 		if(forcePurge || resource.GetUseCount() <= 1)
 			_resources.erase(id);

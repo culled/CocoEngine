@@ -4,6 +4,8 @@
 #include <Coco/Core/Types/SparseSet.h>
 #include "EntityTypes.h"
 
+#include <type_traits>
+
 namespace Coco::ECS
 {
 	class IEntityComponentList
@@ -30,12 +32,12 @@ namespace Coco::ECS
 			return _components.Get(entity);
 		}
 
-		virtual bool HasComponent(EntityID entity) const final
+		bool HasComponent(EntityID entity) const final
 		{
 			return _components.Contains(entity);
 		}
 
-		virtual bool RemoveComponent(EntityID entity) final
+		bool RemoveComponent(EntityID entity) final
 		{
 			return _components.Remove(entity);
 		}

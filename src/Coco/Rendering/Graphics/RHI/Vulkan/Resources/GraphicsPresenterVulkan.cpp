@@ -382,7 +382,7 @@ namespace Coco::Rendering::Vulkan
 	void GraphicsPresenterVulkan::DestroySwapchainObjects() noexcept
 	{
 		for (const auto& backbuffer : _backbuffers)
-			_device->PurgeResource(backbuffer);
+			_device->PurgeResource(backbuffer, true);
 
 		_backbuffers.Clear();
 
@@ -407,7 +407,7 @@ namespace Coco::Rendering::Vulkan
 	void GraphicsPresenterVulkan::DestroyRenderContexts() noexcept
 	{
 		for (const auto& context : _renderContexts)
-			_device->PurgeResource(context);
+			_device->PurgeResource(context, true);
 
 		LogTrace(_device->GetLogger(), FormattedString("Released {} render contexts", _renderContexts.Count()));
 

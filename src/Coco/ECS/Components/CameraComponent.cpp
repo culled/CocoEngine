@@ -180,6 +180,11 @@ namespace Coco::ECS
 						renderTargets[i] = image;
 						generateImage = false;
 					}
+					else if(image.IsValid())
+					{
+						// Release the unused image
+						EnsureRenderingService()->GetPlatform()->PurgeResource(image, true);
+					}
 				}
 				
 				if(generateImage)
