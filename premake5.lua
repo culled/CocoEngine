@@ -125,4 +125,5 @@ workspace "CocoEngine"
 
         group ""
             include "examples\\CocoSandbox"
+            include "examples\\Breakout"
     end

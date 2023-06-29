@@ -166,8 +166,8 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	cameraTransform.SetLocalPosition(cameraTransform.GetLocalPosition() + velocity * deltaTime);
 	cameraTransform.SetLocalRotation(orientation);
 
-	ECS::CameraComponent& camera = _ecsService->GetComponent<ECS::CameraComponent>(_cameraEntityID);
-	camera.SetViewMatrix(cameraTransform.GetGlobalTransformMatrix().Inverted());
+	//ECS::CameraComponent& camera = _ecsService->GetComponent<ECS::CameraComponent>(_cameraEntityID);
+	//camera.SetViewMatrix(cameraTransform.GetGlobalTransformMatrix().Inverted());
 
 	//const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
 	//const double a = Math::Sin(t) * 0.5 + 0.5;
