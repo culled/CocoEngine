@@ -24,7 +24,7 @@ namespace Coco::Rendering::Vulkan
 			{
 				VkDescriptorPoolSize poolSize = {};
 				poolSize.type = binding.descriptorType;
-				poolSize.descriptorCount = layout.GetTypeCount(binding.descriptorType);
+				poolSize.descriptorCount = layout.GetTypeCount(binding.descriptorType) * maxSets;
 
 				poolSizes.Add(poolSize);
 			}
