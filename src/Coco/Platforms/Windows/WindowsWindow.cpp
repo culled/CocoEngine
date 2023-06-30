@@ -5,6 +5,8 @@
 #include <Coco/Core/Logging/Logger.h>
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/Graphics/Resources/PresenterSurfaceInitializationInfo.h>
+#include <Coco/Core/Services/EngineServiceManager.h>
+#include <Coco/Rendering/RenderingService.h>
 
 #define CheckWindowHandle() Assert(_handle != NULL)
 
@@ -17,6 +19,9 @@ namespace Coco::Platform::Windows
 	) :
 		Window(windowingService), _instance(platform->_instance), _size(createParameters.InitialSize)
 	{
+		if (Rendering::RenderingService::Get() == nullptr)
+			throw Windowing::WindowCreateException("Failed to find an active RenderingService");
+
 #if UNICODE || _UNICODE
 		std::wstring title = EnginePlatformWindows::StringToWideString(createParameters.Title);
 #else
@@ -78,6 +83,8 @@ namespace Coco::Platform::Windows
 		if (_handle == NULL)
 			throw Windowing::WindowCreateException(FormattedString("Failed to create window: {}", GetLastError()));
 
+		Presenter = Rendering::RenderingService::Get()->GetPlatform()->CreatePresenter(createParameters.Title);
+
 		LogTrace(WindowingService->GetLogger(), "Created Windows window");
 	}
 
@@ -90,6 +97,40 @@ namespace Coco::Platform::Windows
 		}
 
 		LogTrace(WindowingService->GetLogger(), "Destroyed Windows window");
+	}
+
+	string WindowsWindow::GetTitle() const noexcept
+	{
+		CheckWindowHandle();
+
+		int titleLength = GetWindowTextLength(_handle) + 1;
+		LPTSTR rawTitle = nullptr;
+		string title;
+
+		try
+		{
+			rawTitle = new TCHAR[titleLength];
+
+			if (rawTitle != NULL)
+			{
+				int count = GetWindowText(_handle, rawTitle, titleLength);
+
+#ifdef UNICODE
+				title = EnginePlatformWindows::WideStringToString(rawTitle);
+#else
+				title = string((LPSTR)rawTitle, count);
+#endif
+			}
+		}
+		catch (const Exception& e)
+		{
+			LogError(WindowingService->GetLogger(), FormattedString("Failed to get window title: {}", e.what()));
+		}
+
+		if (rawTitle != NULL)
+			delete[] rawTitle;
+
+		return title;
 	}
 
 	void WindowsWindow::Show() noexcept

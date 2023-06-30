@@ -43,6 +43,16 @@ namespace Coco::Platform::Windows
         EnginePlatformWindows(EnginePlatformWindows&&) = delete;
         EnginePlatformWindows& operator=(EnginePlatformWindows&&) = delete;
 
+        /// @brief Converts a wide character array to a string
+        /// @param wideString A wide character array
+        /// @return A UTF-8 string representation of the input character array
+        static string WideStringToString(const LPWSTR wideString);
+
+        /// @brief Converts a string to a wide string
+        /// @param string A string
+        /// @return An equivalent wide string representation
+        static std::wstring StringToWideString(const string& string);
+
         void Start() final;
         void GetCommandLineArguments(List<string>& arguments) const noexcept final;
         void HandlePlatformMessages() noexcept final;
@@ -61,15 +71,6 @@ namespace Coco::Platform::Windows
             Windowing::WindowingService* windowingService) final;
 
     private:
-        /// @brief Converts a wide character array to a string
-        /// @param wideString A wide character array
-        /// @return A UTF-8 string representation of the input character array
-        static string WideStringToString(const LPWSTR wideString);
-
-        /// @brief Converts a string to a wide string
-        /// @param string A string
-        /// @return An equivalent wide string representation
-        static std::wstring StringToWideString(const string& string);
 
         /// @brief Message processing callback
         /// @param windowHandle The handle to the window

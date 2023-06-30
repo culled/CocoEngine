@@ -8,7 +8,8 @@
 
 namespace Coco::Rendering
 {
-	Texture::Texture(ResourceID id, const string& name, uint64_t tickLifetime) : RenderingResource(id, name, tickLifetime)
+	Texture::Texture(ResourceID id, const string& name, uint64_t tickLifetime) : RenderingResource(id, name, tickLifetime), 
+		_usageFlags(ImageUsageFlags::None)
 	{}
 
 	Texture::Texture(
@@ -147,7 +148,7 @@ namespace Coco::Rendering
 		try
 		{
 			// Load the image data into this texture
-			_image = platform->CreateImage(description);
+			_image = platform->CreateImage(_name, description);
 			_image->SetPixelData(0, byteSize, rawImageData);
 		}
 		catch (const Exception& ex)
@@ -183,7 +184,7 @@ namespace Coco::Rendering
 		if(_image.IsValid())
 			platform->PurgeResource(_image);
 
-		_image = platform->CreateImage(newDescription);
+		_image = platform->CreateImage(_name, newDescription);
 	}
 
 	void Texture::RecreateInternalSampler()
@@ -193,6 +194,6 @@ namespace Coco::Rendering
 		if (_sampler.IsValid())
 			platform->PurgeResource(_sampler);
 
-		_sampler = platform->CreateImageSampler(_samplerProperties);
+		_sampler = platform->CreateImageSampler(_name, _samplerProperties);
 	}
 }

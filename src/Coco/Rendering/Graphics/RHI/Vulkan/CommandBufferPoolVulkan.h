@@ -25,7 +25,7 @@ namespace Coco::Rendering::Vulkan
 		CommandBufferPoolVulkan(GraphicsDeviceVulkan* device, Ref<VulkanQueue> queue);
 		~CommandBufferPoolVulkan() final;
 
-		Ref<CommandBuffer> Allocate(bool isPrimary) final;
+		Ref<CommandBuffer> Allocate(bool isPrimary, const string& name = "CommandBuffer") final;
 		void Free(const Ref<CommandBuffer>& buffer) noexcept final;
 		void WaitForQueue() noexcept final;
 

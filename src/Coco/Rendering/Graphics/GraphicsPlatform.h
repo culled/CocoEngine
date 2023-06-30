@@ -72,26 +72,26 @@ namespace Coco::Rendering
 
 		/// @brief Creates a graphics presenter
 		/// @return A graphics presenter
-		virtual Ref<GraphicsPresenter> CreatePresenter() = 0;
+		virtual Ref<GraphicsPresenter> CreatePresenter(const string& name) = 0;
 
 		/// @brief Creates a data buffer
 		/// @param size The size of the buffer (in bytes)
 		/// @param usageFlags Flags for how the buffer will be used
 		/// @param bindOnCreate If true, the buffer will be bound after it is created
 		/// @return The created buffer
-		virtual Ref<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
+		virtual Ref<Buffer> CreateBuffer(const string& name, uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
 
 		/// @brief Creates an image
 		/// @param description The description for the image
 		/// @return The created image
-		virtual Ref<Image> CreateImage(const ImageDescription& description) = 0;
+		virtual Ref<Image> CreateImage(const string& name, const ImageDescription& description) = 0;
 
 		/// @brief Creates an image sampler
 		/// @param filterMode The filter mode
 		/// @param repeatMode The repeat mode
 		/// @param maxAnisotropy The maximum anisotropy
 		/// @return The created image sampler
-		virtual Ref<ImageSampler> CreateImageSampler(const ImageSamplerProperties& properties) = 0;
+		virtual Ref<ImageSampler> CreateImageSampler(const string& name, const ImageSamplerProperties& properties) = 0;
 
 		virtual void PurgeResource(const Ref<Resource>& resource, bool forcePurge = false);
 	};

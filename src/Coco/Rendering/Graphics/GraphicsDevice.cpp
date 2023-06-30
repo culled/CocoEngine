@@ -12,8 +12,8 @@ namespace Coco::Rendering
 	void GraphicsDevice::PurgeResource(const Ref<Resource>& resource, bool forcePurge)
 	{
 		// We add the test for use count to account for the caller probably still owing the resource.
-		// If the caller is the only one owning it (use count == 2), then force purge it
-		Resources->PurgeResource(resource->GetID(), forcePurge || resource.GetUseCount() <= 2);
+		// If the caller is the only one owning it (use count == 3; referenced by this function, the caller, and the device), then force purge it
+		Resources->PurgeResource(resource->GetID(), forcePurge || resource.GetUseCount() <= 3);
 	}
 
 	void GraphicsDevice::PurgeUnusedResources() noexcept

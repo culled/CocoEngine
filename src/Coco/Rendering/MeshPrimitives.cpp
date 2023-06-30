@@ -180,9 +180,9 @@ namespace Coco::Rendering
 		CreateXYGrid(Vector2(-size.X, size.Z), Vector3::Down * sizeOffset.Z + offset, positions, uvs, indices, subdivisions);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateFromVertices(const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices)
+	Ref<Mesh> MeshPrimitives::CreateFromVertices(const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices, const string& name)
 	{
-		Ref<Mesh> mesh = Engine::Get()->GetResourceLibrary()->CreateResource<Mesh>("", ResourceLibrary::DefaultTickLifetime);
+		Ref<Mesh> mesh = Engine::Get()->GetResourceLibrary()->CreateResource<Mesh>(name, ResourceLibrary::DefaultTickLifetime);
 		mesh->SetPositions(positions);
 		mesh->SetUVs(uvs);
 		mesh->SetIndices(indices);

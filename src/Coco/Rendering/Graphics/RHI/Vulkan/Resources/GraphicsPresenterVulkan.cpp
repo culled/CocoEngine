@@ -348,7 +348,7 @@ namespace Coco::Rendering::Vulkan
 
 			for (int i = 0; i < images.Count(); i++)
 			{
-				_backbuffers.Add(_device->CreateResource<ImageVulkan>(_backbufferDescription, images[i]));
+				_backbuffers.Add(_device->CreateResource<ImageVulkan>(FormattedString("{} Backbuffer {}", _name, i), _backbufferDescription, images[i]));
 			}
 
 			RecreateRenderContexts();
@@ -398,7 +398,7 @@ namespace Coco::Rendering::Vulkan
 
 		for (int i = 0; i < _backbuffers.Count(); i++)
 		{
-			_renderContexts.Add(_device->CreateResource<RenderContextVulkan>());
+			_renderContexts.Add(_device->CreateResource<RenderContextVulkan>(FormattedString("{} RenderContext {}", _name, i)));
 		}
 
 		LogTrace(_device->GetLogger(), FormattedString("Created {} render contexts", _renderContexts.Count()));

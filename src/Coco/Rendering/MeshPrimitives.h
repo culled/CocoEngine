@@ -75,6 +75,6 @@ namespace Coco::Rendering
 		/// @param uvs The vertex UVs
 		/// @param indices The vertex indices
 		/// @return A mesh with the given vertices
-		static Ref<Mesh> CreateFromVertices(const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices);
+		static Ref<Mesh> CreateFromVertices(const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices, const string& name = "Mesh");
 	};
 }

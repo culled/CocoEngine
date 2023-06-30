@@ -204,7 +204,7 @@ namespace Coco::Rendering::Vulkan
 	void RenderContextVulkanCache::CreateAdditionalMaterialBuffer()
 	{
 		MaterialBuffer buffer = {};
-		buffer.Buffer = _device->CreateResource<BufferVulkan>(
+		buffer.Buffer = _device->CreateResource<BufferVulkan>("Material Buffer",
 			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
 			_materialBufferSize,
 			true);

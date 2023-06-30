@@ -68,18 +68,18 @@ namespace Coco::Rendering
 			const uint64_t indexBufferSize = _indexCount * sizeof(uint32_t);
 
 			if (!_vertexBuffer.IsValid())
-				_vertexBuffer = platform->CreateBuffer(
+				_vertexBuffer = platform->CreateBuffer(FormattedString("{} vertex buffer", _name),
 					vertexBufferSize,
 					BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Vertex,
 					true);
 
 			if (!_indexBuffer.IsValid())
-				_indexBuffer = platform->CreateBuffer(
+				_indexBuffer = platform->CreateBuffer(FormattedString("{} index buffer", _name),
 					indexBufferSize,
 					BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Index,
 					true);
 
-			Ref<Buffer> stagingBuffer = platform->CreateBuffer(
+			Ref<Buffer> stagingBuffer = platform->CreateBuffer(FormattedString("{} staging buffer", _name),
 				vertexBufferSize,
 				BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
 				true);

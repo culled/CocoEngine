@@ -36,14 +36,14 @@ namespace Coco::Rendering::Vulkan
 
 		_commandBuffer = _pool->Allocate(true);
 
-		_globalUBO = _device->CreateResource<BufferVulkan>(
+		_globalUBO = _device->CreateResource<BufferVulkan>(FormattedString("{} Global UBO", name),
 			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
 			sizeof(GlobalUniformObject),
 			true);
 
-		_imageAvailableSemaphore = _device->CreateResource<GraphicsSemaphoreVulkan>();
-		_renderingCompleteSemaphore = _device->CreateResource<GraphicsSemaphoreVulkan>();
-		_renderingCompleteFence = _device->CreateResource<GraphicsFenceVulkan>(true);
+		_imageAvailableSemaphore = _device->CreateResource<GraphicsSemaphoreVulkan>(FormattedString("{} Image Available Semaphore", name));
+		_renderingCompleteSemaphore = _device->CreateResource<GraphicsSemaphoreVulkan>(FormattedString("{} Rendering Complete Semaphore", name));
+		_renderingCompleteFence = _device->CreateResource<GraphicsFenceVulkan>(FormattedString("{} Rendering Complete Fence", name), true);
 
 		_renderCache = CreateManagedRef<RenderContextVulkanCache>();
 		_device->OnPurgedResources.AddHandler(this, &RenderContextVulkan::HandlePurgeResources);
@@ -403,7 +403,7 @@ namespace Coco::Rendering::Vulkan
 
 		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &layoutCreateInfo, nullptr, &_globalDescriptor.Layout));
 
-		_globalDescriptorPool = _device->CreateResource<VulkanDescriptorPool>(1, List<VulkanDescriptorLayout>({ _globalDescriptor }));
+		_globalDescriptorPool = _device->CreateResource<VulkanDescriptorPool>(FormattedString("{} Global Descriptor Pool", _name), 1, List<VulkanDescriptorLayout>({ _globalDescriptor }));
 		_globalDescriptorSet = _globalDescriptorPool->GetOrAllocateSet(_globalDescriptor, 0);
 
 		// Update the descriptor sets

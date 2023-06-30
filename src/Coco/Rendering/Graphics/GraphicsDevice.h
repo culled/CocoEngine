@@ -76,11 +76,11 @@ namespace Coco::Rendering
 		/// @param ...args The arguments to pass to the resource's constructor
 		/// @return A handle to the resource
 		template<typename ResourceType, typename ... Args>
-		Ref<ResourceType> CreateResource(Args&& ... args)
+		Ref<ResourceType> CreateResource(const string& name, Args&& ... args)
 		{
 			static_assert(std::is_base_of_v<RenderingResource, ResourceType>, "The resource must be derived from RenderingResource");
 		
-			return Resources->CreateResource<ResourceType>("", RenderingService::DefaultGraphicsResourceTickLifetime, std::forward<Args>(args)...);
+			return Resources->CreateResource<ResourceType>(name, RenderingService::DefaultGraphicsResourceTickLifetime, std::forward<Args>(args)...);
 		}
 
 		void PurgeResource(const Ref<Resource>& resource, bool forcePurge = false);

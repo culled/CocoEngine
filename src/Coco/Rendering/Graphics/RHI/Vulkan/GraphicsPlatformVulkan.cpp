@@ -157,24 +157,24 @@ namespace Coco::Rendering::Vulkan
 	//	LogInfo(GetLogger(), "Graphics device reset");
 	//}
 
-	Ref<GraphicsPresenter> GraphicsPlatformVulkan::CreatePresenter()
+	Ref<GraphicsPresenter> GraphicsPlatformVulkan::CreatePresenter(const string& name)
 	{
-		return _device->CreateResource<GraphicsPresenterVulkan>();
+		return _device->CreateResource<GraphicsPresenterVulkan>(name);
 	}
 
-	Ref<Buffer> GraphicsPlatformVulkan::CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
+	Ref<Buffer> GraphicsPlatformVulkan::CreateBuffer(const string& name, uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate)
 	{
-		return _device->CreateResource<BufferVulkan>(usageFlags, size, bindOnCreate);
+		return _device->CreateResource<BufferVulkan>(name, usageFlags, size, bindOnCreate);
 	}
 
-	Ref<Image> GraphicsPlatformVulkan::CreateImage(const ImageDescription& description)
+	Ref<Image> GraphicsPlatformVulkan::CreateImage(const string& name, const ImageDescription& description)
 	{
-		return _device->CreateResource<ImageVulkan>(description);
+		return _device->CreateResource<ImageVulkan>(name, description);
 	}
 
-	Ref<ImageSampler> GraphicsPlatformVulkan::CreateImageSampler(const ImageSamplerProperties& properties)
+	Ref<ImageSampler> GraphicsPlatformVulkan::CreateImageSampler(const string& name, const ImageSamplerProperties& properties)
 	{
-		return _device->CreateResource<ImageSamplerVulkan>(properties);
+		return _device->CreateResource<ImageSamplerVulkan>(name, properties);
 	}
 
 	bool GraphicsPlatformVulkan::CheckValidationLayersSupport() noexcept

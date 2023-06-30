@@ -189,7 +189,10 @@ namespace Coco::ECS
 				
 				if(generateImage)
 				{
-					renderTargets[i] = EnsureRenderingService()->GetPlatform()->CreateImage(attachmentDescription);
+					renderTargets[i] = EnsureRenderingService()->GetPlatform()->CreateImage(
+						FormattedString("{} Cached Rendertarget {}", ECSService::Get()->GetEntity(_owner).GetName(), i), 
+						attachmentDescription
+					);
 
 					generatedImages[i] = renderTargets[i];
 				}

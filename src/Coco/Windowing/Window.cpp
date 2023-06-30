@@ -1,21 +1,13 @@
 #include "Window.h"
 
 #include <Coco/Core/Engine.h>
-#include <Coco/Core/Services/EngineServiceManager.h>
-#include <Coco/Rendering/RenderingService.h>
 #include "WindowingService.h"
 
 namespace Coco::Windowing
 {
 	Window::Window(Windowing::WindowingService* windowingService) :
 		WindowingService(windowingService)
-	{
-		Rendering::RenderingService* renderingService;
-		if (!Engine::Get()->GetServiceManager()->TryFindService<Rendering::RenderingService>(renderingService))
-			throw WindowCreateException("Could not find an active rendering service. Windowing requires an active rendering service");
-
-		Presenter = renderingService->GetPlatform()->CreatePresenter();
-	}
+	{}
 
 	Window::~Window()
 	{}

@@ -24,7 +24,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		DestroyPool();
 
-		_pool = _device->CreateResource<VulkanDescriptorPool>(_maxSets, shader->GetDescriptorLayouts());
+		_pool = _device->CreateResource<VulkanDescriptorPool>(FormattedString("{} Descriptor Pool", shader->GetName()), _maxSets, shader->GetDescriptorLayouts());
 		UpdateOriginalVersion(shader->GetVersion());
 		IncrementVersion();
 	}

@@ -31,10 +31,10 @@ namespace Coco::Rendering::Vulkan
         RenderingRHI GetRHI() const noexcept final { return RenderingRHI::Vulkan; }
         GraphicsDevice* GetDevice() noexcept final;
         //void ResetDevice() final;
-        Ref<GraphicsPresenter> CreatePresenter() final;
-        Ref<Buffer> CreateBuffer(uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;
-        Ref<Image> CreateImage(const ImageDescription& description) final;
-        Ref<ImageSampler> CreateImageSampler(const ImageSamplerProperties& properties) final;
+        Ref<GraphicsPresenter> CreatePresenter(const string& name) final;
+        Ref<Buffer> CreateBuffer(const string& name, uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;
+        Ref<Image> CreateImage(const string& name, const ImageDescription& description) final;
+        Ref<ImageSampler> CreateImageSampler(const string& name, const ImageSamplerProperties& properties) final;
 
         /// @brief Gets the Vulkan instance
         /// @return The Vulkan instance

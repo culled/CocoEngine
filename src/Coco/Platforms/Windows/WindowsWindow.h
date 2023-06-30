@@ -30,6 +30,7 @@ namespace Coco::Platform::Windows
         WindowsWindow& operator=(WindowsWindow&&) = delete;
 
         void* GetID() const noexcept final { return _handle; }
+        string GetTitle() const noexcept final;
         SizeInt GetSize() const noexcept final { return _size; }
         void Show() noexcept final;
         void Minimize() noexcept final;

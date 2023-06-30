@@ -29,9 +29,9 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	Ref<CommandBuffer> CommandBufferPoolVulkan::Allocate(bool isPrimary)
+	Ref<CommandBuffer> CommandBufferPoolVulkan::Allocate(bool isPrimary, const string& name)
 	{
-		_allocatedBuffers.Add(_device->CreateResource<CommandBufferVulkan>(isPrimary, this));
+		_allocatedBuffers.Add(_device->CreateResource<CommandBufferVulkan>(name, isPrimary, this));
 		return _allocatedBuffers.Last();
 	}
 

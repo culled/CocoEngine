@@ -21,13 +21,13 @@ namespace Coco
 		PackedSetData(const PackedSetData&) = delete;
 		PackedSetData& operator=(const PackedSetData&) = delete;
 
-		PackedSetData(PackedSetData&& other)
+		PackedSetData(PackedSetData&& other) noexcept
 		{
 			SparseIndex = other.SparseIndex;
 			Data = std::move(other.Data);
 		}
 
-		PackedSetData& operator=(PackedSetData&& other)
+		PackedSetData& operator=(PackedSetData&& other) noexcept
 		{
 			SparseIndex = other.SparseIndex;
 			Data = std::move(other.Data);

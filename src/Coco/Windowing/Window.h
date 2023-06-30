@@ -79,6 +79,8 @@ namespace Coco::Windowing
 		/// @return The ID for this window
 		virtual void* GetID() const noexcept = 0;
 
+		virtual string GetTitle() const noexcept = 0;
+
 		/// @brief Gets the size of the window's client area
 		/// @return The size of the window's client area
 		virtual SizeInt GetSize() const noexcept = 0;
