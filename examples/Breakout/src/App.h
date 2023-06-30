@@ -16,6 +16,9 @@ class App : public Application
 private:
 	static App* _instance;
 
+	Ref<Rendering::Shader> _basicShader;
+	Ref<Rendering::Material> _wallMaterial;
+
 	ECS::ECSService* _ecsService;
 	Input::InputService* _inputService;
 	Rendering::RenderingService* _renderingService;
@@ -28,6 +31,9 @@ private:
 	Vector3 _cameraPosition = Vector3(0.0, 0.0, 10.0);
 	Vector3 _cameraRotation = Vector3(Math::Deg2Rad(-90.0), 0.0, 0.0);
 	ECS::EntityID _cameraEntity;
+
+	Size _arenaSize = Size(35.0, 18.0);
+	Vector3 _arenaOffset = Vector3(0.0, 1.0, 0.0);
 
 public:
 	App(Coco::Engine* engine);
@@ -46,10 +52,13 @@ public:
 	Ref<Windowing::Window> GetWindow() { return _windowingService->GetMainWindow(); }
 	ECS::Scene* GetScene() { return _ecsService->GetRootScene(); }
 
+	Ref<Rendering::Shader> GetBasicShader() { return _basicShader; }
+
 private:
 	void ConfigureRenderPipeline();
 	void CreateCamera();
 	void CreatePlayer();
+	void CreateArena();
 
 	void RenderTick(double deltaTime);
 };

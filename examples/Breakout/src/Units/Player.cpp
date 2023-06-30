@@ -19,32 +19,7 @@ void Player::Start()
 
 	ResourceLibrary* library = Engine::Get()->GetResourceLibrary();
 
-	// Create the player shader
-	Ref<Shader> shader = library->CreateResource<Shader>("Shader::Player", ResourceLibrary::DefaultTickLifetime);
-
-	auto pipelineState = GraphicsPipelineState();
-	pipelineState.CullingMode = CullMode::None;
-
-	shader->CreateSubshader(
-		"main",
-		{
-			{ ShaderStageType::Vertex, "shaders/built-in/ObjectShader.vert.spv" },
-			{ ShaderStageType::Fragment, "shaders/built-in/ObjectShader.frag.spv" },
-		},
-		pipelineState,
-		{
-			ShaderVertexAttribute(BufferDataFormat::Vector3),
-			ShaderVertexAttribute(BufferDataFormat::Vector2)
-		},
-		{
-			ShaderDescriptor("_BaseColor", BufferDataFormat::Vector4)
-		},
-		{
-			ShaderTextureSampler("_MainTex")
-		}
-		);
-
-	_material = library->CreateResource<Material>("Material::Player", ResourceLibrary::DefaultTickLifetime, shader);
+	_material = library->CreateResource<Material>("Material::Player", ResourceLibrary::DefaultTickLifetime, App::Get()->GetBasicShader());
 	_material->SetVector4("_BaseColor", _playerColor);
 	_material->SetTexture("_MainTex", App::Get()->GetRenderingService()->GetDefaultDiffuseTexture());
 

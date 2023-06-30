@@ -6,10 +6,12 @@
 #include <Coco/ECS/Entity.h>
 #include <Coco/ECS/Components/CameraComponent.h>
 #include <Coco/ECS/Components/TransformComponent.h>
+#include <Coco/ECS/Components/MeshRendererComponent.h>
 #include "Units/Player.h"
 
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 #include "Rendering/OpaqueRenderPass.h"
+#include <Coco/Rendering/MeshPrimitives.h>
 
 MainApplication(App)
 
@@ -55,18 +57,49 @@ void App::Start()
 
 	CreateCamera();
 	CreatePlayer();
+	CreateArena();
 }
 
 void App::ConfigureRenderPipeline()
 {
 	using namespace Coco::Rendering;
-	Ref<RenderPipeline> renderPipeline = this->Engine->GetResourceLibrary()->CreateResource<RenderPipeline>("RenderPipeline", ResourceLibrary::DefaultTickLifetime);
+	ResourceLibrary* library = this->Engine->GetResourceLibrary();
+
+	Ref<RenderPipeline> renderPipeline = library->CreateResource<RenderPipeline>("RenderPipeline", ResourceLibrary::DefaultTickLifetime);
 
 	// Color attachment will be index 0, depth at index 1
 	renderPipeline->AddRenderPass(CreateSharedRef<OpaqueRenderPass>(), { 0, 1 });
 	renderPipeline->SetClearColor(_clearColor);
 
 	_renderingService->SetDefaultPipeline(renderPipeline);
+
+	_basicShader = library->CreateResource<Shader>("Basic Shader", ResourceLibrary::DefaultTickLifetime);
+
+	auto pipelineState = GraphicsPipelineState();
+	pipelineState.CullingMode = CullMode::None;
+
+	_basicShader->CreateSubshader(
+		"main",
+		{
+			{ ShaderStageType::Vertex, "shaders/built-in/ObjectShader.vert.spv" },
+			{ ShaderStageType::Fragment, "shaders/built-in/ObjectShader.frag.spv" },
+		},
+		pipelineState,
+		{
+			ShaderVertexAttribute(BufferDataFormat::Vector3),
+			ShaderVertexAttribute(BufferDataFormat::Vector2)
+		},
+		{
+			ShaderDescriptor("_BaseColor", BufferDataFormat::Vector4)
+		},
+		{
+			ShaderTextureSampler("_MainTex")
+		}
+		);
+
+	_wallMaterial = library->CreateResource<Material>("Material::Wall", ResourceLibrary::DefaultTickLifetime, _basicShader);
+	_wallMaterial->SetVector4("_BaseColor", Color::Green);
+	_wallMaterial->SetTexture("_MainTex", App::Get()->GetRenderingService()->GetDefaultDiffuseTexture());
 }
 
 void App::CreateCamera()
@@ -87,6 +120,30 @@ void App::CreatePlayer()
 {
 	_playerEntity = _ecsService->CreateEntity("Player");
 	_ecsService->AddComponent<ScriptComponent>(_playerEntity, CreateManagedRef<Player>());
+}
+
+void App::CreateArena()
+{
+	Ref<Mesh> wallMesh = MeshPrimitives::CreateXYPlane(Size(1.0, _arenaSize.Height));
+	wallMesh->UploadData();
+
+	Ref<Mesh> ceilingMesh = MeshPrimitives::CreateXYPlane(Size(_arenaSize.Width, 1.0));
+	ceilingMesh->UploadData();
+
+	EntityID leftWall = _ecsService->CreateEntity("Left Wall");
+	auto& leftWallTransform = _ecsService->AddComponent<TransformComponent>(leftWall);
+	leftWallTransform.SetGlobalPosition(_arenaOffset + Vector3::Left * _arenaSize.Width * 0.5);
+	_ecsService->AddComponent<MeshRendererComponent>(leftWall, wallMesh, _wallMaterial);
+
+	EntityID rightWall = _ecsService->CreateEntity("Right Wall");
+	auto& rightWallTransform = _ecsService->AddComponent<TransformComponent>(rightWall);
+	rightWallTransform.SetGlobalPosition(_arenaOffset + Vector3::Right * _arenaSize.Width * 0.5);
+	_ecsService->AddComponent<MeshRendererComponent>(rightWall, wallMesh, _wallMaterial);
+
+	EntityID ceiling = _ecsService->CreateEntity("Ceiling");
+	auto& ceilingTransform = _ecsService->AddComponent<TransformComponent>(ceiling);
+	ceilingTransform.SetGlobalPosition(_arenaOffset + Vector3::Forwards * (_arenaSize.Height * 0.5 - 0.5));
+	_ecsService->AddComponent<MeshRendererComponent>(ceiling, ceilingMesh, _wallMaterial);
 }
 
 void App::RenderTick(double deltaTime)
