@@ -5,32 +5,32 @@
 namespace Coco::Rendering
 {
 	CommandBuffer::CommandBuffer(ResourceID id, const string& name, bool isPrimary) noexcept : RenderingResource(id, name),
-		IsPrimary(isPrimary), CurrentState(CommandBufferState::Ready)
+		IsPrimary(isPrimary), _currentState(CommandBufferState::Ready)
 	{
 	}
 
 	void CommandBuffer::Begin(bool isSingleUse, bool isSimultaneousUse)
 	{
 		BeginImpl(isSingleUse, isSimultaneousUse);
-		CurrentState = CommandBufferState::Recording;
+		_currentState = CommandBufferState::Recording;
 	}
 
 	void CommandBuffer::End()
 	{
 		EndImpl();
-		CurrentState = CommandBufferState::RecordingEnded;
+		_currentState = CommandBufferState::RecordingEnded;
 	}
 
 	void CommandBuffer::Submit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence)
 	{
 		SubmitImpl(waitSemaphores, signalSemaphores, signalFence);
-		CurrentState = CommandBufferState::Submitted;
+		_currentState = CommandBufferState::Submitted;
 	}
 
 	void CommandBuffer::Reset()
 	{
 		ResetImpl();
-		CurrentState = CommandBufferState::Ready;
+		_currentState = CommandBufferState::Ready;
 	}
 
 	void CommandBuffer::EndAndSubmit(

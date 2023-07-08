@@ -93,9 +93,9 @@ namespace Coco::Rendering::Vulkan
 		region.imageSubresource.baseArrayLayer = 0;
 		region.imageSubresource.layerCount = 1;
 
-		region.imageExtent.width = static_cast<uint32_t>(Description.Width);
-		region.imageExtent.height = static_cast<uint32_t>(Description.Height);
-		region.imageExtent.depth = static_cast<uint32_t>(Description.Depth);
+		region.imageExtent.width = static_cast<uint32_t>(_description.Width);
+		region.imageExtent.height = static_cast<uint32_t>(_description.Height);
+		region.imageExtent.depth = static_cast<uint32_t>(_description.Depth);
 
 		vkCmdCopyBufferToImage(commandBuffer->GetCmdBuffer(), buffer->GetBuffer(), _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 	}
@@ -220,23 +220,23 @@ namespace Coco::Rendering::Vulkan
 
 	void ImageVulkan::CreateImageFromDescription()
 	{
-		const bool isDepthFormat = IsDepthStencilFormat(Description.PixelFormat);
+		const bool isDepthFormat = IsDepthStencilFormat(_description.PixelFormat);
 
 		//VkFormatProperties formatProperties;
 		//vkGetPhysicalDeviceFormatProperties(_device->GetPhysicalDevice(), ToVkFormat(Description.PixelFormat), &formatProperties);
 
 		VkImageCreateInfo create = {};
 		create.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		create.extent.width = static_cast<uint32_t>(Description.Width);
-		create.extent.height = static_cast<uint32_t>(Description.Height);
-		create.extent.depth = static_cast<uint32_t>(Description.Depth);
-		create.mipLevels = static_cast<uint32_t>(Description.MipCount);
-		create.arrayLayers = static_cast<uint32_t>(Description.Layers);
-		create.imageType = ToVkImageType(Description.DimensionType);
-		create.format = ToVkFormat(Description.PixelFormat);
+		create.extent.width = static_cast<uint32_t>(_description.Width);
+		create.extent.height = static_cast<uint32_t>(_description.Height);
+		create.extent.depth = static_cast<uint32_t>(_description.Depth);
+		create.mipLevels = static_cast<uint32_t>(_description.MipCount);
+		create.arrayLayers = static_cast<uint32_t>(_description.Layers);
+		create.imageType = ToVkImageType(_description.DimensionType);
+		create.format = ToVkFormat(_description.PixelFormat);
 		create.tiling = VK_IMAGE_TILING_OPTIMAL;
 		create.initialLayout = _currentLayout;
-		create.usage = ToVkImageUsageFlags(Description.UsageFlags, Description.PixelFormat);
+		create.usage = ToVkImageUsageFlags(_description.UsageFlags, _description.PixelFormat);
 		create.samples = VK_SAMPLE_COUNT_1_BIT; // TODO: multiple samples
 		create.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // TODO: configurable sharing mode
 
@@ -263,11 +263,11 @@ namespace Coco::Rendering::Vulkan
 
 	void ImageVulkan::CreateNativeImageView()
 	{
-		const bool isDepthFormat = IsDepthStencilFormat(Description.PixelFormat);
+		const bool isDepthFormat = IsDepthStencilFormat(_description.PixelFormat);
 
 		VkImageViewCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		createInfo.format = ToVkFormat(Description.PixelFormat);
+		createInfo.format = ToVkFormat(_description.PixelFormat);
 		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 
 		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -278,9 +278,9 @@ namespace Coco::Rendering::Vulkan
 		createInfo.subresourceRange.aspectMask = isDepthFormat ?
 			VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 		createInfo.subresourceRange.baseMipLevel = 0;
-		createInfo.subresourceRange.levelCount = static_cast<uint32_t>(Description.MipCount);
+		createInfo.subresourceRange.levelCount = static_cast<uint32_t>(_description.MipCount);
 		createInfo.subresourceRange.baseArrayLayer = 0;
-		createInfo.subresourceRange.layerCount = static_cast<uint32_t>(Description.Layers);
+		createInfo.subresourceRange.layerCount = static_cast<uint32_t>(_description.Layers);
 		createInfo.image = _image;
 
 		AssertVkResult(vkCreateImageView(_device->GetDevice(), &createInfo, nullptr, &_nativeView));

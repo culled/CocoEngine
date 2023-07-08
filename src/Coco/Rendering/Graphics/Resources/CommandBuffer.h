@@ -27,7 +27,7 @@ namespace Coco::Rendering
 
 	protected:
 		/// @brief The current state of this buffer
-		CommandBufferState CurrentState;
+		CommandBufferState _currentState;
 
 	public:
 		CommandBuffer(ResourceID id, const string& name, bool isPrimary) noexcept;

@@ -74,6 +74,7 @@ namespace Coco
 
 	void ResourceLibrary::PurgeResources()
 	{
+		// Purge individually in-case resources purge each other
 		while (_resources.size() > 0)
 		{
 			_resources.erase(_resources.cbegin());

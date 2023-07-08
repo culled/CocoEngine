@@ -11,7 +11,7 @@ namespace Coco::Rendering
 	{
 	protected:
 		/// @brief The description for this image
-		ImageDescription Description;
+		ImageDescription _description;
 
 	public:
 		Image(ResourceID id, const string& name, ImageDescription description) noexcept;
@@ -26,13 +26,13 @@ namespace Coco::Rendering
 
 		/// @brief Gets this image's description
 		/// @return This image's description
-		const ImageDescription& GetDescription() const noexcept { return Description; }
+		const ImageDescription& GetDescription() const noexcept { return _description; }
 
 		/// @brief Gets the size (in bytes) of the memory that this image requires
 		/// @return The image size (in bytes)
 		uint64_t GetSize() const noexcept
 		{
-			return static_cast<uint64_t>(Description.Width) * Description.Height * Description.Depth * GetPixelFormatSize(Description.PixelFormat);
+			return static_cast<uint64_t>(_description.Width) * _description.Height * _description.Depth * GetPixelFormatSize(_description.PixelFormat);
 		}
 
 		/// @brief Sets pixel data to this image. NOTE: make sure the type matches the pixel format of this image!

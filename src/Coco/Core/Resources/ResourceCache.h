@@ -104,6 +104,7 @@ namespace Coco
 		/// @brief Immediately destroys all resources
 		void Invalidate()
 		{
+			// Purge individually in-case resources purge each other
 			while (_resources.size() > 0)
 			{
 				_resources.erase(_resources.cbegin());
