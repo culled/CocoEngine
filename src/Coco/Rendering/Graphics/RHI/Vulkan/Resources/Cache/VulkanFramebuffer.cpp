@@ -7,8 +7,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanFramebuffer::VulkanFramebuffer(ResourceID id, const string& name, uint64_t lifetime, const Ref<RenderPipeline>& pipeline) :
-		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name, lifetime), CachedResource(pipeline->GetID(), pipeline->GetVersion()),
+	VulkanFramebuffer::VulkanFramebuffer(ResourceID id, const string& name, const Ref<RenderPipeline>& pipeline) :
+		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), CachedResource(pipeline->ID, pipeline->GetVersion()),
 		_pipeline(pipeline)
 	{}
 
@@ -17,19 +17,12 @@ namespace Coco::Rendering::Vulkan
 		DestroyFramebuffer();
 	}
 
-	void VulkanFramebuffer::ReBind(const Ref<RenderPipeline>& pipeline)
-	{
-		_pipeline = pipeline;
-		_originalID = pipeline->GetID();
-		_originalVersion = pipeline->GetVersion();
-	}
-
 	bool VulkanFramebuffer::NeedsUpdate(const Ref<RenderView>& renderView) const noexcept
 	{
 		return _framebuffer == nullptr || 
 			_size != renderView->ViewportRect.Size || 
 			_renderTargets.Any([](const auto& rt) { return !rt.IsValid(); }) || 
-			_originalVersion != _pipeline->GetVersion();
+			GetReferenceVersion() != _pipeline->GetVersion();
 	}
 
 	void VulkanFramebuffer::Update(const Ref<RenderView>& renderView, VulkanRenderPass* renderPass)
@@ -60,7 +53,7 @@ namespace Coco::Rendering::Vulkan
 		AssertVkResult(vkCreateFramebuffer(_device->GetDevice(), &framebufferInfo, nullptr, &_framebuffer));
 		_size = renderView->ViewportRect.Size;
 
-		UpdateOriginalVersion(_pipeline->GetVersion());
+		UpdateReferenceVersion(_pipeline->GetVersion());
 		IncrementVersion();
 	}
 

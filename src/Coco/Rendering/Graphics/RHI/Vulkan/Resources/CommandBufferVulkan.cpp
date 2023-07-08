@@ -7,8 +7,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	CommandBufferVulkan::CommandBufferVulkan(ResourceID id, const string& name, uint64_t lifetime, bool isPrimary, CommandBufferPoolVulkan* pool) : 
-		GraphicsResource<GraphicsDeviceVulkan, CommandBuffer>(id, name, lifetime, isPrimary),
+	CommandBufferVulkan::CommandBufferVulkan(ResourceID id, const string& name, bool isPrimary, CommandBufferPoolVulkan* pool) : 
+		GraphicsResource<GraphicsDeviceVulkan, CommandBuffer>(id, name, isPrimary),
 		_pool(pool)
 	{
 		VkCommandBufferAllocateInfo allocateInfo = {};

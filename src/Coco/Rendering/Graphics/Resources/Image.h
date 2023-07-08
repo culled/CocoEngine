@@ -14,7 +14,7 @@ namespace Coco::Rendering
 		ImageDescription Description;
 
 	public:
-		Image(ResourceID id, const string& name, uint64_t lifetime, ImageDescription description) noexcept;
+		Image(ResourceID id, const string& name, ImageDescription description) noexcept;
 
 		virtual ~Image() = default;
 

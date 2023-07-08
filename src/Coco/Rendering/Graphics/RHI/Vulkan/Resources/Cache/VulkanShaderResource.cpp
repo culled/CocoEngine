@@ -6,13 +6,14 @@
 
 namespace Coco::Rendering::Vulkan
 {
-    VulkanShaderResource::VulkanShaderResource(ResourceID id, const string& name, uint64_t lifetime, const VulkanShader* shader) :
-        GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name, lifetime), CachedResource(shader->GetID(), shader->GetVersion())
+    VulkanShaderResource::VulkanShaderResource(ResourceID id, const string& name, const VulkanShader* shader) :
+        GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), 
+		CachedResource(shader->ID, shader->GetVersion())
     {}
 
     bool VulkanShaderResource::NeedsUpdate(const VulkanShader* shader) const noexcept
     {
-        return !_pool.IsValid() || shader->GetVersion() != GetOriginalVersion();
+        return !_pool.IsValid() || shader->GetVersion() != GetReferenceVersion();
     }
 
 	VulkanShaderResource::~VulkanShaderResource()
@@ -25,7 +26,7 @@ namespace Coco::Rendering::Vulkan
 		DestroyPool();
 
 		_pool = _device->CreateResource<VulkanDescriptorPool>(FormattedString("{} Descriptor Pool", shader->GetName()), _maxSets, shader->GetDescriptorLayouts());
-		UpdateOriginalVersion(shader->GetVersion());
+		UpdateReferenceVersion(shader->GetVersion());
 		IncrementVersion();
 	}
 

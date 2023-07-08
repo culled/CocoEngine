@@ -11,7 +11,7 @@ namespace Coco
 	{
 	public:
 		Exception() = default;
-		Exception(const string& message);
+		Exception(const string& message) noexcept;
 		virtual ~Exception() = default;
 	};
 
@@ -19,7 +19,7 @@ namespace Coco
 	class COCOAPI IndexOutOfRangeException : public Exception
 	{
 	public:
-		IndexOutOfRangeException(const string& message);
+		IndexOutOfRangeException(const string& message) noexcept;
 		virtual ~IndexOutOfRangeException() = default;
 	};
 
@@ -27,7 +27,7 @@ namespace Coco
 	class COCOAPI InvalidOperationException : public Exception
 	{
 	public:
-		InvalidOperationException(const string& message);
+		InvalidOperationException(const string& message) noexcept;
 		virtual ~InvalidOperationException() = default;
 	};
 }

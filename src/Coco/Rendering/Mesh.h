@@ -33,7 +33,7 @@ namespace Coco::Rendering
 		bool _isDirty = false;
 
 	public:
-		Mesh(ResourceID id, const string& name, uint64_t tickLifetime);
+		Mesh(ResourceID id, const string& name);
 		~Mesh() override;
 
 		DefineResourceType(Mesh)
@@ -61,11 +61,11 @@ namespace Coco::Rendering
 
 		/// @brief Gets this mesh's vertex buffer
 		/// @return The vertex buffer
-		Ref<Buffer> GetVertexBuffer() const noexcept { return _vertexBuffer; }
+		Ref<Buffer> GetVertexBuffer() noexcept { return _vertexBuffer; }
 
 		/// @brief Gets this mesh's index buffer
 		/// @return The index buffer
-		Ref<Buffer> GetIndexBuffer() const noexcept { return _indexBuffer; }
+		Ref<Buffer> GetIndexBuffer() noexcept { return _indexBuffer; }
 
 		/// @brief Gets the number of vertices in this mesh
 		/// @return The number of vertices

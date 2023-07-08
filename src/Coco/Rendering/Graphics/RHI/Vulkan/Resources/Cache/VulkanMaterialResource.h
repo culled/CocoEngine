@@ -15,7 +15,7 @@ namespace Coco::Rendering::Vulkan
 		uint64_t _size = 0;
 
 	public:
-		VulkanMaterialResource(ResourceID id, const string& name, uint64_t lifetime, const MaterialRenderData& materialData);
+		VulkanMaterialResource(ResourceID id, const string& name, const MaterialRenderData& materialData);
 		~VulkanMaterialResource() = default;
 
 		DefineResourceType(VulkanMaterialResource)

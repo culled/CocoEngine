@@ -4,10 +4,7 @@
 
 namespace Coco::Rendering
 {
-	ShaderSerializer::ShaderSerializer(ResourceLibrary* library) : KeyValueResourceSerializer(library)
-	{}
-
-	string ShaderSerializer::Serialize(const Ref<Resource>& resource)
+	string ShaderSerializer::Serialize(ResourceLibrary* library, const Ref<Resource>& resource)
 	{
 		if (const Shader* shader = dynamic_cast<const Shader*>(resource.Get()))
 		{
@@ -71,7 +68,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void ShaderSerializer::Deserialize(const string& data, Resource* resource)
+	void ShaderSerializer::Deserialize(ResourceLibrary* library, const string& data, Ref<Resource> resource)
 	{
 		string shaderName;
 		List<Subshader> subshaders;
@@ -92,7 +89,7 @@ namespace Coco::Rendering
 		if (subshaders.Count() == 0)
 			throw InvalidOperationException("Shader file did not have subshaders");
 
-		Shader* shader = static_cast<Shader*>(resource);
+		Shader* shader = static_cast<Shader*>(resource.Get());
 		shader->SetName(shaderName);
 
 		for (const Subshader& subshader : subshaders)

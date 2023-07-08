@@ -15,7 +15,7 @@ namespace Coco::Rendering
 	class COCOAPI RenderingResource : public Resource
 	{
 	protected:
-		RenderingResource(ResourceID id, const string& name, uint64_t tickLifetime);
+		RenderingResource(ResourceID id, const string& name);
 
 	public:
 		virtual ~RenderingResource() = default;
@@ -23,10 +23,10 @@ namespace Coco::Rendering
 	protected:
 		/// @brief Gets the rendering service's logger
 		/// @return The rendering service's logger
-		Logging::Logger* GetRenderingLogger() const;
+		Logging::Logger* GetRenderingLogger();
 
 		/// @brief Ensures that there is an active rendering service and returns it
 		/// @return The active rendering service
-		RenderingService* EnsureRenderingService() const;
+		RenderingService* EnsureRenderingService();
 	};
 }

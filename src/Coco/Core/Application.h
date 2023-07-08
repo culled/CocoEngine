@@ -21,14 +21,11 @@ namespace Coco
 		/// @brief Invoked when the application has quit
 		Event<> OnQuit;
 
-		/// @brief A pointer the engine
-		Engine* const Engine;
+	protected:
+		ManagedRef<Logging::Logger> _logger;
 
 	protected:
-		ManagedRef<Logging::Logger> Logger;
-
-	protected:
-		Application(Coco::Engine* engine, const string& name);
+		Application(const string& name);
 
 	public:
 		virtual ~Application();
@@ -43,7 +40,7 @@ namespace Coco
 		/// @brief Creates an application for a given engine
 		/// @param engine The engine
 		/// @return The created application
-		static ManagedRef<Application> Create(Coco::Engine* engine);
+		static ManagedRef<Application> Create();
 
 		/// @brief Called right before the main loop begins, but after all other engine initialization has happened
 		virtual void Start() = 0;
@@ -55,5 +52,5 @@ namespace Coco
 }
 
 /// Macro that adds a factory to create the application instance. Should be added in the cpp file for the client application
-#define MainApplication(AppClass) Coco::ManagedRef<Coco::Application> CreateApplication(Coco::Engine* engine) { return Coco::CreateManagedRef<AppClass>(engine); }
+#define MainApplication(AppClass) Coco::ManagedRef<Coco::Application> CreateApplication() { return Coco::CreateManagedRef<AppClass>(); }
 

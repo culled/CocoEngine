@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Coco/Core/Services/EngineService.h>
-#include <Coco/Core/MainLoop/MainLoopTickListener.h>
 
 #include "Keyboard.h"
 #include "Mouse.h"
@@ -23,7 +22,7 @@ namespace Coco::Input
         ManagedRef<Mouse> _mouse;
 
     public:
-        InputService(EngineServiceManager* serviceManager);
+        InputService();
         virtual ~InputService() override;
 
         InputService(const InputService&) = delete;

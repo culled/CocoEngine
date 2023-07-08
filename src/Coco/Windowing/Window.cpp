@@ -5,13 +5,6 @@
 
 namespace Coco::Windowing
 {
-	Window::Window(Windowing::WindowingService* windowingService) :
-		WindowingService(windowingService)
-	{}
-
-	Window::~Window()
-	{}
-
 	bool Window::Close() noexcept
 	{
 		bool cancelClose = false;
@@ -33,7 +26,7 @@ namespace Coco::Windowing
 		catch (...)
 		{ }
 
-		WindowingService->WindowClosed(this);
+		WindowingService::Get()->WindowClosed(this);
 
 		return true;
 	}
@@ -41,10 +34,10 @@ namespace Coco::Windowing
 	void Window::HandleResized()
 	{
 		// By handling the surface on resize, we can make sure we always have a surface
-		if (!Presenter->IsSurfaceInitialized())
+		if (!_presenter->IsSurfaceInitialized())
 			SetupPresenterSurface();
 
-		Presenter->SetBackbufferSize(GetBackbufferSize());
+		_presenter->SetBackbufferSize(GetBackbufferSize());
 
 		OnResized.Invoke(this, GetSize());
 	}

@@ -11,9 +11,11 @@ namespace Coco
 	/// @brief A file that can read and write data
 	class COCOAPI File
 	{
+	public:
+		const string Path;
+
 	private:
 		FileModeFlags _openFlags;
-		string _path;
 		std::fstream _handle;
 
 	public:
@@ -21,11 +23,11 @@ namespace Coco
 		virtual ~File();
 
 		File(File&&) noexcept;
-		File& operator=(File&&) noexcept;
 
 		File() = delete;
 		File(const File&) = delete;
 		File& operator=(const File&) = delete;
+		File& operator=(File&&) = delete;
 
 		/// @brief Checks if a file exists
 		/// @param path The path of the file
@@ -46,7 +48,7 @@ namespace Coco
 		/// @brief Reads a file's contents as binary data
 		/// @param path The file to read
 		/// @return The contents of the file as binary data
-		static List<uint8_t> ReadAllBytes(const string& path);
+		static List<char> ReadAllBytes(const string& path);
 
 		/// @brief Writes text to a file
 		/// @param path The file to write to
@@ -56,28 +58,24 @@ namespace Coco
 		/// @brief Writes binary data to a file
 		/// @param path The file to write to
 		/// @param data The binary data to write
-		static void WriteAllBytes(const string& path, const List<uint8_t>& data);
-		
-		/// @brief Gets the path of this file
-		/// @return The file's path
-		const string& GetFilePath() const { return _path; }
+		static void WriteAllBytes(const string& path, const List<char>& data);
 
 		/// @brief Returns the byte at the current position of the file without moving the read position
 		/// @return The byte at the current position
-		uint8_t Peek();
+		char Peek();
 
 		/// @brief Reads a number of bytes from this file until it reaches the target number of bytes or the end of the file
 		/// @param bytesToRead The number of bytes to read
 		/// @return The binary data that was read
-		List<uint8_t> Read(uint64_t bytesToRead);
+		List<char> Read(uint64_t bytesToRead);
 
 		/// @brief Reads bytes from the current position to the end of the file
 		/// @return The binary data from the current position to the end of the file
-		List<uint8_t> ReadToEnd();
+		List<char> ReadToEnd();
 
 		/// @brief Writes bytes to this file
 		/// @param bytes The bytes to write
-		void Write(const List<uint8_t>& bytes);
+		void Write(const List<char>& bytes);
 
 		/// @brief Reads a number of text characters from this file until it reaches the target number of characters or the end of the file
 		/// @param charactersToRead The number of characters to read
@@ -129,6 +127,10 @@ namespace Coco
 
 		/// @brief Closes this file
 		void Close();
+
+		/// @brief Gets if the file is open
+		/// @return True if the file is still open
+		bool IsOpen() const { return _handle.is_open(); }
 
 	private:
 		/// @brief Checks if the internal file handle is valid

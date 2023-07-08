@@ -16,7 +16,7 @@ namespace Coco::Rendering::Vulkan
 		VkFence _fence = nullptr;
 
 	public:
-		GraphicsFenceVulkan(ResourceID id, const string& name, uint64_t lifetime, bool startSignalled);
+		GraphicsFenceVulkan(ResourceID id, const string& name, bool startSignalled);
 		~GraphicsFenceVulkan() final;
 
 		DefineResourceType(GraphicsFenceVulkan)

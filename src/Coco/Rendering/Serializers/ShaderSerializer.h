@@ -27,13 +27,13 @@ namespace Coco::Rendering
 		static constexpr const char* s_subshaderBindStageVariable = "descriptorBindStage";
 
 	public:
-		ShaderSerializer(ResourceLibrary* library);
+		ShaderSerializer() = default;
 		~ShaderSerializer() final = default;
 
 		DefineSerializerResourceType(Shader)
 
-		string Serialize(const Ref<Resource>& resource) final;
-		void Deserialize(const string& data, Resource* resource) final;
+		string Serialize(ResourceLibrary* library, const Ref<Resource>& resource) final;
+		void Deserialize(ResourceLibrary* library, const string& data, Ref<Resource> resource) final;
 
 	private:
 		/// @brief Reads a list of subshaders for a shader

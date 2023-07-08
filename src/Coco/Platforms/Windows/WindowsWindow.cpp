@@ -12,18 +12,17 @@
 
 namespace Coco::Platform::Windows
 {
-	WindowsWindow::WindowsWindow(
-		const Coco::Windowing::WindowCreateParameters& createParameters, 
-		Coco::Windowing::WindowingService* windowingService, 
-		EnginePlatformWindows* platform
-	) :
-		Window(windowingService), _instance(platform->_instance), _size(createParameters.InitialSize)
+	WindowsWindow::WindowsWindow(const Coco::Windowing::WindowCreateParameters& createParameters) :
+		Window()
 	{
 		if (Rendering::RenderingService::Get() == nullptr)
 			throw Windowing::WindowCreateException("Failed to find an active RenderingService");
 
+		_instance = EnginePlatformWindows::Get()->_instance;
+		_size = createParameters.InitialSize;
+
 #if UNICODE || _UNICODE
-		std::wstring title = EnginePlatformWindows::StringToWideString(createParameters.Title);
+		std::wstring title = StringToWideString(createParameters.Title);
 #else
 		string title = createParameters.Title;
 #endif
@@ -77,15 +76,15 @@ namespace Coco::Platform::Windows
 			height,
 			NULL, // TODO: parented windows
 			NULL, // Menu
-			platform->_instance,
+			_instance,
 			this);
 
 		if (_handle == NULL)
 			throw Windowing::WindowCreateException(FormattedString("Failed to create window: {}", GetLastError()));
 
-		Presenter = Rendering::RenderingService::Get()->GetPlatform()->CreatePresenter(createParameters.Title);
+		_presenter = Rendering::RenderingService::Get()->GetPlatform()->CreatePresenter(createParameters.Title);
 
-		LogTrace(WindowingService->GetLogger(), "Created Windows window");
+		LogTrace(Windowing::WindowingService::Get()->GetLogger(), "Created Windows window");
 	}
 
 	WindowsWindow::~WindowsWindow()
@@ -96,7 +95,7 @@ namespace Coco::Platform::Windows
 			_handle = NULL;
 		}
 
-		LogTrace(WindowingService->GetLogger(), "Destroyed Windows window");
+		LogTrace(Windowing::WindowingService::Get()->GetLogger(), "Destroyed Windows window");
 	}
 
 	string WindowsWindow::GetTitle() const noexcept
@@ -124,7 +123,7 @@ namespace Coco::Platform::Windows
 		}
 		catch (const Exception& e)
 		{
-			LogError(WindowingService->GetLogger(), FormattedString("Failed to get window title: {}", e.what()));
+			LogError(Windowing::WindowingService::Get()->GetLogger(), FormattedString("Failed to get window title: {}", e.what()));
 		}
 
 		if (rawTitle != NULL)
@@ -154,7 +153,7 @@ namespace Coco::Platform::Windows
 
 	void WindowsWindow::SetupPresenterSurface()
 	{
-		Presenter->InitializeSurface(Rendering::PresenterWin32SurfaceInitializationInfo(_handle, _instance));
+		_presenter->InitializeSurface(Rendering::PresenterWin32SurfaceInitializationInfo(_handle, _instance));
 	}
 
 	void WindowsWindow::ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam)

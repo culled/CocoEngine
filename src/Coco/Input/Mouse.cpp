@@ -27,12 +27,12 @@ namespace Coco::Input
 
 	void Mouse::UpdateButtonState(MouseButton button, bool isPressed)
 	{
-		const int index = static_cast<int>(button);
-		if (_preProcessState.ButtonStates[index] == isPressed)
+		bool& state = _preProcessState.ButtonStates.at(static_cast<int>(button));
+		if (state == isPressed)
 			return;
 
 		_preProcessStateChanges.Add(MouseStateChange::ButtonStateChange(button, isPressed));
-		_preProcessState.ButtonStates[index] = isPressed;
+		state = isPressed;
 	}
 
 	void Mouse::UpdatePositionState(const Vector2Int& newPosition)
@@ -59,19 +59,19 @@ namespace Coco::Input
 
 	bool Mouse::IsButtonPressed(MouseButton button) const noexcept
 	{
-		return _currentState.ButtonStates[static_cast<int>(button)];
+		return _currentState.ButtonStates.at(static_cast<int>(button));
 	}
 
 	bool Mouse::WasButtonJustPressed(MouseButton button) const noexcept
 	{
 		const int index = static_cast<int>(button);
-		return (_currentState.ButtonStates[index] && !_previousState.ButtonStates[index]);
+		return (_currentState.ButtonStates.at(index) && !_previousState.ButtonStates.at(index));
 	}
 
 	bool Mouse::WasButtonJustReleased(MouseButton button) const noexcept
 	{
 		const int index = static_cast<int>(button);
-		return (!_currentState.ButtonStates[index] && _previousState.ButtonStates[index]);
+		return (!_currentState.ButtonStates.at(index) && _previousState.ButtonStates.at(index));
 	}
 
 	void Mouse::ProcessCurrentState()

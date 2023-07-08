@@ -26,7 +26,6 @@ namespace Coco
 		List<SharedRef<HandlerType>> _handlers;
 
 	public:
-
 		Event() = default;
 
 		virtual ~Event()
@@ -57,14 +56,6 @@ namespace Coco
 		WeakSharedRef<HandlerType> AddHandler(const HandlerFunctionType& handlerFunction)
 		{
 			return AddHandler(CreateSharedRef<HandlerType>(handlerFunction));
-		}
-
-		/// @brief Adds an existing event handler
-		/// @param handler A handler reference
-		WeakSharedRef<HandlerType> AddHandler(SharedRef<HandlerType>&& handler)
-		{
-			_handlers.Insert(0, handler);
-			return _handlers.First();
 		}
 
 		/// @brief Removes an instance and member function event handler
@@ -158,6 +149,15 @@ namespace Coco
 		{
 			return RemoveHandler(handler);
 		}
+
+		private:
+			/// @brief Adds an existing event handler
+			/// @param handler A handler reference
+			WeakSharedRef<HandlerType> AddHandler(SharedRef<HandlerType>&& handler)
+			{
+				_handlers.Insert(0, handler);
+				return _handlers.First();
+			}
 	};
 }
 

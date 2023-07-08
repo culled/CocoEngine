@@ -17,35 +17,34 @@ MainApplication(App)
 
 App* App::_instance = nullptr;
 
-App::App(Coco::Engine* engine) : Application(engine, "Breakout"), 
+App::App() : Application("Breakout"), 
 	_playerEntity(InvalidEntityID), _cameraEntity(InvalidEntityID)
 {
 	_instance = this;
 
 	// Setup logging
 	SharedRef<Logging::ConsoleLogSink> consoleSink = CreateSharedRef<Logging::ConsoleLogSink>(Logging::LogLevel::Trace);
-	Logger->AddSink(consoleSink);
-	engine->GetLogger()->AddSink(consoleSink);
+	_logger->AddSink(consoleSink);
+	Engine::Get()->GetLogger()->AddSink(consoleSink);
 
 	// Setup our services
-	EngineServiceManager* serviceManager = engine->GetServiceManager();
+	EngineServiceManager* serviceManager = Engine::Get()->GetServiceManager();
 	_ecsService = serviceManager->CreateService<ECS::ECSService>();
-
 	_inputService = serviceManager->CreateService<Input::InputService>();
 	_renderingService = serviceManager->CreateService<Rendering::RenderingService>(Rendering::GraphicsPlatformCreationParameters(Name, Rendering::RenderingRHI::Vulkan));
 	_windowingService = serviceManager->CreateService<Windowing::WindowingService>();
 
 	// Add our render tick
-	this->Engine->GetMainLoop()->CreateTickListener(this, &App::RenderTick, 1000);
+	Engine::Get()->GetMainLoop()->CreateTickListener(this, &App::RenderTick, 1000);
 
 	ConfigureRenderPipeline();
 
-	LogTrace(Logger, "App setup complete");
+	LogTrace(_logger, "App setup complete");
 }
 
 App::~App()
 {
-	LogTrace(Logger, "App shutdown");
+	LogTrace(_logger, "App shutdown");
 }
 
 void App::Start()
@@ -63,9 +62,9 @@ void App::Start()
 void App::ConfigureRenderPipeline()
 {
 	using namespace Coco::Rendering;
-	ResourceLibrary* library = this->Engine->GetResourceLibrary();
+	ResourceLibrary* library = Engine::Get()->GetResourceLibrary();
 
-	Ref<RenderPipeline> renderPipeline = library->CreateResource<RenderPipeline>("RenderPipeline", ResourceLibrary::DefaultTickLifetime);
+	Ref<RenderPipeline> renderPipeline = library->CreateResource<RenderPipeline>("RenderPipeline");
 
 	// Color attachment will be index 0, depth at index 1
 	renderPipeline->AddRenderPass(CreateSharedRef<OpaqueRenderPass>(), { 0, 1 });
@@ -73,7 +72,7 @@ void App::ConfigureRenderPipeline()
 
 	_renderingService->SetDefaultPipeline(renderPipeline);
 
-	_basicShader = library->CreateResource<Shader>("Basic Shader", ResourceLibrary::DefaultTickLifetime);
+	_basicShader = library->CreateResource<Shader>("Basic Shader");
 
 	auto pipelineState = GraphicsPipelineState();
 	pipelineState.CullingMode = CullMode::None;
@@ -97,7 +96,7 @@ void App::ConfigureRenderPipeline()
 		}
 		);
 
-	_wallMaterial = library->CreateResource<Material>("Material::Wall", ResourceLibrary::DefaultTickLifetime, _basicShader);
+	_wallMaterial = library->CreateResource<Material>("Material::Wall", _basicShader);
 	_wallMaterial->SetVector4("_BaseColor", Color::Green);
 	_wallMaterial->SetTexture("_MainTex", App::Get()->GetRenderingService()->GetDefaultDiffuseTexture());
 }
@@ -124,10 +123,10 @@ void App::CreatePlayer()
 
 void App::CreateArena()
 {
-	Ref<Mesh> wallMesh = MeshPrimitives::CreateXYPlane(Size(1.0, _arenaSize.Height));
+	Ref<Mesh> wallMesh = MeshPrimitives::CreateXYPlane("Wall Mesh", Size(1.0, _arenaSize.Height));
 	wallMesh->UploadData();
 
-	Ref<Mesh> ceilingMesh = MeshPrimitives::CreateXYPlane(Size(_arenaSize.Width, 1.0));
+	Ref<Mesh> ceilingMesh = MeshPrimitives::CreateXYPlane("Ceiling Mesh", Size(_arenaSize.Width, 1.0));
 	ceilingMesh->UploadData();
 
 	EntityID leftWall = _ecsService->CreateEntity("Left Wall");

@@ -4,8 +4,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	GraphicsFenceVulkan::GraphicsFenceVulkan(ResourceID id, const string& name, uint64_t lifetime, bool startSignalled) :
-		GraphicsResource<GraphicsDeviceVulkan, GraphicsFence>(id, name, lifetime)
+	GraphicsFenceVulkan::GraphicsFenceVulkan(ResourceID id, const string& name, bool startSignalled) :
+		GraphicsResource<GraphicsDeviceVulkan, GraphicsFence>(id, name)
 	{
 		VkFenceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;

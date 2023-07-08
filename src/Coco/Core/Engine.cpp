@@ -9,11 +9,9 @@
 
 namespace Coco
 {
-	Engine* Engine::_instance = nullptr;
-
 	ExitCode Engine::Run(ManagedRef<Platform::IEnginePlatform> platform)
 	{
-		if(platform.Get() == nullptr)
+		if(!platform.IsValid())
 			return ExitCode::FatalError;
 
 		try
@@ -35,17 +33,16 @@ namespace Coco
 	}
 
 	Engine::Engine(Platform::IEnginePlatform* platform) :
-		_platform(platform)
+		_platform(platform),
+		_startTime(platform->GetLocalTime()),
+		_logger(CreateManagedRef<Logging::Logger>("Coco")),
+		_serviceManager(CreateManagedRef<EngineServiceManager>()),
+		_mainLoop(CreateManagedRef<MainLoop>()),
+		_resourceLibrary(CreateManagedRef<ResourceLibrary>("assets/"))
 	{
-		_instance = this;
+		this->SetSingleton(this);
 
-		_startTime = _platform->GetLocalTime();
-		_logger = CreateManagedRef<Logging::Logger>("Coco");
-		_serviceManager = CreateManagedRef<EngineServiceManager>(this);
-		_mainLoop = CreateManagedRef<MainLoop>(_platform);
-		_resourceLibrary = CreateManagedRef<ResourceLibrary>("assets/");
-
-		_application = Application::Create(this);
+		_application = Application::Create();
 
 		LogTrace(_logger, "Engine created");
 	}
@@ -56,8 +53,8 @@ namespace Coco
 
 		_application.Reset();
 		_resourceLibrary.Reset();
-		_serviceManager.Reset();
 		_mainLoop.Reset();
+		_serviceManager.Reset();
 
 		LogTrace(_logger, "Bye bye ;)");
 		_logger.Reset();

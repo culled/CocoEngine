@@ -8,7 +8,8 @@
 namespace Coco
 {
 	File::File(const string& path, FileModeFlags openFlags) :
-		_openFlags(FileModeFlags::None)
+		_openFlags(FileModeFlags::None),
+		Path(path)
 	{
 		int mode = 0;
 
@@ -32,12 +33,13 @@ namespace Coco
 		// By default, have all operations start at the beginning of the file
 		_handle.seekg(0, std::ios::beg);
 
-		_path = path;
 		_openFlags = openFlags;
 	}
 
 	File::File(File&& other) noexcept :
-		_openFlags(other._openFlags), _path(std::move(other._path)), _handle(std::move(other._handle))
+		_openFlags(other._openFlags), 
+		Path(other.Path), 
+		_handle(std::move(other._handle))
 	{}
 
 	File::~File()
@@ -49,14 +51,6 @@ namespace Coco
 		}
 		catch(...)
 		{ }
-	}
-
-	File& File::operator=(File&& other) noexcept
-	{
-		_openFlags = other._openFlags;
-		_path = std::move(other._path);
-		_handle = std::move(other._handle);
-		return *this;
 	}
 
 	bool File::Exists(const string& path)
@@ -72,10 +66,10 @@ namespace Coco
 		return text;
 	}
 
-	List<uint8_t> File::ReadAllBytes(const string& path)
+	List<char> File::ReadAllBytes(const string& path)
 	{
 		File f = Open(path, FileModeFlags::Read | FileModeFlags::Binary);
-		List<uint8_t> bytes = f.ReadToEnd();
+		List<char> bytes = f.ReadToEnd();
 		f.Close();
 		return bytes;
 	}
@@ -87,27 +81,27 @@ namespace Coco
 		f.Close();
 	}
 
-	void File::WriteAllBytes(const string& path, const List<uint8_t>& data)
+	void File::WriteAllBytes(const string& path, const List<char>& data)
 	{
 		File f = Open(path, FileModeFlags::Write | FileModeFlags::Binary);
 		f.Write(data);
 		f.Close();
 	}
 
-	uint8_t File::Peek()
+	char File::Peek()
 	{
 		CheckHandle();
 
 		return _handle.peek();
 	}
 
-	List<uint8_t> File::Read(uint64_t bytesToRead)
+	List<char> File::Read(uint64_t bytesToRead)
 	{
 		CheckHandle();
 
-		List<uint8_t> bytes(bytesToRead);
+		List<char> bytes(bytesToRead);
 
-		_handle.read(reinterpret_cast<char*>(bytes.Data()), bytesToRead);
+		_handle.read(bytes.Data(), bytesToRead);
 		const uint64_t bytesRead = _handle.gcount();
 
 		if (bytesRead < bytesToRead)
@@ -116,7 +110,7 @@ namespace Coco
 		return bytes;
 	}
 
-	List<uint8_t> File::ReadToEnd()
+	List<char> File::ReadToEnd()
 	{
 		CheckHandle();
 
@@ -131,11 +125,11 @@ namespace Coco
 		return Read(length);
 	}
 
-	void File::Write(const List<uint8_t>& bytes)
+	void File::Write(const List<char>& bytes)
 	{
 		CheckHandle();
 
-		_handle.write(reinterpret_cast<const char*>(bytes.Data()), bytes.Count());
+		_handle.write(bytes.Data(), bytes.Count());
 	}
 
 	string File::ReadText(uint64_t charactersToRead)
@@ -255,7 +249,6 @@ namespace Coco
 		Flush();
 
 		_handle.close();
-		_path = string();
 	}
 
 	void File::CheckHandle() const

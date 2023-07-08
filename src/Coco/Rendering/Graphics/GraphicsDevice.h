@@ -25,7 +25,7 @@ namespace Coco::Rendering
 
 	protected:
 		/// @brief The list of resources this device manages
-		ManagedRef<ResourceLibrary> Resources;
+		ManagedRef<ResourceLibrary> _resources;
 
 	protected:
 		GraphicsDevice();
@@ -80,7 +80,7 @@ namespace Coco::Rendering
 		{
 			static_assert(std::is_base_of_v<RenderingResource, ResourceType>, "The resource must be derived from RenderingResource");
 		
-			return Resources->CreateResource<ResourceType>(name, RenderingService::DefaultGraphicsResourceTickLifetime, std::forward<Args>(args)...);
+			return _resources->CreateResource<ResourceType>(name, std::forward<Args>(args)...);
 		}
 
 		void PurgeResource(const Ref<Resource>& resource, bool forcePurge = false);

@@ -19,12 +19,12 @@ void Player::Start()
 
 	ResourceLibrary* library = Engine::Get()->GetResourceLibrary();
 
-	_material = library->CreateResource<Material>("Material::Player", ResourceLibrary::DefaultTickLifetime, App::Get()->GetBasicShader());
+	_material = library->CreateResource<Material>("Material::Player", App::Get()->GetBasicShader());
 	_material->SetVector4("_BaseColor", _playerColor);
 	_material->SetTexture("_MainTex", App::Get()->GetRenderingService()->GetDefaultDiffuseTexture());
 
 	//_mesh = MeshPrimitives::CreateFromVertices(vertexPositions, vertexUVs, vertexIndices);
-	_mesh = MeshPrimitives::CreateXYPlane(_size);
+	_mesh = MeshPrimitives::CreateXYPlane("Player Mesh", _size);
 	//_mesh = MeshPrimitives::CreateBox(Vector3::One);
 	_mesh->UploadData();
 

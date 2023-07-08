@@ -4,11 +4,11 @@
 
 namespace Coco::Input
 {
-	InputService::InputService(EngineServiceManager* serviceManager) : EngineService(serviceManager),
+	InputService::InputService() : EngineService(),
 		_keyboard(CreateManagedRef<Keyboard>()),
 		_mouse(CreateManagedRef<Mouse>())
 	{
-		MainLoop* mainLoop = serviceManager->Engine->GetMainLoop();
+		MainLoop* mainLoop = Engine::Get()->GetMainLoop();
 		mainLoop->CreateTickListener(this, &InputService::Process, ProcessTickPriority);
 		mainLoop->CreateTickListener(this, &InputService::LateProcess, LateProcessTickPriority);
 	}

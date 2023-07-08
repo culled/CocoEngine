@@ -5,7 +5,7 @@
 
 namespace Coco::Rendering
 {
-	Mesh::Mesh(ResourceID id, const string& name, uint64_t tickLifetime) : RenderingResource(id, name, tickLifetime)
+	Mesh::Mesh(ResourceID id, const string& name) : RenderingResource(id, name)
 	{}
 
 	Mesh::~Mesh()

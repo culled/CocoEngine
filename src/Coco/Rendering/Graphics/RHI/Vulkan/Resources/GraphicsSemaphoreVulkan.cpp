@@ -4,8 +4,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	GraphicsSemaphoreVulkan::GraphicsSemaphoreVulkan(ResourceID id, const string& name, uint64_t lifetime) :
-		GraphicsResource<GraphicsDeviceVulkan, GraphicsSemaphore>(id, name, lifetime)
+	GraphicsSemaphoreVulkan::GraphicsSemaphoreVulkan(ResourceID id, const string& name) :
+		GraphicsResource<GraphicsDeviceVulkan, GraphicsSemaphore>(id, name)
 	{
 		VkSemaphoreCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;

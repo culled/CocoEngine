@@ -2,10 +2,10 @@
 
 namespace Coco::Rendering
 {
-	Shader::Shader(ResourceID id, const string& name, uint64_t tickLifetime) : RenderingResource(id, name, tickLifetime)
+	Shader::Shader(ResourceID id, const string& name) : RenderingResource(id, name)
 	{}
 
-	bool Shader::TryGetSubshader(const string & name, const Subshader*& subshader) const noexcept
+	bool Shader::TryGetSubshader(const string& name, const Subshader*& subshader) const noexcept
 	{
 		for (const Subshader& sub : _subshaders)
 		{

@@ -24,13 +24,13 @@ namespace Coco::Rendering
 
 	protected:
 		/// @brief The shader that this material uses
-		Ref<Shader> Shader;
+		Ref<Shader> _shader;
 
 		/// @brief The Vector4 properties of this material
-		UnorderedMap<string, Vector4> Vector4Properties;
+		UnorderedMap<string, Vector4> _vector4Properties;
 
 		/// @brief The texture properties of this material
-		UnorderedMap<string, Ref<Texture>> TextureProperties;
+		UnorderedMap<string, Ref<Texture>> _textureProperties;
 
 	private:
 		ResourceVersion _propertyMapVersion = 0;
@@ -39,17 +39,17 @@ namespace Coco::Rendering
 		bool _isBufferDataDirty = true;
 
 	public:
-		Material(ResourceID id, const string& name, uint64_t tickLifetime);
-		Material(ResourceID id, const string& name, uint64_t tickLifetime, Ref<Rendering::Shader> shader);
+		Material(ResourceID id, const string& name);
+		Material(ResourceID id, const string& name, Ref<Shader> shader);
 		~Material() override;
 
 		DefineResourceType(Material)
 
-		void SetShader(Ref<Rendering::Shader> shader);
+		void SetShader(Ref<Shader> shader);
 
 		/// @brief Gets the shader that this material uses
 		/// @return The shader that this material uses
-		Ref<Rendering::Shader> GetShader() const noexcept { return Shader; }
+		Ref<Shader> GetShader() noexcept { return _shader; }
 
 		/// @brief Sets a Vector4 property
 		/// @param name The name of the Vector4 property
@@ -63,7 +63,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets all the Vector4 properties that this material has
 		/// @return This material's Vector4 properties
-		const UnorderedMap<string, Vector4>& GetVector4Properties() const noexcept { return Vector4Properties; }
+		const UnorderedMap<string, Vector4>& GetVector4Properties() const noexcept { return _vector4Properties; }
 
 		/// @brief Sets a texture property
 		/// @param name The name of the texture property
@@ -77,7 +77,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets all the texture properties that this material has
 		/// @return This material's texture properties
-		const UnorderedMap<string, Ref<Texture>>& GetTextureProperties() const noexcept { return TextureProperties; }
+		const UnorderedMap<string, Ref<Texture>>& GetTextureProperties() const noexcept { return _textureProperties; }
 
 		/// @brief Gets uniform buffer data from this material's currently set properties
 		/// @return This material's properties as a byte array

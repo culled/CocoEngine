@@ -2,6 +2,7 @@
 
 #include <Coco/Core/Services/EngineService.h>
 
+#include <Coco/Core/Types/Singleton.h>
 #include "Pipeline/RenderPipeline.h"
 #include "Graphics/GraphicsPlatform.h"
 #include "Graphics/Resources/GraphicsPresenter.h"
@@ -15,7 +16,7 @@ namespace Coco::Rendering
     class Texture;
 
     /// @brief A service that allows for rendering operations
-    class COCOAPI RenderingService final : public EngineService
+    class COCOAPI RenderingService final : public EngineService, public Singleton<RenderingService>
     {
     public:
         /// @brief The priority for the handler that purges cached resources
@@ -27,8 +28,6 @@ namespace Coco::Rendering
         static constexpr uint64_t DefaultGraphicsResourceTickLifetime = 10000;
 
     private:
-        static RenderingService* s_instance;
-
         ManagedRef<GraphicsPlatform> _graphics;
         Ref<RenderPipeline> _defaultPipeline;
         Ref<Texture> _defaultDiffuseTexture;
@@ -37,12 +36,8 @@ namespace Coco::Rendering
         double _timeSinceLastPurge = 0.0;
 
     public:
-        RenderingService(EngineServiceManager* serviceManager, const GraphicsPlatformCreationParameters& backendCreateParams);
+        RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
         ~RenderingService() final;
-
-        /// @brief Gets the active rendering service
-        /// @return The active rendering service
-        static RenderingService* Get() noexcept { return s_instance; }
 
         /// @brief Gets the current graphics platform
         /// @return The current graphics platform

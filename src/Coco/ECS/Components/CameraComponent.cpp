@@ -8,8 +8,8 @@
 
 namespace Coco::ECS
 {
-	PipelineImageCache::PipelineImageCache(ResourceID id, const string& name, uint64_t tickLifetime, const Ref<Rendering::RenderPipeline>& pipeline) :
-		Resource(id, name, tickLifetime),
+	PipelineImageCache::PipelineImageCache(ResourceID id, const string& name, const Ref<Rendering::RenderPipeline>& pipeline) :
+		Resource(id, name),
 		Pipeline(pipeline), _pipelineVersion(pipeline->GetVersion())
 	{}
 
@@ -35,7 +35,7 @@ namespace Coco::ECS
 
 	CameraComponent::CameraComponent(EntityID ownerID) : EntityComponent(ownerID)
 	{
-		_imageCache = CreateManagedRef<ResourceCache<PipelineImageCache>>(ResourceLibrary::DefaultTickLifetime);
+		_imageCache = CreateManagedRef<ResourceCache<PipelineImageCache>>(ResourceLibrary::DefaultResourceLifetimeTicks);
 	}
 
 	void CameraComponent::SetPerspectiveProjection(double fieldOfView, double aspectRatio, double nearClipDistance, double farClipDistance) noexcept
@@ -118,7 +118,7 @@ namespace Coco::ECS
 	{
 		const List<Rendering::RenderPipelineAttachmentDescription>& attachments = pipeline->GetPipelineAttachmentDescriptions();
 
-		const ResourceID id = pipeline->GetID();
+		const ResourceID id = pipeline->ID;
 		PipelineImageCache* resource;
 
 		// Get the cached images for this pipeline

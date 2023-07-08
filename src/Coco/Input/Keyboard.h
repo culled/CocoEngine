@@ -25,7 +25,7 @@ namespace Coco::Input
     struct KeyboardStateChange
     {
         /// @brief The key that changed
-        Optional<KeyboardKey> Key;
+        KeyboardKey Key;
 
         /// @brief If true, the key was pressed, else it was released
         bool IsPressed = false;
@@ -34,7 +34,10 @@ namespace Coco::Input
         /// @param key The key
         /// @param isPressed True if the key was pressed, false if it was released
         /// @return A state change
-        static KeyboardStateChange KeyStateChange(KeyboardKey key, bool isPressed) noexcept;
+        KeyboardStateChange(KeyboardKey key, bool isPressed) noexcept : 
+            Key(key),
+            IsPressed(isPressed)
+        {}
     };
 
 	/// @brief A keyboard input device

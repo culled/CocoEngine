@@ -29,7 +29,7 @@ namespace Coco::Logging
 		_logSinks.Add(sink);
 	}
 
-	void Logger::RemoveSink(const SharedRef<LogSink>& sink)
+	void Logger::RemoveSink(const SharedRef<LogSink>& sink) noexcept
 	{
 		_logSinks.Remove(sink);
 	}

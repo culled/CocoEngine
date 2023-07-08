@@ -8,22 +8,22 @@
 
 namespace Coco::Rendering
 {
-	Texture::Texture(ResourceID id, const string& name, uint64_t tickLifetime) : RenderingResource(id, name, tickLifetime), 
+	Texture::Texture(ResourceID id, const string& name) : RenderingResource(id, name), 
 		_usageFlags(ImageUsageFlags::None)
 	{}
 
 	Texture::Texture(
 		ResourceID id,
 		const string& name,
-		uint64_t tickLifetime,
 		int width,
 		int height,
 		PixelFormat pixelFormat,
 		ColorSpace colorSpace,
 		ImageUsageFlags usageFlags,
 		const ImageSamplerProperties& samplerProperties
-	) : RenderingResource(id, name, tickLifetime),
-		_usageFlags(usageFlags), _samplerProperties(samplerProperties)
+	) : RenderingResource(id, name),
+		_usageFlags(usageFlags), 
+		_samplerProperties(samplerProperties)
 	{
 		RecreateImageFromDescription(ImageDescription(width, height, 1, pixelFormat, colorSpace, usageFlags));
 		RecreateInternalSampler();
@@ -32,11 +32,11 @@ namespace Coco::Rendering
 	Texture::Texture(
 		ResourceID id,
 		const string& name,
-		uint64_t tickLifetime,
 		const ImageDescription& description, 
 		const ImageSamplerProperties& samplerProperties
-	) : RenderingResource(id, name, tickLifetime),
-		_usageFlags(description.UsageFlags), _samplerProperties(samplerProperties)
+	) : RenderingResource(id, name),
+		_usageFlags(description.UsageFlags), 
+		_samplerProperties(samplerProperties)
 	{
 		RecreateImageFromDescription(description);
 		RecreateInternalSampler();
@@ -45,13 +45,13 @@ namespace Coco::Rendering
 	Texture::Texture(
 		ResourceID id,
 		const string& name,
-		uint64_t tickLifetime,
 		const string& filePath, 
 		ImageUsageFlags usageFlags, 
 		const ImageSamplerProperties& samplerProperties,
 		int channelCount
-	) : RenderingResource(id, name, tickLifetime),
-		_usageFlags(usageFlags), _samplerProperties(samplerProperties)
+	) : RenderingResource(id, name),
+		_usageFlags(usageFlags), 
+		_samplerProperties(samplerProperties)
 	{
 		LoadFromFile(filePath, channelCount);
 		RecreateInternalSampler();

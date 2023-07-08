@@ -64,7 +64,7 @@ namespace Coco
 		/// @brief Causes this ManagedRef to invalidate its old resource and take ownership of the given resource. 
 		/// Causes any Refs created from this ManagedRef to point to the new resource
 		/// @param resource The resource to take ownership of
-		void Reset(ValueType* resource = nullptr)
+		void Reset(ValueType* resource = nullptr) noexcept
 		{
 			DestroyResource();
 
@@ -74,14 +74,15 @@ namespace Coco
 
 		/// @brief Causes this ManagedRef to release ownership of its resource without destroying it. 
 		/// Invalidates any Refs created from this ManagedRef
-		void Release()
+		void Release() noexcept
 		{
 			this->_controlBlock->SetResourceType(typeid(std::nullptr_t));
 			this->_resource = nullptr;
 		}
 
 	private:
-		void DestroyResource()
+		/// @brief Destroys the managed resource
+		void DestroyResource() noexcept
 		{
 			if (!this->_controlBlock)
 				return;

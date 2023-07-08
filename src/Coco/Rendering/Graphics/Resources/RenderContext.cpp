@@ -5,7 +5,16 @@
 
 namespace Coco::Rendering
 {
-	RenderContext::RenderContext(ResourceID id, const string& name, uint64_t lifetime) : RenderingResource(id, name, lifetime)
+	const ActiveRenderPass ActiveRenderPass::None = ActiveRenderPass();
+
+	ActiveRenderPass::ActiveRenderPass() : RenderPass(Ref<IRenderPass>()), RenderPassIndex(Math::MaxValue<uint>())
+	{}
+
+	ActiveRenderPass::ActiveRenderPass(const Ref<IRenderPass>& renderPass, uint renderPassIndex) :
+		RenderPass(renderPass), RenderPassIndex(renderPassIndex)
+	{}
+
+	RenderContext::RenderContext(ResourceID id, const string& name) : RenderingResource(id, name)
 	{}
 
 	bool RenderContext::Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline)
@@ -17,9 +26,10 @@ namespace Coco::Rendering
 
 		Reset();
 
-		CurrentPipeline = pipeline;
-		RenderView = renderView;
-		GlobalUO = GlobalUniformObject(renderView.Get());
+		_currentRenderPipeline = pipeline;
+		_currentRenderView = renderView;
+		_currentRenderPass = ActiveRenderPass::None;
+		_globalUO = GlobalUniformObject(renderView.Get());
 
 		return BeginImpl();
 	}
@@ -28,35 +38,33 @@ namespace Coco::Rendering
 	{
 		EndImpl();
 
-		RenderView = Ref<Rendering::RenderView>();
-		CurrentPipeline = Ref<RenderPipeline>();
-		CurrentRenderPass = Ref<IRenderPass>();
+		_currentRenderView = Ref<Rendering::RenderView>();
+		_currentRenderPipeline = Ref<RenderPipeline>();
+		_currentRenderPass = ActiveRenderPass::None;
 	}
 
 	void RenderContext::Reset()
 	{
-		CurrentRenderPassIndex = 0;
-
-		DrawCallCount = 0;
-		TrianglesDrawn = 0;
+		_currentRenderPass = ActiveRenderPass::None;
+		_currentDrawCallCount = 0;
+		_currentTrianglesDrawn = 0;
 
 		ResetImpl();
 	}
 
 	void RenderContext::RestoreViewport()
 	{
-		SetViewport(RenderView->ViewportRect);
+		SetViewport(_currentRenderView->ViewportRect);
 	}
 
 	void RenderContext::GetLastFrameStats(uint64_t& drawCallCount, uint64_t trianglesDrawn) const noexcept
 	{
-		drawCallCount = DrawCallCount;
-		trianglesDrawn = TrianglesDrawn;
+		drawCallCount = _currentDrawCallCount;
+		trianglesDrawn = _currentTrianglesDrawn;
 	}
 
 	void RenderContext::SetCurrentRenderPass(Ref<IRenderPass> renderPass, uint passIndex) noexcept
 	{
-		CurrentRenderPass = renderPass;
-		CurrentRenderPassIndex = passIndex;
+		_currentRenderPass = ActiveRenderPass(renderPass, passIndex);
 	}
 }

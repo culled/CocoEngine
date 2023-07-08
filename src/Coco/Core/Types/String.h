@@ -32,4 +32,14 @@ namespace Coco
 	/// @return The value as a string
 	template<typename T>
 	COCOAPI string ToString(const T& value) { return std::to_string(value); }
+
+	/// @brief Converts a wide string to a string
+	/// @param wideString The wide string
+	/// @return A string representation of the wide string
+	COCOAPI string WideStringToString(const std::wstring& wideString);
+
+	/// @brief Converts a string to a wide string
+	/// @param string The string
+	/// @return A wide string representation of the string
+	COCOAPI std::wstring StringToWideString(const string& string);
 }

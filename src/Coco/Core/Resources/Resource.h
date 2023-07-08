@@ -10,28 +10,27 @@
 
 namespace Coco
 {
-	/// @brief A generic resource for the engine
+	/// @brief A resource that can be held in a ResourceLibrary
 	class COCOAPI Resource
 	{
 	public:
 		/// @brief An invalid ID
 		constexpr static ResourceID InvalidID = Math::MaxValue<ResourceID>();
-		constexpr static uint64_t MaxLifetime = Math::MaxValue<uint64_t>();
+
+		/// @brief The ID of this resource
+		const ResourceID ID;
 
 	protected:
-		ResourceID _id;
 		ResourceVersion _version = 0;
 		string _name;
 		uint64_t _lastTickUsed;
-		uint64_t _tickLifetime;
+		string _filePath;
 
 	protected:
-		Resource(ResourceID id, const string& name, uint64_t tickLifetime) noexcept;
+		Resource(ResourceID id, const string& name) noexcept;
 
 	public:
 		virtual ~Resource() noexcept = default;
-
-		ResourceID GetID() const noexcept { return _id; }
 
 		/// @brief Gets this resource's version number
 		/// @return This resource's version number
@@ -41,26 +40,32 @@ namespace Coco
 		/// @return This resource's name
 		const string& GetName() const noexcept { return _name; }
 
+		/// @brief Sets this resource's name
+		/// @param name The name
 		void SetName(const string& name) noexcept { _name = name; }
 
 		/// @brief Gets the type that this resource is
 		/// @return This resource's type
 		virtual std::type_index GetType() const noexcept = 0;
 
+		/// @brief Sets this resource's file path
+		/// @param filePath The file path
+		void SetFilePath(const string& filePath) { _filePath = filePath; }
+
+		/// @brief Gets the path to the file this resource is loaded from (if any)
+		/// @return The path to the file this resource is loaded from, or an empty string if this resource isn't saved to disk
+		const string& GetFilePath() const noexcept { return _filePath; }
+
+		/// @brief Gets if this resource has a file path. This usually means it relates to a file on the disk
+		/// @return True if this resource has a file path
+		bool HasFilePath() const noexcept { return !_filePath.empty(); }
+
 		/// @brief Gets the last tick that this cached resource was used
 		/// @return The last this that this cached resource was used
 		constexpr uint64_t GetLastTickUsed() const noexcept { return _lastTickUsed; }
 
-		/// @brief Gets the lifetime of this cached resource
-		/// @return The lifetime of this cached resource
-		constexpr uint64_t GetTickLifetime() const noexcept { return _tickLifetime; }
-
-		/// @brief Updates the last tick that this cached resource was used to the current tick
+		/// @brief Updates the last tick that this resource was used to the current tick
 		void UpdateTickUsed();
-
-		/// @brief Determines if this cached resource is stale (hasn't been used beyond its lifetime)
-		/// @return True if this cached resource has been unused longer than its lifetime
-		bool IsStale() const noexcept;
 
 	protected:
 		/// @brief Increments this resource's version number

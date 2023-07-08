@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Coco/Core/Resources/Resource.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsResource.h>
 #include <Coco/Core/Resources/CachedResource.h>
 
 #include <Coco/Core/Types/List.h>
@@ -41,8 +41,8 @@ namespace Coco::Rendering::Vulkan
 		friend class VulkanShader;
 
 	private:
-		string _name;
 		GraphicsDeviceVulkan* _device;
+		string _name;
 		List<VulkanShaderStage> _shaderStages;
 		VulkanDescriptorLayout _descriptorLayout;
 		Subshader _subshader;
@@ -84,16 +84,13 @@ namespace Coco::Rendering::Vulkan
 	};
 
 	/// @brief A cached collection of subshader resources
-	class VulkanShader final : public Resource, public CachedResource
+	class VulkanShader final : public GraphicsResource<GraphicsDeviceVulkan, RenderingResource>, public CachedResource
 	{
 	private:
-		GraphicsDeviceVulkan* _device;
 		UnorderedMap<string, VulkanSubshader> _subshaders;
 
 	public:
-		VulkanShader(ResourceID id, const string& name, uint64_t tickLifetime, GraphicsDeviceVulkan* device, const ShaderRenderData& shaderData);
-		VulkanShader(VulkanShader&& other) noexcept;
-		VulkanShader& operator=(VulkanShader&& other) noexcept;
+		VulkanShader(ResourceID id, const string& name, const ShaderRenderData& shaderData);
 
 		DefineResourceType(VulkanShader)
 

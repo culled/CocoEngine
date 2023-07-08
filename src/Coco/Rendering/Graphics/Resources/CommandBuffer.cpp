@@ -4,7 +4,7 @@
 
 namespace Coco::Rendering
 {
-	CommandBuffer::CommandBuffer(ResourceID id, const string& name, uint64_t lifetime, bool isPrimary) noexcept : RenderingResource(id, name, lifetime),
+	CommandBuffer::CommandBuffer(ResourceID id, const string& name, bool isPrimary) noexcept : RenderingResource(id, name),
 		IsPrimary(isPrimary), CurrentState(CommandBufferState::Ready)
 	{
 	}

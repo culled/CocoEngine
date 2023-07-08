@@ -17,7 +17,7 @@ namespace Coco::Rendering::Vulkan
 		Ref<VulkanDescriptorPool> _pool;
 
 	public:
-		VulkanShaderResource(ResourceID id, const string& name, uint64_t lifetime, const VulkanShader* shader);
+		VulkanShaderResource(ResourceID id, const string& name, const VulkanShader* shader);
 		~VulkanShaderResource();
 
 		DefineResourceType(VulkanShaderResource)

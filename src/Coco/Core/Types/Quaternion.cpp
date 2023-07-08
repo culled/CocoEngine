@@ -135,7 +135,7 @@ namespace Coco
 	{
 		Matrix4x4 mat = Matrix4x4::Identity;
 
-		Quaternion q = Normalized();
+		const Quaternion q = Normalized();
 
 		const double xx = q.X * q.X;
 		const double xy = q.X * q.Y;

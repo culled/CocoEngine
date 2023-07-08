@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Coco/Rendering/RenderingResource.h>
+#include <Coco/Rendering/Graphics/Resources/GraphicsResource.h>
 #include <Coco/Core/Resources/CachedResource.h>
 
 #include <Coco/Core/Types/List.h>
@@ -40,24 +40,21 @@ namespace Coco::Rendering::Vulkan
 	};
 
 	/// @brief A cached Vulkan render pass
-	class VulkanRenderPass final : public RenderingResource, public CachedResource
+	class VulkanRenderPass final : public GraphicsResource<GraphicsDeviceVulkan, RenderingResource>, public CachedResource
 	{
 	private:
-		GraphicsDeviceVulkan* _device;
 		List<SubpassInfo> _subpassInfos;
 		VkRenderPass _renderPass = nullptr;
 		Ref<RenderPipeline> _pipeline;
 
 	public:
-		VulkanRenderPass(ResourceID id, const string& name, uint64_t tickLifetime, GraphicsDeviceVulkan* device, const Ref<RenderPipeline>& pipeline);
+		VulkanRenderPass(ResourceID id, const string& name, const Ref<RenderPipeline>& pipeline);
 		~VulkanRenderPass() final;
 
 		DefineResourceType(VulkanRenderPass)
 
 		bool IsValid() const noexcept final { return _pipeline.IsValid(); }
 		bool NeedsUpdate() const noexcept final;
-
-		void ReBind(const Ref<RenderPipeline>& pipeline);
 
 		/// @brief Updates this render pass to reflect the current version of its pipeline
 		void Update();

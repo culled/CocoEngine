@@ -26,12 +26,10 @@ namespace Coco::Rendering::Vulkan
 		VkFramebuffer _framebuffer = nullptr;
 
 	public:
-		VulkanFramebuffer(ResourceID id, const string& name, uint64_t lifetime, const Ref<RenderPipeline>& pipeline);
+		VulkanFramebuffer(ResourceID id, const string& name, const Ref<RenderPipeline>& pipeline);
 		virtual ~VulkanFramebuffer();
 
 		DefineResourceType(VulkanFramebuffer)
-
-		void ReBind(const Ref<RenderPipeline>& pipeline);
 
 		bool IsValid() const noexcept final { return _pipeline.IsValid(); }
 		bool NeedsUpdate() const noexcept final { return false; }

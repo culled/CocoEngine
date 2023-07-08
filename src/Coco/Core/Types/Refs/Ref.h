@@ -149,5 +149,7 @@ namespace Coco
 		uint64_t GetUseCount() const noexcept { return (_controlBlock && _controlBlock->IsValid()) ? _controlBlock->GetUseCount() : 0; }
 
 		operator bool() noexcept { return IsValid(); }
+
+		operator ValueType* () { return Get(); }
 	};
 }

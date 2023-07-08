@@ -3,6 +3,7 @@
 #include <Coco/Core/Services/EngineService.h>
 
 #include <Coco/Core/Types/List.h>
+#include <Coco/Core/Types/Singleton.h>
 #include "Window.h"
 
 namespace Coco::Windowing
@@ -10,7 +11,7 @@ namespace Coco::Windowing
     struct WindowCreateParameters;
 
     /// @brief A service that manages GUI windows
-    class COCOAPI WindowingService final : public EngineService
+    class COCOAPI WindowingService final : public EngineService, public Singleton<WindowingService>
     {
         friend Window;
 
@@ -19,7 +20,7 @@ namespace Coco::Windowing
         Ref<Window> _mainWindow;
 
     public:
-        WindowingService(EngineServiceManager* serviceManager);
+        WindowingService();
         ~WindowingService() final;
 
         /// @brief Creates a window
@@ -37,7 +38,9 @@ namespace Coco::Windowing
         /// @return True if a window with the given ID was found
         bool TryFindWindow(void* windowId, Ref<Window>& window) const noexcept;
 
-        List<Ref<Window>> GetRenderableWindows() const noexcept;
+        /// @brief Gets a list of windows that are currently visible
+        /// @return A list of visible windows
+        List<Ref<Window>> GetVisibleWindows() const noexcept;
 
     private:
         /// @brief Called when a window has closed

@@ -59,7 +59,7 @@ namespace Coco::Rendering
 		Color _clearColor;
 
 	public:
-		RenderPipeline(ResourceID id, const string& name, uint64_t tickLifetime);
+		RenderPipeline(ResourceID id, const string& name);
 		~RenderPipeline() override;
 
 		DefineResourceType(RenderPipeline)

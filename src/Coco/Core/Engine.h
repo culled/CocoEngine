@@ -10,15 +10,14 @@
 #include "MainLoop/MainLoop.h"
 #include "Resources/ResourceLibrary.h"
 #include "Application.h"
+#include "Types/Singleton.h"
 
 namespace Coco
 {
 	/// @brief The core engine
-	class COCOAPI Engine
+	class COCOAPI Engine : public Singleton<Engine>
 	{
 	private:
-		static Engine* _instance;
-
 		DateTime _startTime;
 
 		ExitCode _exitCode = ExitCode::Ok;
@@ -44,10 +43,6 @@ namespace Coco
 		/// @param platform The platform for the engine to use
 		/// @return The exit code from the engine
 		static ExitCode Run(ManagedRef<Platform::IEnginePlatform> platform);
-
-		/// @brief Gets the engine instance
-		/// @return The engine instace
-		static Engine* Get() noexcept { return _instance; }
 
 		/// @brief Gets the engine's logger
 		/// @return The engine's logger

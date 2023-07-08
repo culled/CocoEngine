@@ -5,24 +5,22 @@
 #include <Coco/Core/MainLoop/MainLoop.h>
 
 // The factory for creating our main application class. Should be defined using the CreateApplication macro
-extern Coco::ManagedRef<Coco::Application> CreateApplication(Coco::Engine* engine);
+extern Coco::ManagedRef<Coco::Application> CreateApplication();
 
 namespace Coco
 {
-	Application::Application(Coco::Engine* engine, const string& name) :
-		Engine(engine), Name(name)
-	{
-		Logger = CreateManagedRef<Logging::Logger>(name);
-	}
+	Application::Application(const string& name) :
+		Name(name), _logger(CreateManagedRef<Logging::Logger>(name))
+	{}
 
 	Application::~Application()
 	{
-		Logger.Reset();
+		_logger.Reset();
 	}
 
-	ManagedRef<Application> Application::Create(Coco::Engine* engine)
+	ManagedRef<Application> Application::Create()
 	{
-		return CreateApplication(engine);
+		return CreateApplication();
 	}
 
 	bool Application::Quit() noexcept
@@ -46,7 +44,7 @@ namespace Coco
 		catch(...)
 		{ }
 
-		Engine->GetMainLoop()->Stop();
+		Engine::Get()->GetMainLoop()->Stop();
 
 		return true;
 	}

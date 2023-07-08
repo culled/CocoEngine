@@ -40,13 +40,9 @@ namespace Coco::Windowing
 	/// @brief A GUI window
 	class COCOAPI Window
 	{
-	public:
-		/// @brief The windowing service
-		WindowingService* const WindowingService;
-
 	protected:
 		/// @brief The presenter for the window
-		Ref<Rendering::GraphicsPresenter> Presenter;
+		Ref<Rendering::GraphicsPresenter> _presenter;
 
 	public:
 		/// @brief Invoked when the window is trying to close. Setting the bool value to true means the close is cancelled
@@ -59,12 +55,10 @@ namespace Coco::Windowing
 		Event<Window*, const SizeInt&> OnResized;
 
 	protected:
-		Window(Windowing::WindowingService* windowingService);
+		Window() = default;
 
 	public:
-		virtual ~Window();
-
-		Window() = delete;
+		virtual ~Window() = default;
 		Window(const Window& other) = delete;
 		Window(Window&& other) = delete;
 
@@ -73,7 +67,7 @@ namespace Coco::Windowing
 
 		/// @brief Gets this window's presenter
 		/// @return This window's presenter
-		Ref<Rendering::GraphicsPresenter> GetPresenter() const noexcept { return Presenter; }
+		Ref<Rendering::GraphicsPresenter> GetPresenter() const noexcept { return _presenter; }
 
 		/// @brief Gets the platform-specific ID for this window
 		/// @return The ID for this window

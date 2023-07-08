@@ -15,7 +15,7 @@ namespace Coco::Rendering
 		const BufferUsageFlags UsageFlags;
 
 	public:
-		Buffer(ResourceID id, const string& name, uint64_t lifetime, BufferUsageFlags usageFlags) noexcept;
+		Buffer(ResourceID id, const string& name, BufferUsageFlags usageFlags) noexcept;
 		virtual ~Buffer() = default;
 
 		Buffer() = delete;

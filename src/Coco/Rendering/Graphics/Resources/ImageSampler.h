@@ -16,7 +16,6 @@ namespace Coco::Rendering
 		ImageSampler(
 			ResourceID id,
 			const string& name,
-			uint64_t lifetime,
 			const ImageSamplerProperties& properties
 		) noexcept;
 

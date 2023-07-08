@@ -15,7 +15,7 @@ namespace Coco::Rendering
 	class COCOAPI GraphicsPresenter : public RenderingResource
 	{
 	public:
-		GraphicsPresenter(ResourceID id, const string& name, uint64_t lifetime) : RenderingResource(id, name, lifetime) {}
+		GraphicsPresenter(ResourceID id, const string& name) : RenderingResource(id, name) {}
 		virtual ~GraphicsPresenter() = default;
 
 		/// @brief Initializes a surface for a window

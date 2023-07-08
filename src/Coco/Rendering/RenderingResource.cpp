@@ -4,15 +4,15 @@
 
 namespace Coco::Rendering
 {
-    RenderingResource::RenderingResource(ResourceID id, const string& name, uint64_t tickLifetime) : Resource(id, name, tickLifetime)
+    RenderingResource::RenderingResource(ResourceID id, const string& name) : Resource(id, name)
     {}
 
-    Logging::Logger* RenderingResource::GetRenderingLogger() const
+    Logging::Logger* RenderingResource::GetRenderingLogger()
     { 
         return EnsureRenderingService()->GetLogger(); 
     }
 
-    RenderingService* RenderingResource::EnsureRenderingService() const
+    RenderingService* RenderingResource::EnsureRenderingService()
     {
         RenderingService* renderService = RenderingService::Get();
 

@@ -6,9 +6,9 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanRenderPass::VulkanRenderPass(ResourceID id, const string& name, uint64_t tickLifetime, GraphicsDeviceVulkan* device, const Ref<RenderPipeline>& pipeline) : 
-		RenderingResource(id, name, tickLifetime), CachedResource(pipeline->GetID(), pipeline->GetVersion()),
-		_pipeline(pipeline), _device(device)
+	VulkanRenderPass::VulkanRenderPass(ResourceID id, const string& name, const Ref<RenderPipeline>& pipeline) : 
+		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), CachedResource(pipeline->ID, pipeline->GetVersion()),
+		_pipeline(pipeline)
 	{}
 
 	VulkanRenderPass::~VulkanRenderPass()
@@ -18,15 +18,7 @@ namespace Coco::Rendering::Vulkan
 
 	bool VulkanRenderPass::NeedsUpdate() const noexcept
 	{
-		return _renderPass == nullptr || _pipeline->GetVersion() != GetOriginalVersion();
-	}
-
-	void VulkanRenderPass::ReBind(const Ref<RenderPipeline>& pipeline)
-	{
-		DestroyRenderPass();
-		_pipeline = pipeline;
-		_originalID = pipeline->GetID();
-		_originalVersion = pipeline->GetVersion();
+		return _renderPass == nullptr || _pipeline->GetVersion() != GetReferenceVersion();
 	}
 
 	void VulkanRenderPass::Update()
@@ -34,7 +26,7 @@ namespace Coco::Rendering::Vulkan
 		DestroyRenderPass();
 		CreateRenderPass();
 
-		UpdateOriginalVersion(_pipeline->GetVersion());
+		UpdateReferenceVersion(_pipeline->GetVersion());
 		IncrementVersion();
 	}
 

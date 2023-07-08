@@ -32,13 +32,13 @@ namespace Coco::Rendering::Vulkan
 	void VulkanRenderCache::PurgeResources() noexcept
 	{
 		// Purge renderpass cache
-		int renderPassesPurged = _renderPassCache->PurgeStaleResources();
+		uint64_t renderPassesPurged = _renderPassCache->PurgeStaleResources();
 
 		// Purge pipeline cache
-		int pipelinesPurged = _pipelineCache->PurgeStaleResources();
+		uint64_t pipelinesPurged = _pipelineCache->PurgeStaleResources();
 
 		// Purge shader cache
-		int shadersPurged = _shaderCache->PurgeStaleResources();
+		uint64_t shadersPurged = _shaderCache->PurgeStaleResources();
 
 		if (renderPassesPurged > 0 || pipelinesPurged > 0 || shadersPurged > 0)
 			LogTrace(_device->GetLogger(), FormattedString(
@@ -51,22 +51,19 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanRenderPass* VulkanRenderCache::GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline)
 	{
-		const ResourceID id = renderPipeline->GetID();
+		const ResourceID id = renderPipeline->ID;
 		VulkanRenderPass* resource;
 
 		if (!_renderPassCache->Has(id))
-			resource = _renderPassCache->Create(id, _device, renderPipeline);
+			resource = _renderPassCache->Create(id, renderPipeline);
 		else
 			resource = _renderPassCache->Get(id);
-
-		if (!resource->IsValid())
-			resource->ReBind(renderPipeline);
 
 		Assert(resource->IsValid());
 
 		if (resource->NeedsUpdate())
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan RenderPass for pipeline {}", renderPipeline->GetID()));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan RenderPass for pipeline {}", renderPipeline->ID));
 
 			try
 			{
@@ -100,7 +97,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (resource->NeedsUpdate(renderPass, shader))
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subshader \"{}\" and render pass {}", subshaderName, renderPass->GetID()));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subshader \"{}\" and render pass {}", subshaderName, renderPass->ID));
 
 			try
 			{
@@ -124,7 +121,7 @@ namespace Coco::Rendering::Vulkan
 		VulkanShader* resource;
 
 		if (!_shaderCache->Has(id))
-			resource = _shaderCache->Create(id, _device, shaderData);
+			resource = _shaderCache->Create(id, shaderData);
 		else
 			resource = _shaderCache->Get(id);
 

@@ -5,6 +5,8 @@
 
 namespace Coco::Rendering
 {
+	/// @brief A resource for a GraphicsDevice
+	/// @tparam DeviceType The type of device
 	template<typename DeviceType>
 	class COCOAPI BaseGraphicsResource
 	{
@@ -19,6 +21,9 @@ namespace Coco::Rendering
 		virtual ~BaseGraphicsResource() = default;
 	};
 
+	/// @brief A resource for a GraphicsDevice that is derived from a resource
+	/// @tparam DeviceType The type of device
+	/// @tparam BaseClass The base class type
 	template<typename DeviceType, typename BaseClass>
 	class COCOAPI GraphicsResource : public BaseClass
 	{
@@ -27,8 +32,8 @@ namespace Coco::Rendering
 
 	public:
 		template<typename ... Args>
-		GraphicsResource(ResourceID id, const string& name, uint64_t lifetime, Args&& ... args) : 
-			BaseClass(id, name, lifetime, std::forward<Args>(args)...), 
+		GraphicsResource(ResourceID id, const string& name, Args&& ... args) : 
+			BaseClass(id, name, std::forward<Args>(args)...), 
 			_device(static_cast<DeviceType*>(RenderingService::Get()->GetPlatform()->GetDevice()))
 		{}
 		virtual ~GraphicsResource() = default;

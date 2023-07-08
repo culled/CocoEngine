@@ -15,14 +15,10 @@ namespace Coco::Input
 namespace Coco::Platform::Windows
 {
     /// @brief Win32 platform implementation
-    class COCOAPI EnginePlatformWindows final : public IEnginePlatform, public IRenderingPlatform, public IWindowingPlatform
+    class COCOAPI EnginePlatformWindows final : public Singleton<EnginePlatformWindows>, public IEnginePlatform, public IRenderingPlatform, public IWindowingPlatform
     {
     private:
         static const wchar_t* s_windowClassName;
-
-#if COCO_SERVICE_INPUT
-        static Input::InputService* s_inputService;
-#endif
 
         HINSTANCE _instance;
         bool _isConsoleOpen = false;
@@ -48,16 +44,11 @@ namespace Coco::Platform::Windows
         /// @return A UTF-8 string representation of the input character array
         static string WideStringToString(const LPWSTR wideString);
 
-        /// @brief Converts a string to a wide string
-        /// @param string A string
-        /// @return An equivalent wide string representation
-        static std::wstring StringToWideString(const string& string);
-
         void Start() final;
         void GetCommandLineArguments(List<string>& arguments) const noexcept final;
         void HandlePlatformMessages() noexcept final;
-        DateTime GetUtcTime() const final;
-        DateTime GetLocalTime() const final;
+        DateTime GetUtcTime() const noexcept final;
+        DateTime GetLocalTime() const noexcept final;
         double GetRunningTimeSeconds() const final;
         void WriteToConsole(const string& message, ConsoleColor color, bool isError) final;
         void SetConsoleVisible(bool isVisible) noexcept final;

@@ -24,6 +24,6 @@ namespace Coco
 
 		/// @brief Gets a string representation of this version
 		/// @return The string representation of this version
-		string ToString() const noexcept { return FormattedString("{}.{}.{}", Major, Minor, Patch); }
+		string ToString() const { return FormattedString("{}.{}.{}", Major, Minor, Patch); }
 	};
 }

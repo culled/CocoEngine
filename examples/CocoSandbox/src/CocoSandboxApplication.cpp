@@ -4,6 +4,7 @@
 #include <Coco/Core/Engine.h>
 #include <Coco/Core/Logging/Sinks/ConsoleLogSink.h>
 #include <Coco/Core/Logging/Sinks/FileLogSink.h>
+
 #include <Coco/Input/InputService.h>
 #include <Coco/Windowing/WindowingService.h>
 #include <Coco/Rendering/RenderingService.h>
@@ -21,16 +22,22 @@ MainApplication(CocoSandboxApplication)
 
 using namespace Coco;
 
-CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) : 
-	Coco::Application(engine, "Coco Sandbox")
+CocoSandboxApplication::CocoSandboxApplication() : 
+	Coco::Application("Coco Sandbox")
 {
+	Engine* engine = Engine::Get();
+
 	SharedRef<Logging::ConsoleLogSink> consoleSink = CreateSharedRef<Logging::ConsoleLogSink>(Logging::LogLevel::Trace);
-	Logger->AddSink(consoleSink);
+	_logger->AddSink(consoleSink);
 	engine->GetLogger()->AddSink(consoleSink);
 
 	SharedRef<Logging::FileLogSink> fileSink = CreateSharedRef<Logging::FileLogSink>(Logging::LogLevel::Trace, "coco.log");
-	Logger->AddSink(fileSink);
+	_logger->AddSink(fileSink);
 	engine->GetLogger()->AddSink(fileSink);
+
+	_tickListener = engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::Tick, 0);
+	_renderTickListener = engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::RenderTick, 10000);
+
 
 	_inputService = engine->GetServiceManager()->CreateService<Input::InputService>();
 
@@ -40,9 +47,9 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	_windowService = engine->GetServiceManager()->CreateService<Windowing::WindowingService>();
 
 	// Setup our basic shader
-	_shader = engine->GetResourceLibrary()->Load<Shader>(ResourceLibrary::DefaultTickLifetime, "shaders/built-in/ObjectShader.cshader");
-	_texture = engine->GetResourceLibrary()->Load<Texture>(ResourceLibrary::DefaultTickLifetime, s_textureFiles.at(0));
-	_material = engine->GetResourceLibrary()->Load<Material>(ResourceLibrary::DefaultTickLifetime, "materials/testMaterial.cmaterial");
+	_shader = engine->GetResourceLibrary()->Load<Shader>("shaders/built-in/ObjectShader.cshader");
+	_texture = engine->GetResourceLibrary()->Load<Texture>(s_textureFiles.at(0));
+	_material = engine->GetResourceLibrary()->Load<Material>("materials/testMaterial.cmaterial");
 
 	//_material = CreateRef<Material>(_shader);
 	_material->SetVector4("_BaseColor", Color::White);
@@ -60,10 +67,10 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	MeshPrimitives::CreateYZGrid(Vector2(size, size), Vector3(-size * 0.5, 0.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
 	MeshPrimitives::CreateBox(Vector3::One, Vector3(0.0, 5.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
 	
-	_mesh = MeshPrimitives::CreateFromVertices(vertexPositions, vertexUVs, vertexIndices);
+	_mesh = MeshPrimitives::CreateFromVertices("Mesh", vertexPositions, vertexUVs, vertexIndices);
 
 	// Setup our render pipeline
-	Ref<Rendering::RenderPipeline> pipeline = engine->GetResourceLibrary()->CreateResource<Rendering::RenderPipeline>("Pipeline", ResourceLibrary::DefaultTickLifetime);
+	Ref<Rendering::RenderPipeline> pipeline = engine->GetResourceLibrary()->CreateResource<Rendering::RenderPipeline>("Pipeline");
 	pipeline->SetClearColor(Color(0.1, 0.2, 0.3));
 	
 	List<int> attachmentMapping = { 0, 1 };
@@ -89,23 +96,20 @@ CocoSandboxApplication::CocoSandboxApplication(Coco::Engine* engine) :
 	obj2Transform.SetLocalPosition(Vector3(0, 30, 0));
 	obj2Transform.SetLocalRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
 
-	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, MeshPrimitives::CreateBox(Vector3::One * 5.0), _material);
+	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, MeshPrimitives::CreateBox("Box", Vector3::One * 5.0), _material);
 
 	_ecsService->GetEntity(obj2).SetParentID(_cameraEntityID);
 	_obj2ID = obj2;
 
-	_tickListener = Engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::Tick, 0);
-	_renderTickListener = Engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::RenderTick, 10000);
-
-	LogInfo(Logger, "Sandbox application created");
+	LogInfo(_logger, "Sandbox application created");
 }
 
 CocoSandboxApplication::~CocoSandboxApplication()
 {
-	this->Engine->GetMainLoop()->RemoveTickListener(_tickListener);
-	this->Engine->GetMainLoop()->RemoveTickListener(_renderTickListener);
+	Engine::Get()->GetMainLoop()->RemoveTickListener(_tickListener);
+	Engine::Get()->GetMainLoop()->RemoveTickListener(_renderTickListener);
 
-	LogInfo(Logger, "Sandbox application destroyed");
+	LogInfo(_logger, "Sandbox application destroyed");
 }
 
 void CocoSandboxApplication::Start()
@@ -115,7 +119,6 @@ void CocoSandboxApplication::Start()
 	_window->Show();
 
 	_inputService->GetKeyboard()->OnKeyPressedEvent += [&](Input::KeyboardKey key) {
-		//LogInfo(Logger, FormattedString("Pressed key {}", static_cast<int>(key)));
 		if (key == Input::KeyboardKey::Escape)
 		{
 			Quit();
@@ -125,7 +128,7 @@ void CocoSandboxApplication::Start()
 		return false;
 		};
 
-	LogInfo(Logger, "Sandbox application started");
+	LogInfo(_logger, "Sandbox application started");
 }
 
 void CocoSandboxApplication::Tick(double deltaTime)
@@ -176,7 +179,7 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{
 		_textureIndex = (_textureIndex + 1) % static_cast<uint>(s_textureFiles.size());
-		_texture = Engine->GetResourceLibrary()->Load<Texture>(ResourceLibrary::DefaultTickLifetime, s_textureFiles.at(_textureIndex));
+		_texture = Engine::Get()->GetResourceLibrary()->Load<Texture>(s_textureFiles.at(_textureIndex));
 		_material->SetTexture("_MainTex", _texture);
 	}
 
@@ -197,7 +200,7 @@ void CocoSandboxApplication::Tick(double deltaTime)
 
 void CocoSandboxApplication::RenderTick(double deltaTime)
 {
-	auto windows = _windowService->GetRenderableWindows();
+	auto windows = _windowService->GetVisibleWindows();
 	
 	for (auto& window : windows)
 	{

@@ -33,7 +33,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanShaderResource* RenderContextVulkanCache::GetOrCreateShaderResource(VulkanShader* shader)
 	{
-		const ResourceID id = shader->GetID();
+		const ResourceID id = shader->ID;
 		VulkanShaderResource* resource;
 
 		if (!_shaderCache->Has(id))
@@ -93,16 +93,13 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanFramebuffer* RenderContextVulkanCache::GetOrCreateFramebuffer(const Ref<RenderView>& renderView, VulkanRenderPass* renderPass, Ref<RenderPipeline> pipeline)
 	{
-		const ResourceID id = pipeline->GetID();
+		const ResourceID id = pipeline->ID;
 		VulkanFramebuffer* resource;
 
 		if (!_framebufferCache->Has(id))
 			resource = _framebufferCache->Create(id, pipeline);
 		else
 			resource = _framebufferCache->Get(id);
-
-		if (!resource->IsValid())
-			resource->ReBind(pipeline);
 
 		Assert(resource->IsValid());
 
@@ -147,10 +144,10 @@ namespace Coco::Rendering::Vulkan
 	void RenderContextVulkanCache::PurgeResources() noexcept
 	{
 		// Purge shader cache
-		int shadersPurged = _shaderCache->PurgeStaleResources();
+		uint64_t shadersPurged = _shaderCache->PurgeStaleResources();
 
 		// Purge material cache
-		int materialsPurged = _materialCache->PurgeStaleResources();
+		uint64_t materialsPurged = _materialCache->PurgeStaleResources();
 
 		if (shadersPurged > 0 || materialsPurged > 0)
 			LogTrace(_device->GetLogger(), FormattedString("Purged {} cached shaders and {} cached materials from RenderContext cache", shadersPurged, materialsPurged));

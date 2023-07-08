@@ -60,13 +60,6 @@ namespace Coco
 			return _handlers.First();
 		}
 
-		/// @brief Adds an existing query handler
-		/// @param handler A query handler reference
-		void AddHandler(SharedRef<HandlerType>&& handler)
-		{
-			_handlers.Insert(0, handler);
-		}
-
 		/// @brief Removes an instance and member query function handler
 		/// @tparam ObjectType 
 		/// @param object The instanced object
@@ -154,6 +147,14 @@ namespace Coco
 		bool operator -=(const WeakSharedRef<HandlerType>& handler)
 		{
 			return RemoveHandler(handler);
+		}
+
+	private:
+		/// @brief Adds an existing query handler
+		/// @param handler A query handler reference
+		void AddHandler(SharedRef<HandlerType>&& handler)
+		{
+			_handlers.Insert(0, handler);
 		}
 	};
 }

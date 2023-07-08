@@ -4,9 +4,12 @@
 
 namespace Coco
 {
-	ResourceLibrary::ResourceLibrary(const string& basePath) : BasePath(basePath), _resourceID(0)
+	ResourceLibrary::ResourceLibrary(const string& basePath, uint64_t resourceLifetimeTicks) noexcept :
+		BasePath(basePath), 
+		_resourceID(0), 
+		_resourceLifetimeTicks(resourceLifetimeTicks)
 	{
-		// TODO: Load default loaders
+		// TODO: Load default serializers
 	}
 
 	ResourceLibrary::~ResourceLibrary()
@@ -15,7 +18,7 @@ namespace Coco
 		_serializers.clear();
 	}
 
-	Logging::Logger* ResourceLibrary::GetLogger() const noexcept
+	Logging::Logger* ResourceLibrary::GetLogger() noexcept
 	{
 		return Engine::Get()->GetLogger();
 	}
@@ -40,31 +43,22 @@ namespace Coco
 		if (!_resources.contains(id))
 			return;
 
-		Ref<Resource>& resource = _resources.at(id);
-
-		if(forcePurge || resource.GetUseCount() <= 1)
+		if(forcePurge || _resources.at(id).GetUseCount() <= 1)
 			_resources.erase(id);
 	}
-
-	string ResourceLibrary::SerializeResource(const Ref<Resource>& resource)
-	{
-		return GetSerializerForResourceType(resource->GetType())->Serialize(resource);
-	}
-
-	void ResourceLibrary::DeserializeResource(const string& data, Resource* resource)
-	{
-		GetSerializerForResourceType(resource->GetType())->Deserialize(data, resource);
-	}
-
+	
 	uint64_t ResourceLibrary::PurgeStaleResources()
 	{
 		auto it = _resources.begin();
 		uint64_t purgeCount = 0;
 
+		const uint64_t currentTick = Engine::Get()->GetMainLoop()->GetTickCount();
+		const uint64_t staleTickThreshold = currentTick - Math::Min(currentTick, _resourceLifetimeTicks);
+
 		while (it != _resources.end())
 		{
 			// Only purge resources that haven't been used in a while and have no current users 
-			if (it->second->IsStale() && it->second.GetUseCount() == 1)
+			if (it->second->GetLastTickUsed() < staleTickThreshold && it->second.GetUseCount() == 1)
 			{
 				it = _resources.erase(it);
 				purgeCount++;
@@ -78,7 +72,34 @@ namespace Coco
 		return purgeCount;
 	}
 
-	ResourceSerializer* ResourceLibrary::GetSerializerForResourceType(std::type_index resourceType)
+	void ResourceLibrary::PurgeResources()
+	{
+		while (_resources.size() > 0)
+		{
+			_resources.erase(_resources.cbegin());
+		}
+	}
+
+	string ResourceLibrary::SerializeResource(const Ref<Resource>& resource)
+	{
+		return GetSerializerForResourceType(resource->GetType())->Serialize(this, resource);
+	}
+
+	void ResourceLibrary::DeserializeResource(const string& data, Ref<Resource> resource)
+	{
+		GetSerializerForResourceType(resource->GetType())->Deserialize(this, data, resource);
+	}
+
+	void ResourceLibrary::Save(const Ref<Resource>& resource, const string& filePath)
+	{
+		const string fullPath = GetFullFilePath(filePath);
+
+		const string data = SerializeResource(resource);
+
+		File::WriteAllText(fullPath, data);
+	}
+
+	IResourceSerializer* ResourceLibrary::GetSerializerForResourceType(std::type_index resourceType)
 	{
 		const auto it = _serializers.find(resourceType);
 

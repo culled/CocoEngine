@@ -23,13 +23,13 @@ namespace Coco::Rendering
 		static constexpr const char* s_textureSection = "texture";
 
 	public:
-		MaterialSerializer(ResourceLibrary* library);
+		MaterialSerializer() = default;
 		~MaterialSerializer() final = default;
 
 		DefineSerializerResourceType(Material)
 
-		string Serialize(const Ref<Resource>& resource) final;
-		void Deserialize(const string& data, Resource* resource) final;
+		string Serialize(ResourceLibrary* library, const Ref<Resource>& resource) final;
+		void Deserialize(ResourceLibrary* library, const string& data, Ref<Resource> resource) final;
 
 	private:
 		/// @brief Reads the properties section for a material

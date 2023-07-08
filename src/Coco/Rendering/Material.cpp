@@ -6,11 +6,11 @@
 
 namespace Coco::Rendering
 {
-	Material::Material(ResourceID id, const string& name, uint64_t tickLifetime) : RenderingResource(id, name, tickLifetime)
+	Material::Material(ResourceID id, const string& name) : RenderingResource(id, name)
 	{}
 
-	Material::Material(ResourceID id, const string& name, uint64_t tickLifetime, Ref<Rendering::Shader> shader) : RenderingResource(id, name, tickLifetime),
-		Shader(shader)
+	Material::Material(ResourceID id, const string& name, Ref<Shader> shader) : RenderingResource(id, name),
+		_shader(shader)
 	{
 		UpdatePropertyMaps(true);
 	}
@@ -18,12 +18,12 @@ namespace Coco::Rendering
 	Material::~Material()
 	{}
 
-	void Material::SetShader(Ref<Rendering::Shader> shader)
+	void Material::SetShader(Ref<Shader> shader)
 	{
-		if (shader == Shader)
+		if (shader == _shader)
 			return;
 
-		Shader = shader;
+		_shader = shader;
 		UpdatePropertyMaps(true);
 		IncrementVersion();
 	}
@@ -37,9 +37,9 @@ namespace Coco::Rendering
 	{
 		UpdatePropertyMaps(false);
 
-		auto it = Vector4Properties.find(name);
+		auto it = _vector4Properties.find(name);
 
-		if (it != Vector4Properties.end())
+		if (it != _vector4Properties.end())
 		{
 			(*it).second = value;
 			this->IncrementVersion();
@@ -47,21 +47,20 @@ namespace Coco::Rendering
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->GetName(), name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", _shader->GetName(), name));
 		}
 	}
 
 	Vector4 Material::GetVector4(const string& name) const
 	{
-		const auto it = Vector4Properties.find(name);
+		const auto it = _vector4Properties.find(name);
 
-		if (it != Vector4Properties.end())
+		if (it != _vector4Properties.end())
 		{
 			return (*it).second;
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", Shader->GetName(), name));
 			return Vector4::Zero;
 		}
 	}
@@ -70,30 +69,29 @@ namespace Coco::Rendering
 	{
 		UpdatePropertyMaps(false);
 
-		auto it = TextureProperties.find(name);
+		auto it = _textureProperties.find(name);
 
-		if (it != TextureProperties.end())
+		if (it != _textureProperties.end())
 		{
 			(*it).second = texture;
 			this->IncrementVersion();
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->GetName(), name));
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", _shader->GetName(), name));
 		}
 	}
 
 	Ref<Texture> Material::GetTexture(const string& name) const
 	{
-		const auto it = TextureProperties.find(name);
+		const auto it = _textureProperties.find(name);
 
-		if (it != TextureProperties.cend())
+		if (it != _textureProperties.cend())
 		{
 			return (*it).second;
 		}
 		else
 		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", Shader->GetName(), name));
 			return Ref<Texture>();
 		}
 	}
@@ -124,13 +122,13 @@ namespace Coco::Rendering
 
 	void Material::UpdatePropertyMaps(bool forceUpdate)
 	{
-		if (!forceUpdate && _propertyMapVersion == Shader->GetVersion())
+		if (!forceUpdate && _propertyMapVersion == _shader->GetVersion())
 			return;
 
 		UnorderedMap<string, Vector4> vec4Properties;
 		UnorderedMap<string, Ref<Texture>> textureProperties;
 
-		List<Subshader> subshaders = Shader->GetSubshaders();
+		List<Subshader> subshaders = _shader->GetSubshaders();
 
 		for (const Subshader& subshader : subshaders)
 		{
@@ -146,8 +144,8 @@ namespace Coco::Rendering
 					if (vec4Properties.contains(descriptor.Name))
 						continue;
 
-					if (Vector4Properties.contains(descriptor.Name))
-						vec4Properties[descriptor.Name] = Vector4Properties[descriptor.Name];
+					if (_vector4Properties.contains(descriptor.Name))
+						vec4Properties[descriptor.Name] = _vector4Properties[descriptor.Name];
 					else
 						vec4Properties[descriptor.Name] = Vector4::Zero;
 					break;
@@ -165,17 +163,17 @@ namespace Coco::Rendering
 				if (textureProperties.contains(sampler.Name))
 					continue;
 
-				if (TextureProperties.contains(sampler.Name))
-					textureProperties[sampler.Name] = TextureProperties[sampler.Name];
+				if (_textureProperties.contains(sampler.Name))
+					textureProperties[sampler.Name] = _textureProperties[sampler.Name];
 				else
 					textureProperties[sampler.Name] = Ref<Texture>();
 				break;
 			}
 		}
 
-		Vector4Properties = std::move(vec4Properties);
-		TextureProperties = std::move(textureProperties);
-		_propertyMapVersion = Shader->GetVersion();
+		_vector4Properties = std::move(vec4Properties);
+		_textureProperties = std::move(textureProperties);
+		_propertyMapVersion = _shader->GetVersion();
 		_isBufferDataDirty = true;
 	}
 
@@ -187,7 +185,7 @@ namespace Coco::Rendering
 		const uint64_t alignedVec4Size = RenderingUtilities::GetOffsetForAlignment(Vector4Size, alignment);
 		Array<float, 4> tempVec4 = { 0.0f };
 
-		List<Subshader> subshaders = Shader->GetSubshaders();
+		List<Subshader> subshaders = _shader->GetSubshaders();
 	
 		_subshaderBindings.clear();
 		_bufferData.Clear();

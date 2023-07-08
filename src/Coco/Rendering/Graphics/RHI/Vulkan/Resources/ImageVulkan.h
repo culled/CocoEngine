@@ -23,8 +23,8 @@ namespace Coco::Rendering::Vulkan
 		VkImageLayout _currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 	public:
-		ImageVulkan(ResourceID id, const string& name, uint64_t lifetime, const ImageDescription& description, VkImage image);
-		ImageVulkan(ResourceID id, const string& name, uint64_t lifetime, const ImageDescription& description);
+		ImageVulkan(ResourceID id, const string& name, const ImageDescription& description, VkImage image);
+		ImageVulkan(ResourceID id, const string& name, const ImageDescription& description);
 		~ImageVulkan() final;
 
 		DefineResourceType(ImageVulkan)

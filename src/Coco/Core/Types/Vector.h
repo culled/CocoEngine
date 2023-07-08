@@ -38,7 +38,7 @@ namespace Coco
 
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
-		string ToString() const noexcept { return FormattedString("{}, {}", X, Y); }
+		string ToString() const { return FormattedString("{}, {}", X, Y); }
 
 		Vector2Int operator+(const Vector2Int& other) const noexcept { return Vector2Int(X + other.X, Y + other.Y); }
 		void operator+=(const Vector2Int& other) noexcept { X += other.X; Y += other.Y; }
@@ -146,7 +146,7 @@ namespace Coco
 
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
-		string ToString() const noexcept { return FormattedString("{}, {}", X, Y); }
+		string ToString() const { return FormattedString("{}, {}", X, Y); }
 
 		Vector2 operator+(const Vector2& other) const noexcept { return Vector2(X + other.X, Y + other.Y); }
 		void operator+=(const Vector2& other) noexcept { X += other.X; Y += other.Y; }
@@ -167,8 +167,8 @@ namespace Coco
 
 		operator Vector3() const noexcept;
 
-		bool operator==(const Vector2& other) { return Equals(other); }
-		bool operator!=(const Vector2& other) { return !Equals(other); }
+		bool operator==(const Vector2& other) noexcept { return Equals(other); }
+		bool operator!=(const Vector2& other) noexcept { return !Equals(other); }
 	};
 
 	/// @brief Represents a 3D vector using decimal coordinates
@@ -274,7 +274,7 @@ namespace Coco
 
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
-		string ToString() const noexcept { return FormattedString("{}, {}, {}", X, Y, Z); }
+		string ToString() const { return FormattedString("{}, {}, {}", X, Y, Z); }
 
 		Vector3 operator+(const Vector3& other) const noexcept { return Vector3(X + other.X, Y + other.Y, Z + other.Z); }
 		void operator+=(const Vector3& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; }
@@ -376,7 +376,7 @@ namespace Coco
 
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
-		string ToString() const noexcept { return FormattedString("{}, {}, {}, {}", X, Y, Z, W); }
+		string ToString() const { return FormattedString("{}, {}, {}, {}", X, Y, Z, W); }
 
 		Vector4 operator+(const Vector4& other) const noexcept { return Vector4(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
 		void operator+=(const Vector4& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; W += other.W; }
@@ -398,8 +398,8 @@ namespace Coco
 
 		Vector4 operator-() const noexcept { return Vector4(-X, -Y, -Z, -W); }
 
-		bool operator==(const Vector4& other) { return Equals(other); }
-		bool operator!=(const Vector4& other) { return !Equals(other); }
+		bool operator==(const Vector4& other) noexcept { return Equals(other); }
+		bool operator!=(const Vector4& other) noexcept { return !Equals(other); }
 
 		operator Color() const noexcept;
 	};

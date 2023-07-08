@@ -7,21 +7,17 @@
 
 namespace Coco
 {
-	class Engine;
-
 	/// @brief Manages services for the engine
 	class COCOAPI EngineServiceManager
 	{
-	public:
-		/// @brief A pointer to the engine
-		Engine* const Engine;
+		friend class Engine;
 
 	private:
 		bool _isStarted = false;
 		Map<std::type_index, ManagedRef<EngineService>> _services;
 
 	public:
-		EngineServiceManager(Coco::Engine* engine);
+		EngineServiceManager() = default;
 		~EngineServiceManager();
 
 		EngineServiceManager(const EngineServiceManager&) = delete;
@@ -44,7 +40,7 @@ namespace Coco
 
 			if (!_services.contains(type))
 			{
-				auto it = _services.emplace(type, CreateManagedRef<ServiceType>(this, std::forward<Args>(args)...)).first;
+				auto it = _services.emplace(type, CreateManagedRef<ServiceType>(std::forward<Args>(args)...)).first;
 
 				if (_isStarted)
 					(*it).second->Start();
@@ -53,24 +49,39 @@ namespace Coco
 			return static_cast<ServiceType*>(_services.at(type).Get());
 		}
 
-		/// @brief Tries to find a service and returns it
-		/// @tparam ServiceType 
-		/// @param servicePtr A pointer that will be assigned to the service if it is found
-		/// @return True if a service of the given type has been registered
+		/// @brief Checks if a service of the given type has been created
+		/// @param serviceType The type of service (e.g typeid(ServiceClass)) 
+		/// @return True if the service exists
+		bool HasService(const std::type_info& serviceType) const noexcept;
+
+		/// @brief Gets a service. WARNING: only use this if you are sure the service exists
+		/// @tparam ServiceType The type of service
+		/// @return A pointer to the service instance
 		template<typename ServiceType>
-		bool TryFindService(ServiceType*& servicePtr) noexcept
+		ServiceType* GetService()
+		{
+			return static_cast<ServiceType*>(_services.at(typeid(ServiceType)).Get());
+		}
+
+		/// @brief Tries to find a service and returns it
+		/// @tparam ServiceType The type of service
+		/// @param servicePtr A pointer that will be assigned to the service if it is found
+		/// @return True if the service exists
+		template<typename ServiceType>
+		bool TryGetService(ServiceType*& servicePtr) noexcept
 		{
 			const auto& it = _services.find(typeid(ServiceType));
-
+		
 			if (it != _services.cend())
 			{
 				servicePtr = static_cast<ServiceType*>((*it).second.Get());
 				return true;
 			}
-
+		
 			return false;
 		}
 
+	private:
 		/// @brief Starts all services
 		void Start();
 	};

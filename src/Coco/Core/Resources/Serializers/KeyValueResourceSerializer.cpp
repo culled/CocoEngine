@@ -6,7 +6,7 @@ namespace Coco
 		_reader(stream), _currentIndentLevel(0), _currentLine(""), _currentKey(""), _currentValue("")
 	{}
 
-	int KeyValueReader::GetNextLineIndentLevel()
+	uint64_t KeyValueReader::GetNextLineIndentLevel()
 	{
 		string nextLine;
 		_reader.PeekLine(nextLine);
@@ -16,15 +16,15 @@ namespace Coco
 	bool KeyValueReader::ReadLine()
 	{
 		string line;
-		bool read = _reader.ReadLine(line);
+		const bool read = _reader.ReadLine(line);
 		SetCurrentLine(line);
 
 		return read;
 	}
 
-	bool KeyValueReader::ReadUntilIndentLevel(int indentLevel)
+	bool KeyValueReader::ReadUntilIndentLevel(uint64_t indentLevel)
 	{
-		int nextIndent = 0;
+		uint64_t nextIndent = 0;
 
 		// Read until the next line is at most our target indent level
 		do
@@ -35,7 +35,7 @@ namespace Coco
 		return nextIndent == indentLevel;
 	}
 
-	bool KeyValueReader::ReadIfIsIndentLevel(int indentLevel)
+	bool KeyValueReader::ReadIfIsIndentLevel(uint64_t indentLevel)
 	{
 		return GetNextLineIndentLevel() == indentLevel && ReadLine();
 	}
@@ -72,19 +72,15 @@ namespace Coco
 		WriteLine(FormattedString("{}={}", key, value));
 	}*/
 
-	KeyValueResourceSerializer::KeyValueResourceSerializer(ResourceLibrary* library) : ResourceSerializer(library)
-	{}
-
-	int KeyValueResourceSerializer::GetIndentationLevel(const string& line)
+	uint64_t KeyValueResourceSerializer::GetIndentationLevel(const string& line) noexcept
 	{
 		if (line.starts_with('\t'))
 		{
-			return static_cast<int>(line.find_first_not_of('\t'));
+			return line.find_first_not_of('\t');
 		}
 		else
 		{
-			const size_t lastIndentIndex = line.find_first_not_of(' ');
-			return static_cast<int>(lastIndentIndex) / 4;
+			return line.find_first_not_of(' ') / 4;
 		}
 	}
 
@@ -97,7 +93,7 @@ namespace Coco
 			return;
 		}
 
-		size_t delimiter = line.find('=');
+		const size_t delimiter = line.find('=');
 
 		if (delimiter == string::npos)
 		{

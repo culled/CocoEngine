@@ -18,7 +18,7 @@ namespace Coco
 			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
 
 			if (endIndex == string::npos)
-				break;
+				endIndex = str.length();
 
 			string part = str.substr(currentCharacterIndex, endIndex);
 			values[fieldIndex] = atoi(part.c_str());

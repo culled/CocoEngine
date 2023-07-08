@@ -2,14 +2,14 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanMaterialResource::VulkanMaterialResource(ResourceID id, const string& name, uint64_t lifetime, const MaterialRenderData& materialData) :
-		RenderingResource(id, name, lifetime), CachedResource(materialData.ID, materialData.Version)
+	VulkanMaterialResource::VulkanMaterialResource(ResourceID id, const string& name, const MaterialRenderData& materialData) :
+		RenderingResource(id, name), CachedResource(materialData.ID, materialData.Version)
 	{
 	}
 
 	bool VulkanMaterialResource::NeedsUpdate(const MaterialRenderData& materialData) const noexcept
 	{
-		return _offset == Math::MaxValue<uint64_t>() || _bufferIndex == Math::MaxValue<uint>() || materialData.Version != GetOriginalVersion();
+		return _offset == Math::MaxValue<uint64_t>() || _bufferIndex == Math::MaxValue<uint>() || materialData.Version != GetReferenceVersion();
 	}
 
 	void VulkanMaterialResource::Update(uint8_t* bufferMemory, const MaterialRenderData& materialData)
@@ -17,7 +17,7 @@ namespace Coco::Rendering::Vulkan
 		uint8_t* dst = bufferMemory + _offset;
 		std::memcpy(dst, materialData.UniformData.Data(), materialData.UniformData.Count());
 
-		UpdateOriginalVersion(materialData.Version);
+		UpdateReferenceVersion(materialData.Version);
 		IncrementVersion();
 	}
 

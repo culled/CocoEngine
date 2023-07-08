@@ -26,7 +26,6 @@ namespace Coco::Rendering::Vulkan
 		BufferVulkan(
 			ResourceID id, 
 			const string& name, 
-			uint64_t lifetime, 
 			BufferUsageFlags usageFlags, 
 			uint64_t size, 
 			bool bindOnCreate);

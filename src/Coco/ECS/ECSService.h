@@ -4,6 +4,7 @@
 #include <Coco/Core/Types/Set.h>
 #include <Coco/Core/Types/MemoryPool.h>
 #include <Coco/Core/Types/Map.h>
+#include <Coco/Core/Types/Singleton.h>
 #include "Entity.h"
 #include "Scene.h"
 #include "EntityComponentList.h"
@@ -12,14 +13,12 @@
 
 namespace Coco::ECS
 {
-	class ECSService : public EngineService
+	class ECSService : public EngineService, public Singleton<ECSService>
 	{
 	public:
 		static constexpr uint64_t MaxEntities = 10000;
 
 	private:
-		static ECSService* _instance;
-
 		ManagedRef<MappedMemoryPool<Entity, MaxEntities>> _entities;
 		Set<EntityID> _queuedEntitiesToDestroy;
 		UnorderedMap<std::type_index, ManagedRef<IEntityComponentList>> _componentLists;
@@ -30,10 +29,8 @@ namespace Coco::ECS
 		/// @brief Priority for the tick handling entities
 		const static int ProcessTickPriority = -20000;
 
-		ECSService(EngineServiceManager* serviceManager);
+		ECSService();
 		~ECSService();
-
-		static ECSService* Get() { return _instance; }
 
 		EntityID CreateEntity(const string& name = "", EntityID parentID = InvalidEntityID);
 

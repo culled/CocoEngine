@@ -18,8 +18,6 @@ namespace Coco
 	private:
 		static constexpr uint s_suspendSleepPeriodMs = 1;
 
-		Platform::IEnginePlatform* _platform;
-
 		bool _isRunning = false;
 		bool _isSuspended = false;
 		bool _useAbsoluteTiming = false;
@@ -45,7 +43,7 @@ namespace Coco
 		uint64_t _tickCount = 0;
 
 	public:
-		MainLoop(Platform::IEnginePlatform* platform) noexcept;
+		MainLoop() = default;
 
 		/// @brief Runs this loop and blocks until it has stopped
 		void Run();
@@ -128,7 +126,7 @@ namespace Coco
 		/// @param a The first listener
 		/// @param b The second listener
 		/// @return True if listener A should be placed before listener B
-		static bool CompareTickListeners(const Ref<MainLoopTickListener>& a, const Ref<MainLoopTickListener>& b) noexcept;
+		static bool CompareTickListeners(const MainLoopTickListener* a, const MainLoopTickListener* b) noexcept;
 
 		/// @brief Called immediately before a tick runs
 		/// @param preTickTime The time that this tick would've executed if it wasn't held up by suspension/processing loops

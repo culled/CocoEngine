@@ -14,25 +14,25 @@ namespace Coco::Rendering
 		/// @param size The size of the mesh
 		/// @param subdivisions The number of subdivisions for the plane
 		/// @return The plane mesh
-		static Ref<Mesh> CreateXYPlane(const Vector2& size, uint subdivisions = 0);
+		static Ref<Mesh> CreateXYPlane(const string& name, const Vector2& size, uint subdivisions = 0);
 
 		/// @brief Creates a mesh along the XZ plane
 		/// @param size The size of the mesh
 		/// @param subdivisions The number of subdivisions for the plane
 		/// @return The plane mesh
-		static Ref<Mesh> CreateXZPlane(const Vector2& size, uint subdivisions = 0);
+		static Ref<Mesh> CreateXZPlane(const string& name, const Vector2& size, uint subdivisions = 0);
 
 		/// @brief Creates a mesh along the YZ plane
 		/// @param size The size of the mesh
 		/// @param subdivisions The number of subdivisions for the plane
 		/// @return The plane mesh
-		static Ref<Mesh> CreateYZPlane(const Vector2& size, uint subdivisions = 0);
+		static Ref<Mesh> CreateYZPlane(const string& name, const Vector2& size, uint subdivisions = 0);
 
 		/// @brief Creates a box mesh
 		/// @param size The size of the box
 		/// @param subdivisions The number of subdivisions for the box
 		/// @return The box mesh
-		static Ref<Mesh> CreateBox(const Vector3& size, uint subdivisions = 0);
+		static Ref<Mesh> CreateBox(const string& name, const Vector3& size, uint subdivisions = 0);
 
 		/// @brief Creates verticies for an XY grid
 		/// @param size The size of the grid
@@ -75,6 +75,6 @@ namespace Coco::Rendering
 		/// @param uvs The vertex UVs
 		/// @param indices The vertex indices
 		/// @return A mesh with the given vertices
-		static Ref<Mesh> CreateFromVertices(const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices, const string& name = "Mesh");
+		static Ref<Mesh> CreateFromVertices(const string& name, const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices);
 	};
 }

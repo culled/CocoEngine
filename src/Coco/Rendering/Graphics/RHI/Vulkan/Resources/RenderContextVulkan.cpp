@@ -27,8 +27,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	RenderContextVulkan::RenderContextVulkan(ResourceID id, const string& name, uint64_t lifetime) :
-		GraphicsResource<GraphicsDeviceVulkan, RenderContext>(id, name, lifetime), 
+	RenderContextVulkan::RenderContextVulkan(ResourceID id, const string& name) :
+		GraphicsResource<GraphicsDeviceVulkan, RenderContext>(id, name), 
 		_currentState(RenderContextState::Ready)
 	{
 		if (!_device->GetGraphicsCommandPool(_pool))
@@ -118,7 +118,7 @@ namespace Coco::Rendering::Vulkan
 		// Bind the material's shader
 		if (materialID != Resource::InvalidID)
 		{
-			const MaterialRenderData& materialData = RenderView->Materials.at(materialID);
+			const MaterialRenderData& materialData = _currentRenderView->Materials.at(materialID);
 			UseShader(materialData.ShaderID);
 		}
 		else
@@ -132,7 +132,7 @@ namespace Coco::Rendering::Vulkan
 
 	void RenderContextVulkan::Draw(const ObjectRenderData& objectData)
 	{
-		MeshRenderData& meshData = RenderView->Meshs.at(objectData.MeshData);
+		MeshRenderData& meshData = _currentRenderView->Meshs.at(objectData.MeshData);
 
 		// Sanity checks
 		if (!meshData.VertexBuffer.IsValid() || !meshData.IndexBuffer.IsValid())
@@ -173,7 +173,7 @@ namespace Coco::Rendering::Vulkan
 
 		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), static_cast<uint>(meshData.IndexCount), 1, 0, 0, 0);
 
-		TrianglesDrawn += meshData.IndexCount / 3;
+		_currentTrianglesDrawn += meshData.IndexCount / 3;
 	}
 
 	void RenderContextVulkan::WaitForRenderingCompleted()
@@ -185,14 +185,14 @@ namespace Coco::Rendering::Vulkan
 	{
 		try
 		{
-			if (!CurrentPipeline)
+			if (!_currentRenderPipeline)
 				throw VulkanRenderingException("No RenderPipline was set");
 
-			_currentRenderPass = _device->GetRenderCache()->GetOrCreateRenderPass(CurrentPipeline);
+			_currentVulkanRenderPass = _device->GetRenderCache()->GetOrCreateRenderPass(_currentRenderPipeline);
 
-			_globalUBO->LoadData(0, sizeof(GlobalUniformObject), &GlobalUO);
+			_globalUBO->LoadData(0, sizeof(GlobalUniformObject), &_globalUO);
 
-			_currentFramebuffer = _renderCache->GetOrCreateFramebuffer(RenderView, _currentRenderPass, CurrentPipeline);
+			_currentFramebuffer = _renderCache->GetOrCreateFramebuffer(_currentRenderView, _currentVulkanRenderPass, _currentRenderPipeline);
 
 			_commandBuffer->Begin(true, false);
 
@@ -200,24 +200,24 @@ namespace Coco::Rendering::Vulkan
 
 			VkRenderPassBeginInfo beginInfo = {};
 			beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			beginInfo.renderPass = _currentRenderPass->GetRenderPass();
+			beginInfo.renderPass = _currentVulkanRenderPass->GetRenderPass();
 			beginInfo.framebuffer = _currentFramebuffer->GetFramebuffer();
 
-			beginInfo.renderArea.offset.x =	static_cast<uint32_t>(RenderView->ViewportRect.Offset.X);
-			beginInfo.renderArea.offset.y =	static_cast<uint32_t>(-RenderView->ViewportRect.Offset.Y);
-			beginInfo.renderArea.extent.width = static_cast<uint32_t>(RenderView->ViewportRect.Size.Width);
-			beginInfo.renderArea.extent.height = static_cast<uint32_t>(RenderView->ViewportRect.Size.Height);
+			beginInfo.renderArea.offset.x =	static_cast<uint32_t>(_currentRenderView->ViewportRect.Offset.X);
+			beginInfo.renderArea.offset.y =	static_cast<uint32_t>(-_currentRenderView->ViewportRect.Offset.Y);
+			beginInfo.renderArea.extent.width = static_cast<uint32_t>(_currentRenderView->ViewportRect.Size.Width);
+			beginInfo.renderArea.extent.height = static_cast<uint32_t>(_currentRenderView->ViewportRect.Size.Height);
 
 			// TODO: configurable clear values?
 			const VkClearColorValue colorClearValue = { 0.0f, 0.0f, 0.0f, 1.0f };
 			const VkClearDepthStencilValue depthClearValue = { 1.0f, 0 };
 
-			List<VkClearValue> clearValues(RenderView->RenderTargets.Count());
+			List<VkClearValue> clearValues(_currentRenderView->RenderTargets.Count());
 
 			// Set clear clear color for each render target
 			for (int i = 0; i < clearValues.Count(); i++)
 			{
-				if (IsDepthStencilFormat(RenderView->RenderTargets[i]->GetDescription().PixelFormat))
+				if (IsDepthStencilFormat(_currentRenderView->RenderTargets[i]->GetDescription().PixelFormat))
 				{
 					clearValues[i].depthStencil = depthClearValue;
 				}
@@ -226,10 +226,10 @@ namespace Coco::Rendering::Vulkan
 					if (i == 0)
 					{
 						clearValues[i].color = {
-							static_cast<float>(RenderView->ClearColor.R),
-							static_cast<float>(RenderView->ClearColor.G),
-							static_cast<float>(RenderView->ClearColor.B),
-							static_cast<float>(RenderView->ClearColor.A)
+							static_cast<float>(_currentRenderView->ClearColor.R),
+							static_cast<float>(_currentRenderView->ClearColor.G),
+							static_cast<float>(_currentRenderView->ClearColor.B),
+							static_cast<float>(_currentRenderView->ClearColor.A)
 						};;
 					}
 					else
@@ -290,7 +290,7 @@ namespace Coco::Rendering::Vulkan
 		_currentMaterial = Resource::InvalidID;
 		_currentShader = Resource::InvalidID;
 		_currentPipeline = nullptr;
-		_currentRenderPass = nullptr;
+		_currentVulkanRenderPass = nullptr;
 	}
 
 	void RenderContextVulkan::ResetImpl()
@@ -322,23 +322,23 @@ namespace Coco::Rendering::Vulkan
 
 		try
 		{
-			if (!CurrentRenderPass)
+			if (!_currentVulkanRenderPass)
 				throw RenderingException("A render pass was not set");
 
 			// We need to have a shader bound to draw anything
 			if (_currentShader == Resource::InvalidID)
 				throw RenderingException("No shader was bound");
 
-			const ShaderRenderData& shaderData = RenderView->Shaders.at(_currentShader);
+			const ShaderRenderData& shaderData = _currentRenderView->Shaders.at(_currentShader);
 			VulkanShader* shader = _device->GetRenderCache()->GetOrCreateVulkanShader(shaderData);
 
 			if (_stateChanges.contains(RenderContextStateChange::Shader))
 			{
 				_currentPipeline = _device->GetRenderCache()->GetOrCreatePipeline(
-					_currentRenderPass,
+					_currentVulkanRenderPass,
 					shader,
-					CurrentRenderPass->GetName(),
-					CurrentRenderPassIndex,
+					_currentRenderPass.RenderPass->GetName(),
+					_currentRenderPass.RenderPassIndex,
 					_globalDescriptor.Layout);
 
 				vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, _currentPipeline->GetPipeline());
@@ -357,7 +357,7 @@ namespace Coco::Rendering::Vulkan
 			{
 				VkDescriptorSet set;
 				
-				if (GetOrAllocateMaterialDescriptorSet(shader, CurrentRenderPass->GetName(), _currentMaterial, set))
+				if (GetOrAllocateMaterialDescriptorSet(shader, _currentRenderPass.RenderPass->GetName(), _currentMaterial, set))
 				{
 					// Bind the material descriptor set
 					vkCmdBindDescriptorSets(
@@ -374,7 +374,7 @@ namespace Coco::Rendering::Vulkan
 				throw RenderingException("A pipeline was not bound");
 
 			stateBound = true;
-			DrawCallCount++;
+			_currentDrawCallCount++;
 		}
 		catch (const RenderingException& ex)
 		{
@@ -447,7 +447,7 @@ namespace Coco::Rendering::Vulkan
 		set = shaderResource->GetPool()->GetOrAllocateSet(subshader->GetDescriptorLayout(), materialID);
 		_materialDescriptorSets[materialID] = set;
 
-		const MaterialRenderData& materialData = RenderView->Materials.at(materialID);
+		const MaterialRenderData& materialData = _currentRenderView->Materials.at(materialID);
 
 		VulkanMaterialResource* materialResource = _renderCache->GetOrCreateMaterialResource(materialData);
 
@@ -493,7 +493,7 @@ namespace Coco::Rendering::Vulkan
 
 			if (textureID != Resource::InvalidID)
 			{
-				const TextureRenderData& textureData = RenderView->Textures.at(textureID);
+				const TextureRenderData& textureData = _currentRenderView->Textures.at(textureID);
 				image = textureData.Image;
 				sampler = textureData.Sampler;
 			}
@@ -541,15 +541,15 @@ namespace Coco::Rendering::Vulkan
 
 	void RenderContextVulkan::AddPreRenderPassImageTransitions()
 	{
-		const auto& pipelineAttachments = CurrentPipeline->GetPipelineAttachmentDescriptions();
+		const auto& pipelineAttachments = _currentRenderPipeline->GetPipelineAttachmentDescriptions();
 
-		for (uint64_t i = 0; i < RenderView->RenderTargets.Count(); i++)
+		for (uint64_t i = 0; i < _currentRenderView->RenderTargets.Count(); i++)
 		{
 			// Don't bother transitioning layouts for attachments that aren't preserved
 			if (!pipelineAttachments[i].Description.ShouldPreserve)
 				continue;
 
-			Ref<Image>& rt = RenderView->RenderTargets[i];
+			Ref<Image>& rt = _currentRenderView->RenderTargets[i];
 
 			VkImageLayout layout = ToAttachmentLayout(pipelineAttachments[i].Description.PixelFormat);
 
@@ -563,11 +563,11 @@ namespace Coco::Rendering::Vulkan
 
 	void RenderContextVulkan::AddPostRenderPassImageTransitions()
 	{
-		const auto& pipelineAttachments = CurrentPipeline->GetPipelineAttachmentDescriptions();
+		const auto& pipelineAttachments = _currentRenderPipeline->GetPipelineAttachmentDescriptions();
 
-		for (uint64_t i = 0; i < RenderView->RenderTargets.Count(); i++)
+		for (uint64_t i = 0; i < _currentRenderView->RenderTargets.Count(); i++)
 		{
-			Ref<Image>& rt = RenderView->RenderTargets[i];
+			Ref<Image>& rt = _currentRenderView->RenderTargets[i];
 
 			VkImageLayout layout = ToAttachmentLayout(pipelineAttachments[i].Description.PixelFormat);
 

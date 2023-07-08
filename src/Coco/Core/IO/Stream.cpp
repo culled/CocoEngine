@@ -5,7 +5,7 @@
 
 namespace Coco
 {
-	StreamReader::StreamReader(std::istream& stream) : _stream(&stream)
+	StreamReader::StreamReader(std::istream& stream) noexcept : _stream(&stream)
 	{}
 
 	uint64_t StreamReader::GetPosition()

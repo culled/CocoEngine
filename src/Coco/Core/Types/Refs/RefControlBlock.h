@@ -34,7 +34,7 @@ namespace Coco
 		/// @return A pointer to the resource
 		const std::type_index& GetResourceType() const noexcept { return _resourceType; }
 
-		void SetResourceType(const std::type_info& type) { _resourceType = type; }
+		void SetResourceType(const std::type_info& type) noexcept { _resourceType = type; }
 
 		/// @brief Adds a user to this resource
 		void AddUse() noexcept { _userCount++; }

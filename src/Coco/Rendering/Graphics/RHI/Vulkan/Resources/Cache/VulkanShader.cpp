@@ -122,7 +122,7 @@ namespace Coco::Rendering::Vulkan
 		shaderStage.ShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 
 		const string fullFilePath = Engine::Get()->GetResourceLibrary()->GetFullFilePath(file);
-		List<uint8_t> byteCode = File::ReadAllBytes(fullFilePath);
+		List<char> byteCode = File::ReadAllBytes(fullFilePath);
 
 		shaderStage.ShaderModuleCreateInfo.codeSize = byteCode.Count();
 		shaderStage.ShaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(byteCode.Data());
@@ -132,30 +132,14 @@ namespace Coco::Rendering::Vulkan
 		return shaderStage;
 	}
 
-	VulkanShader::VulkanShader(ResourceID id, const string& name, uint64_t tickLifetime, GraphicsDeviceVulkan* device, const ShaderRenderData& shaderData) :
-		Resource(id, name, tickLifetime), CachedResource(shaderData.ID, shaderData.Version), _device(device)
+	VulkanShader::VulkanShader(ResourceID id, const string& name, const ShaderRenderData& shaderData) :
+		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), 
+		CachedResource(shaderData.ID, shaderData.Version)
 	{}
-
-	VulkanShader::VulkanShader(VulkanShader&& other) noexcept : Resource(std::move(other)), 
-		CachedResource(std::move(other)),
-		_device(other._device), _subshaders(std::move(other._subshaders))
-	{
-	}
-
-	VulkanShader& VulkanShader::operator=(VulkanShader&& other) noexcept
-	{
-		Resource::operator=(other);
-		CachedResource::operator=(other);
-		
-		_device = other._device;
-		_subshaders = std::move(other._subshaders);
-
-		return *this;
-	}
 
 	bool VulkanShader::NeedsUpdate(const ShaderRenderData& shaderData) const noexcept
 	{
-		return GetOriginalVersion() != shaderData.Version || _subshaders.size() == 0 ||
+		return GetReferenceVersion() != shaderData.Version || _subshaders.size() == 0 ||
 			std::any_of(_subshaders.cbegin(), _subshaders.cend(), [](const auto& kvp) {
 				return kvp.second._shaderStages.Count() == 0 || kvp.second._descriptorLayout.Layout == nullptr;
 			});
@@ -171,7 +155,7 @@ namespace Coco::Rendering::Vulkan
 			_subshaders.try_emplace(subshaderData.first, VulkanSubshader(_device, subshaderData.second));
 		}
 
-		UpdateOriginalVersion(shaderData.Version);
+		UpdateReferenceVersion(shaderData.Version);
 		IncrementVersion();
 	}
 

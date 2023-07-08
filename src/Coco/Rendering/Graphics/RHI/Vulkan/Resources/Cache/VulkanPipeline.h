@@ -31,7 +31,6 @@ namespace Coco::Rendering::Vulkan
 		VulkanPipeline(
 			ResourceID id,
 			const string& name,
-			uint64_t tickLifetime,
 			const VulkanRenderPass* renderPass, 
 			const VulkanShader* shader,
 			const string& subshaderName,

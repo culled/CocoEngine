@@ -15,12 +15,11 @@ namespace Coco::Rendering::Vulkan
 	VulkanPipeline::VulkanPipeline(
 		ResourceID id,
 		const string& name,
-		uint64_t tickLifetime,
 		const VulkanRenderPass* renderPass,
 		const VulkanShader* shader,
 		const string& subshaderName,
 		uint subpassIndex) :
-		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name, tickLifetime),
+		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name),
 		CachedResource(GetResourceID(renderPass, shader), GetResourceVersion(renderPass, shader)),
 		_subshaderName(subshaderName), _subpassIndex(subpassIndex)
 	{}
@@ -32,7 +31,7 @@ namespace Coco::Rendering::Vulkan
 
 	bool VulkanPipeline::NeedsUpdate(const VulkanRenderPass* renderPass, const VulkanShader* shader) const noexcept
 	{
-		return _pipeline == nullptr || _pipelineLayout == nullptr || GetOriginalVersion() != GetResourceVersion(renderPass, shader);
+		return _pipeline == nullptr || _pipelineLayout == nullptr || GetReferenceVersion() != GetResourceVersion(renderPass, shader);
 	}
 
 	void VulkanPipeline::Update(VulkanRenderPass* renderPass, VulkanShader* shader, const VkDescriptorSetLayout& globalDescriptorLayout)
@@ -40,7 +39,7 @@ namespace Coco::Rendering::Vulkan
 		DestroyPipeline();
 		CreatePipeline(renderPass, shader, globalDescriptorLayout);
 
-		UpdateOriginalVersion(GetResourceVersion(renderPass, shader));
+		UpdateReferenceVersion(GetResourceVersion(renderPass, shader));
 		IncrementVersion();
 	}
 
@@ -238,11 +237,11 @@ namespace Coco::Rendering::Vulkan
 
 	ResourceID VulkanPipeline::GetResourceID(const VulkanRenderPass* pass, const VulkanShader* shader)
 	{
-		return Math::CombineHashes(0, pass->GetOriginalID(), shader->GetOriginalID());
+		return Math::CombineHashes(0, pass->ReferenceID, shader->ReferenceID);
 	}
 
 	ResourceVersion VulkanPipeline::GetResourceVersion(const VulkanRenderPass* pass, const VulkanShader* shader)
 	{
-		return Math::CombineHashes(0, pass->GetOriginalVersion(), shader->GetOriginalVersion());
+		return Math::CombineHashes(0, pass->GetReferenceVersion(), shader->GetReferenceVersion());
 	}
 }

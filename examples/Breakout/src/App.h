@@ -36,7 +36,7 @@ private:
 	Vector3 _arenaOffset = Vector3(0.0, 1.0, 0.0);
 
 public:
-	App(Coco::Engine* engine);
+	App();
 	~App();
 
 	static App* Get() { return _instance; }

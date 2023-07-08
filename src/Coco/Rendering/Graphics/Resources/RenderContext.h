@@ -15,6 +15,21 @@ namespace Coco::Rendering
 	class Material;
 	class Mesh;
 
+	/// @brief A holder for the active render pass
+	struct ActiveRenderPass
+	{
+		static const ActiveRenderPass None;
+
+		/// @brief The currently rendering render pass
+		Ref<IRenderPass> RenderPass;
+
+		/// @brief The index in the RenderPipeline of the current render pass
+		uint RenderPassIndex;
+
+		ActiveRenderPass();
+		ActiveRenderPass(const Ref<IRenderPass>& renderPass, uint renderPassIndex);
+	};
+
 	/// @brief A context that can be used for rendering
 	class COCOAPI RenderContext : public RenderingResource
 	{
@@ -22,28 +37,25 @@ namespace Coco::Rendering
 
 	protected:
 		/// @brief The render view used for rendering
-		Ref<RenderView> RenderView;
+		Ref<RenderView> _currentRenderView;
 
 		/// @brief The render pipeline being used for rendering
-		Ref<RenderPipeline> CurrentPipeline;
+		Ref<RenderPipeline> _currentRenderPipeline;
 
 		/// @brief The currently rendering render pass
-		Ref<IRenderPass> CurrentRenderPass;
-
-		/// @brief The index in the RenderPipeline of the current render pass
-		uint CurrentRenderPassIndex = 0;
+		ActiveRenderPass _currentRenderPass = ActiveRenderPass::None;
 
 		/// @brief The global uniform object
-		GlobalUniformObject GlobalUO;
+		GlobalUniformObject _globalUO;
 
 		/// @brief The number of draw calls this render
-		uint64_t DrawCallCount = 0;
+		uint64_t _currentDrawCallCount = 0;
 
 		/// @brief The number of triangles drawn this render
-		uint64_t TrianglesDrawn = 0;
+		uint64_t _currentTrianglesDrawn = 0;
 
 	public:
-		RenderContext(ResourceID id, const string& name, uint64_t lifetime);
+		RenderContext(ResourceID id, const string& name);
 		virtual ~RenderContext() = default;
 
 		RenderContext(const RenderContext&) = delete;
@@ -54,7 +66,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets the RenderView that this context is rendering with
 		/// @return The current RenderView (only valid between Start() and End() calls)
-		Ref<Rendering::RenderView> GetRenderView() const noexcept { return RenderView; }
+		Ref<Rendering::RenderView> GetRenderView() const noexcept { return _currentRenderView; }
 		
 		/// @brief Begins rendering for a scene
 		/// @param renderView The view used for rendering

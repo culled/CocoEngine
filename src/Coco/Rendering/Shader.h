@@ -16,7 +16,7 @@ namespace Coco::Rendering
 		List<Subshader> _subshaders;
 
 	public:
-		Shader(ResourceID id, const string& name, uint64_t tickLifetime);
+		Shader(ResourceID id, const string& name);
 
 		DefineResourceType(Shader)
 
@@ -28,7 +28,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets all subshaders for this shader
 		/// @return This shader's subshaders
-		List<Subshader> GetSubshaders() const noexcept { return _subshaders; }
+		const List<Subshader>& GetSubshaders() const noexcept { return _subshaders; }
 
 		/// @brief Adds a subshader to this shader
 		/// @param subshader The subshader to add

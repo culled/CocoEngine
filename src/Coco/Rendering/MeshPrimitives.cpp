@@ -5,7 +5,7 @@ namespace Coco::Rendering
 {
 	constexpr uint CoordsToIndex(uint x, uint y, uint length) { return x * length + y; }
 
-	Ref<Mesh> MeshPrimitives::CreateXYPlane(const Vector2& size, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateXYPlane(const string& name, const Vector2& size, uint subdivisions)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
@@ -13,10 +13,10 @@ namespace Coco::Rendering
 
 		CreateXYGrid(size, Vector3::Zero, verts, uvs, indices, subdivisions);
 
-		return CreateFromVertices(verts, uvs, indices);
+		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateXZPlane(const Vector2& size, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateXZPlane(const string& name, const Vector2& size, uint subdivisions)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
@@ -24,10 +24,10 @@ namespace Coco::Rendering
 
 		CreateXZGrid(size, Vector3::Zero, verts, uvs, indices, subdivisions);
 
-		return CreateFromVertices(verts, uvs, indices);
+		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateYZPlane(const Vector2& size, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateYZPlane(const string& name, const Vector2& size, uint subdivisions)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
@@ -35,10 +35,10 @@ namespace Coco::Rendering
 
 		CreateYZGrid(size, Vector3::Zero, verts, uvs, indices, subdivisions);
 
-		return CreateFromVertices(verts, uvs, indices);
+		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateBox(const Vector3& size, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateBox(const string& name, const Vector3& size, uint subdivisions)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
@@ -46,7 +46,7 @@ namespace Coco::Rendering
 
 		CreateBox(size, Vector3::Zero, verts, uvs, indices, subdivisions);
 
-		return CreateFromVertices(verts, uvs, indices);
+		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
 	void MeshPrimitives::CreateXYGrid(const Vector2& size, const Vector3& offset, List<Vector3>& positions, List<Vector2>& uvs, List<uint>& indices, uint subdivisions)
@@ -180,9 +180,9 @@ namespace Coco::Rendering
 		CreateXYGrid(Vector2(-size.X, size.Z), Vector3::Down * sizeOffset.Z + offset, positions, uvs, indices, subdivisions);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateFromVertices(const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices, const string& name)
+	Ref<Mesh> MeshPrimitives::CreateFromVertices(const string& name, const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices)
 	{
-		Ref<Mesh> mesh = Engine::Get()->GetResourceLibrary()->CreateResource<Mesh>(name, ResourceLibrary::DefaultTickLifetime);
+		Ref<Mesh> mesh = Engine::Get()->GetResourceLibrary()->CreateResource<Mesh>(name);
 		mesh->SetPositions(positions);
 		mesh->SetUVs(uvs);
 		mesh->SetIndices(indices);

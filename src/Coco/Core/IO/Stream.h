@@ -10,7 +10,7 @@ namespace Coco
 		std::istream* _stream;
 
 	public:
-		StreamReader(std::istream& stream);
+		StreamReader(std::istream& stream) noexcept;
 		virtual ~StreamReader() = default;
 
 		uint64_t GetPosition();

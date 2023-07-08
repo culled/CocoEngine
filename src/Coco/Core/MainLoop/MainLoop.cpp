@@ -7,17 +7,14 @@
 
 namespace Coco
 {
-	MainLoop::MainLoop(Platform::IEnginePlatform* platform) noexcept :
-		_platform(platform)
-	{
-	}
-
 	void MainLoop::Run()
 	{
+		Platform::IEnginePlatform* platform = Engine::Get()->GetPlatform();
+
 		_isRunning = true;
 
 		// Set the current time to the current time
-		_currentTickTime = _platform->GetRunningTimeSeconds();
+		_currentTickTime = platform->GetRunningTimeSeconds();
 		_lastTickTime = _currentTickTime;
 
 		double preTickTime = _currentTickTime;
@@ -25,20 +22,21 @@ namespace Coco
 
 		while (_isRunning)
 		{
+
 			// Only record the time once each loop
 			// Without this, we wouldn't account for time spent suspended as the loop only partially runs while suspended
 			if (didTick)
 			{
-				preTickTime = _platform->GetRunningTimeSeconds();
+				preTickTime = platform->GetRunningTimeSeconds();
 				didTick = false;
 			}
 
-			_platform->HandlePlatformMessages();
+			platform->HandlePlatformMessages();
 
 			// Only process messages if suspended
 			if (_isSuspended)
 			{
-				_platform->Sleep(s_suspendSleepPeriodMs);
+				platform->Sleep(s_suspendSleepPeriodMs);
 				continue;
 			}
 
@@ -92,7 +90,7 @@ namespace Coco
 		{ }
 	}
 
-	bool MainLoop::CompareTickListeners(const Ref<MainLoopTickListener>& a, const Ref<MainLoopTickListener>& b) noexcept
+	bool MainLoop::CompareTickListeners(const MainLoopTickListener* a, const MainLoopTickListener* b) noexcept
 	{
 		// If true, a gets placed before b
 		return a->Priority < b->Priority;
@@ -103,7 +101,7 @@ namespace Coco
 		if (_tickListenersNeedSorting)
 			SortTickListeners();
 
-		_currentTickTime = _platform->GetRunningTimeSeconds();
+		_currentTickTime = Engine::Get()->GetPlatform()->GetRunningTimeSeconds();
 
 		// Calculate time since the last tick
 		_currentUnscaledDeltaTime = _currentTickTime - _lastTickTime;
@@ -141,18 +139,20 @@ namespace Coco
 
 		const double nextTickTime = _currentTickTime + (1.0 / _targetTickRate);
 
-		double timeRemaining = nextTickTime - _platform->GetRunningTimeSeconds();
+		Platform::IEnginePlatform* platform = Engine::Get()->GetPlatform();
+
+		double timeRemaining = nextTickTime - platform->GetRunningTimeSeconds();
 		double estimatedWait = 0;
 		int waitCount = 1;
 
 		// Sleep until we feel like sleeping would overshoot our target time
 		while (timeRemaining > estimatedWait)
 		{
-			const double waitStartTime = _platform->GetRunningTimeSeconds();
+			const double waitStartTime = platform->GetRunningTimeSeconds();
 
-			_platform->Sleep(1);
+			platform->Sleep(1);
 
-			const double waitTime = _platform->GetRunningTimeSeconds() - waitStartTime;
+			const double waitTime = platform->GetRunningTimeSeconds() - waitStartTime;
 			timeRemaining -= waitTime;
 
 			const double delta = waitTime - estimatedWait;
@@ -162,7 +162,7 @@ namespace Coco
 		}
 
 		// Actively wait until our next tick time
-		while (_platform->GetRunningTimeSeconds() < nextTickTime)
+		while (platform->GetRunningTimeSeconds() < nextTickTime)
 		{}
 	}
 }

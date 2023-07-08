@@ -18,15 +18,15 @@ namespace Coco
 	class MainLoopTickListener;
 }
 
+namespace Coco::Input
+{
+	class InputService;
+}
+
 namespace Coco::Windowing
 {
 	class WindowingService;
 	class Window;
-}
-
-namespace Coco::Input
-{
-	class InputService;
 }
 
 namespace Coco::Rendering
@@ -39,7 +39,6 @@ namespace Coco::ECS
 	class ECSService;
 }
 
-
 class CocoSandboxApplication final : public Coco::Application
 {
 private:
@@ -50,7 +49,9 @@ private:
 
 	Coco::Ref<Coco::MainLoopTickListener> _tickListener;
 	Coco::Ref<Coco::MainLoopTickListener> _renderTickListener;
+
 	Coco::Input::InputService* _inputService;
+
 	Coco::Windowing::WindowingService* _windowService;
 	Coco::Ref<Coco::Windowing::Window> _window;
 
@@ -67,7 +68,7 @@ private:
 	Coco::ECS::EntityID _obj2ID;
 
 public:
-	CocoSandboxApplication(Coco::Engine* engine);
+	CocoSandboxApplication();
 	~CocoSandboxApplication() final;
 
 	void Start() final;

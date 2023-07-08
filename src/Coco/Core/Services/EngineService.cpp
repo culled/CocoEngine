@@ -4,12 +4,8 @@
 
 namespace Coco
 {
-	EngineService::EngineService(EngineServiceManager* serviceManager) :
-		ServiceManager(serviceManager)
-	{}
-
-	Logging::Logger* EngineService::GetLogger() const noexcept
+	Logging::Logger* EngineService::GetLogger() noexcept
 	{
-		return ServiceManager->Engine->GetLogger();
+		return Engine::Get()->GetLogger();
 	}
 }

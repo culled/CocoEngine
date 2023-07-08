@@ -10,23 +10,22 @@
 
 namespace Coco::Rendering
 {
-	RenderingService* RenderingService::s_instance = nullptr;
-
-	RenderingService::RenderingService(EngineServiceManager* serviceManager, const GraphicsPlatformCreationParameters& backendCreateParams) : EngineService(serviceManager)
+	RenderingService::RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams) : EngineService()
 	{
-		s_instance = this;
+		this->SetSingleton(this);
+
 		_graphics = GraphicsPlatform::CreatePlatform(this, backendCreateParams);
 		
 		// Create default textures
 		CreateDefaultDiffuseTexture();
 		CreateDefaultCheckerTexture();
 
-		ServiceManager->Engine->GetMainLoop()->CreateTickListener(this, &RenderingService::PurgeTick, ResourcePurgeTickPriority);
+		Engine::Get()->GetMainLoop()->CreateTickListener(this, &RenderingService::PurgeTick, ResourcePurgeTickPriority);
 
-		ResourceLibrary* resourceLibrary = ServiceManager->Engine->GetResourceLibrary();
-		resourceLibrary->AddSerializer<TextureSerializer>();
-		resourceLibrary->AddSerializer<ShaderSerializer>();
-		resourceLibrary->AddSerializer<MaterialSerializer>();
+		ResourceLibrary* resourceLibrary = Engine::Get()->GetResourceLibrary();
+		resourceLibrary->CreateSerializer<TextureSerializer>();
+		resourceLibrary->CreateSerializer<ShaderSerializer>();
+		resourceLibrary->CreateSerializer<MaterialSerializer>();
 	}
 
 	RenderingService::~RenderingService()
@@ -104,9 +103,8 @@ namespace Coco::Rendering
 		constexpr int size = 32;
 		constexpr int channels = 4;
 
-		_defaultDiffuseTexture = ServiceManager->Engine->GetResourceLibrary()->CreateResource<Texture>(
+		_defaultDiffuseTexture = Engine::Get()->GetResourceLibrary()->CreateResource<Texture>(
 			"RenderingService::DefaultDiffuseTexture", 
-			Resource::MaxLifetime,
 			size, size,
 			PixelFormat::RGBA8, ColorSpace::sRGB,
 			ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
@@ -128,9 +126,8 @@ namespace Coco::Rendering
 		constexpr int size = 32;
 		constexpr int channels = 4;
 
-		_defaultCheckerTexture = ServiceManager->Engine->GetResourceLibrary()->CreateResource<Texture>(
+		_defaultCheckerTexture = Engine::Get()->GetResourceLibrary()->CreateResource<Texture>(
 			"RenderingService::DefaultCheckerTexture",
-			Resource::MaxLifetime,
 			size, size,
 			PixelFormat::RGBA8, ColorSpace::sRGB,
 			ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled,

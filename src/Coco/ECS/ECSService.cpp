@@ -6,14 +6,12 @@
 
 namespace Coco::ECS
 {
-	ECSService* ECSService::_instance = nullptr;
-
-	ECSService::ECSService(EngineServiceManager* serviceManager) : EngineService(serviceManager), 
+	ECSService::ECSService() : EngineService(), 
 		_entities(CreateManagedRef<MappedMemoryPool<Entity, MaxEntities>>())
 	{
-		_instance = this;
+		this->SetSingleton(this);
 
-		serviceManager->Engine->GetMainLoop()->CreateTickListener(this, &ECSService::Process, ProcessTickPriority);
+		Engine::Get()->GetMainLoop()->CreateTickListener(this, &ECSService::Process, ProcessTickPriority);
 
 		// Create the root scene
 		CreateScene();

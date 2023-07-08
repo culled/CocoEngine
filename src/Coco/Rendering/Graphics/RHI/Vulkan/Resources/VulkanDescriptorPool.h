@@ -24,8 +24,7 @@ namespace Coco::Rendering::Vulkan
 	public:
 		VulkanDescriptorPool(
 			ResourceID id, 
-			const string& name, 
-			uint64_t tickLifetime, 
+			const string& name,  
 			uint maxSets, 
 			const List<VulkanDescriptorLayout>& descriptorSetLayouts);
 		~VulkanDescriptorPool() final;

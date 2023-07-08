@@ -91,7 +91,7 @@ namespace Coco::Logging
 
 		/// @brief Removes a sink from this logger
 		/// @param sink The sink to remove
-		void RemoveSink(const SharedRef<LogSink>& sink);
+		void RemoveSink(const SharedRef<LogSink>& sink) noexcept;
 
 		/// @brief Writes a message with a log level to this logger's sinks
 		/// @param level The level of the message

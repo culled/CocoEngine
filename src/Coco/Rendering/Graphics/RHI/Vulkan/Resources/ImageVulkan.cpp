@@ -13,15 +13,15 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	ImageVulkan::ImageVulkan(ResourceID id, const string& name, uint64_t lifetime, const ImageDescription& description, VkImage image) :
-		GraphicsResource<GraphicsDeviceVulkan, Image>(id, name, lifetime, description),
+	ImageVulkan::ImageVulkan(ResourceID id, const string& name, const ImageDescription& description, VkImage image) :
+		GraphicsResource<GraphicsDeviceVulkan, Image>(id, name, description),
 		_image(image), _isManagedInternally(true)
 	{
 		CreateNativeImageView();
 	}
 
-	ImageVulkan::ImageVulkan(ResourceID id, const string& name, uint64_t lifetime, const ImageDescription& description) : 
-		GraphicsResource<GraphicsDeviceVulkan, Image>(id, name, lifetime, description),
+	ImageVulkan::ImageVulkan(ResourceID id, const string& name, const ImageDescription& description) : 
+		GraphicsResource<GraphicsDeviceVulkan, Image>(id, name, description),
 		_isManagedInternally(false)
 	{
 		CreateImageFromDescription();

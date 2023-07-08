@@ -5,8 +5,7 @@
 #include <Coco/Core/Logging/Logger.h>
 #include <Coco/Core/Types/Map.h>
 #include "Resource.h"
-#include "FileResource.h"
-#include "ResourceSerializer.h"
+#include "IResourceSerializer.h"
 #include <atomic>
 #include <Coco/Core/IO/File.h>
 
@@ -21,23 +20,25 @@ namespace Coco
 	class COCOAPI ResourceLibrary
 	{
 	public:
-		static constexpr uint64_t DefaultTickLifetime = 10000;
+		constexpr static uint64_t MaxLifetime = Math::MaxValue<uint64_t>();
+		constexpr static uint64_t DefaultResourceLifetimeTicks = 10000;
 
 		/// @brief The base path for all FileResources
 		const string BasePath;
 
 	private:
+		uint64_t _resourceLifetimeTicks;
 		std::atomic<ResourceID> _resourceID;
 		UnorderedMap<ResourceID, ManagedRef<Resource>> _resources;
-		UnorderedMap<std::type_index, ManagedRef<ResourceSerializer>> _serializers;
+		UnorderedMap<std::type_index, ManagedRef<IResourceSerializer>> _serializers;
 
 	public:
-		ResourceLibrary(const string& basePath = "");
+		ResourceLibrary(const string& basePath = "", uint64_t resourceLifetimeTicks = DefaultResourceLifetimeTicks) noexcept;
 		virtual ~ResourceLibrary();
 
 		/// @brief Gets the logger for the resource library
 		/// @return This library's logger
-		Logging::Logger* GetLogger() const noexcept;
+		Logging::Logger* GetLogger() noexcept;
 
 		/// @brief Gets a full file path from a relative path
 		/// @param relativePath The relative path within the resource library base path
@@ -49,11 +50,11 @@ namespace Coco
 		/// @tparam ...Args 
 		/// @param ...args Arguments to pass to the serializer
 		template<typename SerializerType, typename ... Args>
-		void AddSerializer(Args&& ... args)
+		void CreateSerializer(Args&& ... args)
 		{
-			static_assert(std::is_base_of_v<ResourceSerializer, SerializerType>, "Only classes derived from ResourceSerializer can be resource serializers");
+			static_assert(std::is_base_of_v<IResourceSerializer, SerializerType>, "Only classes derived from IResourceSerializer can be resource serializers");
 
-			ManagedRef<SerializerType> serializer = CreateManagedRef<SerializerType>(this, std::forward<Args>(args)...);
+			ManagedRef<SerializerType> serializer = CreateManagedRef<SerializerType>(std::forward<Args>(args)...);
 			const std::type_index serializerType = serializer->GetResourceType();
 
 			if (_serializers.contains(serializerType))
@@ -65,12 +66,20 @@ namespace Coco
 			_serializers.try_emplace(serializerType, std::move(serializer));
 		}
 
+		/// @brief Creates a resource
+		/// @tparam ResourceType The type of resource to create 
+		/// @tparam ...Args The type of arguments
+		/// @param name The name of the resource
+		/// @param ...args The arguments to pass to the resource's constructor
+		/// @return The created resource
 		template<typename ResourceType, typename ... Args>
-		Ref<ResourceType> CreateResource(const string& name, uint64_t tickLifetime, Args&& ... args)
+		Ref<ResourceType> CreateResource(const string& name, Args&& ... args)
 		{
+			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
+
 			ResourceID id = GetNextResourceID();
 
-			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, name, tickLifetime, std::forward<Args>(args)...));
+			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, name, std::forward<Args>(args)...));
 
 			if (id > _resourceID)
 				_resourceID = id + 1;
@@ -81,20 +90,19 @@ namespace Coco
 			return static_cast<Ref<ResourceType>>(result.first->second);
 		}
 
-		template<typename ResourceType>
-		Ref<ResourceType> DeserializeResource(const string& name, uint64_t tickLifetime, const string& data)
-		{
-			ResourceID id = GetNextResourceID();
-			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, name, tickLifetime));
+		/// @brief Gets a resource with the given ID (if one exists)
+		/// @param id The id of the resource
+		/// @return The resource with the given ID, or an empty reference if no resource exists
+		Ref<Resource> GetResource(ResourceID id);
 
-			Ref<ResourceType> resource = static_cast<Ref<ResourceType>>(result.first->second);
-			DeserializeResource(data, resource);
-			return resource;
-		}
-
+		/// @brief Gets a resource with the given ID (if one exists)
+		/// @param id The ID of the resource
+		/// @return The resource with the given ID, or an empty reference if no resource exists
 		template<typename ResourceType>
 		Ref<ResourceType> GetResource(ResourceID id)
 		{
+			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
+
 			Ref<Resource> resource = GetResource(id);
 
 			if (resource->GetType() != typeid(ResourceType))
@@ -103,22 +111,68 @@ namespace Coco
 			return static_cast<Ref<ResourceType>>(resource);
 		}
 
-		Ref<Resource> GetResource(ResourceID id);
+		/// @brief Checks if a resource with the given ID exists
+		/// @param id The ID of the resource 
+		/// @return True if the resource exists
+		bool HasResource(ResourceID id) const;
 
+		/// @brief Gets the number of resources in this library
+		/// @return The number of resources in this library
+		uint64_t GetResourceCount() const noexcept { return _resources.size(); }
+
+		/// @brief Purges the resource with the given ID. By default, resources are only destroyed if they have no outside users
+		/// @param id The ID of the resource
+		/// @param forcePurge If true, the resource will be destroyed regardless if the number of users using it. Be careful with this as it may invalidate references
+		void PurgeResource(ResourceID id, bool forcePurge = false);
+
+		/// @brief Purges any resources that haven't been used in a while and have no outside users
+		/// @return The number of purged resources
+		uint64_t PurgeStaleResources();
+
+		/// @brief Purges all resources
+		void PurgeResources();
+
+		/// @brief Serializes a resource to a string. NOTE: a serializer for the resource type must have been created with this library for this to work
+		/// @param resource The resource
+		/// @return A string representation of the resource
+		string SerializeResource(const Ref<Resource>& resource);
+
+		/// @brief Deserializes a resource from a string. NOTE: a serializer for the resource type must have been created with this library for this to work
+		/// @param data The serialized data
+		/// @param resource The resource to deserialize into
+		void DeserializeResource(const string& data, Ref<Resource> resource);
+
+		/// @brief Deserializes a resource from a string. NOTE: a serializer for the resource type must have been created with this library for this to work
+		/// @tparam ResourceType The type of resource to create
+		/// @param name The name of resource
+		/// @param data The serialized data
+		/// @return The deserialized resource
 		template<typename ResourceType>
-		Ref<ResourceType> Load(uint64_t tickLifetime, const string& path)
+		Ref<ResourceType> DeserializeResource(const string& name, const string& data)
 		{
+			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
+
+			ResourceID id = GetNextResourceID();
+			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, name));
+
+			Ref<ResourceType> resource = static_cast<Ref<ResourceType>>(result.first->second);
+			DeserializeResource(data, resource);
+			return resource;
+		}
+
+		/// @brief Loads a resource from a file
+		/// @tparam ResourceType The type of resource to load
+		/// @param path The path to the file relative to this library's base path
+		/// @return The loaded resource
+		template<typename ResourceType>
+		Ref<ResourceType> Load(const string& path)
+		{
+			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
+
 			string fullPath = GetFullFilePath(path);
 
 			auto it = std::find_if(_resources.begin(), _resources.end(), [fullPath](const auto& kvp) {
-				if (const FileResource* file = dynamic_cast<const FileResource*>(kvp.second.Get()))
-				{
-					return file->GetFilePath() == fullPath;
-				}
-				else
-				{
-					return false;
-				}
+				return kvp.second->GetFilePath() == fullPath;
 			});
 
 			if (it != _resources.end())
@@ -138,38 +192,29 @@ namespace Coco
 				return static_cast<Ref<ResourceType>>(resource);
 			}
 
-			Ref<ResourceType> resource = CreateResource<ResourceType>("", tickLifetime);
+			// TODO: set the name to be the file name
+			Ref<ResourceType> resource = CreateResource<ResourceType>("");
+			resource->SetFilePath(path);
 			
 			string text = File::ReadAllText(fullPath);
-			DeserializeResource(text, resource.Get());
-
-			if (FileResource* file = dynamic_cast<FileResource*>(resource.Get()))
-			{
-				file->SetFilePath(path);
-			}
+			DeserializeResource(text, resource);
 
 			return resource;
 		}
 
-		bool HasResource(ResourceID id) const;
-		uint64_t GetResourceCount() const { return _resources.size(); }
-
-		/// @brief Purges the resource. By default, resources are only destroyed if they have no outside users
-		/// @param id The id of the resource
-		/// @param forcePurge If true, the resource will be destroyed regardless if the number of users using it. Be careful with this as it may invalidate references
-		void PurgeResource(ResourceID id, bool forcePurge = false);
-
-		string SerializeResource(const Ref<Resource>& resource);
-		void DeserializeResource(const string& data, Resource* resource);
-
-		uint64_t PurgeStaleResources();
+		/// @brief Saves a resource to a file
+		/// @param resource The resource to save
+		/// @param filePath The path of the file relative to this library's base path
+		void Save(const Ref<Resource>& resource, const string& filePath);
 
 	private:
 		/// @brief Tries to find a serializer for the given resource type
 		/// @param resourceType The type of the resource
 		/// @return A pointer to the serializer instance
-		ResourceSerializer* GetSerializerForResourceType(std::type_index resourceType);
+		IResourceSerializer* GetSerializerForResourceType(std::type_index resourceType);
 
+		/// @brief Gets the next resource ID to use
+		/// @return The next resource ID
 		ResourceID GetNextResourceID();
 	};
 }

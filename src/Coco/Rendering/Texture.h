@@ -22,13 +22,11 @@ namespace Coco::Rendering
 	public:
 		Texture(
 			ResourceID id,
-			const string& name,
-			uint64_t tickLifetime);
+			const string& name);
 
 		Texture(
 			ResourceID id,
 			const string& name,
-			uint64_t tickLifetime,
 			int width, 
 			int height, 
 			PixelFormat pixelFormat, 
@@ -40,7 +38,6 @@ namespace Coco::Rendering
 		Texture(
 			ResourceID id,
 			const string& name,
-			uint64_t tickLifetime,
 			const ImageDescription& description,
 			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default
 		);
@@ -48,7 +45,6 @@ namespace Coco::Rendering
 		Texture(
 			ResourceID id,
 			const string& name,
-			uint64_t tickLifetime,
 			const string& filePath,
 			ImageUsageFlags usageFlags,
 			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default,
@@ -79,11 +75,11 @@ namespace Coco::Rendering
 
 		/// @brief Gets the image that backs this texture
 		/// @return The image that backs this texture
-		Ref<Image> GetImage() const noexcept { return _image; }
+		Ref<Image> GetImage() noexcept { return _image; }
 
 		/// @brief Gets this texture's sampler
 		/// @return This texture's sampler
-		Ref<ImageSampler> GetSampler() const noexcept { return _sampler; }
+		Ref<ImageSampler> GetSampler() noexcept { return _sampler; }
 
 		/// @brief Loads image data from a file into this texture
 		/// @param filePath The path of the image file

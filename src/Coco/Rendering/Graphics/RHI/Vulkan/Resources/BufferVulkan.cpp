@@ -9,11 +9,10 @@ namespace Coco::Rendering::Vulkan
 {
 	BufferVulkan::BufferVulkan(ResourceID id,
 		const string& name,
-		uint64_t lifetime,
 		BufferUsageFlags usageFlags,
 		uint64_t size,
 		bool bindOnCreate) :
-		GraphicsResource<GraphicsDeviceVulkan, Buffer>(id, name, lifetime, usageFlags),
+		GraphicsResource<GraphicsDeviceVulkan, Buffer>(id, name, usageFlags),
 		_size(size)
 	{
 		// TODO: configurable memory properties?

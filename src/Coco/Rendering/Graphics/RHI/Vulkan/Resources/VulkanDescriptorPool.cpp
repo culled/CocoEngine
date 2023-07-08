@@ -9,10 +9,9 @@ namespace Coco::Rendering::Vulkan
 	VulkanDescriptorPool::VulkanDescriptorPool(
 		ResourceID id,
 		const string& name,
-		uint64_t tickLifetime,
 		uint maxSets,
 		const List<VulkanDescriptorLayout>& descriptorSetLayouts) : 
-		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name, tickLifetime),
+		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name),
 		_maxDescriptorSets(maxSets), 
 		_descriptorSetLayouts(descriptorSetLayouts)
 	{

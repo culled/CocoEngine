@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ResourceSerializer.h"
+#include "../IResourceSerializer.h"
 #include <Coco/Core/IO/Stream.h>
 
 namespace Coco
@@ -15,7 +15,7 @@ namespace Coco
 		string _currentLine;
 		string _currentKey;
 		string _currentValue;
-		int _currentIndentLevel;
+		uint64_t _currentIndentLevel;
 
 	public:
 		KeyValueReader(std::istream& stream);
@@ -23,44 +23,44 @@ namespace Coco
 
 		/// @brief Gets the current line
 		/// @return The current line
-		const string& GetCurrentLine() const { return _currentLine; }
+		const string& GetCurrentLine() const noexcept { return _currentLine; }
 
 		/// @brief Gets the current key
 		/// @return The current key
-		const string& GetKey() const { return _currentKey; }
+		const string& GetKey() const noexcept { return _currentKey; }
 
 		/// @brief Determines if the current line has a key with the given name
 		/// @param key The key
 		/// @return True if the current line has a key matching the given name
-		bool IsKey(const string& key) const { return _currentKey == key; }
+		bool IsKey(const string& key) const noexcept { return _currentKey == key; }
 
 		/// @brief Gets the current key as an integer
 		/// @return The current key as an integer
-		int GetKeyAsInt() const { return atoi(_currentKey.c_str()); }
+		int GetKeyAsInt() const noexcept { return atoi(_currentKey.c_str()); }
 
 		/// @brief Gets the current key as a boolean
 		/// @return The current key as a boolean
-		bool GetKeyAsBool() const { return atoi(_currentKey.c_str()) == 1; }
+		bool GetKeyAsBool() const noexcept { return atoi(_currentKey.c_str()) == 1; }
 
 		/// @brief Gets the current value
 		/// @return The current value, or an empty string if the line has no value
-		const string& GetValue() const { return _currentValue; }
+		const string& GetValue() const noexcept { return _currentValue; }
 
 		/// @brief Gets the current value as an integer
 		/// @return The current value as an integer
-		int GetVariableValueAsInt() const { return atoi(_currentValue.c_str()); }
+		int GetVariableValueAsInt() const noexcept { return atoi(_currentValue.c_str()); }
 
 		/// @brief Gets the current value as a boolean
 		/// @return The current value as a boolean
-		bool GetVariableValueAsBool() const { return atoi(_currentValue.c_str()) == 1; }
+		bool GetVariableValueAsBool() const noexcept { return atoi(_currentValue.c_str()) == 1; }
 
 		/// @brief Gets the indent level of the current line
 		/// @return The indent level of the current line
-		constexpr int GetCurrentIndentLevel() const { return _currentIndentLevel; }
+		constexpr uint64_t GetCurrentIndentLevel() const noexcept { return _currentIndentLevel; }
 
 		/// @brief Gets the indent level of the next line
 		/// @return The indent level of the next line 
-		int GetNextLineIndentLevel();
+		uint64_t GetNextLineIndentLevel();
 
 		/// @brief Reads the next line
 		/// @return True if a line was read
@@ -69,12 +69,12 @@ namespace Coco
 		/// @brief Reads until the next line is at the given indent level or less
 		/// @param indentLevel The desired indent level
 		/// @return True if the next line is at the desired indent level
-		bool ReadUntilIndentLevel(int indentLevel);
+		bool ReadUntilIndentLevel(uint64_t indentLevel);
 
 		/// @brief Reads the next line only if it is the given indent level
 		/// @param indentLevel The indent level
 		/// @return True if the line was read
-		bool ReadIfIsIndentLevel(int indentLevel);
+		bool ReadIfIsIndentLevel(uint64_t indentLevel);
 
 	private:
 		/// @brief Sets the current line information
@@ -116,12 +116,12 @@ namespace Coco
 	};*/
 
 	/// @brief A serializer that can serialize/deserialize files in a key=value pair format
-	class COCOAPI KeyValueResourceSerializer : public ResourceSerializer
+	class COCOAPI KeyValueResourceSerializer : public IResourceSerializer
 	{
 		friend KeyValueReader;
 
 	protected:
-		KeyValueResourceSerializer(ResourceLibrary* library);
+		KeyValueResourceSerializer() = default;
 
 	public:
 		virtual ~KeyValueResourceSerializer() = default;
@@ -130,7 +130,7 @@ namespace Coco
 		/// @brief Gets the indentation level of a string (supports tabs and 4-space tabs)
 		/// @param line The line
 		/// @return The indentation level
-		static int GetIndentationLevel(const string& line);
+		static uint64_t GetIndentationLevel(const string& line) noexcept;
 
 		/// @brief Gets a key=value pair from a line
 		/// @param line The line

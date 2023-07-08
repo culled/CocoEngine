@@ -56,7 +56,7 @@ namespace Coco::Rendering::Vulkan
 		Ref<VulkanDescriptorPool> _globalDescriptorPool;
 		VkDescriptorSet _globalDescriptorSet;
 
-		VulkanRenderPass* _currentRenderPass = nullptr;
+		VulkanRenderPass* _currentVulkanRenderPass = nullptr;
 		VulkanFramebuffer* _currentFramebuffer = nullptr;
 
 		Set<RenderContextStateChange> _stateChanges;
@@ -68,7 +68,7 @@ namespace Coco::Rendering::Vulkan
 		int _backbufferIndex = -1;
 
 	public:
-		RenderContextVulkan(ResourceID id, const string& name, uint64_t lifetime);
+		RenderContextVulkan(ResourceID id, const string& name);
 		~RenderContextVulkan() final;
 
 		DefineResourceType(RenderContextVulkan)

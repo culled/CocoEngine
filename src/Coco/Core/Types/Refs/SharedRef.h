@@ -104,6 +104,7 @@ namespace Coco
 		}
 
 	private:
+		/// @brief Destroys that managed resource if this ref is the only one that references it
 		void DestroyIfUnused()
 		{
 			if (!this->_controlBlock || this->GetUseCount() > 1)

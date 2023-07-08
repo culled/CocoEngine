@@ -7,8 +7,14 @@
 
 namespace Coco::Windowing
 {
-	WindowingService::WindowingService(EngineServiceManager* serviceManager) : EngineService(serviceManager)
-	{}
+	WindowingService::WindowingService() : EngineService()
+	{
+		this->SetSingleton(this);
+
+		// Sanity check the platform
+		if (dynamic_cast<Platform::IWindowingPlatform*>(Engine::Get()->GetPlatform()) == nullptr)
+			throw EngineServiceException("Platform does not support windowing");
+	}
 
 	WindowingService::~WindowingService()
 	{
@@ -17,18 +23,15 @@ namespace Coco::Windowing
 
 	Ref<Window> WindowingService::CreateNewWindow(const WindowCreateParameters& createParameters)
 	{
-		if (Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(ServiceManager->Engine->GetPlatform()))
-		{
-			_windows.Add(platform->CreatePlatformWindow(createParameters, this));
-			const ManagedRef<Window>& window = _windows.Last();
+		Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(Engine::Get()->GetPlatform());
 
-			if (!_mainWindow.IsValid())
-				_mainWindow = window;
+		_windows.Add(platform->CreatePlatformWindow(createParameters, this));
+		const ManagedRef<Window>& window = _windows.Last();
 
-			return window;
-		}
+		if (!_mainWindow.IsValid())
+			_mainWindow = window;
 
-		throw WindowCreateException("Current platform does not support windows");
+		return window;
 	}
 
 	bool WindowingService::TryFindWindow(void* windowId, Ref<Window>& window) const noexcept
@@ -46,7 +49,7 @@ namespace Coco::Windowing
 		return false;
 	}
 
-	List<Ref<Window>> WindowingService::GetRenderableWindows() const noexcept
+	List<Ref<Window>> WindowingService::GetVisibleWindows() const noexcept
 	{
 		List<Ref<Window>> renderableWindows;
 
@@ -67,7 +70,7 @@ namespace Coco::Windowing
 		// The main window closes with the application
 		if (window == _mainWindow.Get())
 		{
-			ServiceManager->Engine->GetApplication()->Quit();
+			Engine::Get()->GetApplication()->Quit();
 			return;
 		}
 

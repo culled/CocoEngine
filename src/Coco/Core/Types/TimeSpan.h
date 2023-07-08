@@ -48,27 +48,27 @@ namespace Coco
 
 		/// @brief Gets the number of days in this length of time
 		/// @return The number of days
-		int GetDays() const noexcept { return static_cast<int>(_microseconds / MicroSecsPerDay); }
+		int64_t GetDays() const noexcept { return _microseconds / MicroSecsPerDay; }
 
 		/// @brief Gets the number of hours in this length of time
 		/// @return The number of hours
-		int GetHours() const noexcept { return static_cast<int>(_microseconds / MicroSecsPerHour % 24); }
+		int64_t GetHours() const noexcept { return _microseconds / MicroSecsPerHour % 24; }
 
 		/// @brief Gets the number of minutes in this length of time
 		/// @return The number of minutes
-		int GetMinutes() const noexcept { return static_cast<int>(_microseconds / MicroSecsPerMinute % 60); }
+		int64_t GetMinutes() const noexcept { return _microseconds / MicroSecsPerMinute % 60; }
 
 		/// @brief Gets the number of seconds in this length of time
 		/// @return The number of seconds
-		int GetSeconds() const noexcept { return static_cast<int>(_microseconds / MicroSecsPerSecond % 60); }
+		int64_t GetSeconds() const noexcept { return _microseconds / MicroSecsPerSecond % 60; }
 
 		/// @brief Gets the number of milliseconds in this length of time
 		/// @return The number of milliseconds
-		int GetMilliseconds() const noexcept { return static_cast<int>(_microseconds / MicroSecsPerMillisecond % 1000); }
+		int64_t GetMilliseconds() const noexcept { return _microseconds / MicroSecsPerMillisecond % 1000; }
 
 		/// @brief Gets the number of microseconds in this length of time
 		/// @return The number of microseconds
-		int GetMicroseconds() const noexcept { return static_cast<int>(_microseconds % MicroSecsPerMillisecond); }
+		int64_t GetMicroseconds() const noexcept { return _microseconds % MicroSecsPerMillisecond; }
 
 		/// @brief Gets the fractional amount of days in this length of time
 		/// @return The fractional amount of days
