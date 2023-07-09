@@ -7,15 +7,13 @@
 
 namespace Coco
 {
-	/// @brief A reference to a type of object
+	/// @brief A reference to an object
 	/// @tparam ValueType The object type
 	template<typename ValueType>
 	class Ref
 	{
 		template<typename>
 		friend class Ref;
-	public:
-		using DeleterType = std::function<void(ValueType*)>;
 
 	protected:
 		std::shared_ptr<RefControlBlock> _controlBlock = nullptr;
@@ -140,8 +138,8 @@ namespace Coco
 		template<typename OtherType>
 		constexpr bool operator!=(const Ref<OtherType>& other) noexcept { return this != &other; }
 
-		/// @brief Gets if the resource is still valid
-		/// @return True if the resource is still valid and safe to use
+		/// @brief Gets if the resource is valid
+		/// @return True if the resource is valid and safe to use
 		bool IsValid() const noexcept { return _controlBlock && _controlBlock->IsValid() && _resource != nullptr; }
 
 		/// @brief Gets the number of references to the resource

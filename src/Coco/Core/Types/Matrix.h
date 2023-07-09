@@ -198,9 +198,17 @@ namespace Coco
 		/// @return This matrix's data as a float array of 16 elements
 		Array<float, Matrix4x4::CellCount> AsFloat() const noexcept;
 
-		Vector3 AsPosition() const noexcept;
-		Quaternion AsRotation() const noexcept;
-		Vector3 AsScale() const noexcept;
+		/// @brief Gets the position component of this matrix
+		/// @return The position component
+		Vector3 GetPosition() const noexcept;
+
+		/// @brief Gets the rotation component of this matrix
+		/// @return The rotation component
+		Quaternion GetRotation() const noexcept;
+
+		/// @brief Gets the scale component of this matrix
+		/// @return The scale component
+		Vector3 GetScale() const noexcept;
 
 		Matrix4x4 operator*(const Matrix4x4& other) const noexcept;
 		Vector4 operator*(const Vector4& vector) const noexcept;

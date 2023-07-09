@@ -38,22 +38,26 @@ namespace Coco::Logging
 	{
 		// Safety if an invalid level was passed to us
 		const int levelIndex = Math::Clamp(static_cast<int>(level), 0, static_cast<int>(LogLevels.size()));
-
 		const TimeSpan time = Engine::Get()->GetRunningTime();
-		const string formattedMessage = FormattedString("[{:0>2}:{:0>2}:{:0>2}:{:0>3}] {} ({}): {}", 
-			time.GetHours(), 
-			time.GetMinutes(), 
-			time.GetSeconds(), 
-			time.GetMilliseconds(), 
-			Name, 
-			LogLevels.at(levelIndex), 
-			message);
 
-		// Write the full log message to all sinks with a lower minimum level than the message
-		for (SharedRef<LogSink>& sink : _logSinks)
+		try
 		{
-			if (sink->MinimumLevel <= level)
-				sink->Write(level, formattedMessage);
+			const string formattedMessage = FormattedString("[{:0>2}:{:0>2}:{:0>2}:{:0>3}] {} ({}): {}",
+				time.GetHours(),
+				time.GetMinutes(),
+				time.GetSeconds(),
+				time.GetMilliseconds(),
+				Name,
+				LogLevels.at(levelIndex),
+				message);
+
+			// Write the full log message to all sinks with a lower minimum level than the message
+			for (SharedRef<LogSink>& sink : _logSinks)
+			{
+				if (sink->MinimumLevel <= level)
+					sink->Write(level, formattedMessage);
+			}
 		}
+		catch(...) {}
 	}
 }

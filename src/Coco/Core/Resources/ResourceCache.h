@@ -15,6 +15,7 @@ namespace Coco
 	{
 		static_assert(std::is_base_of<Resource, ResourceType>::value, "Object must derive from Resource");
 
+		/// @brief An iterator for a resource cache
 		struct Iterator
 		{
 		private:

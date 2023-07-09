@@ -76,6 +76,7 @@ namespace Coco::Logging
 
 	public:
 		Logger(const string& name);
+
 		virtual ~Logger();
 
 		Logger() = delete;

@@ -15,9 +15,9 @@ namespace Coco
 
 	public:
 		Random() = default;
-		virtual ~Random() = default;
-
 		Random(uint seed);
+
+		virtual ~Random() = default;
 
 		/// @brief Generates a psuedorandom value in the range [min, max]. Minimum and maximum are inclusive
 		/// @param min The minimum bound (inclusive)

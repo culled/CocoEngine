@@ -12,6 +12,7 @@ namespace Coco
 	class COCOAPI File
 	{
 	public:
+		/// @brief The path of the file
 		const string Path;
 
 	private:
@@ -20,14 +21,14 @@ namespace Coco
 
 	public:
 		File(const string& path, FileModeFlags openFlags);
-		virtual ~File();
-
 		File(File&&) noexcept;
 
 		File() = delete;
 		File(const File&) = delete;
 		File& operator=(const File&) = delete;
 		File& operator=(File&&) = delete;
+
+		virtual ~File();
 
 		/// @brief Checks if a file exists
 		/// @param path The path of the file

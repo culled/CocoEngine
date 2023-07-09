@@ -24,16 +24,15 @@ namespace Coco::ECS
 		private:
 			Scene* _scene;
 			uint64_t _entityIndex;
+			List<Entity*> _entities;
 
 		public:
 			using iterator_category = std::forward_iterator_tag;
 			using difference_type = uint64_t;
 
-			Iterator(Scene* scene) : _scene(scene), _entityIndex(0)
+			Iterator(Scene* scene) : _scene(scene), _entityIndex(0), _entities(ECSService::Get()->GetEntities())
 			{
-				const auto& entityData = ECSService::Get()->GetEntities();
-
-				while (_entityIndex < entityData.Count() && !IsValidIndex())
+				while (_entityIndex < _entities.Count() && !IsValidIndex())
 				{
 					_entityIndex++;
 				}
@@ -49,12 +48,10 @@ namespace Coco::ECS
 
 			Iterator& operator++()
 			{
-				const auto& entityData = ECSService::Get()->GetEntities();
-				
 				do
 				{
 					_entityIndex++;
-				} while (_entityIndex < entityData.Count() && !IsValidIndex());
+				} while (_entityIndex < _entities.Count() && !IsValidIndex());
 
 				return *this;
 			}
@@ -70,7 +67,7 @@ namespace Coco::ECS
 
 			EntityID GetEntityID() const
 			{
-				return ECSService::Get()->GetEntities()[_entityIndex].SparseIndex;
+				return _entities[_entityIndex]->GetID();
 			}
 		};
 

@@ -8,8 +8,8 @@
 namespace Coco
 {	
 	/// @brief A handler for queries/events
-	/// @tparam ReturnType 
-	/// @tparam ...Args 
+	/// @tparam ReturnType The type of value that the query returns
+	/// @tparam ...Args The types of arguments for the query
 	template<typename ReturnType, typename ... Args>
 	class COCOAPI QueryHandler
 	{
@@ -69,12 +69,13 @@ namespace Coco
 	std::atomic_uint64_t QueryHandler<ReturnType, Args...>::_handlerIdCounter(0);
 
 	/// @brief Handler for queries/events that use an instance and member function
-	/// @tparam ObjectType 
-	/// @tparam ReturnType 
-	/// @tparam ...Args 
+	/// @tparam ObjectType The type of object
+	/// @tparam ReturnType The type of value that the query returns
+	/// @tparam ...Args The types of arguments for the query
 	template<typename ObjectType, typename ReturnType, typename ... Args>
 	class ObjectQueryHandler : public QueryHandler<ReturnType, Args...>
 	{
+	public:
 		/// @brief The function signature for this handler
 		using ObjectHandlerFunctionType = ReturnType(ObjectType::*)(Args...);
 
@@ -87,7 +88,7 @@ namespace Coco
 			QueryHandler<ReturnType, Args...>(std::bind(function, instance)), _instance(instance), _function(function)
 		{}
 
-		/// @brief Returns if this handler references the same instance and member function as the given pair
+		/// @brief Determines if this handler references the same instance and member function as the given pair
 		/// @param instance The object instance
 		/// @param function The function pointer
 		/// @return True if this handler references the object and function

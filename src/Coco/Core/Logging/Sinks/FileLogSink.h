@@ -19,7 +19,6 @@ namespace Coco::Logging
 		FileLogSink() = delete;
 		FileLogSink(const FileLogSink&) = delete;
 		FileLogSink(FileLogSink&&) = delete;
-
 		FileLogSink operator=(const FileLogSink&) = delete;
 		FileLogSink operator=(FileLogSink&&) = delete;
 

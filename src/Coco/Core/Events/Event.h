@@ -8,7 +8,7 @@
 namespace Coco
 {
 	/// @brief An event that can fire to listening handlers
-	/// @tparam ...Args 
+	/// @tparam ...Args The types of event arguments
 	template<typename ... Args>
 	class COCOAPI Event
 	{
@@ -35,14 +35,13 @@ namespace Coco
 
 		Event(const Event&) = delete;
 		Event(Event&&) = delete;
-
 		Event& operator=(const Event&) = delete;
 		Event& operator=(Event&&) = delete;
 
-		/// @brief Adds an instance and member function event handler
-		/// @tparam ObjectType 
-		/// @param object The instanced object
-		/// @param function The event handler function pointer
+		/// @brief Adds an event handler for a member function of an object
+		/// @tparam ObjectType The type of object
+		/// @param object The object
+		/// @param function The event handler function
 		/// @return A handler for the event
 		template<typename ObjectType>
 		WeakSharedRef<HandlerType> AddHandler(ObjectType* object, bool(ObjectType::* function)(Args...))
@@ -50,7 +49,7 @@ namespace Coco
 			return AddHandler(CreateSharedRef<ObjectQueryHandler<ObjectType, bool, Args...>>(object, function));
 		}
 
-		/// @brief Adds a generic event function handler
+		/// @brief Adds a generic event handler function
 		/// @param handlerFunction The event handler function
 		/// @return A handler for the event
 		WeakSharedRef<HandlerType> AddHandler(const HandlerFunctionType& handlerFunction)
@@ -58,10 +57,10 @@ namespace Coco
 			return AddHandler(CreateSharedRef<HandlerType>(handlerFunction));
 		}
 
-		/// @brief Removes an instance and member function event handler
-		/// @tparam ObjectType 
-		/// @param object The instanced object
-		/// @param function The handler function pointer
+		/// @brief Removes an event handler for a member function of an object
+		/// @tparam ObjectType The type of object
+		/// @param object The object
+		/// @param function The event handler function
 		/// @return True if the handler was found and removed
 		template<typename ObjectType>
 		bool RemoveHandler(ObjectType* object, bool(ObjectType::* function)(Args...)) noexcept
@@ -155,7 +154,7 @@ namespace Coco
 			/// @param handler A handler reference
 			WeakSharedRef<HandlerType> AddHandler(SharedRef<HandlerType>&& handler)
 			{
-				_handlers.Insert(0, handler);
+				_handlers.Insert(0, std::forward<SharedRef<HandlerType>>(handler));
 				return _handlers.First();
 			}
 	};

@@ -7,8 +7,8 @@
 namespace Coco
 {
 	/// @brief A query that can fire to listening handlers
-	/// @tparam ...Args 
-	/// @tparam ReturnType 
+	/// @tparam ...Args Types of query arguments
+	/// @tparam ReturnType The type that the query returns
 	template<typename ReturnType, typename ... Args>
 	class COCOAPI Query
 	{
@@ -35,14 +35,13 @@ namespace Coco
 
 		Query(const Query&) = delete;
 		Query(Query&&) = delete;
-
 		Query& operator=(const Query&) = delete;
 		Query& operator=(Query&&) = delete;
 
-		/// @brief Adds an instance and member function query handler
-		/// @tparam ObjectType 
-		/// @param object The instanced object
-		/// @param function The query handler function pointer
+		/// @brief Adds a query handler for a member function of an object
+		/// @tparam ObjectType The type of object
+		/// @param object The object
+		/// @param function The query handler function
 		/// @return A handler for the query
 		template<typename ObjectType>
 		WeakSharedRef<HandlerType> AddHandler(ObjectType* object, ReturnType(ObjectType::* function)(Args...))
@@ -51,7 +50,7 @@ namespace Coco
 			return _handlers.First();
 		}
 
-		/// @brief Adds a generic query function handler
+		/// @brief Adds a generic query handler function
 		/// @param handlerFunction The query handler function
 		/// @return A handler for the query
 		Ref<HandlerType> AddHandler(const HandlerFunctionType& handlerFunction)
@@ -60,10 +59,10 @@ namespace Coco
 			return _handlers.First();
 		}
 
-		/// @brief Removes an instance and member query function handler
-		/// @tparam ObjectType 
-		/// @param object The instanced object
-		/// @param function The query handler function pointer
+		/// @brief Removes a query handler for a member function of an object
+		/// @tparam ObjectType The type of object
+		/// @param object The object
+		/// @param function The query handler function
 		/// @return True if the handler was found and removed
 		template<typename ObjectType>
 		bool RemoveHandler(ObjectType* object, ReturnType(ObjectType::* function)(Args...)) noexcept
@@ -112,7 +111,7 @@ namespace Coco
 			return RemoveHandler(lock->ID);
 		}
 
-		/// @brief Invokes this query and sets the value to the first handler's return value
+		/// @brief Invokes this query
 		/// @param value The value that will be modified by the query
 		/// @param ...params The parameters for the query
 		/// @return If the query was handled
@@ -129,7 +128,7 @@ namespace Coco
 			return false;
 		}
 
-		bool operator()(ReturnType& value, Args... params)
+		bool operator()(ReturnType* value, Args... params)
 		{
 			return Invoke(value, params...);
 		}
@@ -154,7 +153,7 @@ namespace Coco
 		/// @param handler A query handler reference
 		void AddHandler(SharedRef<HandlerType>&& handler)
 		{
-			_handlers.Insert(0, handler);
+			_handlers.Insert(0, std::forward<SharedRef<HandlerType>>(handler));
 		}
 	};
 }

@@ -8,10 +8,19 @@ namespace Coco
 	struct COCOAPI TimeSpan
 	{
 	private:
+		/// @brief The number of microseconds in a millisecond
 		static constexpr int64_t MicroSecsPerMillisecond = 1000;
+
+		/// @brief The number of microseconds in a second
 		static constexpr int64_t MicroSecsPerSecond = 1000000;
+
+		/// @brief The number of microseconds in a minute
 		static constexpr int64_t MicroSecsPerMinute = 60000000;
+
+		/// @brief The number of microseconds in an hour
 		static constexpr int64_t MicroSecsPerHour = 3600000000;
+
+		/// @brief The number of microseconds in a day
 		static constexpr int64_t MicroSecsPerDay = 86400000000;
 
 		int64_t _microseconds = 0;

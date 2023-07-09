@@ -55,6 +55,11 @@ namespace Coco
 			static_assert(std::is_base_of<ValueType, OtherType>::value || std::is_base_of<OtherType, ValueType>::value, "Cannot convert reference types");
 		}
 
+		~SharedRef() override
+		{
+			DestroyIfUnused();
+		}
+
 		SharedRef& operator=(const SharedRef& other) noexcept
 		{
 			Ref<ValueType>::operator=(other);
@@ -83,11 +88,6 @@ namespace Coco
 			Ref<ValueType>::operator=(std::move(other));
 
 			return *this;
-		}
-
-		~SharedRef() override
-		{
-			DestroyIfUnused();
 		}
 
 		/// @brief Causes this SharedRef to take ownership of the given resource
@@ -122,9 +122,9 @@ namespace Coco
 		}
 	};
 
-	/// @brief Creates a shared reference for a given object type
+	/// @brief Creates a shared reference for an object
 	/// @tparam ValueType The type of object
-	/// @tparam ...Args Arguments for the object' constructor
+	/// @tparam ...Args Types of arguments for the object' constructor
 	/// @param args Arguments to forward to the object's constructor
 	/// @return A shared reference to the object
 	template<typename ValueType, typename ... Args>
@@ -133,9 +133,9 @@ namespace Coco
 		return SharedRef<ValueType>::Create(std::forward<Args>(args)...);
 	}
 
-	/// @brief Creates a shared reference for a given object type
+	/// @brief Creates a shared reference for an object
 	/// @tparam ValueType The type of object
-	/// @tparam ...Args Arguments for the object' constructor
+	/// @tparam ...Args Types of arguments for the object' constructor
 	/// @param args Arguments to forward to the object's constructor
 	/// @return A shared reference to the object
 	template<typename ValueType, typename Deleter, typename ... Args>
@@ -193,6 +193,8 @@ namespace Coco
 		{
 			static_assert(std::is_base_of<ValueType, OtherType>::value || std::is_base_of<OtherType, ValueType>::value, "Cannot convert reference types");
 		}
+
+		~WeakSharedRef() = default;
 
 		/// @brief Creates a SharedRef that references the original resource
 		/// @return A shared reference to the resource

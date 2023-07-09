@@ -46,15 +46,15 @@ namespace Coco
 
 			return *this;
 		}
-
-		ManagedRef(const ManagedRef&) = delete;
-		ManagedRef& operator=(const ManagedRef&) = delete;
-
 		~ManagedRef() noexcept override
 		{
 			// Since we own the resource, invalidate it when this object is destroyed
 			DestroyResource();
 		}
+
+		ManagedRef(const ManagedRef&) = delete;
+		ManagedRef& operator=(const ManagedRef&) = delete;
+
 
 		operator Ref<ValueType>() noexcept
 		{
@@ -99,8 +99,8 @@ namespace Coco
 	};
 
 	/// @brief Creates a managed reference for a given type
-	/// @tparam ValueType
-	/// @tparam ...Args
+	/// @tparam ValueType The type of object to manage
+	/// @tparam ...Args The types of arguments to pass to the object's constructor
 	/// @param args Arguments to forward to the object's constructor
 	/// @return A managed reference
 	template<typename ValueType, typename ... Args>
@@ -109,9 +109,10 @@ namespace Coco
 		return ManagedRef<ValueType>::Create(std::forward<Args>(args)...);
 	}
 
-	/// @brief Creates a managed reference for a given type
-	/// @tparam ValueType
-	/// @tparam ...Args
+	/// @brief Creates a managed reference for a given type with a defined deleter
+	/// @tparam ValueType The type of object to manage
+	/// @tparam Deleter The type of deleter for the object
+	/// @tparam ...Args The types of arguments to pass to the object's constructor
 	/// @param args Arguments to forward to the object's constructor
 	/// @return A managed reference
 	template<typename ValueType, typename Deleter, typename ... Args>

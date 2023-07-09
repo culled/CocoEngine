@@ -71,11 +71,13 @@ namespace Coco
 		constexpr bool GetUseAbsoluteTiming() const noexcept { return _useAbsoluteTiming; }
 
 		/// @brief Creates a tick listener on the main loop
+		/// @tparam ObjectType The type of object
+		/// @param object The object
 		/// @param args Arguments to pass to the listener's constructor
 		template<typename ObjectType>
 		Ref<MainLoopTickListener> CreateTickListener(ObjectType* object, void(ObjectType::* handlerFunction)(double), int priority)
 		{
-			_tickListeners.Add(CreateManagedRef<MainLoopTickListener>(object, handlerFunction, priority));
+			_tickListeners.Add(CreateManagedRef<MainLoopTickListener>(std::bind(handlerFunction, object, std::placeholders::_1), priority));
 			_tickListenersNeedSorting = true;
 
 			return _tickListeners.Last();
@@ -97,8 +99,8 @@ namespace Coco
 		/// @param targetTickRate The target ticks per second to run the engine at. Values equal to or less than 0 make the engine run as fast as possible
 		constexpr void SetTargetTickRate(int targetTickRate) noexcept { _targetTickRate = targetTickRate; }
 
-		/// @brief Gets the target ticks per seconds for the loop to tick at
-		/// @return The target ticks per seconds for the loop to tick at
+		/// @brief Gets the target ticks per second for the loop to tick at
+		/// @return The target ticks per second for the loop to tick at
 		constexpr int GetTargetTickRate() const noexcept { return _targetTickRate; }
 
 		/// @brief Gets the cumulative time the loop has been running, regardless of the time scale

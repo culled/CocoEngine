@@ -32,8 +32,8 @@ namespace Coco
 	public:
 		virtual ~Resource() noexcept = default;
 
-		/// @brief Gets this resource's version number
-		/// @return This resource's version number
+		/// @brief Gets this resource's version
+		/// @return This resource's version
 		ResourceVersion GetVersion() const noexcept { return _version; }
 
 		/// @brief Gets this resource's name
@@ -44,7 +44,7 @@ namespace Coco
 		/// @param name The name
 		void SetName(const string& name) noexcept { _name = name; }
 
-		/// @brief Gets the type that this resource is
+		/// @brief Gets this resource's type
 		/// @return This resource's type
 		virtual std::type_index GetType() const noexcept = 0;
 
@@ -52,8 +52,8 @@ namespace Coco
 		/// @param filePath The file path
 		void SetFilePath(const string& filePath) { _filePath = filePath; }
 
-		/// @brief Gets the path to the file this resource is loaded from (if any)
-		/// @return The path to the file this resource is loaded from, or an empty string if this resource isn't saved to disk
+		/// @brief Gets the path to the file that this resource is loaded from (if any)
+		/// @return The path to the file that this resource is loaded from, or an empty string if this resource isn't saved to disk
 		const string& GetFilePath() const noexcept { return _filePath; }
 
 		/// @brief Gets if this resource has a file path. This usually means it relates to a file on the disk

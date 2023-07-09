@@ -3,16 +3,18 @@
 #include "Color.h"
 #include "Array.h"
 
+#include <span>
+
 namespace Coco
 {
-	void ParseIntArray(const string& str, int* values, uint64_t valueCount)
+	void ParseIntArray(const string& str, std::span<int> values)
 	{
 		uint64_t currentCharacterIndex = 0;
 		uint64_t fieldIndex = 0;
 
 		while (currentCharacterIndex < str.length())
 		{
-			if (fieldIndex >= valueCount)
+			if (fieldIndex >= values.size())
 				break;
 
 			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
@@ -28,14 +30,14 @@ namespace Coco
 		}
 
 	}
-	void ParseDoubleArray(const string& str, double* values, uint64_t valueCount)
+	void ParseDoubleArray(const string& str, std::span<double> values)
 	{
 		uint64_t currentCharacterIndex = 0;
 		uint64_t fieldIndex = 0;
 
 		while (currentCharacterIndex < str.length())
 		{
-			if (fieldIndex >= valueCount)
+			if (fieldIndex >= values.size())
 				break;
 
 			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
@@ -61,7 +63,7 @@ namespace Coco
 	{
 		Array<int, 2> values = { 0 };
 
-		ParseIntArray(str, values.data(), values.size());
+		ParseIntArray(str, std::span<int>{values});
 
 		return Vector2Int(values[0], values[1]);
 	}
@@ -86,7 +88,7 @@ namespace Coco
 	{
 		Array<double, 2> values = { 0.0 };
 
-		ParseDoubleArray(str, values.data(), values.size());
+		ParseDoubleArray(str, std::span<double>{values});
 
 		return Vector2(values[0], values[1]);
 	}
@@ -140,7 +142,7 @@ namespace Coco
 	{
 		Array<double, 3> values = { 0.0 };
 
-		ParseDoubleArray(str, values.data(), values.size());
+		ParseDoubleArray(str, std::span<double>{values});
 
 		return Vector3(values[0], values[1], values[2]);
 	}
@@ -189,7 +191,7 @@ namespace Coco
 	{
 		Array<double, 4> values = {0.0};
 
-		ParseDoubleArray(str, values.data(), values.size());
+		ParseDoubleArray(str, std::span<double>{values});
 
 		return Vector4(values[0], values[1], values[2], values[3]);
 	}

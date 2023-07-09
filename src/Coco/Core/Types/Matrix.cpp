@@ -323,12 +323,12 @@ namespace Coco
 		return std::move(data);
 	}
 
-	Vector3 Matrix4x4::AsPosition() const noexcept
+	Vector3 Matrix4x4::GetPosition() const noexcept
 	{
 		return Vector3(Data[m14], Data[m24], Data[m34]);
 	}
 
-	Quaternion Matrix4x4::AsRotation() const noexcept
+	Quaternion Matrix4x4::GetRotation() const noexcept
 	{
 		// https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
 		const double t = Data[m11] + Data[m22] + Data[m33];
@@ -370,7 +370,7 @@ namespace Coco
 		return result;
 	}
 
-	Vector3 Matrix4x4::AsScale() const noexcept
+	Vector3 Matrix4x4::GetScale() const noexcept
 	{
 		return Vector3(
 			Math::Sqrt(Data[m11] * Data[m11] + Data[m21] * Data[m21] + Data[m31] * Data[m31]),
@@ -415,6 +415,6 @@ namespace Coco
 
 	Quaternion Matrix4x4::operator*(const Quaternion& rotation) const noexcept
 	{
-		return (*this * rotation.ToRotationMatrix()).AsRotation();
+		return (*this * rotation.ToRotationMatrix()).GetRotation();
 	}
 }

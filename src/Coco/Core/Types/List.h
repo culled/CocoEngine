@@ -29,10 +29,10 @@ namespace Coco
 
 	public:
 		List() noexcept = default;
-		virtual ~List() = default;
-
 		List(uint64_t initialSize) : _list(initialSize) {}
 		List(std::initializer_list<ValueType>&& items) : _list(items) {}
+
+		virtual ~List() = default;
 
 		/// @brief Adds an item to this list
 		/// @param item The item to add
@@ -169,10 +169,7 @@ namespace Coco
 		/// @return True if the item is found in this list
 		bool Contains(const ValueType& item) const noexcept
 		{
-			if (Find(item) != cend())
-				return true;
-
-			return false;
+			return Find(item) != cend();
 		}
 
 		/// @brief Determines if a given element exists in this list by using a predicate function
@@ -180,10 +177,7 @@ namespace Coco
 		/// @return True if the item is found in this list
 		bool Contains(std::function<bool(const ValueType&)> predicate) const noexcept
 		{
-			if (Find(predicate) != cend())
-				return true;
-
-			return false;
+			return Find(predicate) != cend();
 		}
 
 		/// @brief Tries to find the given item in this list
@@ -216,6 +210,45 @@ namespace Coco
 		constexpr ConstIterator Find(std::function<bool(const ValueType&)> predicate) const
 		{
 			return std::find_if(cbegin(), cend(), predicate);
+		}
+
+		/// @brief Transforms objects of this list into a list of a different type using a conversion function
+		/// @tparam OtherType The type of each object in the new list
+		/// @param converter The converter function that will be run for each element of this list. It should return an object of the new list type
+		/// @return A transformed list
+		template<typename OtherType>
+		List<OtherType> Transform(std::function<OtherType(ValueType&)> converter)
+		{
+			List<OtherType> other;
+
+			for (auto& e : _list)
+				other.Add(converter(e));
+
+			return other;
+		}
+
+		/// @brief Tests if every element satisfies the given predicate function
+		/// @param predicate The function to test for each element. Must return true if the element passes
+		/// @return True if all elements pass the predicate function
+		bool All(std::function<bool(const ValueType&)> predicate) const
+		{
+			for (const auto& e : _list)
+				if (!predicate(e))
+					return false;
+
+			return true;
+		}
+
+		/// @brief Tests if at least one element satisfies the given predicate function
+		/// @param predicate The function to test for each element. Must return true if the element passes
+		/// @return True if any element passes the predicate function
+		bool Any(std::function<bool(const ValueType&)> predicate) const
+		{
+			for (const auto& e : _list)
+				if (predicate(e))
+					return true;
+
+			return false;
 		}
 
 		/// @brief Gets an iterator for the beginning of this list
@@ -268,44 +301,5 @@ namespace Coco
 
 		ValueType& operator[](uint64_t index) { return _list.at(index); }
 		const ValueType& operator[](uint64_t index) const { return _list.at(index); }
-
-		/// @brief Transforms objects of this list into a list of a different type using a conversion function
-		/// @tparam OtherType The type of each object in the new list
-		/// @param converter The converter function that will be run for each element of this list. It should return an object of the new list type
-		/// @return A transformed list
-		template<typename OtherType>
-		List<OtherType> Transform(std::function<OtherType(ValueType&)> converter)
-		{
-			List<OtherType> other;
-
-			for (auto& e : _list)
-				other.Add(converter(e));
-
-			return other;
-		}
-
-		/// @brief Tests if every element satisfies the given predicate function
-		/// @param predicate The function to test for each element. Must return true if the element passes
-		/// @return True if all elements pass the predicate function
-		bool All(std::function<bool(const ValueType&)> predicate) const
-		{
-			for (const auto& e : _list)
-				if (!predicate(e))
-					return false;
-
-			return true;
-		}
-
-		/// @brief Tests if at least one element satisfies the given predicate function
-		/// @param predicate The function to test for each element. Must return true if the element passes
-		/// @return True if any element passes the predicate function
-		bool Any(std::function<bool(const ValueType&)> predicate) const
-		{
-			for (const auto& e : _list)
-				if (predicate(e))
-					return true;
-
-			return false;
-		}
 	};
 }

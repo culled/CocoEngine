@@ -47,7 +47,7 @@ namespace Coco::ECS
 		void QueueDestroyEntity(EntityID entityID);
 		void DestroyEntity(EntityID entityID);
 		
-		List<PackedSetData<Entity>>& GetEntities();
+		List<Entity*> GetEntities();
 
 		template<typename ComponentType, typename ... Args>
 		ComponentType& AddComponent(EntityID entityID, Args&& ... args)

@@ -11,19 +11,28 @@ namespace Coco
 	/// @brief Represents a point in time
 	struct COCOAPI DateTime
 	{
-	private:
+		/// @brief The days in each month. Index 0 is a non-leap year, index 1 is a leap year
 		static constexpr Array<Array<int, 12>, 2> DaysPerMonth = {
 			Array<int, 12>({ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }),
 			Array<int, 12>({ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 })
 		};
 
+		/// @brief The number of milliseconds in a second
 		static constexpr int64_t MSecsPerSecond = 1000;
+
+		/// @brief The number of milliseconds in a minute
 		static constexpr int64_t MSecsPerMinute = 60000;
+
+		/// @brief The number of milliseconds in an hour
 		static constexpr int64_t MSecsPerHour = 3600000;
+
+		/// @brief The number of milliseconds in a day
 		static constexpr int64_t MSecsPerDay = 86400000;
 
+		/// @brief The epoch year for unix time
 		static constexpr int UnixEpochYear = 1970;
 
+	public:
 		int64_t _unixMilliseconds = 0;
 
 	public:

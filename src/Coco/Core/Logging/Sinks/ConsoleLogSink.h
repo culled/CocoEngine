@@ -9,12 +9,11 @@ namespace Coco::Logging
     {
     public:
         ConsoleLogSink(LogLevel minimumLevel) noexcept;
+        ~ConsoleLogSink() final = default;
 
         ConsoleLogSink() = delete;
         ConsoleLogSink(const ConsoleLogSink&) = delete;
         ConsoleLogSink(ConsoleLogSink&&) = delete;
-        ~ConsoleLogSink() final = default;
-
         ConsoleLogSink operator=(const ConsoleLogSink&) = delete;
         ConsoleLogSink operator=(ConsoleLogSink&&) = delete;
 

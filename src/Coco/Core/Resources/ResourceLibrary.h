@@ -8,6 +8,7 @@
 #include "IResourceSerializer.h"
 #include <atomic>
 #include <Coco/Core/IO/File.h>
+#include <Coco/Core/IO/FilePath.h>
 
 namespace Coco::Logging
 {
@@ -20,10 +21,13 @@ namespace Coco
 	class COCOAPI ResourceLibrary
 	{
 	public:
+		/// @brief An infinite lifetime for resources
 		constexpr static uint64_t MaxLifetime = Math::MaxValue<uint64_t>();
+
+		/// @brief A default resource lifetime
 		constexpr static uint64_t DefaultResourceLifetimeTicks = 10000;
 
-		/// @brief The base path for all FileResources
+		/// @brief The base path for all relative file paths regarding this library
 		const string BasePath;
 
 	private:
@@ -41,13 +45,13 @@ namespace Coco
 		Logging::Logger* GetLogger() noexcept;
 
 		/// @brief Gets a full file path from a relative path
-		/// @param relativePath The relative path within the resource library base path
-		/// @return The full file path
+		/// @param relativePath The relative path within this resource library's base path
+		/// @return A full file path
 		string GetFullFilePath(const string& relativePath) const noexcept { return BasePath + relativePath; }
 
-		/// @brief Creates a resource serializer and adds it to this library's list of serializers
-		/// @tparam SerializerType 
-		/// @tparam ...Args 
+		/// @brief Creates a resource serializer for this library
+		/// @tparam SerializerType The type of serializer
+		/// @tparam ...Args The type of arguments for the serializer's constructor
 		/// @param ...args Arguments to pass to the serializer
 		template<typename SerializerType, typename ... Args>
 		void CreateSerializer(Args&& ... args)
@@ -67,8 +71,8 @@ namespace Coco
 		}
 
 		/// @brief Creates a resource
-		/// @tparam ResourceType The type of resource to create 
-		/// @tparam ...Args The type of arguments
+		/// @tparam ResourceType The type of resource
+		/// @tparam ...Args The type of arguments to pass to the resource's constructor
 		/// @param name The name of the resource
 		/// @param ...args The arguments to pass to the resource's constructor
 		/// @return The created resource
@@ -80,9 +84,6 @@ namespace Coco
 			ResourceID id = GetNextResourceID();
 
 			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, name, std::forward<Args>(args)...));
-
-			if (id > _resourceID)
-				_resourceID = id + 1;
 
 			Ref<Resource> resource = result.first->second;
 			resource->UpdateTickUsed();
@@ -152,10 +153,7 @@ namespace Coco
 		{
 			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
 
-			ResourceID id = GetNextResourceID();
-			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, name));
-
-			Ref<ResourceType> resource = static_cast<Ref<ResourceType>>(result.first->second);
+			Ref<ResourceType> resource = CreateResource<ResourceType>(name);
 			DeserializeResource(data, resource);
 			return resource;
 		}
@@ -192,8 +190,7 @@ namespace Coco
 				return static_cast<Ref<ResourceType>>(resource);
 			}
 
-			// TODO: set the name to be the file name
-			Ref<ResourceType> resource = CreateResource<ResourceType>("");
+			Ref<ResourceType> resource = CreateResource<ResourceType>(FilePath::GetFileName(path));
 			resource->SetFilePath(path);
 			
 			string text = File::ReadAllText(fullPath);

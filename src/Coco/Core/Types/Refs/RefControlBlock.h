@@ -17,23 +17,24 @@ namespace Coco
 	public:
 		RefControlBlock(const std::type_info& type) noexcept;
 
-		RefControlBlock(const RefControlBlock&) = delete;
-		RefControlBlock& operator=(const RefControlBlock&) = delete;
-
 		RefControlBlock(RefControlBlock&& other) noexcept;
 		RefControlBlock& operator=(RefControlBlock&& other) noexcept;
 
 		~RefControlBlock() = default;
 
-		/// @brief Gets if the resource is still valid
-		/// @return True if the resource is still valid
+		RefControlBlock(const RefControlBlock&) = delete;
+		RefControlBlock& operator=(const RefControlBlock&) = delete;
+
+		/// @brief Gets if the resource is valid
+		/// @return True if the resource is valid
 		bool IsValid() const noexcept { return _resourceType != typeid(std::nullptr_t); }
 
-		/// @brief Gets the resource statically-casted to the given type
-		/// @tparam ResourceType The type to cast the resource to
-		/// @return A pointer to the resource
+		/// @brief Gets the type of the resource that is managed
+		/// @return The type of the resource that is managed
 		const std::type_index& GetResourceType() const noexcept { return _resourceType; }
 
+		/// @brief Sets the type of resource that is managed
+		/// @param The type of resource
 		void SetResourceType(const std::type_info& type) noexcept { _resourceType = type; }
 
 		/// @brief Adds a user to this resource

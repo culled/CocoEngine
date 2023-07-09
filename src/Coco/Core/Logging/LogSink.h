@@ -13,15 +13,15 @@ namespace Coco::Logging
 		/// @brief The minimum level of messages that will be written to this sink
 		const LogLevel MinimumLevel;
 
+	protected:
+		LogSink(LogLevel minimumLevel = LogLevel::Trace) noexcept;
+
 	public:
+		virtual ~LogSink() = default;
+
 		LogSink() = delete;
 		LogSink(const LogSink&) = delete;
 		LogSink(LogSink&&) = delete;
-
-		virtual ~LogSink() = default;
-
-	protected:
-		LogSink(LogLevel minimumLevel = LogLevel::Trace) noexcept;
 
 	public:
 		/// @brief Writes to this log sink

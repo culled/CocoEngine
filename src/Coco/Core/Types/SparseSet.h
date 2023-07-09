@@ -9,37 +9,46 @@
 
 namespace Coco
 {
-	template<typename ValueType>
-	struct PackedSetData
-	{
-		uint64_t SparseIndex = Math::MaxValue<uint64_t>();
-		ValueType Data = {};
-
-		PackedSetData() = default;
-		PackedSetData(uint64_t index, ValueType&& data) : SparseIndex(index), Data(std::move(data)) {}
-
-		PackedSetData(const PackedSetData&) = delete;
-		PackedSetData& operator=(const PackedSetData&) = delete;
-
-		PackedSetData(PackedSetData&& other) noexcept
-		{
-			SparseIndex = other.SparseIndex;
-			Data = std::move(other.Data);
-		}
-
-		PackedSetData& operator=(PackedSetData&& other) noexcept
-		{
-			SparseIndex = other.SparseIndex;
-			Data = std::move(other.Data);
-
-			return *this;
-		}
-	};
-
+	/// @brief A sparse set of data
+	/// @tparam ValueType The type of object contained in the set
 	template<typename ValueType, uint64_t Size>
 	class COCOAPI SparseSet
 	{
 	public:
+		/// @brief A data container for the packed set
+		struct PackedSetData
+		{
+			/// @brief The index of this item in the sparse set
+			uint64_t SparseIndex = Math::MaxValue<uint64_t>();
+
+			/// @brief The actual data
+			ValueType Data = {};
+
+			PackedSetData() = default;
+			PackedSetData(uint64_t index, ValueType&& data) : 
+				SparseIndex(index), 
+				Data(std::move(data)) 
+			{}
+
+			PackedSetData(PackedSetData&& other) noexcept
+			{
+				SparseIndex = other.SparseIndex;
+				Data = std::move(other.Data);
+			}
+
+			PackedSetData& operator=(PackedSetData&& other) noexcept
+			{
+				SparseIndex = other.SparseIndex;
+				Data = std::move(other.Data);
+
+				return *this;
+			}
+
+			PackedSetData(const PackedSetData&) = delete;
+			PackedSetData& operator=(const PackedSetData&) = delete;
+		};
+
+		/// @brief An iterator for the sparse set
 		struct Iterator
 		{
 			using iterator_category = std::contiguous_iterator_tag;
@@ -49,11 +58,11 @@ namespace Coco
 			using reference = ValueType&;
 
 		private:
-			PackedSetData<ValueType>* _ptr;
+			PackedSetData* _ptr;
 			uint64_t _offset;
 
 		public:
-			Iterator(PackedSetData<ValueType>* ptr, uint64_t offset) : _ptr(ptr), _offset(offset) {}
+			Iterator(PackedSetData* ptr, uint64_t offset) : _ptr(ptr), _offset(offset) {}
 
 			constexpr reference operator*() const { return (*(_ptr + _offset)).Data; }
 			constexpr pointer operator->() const { return &((_ptr + _offset)->Data); }
@@ -84,13 +93,13 @@ namespace Coco
 			friend constexpr difference_type operator-(const Iterator& a, const Iterator& b) { return a._offset - b._offset; }
 		};
 
-		using PackedIterator = List<PackedSetData<ValueType>>::Iterator;
+		using PackedIterator = List<PackedSetData>::Iterator;
 
 	public:
 		static constexpr uint64_t InvalidIndex = Math::MaxValue<uint64_t>();
 
 	private:
-		List<PackedSetData<ValueType>> _data;
+		List<PackedSetData> _data;
 		Array<uint64_t, Size> _sparseSet;
 
 	public:
@@ -101,22 +110,29 @@ namespace Coco
 		}
 
 		SparseSet(uint64_t capacity) : SparseSet(), _data(capacity)
-		{
-		}
+		{}
 
-		ValueType& Add(uint64_t index, ValueType&& value)
+		/// @brief Adds an item to this sparse set
+		/// @param index The index for the item
+		/// @param value The item to add
+		void Add(uint64_t index, ValueType&& value)
 		{
-			_data.Add(PackedSetData<ValueType>(index, std::forward<ValueType>(value)));
+			_data.Add(PackedSetData(index, std::forward<ValueType>(value)));
 			_sparseSet[index] = _data.Count() - 1;
-
-			return _data.Last().Data;
 		}
 
+		/// @brief Gets if this sparse set has an item at the given index
+		/// @param index The index of the item
+		/// @return True if the item exists
 		bool Contains(uint64_t index) const
 		{
 			return _sparseSet[index] != InvalidIndex;
 		}
 
+		/// @brief Tries to get an item from this sparse set
+		/// @param index The index of the item
+		/// @param value A pointer that will point to the item if it exists
+		/// @return True if the item was found
 		bool TryGet(uint64_t index, ValueType*& value)
 		{
 			for (auto& data : _data)
@@ -131,14 +147,20 @@ namespace Coco
 			return false;
 		}
 
+		/// @brief Gets an item from this sparse set. NOTE: only use this if you are sure the item exists
+		/// @param index The index of the item
+		/// @return The item
 		ValueType& Get(uint64_t index)
 		{
 			return _data[_sparseSet[index]].Data;
 		}
 
+		/// @brief Removes an item at the given index
+		/// @param index The index of the item
+		/// @return True if the item was found and removed
 		bool Remove(uint64_t index)
 		{
-			PackedIterator it = _data.Find([index](const PackedSetData<ValueType>& value) { return value.SparseIndex == index; });
+			PackedIterator it = _data.Find([index](const PackedSetData& value) { return value.SparseIndex == index; });
 
 			if (it == _data.end())
 				return false;
@@ -156,6 +178,8 @@ namespace Coco
 			return true;
 		}
 
+		/// @brief Gets the next available index in the sparse set
+		/// @return The next available index in the sparse set
 		uint64_t GetNextIndex() const
 		{
 			const auto it = std::find(_sparseSet.cbegin(), _sparseSet.cend(), InvalidIndex);
@@ -166,11 +190,12 @@ namespace Coco
 			return std::distance(_sparseSet.cbegin(), it);
 		}
 
-		List<PackedSetData<ValueType>>& Data() { return _data; }
+		/// @brief Gets a list of pointers to all items in the packed set
+		/// @return A list of pointers to all items in the packed set
+		List<ValueType*> GetItems() { return _data.Transform<ValueType*>([](PackedSetData& e) { return &e.Data; }); }
 
 		Iterator begin() { return Iterator(_data.Data(), 0); }
 		Iterator end() { return Iterator(_data.Data(), _data.Count()); }
-
 		Iterator rbegin() { return Iterator(_data.Data(), _data.Count() - 1); }
 		Iterator rend() { return Iterator(_data.Data(), -1); }
 	};

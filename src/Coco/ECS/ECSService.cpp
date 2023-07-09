@@ -24,11 +24,12 @@ namespace Coco::ECS
 
 	EntityID ECSService::CreateEntity(const string& name, EntityID parentID)
 	{
-		uint64_t id = _entities->GetNextReserveIndex();
+		uint64_t id;
 
-		if (!_entities->TryReserve(Entity(id, name, parentID), id))
+		if (!_entities->TryReserve(id, InvalidEntityID, name, parentID))
 			throw Exception("Cannot create more entities");
 
+		_entities->Get(id)._id = id;
 		return id;
 	}
 
@@ -110,7 +111,7 @@ namespace Coco::ECS
 		}
 	}
 
-	List<PackedSetData<Entity>>& ECSService::GetEntities() { return _entities->GetSparseSet().Data(); }
+	List<Entity*> ECSService::GetEntities() { return _entities->GetObjects(); }
 
 	Scene* ECSService::CreateScene(const string& name, SceneID parentID)
 	{

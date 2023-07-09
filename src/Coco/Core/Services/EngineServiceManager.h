@@ -7,7 +7,7 @@
 
 namespace Coco
 {
-	/// @brief Manages services for the engine
+	/// @brief Manages engine services
 	class COCOAPI EngineServiceManager
 	{
 		friend class Engine;
@@ -22,13 +22,12 @@ namespace Coco
 
 		EngineServiceManager(const EngineServiceManager&) = delete;
 		EngineServiceManager(EngineServiceManager&&) = delete;
-
 		EngineServiceManager operator=(const EngineServiceManager&) = delete;
 		EngineServiceManager operator=(EngineServiceManager&&) = delete;
 
 		/// @brief Creates a service and registers it
-		/// @tparam ServiceType 
-		/// @tparam ...Args 
+		/// @tparam ServiceType The type of service
+		/// @tparam ...Args The types of arguments for the service's constructor
 		/// @param ...args Arguments to pass to the service's constructor
 		/// @return The created service
 		template<typename ServiceType, typename ... Args>
@@ -63,7 +62,7 @@ namespace Coco
 			return static_cast<ServiceType*>(_services.at(typeid(ServiceType)).Get());
 		}
 
-		/// @brief Tries to find a service and returns it
+		/// @brief Tries to find a service and returns it if it exists
 		/// @tparam ServiceType The type of service
 		/// @param servicePtr A pointer that will be assigned to the service if it is found
 		/// @return True if the service exists

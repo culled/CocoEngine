@@ -9,6 +9,8 @@ namespace Coco
 	/// @brief A listener of ticks from a MainLoop that performs a callback every tick
 	class COCOAPI MainLoopTickListener
 	{
+		friend class MainLoop;
+
 	public:
 		/// @brief Function signature for a tick callback
 		using TickHandler = std::function<void(double)>;
@@ -23,11 +25,6 @@ namespace Coco
 	public:
 		MainLoopTickListener(TickHandler tickHandler, int priority);
 
-		template<typename ObjectType>
-		MainLoopTickListener(ObjectType* object, void(ObjectType::* handlerFunction)(double), int priority) :
-			MainLoopTickListener(std::bind(handlerFunction, object, std::placeholders::_1), priority)
-		{}
-
 		virtual ~MainLoopTickListener() = default;
 
 		/// @brief Sets this listener as enabled. Enabled listeners receive ticks and call their callbacks
@@ -39,8 +36,6 @@ namespace Coco
 		constexpr bool GetIsEnabled() const noexcept { return _isEnabled; }
 
 	private:
-		friend class MainLoop;
-
 		/// @brief Called by the main loop every tick
 		/// @param deltaTime The time between ticks (in seconds)
 		void Tick(double deltaTime);

@@ -20,11 +20,15 @@ namespace Coco::ECS
 	template <typename ComponentType, int MaxComponents>
 	class EntityComponentList : public IEntityComponentList
 	{
+	private:
+		SparseSet<ComponentType, MaxComponents> _components;
+
 	public:
 		template<typename ... Args>
 		ComponentType& AddComponent(EntityID entity, Args&& ... args)
 		{
-			return _components.Add(entity, ComponentType(entity, std::forward<Args>(args)...));
+			_components.Add(entity, ComponentType(entity, std::forward<Args>(args)...));
+			return _components.Get(entity);
 		}
 
 		ComponentType& GetComponent(EntityID entity)
@@ -41,8 +45,5 @@ namespace Coco::ECS
 		{
 			return _components.Remove(entity);
 		}
-
-	private:
-		SparseSet<ComponentType, MaxComponents> _components;
 	};
 }
