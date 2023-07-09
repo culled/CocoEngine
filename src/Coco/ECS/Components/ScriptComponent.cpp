@@ -4,7 +4,7 @@
 
 namespace Coco::ECS
 {
-	AttachedScript::AttachedScript() : _ecs(ECSService::Get())
+	AttachedScript::AttachedScript() : _ecs(ECSService::Get()), _entityID(InvalidEntityID)
 	{
 		if (_ecs == nullptr)
 			throw Exception("Could not find an active ECSService");

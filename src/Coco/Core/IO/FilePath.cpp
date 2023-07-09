@@ -1,6 +1,7 @@
 #include "FilePath.h"
 
 #include <regex>
+#include <Coco/Core/Engine.h>
 
 namespace Coco
 {
@@ -10,22 +11,34 @@ namespace Coco
 
 	string FilePath::GetFileName(const string& path, bool withExtension)
 	{
-		std::regex separator("[/\\]+?");
-		std::smatch m;
+		auto options = std::regex_constants::ECMAScript | std::regex_constants::icase;
 
-		size_t startIndex;
-		if (std::regex_search(path, m, separator))
-			startIndex = m.position(m.size() - 1) + 1;
-		else
-			startIndex = 0;
+		std::regex separator("[\\/]+?", options);
+		std::smatch separatorMatch;
 
-		std::regex extension("\\.+?");
-		size_t endIndex;
-		if(!withExtension && std::regex_search(path, m, extension))
+		string str = path;
+
+		size_t startIndex = 0;
+		while (std::regex_search(str, separatorMatch, separator))
 		{
-			endIndex = m.position(m.size() - 1);
+			startIndex += separatorMatch.position(0) + 1;
+			str = separatorMatch.suffix();
 		}
-		else
+
+		std::regex extension("[.]+?", options);
+		std::smatch extensionMatch;
+
+		size_t endIndex = startIndex;
+		if (!withExtension)
+		{
+			while (std::regex_search(str, extensionMatch, extension))
+			{
+				endIndex += extensionMatch.position(0);
+				str = separatorMatch.suffix();
+			}
+		}
+
+		if(endIndex == startIndex)
 		{
 			endIndex = path.length();
 		}

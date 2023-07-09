@@ -191,7 +191,7 @@ namespace Coco
 			}
 
 			Ref<ResourceType> resource = CreateResource<ResourceType>(FilePath::GetFileName(path));
-			resource->SetFilePath(path);
+			resource->SetFilePath(fullPath);
 			
 			string text = File::ReadAllText(fullPath);
 			DeserializeResource(text, resource);
