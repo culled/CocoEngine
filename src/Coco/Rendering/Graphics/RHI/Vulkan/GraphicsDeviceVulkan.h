@@ -59,7 +59,7 @@ namespace Coco::Rendering::Vulkan
         Optional<ManagedRef<CommandBufferPoolVulkan>> _computeCommandPool;
 
     public:
-        GraphicsDeviceVulkan(GraphicsPlatformVulkan& platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
+        GraphicsDeviceVulkan(VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
         ~GraphicsDeviceVulkan() final;
 
         Logging::Logger* GetLogger() noexcept final;
@@ -77,15 +77,13 @@ namespace Coco::Rendering::Vulkan
         /// @return The created graphics device
         static ManagedRef<GraphicsDeviceVulkan> Create(GraphicsPlatformVulkan& platform, const GraphicsDeviceCreationParameters& createParams);
 
-        GraphicsPlatformVulkan* GetVulkanPlatform() { return _platform; }
-
         /// @brief Gets the Vulkan physical device that this graphics device uses
         /// @return The Vulkan physical device
-        VkPhysicalDevice GetPhysicalDevice() const noexcept { return _physicalDevice; }
+        VkPhysicalDevice GetPhysicalDevice() noexcept { return _physicalDevice; }
 
         /// @brief Gets the Vulkan logical device that this graphics device uses
         /// @return The Vulkan logical device
-        VkDevice GetDevice() const noexcept { return _device; }
+        VkDevice GetDevice() noexcept { return _device; }
 
         /// @brief Gets this device's Vulkan render cache
         /// @return This device's Vulkan render cache
@@ -143,6 +141,7 @@ namespace Coco::Rendering::Vulkan
         /// @return True if a valid memory index was found
         bool FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const noexcept;
 
+        /// @brief Purges unused graphics resources
         void PurgeUnusedResources() noexcept override;
 
     private:

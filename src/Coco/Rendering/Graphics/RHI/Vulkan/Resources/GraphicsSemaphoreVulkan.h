@@ -23,6 +23,6 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets the underlying VkSemaphore
 		/// @return The underlying Vulkan semaphore
-		VkSemaphore GetSemaphore() const noexcept { return _semaphore; }
+		VkSemaphore GetSemaphore() noexcept { return _semaphore; }
 	};
 }

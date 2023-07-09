@@ -42,7 +42,7 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets the underlying Vulkan buffer
 		/// @return The underlying Vulkan buffer
-		VkBuffer GetBuffer() const noexcept { return _buffer; }
+		VkBuffer GetBuffer() noexcept { return _buffer; }
 
 	private:
 		/// @brief Creates a Vulkan buffer

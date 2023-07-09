@@ -52,8 +52,8 @@ namespace Coco::Rendering
 		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
 		/// @param signalFence A fence to signal once this buffer's work has been completed
 		virtual void Submit(
-			const List<GraphicsSemaphore*>& waitSemaphores = {},
-			const List<GraphicsSemaphore*>& signalSemaphores = {},
+			List<GraphicsSemaphore*>* waitSemaphores = nullptr,
+			List<GraphicsSemaphore*>* signalSemaphores = nullptr,
 			GraphicsFence* signalFence = nullptr);
 
 		/// @brief Resets this command buffer
@@ -64,8 +64,8 @@ namespace Coco::Rendering
 		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
 		/// @param signalFence A fence to signal once this buffer's work has been completed
 		void EndAndSubmit(
-			const List<GraphicsSemaphore*>& waitSemaphores = {},
-			const List<GraphicsSemaphore*>& signalSemaphores = {},
+			List<GraphicsSemaphore*>* waitSemaphores = nullptr,
+			List<GraphicsSemaphore*>* signalSemaphores = nullptr,
 			GraphicsFence* signalFence = nullptr);
 
 	protected:
@@ -82,8 +82,8 @@ namespace Coco::Rendering
 		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
 		/// @param signalFence A fence to signal once this buffer's work has been completed
 		virtual void SubmitImpl(
-			const List<GraphicsSemaphore*>& waitSemaphores,
-			const List<GraphicsSemaphore*>& signalSemaphores,
+			List<GraphicsSemaphore*>* waitSemaphores,
+			List<GraphicsSemaphore*>* signalSemaphores,
 			GraphicsFence* signalFence) = 0;
 
 		/// @brief Implementation to reset this command buffer

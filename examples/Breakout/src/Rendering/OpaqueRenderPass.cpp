@@ -14,8 +14,8 @@ List<AttachmentDescription> OpaqueRenderPass::GetAttachmentDescriptions() noexce
         });
 }
 
-void OpaqueRenderPass::Execute(RenderContext* renderContext)
+void OpaqueRenderPass::Execute(RenderContext& renderContext)
 {
-    for (auto& object : renderContext->GetRenderView()->Objects)
-        renderContext->Draw(object);
+    for (auto& object : renderContext.GetRenderView()->Objects)
+        renderContext.Draw(object);
 }

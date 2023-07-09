@@ -14,10 +14,7 @@ namespace Coco::Platform
 	public:
 		/// @brief Creates a platform-specific window
 		/// @param createParameters Parameters for creating the window
-		/// @param windowingService The service that will manage the window
 		/// @return The created window
-		virtual ManagedRef<::Coco::Windowing::Window> CreatePlatformWindow(
-			const ::Coco::Windowing::WindowCreateParameters& createParameters, 
-			::Coco::Windowing::WindowingService* windowingService) = 0;
+		virtual ManagedRef<::Coco::Windowing::Window> CreatePlatformWindow(const ::Coco::Windowing::WindowCreateParameters& createParameters) = 0;
 	};
 }

@@ -6,14 +6,14 @@
 
 namespace Coco::Rendering::Vulkan
 {
-    VulkanShaderResource::VulkanShaderResource(ResourceID id, const string& name, const VulkanShader* shader) :
+    VulkanShaderResource::VulkanShaderResource(ResourceID id, const string& name, const VulkanShader& shader) :
         GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), 
-		CachedResource(shader->ID, shader->GetVersion())
+		CachedResource(shader.ID, shader.GetVersion())
     {}
 
-    bool VulkanShaderResource::NeedsUpdate(const VulkanShader* shader) const noexcept
+    bool VulkanShaderResource::NeedsUpdate(const VulkanShader& shader) const noexcept
     {
-        return !_pool.IsValid() || shader->GetVersion() != GetReferenceVersion();
+        return !_pool.IsValid() || shader.GetVersion() != GetReferenceVersion();
     }
 
 	VulkanShaderResource::~VulkanShaderResource()
@@ -21,12 +21,12 @@ namespace Coco::Rendering::Vulkan
 		DestroyPool();
 	}
 
-	void VulkanShaderResource::Update(VulkanShader* shader)
+	void VulkanShaderResource::Update(const VulkanShader& shader)
 	{
 		DestroyPool();
 
-		_pool = _device->CreateResource<VulkanDescriptorPool>(FormattedString("{} Descriptor Pool", shader->GetName()), _maxSets, shader->GetDescriptorLayouts());
-		UpdateReferenceVersion(shader->GetVersion());
+		_pool = _device->CreateResource<VulkanDescriptorPool>(FormattedString("{} Descriptor Pool", shader.GetName()), _maxSets, shader.GetDescriptorLayouts());
+		UpdateReferenceVersion(shader.GetVersion());
 		IncrementVersion();
 	}
 
@@ -36,5 +36,6 @@ namespace Coco::Rendering::Vulkan
 			return;
 
 		_device->PurgeResource(_pool);
+		_pool = Ref<VulkanDescriptorPool>();
 	}
 }

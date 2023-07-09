@@ -31,10 +31,10 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets the underlying VkCommandPool
 		/// @return The underlying pool
-		VkCommandPool GetPool() const noexcept { return _pool; }
+		VkCommandPool GetPool() noexcept { return _pool; }
 
 		/// @brief Gets the queue that this pool is for
 		/// @return The queue that this pool serves
-		VkQueue GetQueue() const noexcept { return _queue->Queue; }
+		VkQueue GetQueue() noexcept { return _queue->Queue; }
 	};
 }

@@ -29,12 +29,12 @@ namespace Coco
 		/// @param library The library of the resource
 		/// @param resource The resource to serialize
 		/// @return The string representation of the resource
-		virtual string Serialize(ResourceLibrary* library, const Ref<Resource>& resource) = 0;
+		virtual string Serialize(ResourceLibrary& library, const Ref<Resource>& resource) = 0;
 
 		/// @brief Deserializes data into a resource
 		/// @param library The library of the resource
 		/// @param data The serialized data
 		/// @param resource The resource to deserialize into
-		virtual void Deserialize(ResourceLibrary* library, const string& data, Ref<Resource> resource) = 0;
+		virtual void Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource) = 0;
 	};
 }

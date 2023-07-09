@@ -66,6 +66,8 @@ namespace Coco::Input
 	/// @brief A mouse input device
 	class COCOAPI Mouse
 	{
+		friend class InputService;
+
 	public:
 		/// @brief Invoked when a mouse button is pressed
 		Event<MouseButton> OnButtonPressed;
@@ -83,8 +85,6 @@ namespace Coco::Input
 		Event<const Vector2Int&> OnScrolled;
 
 	private:
-		friend class InputService;
-
 		List<MouseStateChange> _preProcessStateChanges;
 		MouseState _preProcessState = {};
 		MouseState _currentState = {};

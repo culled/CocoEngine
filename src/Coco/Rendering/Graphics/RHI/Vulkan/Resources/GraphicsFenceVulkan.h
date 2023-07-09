@@ -27,6 +27,6 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets the underlying VkFence
 		/// @return The underlying fence
-		VkFence GetFence() const { return _fence; }
+		VkFence GetFence() { return _fence; }
 	};
 }

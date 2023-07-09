@@ -11,6 +11,7 @@ namespace Coco::Rendering
 	class COCOAPI BaseGraphicsResource
 	{
 	protected:
+		/// @brief The graphics device
 		DeviceType* _device;
 
 	public:
@@ -28,6 +29,7 @@ namespace Coco::Rendering
 	class COCOAPI GraphicsResource : public BaseClass
 	{
 	protected:
+		/// @brief The graphics device
 		DeviceType* _device;
 
 	public:

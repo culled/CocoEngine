@@ -16,19 +16,13 @@ namespace Coco::Rendering
 		_resources->PurgeResource(resource->ID, forcePurge || resource.GetUseCount() <= 3);
 	}
 
-	void GraphicsDevice::PurgeUnusedResources() noexcept
+	void GraphicsDevice::PurgeUnusedResources()
 	{
 		uint64_t purgeCount = _resources->PurgeStaleResources();
 
 		if (purgeCount > 0)
 			LogTrace(GetLogger(), FormattedString("Purged {} unused graphics resources ({} in use)", purgeCount, _resources->GetResourceCount()));
 
-		try
-		{
-			OnPurgedResources.Invoke();
-		}
-		catch (...)
-		{
-		}
+		OnPurgedResources.Invoke();
 	}
 }

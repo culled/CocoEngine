@@ -18,6 +18,7 @@ namespace Coco::Rendering
 	/// @brief A holder for the active render pass
 	struct ActiveRenderPass
 	{
+		/// @brief Represents no active render pass
 		static const ActiveRenderPass None;
 
 		/// @brief The currently rendering render pass

@@ -83,12 +83,12 @@ namespace Coco
 
 	string ResourceLibrary::SerializeResource(const Ref<Resource>& resource)
 	{
-		return GetSerializerForResourceType(resource->GetType())->Serialize(this, resource);
+		return GetSerializerForResourceType(resource->GetType())->Serialize(*this, resource);
 	}
 
 	void ResourceLibrary::DeserializeResource(const string& data, Ref<Resource> resource)
 	{
-		GetSerializerForResourceType(resource->GetType())->Deserialize(this, data, resource);
+		GetSerializerForResourceType(resource->GetType())->Deserialize(*this, data, resource);
 	}
 
 	void ResourceLibrary::Save(const Ref<Resource>& resource, const string& filePath)

@@ -82,11 +82,11 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets the Vulkan semaphore that should be used to signal when the backbuffer is available
 		/// @return The image available semaphore
-		VkSemaphore GetImageAvailableSemaphore() const noexcept { return _imageAvailableSemaphore->GetSemaphore(); }
+		VkSemaphore GetImageAvailableSemaphore() noexcept { return _imageAvailableSemaphore->GetSemaphore(); }
 
 		/// @brief Gets the Vulkan semaphore that is signaled when rendering has completed
 		/// @return The render complete semaphore
-		VkSemaphore GetRenderCompleteSemaphore() const noexcept { return _renderingCompleteSemaphore->GetSemaphore(); }
+		VkSemaphore GetRenderCompleteSemaphore() noexcept { return _renderingCompleteSemaphore->GetSemaphore(); }
 
 		/// @brief Sets the index of the backbuffer image being used
 		/// @param backbufferIndex The index of the backbuffer image being used
@@ -114,7 +114,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param materialID The ID of the material to use
 		/// @param set Will be filled out with the descriptor set
 		/// @return True if the descriptor set was created
-		bool GetOrAllocateMaterialDescriptorSet(VulkanShader* shader, const string& passName, ResourceID materialID, VkDescriptorSet& set);
+		bool GetOrAllocateMaterialDescriptorSet(const VulkanShader& shader, const string& passName, ResourceID materialID, VkDescriptorSet& set);
 
 		/// @brief Event handler for the device purging resources
 		/// @return If the event was handled

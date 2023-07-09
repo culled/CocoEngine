@@ -65,8 +65,8 @@ namespace Coco::Rendering
         /// @param sceneDataProvider The provider for the scene data
         void Render(
             Ref<GraphicsPresenter> presenter, 
-            ICameraDataProvider* cameraDataProvider,
-            ISceneDataProvider* sceneDataProvider);
+            ICameraDataProvider& cameraDataProvider,
+            ISceneDataProvider& sceneDataProvider);
 
         /// @brief Renders using a render pipeline for a graphics presenter
         /// @param presenter The presenter
@@ -76,14 +76,14 @@ namespace Coco::Rendering
         void Render(
             Ref<GraphicsPresenter> presenter, 
             Ref<RenderPipeline> pipeline, 
-            ICameraDataProvider* cameraDataProvider, 
-            ISceneDataProvider* sceneDataProvider);
+            ICameraDataProvider& cameraDataProvider, 
+            ISceneDataProvider& sceneDataProvider);
 
     private:
         /// @brief Performs rendering using a render pipeline
         /// @param pipeline The render pipeline
         /// @param context The render context
-        void DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept;
+        void DoRender(RenderPipeline& pipeline, RenderContext& context) noexcept;
                 
         /// @brief Creates the default diffuse texture
         void CreateDefaultDiffuseTexture();

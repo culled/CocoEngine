@@ -67,9 +67,9 @@ namespace Coco
 
 			auto result = _resources.try_emplace(id, ResourceType(id, "", std::forward<Args>(args)...)).first;
 
-			ResourceType* resource = &(result->second);
-			resource->UpdateTickUsed();
-			return resource;
+			ResourceType& resource = (result->second);
+			resource.UpdateTickUsed();
+			return &resource;
 		}
 
 		/// @brief Gets a resource at a given ID. NOTE: make sure that the resource exists before using this function
@@ -77,9 +77,9 @@ namespace Coco
 		/// @return The resource
 		ResourceType* Get(ResourceID id)
 		{
-			ResourceType* resource = &_resources.at(id);
-			resource->UpdateTickUsed();
-			return resource;
+			ResourceType& resource = _resources.at(id);
+			resource.UpdateTickUsed();
+			return &resource;
 		}
 
 		/// @brief Gets if a resource with the given ID exists

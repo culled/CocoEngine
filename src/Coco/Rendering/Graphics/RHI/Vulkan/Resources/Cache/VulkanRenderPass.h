@@ -70,7 +70,7 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets the underlying VkRenderPass
 		/// @return The Vulkan render pass
-		VkRenderPass GetRenderPass() const noexcept { return _renderPass; }
+		VkRenderPass GetRenderPass() noexcept { return _renderPass; }
 
 	private:
 		/// @brief Creates the render pass object

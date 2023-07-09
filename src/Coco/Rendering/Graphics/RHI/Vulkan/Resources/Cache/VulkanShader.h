@@ -50,14 +50,13 @@ namespace Coco::Rendering::Vulkan
 
 	public:
 		VulkanSubshader(GraphicsDeviceVulkan* device, const Subshader& subshaderData);
-
-		VulkanSubshader(const VulkanSubshader&) = delete;
 		VulkanSubshader(VulkanSubshader&& other) noexcept;
+		~VulkanSubshader();
 
-		VulkanSubshader& operator=(const VulkanSubshader&) = delete;
 		VulkanSubshader& operator=(VulkanSubshader&& other) noexcept;
 
-		~VulkanSubshader();
+		VulkanSubshader(const VulkanSubshader&) = delete;
+		VulkanSubshader& operator=(const VulkanSubshader&) = delete;
 
 		/// @brief Gets the stages for this subshader
 		/// @return The stages for this shader
@@ -83,7 +82,7 @@ namespace Coco::Rendering::Vulkan
 		VulkanShaderStage CreateShaderStage(ShaderStageType stage, const string& entrypointName, const string& file);
 	};
 
-	/// @brief A cached collection of subshader resources
+	/// @brief A cached Vulkan shader
 	class VulkanShader final : public GraphicsResource<GraphicsDeviceVulkan, RenderingResource>, public CachedResource
 	{
 	private:
@@ -97,17 +96,22 @@ namespace Coco::Rendering::Vulkan
 		bool IsValid() const final { return true; }
 		bool NeedsUpdate() const final { return false; }
 
-		/// @brief Determines if this subshader needs to be updated
+		/// @brief Determines if this shader needs to be updated
 		/// @param shaderData The shader data
-		/// @return True if this subshader should be updated
+		/// @return True if this shader should be updated
 		bool NeedsUpdate(const ShaderRenderData& shaderData) const noexcept;
 
-		/// @brief Updates the Vulkan shader to reflect the layout of the subshader it represents
+		/// @brief Updates the Vulkan shader to reflect the layout of the shader it represents
 		/// @param shaderData The shader data
 		void Update(const ShaderRenderData& shaderData);
 
-		VulkanSubshader* GetSubshader(const string& name);
+		/// @brief Gets a subshader of this shader with the given name
+		/// @param name The name of the subshader
+		/// @return The subshader
+		const VulkanSubshader& GetSubshader(const string& name) const;
 
-		List<VulkanDescriptorLayout> GetDescriptorLayouts();
+		/// @brief Gets the descriptor layouts of this shader
+		/// @return This shader's descriptor layouts
+		List<VulkanDescriptorLayout> GetDescriptorLayouts() const;
 	};
 }

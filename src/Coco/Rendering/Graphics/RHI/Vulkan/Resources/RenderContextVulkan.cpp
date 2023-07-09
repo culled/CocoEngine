@@ -192,7 +192,7 @@ namespace Coco::Rendering::Vulkan
 
 			_globalUBO->LoadData(0, sizeof(GlobalUniformObject), &_globalUO);
 
-			_currentFramebuffer = _renderCache->GetOrCreateFramebuffer(_currentRenderView, _currentVulkanRenderPass, _currentRenderPipeline);
+			_currentFramebuffer = _renderCache->GetOrCreateFramebuffer(_currentRenderView, *_currentVulkanRenderPass, _currentRenderPipeline);
 
 			_commandBuffer->Begin(true, false);
 
@@ -278,7 +278,7 @@ namespace Coco::Rendering::Vulkan
 
 			AddPostRenderPassImageTransitions();
 
-			_commandBuffer->EndAndSubmit(waitSemaphores, signalSemaphores, _renderingCompleteFence.Get());
+			_commandBuffer->EndAndSubmit(&waitSemaphores, &signalSemaphores, _renderingCompleteFence.Get());
 
 			_currentState = RenderContextState::DrawCallsSubmitted;
 		}
@@ -335,8 +335,8 @@ namespace Coco::Rendering::Vulkan
 			if (_stateChanges.contains(RenderContextStateChange::Shader))
 			{
 				_currentPipeline = _device->GetRenderCache()->GetOrCreatePipeline(
-					_currentVulkanRenderPass,
-					shader,
+					*_currentVulkanRenderPass,
+					*shader,
 					_currentRenderPass.RenderPass->GetName(),
 					_currentRenderPass.RenderPassIndex,
 					_globalDescriptor.Layout);
@@ -357,7 +357,7 @@ namespace Coco::Rendering::Vulkan
 			{
 				VkDescriptorSet set;
 				
-				if (GetOrAllocateMaterialDescriptorSet(shader, _currentRenderPass.RenderPass->GetName(), _currentMaterial, set))
+				if (GetOrAllocateMaterialDescriptorSet(*shader, _currentRenderPass.RenderPass->GetName(), _currentMaterial, set))
 				{
 					// Bind the material descriptor set
 					vkCmdBindDescriptorSets(
@@ -424,7 +424,7 @@ namespace Coco::Rendering::Vulkan
 		vkUpdateDescriptorSets(_device->GetDevice(), 1, &descriptorWrite, 0, nullptr);
 	}
 
-	bool RenderContextVulkan::GetOrAllocateMaterialDescriptorSet(VulkanShader* shader, const string& passName, ResourceID materialID, VkDescriptorSet& set)
+	bool RenderContextVulkan::GetOrAllocateMaterialDescriptorSet(const VulkanShader& shader, const string& passName, ResourceID materialID, VkDescriptorSet& set)
 	{
 		// Use the cached descriptor set if it exists
 		if (_materialDescriptorSets.contains(materialID))
@@ -433,8 +433,8 @@ namespace Coco::Rendering::Vulkan
 			return true;
 		}
 
-		VulkanSubshader* subshader = shader->GetSubshader(passName);
-		const Subshader& subshaderInfo = subshader->GetSubshader();
+		const VulkanSubshader& subshader = shader.GetSubshader(passName);
+		const Subshader& subshaderInfo = subshader.GetSubshader();
 
 		// Early out if no descriptors
 		if (subshaderInfo.Descriptors.Count() == 0 && subshaderInfo.Samplers.Count() == 0)
@@ -444,7 +444,7 @@ namespace Coco::Rendering::Vulkan
 		VulkanShaderResource* shaderResource = _renderCache->GetOrCreateShaderResource(shader);
 
 		// Allocate this material's descriptor set
-		set = shaderResource->GetPool()->GetOrAllocateSet(subshader->GetDescriptorLayout(), materialID);
+		set = shaderResource->GetPool()->GetOrAllocateSet(subshader.GetDescriptorLayout(), materialID);
 		_materialDescriptorSets[materialID] = set;
 
 		const MaterialRenderData& materialData = _currentRenderView->Materials.at(materialID);
@@ -507,8 +507,8 @@ namespace Coco::Rendering::Vulkan
 			if (!image.IsValid() || !sampler.IsValid())
 				throw RenderingException(FormattedString("The sampler or image reference for \"{}\" is empty", textureSampler.Name));
 
-			const ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.Get());
-			const ImageSamplerVulkan* vulkanSampler = static_cast<ImageSamplerVulkan*>(sampler.Get());
+			ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.Get());
+			ImageSamplerVulkan* vulkanSampler = static_cast<ImageSamplerVulkan*>(sampler.Get());
 
 			// Texture data
 			VkDescriptorImageInfo& imageInfo = imageInfos[i];
@@ -555,7 +555,7 @@ namespace Coco::Rendering::Vulkan
 
 			ImageVulkan* image = static_cast<ImageVulkan*>(rt.Get());
 			image->TransitionLayout(
-				_commandBuffer.Get(),
+				*_commandBuffer.Get(),
 				layout
 			);
 		}
@@ -577,7 +577,7 @@ namespace Coco::Rendering::Vulkan
 			if ((rt->GetDescription().UsageFlags & ImageUsageFlags::Presented) == ImageUsageFlags::Presented)
 			{
 				image->TransitionLayout(
-					_commandBuffer.Get(),  
+					*_commandBuffer.Get(),  
 					VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
 				);
 			}

@@ -33,7 +33,6 @@ namespace Coco::Input
         /// @brief Creates a keyboard state change for a key that was pressed or released
         /// @param key The key
         /// @param isPressed True if the key was pressed, false if it was released
-        /// @return A state change
         KeyboardStateChange(KeyboardKey key, bool isPressed) noexcept : 
             Key(key),
             IsPressed(isPressed)
@@ -43,6 +42,8 @@ namespace Coco::Input
 	/// @brief A keyboard input device
 	class COCOAPI Keyboard
 	{
+        friend class InputService;
+
 	public:
         /// @brief Invoked when a key is pressed
         Event<KeyboardKey> OnKeyPressedEvent;
@@ -51,8 +52,6 @@ namespace Coco::Input
         Event<KeyboardKey> OnKeyReleasedEvent;
 
     private:
-        friend class InputService;
-
         List<KeyboardStateChange> _preProcessStateChanges;
         KeyboardState _preProcessState = {};
         KeyboardState _currentState = {};

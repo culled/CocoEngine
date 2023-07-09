@@ -40,10 +40,6 @@ namespace Coco::Windowing
 	/// @brief A GUI window
 	class COCOAPI Window
 	{
-	protected:
-		/// @brief The presenter for the window
-		Ref<Rendering::GraphicsPresenter> _presenter;
-
 	public:
 		/// @brief Invoked when the window is trying to close. Setting the bool value to true means the close is cancelled
 		Event<Window*, bool&> OnClosing;
@@ -55,10 +51,15 @@ namespace Coco::Windowing
 		Event<Window*, const SizeInt&> OnResized;
 
 	protected:
+		/// @brief The presenter for the window
+		Ref<Rendering::GraphicsPresenter> _presenter;
+
+	protected:
 		Window() = default;
 
 	public:
 		virtual ~Window() = default;
+
 		Window(const Window& other) = delete;
 		Window(Window&& other) = delete;
 
@@ -73,7 +74,13 @@ namespace Coco::Windowing
 		/// @return The ID for this window
 		virtual void* GetID() const noexcept = 0;
 
+		/// @brief Gets the title of this window
+		/// @return This window's title
 		virtual string GetTitle() const noexcept = 0;
+
+		/// @brief Sets the title of this window
+		/// @param title The new title for this window
+		virtual void SetTitle(const string& title) = 0;
 
 		/// @brief Gets the size of the window's client area
 		/// @return The size of the window's client area

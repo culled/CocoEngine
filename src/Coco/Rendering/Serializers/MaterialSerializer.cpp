@@ -10,7 +10,7 @@
 
 namespace Coco::Rendering
 {
-	string MaterialSerializer::Serialize(ResourceLibrary* library, const Ref<Resource>& resource)
+	string MaterialSerializer::Serialize(ResourceLibrary& library, const Ref<Resource>& resource)
 	{
 		if (const Material* material = dynamic_cast<const Material*>(resource.Get()))
 		{
@@ -44,7 +44,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void MaterialSerializer::Deserialize(ResourceLibrary* library, const string& data, Ref<Resource> resource)
+	void MaterialSerializer::Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource)
 	{
 		std::stringstream stream(data);
 		KeyValueReader reader(stream);
@@ -69,15 +69,15 @@ namespace Coco::Rendering
 		// Can't set properties without a shader
 		if (shaderPath.empty())
 		{
-			LogWarning(library->GetLogger(), "Material did not have a shader file");
+			LogWarning(library.GetLogger(), "Material did not have a shader file");
 			return;
 		}
 
-		Ref<Shader> shader = library->Load<Shader>(shaderPath);
+		Ref<Shader> shader = library.Load<Shader>(shaderPath);
 
 		if (!shader.IsValid())
 		{
-			LogWarning(library->GetLogger(), FormattedString("Could not load shader at \"{}\"", shaderPath));
+			LogWarning(library.GetLogger(), FormattedString("Could not load shader at \"{}\"", shaderPath));
 			return;
 		}
 
@@ -90,7 +90,7 @@ namespace Coco::Rendering
 
 		for (const auto& textureProp : textureProperties)
 		{
-			Ref<Texture> texture = library->Load<Texture>(textureProp.second);
+			Ref<Texture> texture = library.Load<Texture>(textureProp.second);
 			material->SetTexture(textureProp.first, texture);
 		}
 	}

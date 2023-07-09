@@ -8,7 +8,7 @@
 
 namespace Coco::Rendering
 {
-	string TextureSerializer::Serialize(ResourceLibrary* library, const Ref<Resource>& resource)
+	string TextureSerializer::Serialize(ResourceLibrary& library, const Ref<Resource>& resource)
 	{
 		if (const Texture* texture = dynamic_cast<const Texture*>(resource.Get()))
 		{
@@ -34,7 +34,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void TextureSerializer::Deserialize(ResourceLibrary* library, const string& data, Ref<Resource> resource)
+	void TextureSerializer::Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource)
 	{
 		ImageUsageFlags usageFlags = ImageUsageFlags::TransferSource | ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled;
 		ImageFilterMode filterMode = ImageFilterMode::Linear;
@@ -67,13 +67,13 @@ namespace Coco::Rendering
 		}
 
 		if (imageFilePath.empty())
-			LogWarning(library->GetLogger(), "Texture did not have a valid image file");
+			LogWarning(library.GetLogger(), "Texture did not have a valid image file");
 
 		Texture* texture = static_cast<Texture*>(resource.Get());
 
 		texture->SetName(name);
 		texture->_usageFlags = usageFlags;
 		texture->SetSamplerProperties(ImageSamplerProperties(filterMode, repeatMode, maxAnisotropy));
-		texture->LoadFromFile(library->GetFullFilePath(imageFilePath), channelCount);
+		texture->LoadFromFile(library.GetFullFilePath(imageFilePath), channelCount);
 	}
 }

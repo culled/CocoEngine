@@ -39,10 +39,16 @@ namespace Coco::Rendering::Vulkan
 		/// @return True if this resource should be updated
 		bool NeedsUpdate(const Ref<RenderView>& renderView) const noexcept;
 
-		void Update(const Ref<RenderView>& renderView, VulkanRenderPass* renderPass);
+		/// @brief Updates this framebuffer resource
+		/// @param renderView The render view
+		/// @param renderPass The render pass
+		void Update(const Ref<RenderView>& renderView, VulkanRenderPass& renderPass);
 
-		VkFramebuffer GetFramebuffer() { return _framebuffer; }
+		/// @brief Gets the Vulkan framebuffer object
+		/// @return The Vulkan framebuffer object
+		VkFramebuffer GetFramebuffer() noexcept { return _framebuffer; }
 
+	private:
 		/// @brief Destroys the framebuffer
 		void DestroyFramebuffer() noexcept;
 	};

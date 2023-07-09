@@ -23,6 +23,6 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets the underlying VkSampler
 		/// @return The underlying Vulkan sampler
-		VkSampler GetSampler() const noexcept { return _sampler; }
+		VkSampler GetSampler() noexcept { return _sampler; }
 	};
 }

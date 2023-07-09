@@ -35,7 +35,8 @@ namespace Coco::Rendering::Vulkan
 
 		if (_surface != nullptr)
 		{
-			vkDestroySurfaceKHR(_device->GetVulkanPlatform()->GetInstance(), _surface, nullptr);
+			GraphicsPlatformVulkan* platform = static_cast<GraphicsPlatformVulkan*>(RenderingService::Get()->GetPlatform());
+			vkDestroySurfaceKHR(platform->GetInstance(), _surface, nullptr);
 			_surface = nullptr;
 		}
 
@@ -54,7 +55,8 @@ namespace Coco::Rendering::Vulkan
 			createInfo.hwnd = static_cast<HWND>(win32SurfaceInitInfo->HWindow);
 			createInfo.hinstance = static_cast<HINSTANCE>(win32SurfaceInitInfo->HInstance);
 
-			AssertVkResult(vkCreateWin32SurfaceKHR(_device->GetVulkanPlatform()->GetInstance(), &createInfo, nullptr, &_surface));
+			GraphicsPlatformVulkan* platform = static_cast<GraphicsPlatformVulkan*>(RenderingService::Get()->GetPlatform());
+			AssertVkResult(vkCreateWin32SurfaceKHR(platform->GetInstance(), &createInfo, nullptr, &_surface));
 
 			_isSwapchainDirty = true;
 

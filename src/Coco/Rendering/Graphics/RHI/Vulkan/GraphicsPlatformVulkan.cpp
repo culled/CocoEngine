@@ -51,8 +51,9 @@ namespace Coco::Rendering::Vulkan
 		return VK_FALSE;
 	}
 
-	GraphicsPlatformVulkan::GraphicsPlatformVulkan(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams) :
-		GraphicsPlatform(renderingService, creationParams), _deviceCreationParams(creationParams.DeviceCreateParams)
+	GraphicsPlatformVulkan::GraphicsPlatformVulkan(const GraphicsPlatformCreationParameters& creationParams) :
+		GraphicsPlatform(creationParams), 
+		_deviceCreationParams(creationParams.DeviceCreateParams)
 	{
 		List<string> platformExtensionNames;
 
@@ -145,7 +146,7 @@ namespace Coco::Rendering::Vulkan
 		LogTrace(GetLogger(), "Destroyed Vulkan graphics platform");
 	}
 
-	Logging::Logger* GraphicsPlatformVulkan::GetLogger() noexcept { return RenderService->GetLogger(); }
+	Logging::Logger* GraphicsPlatformVulkan::GetLogger() noexcept { return RenderingService::Get()->GetLogger(); }
 
 	GraphicsDevice* GraphicsPlatformVulkan::GetDevice() noexcept { return _device.Get(); }
 

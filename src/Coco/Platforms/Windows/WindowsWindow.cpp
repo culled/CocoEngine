@@ -132,6 +132,19 @@ namespace Coco::Platform::Windows
 		return title;
 	}
 
+	void WindowsWindow::SetTitle(const string& title)
+	{
+		CheckWindowHandle();
+
+#ifdef UNICODE
+		std::wstring titleStr = StringToWideString(title);
+#else
+		std::string titleStr = title;
+#endif // UNICODE
+
+		SetWindowText(_handle, titleStr.c_str());
+	}
+
 	void WindowsWindow::Show() noexcept
 	{
 		CheckWindowHandle();

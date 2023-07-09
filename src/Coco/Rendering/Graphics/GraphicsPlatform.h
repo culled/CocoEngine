@@ -34,11 +34,8 @@ namespace Coco::Rendering
 		/// @brief If true, this platform supports presenting images to windows
 		const bool SupportsPresentation;
 
-		/// @brief A pointer to the rendering service
-		RenderingService* const RenderService;
-
 	protected:
-		GraphicsPlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams) noexcept;
+		GraphicsPlatform(const GraphicsPlatformCreationParameters& creationParams) noexcept;
 
 	public:
 		virtual ~GraphicsPlatform() = default;
@@ -53,7 +50,7 @@ namespace Coco::Rendering
 		/// @param renderingService The rendering service
 		/// @param creationParams Platform creation parameters
 		/// @return A created graphics platform
-		static ManagedRef<GraphicsPlatform> CreatePlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);
+		static ManagedRef<GraphicsPlatform> CreatePlatform(const GraphicsPlatformCreationParameters& creationParams);
 
 		/// @brief Gets this graphics platform's logger
 		/// @return This graphics platform's logger
@@ -93,6 +90,9 @@ namespace Coco::Rendering
 		/// @return The created image sampler
 		virtual Ref<ImageSampler> CreateImageSampler(const string& name, const ImageSamplerProperties& properties) = 0;
 
+		/// @brief Purges a graphics resource
+		/// @param resource The resource to purge
+		/// @param forcePurge If true, the resource will be destroyed regardless of how many users are using it
 		virtual void PurgeResource(const Ref<Resource>& resource, bool forcePurge = false);
 	};
 }

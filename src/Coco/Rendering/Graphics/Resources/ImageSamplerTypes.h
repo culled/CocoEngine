@@ -20,12 +20,19 @@ namespace Coco::Rendering
 		MirrorOnce
 	};
 
+	/// @brief Properties for an ImageSampler
 	struct ImageSamplerProperties
 	{
+		/// @brief The default sampler properties
 		static const ImageSamplerProperties Default;
 
+		/// @brief The image filtering mode
 		ImageFilterMode FilterMode;
+
+		/// @brief The repeat mode for sampling beyond the image bounds
 		ImageRepeatMode RepeatMode;
+
+		/// @brief The maximum anisotropy to sample the image
 		uint MaxAnisotropy;
 
 		ImageSamplerProperties();

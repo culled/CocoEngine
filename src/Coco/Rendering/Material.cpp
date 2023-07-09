@@ -28,11 +28,6 @@ namespace Coco::Rendering
 		IncrementVersion();
 	}
 
-	//Ref<MaterialInstance> Material::CreateInstance() const
-	//{
-	//	return CreateRef<MaterialInstance>(this);
-	//}
-
 	void Material::SetVector4(const string& name, const Vector4& value)
 	{
 		UpdatePropertyMaps(false);

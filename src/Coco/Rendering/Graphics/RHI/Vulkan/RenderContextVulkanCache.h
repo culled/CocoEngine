@@ -60,17 +60,22 @@ namespace Coco::Rendering::Vulkan
 		RenderContextVulkanCache();
 		virtual ~RenderContextVulkanCache();
 
-		/// @brief Gets a subshader resource, updating its last used tick
-		/// @param subshader The subshader that the resource points to
-		/// @return The cached resource for the subshader
-		VulkanShaderResource* GetOrCreateShaderResource(VulkanShader* shader);
+		/// @brief Gets a shader resource
+		/// @param shader The shader that the resource points to
+		/// @return The cached resource for the shader
+		VulkanShaderResource* GetOrCreateShaderResource(const VulkanShader& shader);
 
-		/// @brief Gets a material resource, updating its last used tick
+		/// @brief Gets a material resource
 		/// @param materialData The material data that the resource points to
 		/// @return The cached resource for the material data
 		VulkanMaterialResource* GetOrCreateMaterialResource(const MaterialRenderData& materialData);
 
-		VulkanFramebuffer* GetOrCreateFramebuffer(const Ref<RenderView>& renderView, VulkanRenderPass* renderPass, Ref<RenderPipeline> pipeline);
+		/// @brief Gets or creates a framebuffer resource
+		/// @param renderView The renderview
+		/// @param renderPass The render pass
+		/// @param pipeline The render pipeline
+		/// @return The cached resource for the framebuffer
+		VulkanFramebuffer* GetOrCreateFramebuffer(const Ref<RenderView>& renderView, VulkanRenderPass& renderPass, Ref<RenderPipeline> pipeline);
 
 		/// @brief Flushes any pending material changes to the material buffers
 		void FlushMaterialChanges();

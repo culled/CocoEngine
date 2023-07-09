@@ -147,5 +147,5 @@ void App::CreateArena()
 
 void App::RenderTick(double deltaTime)
 {
-	_renderingService->Render(_windowingService->GetMainWindow()->GetPresenter(), &_ecsService->GetComponent<CameraComponent>(_cameraEntity), _ecsService->GetRootScene());
+	_renderingService->Render(_windowingService->GetMainWindow()->GetPresenter(), _ecsService->GetComponent<CameraComponent>(_cameraEntity), *_ecsService->GetRootScene());
 }

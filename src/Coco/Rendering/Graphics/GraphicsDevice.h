@@ -71,10 +71,11 @@ namespace Coco::Rendering
 		virtual void WaitForIdle() noexcept = 0;
 
 		/// @brief Creates a graphics resource, adds it to this device's list of managed resources, and returns a handle to it
-		/// @tparam ResourceType 
-		/// @tparam ...Args 
+		/// @tparam ResourceType The type of resource to create
+		/// @tparam ...Args The types of arguments for the resource's constructor
+		/// @param name The name for the resource
 		/// @param ...args The arguments to pass to the resource's constructor
-		/// @return A handle to the resource
+		/// @return A reference to the resource
 		template<typename ResourceType, typename ... Args>
 		Ref<ResourceType> CreateResource(const string& name, Args&& ... args)
 		{
@@ -83,10 +84,13 @@ namespace Coco::Rendering
 			return _resources->CreateResource<ResourceType>(name, std::forward<Args>(args)...);
 		}
 
+		/// @brief Purges a single resource
+		/// @param resource The resource to purge
+		/// @param forcePurge If true, the resource will be destroyed regardless how many users are using it
 		void PurgeResource(const Ref<Resource>& resource, bool forcePurge = false);
 
 		/// @brief Purges unused graphics resources
-		virtual void PurgeUnusedResources() noexcept;
+		virtual void PurgeUnusedResources();
 	};
 }
 

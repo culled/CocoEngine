@@ -7,9 +7,9 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	CommandBufferVulkan::CommandBufferVulkan(ResourceID id, const string& name, bool isPrimary, CommandBufferPoolVulkan* pool) : 
+	CommandBufferVulkan::CommandBufferVulkan(ResourceID id, const string& name, bool isPrimary, CommandBufferPoolVulkan& pool) : 
 		GraphicsResource<GraphicsDeviceVulkan, CommandBuffer>(id, name, isPrimary),
-		_pool(pool)
+		_pool(&pool)
 	{
 		VkCommandBufferAllocateInfo allocateInfo = {};
 		allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -53,29 +53,35 @@ namespace Coco::Rendering::Vulkan
 	}
 
 	void CommandBufferVulkan::SubmitImpl(
-		const List<GraphicsSemaphore*>& waitSemaphores,
-		const List<GraphicsSemaphore*>& signalSemaphores,
+		List<GraphicsSemaphore*>* waitSemaphores,
+		List<GraphicsSemaphore*>* signalSemaphores,
 		GraphicsFence* signalFence)
 	{
 		List<VkSemaphore> vulkanWaitSemaphores;
 
-		for (int i = 0; i < waitSemaphores.Count(); i++)
+		if (waitSemaphores != nullptr)
 		{
-			const GraphicsSemaphoreVulkan* vulkanSemaphore = static_cast<GraphicsSemaphoreVulkan*>(waitSemaphores[i]);
-			vulkanWaitSemaphores.Add(vulkanSemaphore->GetSemaphore());
+			for (int i = 0; i < waitSemaphores->Count(); i++)
+			{
+				GraphicsSemaphoreVulkan* vulkanSemaphore = static_cast<GraphicsSemaphoreVulkan*>((*waitSemaphores)[i]);
+				vulkanWaitSemaphores.Add(vulkanSemaphore->GetSemaphore());
+			}
 		}
 
 		List<VkSemaphore> vulkanSignalSemaphores;
 
-		for (int i = 0; i < signalSemaphores.Count(); i++)
+		if (signalSemaphores != nullptr)
 		{
-			const GraphicsSemaphoreVulkan* vulkanSemaphore = static_cast<GraphicsSemaphoreVulkan*>(signalSemaphores[i]);
-			vulkanSignalSemaphores.Add(vulkanSemaphore->GetSemaphore());
+			for (int i = 0; i < signalSemaphores->Count(); i++)
+			{
+				GraphicsSemaphoreVulkan* vulkanSemaphore = static_cast<GraphicsSemaphoreVulkan*>((*signalSemaphores)[i]);
+				vulkanSignalSemaphores.Add(vulkanSemaphore->GetSemaphore());
+			}
 		}
 
 		VkFence vulkanSignalFence = VK_NULL_HANDLE;
 
-		if (const GraphicsFenceVulkan* vulkanFence = dynamic_cast<GraphicsFenceVulkan*>(signalFence))
+		if (GraphicsFenceVulkan* vulkanFence = dynamic_cast<GraphicsFenceVulkan*>(signalFence))
 			vulkanSignalFence = vulkanFence->GetFence();
 
 		// TODO: make this configurable?

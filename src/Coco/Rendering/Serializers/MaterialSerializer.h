@@ -28,8 +28,8 @@ namespace Coco::Rendering
 
 		DefineSerializerResourceType(Material)
 
-		string Serialize(ResourceLibrary* library, const Ref<Resource>& resource) final;
-		void Deserialize(ResourceLibrary* library, const string& data, Ref<Resource> resource) final;
+		string Serialize(ResourceLibrary& library, const Ref<Resource>& resource) final;
+		void Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource) final;
 
 	private:
 		/// @brief Reads the properties section for a material

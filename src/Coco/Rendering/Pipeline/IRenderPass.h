@@ -9,7 +9,7 @@
 
 namespace Coco::Rendering
 {
-	/// @brief Abstract interface for all rendering-related operations
+	/// @brief Interface for a single render pass
 	class COCOAPI IRenderPass
 	{
 	public:
@@ -25,6 +25,6 @@ namespace Coco::Rendering
 
 		/// @brief Called to perform rendering operations with a RenderContext
 		/// @param renderContext The context to use for rendering
-		virtual void Execute(RenderContext* renderContext) = 0;
+		virtual void Execute(RenderContext& renderContext) = 0;
 	};
 }

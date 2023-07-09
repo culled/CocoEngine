@@ -25,7 +25,7 @@ namespace Coco::Windowing
 	{
 		Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(Engine::Get()->GetPlatform());
 
-		_windows.Add(platform->CreatePlatformWindow(createParameters, this));
+		_windows.Add(platform->CreatePlatformWindow(createParameters));
 		const ManagedRef<Window>& window = _windows.Last();
 
 		if (!_mainWindow.IsValid())

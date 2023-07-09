@@ -91,13 +91,13 @@ namespace Coco::Rendering
 		return passes;
 	}
 
-	void RenderPipeline::Execute(RenderContext* renderContext)
+	void RenderPipeline::Execute(RenderContext& renderContext)
 	{
 		for (uint i = 0; i < _renderPasses.Count(); i++)
 		{
 			Ref<IRenderPass> renderPass = _renderPasses[i]->GetRenderPass();
 
-			renderContext->SetCurrentRenderPass(renderPass, i);
+			renderContext.SetCurrentRenderPass(renderPass, i);
 
 			try
 			{

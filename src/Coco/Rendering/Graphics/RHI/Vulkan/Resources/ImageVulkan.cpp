@@ -70,9 +70,9 @@ namespace Coco::Rendering::Vulkan
 		Ref<CommandBufferVulkan> commandBuffer = pool->Allocate(true);
 		commandBuffer->Begin(true, false);
 
-		TransitionLayout(commandBuffer.Get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		CopyFromBuffer(commandBuffer.Get(), staging.Get());
-		TransitionLayout(commandBuffer.Get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		TransitionLayout(*commandBuffer.Get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		CopyFromBuffer(*commandBuffer.Get(), *staging.Get());
+		TransitionLayout(*commandBuffer.Get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		commandBuffer->EndAndSubmit();
 		pool->WaitForQueue();
@@ -81,7 +81,7 @@ namespace Coco::Rendering::Vulkan
 		_device->PurgeResource(staging, true);
 	}
 
-	void ImageVulkan::CopyFromBuffer(const CommandBufferVulkan* commandBuffer, BufferVulkan* buffer)
+	void ImageVulkan::CopyFromBuffer(CommandBufferVulkan& commandBuffer, BufferVulkan& buffer)
 	{
 		VkBufferImageCopy region = {};
 		region.bufferOffset = 0;
@@ -97,10 +97,10 @@ namespace Coco::Rendering::Vulkan
 		region.imageExtent.height = static_cast<uint32_t>(_description.Height);
 		region.imageExtent.depth = static_cast<uint32_t>(_description.Depth);
 
-		vkCmdCopyBufferToImage(commandBuffer->GetCmdBuffer(), buffer->GetBuffer(), _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+		vkCmdCopyBufferToImage(commandBuffer.GetCmdBuffer(), buffer.GetBuffer(), _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 	}
 
-	void ImageVulkan::TransitionLayout(const CommandBufferVulkan* commandBuffer, VkImageLayout to)
+	void ImageVulkan::TransitionLayout(CommandBufferVulkan& commandBuffer, VkImageLayout to)
 	{
 		if (_currentLayout == to || to == VK_IMAGE_LAYOUT_UNDEFINED)
 			return;
@@ -208,7 +208,7 @@ namespace Coco::Rendering::Vulkan
 		_currentLayout = to;
 
 		vkCmdPipelineBarrier(
-			commandBuffer->GetCmdBuffer(),
+			commandBuffer.GetCmdBuffer(),
 			sourceStage,
 			destinationStage,
 			0,

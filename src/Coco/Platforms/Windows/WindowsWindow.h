@@ -31,6 +31,7 @@ namespace Coco::Platform::Windows
 
         void* GetID() const noexcept final { return _handle; }
         string GetTitle() const noexcept final;
+        void SetTitle(const string& title) final;
         SizeInt GetSize() const noexcept final { return _size; }
         void Show() noexcept final;
         void Minimize() noexcept final;

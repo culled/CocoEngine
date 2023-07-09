@@ -9,17 +9,17 @@
 
 namespace Coco::Rendering
 {
-	GraphicsPlatform::GraphicsPlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams) noexcept :
-		RenderService(renderingService), SupportsPresentation(creationParams.DeviceCreateParams.SupportsPresentation)
+	GraphicsPlatform::GraphicsPlatform( const GraphicsPlatformCreationParameters& creationParams) noexcept :
+		SupportsPresentation(creationParams.DeviceCreateParams.SupportsPresentation)
 	{}
 
-	ManagedRef<GraphicsPlatform> GraphicsPlatform::CreatePlatform(RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams)
+	ManagedRef<GraphicsPlatform> GraphicsPlatform::CreatePlatform(const GraphicsPlatformCreationParameters& creationParams)
 	{
 		switch (creationParams.RHI)
 		{
 #if COCO_RENDERING_VULKAN
 		case RenderingRHI::Vulkan:
-			return CreateManagedRef<Vulkan::GraphicsPlatformVulkan>(renderingService, creationParams);
+			return CreateManagedRef<Vulkan::GraphicsPlatformVulkan>(creationParams);
 #endif
 		default:
 			break;

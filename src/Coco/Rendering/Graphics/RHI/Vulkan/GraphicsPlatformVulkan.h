@@ -7,8 +7,6 @@
 
 namespace Coco::Rendering::Vulkan
 {
-    //class GraphicsDeviceVulkan;
-
     /// @brief Vulkan implementation of a GraphicsPlatform
     class GraphicsPlatformVulkan final : public GraphicsPlatform
     {
@@ -24,7 +22,7 @@ namespace Coco::Rendering::Vulkan
         ManagedRef<GraphicsDeviceVulkan> _device;
 
     public:
-        GraphicsPlatformVulkan(Rendering::RenderingService* renderingService, const GraphicsPlatformCreationParameters& creationParams);
+        GraphicsPlatformVulkan(const GraphicsPlatformCreationParameters& creationParams);
         ~GraphicsPlatformVulkan() final;
 
         Logging::Logger* GetLogger() noexcept final;
@@ -38,7 +36,7 @@ namespace Coco::Rendering::Vulkan
 
         /// @brief Gets the Vulkan instance
         /// @return The Vulkan instance
-        VkInstance GetInstance() const noexcept { return _instance; }
+        VkInstance GetInstance() noexcept { return _instance; }
 
     private:
         /// @brief Checks for validation layer support

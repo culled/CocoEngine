@@ -23,7 +23,7 @@ namespace Coco::Rendering
 
 		DefineSerializerResourceType(Texture)
 
-		string Serialize(ResourceLibrary* library, const Ref<Resource>& resource) final;
-		void Deserialize(ResourceLibrary* library, const string& data, Ref<Resource> resource) final;
+		string Serialize(ResourceLibrary& library, const Ref<Resource>& resource) final;
+		void Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource) final;
 	};
 }

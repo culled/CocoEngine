@@ -10,5 +10,5 @@ class OpaqueRenderPass : public IRenderPass
 	// Inherited via IRenderPass
 	virtual string GetName() const noexcept override;
 	virtual List<AttachmentDescription> GetAttachmentDescriptions() noexcept override;
-	virtual void Execute(RenderContext* renderContext) override;
+	virtual void Execute(RenderContext& renderContext) override;
 };

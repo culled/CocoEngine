@@ -79,8 +79,8 @@ namespace Coco::Rendering::Vulkan
 	}
 
 	VulkanPipeline* VulkanRenderCache::GetOrCreatePipeline(
-		VulkanRenderPass* renderPass,
-		VulkanShader* shader,
+		VulkanRenderPass& renderPass,
+		const VulkanShader& shader,
 		const string& subshaderName,
 		uint32_t subpassIndex,
 		const VkDescriptorSetLayout& globalDescriptorLayout)
@@ -97,7 +97,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (resource->NeedsUpdate(renderPass, shader))
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subshader \"{}\" and render pass {}", subshaderName, renderPass->ID));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subshader \"{}\" and render pass {}", subshaderName, renderPass.ID));
 
 			try
 			{

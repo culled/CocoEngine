@@ -95,7 +95,7 @@ namespace Coco::Rendering
 
 		/// @brief Performs rendering operations for this pipeline
 		/// @param renderContext The context to use for rendering
-		void Execute(RenderContext* renderContext);
+		void Execute(RenderContext& renderContext);
 
 	private:
 		/// @brief Updates the pipeline attachment descriptions to match the mapped attachments from this pipeline's render passes 

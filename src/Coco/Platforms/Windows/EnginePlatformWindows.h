@@ -15,7 +15,10 @@ namespace Coco::Input
 namespace Coco::Platform::Windows
 {
     /// @brief Win32 platform implementation
-    class COCOAPI EnginePlatformWindows final : public Singleton<EnginePlatformWindows>, public IEnginePlatform, public IRenderingPlatform, public IWindowingPlatform
+    class COCOAPI EnginePlatformWindows final : public Singleton<EnginePlatformWindows>, 
+        public IEnginePlatform, 
+        public IRenderingPlatform, 
+        public IWindowingPlatform
     {
     private:
         static const wchar_t* s_windowClassName;
@@ -57,12 +60,9 @@ namespace Coco::Platform::Windows
 
         void GetRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept final;
 
-        ManagedRef<Windowing::Window> CreatePlatformWindow(
-            const Windowing::WindowCreateParameters& createParameters, 
-            Windowing::WindowingService* windowingService) final;
+        ManagedRef<Windowing::Window> CreatePlatformWindow(const Windowing::WindowCreateParameters& createParameters) final;
 
     private:
-
         /// @brief Message processing callback
         /// @param windowHandle The handle to the window
         /// @param message The type of message

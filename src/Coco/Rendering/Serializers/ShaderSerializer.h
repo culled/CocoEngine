@@ -32,8 +32,8 @@ namespace Coco::Rendering
 
 		DefineSerializerResourceType(Shader)
 
-		string Serialize(ResourceLibrary* library, const Ref<Resource>& resource) final;
-		void Deserialize(ResourceLibrary* library, const string& data, Ref<Resource> resource) final;
+		string Serialize(ResourceLibrary& library, const Ref<Resource>& resource) final;
+		void Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource) final;
 
 	private:
 		/// @brief Reads a list of subshaders for a shader

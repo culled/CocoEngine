@@ -211,9 +211,7 @@ namespace Coco::Platform::Windows
 #endif // COCO_SERVICE_RENDERING
 	}
 
-	ManagedRef<Windowing::Window> EnginePlatformWindows::CreatePlatformWindow(
-		const Windowing::WindowCreateParameters& createParameters, 
-		Windowing::WindowingService* windowingService)
+	ManagedRef<Windowing::Window> EnginePlatformWindows::CreatePlatformWindow(const Windowing::WindowCreateParameters& createParameters)
 	{
 #ifdef COCO_SERVICE_WINDOWING
 		return CreateManagedRef<WindowsWindow>(createParameters);

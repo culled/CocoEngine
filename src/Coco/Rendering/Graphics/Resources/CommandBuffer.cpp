@@ -21,7 +21,7 @@ namespace Coco::Rendering
 		_currentState = CommandBufferState::RecordingEnded;
 	}
 
-	void CommandBuffer::Submit(const List<GraphicsSemaphore*>& waitSemaphores, const List<GraphicsSemaphore*>& signalSemaphores, GraphicsFence* signalFence)
+	void CommandBuffer::Submit(List<GraphicsSemaphore*>* waitSemaphores, List<GraphicsSemaphore*>* signalSemaphores, GraphicsFence* signalFence)
 	{
 		SubmitImpl(waitSemaphores, signalSemaphores, signalFence);
 		_currentState = CommandBufferState::Submitted;
@@ -34,8 +34,8 @@ namespace Coco::Rendering
 	}
 
 	void CommandBuffer::EndAndSubmit(
-		const List<GraphicsSemaphore*>& waitSemaphores,
-		const List<GraphicsSemaphore*>& signalSemaphores,
+		List<GraphicsSemaphore*>* waitSemaphores,
+		List<GraphicsSemaphore*>* signalSemaphores,
 		GraphicsFence* signalFence)
 	{
 		End();

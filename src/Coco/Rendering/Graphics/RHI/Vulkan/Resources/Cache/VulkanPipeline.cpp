@@ -15,8 +15,8 @@ namespace Coco::Rendering::Vulkan
 	VulkanPipeline::VulkanPipeline(
 		ResourceID id,
 		const string& name,
-		const VulkanRenderPass* renderPass,
-		const VulkanShader* shader,
+		const VulkanRenderPass& renderPass,
+		const VulkanShader& shader,
 		const string& subshaderName,
 		uint subpassIndex) :
 		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name),
@@ -29,12 +29,12 @@ namespace Coco::Rendering::Vulkan
 		DestroyPipeline();
 	}
 
-	bool VulkanPipeline::NeedsUpdate(const VulkanRenderPass* renderPass, const VulkanShader* shader) const noexcept
+	bool VulkanPipeline::NeedsUpdate(const VulkanRenderPass& renderPass, const VulkanShader& shader) const noexcept
 	{
 		return _pipeline == nullptr || _pipelineLayout == nullptr || GetReferenceVersion() != GetResourceVersion(renderPass, shader);
 	}
 
-	void VulkanPipeline::Update(VulkanRenderPass* renderPass, VulkanShader* shader, const VkDescriptorSetLayout& globalDescriptorLayout)
+	void VulkanPipeline::Update(VulkanRenderPass& renderPass, const VulkanShader& shader, const VkDescriptorSetLayout& globalDescriptorLayout)
 	{
 		DestroyPipeline();
 		CreatePipeline(renderPass, shader, globalDescriptorLayout);
@@ -43,10 +43,10 @@ namespace Coco::Rendering::Vulkan
 		IncrementVersion();
 	}
 
-	void VulkanPipeline::CreatePipeline(VulkanRenderPass* renderPass, VulkanShader* shader, const VkDescriptorSetLayout& globalDescriptorLayout)
+	void VulkanPipeline::CreatePipeline(VulkanRenderPass& renderPass, const VulkanShader& shader, const VkDescriptorSetLayout& globalDescriptorLayout)
 	{
-		VulkanSubshader* vulkanSubshader = shader->GetSubshader(_subshaderName);
-		const Subshader& subshader = vulkanSubshader->GetSubshader();
+		const VulkanSubshader& vulkanSubshader = shader.GetSubshader(_subshaderName);
+		const Subshader& subshader = vulkanSubshader.GetSubshader();
 
 		List<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH };
 
@@ -95,7 +95,7 @@ namespace Coco::Rendering::Vulkan
 
 		List<VkPipelineColorBlendAttachmentState> attachmentBlendStates;
 
-		const List<AttachmentDescription>& attachments = renderPass->GetSubpassInfo(_subpassIndex).ColorAttachments;
+		const List<AttachmentDescription>& attachments = renderPass.GetSubpassInfo(_subpassIndex).ColorAttachments;
 
 		for (uint64_t i = 0; i < attachments.Count(); i++)
 		{
@@ -164,7 +164,7 @@ namespace Coco::Rendering::Vulkan
 
 		Array<VkDescriptorSetLayout, 2> descriptorSetLayouts = {
 			globalDescriptorLayout,
-			vulkanSubshader->GetDescriptorLayout().Layout
+			vulkanSubshader.GetDescriptorLayout().Layout
 		};
 
 		VkPipelineLayoutCreateInfo layoutInfo = {};
@@ -178,7 +178,7 @@ namespace Coco::Rendering::Vulkan
 
 		List<VkPipelineShaderStageCreateInfo> shaderStageInfos;
 
-		for (const VulkanShaderStage& stage : vulkanSubshader->GetStages())
+		for (const VulkanShaderStage& stage : vulkanSubshader.GetStages())
 		{
 			VkPipelineShaderStageCreateInfo stageInfo = {};
 			stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -203,7 +203,7 @@ namespace Coco::Rendering::Vulkan
 		createInfo.pDynamicState = &dynamicState;
 		createInfo.pTessellationState = nullptr; // TODO: tessellation
 		createInfo.layout = _pipelineLayout;
-		createInfo.renderPass = renderPass->GetRenderPass();
+		createInfo.renderPass = renderPass.GetRenderPass();
 
 		createInfo.subpass = _subpassIndex;
 
@@ -235,13 +235,13 @@ namespace Coco::Rendering::Vulkan
 		_pipelineLayout = nullptr;
 	}
 
-	ResourceID VulkanPipeline::GetResourceID(const VulkanRenderPass* pass, const VulkanShader* shader)
+	ResourceID VulkanPipeline::GetResourceID(const VulkanRenderPass& pass, const VulkanShader& shader)
 	{
-		return Math::CombineHashes(0, pass->ReferenceID, shader->ReferenceID);
+		return Math::CombineHashes(0, pass.ReferenceID, shader.ReferenceID);
 	}
 
-	ResourceVersion VulkanPipeline::GetResourceVersion(const VulkanRenderPass* pass, const VulkanShader* shader)
+	ResourceVersion VulkanPipeline::GetResourceVersion(const VulkanRenderPass& pass, const VulkanShader& shader)
 	{
-		return Math::CombineHashes(0, pass->GetReferenceVersion(), shader->GetReferenceVersion());
+		return Math::CombineHashes(0, pass.GetReferenceVersion(), shader.GetReferenceVersion());
 	}
 }

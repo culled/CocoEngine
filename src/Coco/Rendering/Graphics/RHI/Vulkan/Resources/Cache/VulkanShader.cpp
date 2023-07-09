@@ -159,12 +159,12 @@ namespace Coco::Rendering::Vulkan
 		IncrementVersion();
 	}
 
-	VulkanSubshader* VulkanShader::GetSubshader(const string& name)
+	const VulkanSubshader& VulkanShader::GetSubshader(const string& name) const
 	{
-		return &_subshaders.at(name);
+		return _subshaders.at(name);
 	}
 	
-	List<VulkanDescriptorLayout> VulkanShader::GetDescriptorLayouts()
+	List<VulkanDescriptorLayout> VulkanShader::GetDescriptorLayouts() const
 	{
 		List<VulkanDescriptorLayout> layouts;
 

@@ -4,7 +4,7 @@
 
 namespace Coco::Rendering
 {
-	string ShaderSerializer::Serialize(ResourceLibrary* library, const Ref<Resource>& resource)
+	string ShaderSerializer::Serialize(ResourceLibrary& library, const Ref<Resource>& resource)
 	{
 		if (const Shader* shader = dynamic_cast<const Shader*>(resource.Get()))
 		{
@@ -68,7 +68,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void ShaderSerializer::Deserialize(ResourceLibrary* library, const string& data, Ref<Resource> resource)
+	void ShaderSerializer::Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource)
 	{
 		string shaderName;
 		List<Subshader> subshaders;

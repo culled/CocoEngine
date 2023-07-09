@@ -45,11 +45,13 @@ namespace Coco::Rendering
 
 		DefineResourceType(Material)
 
+		/// @brief Sets the shader for this material
+		/// @param shader The shader
 		void SetShader(Ref<Shader> shader);
 
 		/// @brief Gets the shader that this material uses
 		/// @return The shader that this material uses
-		Ref<Shader> GetShader() noexcept { return _shader; }
+		Ref<Shader> GetShader() const noexcept { return _shader; }
 
 		/// @brief Sets a Vector4 property
 		/// @param name The name of the Vector4 property

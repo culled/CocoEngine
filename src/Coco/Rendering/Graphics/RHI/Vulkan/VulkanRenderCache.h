@@ -45,21 +45,21 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets or creates a pipeline for a render pass and shader combination
 		/// @param renderPass The render pass
-		/// @param subshader The subshader
+		/// @param shader The shader
+		/// @param subshaderName The name of the subshader
 		/// @param subpassIndex The index of the subpass in the pipeline
 		/// @param globalDescriptorLayout The layout for the global descriptors
 		/// @return The VulkanPipeline resource
 		VulkanPipeline* GetOrCreatePipeline(
-			VulkanRenderPass* renderPass,
-			VulkanShader* shader,
+			VulkanRenderPass& renderPass,
+			const VulkanShader& shader,
 			const string& subshaderName,
 			uint32_t subpassIndex, 
 			const VkDescriptorSetLayout& globalDescriptorLayout);
 
-		/// @brief Gets or creates a Vulkan subshader for a shader's subshader
-		/// @param subshaderName The name of the subshader
+		/// @brief Gets or creates a Vulkan shader for a shader
 		/// @param shaderData The shader data
-		/// @return The Vulkan subshader resource
+		/// @return The Vulkan shader resource
 		VulkanShader* GetOrCreateVulkanShader(const ShaderRenderData& shaderData);
 	};
 }

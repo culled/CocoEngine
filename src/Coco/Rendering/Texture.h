@@ -71,6 +71,8 @@ namespace Coco::Rendering
 		/// @return The image description of this texture
 		ImageDescription GetDescription() const noexcept;
 
+		/// @brief Gets the image sampler properties of this texture
+		/// @return The image sampler properties of this texture
 		const ImageSamplerProperties& GetSamplerProperties() const { return _samplerProperties; }
 
 		/// @brief Gets the image that backs this texture

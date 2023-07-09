@@ -13,5 +13,5 @@ public:
 
 	string GetName() const noexcept final { return "main"; }
 	List<AttachmentDescription> GetAttachmentDescriptions() noexcept final;
-	void Execute(RenderContext* renderContext) final;
+	void Execute(RenderContext& renderContext) final;
 };

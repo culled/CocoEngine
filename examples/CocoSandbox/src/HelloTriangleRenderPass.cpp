@@ -14,8 +14,8 @@ List<AttachmentDescription> HelloTriangleRenderPass::GetAttachmentDescriptions()
     return attachments;
 }
 
-void HelloTriangleRenderPass::Execute(RenderContext* renderContext)
+void HelloTriangleRenderPass::Execute(RenderContext& renderContext)
 {
-	for (const ObjectRenderData& objectData : renderContext->GetRenderView()->Objects)
-		renderContext->Draw(objectData);
+	for (const ObjectRenderData& objectData : renderContext.GetRenderView()->Objects)
+		renderContext.Draw(objectData);
 }

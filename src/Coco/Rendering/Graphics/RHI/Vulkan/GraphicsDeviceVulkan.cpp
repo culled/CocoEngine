@@ -13,8 +13,8 @@ namespace Coco::Rendering::Vulkan
 		Device(device), Score(score)
 	{}
 
-	GraphicsDeviceVulkan::GraphicsDeviceVulkan(GraphicsPlatformVulkan& platform, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams) :
-		_platform(&platform), _physicalDevice(physicalDevice)
+	GraphicsDeviceVulkan::GraphicsDeviceVulkan(VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams) :
+		_physicalDevice(physicalDevice)
 	{
 		// Get basic device info
 		VkPhysicalDeviceProperties deviceProperties = {};
@@ -162,7 +162,7 @@ namespace Coco::Rendering::Vulkan
 	ManagedRef<GraphicsDeviceVulkan> GraphicsDeviceVulkan::Create(GraphicsPlatformVulkan& platform, const GraphicsDeviceCreationParameters& createParams)
 	{
 		VkPhysicalDevice physicalDevice = PickPhysicalDevice(platform.GetInstance(), createParams);
-		return CreateManagedRef<GraphicsDeviceVulkan>(platform, physicalDevice, createParams);
+		return CreateManagedRef<GraphicsDeviceVulkan>(physicalDevice, createParams);
 	}
 
 	bool GraphicsDeviceVulkan::InitializePresentQueue(const VkSurfaceKHR& surface) noexcept

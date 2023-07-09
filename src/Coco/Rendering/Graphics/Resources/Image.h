@@ -15,7 +15,6 @@ namespace Coco::Rendering
 
 	public:
 		Image(ResourceID id, const string& name, ImageDescription description) noexcept;
-
 		virtual ~Image() = default;
 
 		Image(const Image&) = delete;

@@ -14,7 +14,7 @@ namespace Coco::Rendering
 	{
 		this->SetSingleton(this);
 
-		_graphics = GraphicsPlatform::CreatePlatform(this, backendCreateParams);
+		_graphics = GraphicsPlatform::CreatePlatform(backendCreateParams);
 		
 		// Create default textures
 		CreateDefaultDiffuseTexture();
@@ -35,8 +35,8 @@ namespace Coco::Rendering
 
 	void RenderingService::Render(
 		Ref<GraphicsPresenter> presenter,
-		ICameraDataProvider* cameraDataProvider,
-		ISceneDataProvider* sceneDataProvider)
+		ICameraDataProvider& cameraDataProvider,
+		ISceneDataProvider& sceneDataProvider)
 	{
 		if (_defaultPipeline)
 		{
@@ -51,8 +51,8 @@ namespace Coco::Rendering
 	void RenderingService::Render(
 		Ref<GraphicsPresenter> presenter,
 		Ref<RenderPipeline> pipeline,
-		ICameraDataProvider* cameraDataProvider,
-		ISceneDataProvider* sceneDataProvider)
+		ICameraDataProvider& cameraDataProvider,
+		ISceneDataProvider& sceneDataProvider)
 	{
 		// Acquire the render context and backbuffer that we'll be using
 		Ref<RenderContext> renderContext;
@@ -64,14 +64,14 @@ namespace Coco::Rendering
 		}
 
 		// Create our render view using the provider for camera data
-		ManagedRef<RenderView> view = cameraDataProvider->GetRenderView(pipeline, presenter->GetBackbufferSize(), { backbuffer });
+		ManagedRef<RenderView> view = cameraDataProvider.GetRenderView(pipeline, presenter->GetBackbufferSize(), { backbuffer });
 
 		// Add objects from the scene graph
-		sceneDataProvider->GetSceneData(view);
+		sceneDataProvider.GetSceneData(view);
 
 		// Actually render with the pipeline
 		renderContext->Begin(view, pipeline);
-		DoRender(pipeline.Get(), renderContext.Get());
+		DoRender(*pipeline.Get(), *renderContext.Get());
 		renderContext->End();
 
 		// Submit the render data to the gpu and present
@@ -81,14 +81,14 @@ namespace Coco::Rendering
 		}
 	}
 
-	void RenderingService::DoRender(RenderPipeline* pipeline, RenderContext* context) noexcept
+	void RenderingService::DoRender(RenderPipeline& pipeline, RenderContext& context) noexcept
 	{
 		try
 		{
-			context->RestoreViewport();
+			context.RestoreViewport();
 
 			// Do render!
-			pipeline->Execute(context);
+			pipeline.Execute(context);
 		}
 		catch (const Exception& ex)
 		{

@@ -25,13 +25,13 @@ namespace Coco::Rendering::Vulkan
 			GetReferenceVersion() != _pipeline->GetVersion();
 	}
 
-	void VulkanFramebuffer::Update(const Ref<RenderView>& renderView, VulkanRenderPass* renderPass)
+	void VulkanFramebuffer::Update(const Ref<RenderView>& renderView, VulkanRenderPass& renderPass)
 	{
 		DestroyFramebuffer();
 
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = renderPass->GetRenderPass();
+		framebufferInfo.renderPass = renderPass.GetRenderPass();
 		framebufferInfo.width = static_cast<uint32_t>(renderView->ViewportRect.Size.Width);
 		framebufferInfo.height = static_cast<uint32_t>(renderView->ViewportRect.Size.Height);
 		framebufferInfo.layers = 1;

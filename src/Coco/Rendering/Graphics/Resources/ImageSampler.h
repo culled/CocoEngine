@@ -27,6 +27,8 @@ namespace Coco::Rendering
 		ImageSampler& operator=(const ImageSampler&) = delete;
 		ImageSampler& operator=(ImageSampler&&) = delete;
 
+		/// @brief Gets the properties for this ImageSampler
+		/// @return The properties for this ImageSampler
 		const ImageSamplerProperties& GetProperties() const noexcept { return _properties; }
 	};
 }

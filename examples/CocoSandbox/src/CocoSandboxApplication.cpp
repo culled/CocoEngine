@@ -204,6 +204,6 @@ void CocoSandboxApplication::RenderTick(double deltaTime)
 	
 	for (auto& window : windows)
 	{
-		_renderService->Render(window->GetPresenter(), &_ecsService->GetComponent<ECS::CameraComponent>(_cameraEntityID), _ecsService->GetRootScene());
+		_renderService->Render(window->GetPresenter(), _ecsService->GetComponent<ECS::CameraComponent>(_cameraEntityID), *_ecsService->GetRootScene());
 	}
 }
