@@ -17,33 +17,33 @@ namespace Coco::ECS
 		virtual bool RemoveComponent(EntityID entityID) = 0;
 	};
 
-	template <typename ComponentType, int MaxComponents>
+	template <typename ComponentType>
 	class EntityComponentList : public IEntityComponentList
 	{
 	private:
-		SparseSet<ComponentType, MaxComponents> _components;
+		UnorderedMap<uint64_t, ComponentType> _components;
 
 	public:
 		template<typename ... Args>
 		ComponentType& AddComponent(EntityID entity, Args&& ... args)
 		{
-			_components.Add(entity, ComponentType(entity, std::forward<Args>(args)...));
-			return _components.Get(entity);
+			auto result = _components.try_emplace(entity, entity, std::forward<Args>(args)...).first;
+			return result->second;
 		}
 
 		ComponentType& GetComponent(EntityID entity)
 		{
-			return _components.Get(entity);
+			return _components.at(entity);
 		}
 
 		bool HasComponent(EntityID entity) const final
 		{
-			return _components.Contains(entity);
+			return _components.contains(entity);
 		}
 
 		bool RemoveComponent(EntityID entity) final
 		{
-			return _components.Remove(entity);
+			return _components.erase(entity);
 		}
 	};
 }

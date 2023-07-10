@@ -190,7 +190,7 @@ namespace Coco::Rendering
 		{
 			UnorderedMap<string, SubshaderUniformBinding>::iterator bindingIt = _subshaderBindings.end();
 			if (subshader.Descriptors.Count() > 0)
-				bindingIt = _subshaderBindings.emplace(subshader.PassName, SubshaderUniformBinding(offset)).first;
+				bindingIt = _subshaderBindings.try_emplace(subshader.PassName, offset).first;
 
 			for (int i = 0; i < subshader.Descriptors.Count(); i++)
 			{

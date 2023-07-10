@@ -6,8 +6,7 @@
 
 namespace Coco::ECS
 {
-	ECSService::ECSService() : EngineService(), 
-		_entities(CreateManagedRef<MappedMemoryPool<Entity, MaxEntities>>())
+	ECSService::ECSService() : EngineService()
 	{
 		this->SetSingleton(this);
 
@@ -19,38 +18,42 @@ namespace Coco::ECS
 
 	ECSService::~ECSService()
 	{
-		_entities.Reset();
+		_entities.clear();
 	}
 
 	EntityID ECSService::CreateEntity(const string& name, EntityID parentID)
 	{
-		uint64_t id;
+		uint64_t id = 0;
 
-		if (!_entities->TryReserve(id, InvalidEntityID, name, parentID))
-			throw Exception("Cannot create more entities");
+		while (_entities.contains(id))
+			id++;
 
-		_entities->Get(id)._id = id;
+		_entities.try_emplace(id, id, name, RootSceneID, parentID);
 		return id;
 	}
 
 	Entity& ECSService::GetEntity(EntityID entityID)
 	{
-		return _entities->Get(entityID);
+		return _entities.at(entityID);
 	}
 
 	bool ECSService::TryGetEntity(EntityID entityID, Entity*& entity)
 	{
-		return _entities->TryGet(entityID, entity);
+		if (!_entities.contains(entityID))
+			return false;
+
+		entity = &GetEntity(entityID);
+		return true;
 	}
 
 	List<EntityID> ECSService::GetEntityChildrenIDs(EntityID entity)
 	{
 		List<EntityID> children;
 
-		for (const auto& child : *(_entities.Get()))
+		for (const auto& kvp : _entities)
 		{
-			if (child._parentID == entity)
-				children.Add(child._id);
+			if (kvp.second._parentID == entity)
+				children.Add(kvp.second._id);
 		}
 
 		return children;
@@ -60,10 +63,10 @@ namespace Coco::ECS
 	{
 		List<Entity*> children;
 
-		for (auto& entity : *(_entities.Get()))
+		for (auto& kvp : _entities)
 		{
-			if (entity._parentID == entity._id)
-				children.Add(&entity);
+			if (kvp.second._parentID == entity)
+				children.Add(&kvp.second);
 		}
 
 		return children;
@@ -104,14 +107,24 @@ namespace Coco::ECS
 	void ECSService::DestroyEntity(EntityID entityID)
 	{
 		// Release the entity and any of its descendants
-		for (const auto& entity : *(_entities.Get()))
+		for (const auto& kvp : _entities)
 		{
-			if (IsDescendantOfEntity(entity._id, entityID))
-				_entities->Release(entity._id);
+			if (IsDescendantOfEntity(kvp.second._id, entityID))
+				_entities.erase(kvp.second._id);
 		}
 	}
 
-	List<Entity*> ECSService::GetEntities() { return _entities->GetObjects(); }
+	List<Entity*> ECSService::GetEntities()
+	{
+		List<Entity*> entities;
+
+		for (const auto& kvp : _entities)
+		{
+			entities.Add(&GetEntity(kvp.first));
+		}
+
+		return entities;
+	}
 
 	Scene* ECSService::CreateScene(const string& name, SceneID parentID)
 	{
@@ -157,19 +170,19 @@ namespace Coco::ECS
 
 	void ECSService::SetEntityScene(EntityID entityID, SceneID sceneID)
 	{
-		for (auto& entity : *(_entities.Get()))
+		for (auto& kvp : _entities)
 		{
-			if (IsDescendantOfEntity(entity._id, entityID))
-				entity._sceneID = sceneID;
+			if (IsDescendantOfEntity(kvp.second._id, entityID))
+				kvp.second._sceneID = sceneID;
 		}
 	}
 
 	void ECSService::DestroyScene(SceneID sceneID)
 	{
-		for (const auto& entity : *(_entities.Get()))
+		for (const auto& kvp : _entities)
 		{
-			if (entity._sceneID == sceneID)
-				QueueDestroyEntity(entity._id);
+			if (kvp.second._sceneID == sceneID)
+				QueueDestroyEntity(kvp.second._id);
 		}
 	}
 

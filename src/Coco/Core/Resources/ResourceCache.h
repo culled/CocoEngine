@@ -65,7 +65,7 @@ namespace Coco
 			if (_resources.contains(id))
 				return Get(id);
 
-			auto result = _resources.try_emplace(id, ResourceType(id, "", std::forward<Args>(args)...)).first;
+			auto result = _resources.try_emplace(id, id, "", std::forward<Args>(args)...).first;
 
 			ResourceType& resource = (result->second);
 			resource.UpdateTickUsed();

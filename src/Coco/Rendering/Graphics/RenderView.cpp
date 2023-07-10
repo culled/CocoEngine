@@ -43,12 +43,12 @@ namespace Coco::Rendering
 		if (Shaders.contains(shader->ID))
 			return;
 
-		Shaders.emplace(shader->ID, ShaderRenderData(shader->ID, shader->GetVersion()));
+		Shaders.try_emplace(shader->ID, shader->ID, shader->GetVersion());
 		ShaderRenderData& shaderData = Shaders.at(shader->ID);
 
 		for (const Subshader& subshader : shader->GetSubshaders())
 		{
-			shaderData.Subshaders.emplace(subshader.PassName, subshader);
+			shaderData.Subshaders.try_emplace(subshader.PassName, subshader);
 		}
 	}
 
@@ -57,7 +57,7 @@ namespace Coco::Rendering
 		if (Textures.contains(texture->ID))
 			return;
 
-		Textures.emplace(texture->ID, TextureRenderData(texture->ID, texture->GetVersion(), texture->GetImage(), texture->GetSampler()));
+		Textures.try_emplace(texture->ID, texture->ID, texture->GetVersion(), texture->GetImage(), texture->GetSampler());
 	}
 
 	void RenderView::AddMaterial(Ref<Material> material)
@@ -71,11 +71,11 @@ namespace Coco::Rendering
 		if (shader.IsValid())
 			AddShader(shader);
 
-		Materials.emplace(material->ID, MaterialRenderData(material->ID, material->GetVersion(), shaderID, material->GetBufferData()));
+		Materials.try_emplace(material->ID, material->ID, material->GetVersion(), shaderID, material->GetBufferData());
 		MaterialRenderData& materialData = Materials.at(material->ID);
 
 		for (const auto& kvp : material->GetSubshaderBindings())
-			materialData.SubshaderBindings.emplace(kvp.first, kvp.second);
+			materialData.SubshaderBindings.try_emplace(kvp.first, kvp.second);
 
 		for (const auto& kvp : material->GetTextureProperties())
 		{
@@ -84,11 +84,11 @@ namespace Coco::Rendering
 			if (texture.IsValid())
 			{
 				AddTexture(texture);
-				materialData.Samplers.emplace(kvp.first, texture->ID);
+				materialData.Samplers.try_emplace(kvp.first, texture->ID);
 			}
 			else
 			{
-				materialData.Samplers.emplace(kvp.first, Resource::InvalidID);
+				materialData.Samplers.try_emplace(kvp.first, Resource::InvalidID);
 			}
 		}
 	}
@@ -98,6 +98,6 @@ namespace Coco::Rendering
 		if (Meshs.contains(mesh->ID))
 			return;
 
-		Meshs.emplace(mesh->ID, MeshRenderData(mesh->ID, mesh->GetVersion(), mesh->GetVertexBuffer(), mesh->GetVertexCount(), mesh->GetIndexBuffer(), mesh->GetIndexCount()));
+		Meshs.try_emplace(mesh->ID, mesh->ID, mesh->GetVersion(), mesh->GetVertexBuffer(), mesh->GetVertexCount(), mesh->GetIndexBuffer(), mesh->GetIndexCount());
 	}
 }

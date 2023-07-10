@@ -152,7 +152,7 @@ namespace Coco::Rendering::Vulkan
 		// Recreate all subshaders
 		for (const auto& subshaderData : shaderData.Subshaders)
 		{
-			_subshaders.try_emplace(subshaderData.first, VulkanSubshader(_device, subshaderData.second));
+			_subshaders.try_emplace(subshaderData.first, _device, subshaderData.second);
 		}
 
 		UpdateReferenceVersion(shaderData.Version);

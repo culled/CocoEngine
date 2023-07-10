@@ -17,7 +17,7 @@ namespace Coco::ECS
 		MeshRendererComponent() = default;
 		MeshRendererComponent(EntityID ownerID, Ref<Rendering::Mesh> mesh, Ref<Rendering::Material> material);
 
-		Ref<Rendering::Material> GetMaterial() const { return _material; }
-		Ref<Rendering::Mesh> GetMesh() const { return _mesh; }
+		Ref<Rendering::Material> GetMaterial() { return _material; }
+		Ref<Rendering::Mesh> GetMesh() { return _mesh; }
 	};
 }

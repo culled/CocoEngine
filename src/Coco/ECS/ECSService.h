@@ -15,11 +15,8 @@ namespace Coco::ECS
 {
 	class ECSService : public EngineService, public Singleton<ECSService>
 	{
-	public:
-		static constexpr uint64_t MaxEntities = 10000;
-
 	private:
-		ManagedRef<MappedMemoryPool<Entity, MaxEntities>> _entities;
+		UnorderedMap<EntityID, Entity> _entities;
 		Set<EntityID> _queuedEntitiesToDestroy;
 		UnorderedMap<std::type_index, ManagedRef<IEntityComponentList>> _componentLists;
 		List<ManagedRef<Scene>> _scenes;
@@ -64,7 +61,7 @@ namespace Coco::ECS
 		template<typename ComponentType>
 		bool HasComponent(EntityID entityID) const
 		{
-			const EntityComponentList<ComponentType, MaxEntities>* list = GetComponentList<ComponentType>();
+			const EntityComponentList<ComponentType>* list = GetComponentList<ComponentType>();
 
 			if (list == nullptr)
 				return false;
@@ -117,20 +114,20 @@ namespace Coco::ECS
 		void Process(double deltaTime);
 
 		template<typename ComponentType>
-		EntityComponentList<ComponentType, MaxEntities>* GetComponentList()
+		EntityComponentList<ComponentType>* GetComponentList()
 		{
 			std::type_index key = typeid(ComponentType);
 
 			if (!_componentLists.contains(key))
 			{
-				_componentLists.try_emplace(key, CreateManagedRef<EntityComponentList<ComponentType, MaxEntities>>());
+				_componentLists.try_emplace(key, CreateManagedRef<EntityComponentList<ComponentType>>());
 			}
 
-			return static_cast<EntityComponentList<ComponentType, MaxEntities>*>(_componentLists.at(key).Get());
+			return static_cast<EntityComponentList<ComponentType>*>(_componentLists.at(key).Get());
 		}
 
 		template<typename ComponentType>
-		const EntityComponentList<ComponentType, MaxEntities>* GetComponentList() const
+		const EntityComponentList<ComponentType>* GetComponentList() const
 		{
 			std::type_index key = typeid(ComponentType);
 
@@ -139,7 +136,7 @@ namespace Coco::ECS
 				return nullptr;
 			}
 
-			return static_cast<const EntityComponentList<ComponentType, MaxEntities>*>(_componentLists.at(key).Get());
+			return static_cast<const EntityComponentList<ComponentType>*>(_componentLists.at(key).Get());
 		}
 
 		IEntityComponentList* GetGenericComponentList(const std::type_index& listKey)
