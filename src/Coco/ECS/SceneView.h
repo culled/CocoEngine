@@ -51,7 +51,7 @@ namespace Coco::ECS
 				do
 				{
 					_entityIndex++;
-				} while (_entityIndex < _entities.Count() - 1 && !IsValidIndex());
+				} while (_entityIndex < _entities.Count() && !IsValidIndex());
 
 				return *this;
 			}

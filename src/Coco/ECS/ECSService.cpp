@@ -106,11 +106,24 @@ namespace Coco::ECS
 	
 	void ECSService::DestroyEntity(EntityID entityID)
 	{
+		auto it = _entities.begin();
+
 		// Release the entity and any of its descendants
-		for (const auto& kvp : _entities)
+		while(it != _entities.end())
 		{
-			if (IsDescendantOfEntity(kvp.second._id, entityID))
-				_entities.erase(kvp.second._id);
+			if (IsDescendantOfEntity(it->second._id, entityID))
+			{
+				// Destroy the entity's components
+				for (auto& kvp : _componentLists)
+				{
+					if (kvp.second->Has(entityID))
+						kvp.second->Remove(entityID);
+				}
+
+				it = _entities.erase(it);
+			}
+			else
+				it++;
 		}
 	}
 
