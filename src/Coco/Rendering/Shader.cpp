@@ -34,6 +34,6 @@ namespace Coco::Rendering
 		const List<ShaderTextureSampler>& samplers,
 		ShaderStageType bindPoint)
 	{
-		_subshaders.Add(Subshader(name, stageFiles, pipelineState, attributes, descriptors, samplers, bindPoint));
+		_subshaders.Construct(name, stageFiles, pipelineState, attributes, descriptors, samplers, bindPoint);
 	}
 }

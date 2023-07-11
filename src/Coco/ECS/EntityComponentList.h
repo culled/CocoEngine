@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Coco/Core/Core.h>
-#include <Coco/Core/Types/SparseSet.h>
 #include "EntityTypes.h"
 
 #include <type_traits>

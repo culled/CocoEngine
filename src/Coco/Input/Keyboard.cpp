@@ -10,7 +10,7 @@ namespace Coco::Input
 			return;
 
 		// Save the state change and the current interim state
-		_preProcessStateChanges.Add(KeyboardStateChange(key, isPressed));
+		_preProcessStateChanges.Construct(key, isPressed);
 		state = isPressed;
 	}
 

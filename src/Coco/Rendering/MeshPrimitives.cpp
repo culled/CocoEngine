@@ -66,7 +66,7 @@ namespace Coco::Rendering
 
 				const double u = static_cast<double>(x) / (vertexSideCount - 1);
 				const double v = static_cast<double>(y) / (vertexSideCount - 1);
-				uvs.Add(Vector2(u, v));
+				uvs.Construct(u, v);
 			}
 		}
 
@@ -102,7 +102,7 @@ namespace Coco::Rendering
 
 				const double u = static_cast<double>(x) / (vertexSideCount - 1);
 				const double v = static_cast<double>(z) / (vertexSideCount - 1);
-				uvs.Add(Vector2(u, v));
+				uvs.Construct(u, v);
 			}
 		}
 
@@ -138,7 +138,7 @@ namespace Coco::Rendering
 
 				const double u = static_cast<double>(y) / (vertexSideCount - 1);
 				const double v = static_cast<double>(z) / (vertexSideCount - 1);
-				uvs.Add(Vector2(u, v));
+				uvs.Construct(u, v);
 			}
 		}
 

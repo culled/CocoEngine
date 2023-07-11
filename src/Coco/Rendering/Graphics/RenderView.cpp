@@ -35,7 +35,7 @@ namespace Coco::Rendering
 		AddMaterial(material);
 		AddMesh(mesh);
 
-		Objects.Add(ObjectRenderData(mesh->ID, material->ID, modelMatrix));
+		Objects.Construct(mesh->ID, material->ID, modelMatrix);
 	}
 
 	void RenderView::AddShader(Ref<Shader> shader)

@@ -42,6 +42,15 @@ namespace Coco
 		/// @param item The item to add
 		constexpr void Add(const ValueType& item) { _list.push_back(item); }
 
+		/// @brief Constructs an item in-place in the list
+		/// @tparam ...Args The type of arguments for the item's constructor
+		/// @param ...args The arguments to pass to the item's constructor
+		template<typename ... Args>
+		void Construct(Args&& ... args)
+		{
+			_list.emplace_back(std::forward<Args>(args)...);
+		}
+
 		/// @brief Inserts an item at the specified index
 		/// @param index The index that the item will be insterted at
 		/// @param item The item to insert

@@ -316,7 +316,7 @@ namespace Coco::Rendering::Vulkan
 
 		for (const VkPhysicalDevice& device : devices)
 		{
-			deviceRankings.Add(PhysicalDeviceRanking(device, CalculateDeviceScore(device, createParams)));
+			deviceRankings.Construct(device, CalculateDeviceScore(device, createParams));
 		}
 
 		std::sort(deviceRankings.begin(), deviceRankings.end(), CompareDeviceRankings);

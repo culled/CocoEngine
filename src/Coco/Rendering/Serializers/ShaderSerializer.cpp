@@ -156,7 +156,7 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			attributes.Add(ShaderVertexAttribute(static_cast<BufferDataFormat>(reader.GetKeyAsInt())));
+			attributes.Construct(static_cast<BufferDataFormat>(reader.GetKeyAsInt()));
 		}
 	}
 
@@ -164,12 +164,7 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			descriptors.Add(
-				ShaderDescriptor(
-					reader.GetKey(), 
-					static_cast<BufferDataFormat>(reader.GetVariableValueAsInt())
-				)
-			);
+			descriptors.Construct(reader.GetKey(), static_cast<BufferDataFormat>(reader.GetVariableValueAsInt()));
 		}
 	}
 
@@ -177,7 +172,7 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			samplers.Add(ShaderTextureSampler(reader.GetKey()));
+			samplers.Construct(reader.GetKey());
 		}
 	}
 }

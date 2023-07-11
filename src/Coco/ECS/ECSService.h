@@ -2,7 +2,6 @@
 
 #include <Coco/Core/Services/EngineService.h>
 #include <Coco/Core/Types/Set.h>
-#include <Coco/Core/Types/MemoryPool.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/Singleton.h>
 #include "Entity.h"

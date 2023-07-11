@@ -11,7 +11,6 @@ namespace Coco::ECS
 		EntityID _owner;
 
 	public:
-		EntityComponent();
 		EntityComponent(EntityID owner);
 		virtual ~EntityComponent() = default;
 	};
