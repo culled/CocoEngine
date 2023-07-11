@@ -11,7 +11,7 @@ using namespace Coco;
 using namespace Coco::ECS;
 using namespace Coco::Rendering;
 
-class Player : public AttachedScript
+class Player : public ScriptComponent
 {
 private:
 	Size _size = Size(4, 0.5);
@@ -28,10 +28,9 @@ private:
 	Ref<Material> _material;
 
 public:
-	Player() = default;
+	Player(EntityID owner);
 	~Player() final;
 
 protected:
-	void Start() override;
 	void Tick(double deltaTime) override;
 };

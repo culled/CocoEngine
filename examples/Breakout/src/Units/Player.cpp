@@ -8,13 +8,10 @@
 #include <Coco/Input/InputService.h>
 #include "../App.h"
 
-Player::~Player()
+Player::Player(EntityID owner) : ScriptComponent(owner)
 {
-}
-
-void Player::Start()
-{
-	auto& transform = _ecs->AddComponent<TransformComponent>(_entityID);
+	ECSService* ecs = ECSService::Get();
+	auto& transform = ecs->AddComponent<TransformComponent>(owner);
 	transform.SetGlobalPosition(Vector3(0.0, _positionY, 0.0));
 
 	ResourceLibrary* library = Engine::Get()->GetResourceLibrary();
@@ -28,7 +25,11 @@ void Player::Start()
 	//_mesh = MeshPrimitives::CreateBox(Vector3::One);
 	_mesh->UploadData();
 
-	_ecs->AddComponent<MeshRendererComponent>(_entityID, _mesh, _material);
+	ecs->AddComponent<MeshRendererComponent>(owner, _mesh, _material);
+}
+
+Player::~Player()
+{
 }
 
 void Player::Tick(double deltaTime)
@@ -52,7 +53,7 @@ void Player::Tick(double deltaTime)
 
 	_currentVelocity += acceleration * deltaTime;
 
-	TransformComponent& transform = _ecs->GetComponent<TransformComponent>(_entityID);
+	TransformComponent& transform = ECSService::Get()->GetComponent<TransformComponent>(_owner);
 	Vector3 position = transform.GetGlobalPosition();
 	position.X += _currentVelocity * deltaTime;
 	position.Y = _positionY;

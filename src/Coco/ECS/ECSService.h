@@ -48,52 +48,81 @@ namespace Coco::ECS
 		template<typename ComponentType, typename ... Args>
 		ComponentType& AddComponent(EntityID entityID, Args&& ... args)
 		{
-			return GetComponentList<ComponentType>()->AddComponent(entityID, std::forward<Args>(args)...);
+			return GetComponentList<ComponentType>()->Add(entityID, std::forward<Args>(args)...);
 		}
 
 		template<typename ComponentType>
 		ComponentType& GetComponent(EntityID entityID)
 		{
-			return GetComponentList<ComponentType>()->GetComponent(entityID);
+			// Check for exact type match
+			if (_componentLists.contains(typeid(ComponentType)))
+				return *static_cast<ComponentType*>(&(_componentLists.at(typeid(ComponentType))->Get(entityID)));
+
+			// Check for runtime-derived types
+			for (auto& kvp : _componentLists)
+			{
+				if (kvp.second->Has(entityID))
+				{
+					ComponentType* component = dynamic_cast<ComponentType*>(&(kvp.second->Get(entityID)));
+
+					if (component != nullptr)
+						return *component;
+				}
+			}
+
+			throw Exception(FormattedString("Entity {} has no component of type {}", entityID, typeid(ComponentType).name()));
 		}
 
 		template<typename ComponentType>
 		bool HasComponent(EntityID entityID) const
 		{
-			const EntityComponentList<ComponentType>* list = GetComponentList<ComponentType>();
-
-			if (list == nullptr)
-				return false;
-
-			return list->HasComponent(entityID);
+			return HasComponents<ComponentType>(entityID);
 		}
 
 		template<typename ComponentType>
 		bool HasComponents(EntityID entityID) const
 		{
-			const IEntityComponentList* list = GetGenericComponentList(typeid(ComponentType));
+			// Check for exact type match
+			if (_componentLists.contains(typeid(ComponentType)))
+				return _componentLists.at(typeid(ComponentType))->Has(entityID);
 
-			if (list == nullptr)
-				return false;
+			// Check for runtime-derived types
+			for (const auto& kvp : _componentLists)
+			{
+				if (kvp.second->Has(entityID) && dynamic_cast<const ComponentType*>(&(kvp.second->Get(entityID))))
+				{
+					return true;
+				}
+			}
 
-			return list->HasComponent(entityID);
+			// No match
+			return false;
 		}
 
 		template<typename ComponentType, typename SecondComponentType, typename ... ComponentTypes>
 		bool HasComponents(EntityID entityID) const
 		{
-			const IEntityComponentList* list = GetGenericComponentList(typeid(ComponentType));
+			// Check for exact type match
+			if(_componentLists.contains(typeid(ComponentType)))
+				return _componentLists.at(typeid(ComponentType))->Has(entityID) && HasComponents<SecondComponentType, ComponentTypes...>(entityID);
 
-			if (list == nullptr)
-				return false;
+			// Check for runtime-derived types
+			for (const auto& kvp : _componentLists)
+			{
+				if (kvp.second->Has(entityID) && dynamic_cast<const ComponentType*>(&(kvp.second->Get(entityID))))
+				{
+					return HasComponents<SecondComponentType, ComponentTypes...>(entityID);
+				}
+			}
 			
-			return list->HasComponent(entityID) && HasComponents<SecondComponentType, ComponentTypes...>(entityID);
+			// No match
+			return false;
 		}
 
 		template<typename ComponentType>
 		bool RemoveComponent(EntityID entityID)
 		{
-			return GetComponentList<ComponentType>()->RemoveComponent(entityID);
+			return GetComponentList<ComponentType>()->Remove(entityID);
 		}
 
 		Scene* CreateScene(const string& name = "", SceneID parentID = RootSceneID);
@@ -136,22 +165,6 @@ namespace Coco::ECS
 			}
 
 			return static_cast<const EntityComponentList<ComponentType>*>(_componentLists.at(key).Get());
-		}
-
-		IEntityComponentList* GetGenericComponentList(const std::type_index& listKey)
-		{
-			if (!_componentLists.contains(listKey))
-				return nullptr;
-
-			return _componentLists.at(listKey).Get();
-		}
-
-		const IEntityComponentList* GetGenericComponentList(const std::type_index& listKey) const
-		{
-			if (!_componentLists.contains(listKey))
-				return nullptr;
-
-			return _componentLists.at(listKey).Get();
 		}
 	};
 }

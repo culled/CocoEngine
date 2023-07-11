@@ -118,7 +118,7 @@ void App::CreateCamera()
 void App::CreatePlayer()
 {
 	_playerEntity = _ecsService->CreateEntity("Player");
-	_ecsService->AddComponent<ScriptComponent>(_playerEntity, CreateManagedRef<Player>());
+	_ecsService->AddComponent<Player>(_playerEntity);
 }
 
 void App::CreateArena()
