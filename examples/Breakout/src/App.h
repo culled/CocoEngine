@@ -39,7 +39,7 @@ private:
 	ECS::EntityID _cameraEntity;
 
 	Size _arenaSize = Size(35.0, 18.0);
-	Vector3 _arenaOffset = Vector3(0.0, 1.0, 0.0);
+	Vector3 _arenaOffset = Vector3(0.0, 1.0, 1.0);
 
 	bool _isPlaying = false;
 
