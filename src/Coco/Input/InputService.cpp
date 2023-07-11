@@ -8,6 +8,8 @@ namespace Coco::Input
 		_keyboard(CreateManagedRef<Keyboard>()),
 		_mouse(CreateManagedRef<Mouse>())
 	{
+		this->SetSingleton(this);
+
 		MainLoop* mainLoop = Engine::Get()->GetMainLoop();
 		mainLoop->CreateTickListener(this, &InputService::Process, ProcessTickPriority);
 		mainLoop->CreateTickListener(this, &InputService::LateProcess, LateProcessTickPriority);

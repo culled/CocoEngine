@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Services/EngineService.h>
+#include <Coco/Core/Types/Singleton.h>
 
 #include "Keyboard.h"
 #include "Mouse.h"
@@ -8,7 +9,7 @@
 namespace Coco::Input
 {
     /// @brief A service that handles input from peripherals
-    class COCOAPI InputService : public EngineService
+    class COCOAPI InputService : public EngineService, public Singleton<InputService>
     {
     public:
         /// @brief Priority for the tick handling input processing
