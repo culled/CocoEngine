@@ -124,6 +124,12 @@ namespace Coco
 			RemoveTickListener(listener);
 
 		_tickListenersToRemove.Clear();
+
+		// Safely add any queued listeners
+		for (auto& listener : _tickListenersToAdd)
+			_tickListeners.Add(std::move(listener));
+
+		_tickListenersToAdd.Clear();
 	}
 
 	void MainLoop::SortTickListeners() noexcept

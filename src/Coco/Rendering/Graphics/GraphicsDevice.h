@@ -19,10 +19,6 @@ namespace Coco::Rendering
 	/// @brief A graphics device that can perform rendering-related operations
 	class COCOAPI GraphicsDevice
 	{
-	public:
-		/// @brief Invoked when this device purges unused graphics resources
-		Event<> OnPurgedResources;
-
 	protected:
 		/// @brief The list of resources this device manages
 		ManagedRef<ResourceLibrary> _resources;
@@ -88,9 +84,6 @@ namespace Coco::Rendering
 		/// @param resource The resource to purge
 		/// @param forcePurge If true, the resource will be destroyed regardless how many users are using it
 		void PurgeResource(const Ref<Resource>& resource, bool forcePurge = false);
-
-		/// @brief Purges unused graphics resources
-		virtual void PurgeUnusedResources();
 	};
 }
 

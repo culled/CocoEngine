@@ -4,16 +4,18 @@
 
 namespace Coco
 {
-	ResourceLibrary::ResourceLibrary(const string& basePath, uint64_t resourceLifetimeTicks) noexcept :
-		BasePath(basePath), 
-		_resourceID(0), 
+	ResourceLibrary::ResourceLibrary(const string& basePath, uint64_t resourceLifetimeTicks, double purgePeriod) noexcept :
+		BasePath(basePath),
+		_resourceID(0),
 		_resourceLifetimeTicks(resourceLifetimeTicks)
 	{
+		_purgeTickListener = Engine::Get()->GetMainLoop()->CreateTickListener(this, &ResourceLibrary::PurgeTick, PurgeTickPriority, purgePeriod);
 		// TODO: Load default serializers
 	}
 
 	ResourceLibrary::~ResourceLibrary()
 	{
+		Engine::Get()->GetMainLoop()->RemoveTickListener(_purgeTickListener);
 		_resources.clear();
 		_serializers.clear();
 	}
@@ -69,6 +71,9 @@ namespace Coco
 			}
 		}
 
+		if (purgeCount > 0)
+			LogTrace(GetLogger(), FormattedString("Library for \"{}\" purged {} unused resources", BasePath, purgeCount));
+
 		return purgeCount;
 	}
 
@@ -116,5 +121,10 @@ namespace Coco
 	ResourceID ResourceLibrary::GetNextResourceID()
 	{
 		return _resourceID.fetch_add(1);
+	}
+
+	void ResourceLibrary::PurgeTick(double deltaTime)
+	{
+		PurgeStaleResources();
 	}
 }

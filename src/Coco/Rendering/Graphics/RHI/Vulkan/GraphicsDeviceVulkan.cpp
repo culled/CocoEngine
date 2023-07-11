@@ -291,14 +291,6 @@ namespace Coco::Rendering::Vulkan
 		return false;
 	}
 
-	void GraphicsDeviceVulkan::PurgeUnusedResources() noexcept
-	{
-		GraphicsDevice::PurgeUnusedResources();
-
-		if(_renderCache.IsValid())
-			_renderCache->PurgeResources();
-	}
-
 	bool CompareDeviceRankings(const PhysicalDeviceRanking& a, const PhysicalDeviceRanking& b) noexcept
 	{
 		return a.Score > b.Score;

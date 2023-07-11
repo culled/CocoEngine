@@ -19,21 +19,13 @@ namespace Coco::Rendering
     class COCOAPI RenderingService final : public EngineService, public Singleton<RenderingService>
     {
     public:
-        /// @brief The priority for the handler that purges cached resources
-        static constexpr int ResourcePurgeTickPriority = 9000;
-
-        /// @brief The frequency of cached resource purging (in seconds)
-        static constexpr double PurgeFrequency = 1.0;
-
-        static constexpr uint64_t DefaultGraphicsResourceTickLifetime = 10000;
+        static constexpr uint64_t DefaultGraphicsResourceTickLifetime = 1000;
 
     private:
         ManagedRef<GraphicsPlatform> _graphics;
         Ref<RenderPipeline> _defaultPipeline;
         Ref<Texture> _defaultDiffuseTexture;
         Ref<Texture> _defaultCheckerTexture;
-
-        double _timeSinceLastPurge = 0.0;
 
     public:
         RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
@@ -90,10 +82,6 @@ namespace Coco::Rendering
 
         /// @brief Creates the default checker texture
         void CreateDefaultCheckerTexture();
-
-        /// @brief The tick that purges cached resources
-        /// @param deltaTime The time since the last tick
-        void PurgeTick(double deltaTime);
     };
 }
 

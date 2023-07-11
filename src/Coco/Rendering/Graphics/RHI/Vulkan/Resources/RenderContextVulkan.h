@@ -116,10 +116,6 @@ namespace Coco::Rendering::Vulkan
 		/// @return True if the descriptor set was created
 		bool GetOrAllocateMaterialDescriptorSet(const VulkanShader& shader, const string& passName, ResourceID materialID, VkDescriptorSet& set);
 
-		/// @brief Event handler for the device purging resources
-		/// @return If the event was handled
-		bool HandlePurgeResources();
-
 		/// @brief Adds any necessary pre-render pass image transitions to the render targets
 		void AddPreRenderPassImageTransitions();
 

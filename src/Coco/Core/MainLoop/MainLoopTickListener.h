@@ -21,9 +21,11 @@ namespace Coco
 	private:
 		TickHandler _handler;
 		bool _isEnabled;
+		double _period;
+		double _timeSinceLastTick;
 
 	public:
-		MainLoopTickListener(TickHandler tickHandler, int priority);
+		MainLoopTickListener(TickHandler tickHandler, int priority, double period = 0.0);
 
 		virtual ~MainLoopTickListener() = default;
 
@@ -34,6 +36,9 @@ namespace Coco
 		/// @brief Gets if this listener is enabled
 		/// @return True if this listener is responding to ticks
 		constexpr bool GetIsEnabled() const noexcept { return _isEnabled; }
+
+		constexpr void SetPeriod(double period) { _period = period; }
+		constexpr double GetPeriod() const noexcept { return _period; }
 
 	private:
 		/// @brief Called by the main loop every tick

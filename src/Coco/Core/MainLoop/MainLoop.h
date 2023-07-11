@@ -27,6 +27,7 @@ namespace Coco
 
 		bool _isPerfomingTick = false;
 		List<Ref<MainLoopTickListener>> _tickListenersToRemove;
+		List<ManagedRef<MainLoopTickListener>> _tickListenersToAdd;
 
 		double _currentTickTime = 0.0;
 		double _lastTickTime = 0.0;
@@ -75,9 +76,14 @@ namespace Coco
 		/// @param object The object
 		/// @param args Arguments to pass to the listener's constructor
 		template<typename ObjectType>
-		Ref<MainLoopTickListener> CreateTickListener(ObjectType* object, void(ObjectType::* handlerFunction)(double), int priority)
+		Ref<MainLoopTickListener> CreateTickListener(ObjectType* object, void(ObjectType::* handlerFunction)(double), int priority, double purgePeriod = 0.0)
 		{
-			_tickListeners.Add(CreateManagedRef<MainLoopTickListener>(std::bind(handlerFunction, object, std::placeholders::_1), priority));
+			ManagedRef<MainLoopTickListener> tickListener = CreateManagedRef<MainLoopTickListener>(std::bind(handlerFunction, object, std::placeholders::_1), priority, purgePeriod);
+			if (_isPerfomingTick)
+				_tickListenersToAdd.Add(std::move(tickListener));
+			else
+				_tickListeners.Add(std::move(tickListener));
+
 			_tickListenersNeedSorting = true;
 
 			return _tickListeners.Last();

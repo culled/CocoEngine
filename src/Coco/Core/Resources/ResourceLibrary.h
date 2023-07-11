@@ -9,6 +9,7 @@
 #include <atomic>
 #include <Coco/Core/IO/File.h>
 #include <Coco/Core/IO/FilePath.h>
+#include <Coco/Core/MainLoop/MainLoopTickListener.h>
 
 namespace Coco::Logging
 {
@@ -25,7 +26,11 @@ namespace Coco
 		constexpr static uint64_t MaxLifetime = Math::MaxValue<uint64_t>();
 
 		/// @brief A default resource lifetime
-		constexpr static uint64_t DefaultResourceLifetimeTicks = 10000;
+		constexpr static uint64_t DefaultResourceLifetimeTicks = 500;
+
+		constexpr static double DefaultPurgePeriod = 5.0;
+
+		constexpr static uint64_t PurgeTickPriority = 10000;
 
 		/// @brief The base path for all relative file paths regarding this library
 		const string BasePath;
@@ -35,9 +40,10 @@ namespace Coco
 		std::atomic<ResourceID> _resourceID;
 		UnorderedMap<ResourceID, ManagedRef<Resource>> _resources;
 		UnorderedMap<std::type_index, ManagedRef<IResourceSerializer>> _serializers;
+		Ref<MainLoopTickListener> _purgeTickListener;
 
 	public:
-		ResourceLibrary(const string& basePath = "", uint64_t resourceLifetimeTicks = DefaultResourceLifetimeTicks) noexcept;
+		ResourceLibrary(const string& basePath = "", uint64_t resourceLifetimeTicks = DefaultResourceLifetimeTicks, double purgePeriod = DefaultPurgePeriod) noexcept;
 		virtual ~ResourceLibrary();
 
 		/// @brief Gets the logger for the resource library
@@ -213,5 +219,7 @@ namespace Coco
 		/// @brief Gets the next resource ID to use
 		/// @return The next resource ID
 		ResourceID GetNextResourceID();
+
+		void PurgeTick(double deltaTime);
 	};
 }

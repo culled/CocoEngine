@@ -20,8 +20,6 @@ namespace Coco::Rendering
 		CreateDefaultDiffuseTexture();
 		CreateDefaultCheckerTexture();
 
-		Engine::Get()->GetMainLoop()->CreateTickListener(this, &RenderingService::PurgeTick, ResourcePurgeTickPriority);
-
 		ResourceLibrary* resourceLibrary = Engine::Get()->GetResourceLibrary();
 		resourceLibrary->CreateSerializer<TextureSerializer>();
 		resourceLibrary->CreateSerializer<ShaderSerializer>();
@@ -154,18 +152,5 @@ namespace Coco::Rendering
 		}
 
 		_defaultCheckerTexture->SetPixels(0, pixelData.Count(), pixelData.Data());
-	}
-
-	void RenderingService::PurgeTick(double deltaTime)
-	{
-		_timeSinceLastPurge += deltaTime;
-
-		if (_timeSinceLastPurge > PurgeFrequency)
-		{
-			if(_graphics.IsValid() && _graphics->GetDevice() != nullptr)
-				_graphics->GetDevice()->PurgeUnusedResources();
-
-			_timeSinceLastPurge = 0.0;
-		}
 	}
 }

@@ -37,11 +37,11 @@ namespace Coco
 		_startTime(platform->GetLocalTime()),
 		_logger(CreateManagedRef<Logging::Logger>("Coco")),
 		_serviceManager(CreateManagedRef<EngineServiceManager>()),
-		_mainLoop(CreateManagedRef<MainLoop>()),
-		_resourceLibrary(CreateManagedRef<ResourceLibrary>("assets/"))
+		_mainLoop(CreateManagedRef<MainLoop>())
 	{
 		this->SetSingleton(this);
 
+		_resourceLibrary = CreateManagedRef<ResourceLibrary>("assets/");
 		_application = Application::Create();
 
 		LogTrace(_logger, "Engine created");
@@ -53,8 +53,8 @@ namespace Coco
 
 		_application.Reset();
 		_resourceLibrary.Reset();
-		_mainLoop.Reset();
 		_serviceManager.Reset();
+		_mainLoop.Reset();
 
 		LogTrace(_logger, "Bye bye ;)");
 		_logger.Reset();

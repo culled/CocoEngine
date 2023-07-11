@@ -139,10 +139,7 @@ namespace Coco::Rendering::Vulkan
         /// @param memoryProperties The memory property flags
         /// @param memoryIndex Will be set to the index of the memory to use
         /// @return True if a valid memory index was found
-        bool FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const noexcept;
-
-        /// @brief Purges unused graphics resources
-        void PurgeUnusedResources() noexcept override;
+        bool FindMemoryIndex(uint32_t type, VkMemoryPropertyFlags memoryProperties, uint32_t& memoryIndex) const noexcept;;
 
     private:
         /// @brief Picks a suitable physical device to use given the parameters

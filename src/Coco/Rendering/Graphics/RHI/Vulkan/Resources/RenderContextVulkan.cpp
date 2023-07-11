@@ -46,15 +46,12 @@ namespace Coco::Rendering::Vulkan
 		_renderingCompleteFence = _device->CreateResource<GraphicsFenceVulkan>(FormattedString("{} Rendering Complete Fence", name), true);
 
 		_renderCache = CreateManagedRef<RenderContextVulkanCache>();
-		_device->OnPurgedResources.AddHandler(this, &RenderContextVulkan::HandlePurgeResources);
 
 		CreateGlobalDescriptorSet();
 	}
 
 	RenderContextVulkan::~RenderContextVulkan()
 	{
-		_device->OnPurgedResources.RemoveHandler(this, &RenderContextVulkan::HandlePurgeResources);
-
 		_device->WaitForIdle();
 
 		_device->PurgeResource(_globalDescriptorPool);
@@ -530,13 +527,6 @@ namespace Coco::Rendering::Vulkan
 		vkUpdateDescriptorSets(_device->GetDevice(), static_cast<uint32_t>(descriptorWrites.Count()), descriptorWrites.Data(), 0, nullptr);
 
 		return true;
-	}
-
-	bool RenderContextVulkan::HandlePurgeResources()
-	{
-		_renderCache->PurgeResources();
-
-		return false;
 	}
 
 	void RenderContextVulkan::AddPreRenderPassImageTransitions()

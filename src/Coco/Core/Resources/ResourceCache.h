@@ -49,10 +49,23 @@ namespace Coco
 	private:
 		UnorderedMap<ResourceID, ResourceType> _resources;
 		uint64_t _resourceLifetimeTicks;
+		Ref<MainLoopTickListener> _purgeTickListener;
 
 	public:
-		ResourceCache(uint64_t resourceLifetimeTicks) : _resourceLifetimeTicks(resourceLifetimeTicks)
-		{}
+		ResourceCache(uint64_t resourceLifetimeTicks, double purgePeriod = ResourceLibrary::DefaultPurgePeriod) : 
+			_resourceLifetimeTicks(resourceLifetimeTicks)
+		{
+			_purgeTickListener = Engine::Get()->GetMainLoop()->CreateTickListener(this, &ResourceCache::PurgeTick, ResourceLibrary::PurgeTickPriority, purgePeriod);
+		}
+
+		~ResourceCache()
+		{
+			Engine::Get()->GetMainLoop()->RemoveTickListener(_purgeTickListener);
+		}
+
+		/// @brief Gets the logger for the resource library
+		/// @return This library's logger
+		Logging::Logger* GetLogger() noexcept { return Engine::Get()->GetLogger(); }
 
 		/// @brief Creates a resource
 		/// @tparam ...Args 
@@ -136,10 +149,19 @@ namespace Coco
 				}
 			}
 
+			if (purgeCount > 0)
+				LogTrace(GetLogger(), FormattedString("Cache for \"{}\" objects purged {} unused resources", typeid(ResourceType).name(), purgeCount));
+
 			return purgeCount;
 		}
 
 		Iterator begin() { return Iterator(_resources.begin()); }
 		Iterator end() { return Iterator(_resources.end()); }
+
+	private:
+		void PurgeTick(double deltaTime)
+		{
+			PurgeStaleResources();
+		}
 	};
 }
