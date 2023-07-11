@@ -85,7 +85,11 @@ namespace Coco
 
 	public:
 		ObjectQueryHandler(ObjectType* instance, ObjectHandlerFunctionType function) :
-			QueryHandler<ReturnType, Args...>(std::bind(function, instance)), _instance(instance), _function(function)
+			QueryHandler<ReturnType, Args...>([&](Args&& ... args) {
+				return (_instance->*_function)(std::forward<Args>(args)...);
+				}),
+			_instance(instance), 
+			_function(function)
 		{}
 
 		/// @brief Determines if this handler references the same instance and member function as the given pair
