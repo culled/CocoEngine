@@ -3,7 +3,6 @@
 #include <Coco/ECS/Components/TransformComponent.h>
 #include <Coco/ECS/Components/MeshRendererComponent.h>
 #include <Coco/Core/Engine.h>
-#include <Coco/Core/Resources/ResourceLibrary.h>
 #include <Coco/Rendering/MeshPrimitives.h>
 #include <Coco/Input/InputService.h>
 #include "../App.h"
@@ -15,24 +14,35 @@ Player::Player(EntityID owner) : ScriptComponent(owner)
 	transform.SetGlobalPosition(Vector3(0.0, _positionY, 0.0));
 
 	ResourceLibrary* library = Engine::Get()->GetResourceLibrary();
+	App* app = App::Get();
 
 	_material = library->CreateResource<Material>("Material::Player", App::Get()->GetBasicShader());
-	_material->SetVector4("_BaseColor", _playerColor);
-	_material->SetTexture("_MainTex", App::Get()->GetRenderingService()->GetDefaultDiffuseTexture());
+	_material->SetVector4("_BaseColor", _color);
+	_material->SetTexture("_MainTex", app->GetRenderingService()->GetDefaultDiffuseTexture());
 
-	//_mesh = MeshPrimitives::CreateFromVertices(vertexPositions, vertexUVs, vertexIndices);
 	_mesh = MeshPrimitives::CreateXYPlane("Player Mesh", _size);
-	//_mesh = MeshPrimitives::CreateBox(Vector3::One);
 	_mesh->UploadData();
 
 	ecs->AddComponent<MeshRendererComponent>(owner, _mesh, _material);
+
+	app->OnStartPlaying.AddHandler(this, &Player::HandleGameStarted);
+	app->OnStopPlaying.AddHandler(this, &Player::HandleGameEnded);
 }
 
 Player::~Player()
 {
+	App* app = App::Get();
+	app->OnStartPlaying.RemoveHandler(this, &Player::HandleGameStarted);
+	app->OnStopPlaying.RemoveHandler(this, &Player::HandleGameEnded);
 }
 
 void Player::Tick(double deltaTime)
+{
+	if (_canMove)
+		Move(deltaTime);
+}
+
+void Player::Move(double deltaTime)
 {
 	using namespace Coco::Input;
 
@@ -66,4 +76,18 @@ void Player::Tick(double deltaTime)
 	}
 
 	transform.SetGlobalPosition(position);
+}
+
+bool Player::HandleGameStarted()
+{
+	_canMove = true;
+
+	return false;
+}
+
+bool Player::HandleGameEnded()
+{
+	_canMove = false;
+
+	return false;
 }

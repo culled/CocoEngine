@@ -8,11 +8,16 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Rendering/RenderingService.h>
 #include <Coco/Windowing/WindowingService.h>
+#include <Coco/Core/Events/Event.h>
 
 using namespace Coco;
 
 class App : public Application
 {
+public:
+	Event<> OnStartPlaying;
+	Event<> OnStopPlaying;
+
 private:
 	static App* _instance;
 
@@ -25,6 +30,7 @@ private:
 	Windowing::WindowingService* _windowingService;
 
 	ECS::EntityID _playerEntity;
+	ECS::EntityID _ballEntity;
 
 	Color _clearColor = Color(0.1, 0.15, 0.2);
 	double _cameraOrthoSize = 20.0;
@@ -34,6 +40,8 @@ private:
 
 	Size _arenaSize = Size(35.0, 18.0);
 	Vector3 _arenaOffset = Vector3(0.0, 1.0, 0.0);
+
+	bool _isPlaying = false;
 
 public:
 	App();
@@ -57,8 +65,12 @@ public:
 private:
 	void ConfigureRenderPipeline();
 	void CreateCamera();
-	void CreatePlayer();
+	void CreateUnits();
 	void CreateArena();
 
+	void StartGame();
+
 	void RenderTick(double deltaTime);
+
+	bool HandleKeyPressed(Input::KeyboardKey key);
 };

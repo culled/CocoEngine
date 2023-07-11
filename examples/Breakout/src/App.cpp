@@ -7,7 +7,9 @@
 #include <Coco/ECS/Components/CameraComponent.h>
 #include <Coco/ECS/Components/TransformComponent.h>
 #include <Coco/ECS/Components/MeshRendererComponent.h>
+
 #include "Units/Player.h"
+#include "Units/Ball.h"
 
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 #include "Rendering/OpaqueRenderPass.h"
@@ -44,6 +46,9 @@ App::App() : Application("Breakout"),
 
 App::~App()
 {
+	_ecsService->DestroyEntity(_playerEntity);
+	_ecsService->DestroyEntity(_ballEntity);
+
 	LogTrace(_logger, "App shutdown");
 }
 
@@ -55,8 +60,10 @@ void App::Start()
 	window->Show();
 
 	CreateCamera();
-	CreatePlayer();
+	CreateUnits();
 	CreateArena();
+
+	Input::InputService::Get()->GetKeyboard()->OnKeyPressedEvent.AddHandler(this, &App::HandleKeyPressed);
 }
 
 void App::ConfigureRenderPipeline()
@@ -115,10 +122,13 @@ void App::CreateCamera()
 	camera.SetOrthographicProjection(_cameraOrthoSize, 1.0, 1.0, 30.0);
 }
 
-void App::CreatePlayer()
+void App::CreateUnits()
 {
 	_playerEntity = _ecsService->CreateEntity("Player");
 	_ecsService->AddComponent<Player>(_playerEntity);
+
+	_ballEntity = _ecsService->CreateEntity("Ball");
+	_ecsService->AddComponent<Ball>(_ballEntity);
 }
 
 void App::CreateArena()
@@ -145,7 +155,23 @@ void App::CreateArena()
 	_ecsService->AddComponent<MeshRendererComponent>(ceiling, ceilingMesh, _wallMaterial);
 }
 
+void App::StartGame()
+{
+	OnStartPlaying.Invoke();
+}
+
 void App::RenderTick(double deltaTime)
 {
 	_renderingService->Render(_windowingService->GetMainWindow()->GetPresenter(), _ecsService->GetComponent<CameraComponent>(_cameraEntity), *_ecsService->GetRootScene());
+}
+
+bool App::HandleKeyPressed(Input::KeyboardKey key)
+{
+	if (!_isPlaying && key == Input::KeyboardKey::Space)
+	{
+		StartGame();
+		return true;
+	}
+
+	return false;
 }

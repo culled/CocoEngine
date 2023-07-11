@@ -11,33 +11,28 @@ using namespace Coco;
 using namespace Coco::ECS;
 using namespace Coco::Rendering;
 
-class Player : public ScriptComponent
+class Ball : public ScriptComponent
 {
 private:
-	bool _canMove = false;
-	Size _size = Size(4, 0.5);
+	Size _size = Size(0.5, 0.5);
+	double _moveSpeed = 5.0;
 
-	double _moveSpeed = 50.0;
-	double _moveAcceleration = 240.0;
-	double _currentVelocity = 0.0;
-	double _maxPositionX = 15.0;
-	double _positionY = -8.0;
+	Vector3 _startPosition = Vector3(0.0, -7.0, 0.0);
+	Vector3 _velocity = Vector3::Zero;
 
-	Color _color = Color::White;
+	Color _color = Color::Magenta;
 
 	Ref<Mesh> _mesh;
 	Ref<Material> _material;
 
 public:
-	Player(EntityID owner);
-	~Player() final;
+	Ball(EntityID owner);
+	~Ball() final;
 
 protected:
 	void Tick(double deltaTime) override;
 
 private:
-	void Move(double deltaTime);
-
 	bool HandleGameStarted();
 	bool HandleGameEnded();
 };
