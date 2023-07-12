@@ -62,18 +62,19 @@ namespace Coco
 	{
 		Matrix4x4 ortho = Identity;
 
-		const double rl = 1.0 / (right - left);
-		const double tb = 1.0 / (top - bottom);
-		const double fn = 1.0 / (farClip - nearClip);
+		const double w = 2.0 / (right - left);
+		const double h = 2.0 / (top - bottom);
+		const double a = 1.0 / (farClip - nearClip);
+		const double b = -a * nearClip;
 
 		// This creates an orthographic matrix for Vulkan/DirectX with the directions: right = X, up = -Y, forward = Z
-		ortho.Data[m11] = 2.0 * rl;
-		ortho.Data[m22] = 2.0 * tb;
-		ortho.Data[m33] = -2.0 * fn;
+		ortho.Data[m11] = w;
+		ortho.Data[m22] = h;
+		ortho.Data[m33] = a;
 
-		ortho.Data[m14] = -(right + left) * rl;
-		ortho.Data[m24] = -(top + bottom) * tb;
-		ortho.Data[m34] = (farClip + nearClip) * fn;
+		ortho.Data[m14] = -(right + left) / (right - left);
+		ortho.Data[m24] = -(top + bottom) / (top - bottom);
+		ortho.Data[m34] = b;
 
 		// TODO: how to handle OpenGL's flipped Y axis?
 		return CocoViewToRenderView * ortho;
@@ -91,17 +92,19 @@ namespace Coco
 	{
 		Matrix4x4 perspective;
 
-		const double oneOverHalfTanFOV = 1.0 / Math::Tan(fieldOfViewRadians * 0.5);
+		const double h = 1.0 / Math::Tan(fieldOfViewRadians * 0.5);
+		const double w = h / aspectRatio;
+		const double a = farClip / (farClip - nearClip);
+		const double b = (-nearClip * farClip) / (farClip - nearClip);
 
 		// This creates a projection matrix for Vulkan/DirectX with the directions: right = X, up = -Y, forward = Z
-		perspective.Data[m11] = oneOverHalfTanFOV / aspectRatio;
-		perspective.Data[m22] = oneOverHalfTanFOV;
-		
-		perspective.Data[m33] = (farClip + nearClip) / (farClip - nearClip);
-		perspective.Data[m34] = -2.0 * farClip * nearClip / (farClip - nearClip);
-		
-		perspective.Data[m43] = 1.0;
+		perspective.Data[m11] = w;
+		perspective.Data[m22] = h;		
+		perspective.Data[m33] = a;
 		perspective.Data[m44] = 0.0;
+
+		perspective.Data[m34] = b;		
+		perspective.Data[m43] = 1.0;
 
 		// TODO: how to handle OpenGL's flipped Y axis?
 		return CocoViewToRenderView * perspective;

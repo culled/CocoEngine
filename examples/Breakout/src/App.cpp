@@ -82,7 +82,6 @@ void App::ConfigureRenderPipeline()
 	_basicShader = library->CreateResource<Shader>("Basic Shader");
 
 	auto pipelineState = GraphicsPipelineState();
-	pipelineState.CullingMode = CullMode::None;
 
 	_basicShader->CreateSubshader(
 		"main",
