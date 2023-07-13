@@ -33,6 +33,9 @@ namespace Coco::Rendering::Vulkan
         Ref<Buffer> CreateBuffer(const string& name, uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;
         Ref<Image> CreateImage(const string& name, const ImageDescription& description) final;
         Ref<ImageSampler> CreateImageSampler(const string& name, const ImageSamplerProperties& properties) final;
+        Matrix4x4 CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip) noexcept final;
+        Matrix4x4 CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) noexcept final;
+        Matrix4x4 CreatePerspectiveProjection(double fieldOfViewRadians, double aspectRatio, double nearClip, double farClip) noexcept final;
 
         /// @brief Gets the Vulkan instance
         /// @return The Vulkan instance

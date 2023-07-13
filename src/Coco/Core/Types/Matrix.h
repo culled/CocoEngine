@@ -80,32 +80,6 @@ namespace Coco
 		Matrix4x4& operator=(const Matrix4x4& other) noexcept;
 		Matrix4x4& operator=(Matrix4x4&& other) noexcept;
 
-		/// @brief Creates an orthographic projection matrix
-		/// @param left The left side of the view frustrum
-		/// @param right The right side of the view frustrum
-		/// @param top The top side of the view frustrum
-		/// @param bottom The bottom side of the view frustrum
-		/// @param nearClip The distance to the near clipping plane
-		/// @param farClip The distance to the far clipping plane
-		/// @return An orthographic projection matrix
-		static Matrix4x4 CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip) noexcept;
-
-		/// @brief Creates an orthographic projection matrix
-		/// @param size The vertical size of the view frustrum
-		/// @param aspectRatio The aspect ratio
-		/// @param nearClip The distance to the near clipping plane
-		/// @param farClip The distance to the far clipping plane
-		/// @return An orthographic projection matrix
-		static Matrix4x4 CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) noexcept;
-
-		/// @brief Creates a perspective matrix
-		/// @param fieldOfViewRadians The vertical field of view (in radians)
-		/// @param aspectRatio The aspect ratio
-		/// @param nearClip The distance to the near clipping plane
-		/// @param farClip The distance to the far clipping plane
-		/// @return A perspective projection matrix
-		static Matrix4x4 CreatePerspectiveProjection(double fieldOfViewRadians, double aspectRatio, double nearClip, double farClip) noexcept;
-
 		/// @brief Creates a view matrix that looks from an eye position at a target position
 		/// @param eyePosition The eye position
 		/// @param targetPosition The position to look at

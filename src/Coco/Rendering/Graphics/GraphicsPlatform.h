@@ -31,6 +31,9 @@ namespace Coco::Rendering
 	class COCOAPI GraphicsPlatform
 	{
 	public:
+		/// @brief Transforms Coco view space (forward on Y, up on Z, right on X) to Vulkan/DirectX view space (forward on Z, up on -Y, right on X)
+		static const Matrix4x4 CocoViewToRenderView;
+
 		/// @brief If true, this platform supports presenting images to windows
 		const bool SupportsPresentation;
 
@@ -94,5 +97,31 @@ namespace Coco::Rendering
 		/// @param resource The resource to purge
 		/// @param forcePurge If true, the resource will be destroyed regardless of how many users are using it
 		virtual void PurgeResource(const Ref<Resource>& resource, bool forcePurge = false);
+
+		/// @brief Creates an orthographic projection matrix
+		/// @param left The left side of the view frustrum
+		/// @param right The right side of the view frustrum
+		/// @param top The top side of the view frustrum
+		/// @param bottom The bottom side of the view frustrum
+		/// @param nearClip The distance to the near clipping plane
+		/// @param farClip The distance to the far clipping plane
+		/// @return An orthographic projection matrix
+		virtual Matrix4x4 CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip) noexcept = 0;
+
+		/// @brief Creates an orthographic projection matrix
+		/// @param size The vertical size of the view frustrum
+		/// @param aspectRatio The aspect ratio
+		/// @param nearClip The distance to the near clipping plane
+		/// @param farClip The distance to the far clipping plane
+		/// @return An orthographic projection matrix
+		virtual Matrix4x4 CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) noexcept = 0;
+
+		/// @brief Creates a perspective matrix
+		/// @param fieldOfViewRadians The vertical field of view (in radians)
+		/// @param aspectRatio The aspect ratio
+		/// @param nearClip The distance to the near clipping plane
+		/// @param farClip The distance to the far clipping plane
+		/// @return A perspective projection matrix
+		virtual Matrix4x4 CreatePerspectiveProjection(double fieldOfViewRadians, double aspectRatio, double nearClip, double farClip) noexcept = 0;
 	};
 }

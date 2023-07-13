@@ -178,6 +178,56 @@ namespace Coco::Rendering::Vulkan
 		return _device->CreateResource<ImageSamplerVulkan>(name, properties);
 	}
 
+	Matrix4x4 GraphicsPlatformVulkan::CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip) noexcept
+	{
+		Matrix4x4 ortho = Matrix4x4::Identity;
+
+		const double w = 2.0 / (right - left);
+		const double h = 2.0 / (top - bottom);
+		const double a = 1.0 / (farClip - nearClip);
+		const double b = -a * nearClip;
+
+		// This creates an orthographic matrix for Vulkan/DirectX with the directions: right = X, up = -Y, forward = Z
+		ortho.Data[Matrix4x4::m11] = w;
+		ortho.Data[Matrix4x4::m22] = h;
+		ortho.Data[Matrix4x4::m33] = a;
+
+		ortho.Data[Matrix4x4::m14] = -(right + left) / (right - left);
+		ortho.Data[Matrix4x4::m24] = -(top + bottom) / (top - bottom);
+		ortho.Data[Matrix4x4::m34] = b;
+
+		return GraphicsPlatform::CocoViewToRenderView * ortho;
+	}
+
+	Matrix4x4 GraphicsPlatformVulkan::CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) noexcept
+	{
+		const double halfHeight = size * 0.5;
+		const double halfWidth = halfHeight * aspectRatio;
+
+		return CreateOrthographicProjection(-halfWidth, halfWidth, halfHeight, -halfHeight, nearClip, farClip);
+	}
+
+	Matrix4x4 GraphicsPlatformVulkan::CreatePerspectiveProjection(double fieldOfViewRadians, double aspectRatio, double nearClip, double farClip) noexcept
+	{
+		Matrix4x4 perspective;
+
+		const double h = 1.0 / Math::Tan(fieldOfViewRadians * 0.5);
+		const double w = h / aspectRatio;
+		const double a = farClip / (farClip - nearClip);
+		const double b = (-nearClip * farClip) / (farClip - nearClip);
+
+		// This creates a projection matrix for Vulkan/DirectX with the directions: right = X, up = -Y, forward = Z
+		perspective.Data[Matrix4x4::m11] = w;
+		perspective.Data[Matrix4x4::m22] = h;
+		perspective.Data[Matrix4x4::m33] = a;
+		perspective.Data[Matrix4x4::m44] = 0.0;
+
+		perspective.Data[Matrix4x4::m34] = b;
+		perspective.Data[Matrix4x4::m43] = 1.0;
+
+		return GraphicsPlatform::CocoViewToRenderView * perspective;
+	}
+
 	bool GraphicsPlatformVulkan::CheckValidationLayersSupport() noexcept
 	{
 		try

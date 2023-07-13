@@ -9,6 +9,12 @@
 
 namespace Coco::Rendering
 {
+	const Matrix4x4 GraphicsPlatform::CocoViewToRenderView({
+			1.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, -1.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 1.0 });
+
 	GraphicsPlatform::GraphicsPlatform( const GraphicsPlatformCreationParameters& creationParams) noexcept :
 		SupportsPresentation(creationParams.DeviceCreateParams.SupportsPresentation)
 	{}

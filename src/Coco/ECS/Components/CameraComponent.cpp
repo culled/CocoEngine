@@ -227,7 +227,7 @@ namespace Coco::ECS
 		
 		if (_projectionType == ProjectionType::Perspective)
 		{
-			_projectionMatrix = Matrix4x4::CreatePerspectiveProjection(
+			_projectionMatrix = Rendering::RenderingService::Get()->GetPlatform()->CreatePerspectiveProjection(
 				Math::Deg2Rad(_perspectiveFieldOfView), 
 				_aspectRatio, 
 				_nearClipDistance, 
@@ -235,7 +235,7 @@ namespace Coco::ECS
 		}
 		else
 		{
-			_projectionMatrix = Matrix4x4::CreateOrthographicProjection(
+			_projectionMatrix = Rendering::RenderingService::Get()->GetPlatform()->CreateOrthographicProjection(
 				_orthographicSize, 
 				_aspectRatio, 
 				_nearClipDistance, 
