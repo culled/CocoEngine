@@ -14,7 +14,7 @@ namespace Coco::Rendering
 		RenderPass(renderPass), RenderPassIndex(renderPassIndex)
 	{}
 
-	RenderContext::RenderContext(ResourceID id, const string& name) : RenderingResource(id, name)
+	RenderContext::RenderContext(const ResourceID& id, const string& name) : RenderingResource(id, name)
 	{}
 
 	bool RenderContext::Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline)

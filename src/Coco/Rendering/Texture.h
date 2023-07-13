@@ -21,11 +21,11 @@ namespace Coco::Rendering
 
 	public:
 		Texture(
-			ResourceID id,
+			const ResourceID& id,
 			const string& name);
 
 		Texture(
-			ResourceID id,
+			const ResourceID& id,
 			const string& name,
 			int width, 
 			int height, 
@@ -36,14 +36,14 @@ namespace Coco::Rendering
 		);
 
 		Texture(
-			ResourceID id,
+			const ResourceID& id,
 			const string& name,
 			const ImageDescription& description,
 			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default
 		);
 
 		Texture(
-			ResourceID id,
+			const ResourceID& id,
 			const string& name,
 			const string& filePath,
 			ImageUsageFlags usageFlags,

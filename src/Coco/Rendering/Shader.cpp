@@ -2,7 +2,7 @@
 
 namespace Coco::Rendering
 {
-	Shader::Shader(ResourceID id, const string& name) : RenderingResource(id, name)
+	Shader::Shader(const ResourceID& id, const string& name) : RenderingResource(id, name)
 	{}
 
 	bool Shader::TryGetSubshader(const string& name, const Subshader*& subshader) const noexcept

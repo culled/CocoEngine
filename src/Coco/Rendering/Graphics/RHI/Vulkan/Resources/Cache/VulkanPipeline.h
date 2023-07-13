@@ -29,7 +29,7 @@ namespace Coco::Rendering::Vulkan
 
 	public:
 		VulkanPipeline(
-			ResourceID id,
+			const ResourceID& id,
 			const string& name,
 			const VulkanRenderPass& renderPass, 
 			const VulkanShader& shader,

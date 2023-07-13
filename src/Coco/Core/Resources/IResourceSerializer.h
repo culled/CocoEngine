@@ -34,7 +34,6 @@ namespace Coco
 		/// @brief Deserializes data into a resource
 		/// @param library The library of the resource
 		/// @param data The serialized data
-		/// @param resource The resource to deserialize into
-		virtual void Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource) = 0;
+		virtual ManagedRef<Resource> Deserialize(ResourceLibrary& library, const string& data) = 0;
 	};
 }

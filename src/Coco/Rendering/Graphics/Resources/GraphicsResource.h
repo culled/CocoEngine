@@ -34,7 +34,7 @@ namespace Coco::Rendering
 
 	public:
 		template<typename ... Args>
-		GraphicsResource(ResourceID id, const string& name, Args&& ... args) : 
+		GraphicsResource(const ResourceID& id, const string& name, Args&& ... args) : 
 			BaseClass(id, name, std::forward<Args>(args)...), 
 			_device(static_cast<DeviceType*>(RenderingService::Get()->GetPlatform()->GetDevice()))
 		{}

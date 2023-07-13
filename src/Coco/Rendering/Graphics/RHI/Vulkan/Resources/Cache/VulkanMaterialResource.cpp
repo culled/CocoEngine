@@ -2,7 +2,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanMaterialResource::VulkanMaterialResource(ResourceID id, const string& name, const MaterialRenderData& materialData) :
+	VulkanMaterialResource::VulkanMaterialResource(const ResourceID& id, const string& name, const MaterialRenderData& materialData) :
 		RenderingResource(id, name), CachedResource(materialData.ID, materialData.Version)
 	{
 	}

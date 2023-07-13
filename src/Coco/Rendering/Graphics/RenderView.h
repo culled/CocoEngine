@@ -33,7 +33,7 @@ namespace Coco::Rendering
 		/// @brief The subshaders that this shader uses
 		UnorderedMap<string, Subshader> Subshaders;
 
-		ShaderRenderData(ResourceID id, ResourceVersion version) : 
+		ShaderRenderData(const ResourceID& id, ResourceVersion version) : 
 			ID(id), Version(version)
 		{}
 	};
@@ -53,7 +53,7 @@ namespace Coco::Rendering
 		/// @brief The sampler that the texture uses
 		Ref<ImageSampler> Sampler;
 
-		TextureRenderData(ResourceID id, ResourceVersion version, const Ref<Rendering::Image>& image, const Ref<ImageSampler>& sampler) : 
+		TextureRenderData(const ResourceID& id, ResourceVersion version, const Ref<Rendering::Image>& image, const Ref<ImageSampler>& sampler) : 
 			ID(id), Version(version), Image(image), Sampler(sampler)
 		{}
 	};
@@ -79,7 +79,7 @@ namespace Coco::Rendering
 		/// @brief The textures that this material samples
 		UnorderedMap<string, ResourceID> Samplers;
 
-		MaterialRenderData(ResourceID id, ResourceVersion version, ResourceID shaderID, const List<uint8_t>& uniformData) : 
+		MaterialRenderData(const ResourceID& id, ResourceVersion version, const ResourceID& shaderID, const List<uint8_t>& uniformData) :
 			ID(id), Version(version), ShaderID(shaderID), UniformData(uniformData)
 		{}
 	};
@@ -106,7 +106,7 @@ namespace Coco::Rendering
 		uint64_t IndexCount;
 
 		MeshRenderData(
-			ResourceID id, 
+			const ResourceID& id, 
 			ResourceVersion version, 
 			const Ref<Buffer>& vertexBuffer, 
 			uint64_t vertexCount, 
@@ -128,7 +128,7 @@ namespace Coco::Rendering
 		/// @brief The model matrix for this object
 		Matrix4x4 ModelMatrix;
 
-		ObjectRenderData(ResourceID meshData, ResourceID materialData, const Matrix4x4& modelMatrix) :
+		ObjectRenderData(const ResourceID& meshData, const ResourceID& materialData, const Matrix4x4& modelMatrix) :
 			MeshData(meshData), MaterialData(materialData), ModelMatrix(modelMatrix)
 		{}
 	};

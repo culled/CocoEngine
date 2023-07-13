@@ -48,7 +48,7 @@ namespace Coco::Rendering::Vulkan
 		Ref<RenderPipeline> _pipeline;
 
 	public:
-		VulkanRenderPass(ResourceID id, const string& name, const Ref<RenderPipeline>& pipeline);
+		VulkanRenderPass(const ResourceID& id, const string& name, const Ref<RenderPipeline>& pipeline);
 		~VulkanRenderPass() final;
 
 		DefineResourceType(VulkanRenderPass)

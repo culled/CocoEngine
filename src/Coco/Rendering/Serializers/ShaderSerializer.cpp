@@ -1,6 +1,7 @@
 #include "ShaderSerializer.h"
 
 #include <sstream>
+#include <Coco/Core/Types/UUID.h>
 
 namespace Coco::Rendering
 {
@@ -68,8 +69,9 @@ namespace Coco::Rendering
 		}
 	}
 
-	void ShaderSerializer::Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource)
+	ManagedRef<Resource> ShaderSerializer::Deserialize(ResourceLibrary& library, const string& data)
 	{
+		string shaderID;
 		string shaderName;
 		List<Subshader> subshaders;
 
@@ -80,6 +82,8 @@ namespace Coco::Rendering
 		{
 			if (reader.IsKey("version") && reader.GetValue() != "1")
 				throw InvalidOperationException("Mismatching shader versions");
+			else if (reader.IsKey(s_shaderIDVariable))
+				shaderID = reader.GetValue();
 			else if (reader.IsKey(s_shaderNameVariable))
 				shaderName = reader.GetValue();
 			else if (reader.IsKey(s_subshaderSection))
@@ -89,11 +93,12 @@ namespace Coco::Rendering
 		if (subshaders.Count() == 0)
 			throw InvalidOperationException("Shader file did not have subshaders");
 
-		Shader* shader = static_cast<Shader*>(resource.Get());
-		shader->SetName(shaderName);
+		ManagedRef<Shader> shader = CreateManagedRef<Shader>(UUID(shaderID), shaderName);
 
 		for (const Subshader& subshader : subshaders)
 			shader->AddSubshader(subshader);
+
+		return std::move(shader);
 	}
 
 	void ShaderSerializer::ReadSubshaders(KeyValueReader& reader, List<Subshader>& subshaders)

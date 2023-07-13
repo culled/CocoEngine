@@ -7,7 +7,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	BufferVulkan::BufferVulkan(ResourceID id,
+	BufferVulkan::BufferVulkan(const ResourceID& id,
 		const string& name,
 		BufferUsageFlags usageFlags,
 		uint64_t size,

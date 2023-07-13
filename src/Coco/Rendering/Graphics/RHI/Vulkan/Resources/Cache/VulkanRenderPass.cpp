@@ -6,7 +6,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanRenderPass::VulkanRenderPass(ResourceID id, const string& name, const Ref<RenderPipeline>& pipeline) : 
+	VulkanRenderPass::VulkanRenderPass(const ResourceID& id, const string& name, const Ref<RenderPipeline>& pipeline) : 
 		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), CachedResource(pipeline->ID, pipeline->GetVersion()),
 		_pipeline(pipeline)
 	{}

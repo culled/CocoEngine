@@ -51,7 +51,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanRenderPass* VulkanRenderCache::GetOrCreateRenderPass(const Ref<RenderPipeline>& renderPipeline)
 	{
-		const ResourceID id = renderPipeline->ID;
+		const ResourceID& id = renderPipeline->ID;
 		VulkanRenderPass* resource;
 
 		if (!_renderPassCache->Has(id))
@@ -63,7 +63,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (resource->NeedsUpdate())
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan RenderPass for pipeline {}", renderPipeline->ID));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan RenderPass for pipeline {}", renderPipeline->ID.str()));
 
 			try
 			{
@@ -85,7 +85,7 @@ namespace Coco::Rendering::Vulkan
 		uint32_t subpassIndex,
 		const VkDescriptorSetLayout& globalDescriptorLayout)
 	{
-		const ResourceID id = VulkanPipeline::GetResourceID(renderPass, shader);
+		const ResourceID& id = VulkanPipeline::GetResourceID(renderPass, shader);
 		VulkanPipeline* resource;
 
 		if (!_pipelineCache->Has(id))
@@ -97,7 +97,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (resource->NeedsUpdate(renderPass, shader))
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subshader \"{}\" and render pass {}", subshaderName, renderPass.ID));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subshader \"{}\" and render pass {}", subshaderName, renderPass.ID.str()));
 
 			try
 			{
@@ -117,7 +117,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanShader* VulkanRenderCache::GetOrCreateVulkanShader(const ShaderRenderData& shaderData)
 	{
-		const ResourceID id = shaderData.ID;
+		const ResourceID& id = shaderData.ID;
 		VulkanShader* resource;
 
 		if (!_shaderCache->Has(id))
@@ -129,7 +129,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (resource->NeedsUpdate(shaderData))
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan shader for shader {}", shaderData.ID));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan shader for shader {}", shaderData.ID.str()));
 
 			try
 			{

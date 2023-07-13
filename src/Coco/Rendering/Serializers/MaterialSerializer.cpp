@@ -7,6 +7,7 @@
 #include "../Texture.h"
 #include "../RenderingService.h"
 #include <sstream>
+#include <Coco/Core/Types/UUID.h>
 
 namespace Coco::Rendering
 {
@@ -44,11 +45,12 @@ namespace Coco::Rendering
 		}
 	}
 
-	void MaterialSerializer::Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource)
+	ManagedRef<Resource> MaterialSerializer::Deserialize(ResourceLibrary& library, const string& data)
 	{
 		std::stringstream stream(data);
 		KeyValueReader reader(stream);
 
+		string id;
 		string name;
 		string shaderPath;
 		UnorderedMap<string, Vector4> vec4Properties;
@@ -58,6 +60,8 @@ namespace Coco::Rendering
 		{
 			if (reader.IsKey("version") && reader.GetValue() != "1")
 				throw InvalidOperationException("Mismatching material versions");
+			else if (reader.IsKey(s_materialIDVariable))
+				id = reader.GetValue();
 			else if (reader.IsKey(s_materialNameVariable))
 				name = reader.GetValue();
 			else if (reader.IsKey(s_materialShaderVariable))
@@ -66,11 +70,13 @@ namespace Coco::Rendering
 				ReadPropertiesSection(reader, vec4Properties, textureProperties);
 		}
 
+		ManagedRef<Material> material = CreateManagedRef<Material>(UUID(id), name);
+
 		// Can't set properties without a shader
 		if (shaderPath.empty())
 		{
 			LogWarning(library.GetLogger(), "Material did not have a shader file");
-			return;
+			return std::move(material);
 		}
 
 		Ref<Shader> shader = library.Load<Shader>(shaderPath);
@@ -78,10 +84,8 @@ namespace Coco::Rendering
 		if (!shader.IsValid())
 		{
 			LogWarning(library.GetLogger(), FormattedString("Could not load shader at \"{}\"", shaderPath));
-			return;
+			return std::move(material);
 		}
-
-		Material* material = static_cast<Material*>(resource.Get());
 
 		material->SetShader(shader);
 
@@ -93,6 +97,8 @@ namespace Coco::Rendering
 			Ref<Texture> texture = library.Load<Texture>(textureProp.second);
 			material->SetTexture(textureProp.first, texture);
 		}
+
+		return std::move(material);
 	}
 
 	void MaterialSerializer::ReadPropertiesSection(

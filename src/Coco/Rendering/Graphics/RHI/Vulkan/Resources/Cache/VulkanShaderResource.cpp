@@ -6,7 +6,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-    VulkanShaderResource::VulkanShaderResource(ResourceID id, const string& name, const VulkanShader& shader) :
+    VulkanShaderResource::VulkanShaderResource(const ResourceID& id, const string& name, const VulkanShader& shader) :
         GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), 
 		CachedResource(shader.ID, shader.GetVersion())
     {}

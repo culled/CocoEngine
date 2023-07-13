@@ -33,7 +33,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanShaderResource* RenderContextVulkanCache::GetOrCreateShaderResource(const VulkanShader& shader)
 	{
-		const ResourceID id = shader.ID;
+		const ResourceID& id = shader.ID;
 		VulkanShaderResource* resource;
 
 		if (!_shaderCache->Has(id))
@@ -51,7 +51,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanMaterialResource* RenderContextVulkanCache::GetOrCreateMaterialResource(const MaterialRenderData& materialData)
 	{
-		const ResourceID id = materialData.ID;
+		const ResourceID& id = materialData.ID;
 
 		VulkanMaterialResource* resource;
 
@@ -93,7 +93,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanFramebuffer* RenderContextVulkanCache::GetOrCreateFramebuffer(const Ref<RenderView>& renderView, VulkanRenderPass& renderPass, Ref<RenderPipeline> pipeline)
 	{
-		const ResourceID id = pipeline->ID;
+		const ResourceID& id = pipeline->ID;
 		VulkanFramebuffer* resource;
 
 		if (!_framebufferCache->Has(id))

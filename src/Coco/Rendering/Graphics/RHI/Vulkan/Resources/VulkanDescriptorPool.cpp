@@ -7,7 +7,7 @@
 namespace Coco::Rendering::Vulkan
 {
 	VulkanDescriptorPool::VulkanDescriptorPool(
-		ResourceID id,
+		const ResourceID& id,
 		const string& name,
 		uint maxSets,
 		const List<VulkanDescriptorLayout>& descriptorSetLayouts) : 

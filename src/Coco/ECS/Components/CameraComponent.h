@@ -30,7 +30,7 @@ namespace Coco::ECS
 		Ref<Rendering::RenderPipeline> Pipeline;
 		UnorderedMap<int, Ref<Rendering::Image>> Images;
 
-		PipelineImageCache(ResourceID id, const string& name, const Ref<Rendering::RenderPipeline>& pipeline);
+		PipelineImageCache(const ResourceID& id, const string& name, const Ref<Rendering::RenderPipeline>& pipeline);
 		~PipelineImageCache() final = default;
 
 		DefineResourceType(PipelineImageCache)

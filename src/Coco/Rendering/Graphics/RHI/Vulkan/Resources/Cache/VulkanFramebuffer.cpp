@@ -7,7 +7,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanFramebuffer::VulkanFramebuffer(ResourceID id, const string& name, const Ref<RenderPipeline>& pipeline) :
+	VulkanFramebuffer::VulkanFramebuffer(const ResourceID& id, const string& name, const Ref<RenderPipeline>& pipeline) :
 		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), CachedResource(pipeline->ID, pipeline->GetVersion()),
 		_pipeline(pipeline)
 	{}

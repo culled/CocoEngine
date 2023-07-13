@@ -16,6 +16,7 @@ namespace Coco::Rendering
 	class MaterialSerializer final : public KeyValueResourceSerializer
 	{
 	private:
+		static constexpr const char* s_materialIDVariable = "id";
 		static constexpr const char* s_materialNameVariable = "name";
 		static constexpr const char* s_materialShaderVariable = "shader";
 		static constexpr const char* s_propertiesSection = "properties";
@@ -29,7 +30,7 @@ namespace Coco::Rendering
 		DefineSerializerResourceType(Material)
 
 		string Serialize(ResourceLibrary& library, const Ref<Resource>& resource) final;
-		void Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource) final;
+		ManagedRef<Resource> Deserialize(ResourceLibrary& library, const string& data) final;
 
 	private:
 		/// @brief Reads the properties section for a material

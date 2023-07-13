@@ -5,7 +5,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	ImageSamplerVulkan::ImageSamplerVulkan(ResourceID id, const string& name, const ImageSamplerProperties& properties) :
+	ImageSamplerVulkan::ImageSamplerVulkan(const ResourceID& id, const string& name, const ImageSamplerProperties& properties) :
 		GraphicsResource<GraphicsDeviceVulkan, ImageSampler>(id, name, properties)
 	{
 		VkSamplerCreateInfo createInfo = {};

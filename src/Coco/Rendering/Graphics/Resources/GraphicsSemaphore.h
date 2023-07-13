@@ -8,7 +8,7 @@ namespace Coco::Rendering
 	class COCOAPI GraphicsSemaphore : public RenderingResource
 	{
 	public:
-		GraphicsSemaphore(ResourceID id, const string& name) : RenderingResource(id, name) {}
+		GraphicsSemaphore(const ResourceID& id, const string& name) : RenderingResource(id, name) {}
 		virtual ~GraphicsSemaphore() = default;
 
 		GraphicsSemaphore(const GraphicsSemaphore&) = delete;

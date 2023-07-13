@@ -89,7 +89,7 @@ namespace Coco::Rendering::Vulkan
 		UnorderedMap<string, VulkanSubshader> _subshaders;
 
 	public:
-		VulkanShader(ResourceID id, const string& name, const ShaderRenderData& shaderData);
+		VulkanShader(const ResourceID& id, const string& name, const ShaderRenderData& shaderData);
 
 		DefineResourceType(VulkanShader)
 

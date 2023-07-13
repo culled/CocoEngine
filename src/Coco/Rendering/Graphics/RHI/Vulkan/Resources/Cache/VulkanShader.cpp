@@ -132,7 +132,7 @@ namespace Coco::Rendering::Vulkan
 		return shaderStage;
 	}
 
-	VulkanShader::VulkanShader(ResourceID id, const string& name, const ShaderRenderData& shaderData) :
+	VulkanShader::VulkanShader(const ResourceID& id, const string& name, const ShaderRenderData& shaderData) :
 		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), 
 		CachedResource(shaderData.ID, shaderData.Version)
 	{}

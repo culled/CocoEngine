@@ -8,12 +8,12 @@
 
 namespace Coco::Rendering
 {
-	Texture::Texture(ResourceID id, const string& name) : RenderingResource(id, name), 
+	Texture::Texture(const ResourceID& id, const string& name) : RenderingResource(id, name), 
 		_usageFlags(ImageUsageFlags::None)
 	{}
 
 	Texture::Texture(
-		ResourceID id,
+		const ResourceID& id,
 		const string& name,
 		int width,
 		int height,
@@ -30,7 +30,7 @@ namespace Coco::Rendering
 	}
 
 	Texture::Texture(
-		ResourceID id,
+		const ResourceID& id,
 		const string& name,
 		const ImageDescription& description, 
 		const ImageSamplerProperties& samplerProperties
@@ -43,7 +43,7 @@ namespace Coco::Rendering
 	}
 
 	Texture::Texture(
-		ResourceID id,
+		const ResourceID& id,
 		const string& name,
 		const string& filePath, 
 		ImageUsageFlags usageFlags, 

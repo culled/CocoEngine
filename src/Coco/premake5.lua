@@ -23,6 +23,7 @@ project "Coco"
     {
         "%{IncludeDir.Coco}",
         "%{IncludeDir.stb}",
+        "%{IncludeDir.uuid_v4}",
     }
 
     links

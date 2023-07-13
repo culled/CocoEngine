@@ -16,7 +16,7 @@ namespace Coco::Rendering::Vulkan
 		VkSemaphore _semaphore = nullptr;
 
 	public:
-		GraphicsSemaphoreVulkan(ResourceID id, const string& name);
+		GraphicsSemaphoreVulkan(const ResourceID& id, const string& name);
 		~GraphicsSemaphoreVulkan() final;
 
 		DefineResourceType(GraphicsSemaphoreVulkan)

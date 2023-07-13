@@ -49,7 +49,7 @@ namespace Coco::Rendering::Vulkan
 		uint _currentFrame = 0;
 
 	public:
-		GraphicsPresenterVulkan(ResourceID id, const string& name);
+		GraphicsPresenterVulkan(const ResourceID& id, const string& name);
 		~GraphicsPresenterVulkan() final;
 
 		DefineResourceType(GraphicsPresenterVulkan)

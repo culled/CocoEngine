@@ -3,7 +3,7 @@
 namespace Coco::Rendering
 {
 	ImageSampler::ImageSampler(
-		ResourceID id, 
+		const ResourceID& id, 
 		const string& name, 
 		const ImageSamplerProperties& properties
 	) noexcept : 

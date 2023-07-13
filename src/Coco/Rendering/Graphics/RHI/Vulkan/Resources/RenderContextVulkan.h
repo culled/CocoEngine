@@ -68,14 +68,14 @@ namespace Coco::Rendering::Vulkan
 		int _backbufferIndex = -1;
 
 	public:
-		RenderContextVulkan(ResourceID id, const string& name);
+		RenderContextVulkan(const ResourceID& id, const string& name);
 		~RenderContextVulkan() final;
 
 		DefineResourceType(RenderContextVulkan)
 
 		void SetViewport(const RectInt& rect) final;
-		void UseShader(ResourceID shaderID) final;
-		void UseMaterial(ResourceID materialID) final;
+		void UseShader(const ResourceID& shaderID) final;
+		void UseMaterial(const ResourceID& materialID) final;
 		void Draw(const ObjectRenderData& objectData) final;
 		bool IsAvaliableForRendering() noexcept final { return _renderingCompleteFence->IsSignalled(); }
 		void WaitForRenderingCompleted() final;
@@ -114,7 +114,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param materialID The ID of the material to use
 		/// @param set Will be filled out with the descriptor set
 		/// @return True if the descriptor set was created
-		bool GetOrAllocateMaterialDescriptorSet(const VulkanShader& shader, const string& passName, ResourceID materialID, VkDescriptorSet& set);
+		bool GetOrAllocateMaterialDescriptorSet(const VulkanShader& shader, const string& passName, const ResourceID& materialID, VkDescriptorSet& set);
 
 		/// @brief Adds any necessary pre-render pass image transitions to the render targets
 		void AddPreRenderPassImageTransitions();

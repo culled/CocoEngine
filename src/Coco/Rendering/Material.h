@@ -39,8 +39,8 @@ namespace Coco::Rendering
 		bool _isBufferDataDirty = true;
 
 	public:
-		Material(ResourceID id, const string& name);
-		Material(ResourceID id, const string& name, Ref<Shader> shader);
+		Material(const ResourceID& id, const string& name);
+		Material(const ResourceID& id, const string& name, Ref<Shader> shader);
 		~Material() override;
 
 		DefineResourceType(Material)

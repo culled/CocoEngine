@@ -3,6 +3,7 @@
 #include <Coco/Core/IO/File.h>
 #include <Coco/Core/Resources/ResourceLibrary.h>
 #include <Coco/Core/Logging/Logger.h>
+#include <Coco/Core/Types/UUID.h>
 
 #include <sstream>
 
@@ -34,7 +35,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void TextureSerializer::Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource)
+	ManagedRef<Resource> TextureSerializer::Deserialize(ResourceLibrary& library, const string& data)
 	{
 		ImageUsageFlags usageFlags = ImageUsageFlags::TransferSource | ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled;
 		ImageFilterMode filterMode = ImageFilterMode::Linear;
@@ -43,6 +44,7 @@ namespace Coco::Rendering
 		int channelCount = 4;
 		string imageFilePath;
 		string name;
+		string id;
 
 		std::stringstream stream(data);
 		KeyValueReader reader(stream);
@@ -50,6 +52,8 @@ namespace Coco::Rendering
 		{
 			if (reader.IsKey("version") && reader.GetValue() != "1")
 				throw InvalidOperationException("Mismatching texture versions");
+			else if (reader.IsKey(s_idVariable))
+				id = reader.GetValue();
 			else if (reader.IsKey(s_nameVariable))
 				name = reader.GetValue();
 			else if (reader.IsKey(s_imageFileVariable))
@@ -69,11 +73,12 @@ namespace Coco::Rendering
 		if (imageFilePath.empty())
 			LogWarning(library.GetLogger(), "Texture did not have a valid image file");
 
-		Texture* texture = static_cast<Texture*>(resource.Get());
+		ManagedRef<Texture> texture = CreateManagedRef<Texture>(UUID(id), name);
 
-		texture->SetName(name);
 		texture->_usageFlags = usageFlags;
 		texture->SetSamplerProperties(ImageSamplerProperties(filterMode, repeatMode, maxAnisotropy));
 		texture->LoadFromFile(library.GetFullFilePath(imageFilePath), channelCount);
+
+		return std::move(texture);
 	}
 }

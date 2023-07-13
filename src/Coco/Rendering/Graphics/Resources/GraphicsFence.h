@@ -8,7 +8,7 @@ namespace Coco::Rendering
 	class COCOAPI GraphicsFence : public RenderingResource
 	{
 	public:
-		GraphicsFence(ResourceID id, const string& name) : RenderingResource(id, name) {}
+		GraphicsFence(const ResourceID& id, const string& name) : RenderingResource(id, name) {}
 		virtual ~GraphicsFence() = default;
 
 		GraphicsFence(const GraphicsFence&) = delete;

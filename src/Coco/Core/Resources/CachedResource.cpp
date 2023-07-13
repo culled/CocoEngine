@@ -2,7 +2,7 @@
 
 namespace Coco
 {
-	CachedResource::CachedResource(ResourceID referenceID, ResourceVersion referenceVersion) : 
+	CachedResource::CachedResource(const ResourceID& referenceID, ResourceVersion referenceVersion) : 
 		ReferenceID(referenceID),
 		_referenceVersion(referenceVersion)
 	{}

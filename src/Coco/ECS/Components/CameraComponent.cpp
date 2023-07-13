@@ -8,7 +8,7 @@
 
 namespace Coco::ECS
 {
-	PipelineImageCache::PipelineImageCache(ResourceID id, const string& name, const Ref<Rendering::RenderPipeline>& pipeline) :
+	PipelineImageCache::PipelineImageCache(const ResourceID& id, const string& name, const Ref<Rendering::RenderPipeline>& pipeline) :
 		Resource(id, name),
 		Pipeline(pipeline), _pipelineVersion(pipeline->GetVersion())
 	{}
@@ -118,7 +118,7 @@ namespace Coco::ECS
 	{
 		const List<Rendering::RenderPipelineAttachmentDescription>& attachments = pipeline->GetPipelineAttachmentDescriptions();
 
-		const ResourceID id = pipeline->ID;
+		const ResourceID& id = pipeline->ID;
 		PipelineImageCache* resource;
 
 		// Get the cached images for this pipeline

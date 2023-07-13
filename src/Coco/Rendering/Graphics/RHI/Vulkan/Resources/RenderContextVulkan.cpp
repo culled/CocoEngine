@@ -27,7 +27,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	RenderContextVulkan::RenderContextVulkan(ResourceID id, const string& name) :
+	RenderContextVulkan::RenderContextVulkan(const ResourceID& id, const string& name) :
 		GraphicsResource<GraphicsDeviceVulkan, RenderContext>(id, name), 
 		_currentState(RenderContextState::Ready)
 	{
@@ -92,7 +92,7 @@ namespace Coco::Rendering::Vulkan
 		vkCmdSetScissor(_commandBuffer->GetCmdBuffer(), 0, 1, &scissor);
 	}
 
-	void RenderContextVulkan::UseShader(ResourceID shaderID)
+	void RenderContextVulkan::UseShader(const ResourceID& shaderID)
 	{
 		// No need to change if the same shader is used
 		if (_currentShader == shaderID)
@@ -106,7 +106,7 @@ namespace Coco::Rendering::Vulkan
 		_currentMaterial = Resource::InvalidID;
 	}
 
-	void RenderContextVulkan::UseMaterial(ResourceID materialID)
+	void RenderContextVulkan::UseMaterial(const ResourceID& materialID)
 	{
 		// No need to change if the same material is used
 		if (_currentMaterial == materialID)
@@ -421,7 +421,7 @@ namespace Coco::Rendering::Vulkan
 		vkUpdateDescriptorSets(_device->GetDevice(), 1, &descriptorWrite, 0, nullptr);
 	}
 
-	bool RenderContextVulkan::GetOrAllocateMaterialDescriptorSet(const VulkanShader& shader, const string& passName, ResourceID materialID, VkDescriptorSet& set)
+	bool RenderContextVulkan::GetOrAllocateMaterialDescriptorSet(const VulkanShader& shader, const string& passName, const ResourceID& materialID, VkDescriptorSet& set)
 	{
 		// Use the cached descriptor set if it exists
 		if (_materialDescriptorSets.contains(materialID))
@@ -441,7 +441,7 @@ namespace Coco::Rendering::Vulkan
 		VulkanShaderResource* shaderResource = _renderCache->GetOrCreateShaderResource(shader);
 
 		// Allocate this material's descriptor set
-		set = shaderResource->GetPool()->GetOrAllocateSet(subshader.GetDescriptorLayout(), materialID);
+		set = shaderResource->GetPool()->GetOrAllocateSet(subshader.GetDescriptorLayout(), materialID.hash());
 		_materialDescriptorSets[materialID] = set;
 
 		const MaterialRenderData& materialData = _currentRenderView->Materials.at(materialID);

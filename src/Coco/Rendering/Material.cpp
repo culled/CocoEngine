@@ -6,10 +6,10 @@
 
 namespace Coco::Rendering
 {
-	Material::Material(ResourceID id, const string& name) : RenderingResource(id, name)
+	Material::Material(const ResourceID& id, const string& name) : RenderingResource(id, name)
 	{}
 
-	Material::Material(ResourceID id, const string& name, Ref<Shader> shader) : RenderingResource(id, name),
+	Material::Material(const ResourceID& id, const string& name, Ref<Shader> shader) : RenderingResource(id, name),
 		_shader(shader)
 	{
 		UpdatePropertyMaps(true);

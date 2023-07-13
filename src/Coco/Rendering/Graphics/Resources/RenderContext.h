@@ -56,7 +56,7 @@ namespace Coco::Rendering
 		uint64_t _currentTrianglesDrawn = 0;
 
 	public:
-		RenderContext(ResourceID id, const string& name);
+		RenderContext(const ResourceID& id, const string& name);
 		virtual ~RenderContext() = default;
 
 		RenderContext(const RenderContext&) = delete;
@@ -90,11 +90,11 @@ namespace Coco::Rendering
 
 		/// @brief Sets the given shader as the one that will be used to draw subsequent geometry
 		/// @param shaderID The ID of the shader to use
-		virtual void UseShader(ResourceID shaderID) = 0;
+		virtual void UseShader(const ResourceID& shaderID) = 0;
 
 		/// @brief Sets the given material as the one that will be used to draw subsequent geometry
 		/// @param materialID The ID of the material to use
-		virtual void UseMaterial(ResourceID materialID) = 0;
+		virtual void UseMaterial(const ResourceID& materialID) = 0;
 
 		/// @brief Draws an object
 		/// @param objectData The object to draw

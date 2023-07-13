@@ -26,7 +26,7 @@ namespace Coco::Rendering::Vulkan
 		VkFramebuffer _framebuffer = nullptr;
 
 	public:
-		VulkanFramebuffer(ResourceID id, const string& name, const Ref<RenderPipeline>& pipeline);
+		VulkanFramebuffer(const ResourceID& id, const string& name, const Ref<RenderPipeline>& pipeline);
 		virtual ~VulkanFramebuffer();
 
 		DefineResourceType(VulkanFramebuffer)

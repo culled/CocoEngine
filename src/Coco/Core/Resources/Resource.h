@@ -15,7 +15,7 @@ namespace Coco
 	{
 	public:
 		/// @brief An invalid ID
-		constexpr static ResourceID InvalidID = Math::MaxValue<ResourceID>();
+		const static ResourceID InvalidID;
 
 		/// @brief The ID of this resource
 		const ResourceID ID;
@@ -27,7 +27,7 @@ namespace Coco
 		string _filePath;
 
 	protected:
-		Resource(ResourceID id, const string& name) noexcept;
+		Resource(const ResourceID& id, const string& name) noexcept;
 
 	public:
 		virtual ~Resource() noexcept = default;

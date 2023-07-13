@@ -6,7 +6,6 @@ namespace Coco
 {
 	ResourceLibrary::ResourceLibrary(const string& basePath, uint64_t resourceLifetimeTicks, double purgePeriod) noexcept :
 		BasePath(basePath),
-		_resourceID(0),
 		_resourceLifetimeTicks(resourceLifetimeTicks)
 	{
 		_purgeTickListener = Engine::Get()->GetMainLoop()->CreateTickListener(this, &ResourceLibrary::PurgeTick, PurgeTickPriority, purgePeriod);
@@ -25,7 +24,7 @@ namespace Coco
 		return Engine::Get()->GetLogger();
 	}
 
-	Ref<Resource> ResourceLibrary::GetResource(ResourceID id)
+	Ref<Resource> ResourceLibrary::GetResource(const ResourceID& id)
 	{
 		if (!_resources.contains(id))
 			return Ref<Resource>();
@@ -35,12 +34,12 @@ namespace Coco
 		return resource;
 	}
 
-	bool ResourceLibrary::HasResource(ResourceID id) const
+	bool ResourceLibrary::HasResource(const ResourceID& id) const
 	{
 		return _resources.contains(id);
 	}
 
-	void ResourceLibrary::PurgeResource(ResourceID id, bool forcePurge)
+	void ResourceLibrary::PurgeResource(const ResourceID& id, bool forcePurge)
 	{
 		if (!_resources.contains(id))
 			return;
@@ -91,11 +90,6 @@ namespace Coco
 		return GetSerializerForResourceType(resource->GetType())->Serialize(*this, resource);
 	}
 
-	void ResourceLibrary::DeserializeResource(const string& data, Ref<Resource> resource)
-	{
-		GetSerializerForResourceType(resource->GetType())->Deserialize(*this, data, resource);
-	}
-
 	void ResourceLibrary::Save(const Ref<Resource>& resource, const string& filePath)
 	{
 		const string fullPath = GetFullFilePath(filePath);
@@ -120,7 +114,7 @@ namespace Coco
 
 	ResourceID ResourceLibrary::GetNextResourceID()
 	{
-		return _resourceID.fetch_add(1);
+		return _uuidGenerator.getUUID();
 	}
 
 	void ResourceLibrary::PurgeTick(double deltaTime)

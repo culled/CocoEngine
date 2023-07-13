@@ -9,6 +9,7 @@ namespace Coco::Rendering
 	class TextureSerializer final : public KeyValueResourceSerializer
 	{
 	private:
+		static constexpr const char* s_idVariable = "id";
 		static constexpr const char* s_nameVariable = "name";
 		static constexpr const char* s_imageFileVariable = "imageFile";
 		static constexpr const char* s_usageFlagsVariable = "usageFlags";
@@ -24,6 +25,6 @@ namespace Coco::Rendering
 		DefineSerializerResourceType(Texture)
 
 		string Serialize(ResourceLibrary& library, const Ref<Resource>& resource) final;
-		void Deserialize(ResourceLibrary& library, const string& data, Ref<Resource> resource) final;
+		ManagedRef<Resource> Deserialize(ResourceLibrary& library, const string& data) final;
 	};
 }

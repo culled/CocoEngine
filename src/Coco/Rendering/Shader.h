@@ -16,7 +16,7 @@ namespace Coco::Rendering
 		List<Subshader> _subshaders;
 
 	public:
-		Shader(ResourceID id, const string& name);
+		Shader(const ResourceID& id, const string& name);
 
 		DefineResourceType(Shader)
 

@@ -16,7 +16,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	GraphicsPresenterVulkan::GraphicsPresenterVulkan(ResourceID id, const string& name) :
+	GraphicsPresenterVulkan::GraphicsPresenterVulkan(const ResourceID& id, const string& name) :
 		GraphicsResource<GraphicsDeviceVulkan, GraphicsPresenter>(id, name)
 	{}
 

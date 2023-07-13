@@ -73,7 +73,7 @@ namespace Coco
 		/// @param ...args The arguments to pass to the resource's constructor
 		/// @return The created resource
 		template<typename ... Args>
-		ResourceType* Create(ResourceID id, Args&& ... args)
+		ResourceType* Create(const ResourceID& id, Args&& ... args)
 		{
 			if (_resources.contains(id))
 				return Get(id);
@@ -88,7 +88,7 @@ namespace Coco
 		/// @brief Gets a resource at a given ID. NOTE: make sure that the resource exists before using this function
 		/// @param id The ID of the resource
 		/// @return The resource
-		ResourceType* Get(ResourceID id)
+		ResourceType* Get(const ResourceID& id)
 		{
 			ResourceType& resource = _resources.at(id);
 			resource.UpdateTickUsed();
@@ -98,7 +98,7 @@ namespace Coco
 		/// @brief Gets if a resource with the given ID exists
 		/// @param id The ID of the resource
 		/// @return True if the resource exists
-		bool Has(ResourceID id) const
+		bool Has(const ResourceID& id) const
 		{
 			return _resources.contains(id);
 		}
@@ -106,7 +106,7 @@ namespace Coco
 		/// @brief Destroys a resource with the given ID
 		/// @param id The ID of the resource to destroy
 		/// @return True if the resource was destroyed
-		bool Destroy(ResourceID id)
+		bool Destroy(const ResourceID& id)
 		{
 			if (!_resources.contains(id))
 				return false;

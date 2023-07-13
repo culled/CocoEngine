@@ -16,7 +16,7 @@ namespace Coco::Rendering::Vulkan
 		VkSampler _sampler = nullptr;
 
 	public:
-		ImageSamplerVulkan(ResourceID id, const string& name, const ImageSamplerProperties& properties);
+		ImageSamplerVulkan(const ResourceID& id, const string& name, const ImageSamplerProperties& properties);
 		~ImageSamplerVulkan() final;
 
 		DefineResourceType(ImageSamplerVulkan)

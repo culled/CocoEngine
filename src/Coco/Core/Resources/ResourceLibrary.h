@@ -36,8 +36,8 @@ namespace Coco
 		const string BasePath;
 
 	private:
+		UUIDv4::UUIDGenerator<std::mt19937_64> _uuidGenerator;
 		uint64_t _resourceLifetimeTicks;
-		std::atomic<ResourceID> _resourceID;
 		UnorderedMap<ResourceID, ManagedRef<Resource>> _resources;
 		UnorderedMap<std::type_index, ManagedRef<IResourceSerializer>> _serializers;
 		Ref<MainLoopTickListener> _purgeTickListener;
@@ -91,22 +91,22 @@ namespace Coco
 
 			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, name, std::forward<Args>(args)...));
 
-			Ref<Resource> resource = result.first->second;
+			Ref<ResourceType> resource = static_cast<Ref<ResourceType>>(result.first->second);
 			resource->UpdateTickUsed();
 
-			return static_cast<Ref<ResourceType>>(result.first->second);
+			return resource;
 		}
 
 		/// @brief Gets a resource with the given ID (if one exists)
 		/// @param id The id of the resource
 		/// @return The resource with the given ID, or an empty reference if no resource exists
-		Ref<Resource> GetResource(ResourceID id);
+		Ref<Resource> GetResource(const ResourceID& id);
 
 		/// @brief Gets a resource with the given ID (if one exists)
 		/// @param id The ID of the resource
 		/// @return The resource with the given ID, or an empty reference if no resource exists
 		template<typename ResourceType>
-		Ref<ResourceType> GetResource(ResourceID id)
+		Ref<ResourceType> GetResource(const ResourceID& id)
 		{
 			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
 
@@ -121,7 +121,7 @@ namespace Coco
 		/// @brief Checks if a resource with the given ID exists
 		/// @param id The ID of the resource 
 		/// @return True if the resource exists
-		bool HasResource(ResourceID id) const;
+		bool HasResource(const ResourceID& id) const;
 
 		/// @brief Gets the number of resources in this library
 		/// @return The number of resources in this library
@@ -130,7 +130,7 @@ namespace Coco
 		/// @brief Purges the resource with the given ID. By default, resources are only destroyed if they have no outside users
 		/// @param id The ID of the resource
 		/// @param forcePurge If true, the resource will be destroyed regardless if the number of users using it. Be careful with this as it may invalidate references
-		void PurgeResource(ResourceID id, bool forcePurge = false);
+		void PurgeResource(const ResourceID& id, bool forcePurge = false);
 
 		/// @brief Purges any resources that haven't been used in a while and have no outside users
 		/// @return The number of purged resources
@@ -145,22 +145,21 @@ namespace Coco
 		string SerializeResource(const Ref<Resource>& resource);
 
 		/// @brief Deserializes a resource from a string. NOTE: a serializer for the resource type must have been created with this library for this to work
-		/// @param data The serialized data
-		/// @param resource The resource to deserialize into
-		void DeserializeResource(const string& data, Ref<Resource> resource);
-
-		/// @brief Deserializes a resource from a string. NOTE: a serializer for the resource type must have been created with this library for this to work
 		/// @tparam ResourceType The type of resource to create
 		/// @param name The name of resource
 		/// @param data The serialized data
 		/// @return The deserialized resource
 		template<typename ResourceType>
-		Ref<ResourceType> DeserializeResource(const string& name, const string& data)
+		Ref<ResourceType> DeserializeResource(const string& data)
 		{
 			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
 
-			Ref<ResourceType> resource = CreateResource<ResourceType>(name);
-			DeserializeResource(data, resource);
+			ManagedRef<Resource> rawResource = GetSerializerForResourceType(typeid(ResourceType))->Deserialize(*this, data);
+			auto result = _resources.try_emplace(rawResource->ID, std::move(rawResource));
+
+			Ref<ResourceType> resource = static_cast<Ref<ResourceType>>(result.first->second);
+			resource->UpdateTickUsed();
+
 			return resource;
 		}
 
@@ -196,11 +195,9 @@ namespace Coco
 				return static_cast<Ref<ResourceType>>(resource);
 			}
 
-			Ref<ResourceType> resource = CreateResource<ResourceType>(FilePath::GetFileName(path));
-			resource->SetFilePath(fullPath);
-			
 			string text = File::ReadAllText(fullPath);
-			DeserializeResource(text, resource);
+			Ref<ResourceType> resource = DeserializeResource<ResourceType>(text);
+			resource->SetFilePath(fullPath);
 
 			return resource;
 		}
@@ -220,6 +217,8 @@ namespace Coco
 		/// @return The next resource ID
 		ResourceID GetNextResourceID();
 
+		/// @brief Handles the purge tick for stale resources
+		/// @param deltaTime The time since the tick was last executed
 		void PurgeTick(double deltaTime);
 	};
 }

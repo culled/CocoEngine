@@ -19,6 +19,7 @@ workspace "CocoEngine"
     IncludeDir = {}
     IncludeDir["Coco"] = "%{wks.location}\\src\\"
     IncludeDir["stb"] = "%{wks.location}\\src\\Vendor\\stb"
+    IncludeDir["uuid_v4"] = "%{wks.location}\\src\\Vendor\\uuid_v4"
 
     -- Assets directory
     AssetsDir = "%{wks.location}\\assets\\"

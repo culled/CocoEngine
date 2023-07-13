@@ -24,7 +24,7 @@ namespace Coco::Rendering::Vulkan
 
 	public:
 		BufferVulkan(
-			ResourceID id, 
+			const ResourceID& id, 
 			const string& name, 
 			BufferUsageFlags usageFlags, 
 			uint64_t size, 

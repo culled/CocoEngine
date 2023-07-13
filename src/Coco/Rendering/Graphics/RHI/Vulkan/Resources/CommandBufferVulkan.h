@@ -18,7 +18,7 @@ namespace Coco::Rendering::Vulkan
 		CommandBufferPoolVulkan* _pool;
 
 	public:
-		CommandBufferVulkan(ResourceID id, const string& name, bool isPrimary, CommandBufferPoolVulkan& pool);
+		CommandBufferVulkan(const ResourceID& id, const string& name, bool isPrimary, CommandBufferPoolVulkan& pool);
 		~CommandBufferVulkan() final;
 
 		DefineResourceType(CommandBufferVulkan)

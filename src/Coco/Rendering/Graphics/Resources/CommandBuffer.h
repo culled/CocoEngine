@@ -30,7 +30,7 @@ namespace Coco::Rendering
 		CommandBufferState _currentState;
 
 	public:
-		CommandBuffer(ResourceID id, const string& name, bool isPrimary) noexcept;
+		CommandBuffer(const ResourceID& id, const string& name, bool isPrimary) noexcept;
 		virtual ~CommandBuffer() = default;
 
 		CommandBuffer(const CommandBuffer&) = delete;

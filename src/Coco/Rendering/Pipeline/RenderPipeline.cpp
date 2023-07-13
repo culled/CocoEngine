@@ -33,7 +33,7 @@ namespace Coco::Rendering
 		IsUsedInFirstPipelinePass = FirstUsePassIndex == 0;
 	}
 
-	RenderPipeline::RenderPipeline(ResourceID id, const string& name) : RenderingResource(id, name),
+	RenderPipeline::RenderPipeline(const ResourceID& id, const string& name) : RenderingResource(id, name),
 		_clearColor(Color::Black)
 	{}
 

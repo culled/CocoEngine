@@ -33,7 +33,7 @@ namespace Coco::Rendering
 		bool _isDirty = false;
 
 	public:
-		Mesh(ResourceID id, const string& name);
+		Mesh(const ResourceID& id, const string& name);
 		~Mesh() override;
 
 		DefineResourceType(Mesh)

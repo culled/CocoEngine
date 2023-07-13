@@ -16,7 +16,7 @@ namespace Coco
 		ResourceVersion _referenceVersion;
 
 	protected:
-		CachedResource(ResourceID referenceID, ResourceVersion referenceVersion);
+		CachedResource(const ResourceID& referenceID, ResourceVersion referenceVersion);
 
 	public:
 		virtual ~CachedResource() = default;
