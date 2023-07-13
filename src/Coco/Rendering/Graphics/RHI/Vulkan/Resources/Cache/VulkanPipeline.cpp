@@ -237,7 +237,7 @@ namespace Coco::Rendering::Vulkan
 
 	ResourceID VulkanPipeline::GetResourceID(const VulkanRenderPass& pass, const VulkanShader& shader)
 	{
-		return UUIDv4::UUID(pass.ReferenceID.hash(), shader.ReferenceID.hash());
+		return UUID::Combine(pass.ReferenceID, shader.ReferenceID);
 	}
 
 	ResourceVersion VulkanPipeline::GetResourceVersion(const VulkanRenderPass& pass, const VulkanShader& shader)

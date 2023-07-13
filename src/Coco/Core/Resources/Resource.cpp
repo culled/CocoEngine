@@ -3,7 +3,7 @@
 
 namespace Coco
 {
-	const UUIDv4::UUID Resource::InvalidID = UUIDv4::UUID::UUID("00000000-0000-0000-0000-000000000000");
+	const UUID Resource::InvalidID = UUID::Nil;
 
 	Resource::Resource(const ResourceID& id, const string& name) noexcept :
 		ID(id), _name(name), _lastTickUsed(0)

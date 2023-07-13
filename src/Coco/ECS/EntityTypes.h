@@ -6,5 +6,5 @@
 namespace Coco::ECS
 {
 	using EntityID = UUID;
-	const EntityID InvalidEntityID = EntityID("00000000-0000-0000-0000-000000000000");
+	const EntityID InvalidEntityID = UUID::Nil;
 }

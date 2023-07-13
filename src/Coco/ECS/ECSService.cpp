@@ -215,6 +215,6 @@ namespace Coco::ECS
 
 	EntityID ECSService::GetNextEntityID()
 	{
-		return CreateUUIDv4();
+		return UUID::CreateV4();
 	}
 }

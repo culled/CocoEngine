@@ -70,7 +70,7 @@ namespace Coco::ECS
 				}
 			}
 
-			throw Exception(FormattedString("Entity {} has no component of type {}", entityID.str(), typeid(ComponentType).name()));
+			throw Exception(FormattedString("Entity {} has no component of type {}", entityID.AsString(), typeid(ComponentType).name()));
 		}
 
 		template<typename ComponentType>

@@ -63,7 +63,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (resource->NeedsUpdate())
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan RenderPass for pipeline {}", renderPipeline->ID.str()));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan RenderPass for pipeline {}", renderPipeline->ID.AsString()));
 
 			try
 			{
@@ -97,7 +97,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (resource->NeedsUpdate(renderPass, shader))
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subshader \"{}\" and render pass {}", subshaderName, renderPass.ID.str()));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating pipeline for subshader \"{}\" and render pass {}", subshaderName, renderPass.ID.AsString()));
 
 			try
 			{
@@ -129,7 +129,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (resource->NeedsUpdate(shaderData))
 		{
-			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan shader for shader {}", shaderData.ID.str()));
+			LogTrace(_device->GetLogger(), FormattedString("Recreating Vulkan shader for shader {}", shaderData.ID.AsString()));
 
 			try
 			{

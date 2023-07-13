@@ -441,7 +441,7 @@ namespace Coco::Rendering::Vulkan
 		VulkanShaderResource* shaderResource = _renderCache->GetOrCreateShaderResource(shader);
 
 		// Allocate this material's descriptor set
-		set = shaderResource->GetPool()->GetOrAllocateSet(subshader.GetDescriptorLayout(), materialID.hash());
+		set = shaderResource->GetPool()->GetOrAllocateSet(subshader.GetDescriptorLayout(), materialID.ToHash());
 		_materialDescriptorSets[materialID] = set;
 
 		const MaterialRenderData& materialData = _currentRenderView->Materials.at(materialID);
