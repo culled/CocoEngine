@@ -26,7 +26,7 @@ private:
 	Ref<Material> _material;
 
 public:
-	Ball(EntityID owner);
+	Ball(const EntityID& owner);
 	~Ball() final;
 
 protected:

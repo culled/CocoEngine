@@ -33,7 +33,7 @@ namespace Coco::ECS
 		this->IncrementVersion();
 	}
 
-	CameraComponent::CameraComponent(EntityID ownerID) : EntityComponent(ownerID)
+	CameraComponent::CameraComponent(const EntityID& ownerID) : EntityComponent(ownerID)
 	{
 		_imageCache = CreateManagedRef<ResourceCache<PipelineImageCache>>(ResourceLibrary::DefaultResourceLifetimeTicks);
 	}
@@ -78,10 +78,10 @@ namespace Coco::ECS
 	{
 		ECSService* ecs = ECSService::Get();
 
-		if (!ecs->HasComponent<TransformComponent>(_owner))
+		if (!ecs->HasComponent<TransformComponent>(Owner))
 			return Matrix4x4::Identity;
 
-		return ecs->GetComponent<TransformComponent>(_owner).GetInverseGlobalTransformMatrix();
+		return ecs->GetComponent<TransformComponent>(Owner).GetInverseGlobalTransformMatrix();
 	}
 
 	void CameraComponent::SetAspectRatio(double aspectRatio) noexcept
@@ -190,7 +190,7 @@ namespace Coco::ECS
 				if(generateImage)
 				{
 					renderTargets[i] = EnsureRenderingService()->GetPlatform()->CreateImage(
-						FormattedString("{} Cached Rendertarget {}", ECSService::Get()->GetEntity(_owner).GetName(), i), 
+						FormattedString("{} Cached Rendertarget {}", ECSService::Get()->GetEntity(Owner).GetName(), i), 
 						attachmentDescription
 					);
 

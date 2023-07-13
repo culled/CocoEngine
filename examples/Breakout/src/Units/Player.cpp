@@ -7,7 +7,7 @@
 #include <Coco/Input/InputService.h>
 #include "../App.h"
 
-Player::Player(EntityID owner) : ScriptComponent(owner)
+Player::Player(const EntityID& owner) : ScriptComponent(owner)
 {
 	ECSService* ecs = ECSService::Get();
 	auto& transform = ecs->AddComponent<TransformComponent>(owner);
@@ -63,7 +63,7 @@ void Player::Move(double deltaTime)
 
 	_currentVelocity += acceleration * deltaTime;
 
-	TransformComponent& transform = ECSService::Get()->GetComponent<TransformComponent>(_owner);
+	TransformComponent& transform = ECSService::Get()->GetComponent<TransformComponent>(Owner);
 	Vector3 position = transform.GetGlobalPosition();
 	position.X += _currentVelocity * deltaTime;
 	position.Y = _positionY;

@@ -10,8 +10,10 @@ namespace Coco::ECS
 {
 	class Entity
 	{
+	public:
+		EntityID ID;
+
 	private:
-		EntityID _id;
 		string _name;
 		EntityID _parentID;
 		SceneID _sceneID;
@@ -20,18 +22,16 @@ namespace Coco::ECS
 
 	public:
 		Entity();
-		Entity(EntityID id, const string& name, SceneID sceneID, EntityID parentID = InvalidEntityID);
+		Entity(const EntityID& id, const string& name, SceneID sceneID, const EntityID& parentID = InvalidEntityID);
 
-		bool operator==(const Entity& other) const { return _id == other._id; }
-		bool operator!=(const Entity& other) const { return _id != other._id; }
-
-		EntityID GetID() const { return _id; }
+		bool operator==(const Entity& other) const { return ID == other.ID; }
+		bool operator!=(const Entity& other) const { return ID != other.ID; }
 
 		void SetName(string name) { _name = name; }
 		const string& GetName() const { return _name; }
 
 		void SetParentID(const EntityID& parentID);
-		EntityID GetParentID() const { return _parentID; }
+		const EntityID& GetParentID() const { return _parentID; }
 		bool TryGetParent(Entity*& parent);
 
 		SceneID GetSceneID() const { return _sceneID; }

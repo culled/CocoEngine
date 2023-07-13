@@ -21,23 +21,19 @@ namespace Coco::ECS
 		_entities.clear();
 	}
 
-	EntityID ECSService::CreateEntity(const string& name, EntityID parentID)
+	EntityID ECSService::CreateEntity(const string& name, const EntityID& parentID)
 	{
-		uint64_t id = 0;
-
-		while (_entities.contains(id))
-			id++;
-
+		EntityID id = GetNextEntityID();
 		_entities.try_emplace(id, id, name, RootSceneID, parentID);
 		return id;
 	}
 
-	Entity& ECSService::GetEntity(EntityID entityID)
+	Entity& ECSService::GetEntity(const EntityID& entityID)
 	{
 		return _entities.at(entityID);
 	}
 
-	bool ECSService::TryGetEntity(EntityID entityID, Entity*& entity)
+	bool ECSService::TryGetEntity(const EntityID& entityID, Entity*& entity)
 	{
 		if (!_entities.contains(entityID))
 			return false;
@@ -46,20 +42,20 @@ namespace Coco::ECS
 		return true;
 	}
 
-	List<EntityID> ECSService::GetEntityChildrenIDs(EntityID entity)
+	List<EntityID> ECSService::GetEntityChildrenIDs(const EntityID& entity)
 	{
 		List<EntityID> children;
 
 		for (const auto& kvp : _entities)
 		{
 			if (kvp.second._parentID == entity)
-				children.Add(kvp.second._id);
+				children.Add(kvp.second.ID);
 		}
 
 		return children;
 	}
 
-	List<Entity*> ECSService::GetEntityChildren(EntityID entity)
+	List<Entity*> ECSService::GetEntityChildren(const EntityID& entity)
 	{
 		List<Entity*> children;
 
@@ -72,12 +68,12 @@ namespace Coco::ECS
 		return children;
 	}
 
-	Entity& ECSService::GetEntityParent(EntityID entityID)
+	Entity& ECSService::GetEntityParent(const EntityID& entityID)
 	{
 		return GetEntity(GetEntity(entityID).GetParentID());
 	}
 
-	bool ECSService::TryGetEntityParent(EntityID entityID, Entity*& entity)
+	bool ECSService::TryGetEntityParent(const EntityID& entityID, Entity*& entity)
 	{
 		Entity* child;
 		if (!TryGetEntity(entityID, child))
@@ -86,7 +82,7 @@ namespace Coco::ECS
 		return TryGetEntity(child->GetParentID(), entity);
 	}
 
-	bool ECSService::IsDescendantOfEntity(EntityID entityID, EntityID parentID)
+	bool ECSService::IsDescendantOfEntity(const EntityID& entityID, const EntityID& parentID)
 	{
 		if (entityID == parentID)
 			return true;
@@ -96,22 +92,22 @@ namespace Coco::ECS
 		if (!TryGetEntityParent(entityID, parent))
 			return false;
 
-		return parent->GetID() == parentID || IsDescendantOfEntity(parent->GetID(), parentID);
+		return parent->ID == parentID || IsDescendantOfEntity(parent->ID, parentID);
 	}
 
-	void ECSService::QueueDestroyEntity(EntityID entityID)
+	void ECSService::QueueDestroyEntity(const EntityID& entityID)
 	{
 		_queuedEntitiesToDestroy.emplace(entityID);
 	}
 	
-	void ECSService::DestroyEntity(EntityID entityID)
+	void ECSService::DestroyEntity(const EntityID& entityID)
 	{
 		auto it = _entities.begin();
 
 		// Release the entity and any of its descendants
 		while(it != _entities.end())
 		{
-			if (IsDescendantOfEntity(it->second._id, entityID))
+			if (IsDescendantOfEntity(it->second.ID, entityID))
 			{
 				// Destroy the entity's components
 				for (auto& kvp : _componentLists)
@@ -176,16 +172,16 @@ namespace Coco::ECS
 		return parent->GetID() == parentID || IsDescendantOfScene(parent->GetID(), parentID);
 	}
 
-	bool ECSService::IsEntityInScene(EntityID entityID, SceneID sceneID)
+	bool ECSService::IsEntityInScene(const EntityID& entityID, SceneID sceneID)
 	{
 		return IsDescendantOfScene(GetEntity(entityID).GetSceneID(), sceneID);
 	}
 
-	void ECSService::SetEntityScene(EntityID entityID, SceneID sceneID)
+	void ECSService::SetEntityScene(const EntityID& entityID, SceneID sceneID)
 	{
 		for (auto& kvp : _entities)
 		{
-			if (IsDescendantOfEntity(kvp.second._id, entityID))
+			if (IsDescendantOfEntity(kvp.second.ID, entityID))
 				kvp.second._sceneID = sceneID;
 		}
 	}
@@ -195,7 +191,7 @@ namespace Coco::ECS
 		for (const auto& kvp : _entities)
 		{
 			if (kvp.second._sceneID == sceneID)
-				QueueDestroyEntity(kvp.second._id);
+				QueueDestroyEntity(kvp.second.ID);
 		}
 	}
 
@@ -215,5 +211,10 @@ namespace Coco::ECS
 		}
 
 		_queuedEntitiesToDestroy.clear();
+	}
+
+	EntityID ECSService::GetNextEntityID()
+	{
+		return CreateUUIDv4();
 	}
 }

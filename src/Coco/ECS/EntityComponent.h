@@ -6,12 +6,13 @@
 namespace Coco::ECS
 {
 	class COCOAPI EntityComponent
-	{
-	protected:
-		EntityID _owner;
+	{	
+	public:
+		const EntityID Owner;
 
 	public:
-		EntityComponent(EntityID owner);
+		EntityComponent(const EntityID& owner);
+		EntityComponent(EntityComponent&& other);
 		virtual ~EntityComponent() = default;
 	};
 }

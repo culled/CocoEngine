@@ -4,6 +4,6 @@
 
 namespace Coco::ECS
 {
-	ScriptComponent::ScriptComponent(EntityID owner) : EntityComponent(owner)
+	ScriptComponent::ScriptComponent(const EntityID& owner) : EntityComponent(owner)
 	{}
 }

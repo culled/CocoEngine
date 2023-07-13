@@ -10,7 +10,7 @@ namespace Coco::ECS
 		friend class Scene;
 
 	public:
-		ScriptComponent(EntityID owner);
+		ScriptComponent(const EntityID& owner);
 
 		ScriptComponent(ScriptComponent&&) noexcept = default;
 		ScriptComponent& operator=(ScriptComponent&&) noexcept = default;

@@ -114,7 +114,7 @@ namespace Coco
 
 	ResourceID ResourceLibrary::GetNextResourceID()
 	{
-		return _uuidGenerator.getUUID();
+		return CreateUUIDv4();
 	}
 
 	void ResourceLibrary::PurgeTick(double deltaTime)

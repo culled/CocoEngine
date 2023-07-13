@@ -74,7 +74,7 @@ namespace Coco::ECS
 
 	public:
 		CameraComponent() = default;
-		CameraComponent(EntityID owner);
+		CameraComponent(const EntityID& owner);
 
 		virtual ~CameraComponent() = default;
 
@@ -95,29 +95,6 @@ namespace Coco::ECS
 
 			_renderTargetOverrides = std::move(other._renderTargetOverrides);
 			_imageCache = std::move(other._imageCache);
-		}
-
-		CameraComponent& operator=(CameraComponent&& other) noexcept
-		{
-			EntityComponent::operator=(std::move(other));
-
-			_projectionType = other._projectionType;
-
-			_projectionMatrix = std::move(other._projectionMatrix);
-
-			_nearClipDistance = other._nearClipDistance;
-			_farClipDistance = other._farClipDistance;
-
-			_perspectiveFieldOfView = other._perspectiveFieldOfView;
-			_orthographicSize = other._orthographicSize;
-			_aspectRatio = other._aspectRatio;
-
-			_isProjectionMatrixDirty = other._isProjectionMatrixDirty;
-
-			_renderTargetOverrides = std::move(other._renderTargetOverrides);
-			_imageCache = std::move(other._imageCache);
-
-			return *this;
 		}
 
 		/// @brief Gets the type of projection that this camera is using

@@ -6,7 +6,7 @@
 #include <Coco/Rendering/MeshPrimitives.h>
 #include "../App.h"
 
-Ball::Ball(EntityID owner) : ScriptComponent(owner)
+Ball::Ball(const EntityID& owner) : ScriptComponent(owner)
 {
 	ECSService* ecs = ECSService::Get();
 	auto& transform = ecs->AddComponent<TransformComponent>(owner);
@@ -37,7 +37,7 @@ Ball::~Ball()
 
 void Ball::Tick(double deltaTime)
 {
-	TransformComponent& transform = ECSService::Get()->GetComponent<TransformComponent>(_owner);
+	TransformComponent& transform = ECSService::Get()->GetComponent<TransformComponent>(Owner);
 	Vector3 position = transform.GetGlobalPosition();
 	position += _velocity * deltaTime;
 	transform.SetGlobalPosition(position);

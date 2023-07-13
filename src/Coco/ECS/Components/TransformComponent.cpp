@@ -4,7 +4,7 @@
 
 namespace Coco::ECS
 {
-	TransformComponent::TransformComponent(EntityID owner) : EntityComponent(owner)
+	TransformComponent::TransformComponent(const EntityID& owner) : EntityComponent(owner)
 	{}
 
 	void TransformComponent::SetLocalTransformMatrix(const Matrix4x4& matrix)
@@ -160,7 +160,7 @@ namespace Coco::ECS
 	void TransformComponent::InvalidateTransform()
 	{
 		ECSService* ecs = ECSService::Get();
-		const auto childrenIDs = ecs->GetEntityChildrenIDs(_owner);
+		const auto childrenIDs = ecs->GetEntityChildrenIDs(Owner);
 		
 		for (const auto& childID : childrenIDs)
 		{
@@ -205,9 +205,9 @@ namespace Coco::ECS
 		ECSService* ecs = ECSService::Get();
 		Entity* parent = nullptr;
 
-		if (_inheritParentTransform && ecs->TryGetEntityParent(_owner, parent))
+		if (_inheritParentTransform && ecs->TryGetEntityParent(Owner, parent))
 		{
-			parentTransform = &ecs->GetComponent<TransformComponent>(parent->GetID());
+			parentTransform = &ecs->GetComponent<TransformComponent>(parent->ID);
 			return true;
 		}
 

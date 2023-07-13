@@ -67,7 +67,7 @@ namespace Coco::ECS
 
 			EntityID GetEntityID() const
 			{
-				return _entities[_entityIndex]->GetID();
+				return _entities[_entityIndex]->ID;
 			}
 		};
 

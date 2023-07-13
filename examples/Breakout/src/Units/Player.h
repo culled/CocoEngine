@@ -29,7 +29,7 @@ private:
 	Ref<Material> _material;
 
 public:
-	Player(EntityID owner);
+	Player(const EntityID& owner);
 	~Player() final;
 
 protected:

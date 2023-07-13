@@ -36,7 +36,6 @@ namespace Coco
 		const string BasePath;
 
 	private:
-		UUIDv4::UUIDGenerator<std::mt19937_64> _uuidGenerator;
 		uint64_t _resourceLifetimeTicks;
 		UnorderedMap<ResourceID, ManagedRef<Resource>> _resources;
 		UnorderedMap<std::type_index, ManagedRef<IResourceSerializer>> _serializers;

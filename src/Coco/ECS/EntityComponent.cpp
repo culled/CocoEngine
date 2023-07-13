@@ -2,6 +2,10 @@
 
 namespace Coco::ECS
 {
-	EntityComponent::EntityComponent(EntityID owner) : _owner(owner)
+	EntityComponent::EntityComponent(const EntityID& owner) : Owner(owner)
+	{}
+
+	EntityComponent::EntityComponent(EntityComponent && other) :
+		Owner(other.Owner)
 	{}
 }

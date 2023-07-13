@@ -6,12 +6,12 @@ namespace Coco::ECS
 	Entity::Entity() : Entity(InvalidEntityID, "Null", InvalidSceneID, InvalidEntityID)
 	{}
 
-	Entity::Entity(EntityID id, const string& name, SceneID sceneID, EntityID parentID) : _id(id), _name(name), _sceneID(sceneID), _parentID(parentID)
+	Entity::Entity(const EntityID& id, const string& name, SceneID sceneID, const EntityID& parentID) : ID(id), _name(name), _sceneID(sceneID), _parentID(parentID)
 	{}
 
 	void Entity::SetParentID(const EntityID& parentID)
 	{
-		if (parentID == _id)
+		if (parentID == ID)
 			return;
 
 		_parentID = parentID;
@@ -24,6 +24,6 @@ namespace Coco::ECS
 
 	List<Entity*> Entity::GetChildren() const
 	{
-		return ECSService::Get()->GetEntityChildren(_id);
+		return ECSService::Get()->GetEntityChildren(ID);
 	}
 }

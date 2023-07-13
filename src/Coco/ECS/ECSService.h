@@ -28,31 +28,31 @@ namespace Coco::ECS
 		ECSService();
 		~ECSService();
 
-		EntityID CreateEntity(const string& name = "", EntityID parentID = InvalidEntityID);
+		EntityID CreateEntity(const string& name = "", const EntityID& parentID = InvalidEntityID);
 
-		Entity& GetEntity(EntityID entityID);
-		bool TryGetEntity(EntityID entityID, Entity*& entity);
+		Entity& GetEntity(const EntityID& entityID);
+		bool TryGetEntity(const EntityID& entityID, Entity*& entity);
 
-		List<EntityID> GetEntityChildrenIDs(EntityID entity);
-		List<Entity*> GetEntityChildren(EntityID entity);
+		List<EntityID> GetEntityChildrenIDs(const EntityID& entity);
+		List<Entity*> GetEntityChildren(const EntityID& entity);
 
-		Entity& GetEntityParent(EntityID entityID);
-		bool TryGetEntityParent(EntityID entityID, Entity*& entity);
-		bool IsDescendantOfEntity(EntityID entityID, EntityID parentID);
+		Entity& GetEntityParent(const EntityID& entityID);
+		bool TryGetEntityParent(const EntityID& entityID, Entity*& entity);
+		bool IsDescendantOfEntity(const EntityID& entityID, const EntityID& parentID);
 
-		void QueueDestroyEntity(EntityID entityID);
-		void DestroyEntity(EntityID entityID);
+		void QueueDestroyEntity(const EntityID& entityID);
+		void DestroyEntity(const EntityID& entityID);
 		
 		List<Entity*> GetEntities();
 
 		template<typename ComponentType, typename ... Args>
-		ComponentType& AddComponent(EntityID entityID, Args&& ... args)
+		ComponentType& AddComponent(const EntityID& entityID, Args&& ... args)
 		{
 			return GetComponentList<ComponentType>()->Add(entityID, std::forward<Args>(args)...);
 		}
 
 		template<typename ComponentType>
-		ComponentType& GetComponent(EntityID entityID)
+		ComponentType& GetComponent(const EntityID& entityID)
 		{
 			// Check for exact type match
 			if (_componentLists.contains(typeid(ComponentType)))
@@ -70,17 +70,17 @@ namespace Coco::ECS
 				}
 			}
 
-			throw Exception(FormattedString("Entity {} has no component of type {}", entityID, typeid(ComponentType).name()));
+			throw Exception(FormattedString("Entity {} has no component of type {}", entityID.str(), typeid(ComponentType).name()));
 		}
 
 		template<typename ComponentType>
-		bool HasComponent(EntityID entityID) const
+		bool HasComponent(const EntityID& entityID) const
 		{
 			return HasComponents<ComponentType>(entityID);
 		}
 
 		template<typename ComponentType>
-		bool HasComponents(EntityID entityID) const
+		bool HasComponents(const EntityID& entityID) const
 		{
 			// Check for exact type match
 			if (_componentLists.contains(typeid(ComponentType)))
@@ -100,7 +100,7 @@ namespace Coco::ECS
 		}
 
 		template<typename ComponentType, typename SecondComponentType, typename ... ComponentTypes>
-		bool HasComponents(EntityID entityID) const
+		bool HasComponents(const EntityID& entityID) const
 		{
 			// Check for exact type match
 			if(_componentLists.contains(typeid(ComponentType)))
@@ -120,7 +120,7 @@ namespace Coco::ECS
 		}
 
 		template<typename ComponentType>
-		bool RemoveComponent(EntityID entityID)
+		bool RemoveComponent(const EntityID& entityID)
 		{
 			return GetComponentList<ComponentType>()->Remove(entityID);
 		}
@@ -130,8 +130,8 @@ namespace Coco::ECS
 		Scene* GetScene(SceneID sceneID);
 		bool TryGetScene(SceneID sceneID, Scene*& scene);
 		bool IsDescendantOfScene(SceneID sceneID, SceneID parentID);
-		bool IsEntityInScene(EntityID entityID, SceneID sceneID);
-		void SetEntityScene(EntityID entityID, SceneID sceneID);
+		bool IsEntityInScene(const EntityID& entityID, SceneID sceneID);
+		void SetEntityScene(const EntityID& entityID, SceneID sceneID);
 		void DestroyScene(SceneID sceneID);
 
 		List<EntityID> GetSceneEntityIDs(SceneID scene) const;
@@ -140,6 +140,8 @@ namespace Coco::ECS
 		/// @brief Tick for updating any entities
 		/// @param deltaTime The number of seconds since the last tick
 		void Process(double deltaTime);
+
+		EntityID GetNextEntityID();
 
 		template<typename ComponentType>
 		EntityComponentList<ComponentType>* GetComponentList()
