@@ -30,10 +30,23 @@ namespace Coco::Windowing
 		Optional<Vector2Int> InitialPosition;
 
 		/// @brief The initial state for the window
-		WindowState InitialState = WindowState::Windowed;
+		WindowState InitialState = WindowState::Normal;
 
-		WindowCreateParameters(const string& title, const SizeInt initialSize, bool isResizable = true, WindowState initialState = WindowState::Windowed) noexcept :
-			Title(title), InitialSize(initialSize), IsResizable(isResizable), InitialState(initialState)
+		/// @brief If true, the window will be shown in fullscreen
+		bool IsFullscreen = false;
+
+		WindowCreateParameters(
+			const string& title, 
+			const SizeInt initialSize, 
+			bool isResizable = true, 
+			WindowState initialState = WindowState::Normal, 
+			bool isFullscreen = false
+		) noexcept :
+			Title(title), 
+			InitialSize(initialSize), 
+			IsResizable(isResizable), 
+			InitialState(initialState), 
+			IsFullscreen(isFullscreen)
 		{}
 	};
 
@@ -93,8 +106,21 @@ namespace Coco::Windowing
 		/// @brief Shows/restores this window
 		virtual void Show() = 0;
 
-		/// @brief Minimizes this window
-		virtual void Minimize() = 0;
+		/// @brief Sets the state of this window
+		/// @param newState The state for this window
+		virtual void SetState(WindowState newState) = 0;
+
+		/// @brief Gets the current state of this window
+		/// @return The current state of this window
+		virtual WindowState GetState() const noexcept = 0;
+
+		/// @brief Sets if this window should be fullscreen
+		/// @param isFullscreen If true, the window will be fullscreen
+		virtual void SetIsFullscreen(bool isFullscreen) = 0;
+
+		/// @brief Gets the fullscreen status of this window
+		/// @return True if this window is fullscreen
+		virtual bool GetIsFullscreen() const = 0;
 
 		/// @brief Gets if this window is visible (shown and not minimized)
 		/// @return True if this window is visible

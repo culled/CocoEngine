@@ -34,7 +34,7 @@ namespace Coco::Windowing
 	void Window::HandleResized()
 	{
 		// By handling the surface on resize, we can make sure we always have a surface
-		if (!_presenter->IsSurfaceInitialized())
+		if (!_presenter->IsSurfaceInitialized() && GetIsVisible())
 			SetupPresenterSurface();
 
 		_presenter->SetBackbufferSize(GetBackbufferSize());

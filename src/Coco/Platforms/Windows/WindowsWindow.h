@@ -18,6 +18,9 @@ namespace Coco::Platform::Windows
         HINSTANCE _instance;
 
         SizeInt _size;
+        bool _canResize;
+
+        WINDOWPLACEMENT _restorePlacement;
 
     public:
         WindowsWindow(const Coco::Windowing::WindowCreateParameters& createParameters);
@@ -34,7 +37,10 @@ namespace Coco::Platform::Windows
         void SetTitle(const string& title) final;
         SizeInt GetSize() const noexcept final { return _size; }
         void Show() noexcept final;
-        void Minimize() noexcept final;
+        void SetState(Windowing::WindowState newState) final;
+        Windowing::WindowState GetState() const noexcept final;
+        void SetIsFullscreen(bool isFullscreen) final;
+        bool GetIsFullscreen() const final;
         bool GetIsVisible() const noexcept final;
 
     protected:
@@ -47,6 +53,18 @@ namespace Coco::Platform::Windows
         /// @param wParam Message WParams
         /// @param lParam Message LParams
         void ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam);
+
+        /// @brief Gets the flags for a window
+        /// @return The flags for a window
+        DWORD GetWindowFlags() const;
+
+        /// @brief Updates the state of this window to match the given state
+        /// @param newState The state to match
+        void UpdateState(Windowing::WindowState newState);
+
+        /// @brief Updates the fullscreen state of this window
+        /// @param isFullscreen If true, the window will go fullscreen
+        void UpdateFullscreen(bool isFullscreen);
     };
 }
 

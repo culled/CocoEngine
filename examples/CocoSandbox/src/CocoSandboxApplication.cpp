@@ -114,7 +114,7 @@ CocoSandboxApplication::~CocoSandboxApplication()
 
 void CocoSandboxApplication::Start()
 {
-	Windowing::WindowCreateParameters windowCreateParams("Coco Sandbox", SizeInt(1280, 720));
+	Windowing::WindowCreateParameters windowCreateParams("Coco Sandbox", SizeInt(1280, 720), true, Windowing::WindowState::Normal, true);
 	_window = _windowService->CreateNewWindow(windowCreateParams);
 	_window->Show();
 
@@ -122,6 +122,22 @@ void CocoSandboxApplication::Start()
 		if (key == Input::KeyboardKey::Escape)
 		{
 			Quit();
+			return true;
+		}
+
+		if (key == Input::KeyboardKey::D1)
+		{
+			_window->SetIsFullscreen(!_window->GetIsFullscreen());
+			return true;
+		} 
+		else if (key == Input::KeyboardKey::D2)
+		{
+			_window->SetState(Windowing::WindowState::Maximized);
+			return true;
+		}
+		else if (key == Input::KeyboardKey::D3)
+		{
+			_window->SetState(Windowing::WindowState::Normal);
 			return true;
 		}
 

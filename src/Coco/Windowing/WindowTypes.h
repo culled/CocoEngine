@@ -2,11 +2,11 @@
 
 namespace Coco::Windowing
 {
-	/// @brief States of a window
+	/// @brief States for a window
 	enum class WindowState
 	{
-		Windowed,
+		Normal,
 		Minimized,
-		Maximized,
+		Maximized
 	};
 }

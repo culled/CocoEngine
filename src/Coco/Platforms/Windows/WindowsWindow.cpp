@@ -13,10 +13,14 @@
 namespace Coco::Platform::Windows
 {
 	WindowsWindow::WindowsWindow(const Coco::Windowing::WindowCreateParameters& createParameters) :
-		Window()
+		Window(),
+		_canResize(createParameters.IsResizable),
+		_restorePlacement{ sizeof(WINDOWPLACEMENT) }
 	{
 		if (Rendering::RenderingService::Get() == nullptr)
 			throw Windowing::WindowCreateException("Failed to find an active RenderingService");
+
+		_presenter = Rendering::RenderingService::Get()->GetPlatform()->CreatePresenter(createParameters.Title);
 
 		_instance = EnginePlatformWindows::Get()->_instance;
 		_size = createParameters.InitialSize;
@@ -27,11 +31,8 @@ namespace Coco::Platform::Windows
 		string title = createParameters.Title;
 #endif
 
-		int windowFlags = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+		int windowFlags = GetWindowFlags();
 		int windowFlagsEx = WS_EX_APPWINDOW;
-
-		if (createParameters.IsResizable)
-			windowFlags |= WS_MAXIMIZEBOX | WS_THICKFRAME;
 
 		switch (createParameters.InitialState)
 		{
@@ -47,6 +48,9 @@ namespace Coco::Platform::Windows
 		default:
 			break;
 		}
+
+		if (createParameters.IsFullscreen)
+			windowFlags &= ~WS_OVERLAPPEDWINDOW;
 
 		int x = CW_USEDEFAULT;
 		int y = CW_USEDEFAULT;
@@ -81,8 +85,6 @@ namespace Coco::Platform::Windows
 
 		if (_handle == NULL)
 			throw Windowing::WindowCreateException(FormattedString("Failed to create window: {}", GetLastError()));
-
-		_presenter = Rendering::RenderingService::Get()->GetPlatform()->CreatePresenter(createParameters.Title);
 
 		LogTrace(Windowing::WindowingService::Get()->GetLogger(), "Created Windows window");
 	}
@@ -150,18 +152,51 @@ namespace Coco::Platform::Windows
 		CheckWindowHandle();
 
 		ShowWindow(_handle, SW_SHOW);
+		UpdateFullscreen(GetIsFullscreen());
 	}
 
-	void WindowsWindow::Minimize() noexcept
+	void WindowsWindow::SetState(Windowing::WindowState newState)
+	{
+		if (GetState() == newState)
+			return;
+
+		UpdateState(newState);
+	}
+
+	Windowing::WindowState WindowsWindow::GetState() const noexcept
 	{
 		CheckWindowHandle();
 
-		ShowWindow(_handle, SW_MINIMIZE);
+		DWORD windowStyle = ::GetWindowLong(_handle, GWL_STYLE);
+
+		if (windowStyle & WS_MINIMIZE)
+			return Windowing::WindowState::Minimized;
+		else if (windowStyle & WS_MAXIMIZE)
+			return Windowing::WindowState::Maximized;
+		
+		return Windowing::WindowState::Normal;
+	}
+
+	void WindowsWindow::SetIsFullscreen(bool isFullscreen)
+	{
+		if (GetIsFullscreen() == isFullscreen)
+			return;
+
+		UpdateFullscreen(isFullscreen);
+	}
+
+	bool WindowsWindow::GetIsFullscreen() const
+	{
+		CheckWindowHandle();
+
+		DWORD windowStyle = ::GetWindowLong(_handle, GWL_STYLE);
+
+		return (windowStyle & GetWindowFlags()) != GetWindowFlags();
 	}
 
 	bool WindowsWindow::GetIsVisible() const noexcept
 	{
-		return IsWindowVisible(_handle);
+		return IsWindowVisible(_handle) && _size.Width > 0 && _size.Height > 0;
 	}
 
 	void WindowsWindow::SetupPresenterSurface()
@@ -180,6 +215,10 @@ namespace Coco::Platform::Windows
 		{
 			const UINT width = LOWORD(lParam);
 			const UINT height = HIWORD(lParam);
+
+			if (_size.Width == 0 && _size.Height == 0 && width > 0 && height > 0)
+				UpdateFullscreen(GetIsFullscreen());
+
 			_size = SizeInt(static_cast<int>(width), static_cast<int>(height));
 			HandleResized();
 			break;
@@ -187,6 +226,73 @@ namespace Coco::Platform::Windows
 		default:
 			//LogTrace(WindowingService->GetLogger(), FormattedString("Got message {0}", message));
 			break;
+		}
+	}
+
+	DWORD WindowsWindow::GetWindowFlags() const
+	{
+		DWORD flags = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+
+		if (_canResize)
+			flags |= WS_THICKFRAME | WS_MAXIMIZEBOX;
+
+		return flags;
+	}
+
+	void WindowsWindow::UpdateState(Windowing::WindowState newState)
+	{
+		CheckWindowHandle();
+
+		switch (newState)
+		{
+		case Windowing::WindowState::Minimized:
+			ShowWindow(_handle, SW_MINIMIZE);
+			break;
+		case Windowing::WindowState::Normal:
+			if(!GetIsFullscreen())
+				ShowWindow(_handle, SW_RESTORE);
+			break;
+		case Windowing::WindowState::Maximized:
+			if (!GetIsFullscreen() && _canResize)
+				ShowWindow(_handle, SW_MAXIMIZE);
+			break;
+		default: 
+			break;
+		}
+	}
+
+	void WindowsWindow::UpdateFullscreen(bool isFullscreen)
+	{
+		CheckWindowHandle();
+
+		// Restore the window frame if we're not fullscreen anymore
+		if (!isFullscreen && GetIsFullscreen())
+		{
+			DWORD windowStyle = ::GetWindowLong(_handle, GWL_STYLE);
+			::SetWindowLong(_handle, GWL_STYLE, windowStyle | GetWindowFlags());
+			::SetWindowPlacement(_handle, &_restorePlacement);
+			::SetWindowPos(_handle,
+				NULL,
+				0, 0,
+				0, 0,
+				SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+		} 
+		else if (isFullscreen)
+		{
+			MONITORINFO mi{ sizeof(MONITORINFO) };
+			DWORD windowStyle = ::GetWindowLong(_handle, GWL_STYLE);
+
+			if (::GetWindowPlacement(_handle, &_restorePlacement) && ::GetMonitorInfo(::MonitorFromWindow(_handle, MONITOR_DEFAULTTOPRIMARY), &mi))
+			{
+				::SetWindowLong(_handle, GWL_STYLE, windowStyle & ~WS_OVERLAPPEDWINDOW);
+				::SetWindowPos(_handle,
+					HWND_TOP,
+					mi.rcMonitor.left,
+					mi.rcMonitor.top,
+					mi.rcMonitor.right - mi.rcMonitor.left,
+					mi.rcMonitor.bottom - mi.rcMonitor.top,
+					SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+			}
 		}
 	}
 }
