@@ -114,7 +114,7 @@ CocoSandboxApplication::~CocoSandboxApplication()
 
 void CocoSandboxApplication::Start()
 {
-	Windowing::WindowCreateParameters windowCreateParams("Coco Sandbox", SizeInt(1280, 720), true, Windowing::WindowState::Normal, true);
+	Windowing::WindowCreateParameters windowCreateParams("Coco Sandbox", SizeInt(1280, 720));
 	_window = _windowService->CreateNewWindow(windowCreateParams);
 	_window->Show();
 
