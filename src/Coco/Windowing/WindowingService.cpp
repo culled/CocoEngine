@@ -65,6 +65,12 @@ namespace Coco::Windowing
 		return renderableWindows;
 	}
 
+	List<DisplayInfo> WindowingService::GetDisplays() const
+	{
+		Platform::IWindowingPlatform* platform = dynamic_cast<Platform::IWindowingPlatform*>(Engine::Get()->GetPlatform());
+		return platform->GetDisplays();
+	}
+
 	void WindowingService::WindowClosed(Window* window) noexcept
 	{
 		// The main window closes with the application

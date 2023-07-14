@@ -220,6 +220,19 @@ namespace Coco::Platform::Windows
 #endif // COCO_SERVICE_WINDOWING
 	}
 
+	List<::Coco::Windowing::DisplayInfo> EnginePlatformWindows::GetDisplays() const
+	{
+#ifdef COCO_SERVICE_WINDOWING
+		List<::Coco::Windowing::DisplayInfo> displays;
+
+		EnumDisplayMonitors(NULL, NULL, &EnginePlatformWindows::MonitorEnumCallback, reinterpret_cast<LPARAM>(&displays));
+
+		return displays;
+#else
+		throw InvalidOperationException("Windowing support was not included");
+#endif // COCO_SERVICE_WINDOWING
+	}
+
 	void EnginePlatformWindows::Sleep(unsigned long milliseconds) noexcept
 	{
 		::Sleep(milliseconds);
@@ -413,6 +426,29 @@ namespace Coco::Platform::Windows
 			break;
 		}
 #endif // COCO_SERVICE_INPUT
+	}
+
+	BOOL EnginePlatformWindows::MonitorEnumCallback(HMONITOR monitor, HDC context, LPRECT rect, LPARAM data)
+	{
+#ifdef COCO_SERVICE_WINDOWING
+		List<Windowing::DisplayInfo>* displays = reinterpret_cast<List<Windowing::DisplayInfo>*>(data);
+
+		MONITORINFOEX monitorInfo{ sizeof(MONITORINFOEX) };
+		::GetMonitorInfo(monitor, &monitorInfo);
+
+		string name = WideStringToString(monitorInfo.szDevice);
+
+		displays->Construct(
+			name,
+			Vector2Int(monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top),
+			SizeInt(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top),
+			(monitorInfo.dwFlags & MONITORINFOF_PRIMARY) == MONITORINFOF_PRIMARY
+		);
+
+		return TRUE;
+#else
+		return FALSE;
+#endif // COCO_SERVICE_WINDOWING
 	}
 
 	void EnginePlatformWindows::RegisterWindowClass()

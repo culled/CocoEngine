@@ -69,6 +69,27 @@ namespace Coco::Platform::Windows
 		const int width = createParameters.InitialSize.Width + (borderRect.right - borderRect.left);
 		const int height = createParameters.InitialSize.Height + (borderRect.bottom - borderRect.top);
 
+		if (createParameters.DisplayIndex.has_value())
+		{
+			auto displays = Windowing::WindowingService::Get()->GetDisplays();
+			
+			if (createParameters.DisplayIndex.value() >= 0 || createParameters.DisplayIndex.value() < displays.Count())
+			{
+				const Windowing::DisplayInfo& display = displays[createParameters.DisplayIndex.value()];
+
+				if (x == CW_USEDEFAULT || y == CW_USEDEFAULT)
+				{
+					x = display.Offset.X + (display.Resolution.Width - width) / 2;
+					y = display.Offset.Y + (display.Resolution.Height - height) / 2;
+				}
+				else
+				{
+					x = display.Offset.X + createParameters.InitialPosition->X;
+					y = display.Offset.Y + createParameters.InitialPosition->Y;
+				}
+			}
+		}
+
 		_handle = CreateWindowEx(
 			windowFlagsEx,
 			EnginePlatformWindows::s_windowClassName,
@@ -265,6 +286,8 @@ namespace Coco::Platform::Windows
 	{
 		CheckWindowHandle();
 
+		// https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
+		
 		// Restore the window frame if we're not fullscreen anymore
 		if (!isFullscreen && GetIsFullscreen())
 		{

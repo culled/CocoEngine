@@ -61,6 +61,7 @@ namespace Coco::Platform::Windows
         void GetRenderingExtensions(int renderingRHI, bool includePresentationExtensions, List<string>& extensionNames) const noexcept final;
 
         ManagedRef<Windowing::Window> CreatePlatformWindow(const Windowing::WindowCreateParameters& createParameters) final;
+        List<::Coco::Windowing::DisplayInfo> GetDisplays() const final;
 
     private:
         /// @brief Message processing callback
@@ -84,6 +85,14 @@ namespace Coco::Platform::Windows
         /// @param wParam Message WParams
         /// @param lParam Message LParams
         static void HandleInputMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
+
+        /// @brief Callback for enumertating monitors
+        /// @param monitor The monitor
+        /// @param context The device context
+        /// @param rect The rect parameter
+        /// @param data The user-set data parameter
+        /// @return True if enumeration should continue
+        static BOOL MonitorEnumCallback(HMONITOR monitor, HDC context, LPRECT rect, LPARAM data);
 
         /// @brief Registers the window class with Windows
         void RegisterWindowClass();

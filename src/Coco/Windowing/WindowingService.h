@@ -5,6 +5,7 @@
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Singleton.h>
 #include "Window.h"
+#include "DisplayInfo.h"
 
 namespace Coco::Windowing
 {
@@ -41,6 +42,10 @@ namespace Coco::Windowing
         /// @brief Gets a list of windows that are currently visible
         /// @return A list of visible windows
         List<Ref<Window>> GetVisibleWindows() const noexcept;
+
+        /// @brief Gets info for all available displays
+        /// @return Info for all available displays
+        List<DisplayInfo> GetDisplays() const;
 
     private:
         /// @brief Called when a window has closed

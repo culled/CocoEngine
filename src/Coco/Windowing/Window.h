@@ -26,14 +26,17 @@ namespace Coco::Windowing
 		/// @brief If true, the window will be resizable/maximizable
 		bool IsResizable = true;
 
-		/// @brief If provided, the window's top-left corner will be located here
-		Optional<Vector2Int> InitialPosition;
-
 		/// @brief The initial state for the window
 		WindowState InitialState = WindowState::Normal;
 
 		/// @brief If true, the window will be shown in fullscreen
 		bool IsFullscreen = false;
+
+		/// @brief If provided, the window's top-left corner will be located here
+		Optional<Vector2Int> InitialPosition;
+
+		/// @brief If provided, this will be the index of the display that the window will be positioned on
+		Optional<int> DisplayIndex;
 
 		WindowCreateParameters(
 			const string& title, 

@@ -25,6 +25,10 @@ namespace Coco
 		SizeInt(int width, int height) noexcept;
 		virtual ~SizeInt() = default;
 
+		/// @brief Converts this size to a string
+		/// @return This size as a string
+		string ToString() const { return FormattedString("{} x {}", Width, Height); }
+
 		SizeInt operator+(const SizeInt& other) const noexcept { return SizeInt(Width + other.Width, Height + other.Height); }
 		void operator+=(const SizeInt& other) noexcept { Width += other.Width; Height += other.Height; }
 
