@@ -13,7 +13,7 @@
 namespace Coco::Platform::Windows
 {
 	WindowsWindow::WindowsWindow(const Coco::Windowing::WindowCreateParameters& createParameters) :
-		Window(),
+		Window(createParameters.Parent),
 		_canResize(createParameters.IsResizable),
 		_restorePlacement{ sizeof(WINDOWPLACEMENT) }
 	{
@@ -23,7 +23,6 @@ namespace Coco::Platform::Windows
 		_presenter = Rendering::RenderingService::Get()->GetPlatform()->CreatePresenter(createParameters.Title);
 
 		_instance = EnginePlatformWindows::Get()->_instance;
-		_size = createParameters.InitialSize;
 
 #if UNICODE || _UNICODE
 		std::wstring title = StringToWideString(createParameters.Title);
@@ -55,15 +54,15 @@ namespace Coco::Platform::Windows
 		int x = CW_USEDEFAULT;
 		int y = CW_USEDEFAULT;
 
-		// We want the sizing/positioning to be relative to the client space within the window (not the title-bar, etc.)
+		// We want the sizing to be relative to the client space within the window (not the title-bar, etc.)
 		// So we need to calculate the border size and offset our position/sizing respectively
 		RECT borderRect = {0, 0, 0, 0};
 		AdjustWindowRectEx(&borderRect, windowFlags, FALSE, windowFlagsEx);
 		
 		if (createParameters.InitialPosition.has_value())
 		{
-			x = createParameters.InitialPosition->X + borderRect.left;
-			y = createParameters.InitialPosition->Y + borderRect.top;
+			x = createParameters.InitialPosition->X;
+			y = createParameters.InitialPosition->Y;
 		}
 
 		const int width = createParameters.InitialSize.Width + (borderRect.right - borderRect.left);
@@ -90,6 +89,23 @@ namespace Coco::Platform::Windows
 			}
 		}
 
+		HWND parentWindowHandle = NULL;
+
+		if (createParameters.Parent.has_value())
+		{
+			const WindowsWindow* parentWindow = static_cast<const WindowsWindow*>(createParameters.Parent->Get());
+
+			parentWindowHandle = parentWindow->_handle;
+
+			if (x != CW_USEDEFAULT && y != CW_USEDEFAULT)
+			{
+				Vector2Int parentPos = parentWindow->GetPosition();
+
+				x += parentPos.X;
+				y += parentPos.Y;
+			}
+		}
+
 		_handle = CreateWindowEx(
 			windowFlagsEx,
 			EnginePlatformWindows::s_windowClassName,
@@ -99,7 +115,7 @@ namespace Coco::Platform::Windows
 			y,
 			width,
 			height,
-			NULL, // TODO: parented windows
+			parentWindowHandle,
 			NULL, // Menu
 			_instance,
 			this);
@@ -168,6 +184,37 @@ namespace Coco::Platform::Windows
 		SetWindowText(_handle, titleStr.c_str());
 	}
 
+	void WindowsWindow::SetSize(const SizeInt& size)
+	{
+		CheckWindowHandle();
+
+		int windowFlags = ::GetWindowLong(_handle, GWL_STYLE);
+		int windowFlagsEx = ::GetWindowLong(_handle, GWL_EXSTYLE);
+
+		// We want the sizing to be relative to the client space within the window (not the title-bar, etc.)
+		// So we need to calculate the border size and offset our position/sizing respectively
+		RECT borderRect = { 0, 0, 0, 0 };
+		AdjustWindowRectEx(&borderRect, windowFlags, FALSE, windowFlagsEx);
+
+		::SetWindowPos(
+			_handle, 
+			NULL, 
+			0, 0, 
+			size.Width + (borderRect.right - borderRect.left), size.Height + (borderRect.bottom - borderRect.top),
+			SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER
+		);
+	}
+
+	SizeInt WindowsWindow::GetSize() const noexcept
+	{
+		CheckWindowHandle();
+
+		RECT rect;
+		::GetClientRect(_handle, &rect);
+
+		return SizeInt(rect.right, rect.bottom);
+	}
+
 	void WindowsWindow::Show() noexcept
 	{
 		CheckWindowHandle();
@@ -217,12 +264,61 @@ namespace Coco::Platform::Windows
 
 	bool WindowsWindow::GetIsVisible() const noexcept
 	{
-		return IsWindowVisible(_handle) && _size.Width > 0 && _size.Height > 0;
+		SizeInt size = GetSize();
+
+		return IsWindowVisible(_handle) && size.Width > 0 && size.Height > 0;
 	}
 
 	void WindowsWindow::SetupPresenterSurface()
 	{
 		_presenter->InitializeSurface(Rendering::PresenterWin32SurfaceInitializationInfo(_handle, _instance));
+	}
+
+	void WindowsWindow::SetPosition(const Vector2Int& position)
+	{
+		CheckWindowHandle();
+
+		Vector2Int pos = position;
+
+		if (_parent.IsValid())
+		{
+			Vector2Int parentPos = _parent->GetPosition();
+			pos += parentPos;
+		}
+
+		::SetWindowPos(_handle, NULL, pos.X, pos.Y, 0, 0, SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+	}
+
+	Vector2Int WindowsWindow::GetPosition() const
+	{
+		CheckWindowHandle();
+
+		RECT rect;
+		::GetWindowRect(_handle, &rect);
+
+		Vector2Int pos = Vector2Int(rect.left, rect.top);
+
+		if (_parent.IsValid())
+		{
+			Vector2Int parentPos = _parent->GetPosition();
+			pos -= parentPos;
+		}
+
+		return pos;
+	}
+
+	void WindowsWindow::Focus()
+	{
+		CheckWindowHandle();
+
+		::SetActiveWindow(_handle);
+	}
+
+	bool WindowsWindow::HasFocus() const
+	{
+		CheckWindowHandle();
+
+		return ::GetActiveWindow() == _handle;
 	}
 
 	void WindowsWindow::ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam)
@@ -236,11 +332,11 @@ namespace Coco::Platform::Windows
 		{
 			const UINT width = LOWORD(lParam);
 			const UINT height = HIWORD(lParam);
+			SizeInt size = GetSize();
 
-			if (_size.Width == 0 && _size.Height == 0 && width > 0 && height > 0)
+			if (size.Width == 0 && size.Height == 0 && width > 0 && height > 0)
 				UpdateFullscreen(GetIsFullscreen());
 
-			_size = SizeInt(static_cast<int>(width), static_cast<int>(height));
 			HandleResized();
 			break;
 		}

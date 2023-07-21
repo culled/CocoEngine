@@ -17,7 +17,6 @@ namespace Coco::Platform::Windows
         HWND _handle;
         HINSTANCE _instance;
 
-        SizeInt _size;
         bool _canResize;
 
         WINDOWPLACEMENT _restorePlacement;
@@ -35,13 +34,18 @@ namespace Coco::Platform::Windows
         void* GetID() const noexcept final { return _handle; }
         string GetTitle() const noexcept final;
         void SetTitle(const string& title) final;
-        SizeInt GetSize() const noexcept final { return _size; }
+        void SetSize(const SizeInt& size) final;
+        SizeInt GetSize() const noexcept final;
         void Show() noexcept final;
         void SetState(Windowing::WindowState newState) final;
         Windowing::WindowState GetState() const noexcept final;
         void SetIsFullscreen(bool isFullscreen) final;
         bool GetIsFullscreen() const final;
         bool GetIsVisible() const noexcept final;
+        void SetPosition(const Vector2Int& position) final;
+        Vector2Int GetPosition() const final;
+        void Focus() final;
+        bool HasFocus() const final;
 
     protected:
         void SetupPresenterSurface() final;

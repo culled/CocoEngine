@@ -119,6 +119,13 @@ void CocoSandboxApplication::Start()
 	_window = _windowService->CreateNewWindow(windowCreateParams);
 	_window->Show();
 
+	//windowCreateParams.Title = "Child";
+	//windowCreateParams.Parent = _window;
+	//windowCreateParams.InitialSize = SizeInt(640, 480);
+	//windowCreateParams.InitialPosition = Vector2Int::Zero;
+	//Ref<Windowing::Window> child = _windowService->CreateNewWindow(windowCreateParams);
+	//child->Show();
+
 	_inputService->GetKeyboard()->OnKeyPressedEvent += [&](Input::KeyboardKey key) {
 		if (key == Input::KeyboardKey::Escape)
 		{
@@ -139,6 +146,11 @@ void CocoSandboxApplication::Start()
 		else if (key == Input::KeyboardKey::D3)
 		{
 			_window->SetState(Windowing::WindowState::Normal);
+			return true;
+		}
+		else if (key == Input::KeyboardKey::G)
+		{
+			_window->Focus();
 			return true;
 		}
 

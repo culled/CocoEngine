@@ -13,6 +13,7 @@
 namespace Coco::Windowing
 {
 	class WindowingService;
+	class Window;
 
 	/// @brief Parameters for creating a window
 	struct COCOAPI WindowCreateParameters
@@ -37,6 +38,9 @@ namespace Coco::Windowing
 
 		/// @brief If provided, this will be the index of the display that the window will be positioned on
 		Optional<int> DisplayIndex;
+
+		/// @brief If provided, this window will become the parent of the created window
+		Optional<Ref<Window>> Parent;
 
 		WindowCreateParameters(
 			const string& title, 
@@ -70,8 +74,11 @@ namespace Coco::Windowing
 		/// @brief The presenter for the window
 		Ref<Rendering::GraphicsPresenter> _presenter;
 
+		/// @brief The parent of this window
+		Ref<Window> _parent;
+
 	protected:
-		Window() = default;
+		Window(Optional<Ref<Window>> parent);
 
 	public:
 		virtual ~Window() = default;
@@ -86,6 +93,10 @@ namespace Coco::Windowing
 		/// @return This window's presenter
 		Ref<Rendering::GraphicsPresenter> GetPresenter() const noexcept { return _presenter; }
 
+		/// @brief Gets this window's parent window
+		/// @return This window's parent window
+		Ref<Window> GetParent() const { return _parent; }
+
 		/// @brief Gets the platform-specific ID for this window
 		/// @return The ID for this window
 		virtual void* GetID() const noexcept = 0;
@@ -97,6 +108,10 @@ namespace Coco::Windowing
 		/// @brief Sets the title of this window
 		/// @param title The new title for this window
 		virtual void SetTitle(const string& title) = 0;
+
+		/// @brief Sets the size of the window's client area
+		/// @param size The size of the window's client area
+		virtual void SetSize(const SizeInt& size) = 0;
 
 		/// @brief Gets the size of the window's client area
 		/// @return The size of the window's client area
@@ -128,6 +143,21 @@ namespace Coco::Windowing
 		/// @brief Gets if this window is visible (shown and not minimized)
 		/// @return True if this window is visible
 		virtual bool GetIsVisible() const noexcept = 0;
+
+		/// @brief Sets the position of the top-left corner of the window
+		/// @param position The position of the top-left corner of the window
+		virtual void SetPosition(const Vector2Int& position) = 0;
+
+		/// @brief Gets the position of the top-left corner of the window
+		/// @return The position of the top-left corner of the window
+		virtual Vector2Int GetPosition() const = 0;
+
+		/// @brief Brings the window to the front and focuses it
+		virtual void Focus() = 0;
+
+		/// @brief Gets if this window is the one that is focused
+		/// @return True if this window is focused
+		virtual bool HasFocus() const = 0;
 
 		/// @brief Requests this window to close
 		/// @return True if this window will close

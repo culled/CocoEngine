@@ -5,6 +5,9 @@
 
 namespace Coco::Windowing
 {
+	Window::Window(Optional<Ref<Window>> parent) : _parent(parent.has_value() ? parent.value() : Ref<Window>())
+	{}
+
 	bool Window::Close() noexcept
 	{
 		bool cancelClose = false;
