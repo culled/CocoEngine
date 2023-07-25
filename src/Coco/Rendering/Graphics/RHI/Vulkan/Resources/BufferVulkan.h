@@ -12,6 +12,8 @@ namespace Coco::Rendering::Vulkan
 	/// @brief Vulkan-implementation of a Buffer
 	class BufferVulkan final : public GraphicsResource<GraphicsDeviceVulkan, Buffer>
 	{
+		friend class ManagedRef<BufferVulkan>;
+
 	private:
 		uint64_t _size;
 		VkBuffer _buffer = nullptr;
@@ -22,13 +24,15 @@ namespace Coco::Rendering::Vulkan
 		bool _isBound = false;
 		bool _isLocked = false;
 
-	public:
+	protected:
 		BufferVulkan(
-			const ResourceID& id, 
-			const string& name, 
-			BufferUsageFlags usageFlags, 
-			uint64_t size, 
+			const ResourceID& id,
+			const string& name,
+			BufferUsageFlags usageFlags,
+			uint64_t size,
 			bool bindOnCreate);
+
+	public:
 		~BufferVulkan() final;
 
 		DefineResourceType(BufferVulkan)

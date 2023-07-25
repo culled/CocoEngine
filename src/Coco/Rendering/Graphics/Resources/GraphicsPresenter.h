@@ -14,8 +14,10 @@ namespace Coco::Rendering
 	/// @brief A presenter that can be used with a window for displaying rendered images
 	class COCOAPI GraphicsPresenter : public RenderingResource
 	{
-	public:
+	protected:
 		GraphicsPresenter(const ResourceID& id, const string& name) : RenderingResource(id, name) {}
+
+	public:
 		virtual ~GraphicsPresenter() = default;
 
 		/// @brief Initializes a surface for a window

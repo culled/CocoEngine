@@ -7,8 +7,10 @@ namespace Coco::Rendering
 	/// @brief A semaphore that can be used to order operations on the GPU
 	class COCOAPI GraphicsSemaphore : public RenderingResource
 	{
-	public:
+	protected:
 		GraphicsSemaphore(const ResourceID& id, const string& name) : RenderingResource(id, name) {}
+
+	public:
 		virtual ~GraphicsSemaphore() = default;
 
 		GraphicsSemaphore(const GraphicsSemaphore&) = delete;

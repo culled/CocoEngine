@@ -12,13 +12,10 @@ namespace Coco::Rendering
 	protected:
 		ImageSamplerProperties _properties;
 
-	public:
-		ImageSampler(
-			const ResourceID& id,
-			const string& name,
-			const ImageSamplerProperties& properties
-		) noexcept;
+	protected:
+		ImageSampler(const ResourceID& id, const string& name, const ImageSamplerProperties& properties) noexcept;
 
+	public:
 		virtual ~ImageSampler() = default;
 
 		ImageSampler(const ImageSampler&) = delete;

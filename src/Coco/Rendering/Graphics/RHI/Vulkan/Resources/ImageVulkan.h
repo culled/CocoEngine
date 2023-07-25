@@ -15,6 +15,7 @@ namespace Coco::Rendering::Vulkan
 	class ImageVulkan final : public GraphicsResource<GraphicsDeviceVulkan, Image>
 	{
 		friend class RenderContextVulkan;
+		friend class ManagedRef<ImageVulkan>;
 
 	private:
 		bool _isManagedInternally;
@@ -24,9 +25,11 @@ namespace Coco::Rendering::Vulkan
 		uint32_t _memoryIndex = 0;
 		VkImageLayout _currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-	public:
+	protected:
 		ImageVulkan(const ResourceID& id, const string& name, const ImageDescription& description, VkImage image);
 		ImageVulkan(const ResourceID& id, const string& name, const ImageDescription& description);
+
+	public:
 		~ImageVulkan() final;
 
 		DefineResourceType(ImageVulkan)

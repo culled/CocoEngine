@@ -10,6 +10,8 @@ namespace Coco::Rendering::Vulkan
     /// @brief Vulkan implementation of a GraphicsPlatform
     class GraphicsPlatformVulkan final : public GraphicsPlatform
     {
+        friend class ManagedRef<GraphicsPlatformVulkan>;
+
     private:
         static const char* s_debugValidationLayerName;
 
@@ -21,8 +23,10 @@ namespace Coco::Rendering::Vulkan
         GraphicsDeviceCreationParameters _deviceCreationParams;
         ManagedRef<GraphicsDeviceVulkan> _device;
 
-    public:
+    protected:
         GraphicsPlatformVulkan(const GraphicsPlatformCreationParameters& creationParams);
+
+    public:
         ~GraphicsPlatformVulkan() final;
 
         Logging::Logger* GetLogger() noexcept final;

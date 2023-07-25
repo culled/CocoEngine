@@ -7,8 +7,10 @@ namespace Coco::Rendering
 	/// @brief A fence that can be used to make the host wait for an async GPU operation to complete
 	class COCOAPI GraphicsFence : public RenderingResource
 	{
-	public:
+	protected:
 		GraphicsFence(const ResourceID& id, const string& name) : RenderingResource(id, name) {}
+
+	public:
 		virtual ~GraphicsFence() = default;
 
 		GraphicsFence(const GraphicsFence&) = delete;

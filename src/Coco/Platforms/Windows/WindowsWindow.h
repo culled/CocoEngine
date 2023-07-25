@@ -11,8 +11,10 @@ namespace Coco::Platform::Windows
     /// @brief Win32 implementation of a window
     class WindowsWindow final : public Coco::Windowing::Window
     {
-    private:
         friend EnginePlatformWindows;
+        friend class ManagedRef<WindowsWindow>;
+
+    private:
 
         HWND _handle;
         HINSTANCE _instance;
@@ -21,8 +23,10 @@ namespace Coco::Platform::Windows
 
         WINDOWPLACEMENT _restorePlacement;
 
-    public:
+    protected:
         WindowsWindow(const Coco::Windowing::WindowCreateParameters& createParameters);
+
+    public:
         ~WindowsWindow() final;
 
         WindowsWindow() = delete;

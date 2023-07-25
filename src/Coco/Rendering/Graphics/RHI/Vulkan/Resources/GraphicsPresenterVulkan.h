@@ -33,6 +33,8 @@ namespace Coco::Rendering::Vulkan
     /// @brief Vulkan implentation of a GraphicsPresenter
     class GraphicsPresenterVulkan final : public GraphicsResource<GraphicsDeviceVulkan, GraphicsPresenter>
     {
+		friend class ManagedRef<GraphicsPresenterVulkan>;
+
 	private:
 		VerticalSyncMode _vsyncMode = VerticalSyncMode::Enabled;
 		SizeInt _backbufferSize;
@@ -48,8 +50,10 @@ namespace Coco::Rendering::Vulkan
 		
 		uint _currentFrame = 0;
 
-	public:
+	protected:
 		GraphicsPresenterVulkan(const ResourceID& id, const string& name);
+
+	public:
 		~GraphicsPresenterVulkan() final;
 
 		DefineResourceType(GraphicsPresenterVulkan)

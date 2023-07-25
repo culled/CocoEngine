@@ -36,6 +36,8 @@ namespace Coco::Rendering::Vulkan
 	/// @brief Vulkan-implementation of a RenderContext
 	class RenderContextVulkan final : public GraphicsResource<GraphicsDeviceVulkan, RenderContext>
 	{
+		friend class ManagedRef<RenderContextVulkan>;
+
 	private:
 		static constexpr uint _globalDescriptorSetIndex = 0;
 		static constexpr uint _materialDescriptorSetIndex = 1;
@@ -67,8 +69,10 @@ namespace Coco::Rendering::Vulkan
 
 		int _backbufferIndex = -1;
 
-	public:
+	protected:
 		RenderContextVulkan(const ResourceID& id, const string& name);
+
+	public:
 		~RenderContextVulkan() final;
 
 		DefineResourceType(RenderContextVulkan)

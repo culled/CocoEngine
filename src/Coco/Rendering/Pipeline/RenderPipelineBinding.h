@@ -22,12 +22,16 @@ namespace Coco::Rendering
 	/// @brief A binding between an IRenderPass and a RenderPipeline
 	class COCOAPI RenderPipelineBinding
 	{
+		friend class ManagedRef<RenderPipelineBinding>;
+
 	private:
 		SharedRef<IRenderPass> _renderPass;
 		List<MappedAttachmentDescription> _mappedAttachmentDescriptions;
 
-	public:
+	protected:
 		RenderPipelineBinding(SharedRef<IRenderPass> renderPass, const List<int>& passToPipelineAttachmentMapping);
+
+	public:
 		virtual ~RenderPipelineBinding();
 
 		/// @brief Gets the mapping between the pipeline attachments and this render pass's attachments

@@ -13,21 +13,15 @@ namespace Coco::Rendering::Vulkan
 	/// @brief Vulkan-implementation of a CommandBuffer
 	class CommandBufferVulkan final : public GraphicsResource<GraphicsDeviceVulkan, CommandBuffer>
 	{
+		friend class ManagedRef<CommandBufferVulkan>;
+
 	private:
 		VkCommandBuffer _commandBuffer = nullptr;
 		CommandBufferPoolVulkan* _pool;
 
-	public:
-		CommandBufferVulkan(const ResourceID& id, const string& name, bool isPrimary, CommandBufferPoolVulkan& pool);
-		~CommandBufferVulkan() final;
-
-		DefineResourceType(CommandBufferVulkan)
-
-		/// @brief Gets the underlying Vulkan command buffer
-		/// @return The underlying Vulkan command buffer
-		VkCommandBuffer GetCmdBuffer() noexcept { return _commandBuffer; }
-
 	protected:
+		CommandBufferVulkan(const ResourceID& id, const string& name, bool isPrimary, CommandBufferPoolVulkan& pool);
+
 		void BeginImpl(bool isSingleUse, bool isSimultaneousUse) final;
 		void EndImpl() override;
 		void SubmitImpl(
@@ -35,5 +29,14 @@ namespace Coco::Rendering::Vulkan
 			List<GraphicsSemaphore*>* signalSemaphores,
 			GraphicsFence* signalFence) final;
 		void ResetImpl() final;
+
+	public:
+		~CommandBufferVulkan() final;
+
+		DefineResourceType(CommandBufferVulkan)
+
+		/// @brief Gets the underlying Vulkan command buffer
+		/// @return The underlying Vulkan command buffer
+		VkCommandBuffer GetCmdBuffer() noexcept { return _commandBuffer; }
 	};
 }

@@ -31,10 +31,11 @@ namespace Coco::Rendering::Vulkan
 		VulkanPipeline(
 			const ResourceID& id,
 			const string& name,
-			const VulkanRenderPass& renderPass, 
+			const VulkanRenderPass& renderPass,
 			const VulkanShader& shader,
 			const string& subshaderName,
 			uint subpassIndex);
+
 		~VulkanPipeline() final;
 
 		DefineResourceType(VulkanPipeline)

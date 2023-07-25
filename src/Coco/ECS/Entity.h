@@ -10,7 +10,10 @@ namespace Coco::ECS
 {
 	class Entity
 	{
+		friend class ECSService;
+
 	public:
+		/// @brief The id of this entity
 		EntityID ID;
 
 	private:
@@ -18,7 +21,6 @@ namespace Coco::ECS
 		EntityID _parentID;
 		SceneID _sceneID;
 
-		friend class ECSService;
 
 	public:
 		Entity();

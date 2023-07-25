@@ -14,7 +14,7 @@ namespace Coco::Rendering
 		/// @brief The graphics device
 		DeviceType* _device;
 
-	public:
+	protected:
 		template<typename ... Args>
 		BaseGraphicsResource(Args&& ... args) :
 			_device(static_cast<DeviceType*>(RenderingService::Get()->GetPlatform()->GetDevice()))
@@ -32,7 +32,7 @@ namespace Coco::Rendering
 		/// @brief The graphics device
 		DeviceType* _device;
 
-	public:
+	protected:
 		template<typename ... Args>
 		GraphicsResource(const ResourceID& id, const string& name, Args&& ... args) : 
 			BaseClass(id, name, std::forward<Args>(args)...), 

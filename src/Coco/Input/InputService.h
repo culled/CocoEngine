@@ -11,6 +11,8 @@ namespace Coco::Input
     /// @brief A service that handles input from peripherals
     class COCOAPI InputService : public EngineService, public Singleton<InputService>
     {
+        friend class ManagedRef<InputService>;
+
     public:
         /// @brief Priority for the tick handling input processing
         const static int ProcessTickPriority = -10000;
@@ -22,8 +24,10 @@ namespace Coco::Input
         ManagedRef<Keyboard> _keyboard;
         ManagedRef<Mouse> _mouse;
 
-    public:
+    protected:
         InputService();
+
+    public:
         virtual ~InputService() override;
 
         InputService(const InputService&) = delete;

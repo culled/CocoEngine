@@ -9,8 +9,10 @@ namespace Coco::Rendering
 	/// @brief A pool that can allocate CommandBuffers
 	class COCOAPI CommandBufferPool
 	{
-	public:
+	protected:
 		CommandBufferPool() = default;
+
+	public:
 		virtual ~CommandBufferPool() = default;
 
 		/// @brief Allocates a command buffer

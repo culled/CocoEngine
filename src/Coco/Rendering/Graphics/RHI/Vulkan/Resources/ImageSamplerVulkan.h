@@ -12,11 +12,15 @@ namespace Coco::Rendering::Vulkan
 	/// @brief Vulkan-implementation of an image sampler
 	class ImageSamplerVulkan final : public GraphicsResource<GraphicsDeviceVulkan, ImageSampler>
 	{
+		friend class ManagedRef<ImageSamplerVulkan>;
+
 	private:
 		VkSampler _sampler = nullptr;
 
-	public:
+	protected:
 		ImageSamplerVulkan(const ResourceID& id, const string& name, const ImageSamplerProperties& properties);
+
+	public:
 		~ImageSamplerVulkan() final;
 
 		DefineResourceType(ImageSamplerVulkan)

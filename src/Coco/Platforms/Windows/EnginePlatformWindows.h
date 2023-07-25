@@ -15,11 +15,13 @@ namespace Coco::Input
 namespace Coco::Platform::Windows
 {
     /// @brief Win32 platform implementation
-    class COCOAPI EnginePlatformWindows final : public Singleton<EnginePlatformWindows>, 
-        public IEnginePlatform, 
-        public IRenderingPlatform, 
+    class COCOAPI EnginePlatformWindows final : public Singleton<EnginePlatformWindows>,
+        public IEnginePlatform,
+        public IRenderingPlatform,
         public IWindowingPlatform
     {
+        friend class ManagedRef<EnginePlatformWindows>;
+
     private:
         static const wchar_t* s_windowClassName;
 
@@ -32,8 +34,10 @@ namespace Coco::Platform::Windows
         friend class WindowsWindow;
 #endif
 
-    public:
+    protected:
         EnginePlatformWindows(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow);
+
+    public:
         ~EnginePlatformWindows() final;
 
         EnginePlatformWindows() = delete;

@@ -13,8 +13,10 @@ namespace Coco::Rendering
 		/// @brief The description for this image
 		ImageDescription _description;
 
-	public:
+	protected:
 		Image(const ResourceID& id, const string& name, ImageDescription description) noexcept;
+
+	public:
 		virtual ~Image() = default;
 
 		Image(const Image&) = delete;

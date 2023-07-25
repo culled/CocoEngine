@@ -17,6 +17,8 @@ namespace Coco
 	/// @brief The core engine
 	class COCOAPI Engine : public Singleton<Engine>
 	{
+		friend class ManagedRef<Engine>;
+
 	private:
 		DateTime _startTime;
 
@@ -28,8 +30,10 @@ namespace Coco
 		ManagedRef<MainLoop> _mainLoop;
 		ManagedRef<ResourceLibrary> _resourceLibrary;
 
-	public:
+	protected:
 		Engine(Platform::IEnginePlatform* platform);
+
+	public:
 		virtual ~Engine();
 
 		Engine() = delete;

@@ -14,8 +14,10 @@ namespace Coco::Rendering
 		/// @brief The usage flags of this buffer
 		const BufferUsageFlags UsageFlags;
 
-	public:
+	protected:
 		Buffer(const ResourceID& id, const string& name, BufferUsageFlags usageFlags) noexcept;
+
+	public:
 		virtual ~Buffer() = default;
 
 		Buffer() = delete;

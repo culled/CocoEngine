@@ -18,6 +18,8 @@ namespace Coco::Rendering
     /// @brief A service that allows for rendering operations
     class COCOAPI RenderingService final : public EngineService, public Singleton<RenderingService>
     {
+        friend class ManagedRef<RenderingService>;
+
     public:
         static constexpr uint64_t DefaultGraphicsResourceTickLifetime = 1000;
 
@@ -27,8 +29,10 @@ namespace Coco::Rendering
         Ref<Texture> _defaultDiffuseTexture;
         Ref<Texture> _defaultCheckerTexture;
 
-    public:
+    protected:
         RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
+
+    public:
         ~RenderingService() final;
 
         /// @brief Gets the current graphics platform

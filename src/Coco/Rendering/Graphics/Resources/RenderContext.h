@@ -55,8 +55,10 @@ namespace Coco::Rendering
 		/// @brief The number of triangles drawn this render
 		uint64_t _currentTrianglesDrawn = 0;
 
-	public:
+	protected:
 		RenderContext(const ResourceID& id, const string& name);
+
+	public:
 		virtual ~RenderContext() = default;
 
 		RenderContext(const RenderContext&) = delete;

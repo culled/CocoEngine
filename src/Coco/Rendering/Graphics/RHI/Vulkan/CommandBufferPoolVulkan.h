@@ -14,6 +14,8 @@ namespace Coco::Rendering::Vulkan
 	/// @brief Vulkan-implementation of a CommandBufferPool
 	class CommandBufferPoolVulkan final : public CommandBufferPool
 	{
+		friend class ManagedRef<CommandBufferPoolVulkan>;
+
 	private:
 		GraphicsDeviceVulkan* _device = nullptr;
 		VkCommandPool _pool = nullptr;
@@ -21,8 +23,10 @@ namespace Coco::Rendering::Vulkan
 
 		List<Ref<CommandBufferVulkan>> _allocatedBuffers;
 
-	public:
+	protected:
 		CommandBufferPoolVulkan(GraphicsDeviceVulkan* device, Ref<VulkanQueue> queue);
+
+	public:
 		~CommandBufferPoolVulkan() final;
 
 		Ref<CommandBuffer> Allocate(bool isPrimary, const string& name = "CommandBuffer") final;

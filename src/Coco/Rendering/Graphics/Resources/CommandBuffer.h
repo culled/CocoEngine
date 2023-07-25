@@ -29,8 +29,10 @@ namespace Coco::Rendering
 		/// @brief The current state of this buffer
 		CommandBufferState _currentState;
 
-	public:
+	protected:
 		CommandBuffer(const ResourceID& id, const string& name, bool isPrimary) noexcept;
+
+	public:
 		virtual ~CommandBuffer() = default;
 
 		CommandBuffer(const CommandBuffer&) = delete;

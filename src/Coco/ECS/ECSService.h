@@ -14,6 +14,8 @@ namespace Coco::ECS
 {
 	class ECSService : public EngineService, public Singleton<ECSService>
 	{
+		friend class ManagedRef<ECSService>;
+
 	private:
 		UnorderedMap<EntityID, Entity> _entities;
 		Set<EntityID> _queuedEntitiesToDestroy;
@@ -25,7 +27,10 @@ namespace Coco::ECS
 		/// @brief Priority for the tick handling entities
 		const static int ProcessTickPriority = -20000;
 
+	protected:
 		ECSService();
+
+	public:
 		~ECSService();
 
 		EntityID CreateEntity(const string& name = "", const EntityID& parentID = InvalidEntityID);

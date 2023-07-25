@@ -14,6 +14,8 @@ namespace Coco::Rendering::Vulkan
 	/// @brief Manages a pool of descriptor sets
 	class VulkanDescriptorPool final : public GraphicsResource<GraphicsDeviceVulkan, RenderingResource>
 	{
+		friend class ManagedRef<VulkanDescriptorPool>;
+
 	private:
 		uint _maxDescriptorSets;
 		UnorderedMap<uint64_t, VkDescriptorSet> _allocatedDescriptorSets;
@@ -21,12 +23,14 @@ namespace Coco::Rendering::Vulkan
 
 		VkDescriptorPool _pool;
 
-	public:
+	protected:
 		VulkanDescriptorPool(
-			const ResourceID& id, 
-			const string& name,  
-			uint maxSets, 
+			const ResourceID& id,
+			const string& name,
+			uint maxSets,
 			const List<VulkanDescriptorLayout>& descriptorSetLayouts);
+
+	public:
 		~VulkanDescriptorPool() final;
 
 		DefineResourceType(VulkanDescriptorPool)

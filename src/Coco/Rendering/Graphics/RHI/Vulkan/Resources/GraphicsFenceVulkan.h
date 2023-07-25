@@ -12,11 +12,15 @@ namespace Coco::Rendering::Vulkan
 	/// @brief Vulkan-implementation of a GraphicsFence
 	class GraphicsFenceVulkan final : public GraphicsResource<GraphicsDeviceVulkan, GraphicsFence>
 	{
+		friend class ManagedRef<GraphicsFenceVulkan>;
+
 	private:
 		VkFence _fence = nullptr;
 
-	public:
+	protected:
 		GraphicsFenceVulkan(const ResourceID& id, const string& name, bool startSignalled);
+
+	public:
 		~GraphicsFenceVulkan() final;
 
 		DefineResourceType(GraphicsFenceVulkan)

@@ -9,12 +9,12 @@ namespace Coco::ECS
 {
 	class Scene : public Rendering::ISceneDataProvider
 	{
+		friend class ECSService;
+
 	private:
 		SceneID _id;
 		string _name;
 		SceneID _parentID;
-
-		friend class ECSService;
 
 	public:
 		Scene(SceneID id, string name, SceneID parentID = RootSceneID);

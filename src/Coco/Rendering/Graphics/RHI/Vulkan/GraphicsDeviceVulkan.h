@@ -35,6 +35,8 @@ namespace Coco::Rendering::Vulkan
     /// @brief Vulkan implementation of a GraphicsDevice
     class GraphicsDeviceVulkan final : public GraphicsDevice
     {
+        friend class ManagedRef<GraphicsDeviceVulkan>;
+
     private:
         GraphicsPlatformVulkan* _platform = nullptr;
 
@@ -58,8 +60,10 @@ namespace Coco::Rendering::Vulkan
         Optional<ManagedRef<CommandBufferPoolVulkan>> _transferCommandPool;
         Optional<ManagedRef<CommandBufferPoolVulkan>> _computeCommandPool;
 
-    public:
+    protected:
         GraphicsDeviceVulkan(VkPhysicalDevice physicalDevice, const GraphicsDeviceCreationParameters& createParams);
+
+    public:
         ~GraphicsDeviceVulkan() final;
 
         Logging::Logger* GetLogger() noexcept final;

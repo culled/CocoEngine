@@ -12,11 +12,15 @@ namespace Coco::Rendering::Vulkan
 	/// @brief Vulkan-implementation of a GraphicsSemaphore
 	class GraphicsSemaphoreVulkan final : public GraphicsResource<GraphicsDeviceVulkan, GraphicsSemaphore>
 	{
+		friend class ManagedRef<GraphicsSemaphoreVulkan>;
+
 	private:
 		VkSemaphore _semaphore = nullptr;
 
-	public:
+	protected:
 		GraphicsSemaphoreVulkan(const ResourceID& id, const string& name);
+
+	public:
 		~GraphicsSemaphoreVulkan() final;
 
 		DefineResourceType(GraphicsSemaphoreVulkan)

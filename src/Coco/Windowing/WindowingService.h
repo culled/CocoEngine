@@ -15,13 +15,16 @@ namespace Coco::Windowing
     class COCOAPI WindowingService final : public EngineService, public Singleton<WindowingService>
     {
         friend Window;
+        friend class ManagedRef<WindowingService>;
 
     private:
         List<ManagedRef<Window>> _windows;
         Ref<Window> _mainWindow;
 
-    public:
+    protected:
         WindowingService();
+
+    public:
         ~WindowingService() final;
 
         /// @brief Creates a window
