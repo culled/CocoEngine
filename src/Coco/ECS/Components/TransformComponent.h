@@ -28,6 +28,7 @@ namespace Coco::ECS
 	public:
 		TransformComponent() = default;
 		TransformComponent(const EntityID& owner);
+		TransformComponent(const EntityID& owner, const Vector3& localPosition, const Quaternion& localRotation, const Vector3& localScale);
 
 		void SetLocalTransformMatrix(const Matrix4x4& matrix);
 		const Matrix4x4& GetLocalTransformMatrix();

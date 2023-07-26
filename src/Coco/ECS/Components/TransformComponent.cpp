@@ -7,6 +7,16 @@ namespace Coco::ECS
 	TransformComponent::TransformComponent(const EntityID& owner) : EntityComponent(owner)
 	{}
 
+	TransformComponent::TransformComponent(const EntityID & owner, const Vector3 & localPosition, const Quaternion & localRotation, const Vector3 & localScale) : 
+		EntityComponent(owner),
+		_localPosition(localPosition), 
+		_localRotation(localRotation), 
+		_localScale(localScale), 
+		_localEulerAngles(localRotation.ToEulerAngles())
+	{
+		InvalidateTransform();
+	}
+
 	void TransformComponent::SetLocalTransformMatrix(const Matrix4x4& matrix)
 	{
 		_localTransformMatrix = matrix;
