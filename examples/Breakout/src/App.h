@@ -31,6 +31,7 @@ private:
 
 	ECS::EntityID _playerEntity;
 	ECS::EntityID _ballEntity;
+	List<ECS::EntityID> _blockEntities;
 
 	Color _clearColor = Color(0.1, 0.15, 0.2);
 	double _cameraOrthoSize = 20.0;
@@ -38,8 +39,19 @@ private:
 	Vector3 _cameraRotation = Vector3(Math::Deg2Rad(-90.0), 0.0, 0.0);
 	ECS::EntityID _cameraEntity;
 
-	Size _arenaSize = Size(35.0, 18.0);
-	Vector3 _arenaOffset = Vector3(0.0, 1.0, 1.0);
+	Size _arenaSize = Size(35.0, 16.0);
+	Vector3 _arenaOffset = Vector3(0.0, 0.0, 1.0);
+
+	int _blockRows = 6;
+	double _blockStartingY = 2.0;
+	Array<Color, 6> _blockRowColors = {
+		Color(0.27, 0.27, 0.77),
+		Color(0.27, 0.62, 0.28),
+		Color(0.64, 0.62, 0.17),
+		Color(0.71, 0.48, 0.19),
+		Color(0.78, 0.42, 0.23),
+		Color(0.78, 0.29, 0.27) 
+	};
 
 	bool _isPlaying = false;
 

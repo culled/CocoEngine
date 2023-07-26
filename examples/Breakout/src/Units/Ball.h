@@ -20,7 +20,7 @@ private:
 	Vector3 _startPosition = Vector3(0.0, -7.0, 0.0);
 	Vector3 _velocity = Vector3::Zero;
 
-	Color _color = Color::Magenta;
+	Color _color = Color(0.79, 0.27, 0.26);
 
 	Ref<Mesh> _mesh;
 	Ref<Material> _material;

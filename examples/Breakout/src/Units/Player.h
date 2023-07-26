@@ -23,7 +23,7 @@ private:
 	double _maxPositionX = 15.0;
 	double _positionY = -8.0;
 
-	Color _color = Color::White;
+	Color _color = Color(0.79, 0.27, 0.26);
 
 	Ref<Mesh> _mesh;
 	Ref<Material> _material;

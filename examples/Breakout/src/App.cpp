@@ -10,6 +10,7 @@
 
 #include "Units/Player.h"
 #include "Units/Ball.h"
+#include "Units/Block.h"
 
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 #include "Rendering/OpaqueRenderPass.h"
@@ -103,7 +104,7 @@ void App::ConfigureRenderPipeline()
 		);
 
 	_wallMaterial = library->CreateResource<Material>("Material::Wall", _basicShader);
-	_wallMaterial->SetVector4("_BaseColor", Color::Green);
+	_wallMaterial->SetVector4("_BaseColor", Color(0.55, 0.55, 0.55));
 	_wallMaterial->SetTexture("_MainTex", App::Get()->GetRenderingService()->GetDefaultDiffuseTexture());
 }
 
@@ -128,6 +129,26 @@ void App::CreateUnits()
 
 	_ballEntity = _ecsService->CreateEntity("Ball");
 	_ecsService->AddComponent<Ball>(_ballEntity);
+
+	const double blockStartX = -_arenaSize.Width * 0.5 + 1.5;
+	const double blockEndX = _arenaSize.Width * 0.5 - 1.5;
+
+	double y = _blockStartingY;
+	for (int r = 0; r < _blockRows; r++)
+	{
+		Ref<Rendering::Material> blockRowMaterial = Engine::Get()->GetResourceLibrary()->CreateResource<Material>(FormattedString("Block Row {} Material", r), _basicShader);
+		blockRowMaterial->SetVector4("_BaseColor", _blockRowColors.at(r));
+		blockRowMaterial->SetTexture("_MainTex", GetRenderingService()->GetDefaultDiffuseTexture());
+
+		for (double x = blockStartX; x <= blockEndX; x += 2.0)
+		{
+			EntityID block = _ecsService->CreateEntity("Block");
+			_ecsService->AddComponent<Block>(block, Vector3(x, y, 0.0), blockRowMaterial->ID);
+			_blockEntities.Add(block);
+		}
+
+		y += 0.5;
+	}
 }
 
 void App::CreateArena()
