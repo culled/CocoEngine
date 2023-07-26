@@ -16,7 +16,8 @@ namespace Coco
     UUID::UUID(uint64_t a, uint64_t b) : _uuid(a, b)
     {}
 
-    UUID::UUID(const string& bytes) : _uuid(bytes)
+    UUID::UUID(const string& str) :
+        _uuid(UUIDv4::UUID::fromStrFactory(str.c_str()))
     {}
 
     UUID::UUID(const UUIDv4::UUID& uuid) : _uuid(uuid)

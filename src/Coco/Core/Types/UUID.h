@@ -25,7 +25,7 @@ namespace Coco
 		UUID();
 		UUID(const UUID& other);
 		UUID(uint64_t a, uint64_t b);
-		UUID(const string& bytes);
+		UUID(const string& str);
 
 		/// @brief Creates a random UUID
 		/// @return A UUID
