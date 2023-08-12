@@ -118,6 +118,36 @@ namespace Coco
 		return copy;
 	}
 
+	Vector2 Vector2::Project(const Vector2& normal) const noexcept
+	{
+		// https://www.youtube.com/watch?v=naaeH1qbjdQ
+		double VdotN = Dot(normal);
+		double NdotN = normal.Dot(normal);
+
+		return normal * (VdotN / NdotN);
+	}
+
+	Vector2 Vector2::Reflect(const Vector2& normal) const noexcept
+	{
+		// https://www.youtube.com/watch?v=naaeH1qbjdQ
+		Vector2 projection = Project(normal);
+
+		return *this - projection * 2.0;
+	}
+
+	Vector2 Vector2::Refract(const Vector2& normal, double ior) const noexcept
+	{
+		// https://stackoverflow.com/questions/29758545/how-to-find-refraction-vector-from-incoming-vector-and-surface-normal
+		double cosI = Math::Clamp(-Dot(normal), 0.0, 1.0);
+		const double sinT2 = Math::Pow(ior, 2.0) * (1.0 - Math::Pow(cosI, 2.0));
+
+		if (sinT2 > 1.0)
+			return Vector2::Zero;
+
+		const double cosT = Math::Sqrt(1.0 - sinT2);
+		return *this * ior + normal * (ior * cosI - cosT);
+	}
+
 	Vector2::operator Vector3() const noexcept { return Vector3(X, Y, 0.0); }
 
 	const Vector3 Vector3::Zero = Vector3(0.0, 0.0, 0.0);
@@ -172,6 +202,36 @@ namespace Coco
 		Vector3 copy = *this;
 		copy.Normalize(safe);
 		return copy;
+	}
+
+	Vector3 Vector3::Project(const Vector3& normal) const noexcept
+	{
+		// https://www.youtube.com/watch?v=naaeH1qbjdQ
+		double VdotN = Dot(normal);
+		double NdotN = normal.Dot(normal);
+
+		return normal * (VdotN / NdotN);
+	}
+
+	Vector3 Vector3::Reflect(const Vector3& normal) const noexcept
+	{
+		// https://www.youtube.com/watch?v=naaeH1qbjdQ
+		Vector3 projection = Project(normal);
+
+		return *this - projection * 2.0;
+	}
+
+	Vector3 Vector3::Refract(const Vector3& normal, double ior) const noexcept
+	{
+		// https://stackoverflow.com/questions/29758545/how-to-find-refraction-vector-from-incoming-vector-and-surface-normal
+		double cosI = Math::Clamp(-Dot(normal), 0.0, 1.0);
+		const double sinT2 = Math::Pow(ior, 2.0) * (1.0 - Math::Pow(cosI, 2.0));
+
+		if (sinT2 > 1.0)
+			return Vector3::Zero;
+
+		const double cosT = Math::Sqrt(1.0 - sinT2);
+		return *this * ior + normal * (ior * cosI - cosT);
 	}
 
 	Vector3::operator Vector4() const noexcept { return Vector4(X, Y, Z, 0.0); }

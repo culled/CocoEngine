@@ -144,6 +144,22 @@ namespace Coco
 		/// @return The dot product of this vector and the other vector
 		double Dot(const Vector2& other) const noexcept { return X * other.X + Y * other.Y; }
 
+		/// @brief Projects this vector along a normal vector.
+		/// @param normal The normal vector
+		/// @return The projected vector
+		Vector2 Project(const Vector2& normal) const noexcept;
+
+		/// @brief Calculates this vector reflected on a plane with the given normal
+		/// @param normal The normal vector
+		/// @return The reflection vector
+		Vector2 Reflect(const Vector2& normal) const noexcept;
+
+		/// @brief Calculates this vector refracted through a plane with the given normal
+		/// @param normal The normal vector
+		/// @param ior The index of refraction
+		/// @return The refraction vector
+		Vector2 Refract(const Vector2& normal, double ior) const noexcept;
+
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
 		string ToString() const { return FormattedString("{}, {}", X, Y); }
@@ -271,6 +287,22 @@ namespace Coco
 		/// @param other The other vector
 		/// @return The cross product
 		Vector3 Cross(const Vector3& other) const noexcept { return Vector3( Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X); }
+
+		/// @brief Projects this vector along a normal vector.
+		/// @param normal The normal vector
+		/// @return The projected vector
+		Vector3 Project(const Vector3& normal) const noexcept;
+
+		/// @brief Calculates this vector reflected on a plane with the given normal
+		/// @param normal The normal vector
+		/// @return The reflection vector
+		Vector3 Reflect(const Vector3& normal) const noexcept;
+
+		/// @brief Calculates this vector refracted through a plane with the given normal
+		/// @param normal The normal vector
+		/// @param ior The index of refraction
+		/// @return The refraction vector
+		Vector3 Refract(const Vector3& normal, double ior) const noexcept;
 
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
