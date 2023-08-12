@@ -144,6 +144,10 @@ namespace Coco
 		/// @return The dot product of this vector and the other vector
 		double Dot(const Vector2& other) const noexcept { return X * other.X + Y * other.Y; }
 
+		Vector2 Project(const Vector2& normal) const noexcept;
+		Vector2 Reflect(const Vector2& normal) const noexcept;
+		Vector2 Refract(const Vector2& normal, double ior) const noexcept;
+
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
 		string ToString() const { return FormattedString("{}, {}", X, Y); }
@@ -271,6 +275,10 @@ namespace Coco
 		/// @param other The other vector
 		/// @return The cross product
 		Vector3 Cross(const Vector3& other) const noexcept { return Vector3( Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X); }
+
+		Vector3 Project(const Vector3& normal) const noexcept;
+		Vector3 Reflect(const Vector3& normal) const noexcept;
+		Vector3 Refract(const Vector3& normal, double ior) const noexcept;
 
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
