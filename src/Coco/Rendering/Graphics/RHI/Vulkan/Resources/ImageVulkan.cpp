@@ -222,9 +222,6 @@ namespace Coco::Rendering::Vulkan
 	{
 		const bool isDepthFormat = IsDepthStencilFormat(_description.PixelFormat);
 
-		//VkFormatProperties formatProperties;
-		//vkGetPhysicalDeviceFormatProperties(_device->GetPhysicalDevice(), ToVkFormat(Description.PixelFormat), &formatProperties);
-
 		VkImageCreateInfo create = {};
 		create.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		create.extent.width = static_cast<uint32_t>(_description.Width);
@@ -233,7 +230,7 @@ namespace Coco::Rendering::Vulkan
 		create.mipLevels = static_cast<uint32_t>(_description.MipCount);
 		create.arrayLayers = static_cast<uint32_t>(_description.Layers);
 		create.imageType = ToVkImageType(_description.DimensionType);
-		create.format = ToVkFormat(_description.PixelFormat);
+		create.format = ToVkFormat(_description.PixelFormat, _description.ColorSpace);
 		create.tiling = VK_IMAGE_TILING_OPTIMAL;
 		create.initialLayout = _currentLayout;
 		create.usage = ToVkImageUsageFlags(_description.UsageFlags, _description.PixelFormat);
@@ -267,7 +264,7 @@ namespace Coco::Rendering::Vulkan
 
 		VkImageViewCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		createInfo.format = ToVkFormat(_description.PixelFormat);
+		createInfo.format = ToVkFormat(_description.PixelFormat, _description.ColorSpace);
 		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 
 		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;

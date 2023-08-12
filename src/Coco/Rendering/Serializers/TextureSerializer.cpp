@@ -41,7 +41,7 @@ namespace Coco::Rendering
 		ImageFilterMode filterMode = ImageFilterMode::Linear;
 		ImageRepeatMode repeatMode = ImageRepeatMode::Repeat;
 		uint maxAnisotropy = 16;
-		int channelCount = 4;
+		ColorSpace colorSpace = ColorSpace::sRGB;
 		string imageFilePath;
 		string name;
 		string id;
@@ -66,18 +66,15 @@ namespace Coco::Rendering
 				repeatMode = static_cast<ImageRepeatMode>(reader.GetVariableValueAsInt());
 			else if (reader.IsKey(s_maxAnisotropyVariable))
 				maxAnisotropy = static_cast<uint>(reader.GetVariableValueAsInt());
-			else if (reader.IsKey(s_channelCountVariable))
-				channelCount = reader.GetVariableValueAsInt();
+			else if (reader.IsKey(s_colorSpaceVariable))
+				colorSpace = static_cast<ColorSpace>(reader.GetVariableValueAsInt());
 		}
 
 		if (imageFilePath.empty())
 			LogWarning(library.GetLogger(), "Texture did not have a valid image file");
 
-		ManagedRef<Texture> texture = CreateManagedRef<Texture>(UUID(id), name);
-
-		texture->_usageFlags = usageFlags;
-		texture->SetSamplerProperties(ImageSamplerProperties(filterMode, repeatMode, maxAnisotropy));
-		texture->LoadFromFile(library.GetFullFilePath(imageFilePath), channelCount);
+		ImageSamplerProperties samplerProperties = ImageSamplerProperties(filterMode, repeatMode, maxAnisotropy);
+		ManagedRef<Texture> texture = CreateManagedRef<Texture>(UUID(id), name, library.GetFullFilePath(imageFilePath), colorSpace, usageFlags, samplerProperties);
 
 		return std::move(texture);
 	}

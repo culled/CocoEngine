@@ -18,6 +18,7 @@ namespace Coco::Rendering
 		Ref<ImageSampler> _sampler;
 		ImageSamplerProperties _samplerProperties;
 		string _imageFilePath;
+		ColorSpace _colorSpace;
 
 	public:
 		Texture(
@@ -46,9 +47,9 @@ namespace Coco::Rendering
 			const ResourceID& id,
 			const string& name,
 			const string& filePath,
+			ColorSpace colorSpace,
 			ImageUsageFlags usageFlags,
-			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default,
-			int channelCount = 4
+			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default
 		);
 
 		~Texture() override;
@@ -83,11 +84,8 @@ namespace Coco::Rendering
 		/// @return This texture's sampler
 		Ref<ImageSampler> GetSampler() noexcept { return _sampler; }
 
-		/// @brief Loads image data from a file into this texture
-		/// @param filePath The path of the image file
-		/// @param channelCount The desired number of channels to load
-		/// @return True if the image was loaded successfully
-		bool LoadFromFile(const string& filePath, int channelCount = 4);
+		/// @brief Reloads the image that this texture references. Does nothing if this texture was not created from an image
+		void ReloadImage();
 
 		/// @brief Gets the path to the image that this texture has loaded, if any
 		/// @return The path to the image that this texture has loaded, or an empty string if one has not been loaded

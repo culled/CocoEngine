@@ -23,6 +23,7 @@ namespace Coco::Rendering
 		const ImageSamplerProperties& samplerProperties
 	) : RenderingResource(id, name),
 		_usageFlags(usageFlags), 
+		_colorSpace(colorSpace),
 		_samplerProperties(samplerProperties)
 	{
 		RecreateImageFromDescription(ImageDescription(width, height, 1, pixelFormat, colorSpace, usageFlags));
@@ -36,6 +37,7 @@ namespace Coco::Rendering
 		const ImageSamplerProperties& samplerProperties
 	) : RenderingResource(id, name),
 		_usageFlags(description.UsageFlags), 
+		_colorSpace(description.ColorSpace),
 		_samplerProperties(samplerProperties)
 	{
 		RecreateImageFromDescription(description);
@@ -46,14 +48,16 @@ namespace Coco::Rendering
 		const ResourceID& id,
 		const string& name,
 		const string& filePath, 
+		ColorSpace colorSpace,
 		ImageUsageFlags usageFlags, 
-		const ImageSamplerProperties& samplerProperties,
-		int channelCount
+		const ImageSamplerProperties& samplerProperties
 	) : RenderingResource(id, name),
+		_imageFilePath(filePath),
+		_colorSpace(colorSpace),
 		_usageFlags(usageFlags), 
 		_samplerProperties(samplerProperties)
 	{
-		LoadFromFile(filePath, channelCount);
+		ReloadImage();
 		RecreateInternalSampler();
 	}
 
@@ -90,8 +94,11 @@ namespace Coco::Rendering
 		IncrementVersion();
 	}
 
-	bool Texture::LoadFromFile(const string& filePath, int imageChannelCount)
+	void Texture::ReloadImage()
 	{
+		if (_imageFilePath.empty())
+			return;
+
 		// Set Y = 0 to the top
 		stbi_set_flip_vertically_on_load(true);
 
@@ -100,14 +107,15 @@ namespace Coco::Rendering
 		description.UsageFlags = _usageFlags;
 
 		// Load in the image data from the file
+		int channelsToLoad = 4;
 		int actualChannelCount;
-		uint8_t* rawImageData = stbi_load(filePath.c_str(), &description.Width, &description.Height, &actualChannelCount, imageChannelCount);
+		uint8_t* rawImageData = stbi_load(_imageFilePath.c_str(), &description.Width, &description.Height, &actualChannelCount, channelsToLoad);
 
 		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
 
 		if (rawImageData == nullptr || stbi_failure_reason())
 		{
-			LogError(platform->GetLogger(), FormattedString("Failed to load image data from \"{}\": {}", filePath, stbi_failure_reason()));
+			LogError(platform->GetLogger(), FormattedString("Failed to load image data from \"{}\": {}", _imageFilePath, stbi_failure_reason()));
 
 			// Free the image data if it was somehow loaded
 			if (rawImageData != nullptr)
@@ -116,17 +124,17 @@ namespace Coco::Rendering
 			// Clears any error so it won't cause subsequent false failures
 			stbi_clear_error();
 
-			return false;
+			return;
 		}
 
-		uint64_t byteSize = static_cast<uint64_t>(description.Width) * description.Height * imageChannelCount;
+		uint64_t byteSize = static_cast<uint64_t>(description.Width) * description.Height * channelsToLoad;
 
 		// Check if there is any transparency in the image
 		bool hasTransparency = false;
 
-		if (imageChannelCount > 3)
+		if (actualChannelCount > 3)
 		{
-			for (uint64_t i = 0; i < byteSize; i += imageChannelCount)
+			for (uint64_t i = 0; i < byteSize; i += channelsToLoad)
 			{
 				if (rawImageData[i + 3] < 255)
 				{
@@ -137,8 +145,20 @@ namespace Coco::Rendering
 		}
 
 		// TODO: determine this from loaded file
-		description.PixelFormat = PixelFormat::RGBA8;
-		description.ColorSpace = ColorSpace::sRGB;
+		switch (channelsToLoad)
+		{
+		case 4:
+			description.PixelFormat = PixelFormat::RGBA8;
+			break;
+		default:
+		{
+			LogError(platform->GetLogger(), FormattedString("Images with {} channels are not supported", channelsToLoad));
+			stbi_image_free(rawImageData);
+			return;
+		}
+		}
+		
+		description.ColorSpace = _colorSpace;
 		description.DimensionType = description.Height == 1 ? ImageDimensionType::OneDimensional : ImageDimensionType::TwoDimensional;
 
 		// Hold onto the old image data just in-case the transfer fails
@@ -160,7 +180,7 @@ namespace Coco::Rendering
 			_image = oldImage;
 			SetVersion(oldVersion);
 
-			return false;
+			return;
 		}
 
 		if(oldImage.IsValid())
@@ -168,13 +188,9 @@ namespace Coco::Rendering
 
 		IncrementVersion();
 
-		_imageFilePath = filePath;
-
 		stbi_image_free(rawImageData);
 
-		LogTrace(platform->GetLogger(), FormattedString("Loaded image \"{}\"", filePath));
-
-		return true;
+		LogTrace(platform->GetLogger(), FormattedString("Loaded image \"{}\"", _imageFilePath));
 	}
 
 	void Texture::RecreateImageFromDescription(const ImageDescription& newDescription)

@@ -21,6 +21,7 @@ namespace Coco::Rendering
 	enum class ColorSpace
 	{
 		sRGB,
+		Linear,
 		Unknown
 	};
 
@@ -69,6 +70,7 @@ namespace Coco::Rendering
 		switch (format)
 		{
 		case PixelFormat::RGBA8:
+			return 4;
 		case PixelFormat::Depth32_Stencil8:
 			return 5;
 		default:

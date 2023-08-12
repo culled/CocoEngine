@@ -85,7 +85,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		switch (format)
 		{
-		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_R8G8B8A8_SRGB:
 			return PixelFormat::RGBA8;
 		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			return PixelFormat::Depth32_Stencil8;
@@ -96,13 +96,14 @@ namespace Coco::Rendering::Vulkan
 
 	/// @brief Converts a PixelFormat to a VkFormat
 	/// @param format The format
+	/// @param colorSpace The color space of the format
 	/// @return The converted VkFormat
-	constexpr VkFormat ToVkFormat(PixelFormat format) noexcept
+	constexpr VkFormat ToVkFormat(PixelFormat format, ColorSpace colorSpace) noexcept
 	{
 		switch (format)
 		{
 		case PixelFormat::RGBA8:
-			return VK_FORMAT_R8G8B8A8_UNORM;
+			return colorSpace == ColorSpace::sRGB ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
 		case PixelFormat::Depth32_Stencil8:
 			return VK_FORMAT_D32_SFLOAT_S8_UINT;
 		default:
@@ -119,6 +120,8 @@ namespace Coco::Rendering::Vulkan
 		{
 		case VK_COLORSPACE_SRGB_NONLINEAR_KHR:
 			return ColorSpace::sRGB;
+		case VK_COLOR_SPACE_PASS_THROUGH_EXT:
+			return ColorSpace::Linear;
 		default:
 			return ColorSpace::Unknown;
 		}
@@ -132,7 +135,9 @@ namespace Coco::Rendering::Vulkan
 		switch (colorSpace)
 		{
 		case ColorSpace::sRGB:
-			return VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+			return VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+		case ColorSpace::Linear:
+			return VK_COLOR_SPACE_PASS_THROUGH_EXT;
 		default:
 			return VK_COLOR_SPACE_MAX_ENUM_KHR;
 		}

@@ -43,7 +43,7 @@ namespace Coco::Rendering::Vulkan
 
 			VkAttachmentDescription description = {};
 			description.samples = VK_SAMPLE_COUNT_1_BIT; // TODO: msaa
-			description.format = ToVkFormat(pipelineAttachment.Description.PixelFormat);
+			description.format = ToVkFormat(pipelineAttachment.Description.PixelFormat, pipelineAttachment.Description.ColorSpace);
 			description.loadOp = pipelineAttachment.Description.ShouldPreserve ?
 				VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
 			description.storeOp = pipelineAttachment.Description.ShouldPreserve ? 

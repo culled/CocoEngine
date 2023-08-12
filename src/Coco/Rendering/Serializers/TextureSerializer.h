@@ -16,7 +16,7 @@ namespace Coco::Rendering
 		static constexpr const char* s_filterModeVariable = "filterMode";
 		static constexpr const char* s_repeatModeVariable = "repeatMode";
 		static constexpr const char* s_maxAnisotropyVariable = "maxAnisotropy";
-		static constexpr const char* s_channelCountVariable = "channelCount";
+		static constexpr const char* s_colorSpaceVariable = "colorSpace";
 
 	public:
 		TextureSerializer() = default;
