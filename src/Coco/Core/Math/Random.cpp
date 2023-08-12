@@ -13,7 +13,7 @@ namespace Coco
     {
         EnsureSeeded();
 
-        const std::uniform_int_distribution<int> distribution(min, max);
+        std::uniform_int_distribution<int> distribution(min, max);
 
         return distribution(_generator);
     }
@@ -22,7 +22,7 @@ namespace Coco
     {
         EnsureSeeded();
 
-        const std::uniform_real_distribution<double> distribution(min, max);
+        std::uniform_real_distribution<double> distribution(min, max);
 
         return distribution(_generator);
     }

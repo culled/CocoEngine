@@ -3,7 +3,7 @@
 #include <Coco/Core/Core.h>
 
 #include <type_traits>
-#include <math.h>
+#include <algorithm>
 
 namespace Coco
 {

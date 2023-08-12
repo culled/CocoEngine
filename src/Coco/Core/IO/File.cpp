@@ -143,7 +143,7 @@ namespace Coco
 		if (charactersRead < charactersToRead)
 			chars.Resize(charactersRead);
 
-		return string(chars);
+		return string(chars.Data());
 	}
 
 	string File::ReadTextToEnd()
