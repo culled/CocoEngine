@@ -8,10 +8,10 @@ namespace Coco
 	class File;
 
 	/// @brief A reader that can read lines in a file as key=value pairs
-	class COCOAPI KeyValueReader
+	class COCOAPI KeyValueReader : public StreamReader
 	{
 	private:
-		StreamReader _reader;
+		std::istream* _inputStream;
 		string _currentLine;
 		string _currentKey;
 		string _currentValue;
@@ -20,6 +20,10 @@ namespace Coco
 	public:
 		KeyValueReader(std::istream& stream);
 		virtual ~KeyValueReader() = default;
+
+		// Inherited via StreamReader
+		virtual bool IsValid() const override;
+		virtual uint64_t GetPosition() override;
 
 		/// @brief Gets the current line
 		/// @return The current line
@@ -76,6 +80,9 @@ namespace Coco
 		/// @return True if the line was read
 		bool ReadIfIsIndentLevel(uint64_t indentLevel);
 
+	protected:
+		std::istream& GetReadStream() override { return *_inputStream; }
+
 	private:
 		/// @brief Sets the current line information
 		/// @param line The current line
@@ -83,10 +90,10 @@ namespace Coco
 	};
 
 	/// @brief A writer that can write key=value pair lines to a file
-	/*class COCOAPI KeyValueWriter
+	class COCOAPI KeyValueWriter : public StreamWriter
 	{
 	private:
-		std::ostream* _stream;
+		std::ostream* _outputStream;
 		int _currentIndentLevel = 0;
 		string _currentIndentStr = "";
 		bool _useTabs;
@@ -94,6 +101,10 @@ namespace Coco
 	public:
 		KeyValueWriter(std::ostream& stream, bool useTabs = false);
 		virtual ~KeyValueWriter() = default;
+
+		// Inherited via StreamReader
+		virtual bool IsValid() const override;
+		virtual uint64_t GetPosition() override;
 
 		/// @brief Sets the indent level for subsequent line writes
 		/// @param indentLevel The indent level for subsequent lines
@@ -113,7 +124,10 @@ namespace Coco
 		/// @param key The key
 		/// @param value The value
 		void WriteLine(const string& key, const string& value);
-	};*/
+
+	protected:
+		std::ostream& GetWriteStream() override { return *_outputStream; }
+	};
 
 	/// @brief A serializer that can serialize/deserialize files in a key=value pair format
 	class COCOAPI KeyValueResourceSerializer : public IResourceSerializer

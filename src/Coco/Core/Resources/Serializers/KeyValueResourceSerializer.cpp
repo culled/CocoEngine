@@ -2,21 +2,31 @@
 
 namespace Coco
 {
-	KeyValueReader::KeyValueReader(std::istream& stream) : 
-		_reader(stream), _currentIndentLevel(0), _currentLine(""), _currentKey(""), _currentValue("")
+	KeyValueReader::KeyValueReader(std::istream& stream) :
+		_inputStream(&stream), _currentIndentLevel(0), _currentLine(""), _currentKey(""), _currentValue("")
 	{}
+
+	bool KeyValueReader::IsValid() const
+	{
+		return _inputStream->good();
+	}
+
+	uint64_t KeyValueReader::GetPosition()
+	{
+		return _inputStream->tellg();
+	}
 
 	uint64_t KeyValueReader::GetNextLineIndentLevel()
 	{
 		string nextLine;
-		_reader.PeekLine(nextLine);
+		PeekLine(nextLine);
 		return KeyValueResourceSerializer::GetIndentationLevel(nextLine);
 	}
 
 	bool KeyValueReader::ReadLine()
 	{
 		string line;
-		const bool read = _reader.ReadLine(line);
+		const bool read = StreamReader::ReadLine(line);
 		SetCurrentLine(line);
 
 		return read;
@@ -49,9 +59,19 @@ namespace Coco
 	}
 
 
-	/*KeyValueWriter::KeyValueWriter(std::ostream& stream, bool useTabs) :
-		_stream(&stream), _useTabs(useTabs), _currentIndentLevel(0), _currentIndentStr("")
+	KeyValueWriter::KeyValueWriter(std::ostream& stream, bool useTabs) :
+		_outputStream(&stream), _useTabs(useTabs), _currentIndentLevel(0), _currentIndentStr("")
 	{}
+
+	bool KeyValueWriter::IsValid() const
+	{
+		return _outputStream->good();
+	}
+
+	uint64_t KeyValueWriter::GetPosition()
+	{
+		return _outputStream->tellp();
+	}
 
 	void KeyValueWriter::SetIndentLevel(int indentLevel)
 	{
@@ -64,13 +84,13 @@ namespace Coco
 
 	void KeyValueWriter::WriteLine(const string& line)
 	{
-		_file->WriteLine(_currentIndentStr + line);
+		StreamWriter::WriteLine(_currentIndentStr + line);
 	}
 
 	void KeyValueWriter::WriteLine(const string& key, const string& value)
 	{
 		WriteLine(FormattedString("{}={}", key, value));
-	}*/
+	}
 
 	uint64_t KeyValueResourceSerializer::GetIndentationLevel(const string& line) noexcept
 	{

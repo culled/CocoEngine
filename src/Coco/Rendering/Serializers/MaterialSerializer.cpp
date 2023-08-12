@@ -15,10 +15,11 @@ namespace Coco::Rendering
 	{
 		if (const Material* material = dynamic_cast<const Material*>(resource.Get()))
 		{
-			/*KeyValueWriter writer;
+			std::stringstream stream;
+			KeyValueWriter writer(stream);
 
 			writer.WriteLine("version", "1");
-			writer.WriteLine(s_materialNameVariable, material->Name);
+			writer.WriteLine(s_materialNameVariable, material->GetName());
 
 			writer.WriteLine(s_materialShaderVariable, material->GetShader() != nullptr ? material->GetShader()->GetFilePath() : "");
 			
@@ -34,10 +35,11 @@ namespace Coco::Rendering
 			writer.WriteLine(s_textureSection);
 			writer.IncrementIndentLevel();
 			for (const auto& textureKVP : material->GetTextureProperties())
-				writer.WriteLine(textureKVP.first, textureKVP.second != nullptr ? textureKVP.second->GetFilePath() : "");
-			writer.DecrementIndentLevel();*/
+				writer.WriteLine(textureKVP.first, textureKVP.second.IsValid() ? textureKVP.second->GetFilePath() : "");
+			writer.DecrementIndentLevel();
 
-			return "";
+			writer.Flush();
+			return stream.str();
 		}
 		else
 		{

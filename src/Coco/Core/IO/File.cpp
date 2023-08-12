@@ -88,28 +88,6 @@ namespace Coco
 		f.Close();
 	}
 
-	char File::Peek()
-	{
-		CheckHandle();
-
-		return _handle.peek();
-	}
-
-	List<char> File::Read(uint64_t bytesToRead)
-	{
-		CheckHandle();
-
-		List<char> bytes(bytesToRead);
-
-		_handle.read(bytes.Data(), bytesToRead);
-		const uint64_t bytesRead = _handle.gcount();
-
-		if (bytesRead < bytesToRead)
-			bytes.Resize(bytesRead);
-
-		return bytes;
-	}
-
 	List<char> File::ReadToEnd()
 	{
 		CheckHandle();
@@ -125,92 +103,10 @@ namespace Coco
 		return Read(length);
 	}
 
-	void File::Write(const List<char>& bytes)
-	{
-		CheckHandle();
-
-		_handle.write(bytes.Data(), bytes.Count());
-	}
-
-	string File::ReadText(uint64_t charactersToRead)
-	{
-		CheckHandle();
-
-		List<char> chars(charactersToRead);
-		_handle.read(chars.Data(), charactersToRead);
-
-		const uint64_t charactersRead = _handle.gcount();
-		if (charactersRead < charactersToRead)
-			chars.Resize(charactersRead);
-
-		return string(chars.Data());
-	}
-
 	string File::ReadTextToEnd()
 	{
-		CheckHandle();
-
-		const std::streampos current = _handle.tellg();
-
-		_handle.seekg(0, std::ios::end);
-
-		const uint64_t length = _handle.tellg() - current;
-
-		_handle.seekg(current);
-
-		return ReadText(length);
-	}
-
-	void File::WriteText(const string& text)
-	{
-		CheckHandle();
-
-		_handle.write(text.c_str(), text.length());
-	}
-
-	void File::WriteLine(const string& text, char lineEnd)
-	{
-		WriteText(text + lineEnd);
-	}
-
-	bool File::ReadLine(string& text, char lineEnd)
-	{
-		CheckHandle();
-
-		if (!_handle.good())
-			return false;
-
-		std::getline(_handle, text, lineEnd);
-
-		return true;
-	}
-
-	void File::PeekLine(string& text, char lineEnd)
-	{
-		CheckHandle();
-
-		const uint64_t pos = GetPosition();
-		const std::ios_base::iostate state = _handle.rdstate();
-
-		ReadLine(text, lineEnd);
-
-		_handle.setstate(state);
-
-		Seek(pos);
-	}
-
-	void File::Seek(uint64_t position)
-	{
-		CheckHandle();
-
-		_handle.seekg(position);
-	}
-
-	void File::SeekRelative(int64_t positionOffset)
-	{
-		CheckHandle();
-
-		_handle.seekg(positionOffset, std::ios::cur);
+		List<char> data = ReadToEnd();
+		return string(data.Data());
 	}
 
 	uint64_t File::GetPosition()
@@ -234,13 +130,6 @@ namespace Coco
 		return length;
 	}
 
-	void File::Flush()
-	{
-		CheckHandle();
-
-		_handle.flush();
-	}
-
 	void File::Close()
 	{
 		if (!_handle.is_open())
@@ -249,6 +138,20 @@ namespace Coco
 		Flush();
 
 		_handle.close();
+	}
+
+	std::istream& File::GetReadStream()
+	{
+		CheckHandle();
+
+		return _handle;
+	}
+
+	std::ostream& File::GetWriteStream()
+	{
+		CheckHandle();
+
+		return _handle;
 	}
 
 	void File::CheckHandle() const

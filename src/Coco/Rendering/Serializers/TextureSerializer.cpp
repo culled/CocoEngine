@@ -13,21 +13,23 @@ namespace Coco::Rendering
 	{
 		if (const Texture* texture = dynamic_cast<const Texture*>(resource.Get()))
 		{
-			//const ImageDescription textureDescription = texture->GetDescription();
-			//
-			//KeyValueWriter writer;
-			//
-			//writer.WriteLine("version", "1");
-			//writer.WriteLine(s_nameVariable, texture->GetName());
-			//writer.WriteLine(s_imageFileVariable, texture->GetImageFilePath());
-			//writer.WriteLine(s_usageFlagsVariable, ToString(static_cast<uint>(textureDescription.UsageFlags)));
-			//writer.WriteLine(s_filterModeVariable, ToString(static_cast<uint>(texture->GetFilterMode())));
-			//writer.WriteLine(s_repeatModeVariable, ToString(static_cast<uint>(texture->GetRepeatMode())));
-			//writer.WriteLine(s_maxAnisotropyVariable, ToString(texture->GetMaxAnisotropy()));
-			//writer.WriteLine(s_channelCountVariable, ToString(GetPixelFormatChannelCount(textureDescription.PixelFormat)));
-			//
-			//return writer.Flush();
-			return "";
+			const ImageDescription textureDescription = texture->GetDescription();
+			const ImageSamplerProperties sampler = texture->GetSamplerProperties();
+			
+			std::stringstream stream;
+			KeyValueWriter writer(stream);
+			
+			writer.WriteLine("version", "1");
+			writer.WriteLine(s_nameVariable, texture->GetName());
+			writer.WriteLine(s_imageFileVariable, texture->GetImageFilePath());
+			writer.WriteLine(s_usageFlagsVariable, ToString(static_cast<uint>(textureDescription.UsageFlags)));
+			writer.WriteLine(s_filterModeVariable, ToString(static_cast<uint>(sampler.FilterMode)));
+			writer.WriteLine(s_repeatModeVariable, ToString(static_cast<uint>(sampler.RepeatMode)));
+			writer.WriteLine(s_maxAnisotropyVariable, ToString(sampler.MaxAnisotropy));
+			writer.WriteLine(s_colorSpaceVariable, ToString(static_cast<uint>(textureDescription.ColorSpace)));
+			
+			writer.Flush();
+			return stream.str();
 		}
 		else
 		{
@@ -48,6 +50,7 @@ namespace Coco::Rendering
 
 		std::stringstream stream(data);
 		KeyValueReader reader(stream);
+
 		while (reader.ReadLine())
 		{
 			if (reader.IsKey("version") && reader.GetValue() != "1")

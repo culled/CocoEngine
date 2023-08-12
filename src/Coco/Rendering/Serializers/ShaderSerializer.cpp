@@ -9,10 +9,11 @@ namespace Coco::Rendering
 	{
 		if (const Shader* shader = dynamic_cast<const Shader*>(resource.Get()))
 		{
-			/*KeyValueWriter writer;
+			std::stringstream stream;
+			KeyValueWriter writer(stream);
 
 			writer.WriteLine("version", "1");
-			writer.WriteLine(s_shaderNameVariable, shader->Name);
+			writer.WriteLine(s_shaderNameVariable, shader->GetName());
 
 			writer.WriteLine(s_subshaderSection);
 			writer.IncrementIndentLevel();
@@ -59,9 +60,10 @@ namespace Coco::Rendering
 				writer.WriteLine(s_subshaderBindStageVariable, ToString(static_cast<int>(subshader.DescriptorBindingPoint)));
 
 				writer.SetIndentLevel(1);
-			}*/
+			}
 
-			return "";
+			writer.Flush();
+			return stream.str();
 		}
 		else
 		{
