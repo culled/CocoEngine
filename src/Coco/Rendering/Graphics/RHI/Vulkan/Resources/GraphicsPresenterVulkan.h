@@ -47,6 +47,7 @@ namespace Coco::Rendering::Vulkan
 
 		List<Ref<ImageVulkan>> _backbuffers;
 		List<Ref<RenderContextVulkan>> _renderContexts;
+		List<int> _acquiredBackBufferIndices;
 		
 		uint _currentFrame = 0;
 

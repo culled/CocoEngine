@@ -75,7 +75,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param renderPass The render pass
 		/// @param pipeline The render pipeline
 		/// @return The cached resource for the framebuffer
-		VulkanFramebuffer* GetOrCreateFramebuffer(const Ref<RenderView>& renderView, VulkanRenderPass& renderPass, Ref<RenderPipeline> pipeline);
+		VulkanFramebuffer* GetOrCreateFramebuffer(Ref<RenderView>& renderView, VulkanRenderPass& renderPass, Ref<RenderPipeline> pipeline);
 
 		/// @brief Flushes any pending material changes to the material buffers
 		void FlushMaterialChanges();

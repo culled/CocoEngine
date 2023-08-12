@@ -11,7 +11,7 @@ class HelloTriangleRenderPass final : public IRenderPass
 public:
 	HelloTriangleRenderPass() = default;
 
-	string GetName() const noexcept final { return "main"; }
+	string GetSubshaderName() const noexcept final { return "main"; }
 	List<AttachmentDescription> GetAttachmentDescriptions() noexcept final;
 	void Execute(RenderContext& renderContext) final;
 };

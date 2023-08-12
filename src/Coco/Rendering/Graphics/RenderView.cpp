@@ -12,12 +12,11 @@ namespace Coco::Rendering
 {
 	RenderView::RenderView(
 		const RectInt& viewportRect, 
-		const Color& clearColor, 
 		const Matrix4x4& projection, 
 		const Matrix4x4& view,
-		const List<Ref<Image>>& renderTargets
+		const List<RenderTarget>& renderTargets
 	) noexcept :
-		ViewportRect(viewportRect), ClearColor(clearColor), Projection(projection), View(view), RenderTargets(renderTargets)
+		ViewportRect(viewportRect), Projection(projection), View(view), RenderTargets(renderTargets)
 	{}
 
 	RenderView::~RenderView()

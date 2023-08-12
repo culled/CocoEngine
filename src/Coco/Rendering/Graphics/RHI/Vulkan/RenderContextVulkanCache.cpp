@@ -91,7 +91,7 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
-	VulkanFramebuffer* RenderContextVulkanCache::GetOrCreateFramebuffer(const Ref<RenderView>& renderView, VulkanRenderPass& renderPass, Ref<RenderPipeline> pipeline)
+	VulkanFramebuffer* RenderContextVulkanCache::GetOrCreateFramebuffer(Ref<RenderView>& renderView, VulkanRenderPass& renderPass, Ref<RenderPipeline> pipeline)
 	{
 		const ResourceID& id = pipeline->ID;
 		VulkanFramebuffer* resource;

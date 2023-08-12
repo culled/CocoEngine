@@ -45,8 +45,15 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanPipeline::CreatePipeline(VulkanRenderPass& renderPass, const VulkanShader& shader, const VkDescriptorSetLayout& globalDescriptorLayout)
 	{
-		const VulkanSubshader& vulkanSubshader = shader.GetSubshader(_subshaderName);
-		const Subshader& subshader = vulkanSubshader.GetSubshader();
+		const VulkanSubshader* vulkanSubshader;
+		if (!shader.TryGetSubshader(_subshaderName, vulkanSubshader))
+			throw RenderingException(FormattedString("Shader {} has no subshader named {}", shader.GetName(), _subshaderName));
+
+		// Early out if no valid stages
+		if (vulkanSubshader->GetStages().Count() == 0)
+			throw RenderingException(FormattedString("Subshader {} of shader {} has no valid shader stages", _subshaderName, shader.GetName()));
+
+		const Subshader& subshader = vulkanSubshader->GetSubshader();
 
 		List<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH };
 
@@ -164,7 +171,7 @@ namespace Coco::Rendering::Vulkan
 
 		Array<VkDescriptorSetLayout, 2> descriptorSetLayouts = {
 			globalDescriptorLayout,
-			vulkanSubshader.GetDescriptorLayout().Layout
+			vulkanSubshader->GetDescriptorLayout().Layout
 		};
 
 		VkPipelineLayoutCreateInfo layoutInfo = {};
@@ -178,7 +185,7 @@ namespace Coco::Rendering::Vulkan
 
 		List<VkPipelineShaderStageCreateInfo> shaderStageInfos;
 
-		for (const VulkanShaderStage& stage : vulkanSubshader.GetStages())
+		for (const VulkanShaderStage& stage : vulkanSubshader->GetStages())
 		{
 			VkPipelineShaderStageCreateInfo stageInfo = {};
 			stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

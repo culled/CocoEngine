@@ -76,7 +76,6 @@ void App::ConfigureRenderPipeline()
 
 	// Color attachment will be index 0, depth at index 1
 	renderPipeline->AddRenderPass(CreateSharedRef<OpaqueRenderPass>(), { 0, 1 });
-	renderPipeline->SetClearColor(_clearColor);
 
 	_renderingService->SetDefaultPipeline(renderPipeline);
 
@@ -120,6 +119,7 @@ void App::CreateCamera()
 
 	auto& camera = _ecsService->AddComponent<CameraComponent>(_cameraEntity);
 	camera.SetOrthographicProjection(_cameraOrthoSize, 1.0, 1.0, 30.0);
+	camera.SetClearColor(_clearColor);
 }
 
 void App::CreateUnits()

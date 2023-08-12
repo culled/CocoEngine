@@ -205,34 +205,26 @@ namespace Coco::Rendering::Vulkan
 			beginInfo.renderArea.extent.width = static_cast<uint32_t>(_currentRenderView->ViewportRect.Size.Width);
 			beginInfo.renderArea.extent.height = static_cast<uint32_t>(_currentRenderView->ViewportRect.Size.Height);
 
-			// TODO: configurable clear values?
-			const VkClearColorValue colorClearValue = { 0.0f, 0.0f, 0.0f, 1.0f };
-			const VkClearDepthStencilValue depthClearValue = { 1.0f, 0 };
-
 			List<VkClearValue> clearValues(_currentRenderView->RenderTargets.Count());
+			const VkClearDepthStencilValue depthStencilClearValue{ 1.0f, 0 };
 
 			// Set clear clear color for each render target
 			for (int i = 0; i < clearValues.Count(); i++)
 			{
-				if (IsDepthStencilFormat(_currentRenderView->RenderTargets[i]->GetDescription().PixelFormat))
+				const RenderTarget& rt = _currentRenderView->RenderTargets[i];
+				if (IsDepthStencilFormat(rt.Image->GetDescription().PixelFormat))
 				{
-					clearValues[i].depthStencil = depthClearValue;
+					clearValues[i].depthStencil = depthStencilClearValue;
 				}
 				else
 				{
-					if (i == 0)
-					{
-						clearValues[i].color = {
-							static_cast<float>(_currentRenderView->ClearColor.R),
-							static_cast<float>(_currentRenderView->ClearColor.G),
-							static_cast<float>(_currentRenderView->ClearColor.B),
-							static_cast<float>(_currentRenderView->ClearColor.A)
-						};;
-					}
-					else
-					{
-						clearValues[i].color = colorClearValue;
-					}
+					clearValues[i].color = 
+					{ 
+						static_cast<float>(rt.ClearColor.R), 
+						static_cast<float>(rt.ClearColor.G), 
+						static_cast<float>(rt.ClearColor.B),
+						static_cast<float>(rt.ClearColor.A) 
+					};
 				}				
 			}
 
@@ -334,7 +326,7 @@ namespace Coco::Rendering::Vulkan
 				_currentPipeline = _device->GetRenderCache()->GetOrCreatePipeline(
 					*_currentVulkanRenderPass,
 					*shader,
-					_currentRenderPass.RenderPass->GetName(),
+					_currentRenderPass.RenderPass->GetSubshaderName(),
 					_currentRenderPass.RenderPassIndex,
 					_globalDescriptor.Layout);
 
@@ -354,7 +346,7 @@ namespace Coco::Rendering::Vulkan
 			{
 				VkDescriptorSet set;
 				
-				if (GetOrAllocateMaterialDescriptorSet(*shader, _currentRenderPass.RenderPass->GetName(), _currentMaterial, set))
+				if (GetOrAllocateMaterialDescriptorSet(*shader, _currentRenderPass.RenderPass->GetSubshaderName(), _currentMaterial, set))
 				{
 					// Bind the material descriptor set
 					vkCmdBindDescriptorSets(
@@ -430,8 +422,11 @@ namespace Coco::Rendering::Vulkan
 			return true;
 		}
 
-		const VulkanSubshader& subshader = shader.GetSubshader(passName);
-		const Subshader& subshaderInfo = subshader.GetSubshader();
+		const VulkanSubshader* subshader;
+		if (!shader.TryGetSubshader(passName, subshader))
+			throw RenderingException(FormattedString("Shader {} has no subshader named {}", shader.GetName(), passName));
+
+		const Subshader& subshaderInfo = subshader->GetSubshader();
 
 		// Early out if no descriptors
 		if (subshaderInfo.Descriptors.Count() == 0 && subshaderInfo.Samplers.Count() == 0)
@@ -441,7 +436,7 @@ namespace Coco::Rendering::Vulkan
 		VulkanShaderResource* shaderResource = _renderCache->GetOrCreateShaderResource(shader);
 
 		// Allocate this material's descriptor set
-		set = shaderResource->GetPool()->GetOrAllocateSet(subshader.GetDescriptorLayout(), materialID.ToHash());
+		set = shaderResource->GetPool()->GetOrAllocateSet(subshader->GetDescriptorLayout(), materialID.ToHash());
 		_materialDescriptorSets[materialID] = set;
 
 		const MaterialRenderData& materialData = _currentRenderView->Materials.at(materialID);
@@ -539,7 +534,7 @@ namespace Coco::Rendering::Vulkan
 			if (!pipelineAttachments[i].Description.ShouldPreserve)
 				continue;
 
-			Ref<Image>& rt = _currentRenderView->RenderTargets[i];
+			Ref<Image>& rt = _currentRenderView->RenderTargets[i].Image;
 
 			VkImageLayout layout = ToAttachmentLayout(pipelineAttachments[i].Description.PixelFormat);
 
@@ -557,7 +552,7 @@ namespace Coco::Rendering::Vulkan
 
 		for (uint64_t i = 0; i < _currentRenderView->RenderTargets.Count(); i++)
 		{
-			Ref<Image>& rt = _currentRenderView->RenderTargets[i];
+			Ref<Image>& rt = _currentRenderView->RenderTargets[i].Image;
 
 			VkImageLayout layout = ToAttachmentLayout(pipelineAttachments[i].Description.PixelFormat);
 

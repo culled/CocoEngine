@@ -10,6 +10,7 @@
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Rendering/Providers/ICameraDataProvider.h>
+#include <Coco/Rendering/RenderTarget.h>
 
 namespace Coco::Rendering
 {
@@ -72,6 +73,8 @@ namespace Coco::ECS
 		List<Ref<Rendering::Image>> _renderTargetOverrides;
 		ManagedRef<ResourceCache<PipelineImageCache>> _imageCache;
 
+		Color _clearColor;
+
 	public:
 		CameraComponent() = default;
 		CameraComponent(const EntityID& owner);
@@ -95,6 +98,8 @@ namespace Coco::ECS
 
 			_renderTargetOverrides = std::move(other._renderTargetOverrides);
 			_imageCache = std::move(other._imageCache);
+
+			_clearColor = std::move(other._clearColor);
 		}
 
 		/// @brief Gets the type of projection that this camera is using
@@ -151,6 +156,14 @@ namespace Coco::ECS
 		/// @return This camera's current far clip plane distance
 		double GetFarClipDistance() const noexcept { return _farClipDistance; }
 
+		/// @brief Sets the color that this camera clears render targets with
+		/// @param color The clear color
+		void SetClearColor(Color color);
+
+		/// @brief Gets the clear color of this camera
+		/// @return The clear color
+		const Color& GetClearColor() const { return _clearColor; }
+
 		/// @brief Sets the rendertarget overrides to use
 		/// @param renderTargets The rendertargets to use
 		void SetRenderTargetOverrides(const List<Ref<Rendering::Image>>& renderTargets) { _renderTargetOverrides = renderTargets; }
@@ -158,7 +171,7 @@ namespace Coco::ECS
 		/// @brief Gets rendertargets that match the given pipeline's attachment layout
 		/// @param pipeline The pipeline
 		/// @return A list of render targets
-		List<Ref<Rendering::Image>> GetRenderTargets(Ref<Rendering::RenderPipeline> pipeline, const SizeInt& size);
+		List<Rendering::RenderTarget> GetRenderTargets(Ref<Rendering::RenderPipeline> pipeline, const SizeInt& size);
 
 		ManagedRef<Rendering::RenderView> GetRenderView(
 			Ref<Rendering::RenderPipeline> pipeline,

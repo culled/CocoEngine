@@ -99,7 +99,11 @@ namespace Coco::Rendering::Vulkan
 		// Wait until a fresh frame is ready
 		currentContext->WaitForRenderingCompleted();
 
-		// TODO: figure out how to handle failed renders, as this will fail if an acquired image is not presented
+		if (_acquiredBackBufferIndices.Count() == _backbuffers.Count())
+		{
+			throw RenderingException("All backbuffers have been acquired");
+		}	
+
 		uint32_t imageIndex;
 		const VkResult result = vkAcquireNextImageKHR(
 			_device->GetDevice(),
@@ -120,6 +124,7 @@ namespace Coco::Rendering::Vulkan
 		currentContext->SetBackbufferIndex(static_cast<int>(imageIndex));
 		backbuffer = _backbuffers[imageIndex];
 		renderContext = currentContext;
+		_acquiredBackBufferIndices.Add(static_cast<int>(imageIndex));
 		return true;
 	}
 
@@ -138,6 +143,8 @@ namespace Coco::Rendering::Vulkan
 			LogError(_device->GetLogger(), "Could not find this presenter's backbuffer in the RenderContext's RenderView's render targets");
 			return false;
 		}
+
+		_acquiredBackBufferIndices.Remove(imageIndex);
 
 		uint backbufferIndex = static_cast<uint>(imageIndex);
 

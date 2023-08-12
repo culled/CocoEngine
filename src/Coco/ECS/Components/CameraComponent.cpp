@@ -114,7 +114,12 @@ namespace Coco::ECS
 		_isProjectionMatrixDirty = true;
 	}
 
-	List<Ref<Rendering::Image>> CameraComponent::GetRenderTargets(Ref<Rendering::RenderPipeline> pipeline, const SizeInt& size)
+	void CameraComponent::SetClearColor(Color color)
+	{
+		_clearColor = color;
+	}
+
+	List<Rendering::RenderTarget> CameraComponent::GetRenderTargets(Ref<Rendering::RenderPipeline> pipeline, const SizeInt& size)
 	{
 		const List<Rendering::RenderPipelineAttachmentDescription>& attachments = pipeline->GetPipelineAttachmentDescriptions();
 
@@ -128,7 +133,7 @@ namespace Coco::ECS
 			resource = _imageCache->Get(id);
 
 		List<int> overrideMappings(_renderTargetOverrides.Count());
-		List<Ref<Rendering::Image>> renderTargets(attachments.Count());
+		List<Rendering::RenderTarget> renderTargets(attachments.Count());
 		UnorderedMap<int, Ref<Rendering::Image>>& generatedImages = resource->Images;
 
 		for (int i = 0; i < _renderTargetOverrides.Count(); i++)
@@ -152,13 +157,13 @@ namespace Coco::ECS
 				if (pipelineAttachment.Description.PixelFormat == rtOverride->GetDescription().PixelFormat &&
 					pipelineAttachment.Description.ColorSpace == rtOverride->GetDescription().ColorSpace)
 				{
-					renderTargets[i] = rtOverride;
+					renderTargets[i] = Rendering::RenderTarget(rtOverride, _clearColor);
 					it = overrideMappings.EraseAndGetNext(it);
 					break;
 				}
 			}
 
-			if (!renderTargets[i].IsValid())
+			if (!renderTargets[i].Image.IsValid())
 			{
 				Rendering::ImageDescription attachmentDescription(
 					size.Width, size.Height,
@@ -169,6 +174,7 @@ namespace Coco::ECS
 				);
 
 				bool generateImage = true;
+				Ref<Rendering::Image> rtImage;
 
 				// No render target override for this attachment, so use a cached one (it if exists)
 				if (generatedImages.contains(i))
@@ -177,7 +183,7 @@ namespace Coco::ECS
 					if (image.IsValid() && image->GetDescription() == attachmentDescription)
 					{
 						// Reuse a cached image
-						renderTargets[i] = image;
+						rtImage = image;
 						generateImage = false;
 					}
 					else if(image.IsValid())
@@ -189,13 +195,15 @@ namespace Coco::ECS
 				
 				if(generateImage)
 				{
-					renderTargets[i] = EnsureRenderingService()->GetPlatform()->CreateImage(
+					rtImage = EnsureRenderingService()->GetPlatform()->CreateImage(
 						FormattedString("{} Cached Rendertarget {}", ECSService::Get()->GetEntity(Owner).GetName(), i), 
 						attachmentDescription
 					);
 
-					generatedImages[i] = renderTargets[i];
+					generatedImages[i] = rtImage;
 				}
+
+				renderTargets[i] = Rendering::RenderTarget(rtImage, _clearColor);
 			}
 		}
 
@@ -214,7 +222,6 @@ namespace Coco::ECS
 
 		return CreateManagedRef<Rendering::RenderView>(
 			RectInt(Vector2Int::Zero, backbufferSize),
-			pipeline->GetClearColor(),
 			GetProjectionMatrix(),
 			GetViewMatrix(),
 			GetRenderTargets(pipeline, backbufferSize));

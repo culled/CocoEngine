@@ -3,6 +3,7 @@
 #include <Coco/Core/Core.h>
 
 #include <Coco/Core/Resources/Resource.h>
+#include "../RenderTarget.h"
 #include <Coco/Core/Types/Rect.h>
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/Color.h>
@@ -139,9 +140,6 @@ namespace Coco::Rendering
 		/// @brief The viewport rectangle
 		const RectInt ViewportRect;
 
-		/// @brief The clear color for the render
-		const Color ClearColor;
-
 		/// @brief The projection matrix used for rendering
 		const Matrix4x4 Projection;
 
@@ -149,7 +147,7 @@ namespace Coco::Rendering
 		const Matrix4x4 View;
 
 		/// @brief The render targets used for rendering
-		List<Ref<Image>> RenderTargets;
+		List<RenderTarget> RenderTargets;
 
 		/// @brief The shaders used for rendering
 		UnorderedMap<ResourceID, ShaderRenderData> Shaders;
@@ -167,11 +165,10 @@ namespace Coco::Rendering
 		List<ObjectRenderData> Objects;
 
 		RenderView(
-			const RectInt& viewportRect, 
-			const Color& clearColor, 
+			const RectInt& viewportRect,  
 			const Matrix4x4& projection, 
 			const Matrix4x4& view, 
-			const List<Ref<Image>>& renderTargets
+			const List<RenderTarget>& renderTargets
 		) noexcept;
 
 		~RenderView();

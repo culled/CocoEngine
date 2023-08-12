@@ -33,8 +33,7 @@ namespace Coco::Rendering
 		IsUsedInFirstPipelinePass = FirstUsePassIndex == 0;
 	}
 
-	RenderPipeline::RenderPipeline(const ResourceID& id, const string& name) : RenderingResource(id, name),
-		_clearColor(Color::Black)
+	RenderPipeline::RenderPipeline(const ResourceID& id, const string& name) : RenderingResource(id, name)
 	{}
 
 	RenderPipeline::~RenderPipeline()
@@ -105,7 +104,7 @@ namespace Coco::Rendering
 			}
 			catch (const Exception& ex)
 			{
-				LogError(GetRenderingLogger(), FormattedString("Failed to execute \"{}\": {}", renderPass->GetName(), ex.what()));
+				LogError(GetRenderingLogger(), FormattedString("Failed to execute \"{}\": {}", renderPass->GetSubshaderName(), ex.what()));
 			}
 		}
 	}

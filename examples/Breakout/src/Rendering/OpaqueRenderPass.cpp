@@ -1,16 +1,11 @@
 #include "OpaqueRenderPass.h"
 
-string OpaqueRenderPass::GetName() const noexcept
-{
-    return "main";
-}
-
 List<AttachmentDescription> OpaqueRenderPass::GetAttachmentDescriptions() noexcept
 {
     // Use a color and depth attachment
     return List<AttachmentDescription>({ 
         AttachmentDescription(PixelFormat::RGBA8, ColorSpace::sRGB, false), 
-        AttachmentDescription(PixelFormat::Depth32_Stencil8, ColorSpace::sRGB, false)
+        AttachmentDescription(PixelFormat::Depth32_Stencil8, ColorSpace::Unknown, false)
         });
 }
 

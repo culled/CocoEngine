@@ -15,9 +15,9 @@ namespace Coco::Rendering
 	public:
 		virtual ~IRenderPass() = default;
 
-		/// @brief Gets the name of the subpass used in shaders for rendering with this pass
-		/// @return The pass name
-		virtual string GetName() const noexcept = 0;
+		/// @brief Gets the name of the subshader used in shaders for rendering with this pass
+		/// @return The name of the subshader
+		virtual string GetSubshaderName() const noexcept = 0;
 
 		/// @brief Gets the attachment descriptions required for this pass
 		/// @return The attachment descriptions

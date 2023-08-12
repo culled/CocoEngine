@@ -71,7 +71,6 @@ CocoSandboxApplication::CocoSandboxApplication() :
 
 	// Setup our render pipeline
 	Ref<Rendering::RenderPipeline> pipeline = engine->GetResourceLibrary()->CreateResource<Rendering::RenderPipeline>("Pipeline");
-	pipeline->SetClearColor(Color(0.1, 0.2, 0.3));
 	
 	List<int> attachmentMapping = { 0, 1 };
 	
@@ -86,6 +85,7 @@ CocoSandboxApplication::CocoSandboxApplication() :
 
 	ECS::CameraComponent& camera = _ecsService->AddComponent<ECS::CameraComponent>(_cameraEntityID);
 	camera.SetPerspectiveProjection(90.0, 1.0, 0.1, 100.0);
+	camera.SetClearColor(Color(0.1, 0.2, 0.3));
 
 	ECS::EntityID obj = _ecsService->CreateEntity("1");
 	_ecsService->AddComponent<ECS::TransformComponent>(obj);

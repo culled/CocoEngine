@@ -56,7 +56,6 @@ namespace Coco::Rendering
 		List<ManagedRef<RenderPipelineBinding>> _renderPasses;
 		List<RenderPipelineAttachmentDescription> _attachmentDescriptions;
 		bool _attachmentDescriptionsDirty = false;
-		Color _clearColor;
 
 	public:
 		RenderPipeline(const ResourceID& id, const string& name);
@@ -84,14 +83,6 @@ namespace Coco::Rendering
 		/// @brief Gets the list of render passes in this pipeline
 		/// @return The passes in this pipeline
 		List<Ref<RenderPipelineBinding>> GetPasses();
-
-		/// @brief Sets the clear color of this render pipeline
-		/// @param color The clear color
-		void SetClearColor(const Color& color) noexcept { _clearColor = color; }
-
-		/// @brief Gets the clear color used by this render pipeline
-		/// @return The clear color
-		Color GetClearColor() const noexcept { return _clearColor; }
 
 		/// @brief Performs rendering operations for this pipeline
 		/// @param renderContext The context to use for rendering

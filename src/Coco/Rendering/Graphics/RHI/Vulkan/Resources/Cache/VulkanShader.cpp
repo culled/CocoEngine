@@ -159,9 +159,13 @@ namespace Coco::Rendering::Vulkan
 		IncrementVersion();
 	}
 
-	const VulkanSubshader& VulkanShader::GetSubshader(const string& name) const
+	bool VulkanShader::TryGetSubshader(const string& name, const VulkanSubshader*& subshader) const
 	{
-		return _subshaders.at(name);
+		if (!_subshaders.contains(name))
+			return false;
+
+		subshader = &_subshaders.at(name);
+		return true;
 	}
 	
 	List<VulkanDescriptorLayout> VulkanShader::GetDescriptorLayouts() const

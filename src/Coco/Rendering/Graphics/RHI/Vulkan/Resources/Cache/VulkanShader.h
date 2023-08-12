@@ -107,8 +107,9 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets a subshader of this shader with the given name
 		/// @param name The name of the subshader
-		/// @return The subshader
-		const VulkanSubshader& GetSubshader(const string& name) const;
+		/// @param subshader A pointer that will reference the subshader if it was found
+		/// @return True if the subshader was found
+		bool TryGetSubshader(const string& name, const VulkanSubshader*& subshader) const;
 
 		/// @brief Gets the descriptor layouts of this shader
 		/// @return This shader's descriptor layouts

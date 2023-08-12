@@ -25,7 +25,7 @@ namespace Coco::Rendering::Vulkan
 			GetReferenceVersion() != _pipeline->GetVersion();
 	}
 
-	void VulkanFramebuffer::Update(const Ref<RenderView>& renderView, VulkanRenderPass& renderPass)
+	void VulkanFramebuffer::Update(Ref<RenderView>& renderView, VulkanRenderPass& renderPass)
 	{
 		DestroyFramebuffer();
 
@@ -37,14 +37,14 @@ namespace Coco::Rendering::Vulkan
 		framebufferInfo.layers = 1;
 
 		List<VkImageView> renderTargets;
-		for (Ref<Image> renderTarget : renderView->RenderTargets)
+		for (RenderTarget& renderTarget : renderView->RenderTargets)
 		{
-			if (!renderTarget.IsValid())
+			if (!renderTarget.Image.IsValid())
 				throw VulkanRenderingException("Render target resource was invalid");
 
-			ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(renderTarget.Get());
+			ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(renderTarget.Image.Get());
 			renderTargets.Add(vulkanImage->GetNativeView());
-			_renderTargets.Add(renderTarget);
+			_renderTargets.Add(renderTarget.Image);
 		}
 
 		framebufferInfo.attachmentCount = static_cast<uint32_t>(renderTargets.Count());

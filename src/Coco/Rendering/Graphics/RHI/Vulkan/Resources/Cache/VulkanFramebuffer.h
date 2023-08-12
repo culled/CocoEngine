@@ -42,7 +42,7 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Updates this framebuffer resource
 		/// @param renderView The render view
 		/// @param renderPass The render pass
-		void Update(const Ref<RenderView>& renderView, VulkanRenderPass& renderPass);
+		void Update(Ref<RenderView>& renderView, VulkanRenderPass& renderPass);
 
 		/// @brief Gets the Vulkan framebuffer object
 		/// @return The Vulkan framebuffer object

@@ -8,7 +8,7 @@ using namespace Coco::Rendering;
 class OpaqueRenderPass : public IRenderPass
 {
 	// Inherited via IRenderPass
-	virtual string GetName() const noexcept override;
-	virtual List<AttachmentDescription> GetAttachmentDescriptions() noexcept override;
-	virtual void Execute(RenderContext& renderContext) override;
+	string GetSubshaderName() const noexcept final { return "main"; }
+	List<AttachmentDescription> GetAttachmentDescriptions() noexcept final;
+	void Execute(RenderContext& renderContext) final;
 };
