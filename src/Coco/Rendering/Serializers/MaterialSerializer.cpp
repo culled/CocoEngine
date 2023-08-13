@@ -32,6 +32,12 @@ namespace Coco::Rendering
 				writer.WriteLine(vec4KVP.first, vec4KVP.second.ToString());
 			writer.DecrementIndentLevel();
 
+			writer.WriteLine(s_colorSection);
+			writer.IncrementIndentLevel();
+			for (const auto& colorKVP : material->GetColorProperties())
+				writer.WriteLine(colorKVP.first, colorKVP.second.ToString());
+			writer.DecrementIndentLevel();
+
 			writer.WriteLine(s_textureSection);
 			writer.IncrementIndentLevel();
 			for (const auto& textureKVP : material->GetTextureProperties())
@@ -56,6 +62,7 @@ namespace Coco::Rendering
 		string name;
 		string shaderPath;
 		UnorderedMap<string, Vector4> vec4Properties;
+		UnorderedMap<string, Color> colorProperties;
 		UnorderedMap<string, string> textureProperties;
 
 		while (reader.ReadLine())
@@ -69,7 +76,7 @@ namespace Coco::Rendering
 			else if (reader.IsKey(s_materialShaderVariable))
 				shaderPath = reader.GetValue();
 			else if (reader.IsKey(s_propertiesSection))
-				ReadPropertiesSection(reader, vec4Properties, textureProperties);
+				ReadPropertiesSection(reader, vec4Properties, colorProperties, textureProperties);
 		}
 
 		ManagedRef<Material> material = CreateManagedRef<Material>(UUID(id), name);
@@ -106,12 +113,15 @@ namespace Coco::Rendering
 	void MaterialSerializer::ReadPropertiesSection(
 		KeyValueReader& reader, 
 		UnorderedMap<string, Vector4>& vec4Properties,
+		UnorderedMap<string, Color>& colorProperties,
 		UnorderedMap<string, string>& textureProperties)
 	{
 		while (reader.ReadIfIsIndentLevel(1))
 		{
 			if (reader.IsKey(s_vector4Section))
 				ReadVector4Section(reader, vec4Properties);
+			else if (reader.IsKey(s_colorSection))
+				ReadColorSection(reader, colorProperties);
 			else if (reader.IsKey(s_textureSection))
 				ReadTextureSection(reader, textureProperties);
 		}
@@ -122,6 +132,14 @@ namespace Coco::Rendering
 		while (reader.ReadIfIsIndentLevel(2))
 		{
 			vec4Properties[reader.GetKey()] = Vector4::Parse(reader.GetValue());
+		}
+	}
+
+	void MaterialSerializer::ReadColorSection(KeyValueReader& reader, UnorderedMap<string, Color>& colorProperties)
+	{
+		while (reader.ReadIfIsIndentLevel(2))
+		{
+			colorProperties[reader.GetKey()] = Color::Parse(reader.GetValue());
 		}
 	}
 

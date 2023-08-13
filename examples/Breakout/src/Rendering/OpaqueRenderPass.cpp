@@ -11,6 +11,6 @@ List<AttachmentDescription> OpaqueRenderPass::GetAttachmentDescriptions() noexce
 
 void OpaqueRenderPass::Execute(RenderContext& renderContext)
 {
-    for (auto& object : renderContext.GetRenderView()->Objects)
+    for (const ObjectRenderData& object : renderContext.GetRenderView()->Objects)
         renderContext.Draw(object);
 }

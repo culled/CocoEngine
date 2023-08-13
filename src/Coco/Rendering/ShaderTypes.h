@@ -23,6 +23,7 @@ namespace Coco::Rendering
 	/// @brief Types of shader descriptors
 	enum class ShaderDescriptorType
 	{
+		UniformColor,
 		UniformVector4
 	};
 

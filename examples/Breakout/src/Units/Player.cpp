@@ -17,7 +17,7 @@ Player::Player(const EntityID& owner) : ScriptComponent(owner)
 	App* app = App::Get();
 
 	_material = library->CreateResource<Material>("Material::Player", App::Get()->GetBasicShader());
-	_material->SetVector4("_BaseColor", _color);
+	_material->SetColor("_BaseColor", _color);
 	_material->SetTexture("_MainTex", app->GetRenderingService()->GetDefaultDiffuseTexture());
 
 	_mesh = MeshPrimitives::CreateXYPlane("Player Mesh", _size);

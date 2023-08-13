@@ -157,7 +157,7 @@ namespace Coco::ECS
 				if (pipelineAttachment.Description.PixelFormat == rtOverride->GetDescription().PixelFormat &&
 					pipelineAttachment.Description.ColorSpace == rtOverride->GetDescription().ColorSpace)
 				{
-					renderTargets[i] = Rendering::RenderTarget(rtOverride, _clearColor);
+					renderTargets[i] = Rendering::RenderTarget(rtOverride, _clearColor.AsLinear());
 					it = overrideMappings.EraseAndGetNext(it);
 					break;
 				}
@@ -203,7 +203,7 @@ namespace Coco::ECS
 					generatedImages[i] = rtImage;
 				}
 
-				renderTargets[i] = Rendering::RenderTarget(rtImage, _clearColor);
+				renderTargets[i] = Rendering::RenderTarget(rtImage, _clearColor.AsLinear());
 			}
 		}
 

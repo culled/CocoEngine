@@ -35,7 +35,7 @@ namespace Coco::Rendering
 		UnorderedMap<string, Subshader> Subshaders;
 
 		ShaderRenderData(const ResourceID& id, ResourceVersion version) : 
-			ID(id), Version(version)
+			ID(id), Version(version), Subshaders{}
 		{}
 	};
 
@@ -81,7 +81,7 @@ namespace Coco::Rendering
 		UnorderedMap<string, ResourceID> Samplers;
 
 		MaterialRenderData(const ResourceID& id, ResourceVersion version, const ResourceID& shaderID, const List<uint8_t>& uniformData) :
-			ID(id), Version(version), ShaderID(shaderID), UniformData(uniformData)
+			ID(id), Version(version), ShaderID(shaderID), UniformData(uniformData), SubshaderBindings{}, Samplers{}
 		{}
 	};
 
@@ -113,7 +113,12 @@ namespace Coco::Rendering
 			uint64_t vertexCount, 
 			const Ref<Buffer>& indexBuffer, 
 			uint64_t indexCount) :
-			ID(id), Version(version), VertexBuffer(vertexBuffer), VertexCount(vertexCount), IndexBuffer(indexBuffer), IndexCount(indexCount)
+			ID(id), 
+			Version(version), 
+			VertexBuffer(vertexBuffer), 
+			VertexCount(vertexCount), 
+			IndexBuffer(indexBuffer), 
+			IndexCount(indexCount)
 		{}
 	};
 

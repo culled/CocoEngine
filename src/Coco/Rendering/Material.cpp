@@ -60,6 +60,38 @@ namespace Coco::Rendering
 		}
 	}
 
+	void Material::SetColor(const string& name, const Color& value)
+	{
+		UpdatePropertyMaps(false);
+
+		auto it = _colorProperties.find(name);
+
+		if (it != _colorProperties.end())
+		{
+			(*it).second = value;
+			this->IncrementVersion();
+			_isBufferDataDirty = true;
+		}
+		else
+		{
+			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no color property named \"{}\"", _shader->GetName(), name));
+		}
+	}
+
+	Color Material::GetColor(const string name) const
+	{
+		const auto it = _colorProperties.find(name);
+
+		if (it != _colorProperties.end())
+		{
+			return (*it).second;
+		}
+		else
+		{
+			return Color::Black;
+		}
+	}
+
 	void Material::SetTexture(const string& name, Ref<Texture> texture)
 	{
 		UpdatePropertyMaps(false);
@@ -121,6 +153,7 @@ namespace Coco::Rendering
 			return;
 
 		UnorderedMap<string, Vector4> vec4Properties;
+		UnorderedMap<string, Color> colorProperties;
 		UnorderedMap<string, Ref<Texture>> textureProperties;
 
 		List<Subshader> subshaders = _shader->GetSubshaders();
@@ -145,6 +178,18 @@ namespace Coco::Rendering
 						vec4Properties[descriptor.Name] = Vector4::Zero;
 					break;
 				}
+				case BufferDataFormat::Color:
+				{
+					// Skip duplicate properties
+					if (colorProperties.contains(descriptor.Name))
+						continue;
+
+					if (_colorProperties.contains(descriptor.Name))
+						colorProperties[descriptor.Name] = _colorProperties[descriptor.Name];
+					else
+						colorProperties[descriptor.Name] = Color::Black;
+					break;
+				}
 				default:
 					break;
 				}
@@ -167,6 +212,7 @@ namespace Coco::Rendering
 		}
 
 		_vector4Properties = std::move(vec4Properties);
+		_colorProperties = std::move(colorProperties);
 		_textureProperties = std::move(textureProperties);
 		_propertyMapVersion = _shader->GetVersion();
 		_isBufferDataDirty = true;
@@ -206,6 +252,23 @@ namespace Coco::Rendering
 					tempVec4[1] = static_cast<float>(vec4.Y);
 					tempVec4[2] = static_cast<float>(vec4.Z);
 					tempVec4[3] = static_cast<float>(vec4.W);
+
+					_bufferData.Resize(_bufferData.Count() + alignedVec4Size);
+
+					uint8_t* dst = (_bufferData.Data() + offset);
+					std::memcpy(dst, tempVec4.data(), tempVec4.size() * sizeof(float));
+
+					offset += alignedVec4Size;
+					break;
+				}
+				case BufferDataFormat::Color:
+				{
+					Color c = GetColor(descriptor.Name).AsLinear();
+
+					tempVec4[0] = static_cast<float>(c.R);
+					tempVec4[1] = static_cast<float>(c.G);
+					tempVec4[2] = static_cast<float>(c.B);
+					tempVec4[3] = static_cast<float>(c.A);
 
 					_bufferData.Resize(_bufferData.Count() + alignedVec4Size);
 

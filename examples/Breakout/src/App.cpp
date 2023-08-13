@@ -95,7 +95,7 @@ void App::ConfigureRenderPipeline()
 			ShaderVertexAttribute(BufferDataFormat::Vector2)
 		},
 		{
-			ShaderDescriptor("_BaseColor", BufferDataFormat::Vector4)
+			ShaderDescriptor("_BaseColor", BufferDataFormat::Color)
 		},
 		{
 			ShaderTextureSampler("_MainTex")
@@ -103,7 +103,7 @@ void App::ConfigureRenderPipeline()
 		);
 
 	_wallMaterial = library->CreateResource<Material>("Material::Wall", _basicShader);
-	_wallMaterial->SetVector4("_BaseColor", Color(0.55, 0.55, 0.55));
+	_wallMaterial->SetColor("_BaseColor", Color(0.55, 0.55, 0.55));
 	_wallMaterial->SetTexture("_MainTex", App::Get()->GetRenderingService()->GetDefaultDiffuseTexture());
 }
 
@@ -137,7 +137,7 @@ void App::CreateUnits()
 	for (int r = 0; r < _blockRows; r++)
 	{
 		Ref<Rendering::Material> blockRowMaterial = Engine::Get()->GetResourceLibrary()->CreateResource<Material>(FormattedString("Block Row {} Material", r), _basicShader);
-		blockRowMaterial->SetVector4("_BaseColor", _blockRowColors.at(r));
+		blockRowMaterial->SetColor("_BaseColor", _blockRowColors.at(r));
 		blockRowMaterial->SetTexture("_MainTex", GetRenderingService()->GetDefaultDiffuseTexture());
 
 		for (double x = blockStartX; x <= blockEndX; x += 2.0)

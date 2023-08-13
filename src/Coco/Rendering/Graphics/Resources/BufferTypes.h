@@ -36,6 +36,7 @@ namespace Coco::Rendering
 		Vector3Int,
 		Vector4,
 		Vector4Int,
+		Color,
 		Matrix4x4,
 	};
 
@@ -57,6 +58,7 @@ namespace Coco::Rendering
 			return 4 * 3;
 		case BufferDataFormat::Vector4:
 		case BufferDataFormat::Vector4Int:
+		case BufferDataFormat::Color:
 			return 4 * 4;
 		case BufferDataFormat::Matrix4x4:
 			return 4 * 4 * 4;

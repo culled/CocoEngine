@@ -29,6 +29,9 @@ namespace Coco::Rendering
 		/// @brief The Vector4 properties of this material
 		UnorderedMap<string, Vector4> _vector4Properties;
 
+		/// @brief The Color properties of this material
+		UnorderedMap<string, Color> _colorProperties;
+
 		/// @brief The texture properties of this material
 		UnorderedMap<string, Ref<Texture>> _textureProperties;
 
@@ -66,6 +69,20 @@ namespace Coco::Rendering
 		/// @brief Gets all the Vector4 properties that this material has
 		/// @return This material's Vector4 properties
 		const UnorderedMap<string, Vector4>& GetVector4Properties() const noexcept { return _vector4Properties; }
+
+		/// @brief Sets a Color property. Use this for proper color-space conversion
+		/// @param name The name of the Color property
+		/// @param value The value
+		void SetColor(const string& name, const Color& value);
+
+		/// @brief Gets a Color property
+		/// @param name The name of the property
+		/// @return The color value
+		Color GetColor(const string name) const;
+
+		/// @brief Gets all the Color properties that this material has
+		/// @return This material's Color properties
+		const UnorderedMap<string, Color>& GetColorProperties() const noexcept { return _colorProperties; }
 
 		/// @brief Sets a texture property
 		/// @param name The name of the texture property

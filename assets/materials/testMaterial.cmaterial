@@ -3,7 +3,7 @@ id=97d26f59-7a72-41c0-b855-aaf8f03f76ee
 name=Test
 shader=shaders/built-in/ObjectShader.cshader
 properties
-    vector4
-        _BaseColor=1.0,0.0,0.0,1.0
+    color
+        _BaseColor=1.0,0.0,0.0,1.0,0
     texture
         _MainTex=textures/UV_Grid.ctexture

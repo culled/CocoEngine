@@ -21,6 +21,7 @@ namespace Coco::Rendering
 		static constexpr const char* s_materialShaderVariable = "shader";
 		static constexpr const char* s_propertiesSection = "properties";
 		static constexpr const char* s_vector4Section = "vector4";
+		static constexpr const char* s_colorSection = "color";
 		static constexpr const char* s_textureSection = "texture";
 
 	public:
@@ -40,12 +41,18 @@ namespace Coco::Rendering
 		void ReadPropertiesSection(
 			KeyValueReader& reader, 
 			UnorderedMap<string, Vector4>& vec4Properties, 
+			UnorderedMap<string, Color>& colorProperties,
 			UnorderedMap<string, string>& textureProperties);
 
 		/// @brief Reads the Vector4 properties section for a material
 		/// @param reader The reader
 		/// @param vec4Properties Will be filled with the Vector4 properties
 		void ReadVector4Section(KeyValueReader& reader, UnorderedMap<string, Vector4>& vec4Properties);
+
+		/// @brief Reads the Color properties section for a material
+		/// @param reader The reader
+		/// @param colorProperties Will be filled with the Color properties
+		void ReadColorSection(KeyValueReader& reader, UnorderedMap<string, Color>& colorProperties);
 
 		/// @brief Reads the texture properties section for a material
 		/// @param reader The reader

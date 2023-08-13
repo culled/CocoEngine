@@ -28,8 +28,8 @@ namespace Coco
 			currentCharacterIndex = endIndex + 1;
 			fieldIndex++;
 		}
-
 	}
+
 	void ParseDoubleArray(const string& str, std::span<double> values)
 	{
 		uint64_t currentCharacterIndex = 0;

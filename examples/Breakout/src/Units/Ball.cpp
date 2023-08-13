@@ -16,7 +16,7 @@ Ball::Ball(const EntityID& owner) : ScriptComponent(owner)
 	App* app = App::Get();
 
 	_material = library->CreateResource<Material>("Material::Ball", App::Get()->GetBasicShader());
-	_material->SetVector4("_BaseColor", _color);
+	_material->SetColor("_BaseColor", _color);
 	_material->SetTexture("_MainTex", app->GetRenderingService()->GetDefaultDiffuseTexture());
 
 	_mesh = MeshPrimitives::CreateXYPlane("Ball Mesh", _size);

@@ -52,7 +52,7 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	_material = engine->GetResourceLibrary()->Load<Material>("materials/testMaterial.cmaterial");
 
 	//_material = CreateRef<Material>(_shader);
-	_material->SetVector4("_BaseColor", Color::White);
+	_material->SetColor("_BaseColor", Color::White);
 	//_material->SetTexture("_MainTex", _texture);
 
 	// Setup our basic mesh
