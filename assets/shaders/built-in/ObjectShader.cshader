@@ -17,7 +17,7 @@ subshaders
             4
             2
         descriptors
-            _BaseColor=6
+            _BaseColor=8
         samplers
             _MainTex
         descriptorBindStage=3

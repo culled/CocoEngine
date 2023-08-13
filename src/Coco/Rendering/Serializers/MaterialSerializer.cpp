@@ -101,6 +101,9 @@ namespace Coco::Rendering
 		for (const auto& vec4Prop : vec4Properties)
 			material->SetVector4(vec4Prop.first, vec4Prop.second);
 
+		for (const auto& colorProp : colorProperties)
+			material->SetColor(colorProp.first, colorProp.second);
+
 		for (const auto& textureProp : textureProperties)
 		{
 			Ref<Texture> texture = library.Load<Texture>(textureProp.second);
