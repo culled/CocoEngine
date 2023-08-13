@@ -12,7 +12,8 @@ using namespace Coco::ECS;
 
 ResourceID Block::_blockMeshID = ResourceID::Nil;
 
-Block::Block(const EntityID& owner, const Vector3& position, const ResourceID& materialID) : ScriptComponent(owner)
+Block::Block(const EntityID& owner, const Vector3& position, const ResourceID& materialID, double speedValue) : ScriptComponent(owner),
+	_speedValue(speedValue)
 {
 	ECSService* ecs = ECSService::Get();
 
@@ -32,4 +33,22 @@ Block::Block(const EntityID& owner, const Vector3& position, const ResourceID& m
 	}
 
 	ecs->AddComponent<MeshRendererComponent>(owner, mesh, Engine::Get()->GetResourceLibrary()->GetResource<Rendering::Material>(materialID));
+}
+
+bool Block::CheckCollision(const Rect& other, Vector2& hitPoint, Vector2& hitNormal)
+{
+	TransformComponent& t = ECSService::Get()->GetComponent<TransformComponent>(Owner);
+	Vector3 p = t.GetGlobalPosition();
+	Rect r(Vector2(p.X - _size.Width * 0.5, p.Y - _size.Height * 0.5), _size);
+
+	if (r.Intersects(other))
+	{
+		Rect::RectangleSide side;
+		hitPoint = r.GetClosestPoint(other, &side);
+		hitNormal = Rect::GetNormalOfSide(side);
+
+		return true;
+	}
+
+	return false;
 }

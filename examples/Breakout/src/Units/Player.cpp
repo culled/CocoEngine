@@ -36,6 +36,14 @@ Player::~Player()
 	app->OnStopPlaying.RemoveHandler(this, &Player::HandleGameEnded);
 }
 
+Rect Player::GetRect() const
+{
+	TransformComponent& transform = ECSService::Get()->GetComponent<TransformComponent>(Owner);
+	Vector3 position = transform.GetGlobalPosition();
+
+	return Rect(Vector2(position.X - _size.Width * 0.5, position.Y - _size.Height * 0.5), _size);
+}
+
 void Player::Tick(double deltaTime)
 {
 	if (_canMove)

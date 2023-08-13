@@ -37,7 +37,8 @@ App::App() : Application("Breakout"),
 	_renderingService = serviceManager->CreateService<Rendering::RenderingService>(Rendering::GraphicsPlatformCreationParameters(Name, Rendering::RenderingRHI::Vulkan));
 	_windowingService = serviceManager->CreateService<Windowing::WindowingService>();
 
-	// Add our render tick
+	// Add our ticks
+	Engine::Get()->GetMainLoop()->CreateTickListener(this, &App::Tick, 0);
 	Engine::Get()->GetMainLoop()->CreateTickListener(this, &App::RenderTick, 1000);
 
 	ConfigureRenderPipeline();
@@ -143,7 +144,7 @@ void App::CreateUnits()
 		for (double x = blockStartX; x <= blockEndX; x += 2.0)
 		{
 			EntityID block = _ecsService->CreateEntity("Block");
-			_ecsService->AddComponent<Block>(block, Vector3(x, y, 0.0), blockRowMaterial->ID);
+			_ecsService->AddComponent<Block>(block, Vector3(x, y, 0.0), blockRowMaterial->ID, _blockRowSpeeds.at(r));
 			_blockEntities.Add(block);
 		}
 
@@ -180,6 +181,11 @@ void App::StartGame()
 	OnStartPlaying.Invoke();
 }
 
+void App::Tick(double deltaTime)
+{
+	CheckForCollisions();
+}
+
 void App::RenderTick(double deltaTime)
 {
 	_renderingService->Render(_windowingService->GetMainWindow()->GetPresenter(), _ecsService->GetComponent<CameraComponent>(_cameraEntity), *_ecsService->GetRootScene());
@@ -190,6 +196,75 @@ bool App::HandleKeyPressed(Input::KeyboardKey key)
 	if (!_isPlaying && key == Input::KeyboardKey::Space)
 	{
 		StartGame();
+		return true;
+	}
+
+	return false;
+}
+
+void App::CheckForCollisions()
+{
+	Ball& ball = _ecsService->GetComponent<Ball>(_ballEntity);
+	Rect ballRect = ball.GetRect();
+	Vector2 normal;
+	Vector2 hitPoint;
+
+	if (CollidedWithArena(ballRect, hitPoint, normal))
+	{
+		ball.Bounce(hitPoint, normal);
+	}
+
+	List<EntityID> blocks(_blockEntities);
+	for (const EntityID& block : blocks)
+	{
+		Block& b = _ecsService->GetComponent<Block>(block);
+		if (b.CheckCollision(ballRect, hitPoint, normal))
+		{
+			_ecsService->QueueDestroyEntity(block);
+			_blockEntities.Remove(block);
+			ball.Bounce(hitPoint, normal);
+			ball.SpeedUp(b.GetSpeedValue());
+		}
+	}
+
+	Player& player = _ecsService->GetComponent<Player>(_playerEntity);
+	Rect playerRect = player.GetRect();
+	if (ballRect.Intersects(playerRect))
+	{
+		Rect::RectangleSide side;
+		hitPoint = playerRect.GetClosestPoint(ballRect, &side);
+		normal = Rect::GetNormalOfSide(side);
+		double bentX = (ballRect.GetCenter() - playerRect.GetCenter()).X / playerRect.Size.Width;
+		normal.X += bentX * 0.4;
+		normal.Normalize();
+
+		ball.Bounce(hitPoint, normal);
+	}
+}
+
+bool App::CollidedWithArena(const Rect& rect, Vector2& hitPoint, Vector2& hitNormal) const
+{
+	Vector3 lowerLeft(_arenaOffset + Vector3::Left * (_arenaSize.Width * 0.5 + 0.5) - Vector3::Forwards * _arenaSize.Height * 0.5);
+	Rect leftWall(Vector2(lowerLeft.X, lowerLeft.Y), Size(1.0, _arenaSize.Height));
+	Rect rightWall(leftWall.Offset + Vector2::Right * _arenaSize.Width, leftWall.Size);
+	Rect ceiling(leftWall.Offset + Vector2::Up * (_arenaSize.Height - 1.0), Size(_arenaSize.Width, 1.0));
+
+	if (leftWall.Intersects(rect))
+	{
+		hitPoint = leftWall.GetClosestPoint(rect);
+		hitNormal = Vector3::Right;
+		return true;
+	}
+	else if (rightWall.Intersects(rect))
+	{
+		hitPoint = rightWall.GetClosestPoint(rect);
+		hitNormal = Vector3::Left;
+		return true;
+	}
+	else if (ceiling.Intersects(rect))
+	{
+		hitPoint = ceiling.GetClosestPoint(rect);
+		hitNormal = Vector3::Backwards;
 		return true;
 	}
 

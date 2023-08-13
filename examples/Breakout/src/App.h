@@ -52,6 +52,14 @@ private:
 		Color(0.78, 0.42, 0.23),
 		Color(0.78, 0.29, 0.27) 
 	};
+	Array<double, 6> _blockRowSpeeds = {
+		8.0,
+		8.5,
+		9.5,
+		11.0,
+		13.0,
+		16.0
+	};
 
 	bool _isPlaying = false;
 
@@ -82,7 +90,11 @@ private:
 
 	void StartGame();
 
+	void Tick(double deltaTime);
 	void RenderTick(double deltaTime);
 
 	bool HandleKeyPressed(Input::KeyboardKey key);
+
+	void CheckForCollisions();
+	bool CollidedWithArena(const Rect& rect, Vector2& hitPoint, Vector2& hitNormal) const;
 };

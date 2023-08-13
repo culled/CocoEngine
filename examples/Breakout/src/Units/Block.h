@@ -15,8 +15,12 @@ private:
 
 	Size _size = Size(2.0, 0.5);
 	Color _color = Color::Yellow;
+	double _speedValue;
 
 public:
-	Block(const EntityID& owner, const Vector3& position, const ResourceID& materialID);
+	Block(const EntityID& owner, const Vector3& position, const ResourceID& materialID, double speedValue);
 	~Block() final = default;
+
+	bool CheckCollision(const Rect& other, Vector2& hitPoint, Vector2& hitNormal);
+	double GetSpeedValue() const { return _speedValue; }
 };

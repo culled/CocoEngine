@@ -32,6 +32,8 @@ public:
 	Player(const EntityID& owner);
 	~Player() final;
 
+	Rect GetRect() const;
+
 protected:
 	void Tick(double deltaTime) override;
 
