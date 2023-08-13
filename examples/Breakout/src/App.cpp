@@ -233,10 +233,15 @@ void App::CheckForCollisions()
 	{
 		Rect::RectangleSide side;
 		hitPoint = playerRect.GetClosestPoint(ballRect, &side);
-		normal = Rect::GetNormalOfSide(side);
+		normal = Vector2::Up;
 		double bentX = (ballRect.GetCenter() - playerRect.GetCenter()).X / playerRect.Size.Width;
-		normal.X += bentX * 0.4;
+		normal.X += bentX * 0.6;
 		normal.Normalize();
+
+		if (normal.Dot(ball.GetMovementDirection()) > -0.1)
+		{
+			normal = Vector2::Up;
+		}
 
 		ball.Bounce(hitPoint, normal);
 	}

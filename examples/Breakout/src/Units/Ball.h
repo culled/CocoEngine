@@ -31,6 +31,8 @@ public:
 
 	Rect GetRect() const;
 
+	Vector3 GetMovementDirection() const { return _moveDirection; }
+
 	void Bounce(const Vector2& hitPoint, const Vector2& normal);
 	void SpeedUp(double newSpeed);
 
