@@ -66,6 +66,15 @@ namespace Coco
 	/// @brief A rectangle that uses decinal coordinates
 	struct COCOAPI Rect
 	{
+		/// @brief Sides of a rectangle
+		enum class RectangleSide
+		{
+			Left,
+			Top,
+			Right,
+			Bottom
+		};
+
 		/// @brief The size of the rectangle
 		Size Size;
 
@@ -75,6 +84,11 @@ namespace Coco
 		Rect() noexcept;
 		Rect(const Vector2& offset, const Coco::Size& size) noexcept;
 		Rect(const Vector2& p0, const Vector2& p1) noexcept;
+
+		/// @brief Gets the normal from a rectangle side
+		/// @param side The side of the rectangle
+		/// @return The normal of the given side
+		static Vector2 GetNormalOfSide(const RectangleSide& side);
 
 		/// @brief Gets the bottom-left corner of this rectangle
 		/// @return The bottom-left corner of this rectangle
@@ -111,11 +125,28 @@ namespace Coco
 		/// @brief Tests if this rectangle intersects with another rectangle
 		/// @param other The other rectangle
 		/// @return True if there is an intersection
-		bool Intersects(const Rect& other) noexcept;
+		bool Intersects(const Rect& other) const noexcept;
 
 		/// @brief Tests if this rectangle intersects with a point
 		/// @param point The point
 		/// @return True if there is an intersection
-		bool Intersects(const Vector2& point) noexcept;
+		bool Intersects(const Vector2& point) const noexcept;
+
+		/// @brief Gets the intersecting area between this rectangle and another
+		/// @param other The other rectangle
+		/// @return The intersecting area. Will be 0 sized rect if the two rectangles aren't intersecting
+		Rect GetIntersection(const Rect& other) const noexcept;
+
+		/// @brief Gets the closest point on this rectangle relative to a point
+		/// @param point The point
+		/// @param side If given, will be set to the side that the point lies on
+		/// @return The closest point
+		Vector2 GetClosestPoint(const Vector2& point, RectangleSide* side = nullptr) const;
+
+		/// @brief Gets the closest point on this rectangle relative to another rectangle
+		/// @param other The other rectangle
+		/// @param side If given, will be set to the side that the point lies on
+		/// @return The closest point
+		Vector2 GetClosestPoint(const Rect& other, RectangleSide* side = nullptr) const;
 	};
 }

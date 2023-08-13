@@ -92,6 +92,21 @@ namespace Coco
 		Size = Coco::Size(right - left, top - bottom);
 	}
 
+	Vector2 Rect::GetNormalOfSide(const RectangleSide& side)
+	{
+		switch (side)
+		{
+		case RectangleSide::Left:
+			return Vector2::Left;
+		case RectangleSide::Top:
+			return Vector2::Up;
+		case RectangleSide::Right:
+			return Vector2::Right;
+		default:
+			return Vector2::Down;
+		}
+	}
+
 	void Rect::Expand(const Vector2& point) noexcept
 	{
 		const double leftMove = Math::Max(Offset.X - point.X, 0.0);
@@ -118,7 +133,7 @@ namespace Coco
 		}
 	}
 
-	bool Rect::Intersects(const Rect& other) noexcept
+	bool Rect::Intersects(const Rect& other) const noexcept
 	{
 		const double r1 = GetRight() - Math::Epsilon;
 		const double l1 = GetLeft() + Math::Epsilon;
@@ -130,10 +145,12 @@ namespace Coco
 		const double t2 = other.GetTop();
 
 		// Check if each corner of the first rectangle lies within the width and height of the second
-		return ((r1 >= r2 && r1 <= l2) || (l1 >= r2 && l1 <= l2)) && ((b1 >= b2 && b1 <= t2) || (t1 >= b2 && t1 <= t2));
+		//return ((r1 >= r2 && r1 <= l2) || (l1 >= r2 && l1 <= l2)) && ((b1 >= b2 && b1 <= t2) || (t1 >= b2 && t1 <= t2));
+		// https://stackoverflow.com/questions/27025613/c-intersection-between-custom-rectangular-class
+		return r2 >= l1 && b2 <= t1 && t2 >= b1 && l2 <= r1;
 	}
 
-	bool Rect::Intersects(const Vector2& point) noexcept
+	bool Rect::Intersects(const Vector2& point) const noexcept
 	{
 		const double r1 = GetRight() - Math::Epsilon;
 		const double l1 = GetLeft() + Math::Epsilon;
@@ -142,5 +159,152 @@ namespace Coco
 
 		// Check if the point lies within the width and height of this rectangle
 		return (point.X >= r1 && point.X <= l1) && (point.Y >= b1 && point.Y <= t1);
+	}
+
+	Rect Rect::GetIntersection(const Rect& other) const noexcept
+	{
+		if (!Intersects(other))
+			return Rect();
+
+		double l1 = GetLeft();
+		double l2 = other.GetLeft();
+		double r1 = GetRight();
+		double r2 = other.GetRight();
+		double b1 = GetBottom();
+		double b2 = other.GetBottom();
+		double t1 = GetTop();
+		double t2 = other.GetTop();
+
+		Vector2 bottomLeft(Math::Max(l1, l2), Math::Max(b1, b2));
+		Vector2 topRight(Math::Min(r1, r2), Math::Min(t1, t2));
+
+		return Rect(bottomLeft, topRight);
+	}
+
+	Vector2 Rect::GetClosestPoint(const Vector2& point, RectangleSide* side) const
+	{
+		const double clampedX = Math::Clamp(point.X, GetLeft(), GetRight());
+		const double clampedY = Math::Clamp(point.Y, GetBottom(), GetTop());
+
+		Vector2 left(Offset.X, clampedY);
+		Vector2 right(Offset.X + Size.Width, clampedY);
+		Vector2 top(clampedX, Offset.Y + Size.Height);
+		Vector2 bottom(clampedX, Offset.Y);
+
+		double minDist = Vector2::DistanceBetween(point, left);
+		RectangleSide s = RectangleSide::Left;
+
+		double d = Vector2::DistanceBetween(point, top);
+		if (d < minDist)
+		{
+			s = RectangleSide::Top;
+			minDist = d;
+		}
+
+		d = Vector2::DistanceBetween(point, right);
+		if (d < minDist)
+		{
+			s = RectangleSide::Right;
+			minDist = d;
+		}
+
+		d = Vector2::DistanceBetween(point, bottom);
+		if (d < minDist)
+		{
+			s = RectangleSide::Bottom;
+			minDist = d;
+		}
+
+		if (side != nullptr)
+			*side = s;
+
+		switch (s)
+		{
+		case RectangleSide::Left:
+			return left;
+		case RectangleSide::Top:
+			return top;
+		case RectangleSide::Right:
+			return right;
+		default:
+			return bottom;
+		}
+	}
+
+	Vector2 Rect::GetClosestPoint(const Rect& other, RectangleSide* side) const
+	{
+		// TODO: I feel like this function could do with some improvements...
+		if (!Intersects(other))
+		{
+			double x1 = other.GetRight() - GetLeft();
+			double x2 = GetRight() - other.GetLeft();
+			double cx;
+
+			if (x1 < x2)
+			{
+				cx = GetLeft() + x1 * 0.5;
+			}
+			else
+			{
+				cx = other.GetLeft() + x2 * 0.5;
+			}
+
+			double y1 = other.GetTop() - GetBottom();
+			double y2 = GetTop() - other.GetBottom();
+			double cy;
+
+			if (y1 < y2)
+			{
+				cy = GetBottom() + y1 * 0.5;
+			}
+			else
+			{
+				cy = other.GetBottom() + y2 * 0.5;
+			}
+
+			return GetClosestPoint(Vector2(cx, cy), side);
+		}
+		
+		Rect i = GetIntersection(other);
+
+		bool isHorizontal = i.Size.Width < i.Size.Height;
+		Vector2 point;
+		RectangleSide s;
+
+		if (isHorizontal)
+		{
+			point.Y = i.GetCenter().Y;
+
+			if (Math::Approximately(i.GetLeft(), GetLeft()))
+			{
+				point.X = i.GetLeft();
+				s = RectangleSide::Left;
+			}
+			else
+			{
+				point.X = i.GetRight();
+				s = RectangleSide::Right;
+			}
+		}
+		else
+		{
+			point.X = i.GetCenter().X;
+
+			if (Math::Approximately(i.GetBottom(), GetBottom()))
+			{
+				point.Y = i.GetBottom();
+				s = RectangleSide::Bottom;
+			}
+			else
+			{
+				point.Y = i.GetTop();
+				s = RectangleSide::Top;
+			}
+		}
+
+		if (side != nullptr)
+			*side = s;
+
+		return point;
 	}
 }
