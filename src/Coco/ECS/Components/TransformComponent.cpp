@@ -167,6 +167,20 @@ namespace Coco::ECS
 			return _localScale;
 	}
 
+	bool TransformComponent::TryGetParent(TransformComponent*& parentTransform)
+	{
+		ECSService* ecs = ECSService::Get();
+		Entity* parent = nullptr;
+
+		if (_inheritParentTransform && ecs->TryGetEntityParent(Owner, parent))
+		{
+			parentTransform = &ecs->GetComponent<TransformComponent>(parent->ID);
+			return true;
+		}
+
+		return false;
+	}
+
 	void TransformComponent::InvalidateTransform()
 	{
 		ECSService* ecs = ECSService::Get();
@@ -208,19 +222,5 @@ namespace Coco::ECS
 		_invGlobalTransformMatrix = _globalTransformMatrix.Inverted();
 		
 		_isGlobalTransformMatrixDirty = false;
-	}
-
-	bool TransformComponent::TryGetParent(TransformComponent*& parentTransform)
-	{
-		ECSService* ecs = ECSService::Get();
-		Entity* parent = nullptr;
-
-		if (_inheritParentTransform && ecs->TryGetEntityParent(Owner, parent))
-		{
-			parentTransform = &ecs->GetComponent<TransformComponent>(parent->ID);
-			return true;
-		}
-
-		return false;
 	}
 }

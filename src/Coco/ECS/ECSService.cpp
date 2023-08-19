@@ -42,7 +42,7 @@ namespace Coco::ECS
 		return true;
 	}
 
-	List<EntityID> ECSService::GetEntityChildrenIDs(const EntityID& entity)
+	List<EntityID> ECSService::GetEntityChildrenIDs(const EntityID& entity) const
 	{
 		List<EntityID> children;
 
@@ -82,9 +82,9 @@ namespace Coco::ECS
 		return TryGetEntity(child->GetParentID(), entity);
 	}
 
-	bool ECSService::IsDescendantOfEntity(const EntityID& entityID, const EntityID& parentID)
+	bool ECSService::IsDescendantOfEntity(const EntityID& entityID, const EntityID& ancestorID)
 	{
-		if (entityID == parentID)
+		if (entityID == ancestorID)
 			return true;
 
 		Entity* parent = nullptr;
@@ -92,7 +92,7 @@ namespace Coco::ECS
 		if (!TryGetEntityParent(entityID, parent))
 			return false;
 
-		return parent->ID == parentID || IsDescendantOfEntity(parent->ID, parentID);
+		return parent->ID == ancestorID || IsDescendantOfEntity(parent->ID, ancestorID);
 	}
 
 	void ECSService::QueueDestroyEntity(const EntityID& entityID)
@@ -135,7 +135,7 @@ namespace Coco::ECS
 		return entities;
 	}
 
-	Scene* ECSService::CreateScene(const string& name, SceneID parentID)
+	Scene* ECSService::CreateScene(const string& name, const SceneID& parentID)
 	{
 		_scenes.Add(CreateManagedRef<Scene>(_nextSceneID, name, parentID));
 		_nextSceneID++;
@@ -143,7 +143,7 @@ namespace Coco::ECS
 		return _scenes.Last().Get();
 	}
 
-	Scene* ECSService::GetScene(SceneID sceneID)
+	Scene* ECSService::GetScene(const SceneID& sceneID)
 	{
 		const auto it = _scenes.Find([sceneID](const auto& scene) { return scene->_id == sceneID; });
 
@@ -153,31 +153,31 @@ namespace Coco::ECS
 		return (*it).Get();
 	}
 
-	bool ECSService::TryGetScene(SceneID sceneID, Scene*& scene)
+	bool ECSService::TryGetScene(const SceneID& sceneID, Scene*& scene)
 	{
 		scene = GetScene(sceneID);
 		return scene == nullptr;
 	}
 
-	bool ECSService::IsDescendantOfScene(SceneID sceneID, SceneID parentID)
+	bool ECSService::IsDescendantOfScene(const SceneID& sceneID, const SceneID& ancestorID)
 	{
-		if (sceneID == parentID || parentID == RootSceneID)
+		if (sceneID == ancestorID || ancestorID == RootSceneID)
 			return true;
 
-		Scene* parent = GetScene(parentID);
+		Scene* parent = GetScene(ancestorID);
 
 		if (parent == nullptr)
 			return false;
 
-		return parent->GetID() == parentID || IsDescendantOfScene(parent->GetID(), parentID);
+		return parent->GetID() == ancestorID || IsDescendantOfScene(parent->GetID(), ancestorID);
 	}
 
-	bool ECSService::IsEntityInScene(const EntityID& entityID, SceneID sceneID)
+	bool ECSService::IsEntityInScene(const EntityID& entityID, const SceneID& sceneID)
 	{
 		return IsDescendantOfScene(GetEntity(entityID).GetSceneID(), sceneID);
 	}
 
-	void ECSService::SetEntityScene(const EntityID& entityID, SceneID sceneID)
+	void ECSService::SetEntityScene(const EntityID& entityID, const SceneID& sceneID)
 	{
 		for (auto& kvp : _entities)
 		{
@@ -186,7 +186,7 @@ namespace Coco::ECS
 		}
 	}
 
-	void ECSService::DestroyScene(SceneID sceneID)
+	void ECSService::DestroyScene(const SceneID& sceneID)
 	{
 		for (const auto& kvp : _entities)
 		{
@@ -195,7 +195,7 @@ namespace Coco::ECS
 		}
 	}
 
-	List<EntityID> ECSService::GetSceneEntityIDs(SceneID scene) const
+	List<EntityID> ECSService::GetSceneEntityIDs(const SceneID& scene) const
 	{
 		List<EntityID> sceneEntities;
 		return sceneEntities;

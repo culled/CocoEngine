@@ -12,6 +12,8 @@ namespace Coco::ECS
 {
 	class Scene;
 
+	/// @brief An object that allows iteration over components in a scene
+	/// @tparam ...ComponentTypes The types of components
 	template<typename ... ComponentTypes>
 	class SceneView
 	{

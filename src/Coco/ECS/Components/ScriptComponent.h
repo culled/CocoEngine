@@ -5,6 +5,7 @@
 
 namespace Coco::ECS
 {
+	/// @brief Base class for custom script components
 	class ScriptComponent : public EntityComponent
 	{
 		friend class Scene;
@@ -18,6 +19,8 @@ namespace Coco::ECS
 		virtual ~ScriptComponent() = default;
 
 	protected:
+		/// @brief Called every tick
+		/// @param deltaTime The time since the last tick was called
 		virtual void Tick(double deltaTime) {}
 	};
 }
