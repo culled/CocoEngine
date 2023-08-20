@@ -22,7 +22,7 @@ namespace Coco::ECS
 
         if (!_defaultSpriteMesh.IsValid())
         {
-            _defaultSpriteMesh = Rendering::MeshPrimitives::CreateXZPlane("Sprite Plane", Vector2(-1.0, 1.0), Vector3(0.5, 0, 0.5));
+            _defaultSpriteMesh = Rendering::MeshPrimitives::CreateXZPlane("Sprite Plane", Vector2(1.0, 1.0), Vector3(0.5, 0, 0.5), 0, true);
             _defaultSpriteMesh->UploadData();
         }
 

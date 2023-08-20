@@ -5,56 +5,62 @@ namespace Coco::Rendering
 {
 	constexpr uint CoordsToIndex(uint x, uint y, uint length) { return x * length + y; }
 
-	Ref<Mesh> MeshPrimitives::CreateXYPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateXYPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions, bool flipDirection)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
 		List<uint> indices;
 
-		CreateXYGrid(size, offset, verts, uvs, indices, subdivisions);
+		CreateXYGrid(size, offset, verts, uvs, indices, subdivisions, flipDirection);
 
 		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateXZPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateXZPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions, bool flipDirection)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
 		List<uint> indices;
 
-		CreateXZGrid(size, offset, verts, uvs, indices, subdivisions);
+		CreateXZGrid(size, offset, verts, uvs, indices, subdivisions, flipDirection);
 
 		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateYZPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateYZPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions, bool flipDirection)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
 		List<uint> indices;
 
-		CreateYZGrid(size, offset, verts, uvs, indices, subdivisions);
+		CreateYZGrid(size, offset, verts, uvs, indices, subdivisions, flipDirection);
 
 		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateBox(const string& name, const Vector3& size, const Vector3& offset, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateBox(const string& name, const Vector3& size, const Vector3& offset, uint subdivisions, bool flipDirection)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
 		List<uint> indices;
 
-		CreateBox(size, offset, verts, uvs, indices, subdivisions);
+		CreateBox(size, offset, verts, uvs, indices, subdivisions, flipDirection);
 
 		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
-	void MeshPrimitives::CreateXYGrid(const Vector2& size, const Vector3& offset, List<Vector3>& positions, List<Vector2>& uvs, List<uint>& indices, uint subdivisions)
+	void MeshPrimitives::CreateXYGrid(
+		const Vector2& size, 
+		const Vector3& offset, 
+		List<Vector3>& positions, 
+		List<Vector2>& uvs, 
+		List<uint>& indices, 
+		uint subdivisions,
+		bool flipDirection)
 	{
 		const uint vertexSideCount = 2 + subdivisions;
-		const double vertexScaling = (1.0 / vertexSideCount) * 2.0;
-		const Vector3 scale = Vector3(size.X * vertexScaling, size.Y * vertexScaling, 1.0);
-		const Vector3 finalOffset = Vector3(-size.X * 0.5, -size.Y * 0.5, 0.0) + offset;
+		const double vertexScaling = 1.0 / (vertexSideCount - 1);
+		const Vector3 scale = Vector3(size.X, size.Y, 1.0);
 
 		const uint indexOffset = static_cast<uint>(positions.Count());
 
@@ -62,7 +68,7 @@ namespace Coco::Rendering
 		{
 			for (uint y = 0; y < vertexSideCount; y++)
 			{
-				positions.Add(Vector3(x, y, 0.0) * scale + finalOffset);
+				positions.Add(Vector3(x * vertexScaling - 0.5, y * vertexScaling - 0.5, 0.0) * scale + offset);
 
 				const double u = static_cast<double>(x) / (vertexSideCount - 1);
 				const double v = static_cast<double>(y) / (vertexSideCount - 1);
@@ -74,23 +80,32 @@ namespace Coco::Rendering
 		{
 			for (uint y = 0; y < vertexSideCount - 1; y++)
 			{
-				indices.Add(indexOffset + CoordsToIndex(x,		y,		vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(x,		y + 1,	vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(x + 1,	y + 1,	vertexSideCount));
+				const int xy = CoordsToIndex(flipDirection ? x + 1 : x, flipDirection ? y + 1 : y, vertexSideCount);
+				const int x1y1 = CoordsToIndex(flipDirection ? x : x + 1, flipDirection ? y : y + 1, vertexSideCount);
 
-				indices.Add(indexOffset + CoordsToIndex(x + 1,	y + 1,	vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(x + 1,	y,		vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(x,		y,		vertexSideCount));
+				indices.Add(indexOffset + xy);
+				indices.Add(indexOffset + CoordsToIndex(x, y + 1, vertexSideCount));
+				indices.Add(indexOffset + x1y1);
+
+				indices.Add(indexOffset + x1y1);
+				indices.Add(indexOffset + CoordsToIndex(x + 1, y, vertexSideCount));
+				indices.Add(indexOffset + xy);
 			}
 		}
 	}
 
-	void MeshPrimitives::CreateXZGrid(const Vector2& size, const Vector3& offset, List<Vector3>& positions, List<Vector2>& uvs, List<uint>& indices, uint subdivisions)
+	void MeshPrimitives::CreateXZGrid(
+		const Vector2& size, 
+		const Vector3& offset, 
+		List<Vector3>& positions, 
+		List<Vector2>& uvs, 
+		List<uint>& indices, 
+		uint subdivisions,
+		bool flipDirection)
 	{
 		const uint vertexSideCount = 2 + subdivisions;
-		const double vertexScaling = (1.0 / vertexSideCount) * 2.0;
-		const Vector3 scale = Vector3(size.X * vertexScaling, 1.0, size.Y * vertexScaling);
-		const Vector3 finalOffset = Vector3(-size.X * 0.5, 0.0, -size.Y * 0.5) + offset;
+		const double vertexScaling = 1.0 / (vertexSideCount - 1);
+		const Vector3 scale = Vector3(size.X, 1.0, size.Y);
 
 		const uint indexOffset = static_cast<uint>(positions.Count());
 
@@ -98,7 +113,7 @@ namespace Coco::Rendering
 		{
 			for (uint z = 0; z < vertexSideCount; z++)
 			{
-				positions.Add(Vector3(x, 0.0, z) * scale + finalOffset);
+				positions.Add(Vector3(x * vertexScaling - 0.5, 0.0, z * vertexScaling - 0.5) * scale + offset);
 
 				const double u = static_cast<double>(x) / (vertexSideCount - 1);
 				const double v = static_cast<double>(z) / (vertexSideCount - 1);
@@ -110,23 +125,32 @@ namespace Coco::Rendering
 		{
 			for (uint z = 0; z < vertexSideCount - 1; z++)
 			{
-				indices.Add(indexOffset + CoordsToIndex(x + 1,	z,		vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(x + 1,	z + 1,	vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(x,		z + 1,	vertexSideCount));
+				const int xz = CoordsToIndex(flipDirection ? x + 1 : x, flipDirection ? z + 1 : z, vertexSideCount);
+				const int x1z1 = CoordsToIndex(flipDirection ? x : x + 1, flipDirection ? z : z + 1, vertexSideCount);
 
-				indices.Add(indexOffset + CoordsToIndex(x,		z + 1,	vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(x,		z,		vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(x + 1,	z,		vertexSideCount));
+				indices.Add(indexOffset + xz);
+				indices.Add(indexOffset + CoordsToIndex(x + 1, z, vertexSideCount));
+				indices.Add(indexOffset + x1z1);
+
+				indices.Add(indexOffset + x1z1);
+				indices.Add(indexOffset + CoordsToIndex(x, z + 1, vertexSideCount));
+				indices.Add(indexOffset + xz);
 			}
 		}
 	}
 
-	void MeshPrimitives::CreateYZGrid(const Vector2& size, const Vector3& offset, List<Vector3>& positions, List<Vector2>& uvs, List<uint>& indices, uint subdivisions)
+	void MeshPrimitives::CreateYZGrid(
+		const Vector2& size, 
+		const Vector3& offset, 
+		List<Vector3>& positions, 
+		List<Vector2>& uvs, 
+		List<uint>& indices, 
+		uint subdivisions,
+		bool flipDirection)
 	{
 		const uint vertexSideCount = 2 + subdivisions;
-		const double vertexScaling = (1.0 / vertexSideCount) * 2.0;
-		const Vector3 scale = Vector3(1.0, size.X * vertexScaling, size.Y * vertexScaling);
-		const Vector3 finalOffset = Vector3(0.0, -size.X * 0.5, -size.Y * 0.5) + offset;
+		const double vertexScaling = 1.0 / (vertexSideCount - 1);
+		const Vector3 scale = Vector3(1.0, size.X, size.Y);
 
 		const uint indexOffset = static_cast<uint>(positions.Count());
 
@@ -134,7 +158,7 @@ namespace Coco::Rendering
 		{
 			for (uint z = 0; z < vertexSideCount; z++)
 			{
-				positions.Add(Vector3(0.0, y, z) * scale + finalOffset);
+				positions.Add(Vector3(0.0, y * vertexScaling - 0.5, z * vertexScaling - 0.5) * scale + offset);
 
 				const double u = static_cast<double>(y) / (vertexSideCount - 1);
 				const double v = static_cast<double>(z) / (vertexSideCount - 1);
@@ -146,38 +170,48 @@ namespace Coco::Rendering
 		{
 			for (uint z = 0; z < vertexSideCount - 1; z++)
 			{
-				indices.Add(indexOffset + CoordsToIndex(y, z, vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(y, z + 1, vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(y + 1, z + 1, vertexSideCount));
+				const int yz = CoordsToIndex(flipDirection ? y + 1 : y, flipDirection ? z + 1 : z, vertexSideCount);
+				const int y1z1 = CoordsToIndex(flipDirection ? y : y + 1, flipDirection ? z : z + 1, vertexSideCount);
 
-				indices.Add(indexOffset + CoordsToIndex(y + 1, z + 1, vertexSideCount));
+				indices.Add(indexOffset + yz);
+				indices.Add(indexOffset + CoordsToIndex(y, z + 1, vertexSideCount));
+				indices.Add(indexOffset + y1z1);
+
+				indices.Add(indexOffset + y1z1);
 				indices.Add(indexOffset + CoordsToIndex(y + 1, z, vertexSideCount));
-				indices.Add(indexOffset + CoordsToIndex(y, z, vertexSideCount));
+				indices.Add(indexOffset + yz);
 			}
 		}
 	}
 	
-	void MeshPrimitives::CreateBox(const Vector3& size, const Vector3& offset, List<Vector3>& positions, List<Vector2>& uvs, List<uint>& indices, uint subdivisions)
+	void MeshPrimitives::CreateBox(
+		const Vector3& size, 
+		const Vector3& offset, 
+		List<Vector3>& positions, 
+		List<Vector2>& uvs, 
+		List<uint>& indices, 
+		uint subdivisions,
+		bool flipDirection)
 	{
-		const Vector3 sizeOffset = size / 2;
-
-		// -Y face
-		CreateXZGrid(Vector2(-size.X, size.Z), Vector3::Backwards * sizeOffset.Y + offset, positions, uvs, indices, subdivisions);
+		const Vector3 sizeOffset = size * 0.5;
 
 		// X face
-		CreateYZGrid(Vector2(size.Y, size.Z), Vector3::Right * sizeOffset.X + offset, positions, uvs, indices, subdivisions);
-
-		// Y face
-		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Forwards * sizeOffset.Y + offset, positions, uvs, indices, subdivisions);
+		CreateYZGrid(Vector2(size.Y, size.Z), Vector3::Right * sizeOffset.X + offset, positions, uvs, indices, subdivisions, flipDirection);
 
 		// -X face
-		CreateYZGrid(Vector2(-size.Y, size.Z), Vector3::Left * sizeOffset.X + offset, positions, uvs, indices, subdivisions);
+		CreateYZGrid(Vector2(size.Y, size.Z), Vector3::Left * sizeOffset.X + offset, positions, uvs, indices, subdivisions, !flipDirection);
+
+		// Y face
+		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Forwards * sizeOffset.Y + offset, positions, uvs, indices, subdivisions, flipDirection);
+
+		// -Y face
+		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Backwards * sizeOffset.Y + offset, positions, uvs, indices, subdivisions, !flipDirection);
 
 		// Z face
-		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Up * sizeOffset.Z + offset, positions, uvs, indices, subdivisions);
+		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Up * sizeOffset.Z + offset, positions, uvs, indices, subdivisions, flipDirection);
 
 		// -Z face
-		CreateXYGrid(Vector2(-size.X, size.Z), Vector3::Down * sizeOffset.Z + offset, positions, uvs, indices, subdivisions);
+		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Down * sizeOffset.Z + offset, positions, uvs, indices, subdivisions, !flipDirection);
 	}
 
 	Ref<Mesh> MeshPrimitives::CreateFromVertices(const string& name, const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices)
