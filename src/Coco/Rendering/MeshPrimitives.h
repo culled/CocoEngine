@@ -142,6 +142,14 @@ namespace Coco::Rendering
 			List<uint>& indices,
 			bool flipDirection = false);
 
+		/// @brief Creates a circular triangle fan on the XY plane
+		/// @param radius The radius of the circle
+		/// @param vertexCount The number of vertices in the circle
+		/// @param offset The offset of the circle
+		/// @param positions Will be filled with the vertex positions
+		/// @param uvs Will be filled with the vertex UV coordinates
+		/// @param indices Will be filled with the vertex indices
+		/// @param flipDirection If true, the faces will face in the -Z direction
 		static void CreateXYTriangleFan(
 			double radius,
 			int vertexCount,
