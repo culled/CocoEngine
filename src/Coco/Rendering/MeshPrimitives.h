@@ -11,6 +11,7 @@ namespace Coco::Rendering
 	{
 	public:
 		/// @brief Creates a mesh along the XY plane
+		/// @param name The name of the mesh
 		/// @param size The size of the mesh
 		/// @param offset The offset of the plane
 		/// @param subdivisions The number of subdivisions for the plane
@@ -19,6 +20,7 @@ namespace Coco::Rendering
 		static Ref<Mesh> CreateXYPlane(const string& name, const Vector2& size, const Vector3& offset = Vector3::Zero, uint subdivisions = 0, bool flipDirection = false);
 
 		/// @brief Creates a mesh along the XZ plane
+		/// @param name The name of the mesh
 		/// @param size The size of the mesh
 		/// @param offset The offset of the plane
 		/// @param subdivisions The number of subdivisions for the plane
@@ -27,6 +29,7 @@ namespace Coco::Rendering
 		static Ref<Mesh> CreateXZPlane(const string& name, const Vector2& size, const Vector3& offset = Vector3::Zero, uint subdivisions = 0, bool flipDirection = false);
 
 		/// @brief Creates a mesh along the YZ plane
+		/// @param name The name of the mesh
 		/// @param size The size of the mesh
 		/// @param offset The offset of the plane
 		/// @param subdivisions The number of subdivisions for the plane
@@ -35,12 +38,22 @@ namespace Coco::Rendering
 		static Ref<Mesh> CreateYZPlane(const string& name, const Vector2& size, const Vector3& offset = Vector3::Zero, uint subdivisions = 0, bool flipDirection = false);
 
 		/// @brief Creates a box mesh
+		/// @param name The name of the mesh
 		/// @param size The size of the box
 		/// @param offset The offset of the box
 		/// @param subdivisions The number of subdivisions for the box
 		/// @param flipDirection If true, the faces will face towards the inside of the box
 		/// @return The box mesh
 		static Ref<Mesh> CreateBox(const string& name, const Vector3& size, const Vector3& offset = Vector3::Zero, uint subdivisions = 0, bool flipDirection = false);
+
+		/// @brief Creates a cone mesh
+		/// @param name The name of the mesh
+		/// @param height The height of the cone
+		/// @param radius The radius of the cone's base
+		/// @param baseVertexCount The number of vertices for the cone's base
+		/// @param offset The offset of the cone
+		/// @param flipDirection If true, the faces will face towards the inside of the cone
+		static Ref<Mesh> CreateCone(const string& name, double height, double radius, int baseVertexCount, const Vector3& offset = Vector3::Zero, bool flipDirection = false);
 
 		/// @brief Creates verticies for an XY grid
 		/// @param size The size of the grid
@@ -108,6 +121,34 @@ namespace Coco::Rendering
 			List<Vector2>& uvs, 
 			List<uint>& indices, 
 			uint subdivisions = 0,
+			bool flipDirection = false);
+
+		/// @brief Creates vertices for a cone
+		/// @param height The height of the cone
+		/// @param radius The radius of the cone's base
+		/// @param baseVertexCount The number of vertices for the cone's base
+		/// @param offset The offset of the cone
+		/// @param positions Will be filled with the vertex positions
+		/// @param uvs Will be filled with the vertex UV coordinates
+		/// @param indices Will be filled with the vertex indices
+		/// @param flipDirection If true, the faces will face towards the inside of the cone
+		static void CreateCone(
+			double height,
+			double radius,
+			int baseVertexCount,
+			const Vector3& offset,
+			List<Vector3>& positions,
+			List<Vector2>& uvs,
+			List<uint>& indices,
+			bool flipDirection = false);
+
+		static void CreateXYTriangleFan(
+			double radius,
+			int vertexCount,
+			const Vector3& offset,
+			List<Vector3>& positions,
+			List<Vector2>& uvs,
+			List<uint>& indices,
 			bool flipDirection = false);
 
 		/// @brief Creates a mesh from vertices

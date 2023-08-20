@@ -49,6 +49,17 @@ namespace Coco::Rendering
 		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
+	Ref<Mesh> MeshPrimitives::CreateCone(const string& name, double height, double radius, int baseVertexCount, const Vector3& offset, bool flipDirection)
+	{
+		List<Vector3> verts;
+		List<Vector2> uvs;
+		List<uint> indices;
+
+		CreateCone(height, radius, baseVertexCount, offset, verts, uvs, indices, flipDirection);
+
+		return CreateFromVertices(name, verts, uvs, indices);
+	}
+
 	void MeshPrimitives::CreateXYGrid(
 		const Vector2& size, 
 		const Vector3& offset, 
@@ -212,6 +223,86 @@ namespace Coco::Rendering
 
 		// -Z face
 		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Down * sizeOffset.Z + offset, positions, uvs, indices, subdivisions, !flipDirection);
+	}
+
+	void MeshPrimitives::CreateCone(
+		double height, 
+		double radius, 
+		int baseVertexCount, 
+		const Vector3& offset, 
+		List<Vector3>& positions, 
+		List<Vector2>& uvs, 
+		List<uint>& indices, 
+		bool flipDirection)
+	{
+		const uint vertexOffset = static_cast<uint>(positions.Count());
+
+		// Add the top vertex
+		positions.Add(Vector3(0.0, 0.0, height) + offset);
+		uvs.Add(Vector2(0.25, 0.25));
+
+		for (int i = 0; i < baseVertexCount; i++)
+		{
+			const double angle = (static_cast<double>(i) / baseVertexCount) * Math::PI * 2.0;
+			const double c = Math::Cos(angle);
+			const double s = Math::Sin(angle);
+
+			positions.Add(Vector3(c * radius, s * radius, 0.0) + offset);
+			uvs.Construct(c * 0.5 + 0.25, s * 0.5 + 0.25);
+		}
+
+		for (uint i = vertexOffset + 1; i < static_cast<uint>(positions.Count()) - 1; i++)
+		{
+			indices.Add(flipDirection ? i + 1 : i);
+			indices.Add(vertexOffset);
+			indices.Add(flipDirection ? i : i + 1);
+		}
+		
+		// Connect the last base vertex to the first
+		indices.Add(flipDirection ? vertexOffset + 1 : static_cast<uint>(positions.Count()) - 1);
+		indices.Add(vertexOffset);
+		indices.Add(flipDirection ? static_cast<uint>(positions.Count()) - 1 : vertexOffset + 1);
+
+		CreateXYTriangleFan(radius, baseVertexCount, offset, positions, uvs, indices, !flipDirection);
+	}
+
+	void MeshPrimitives::CreateXYTriangleFan(
+		double radius, 
+		int vertexCount, 
+		const Vector3& offset, 
+		List<Vector3>& positions, 
+		List<Vector2>& uvs, 
+		List<uint>& indices, 
+		bool flipDirection)
+	{
+		const uint vertexOffset = static_cast<uint>(positions.Count());
+
+		// Add the middle vertex
+		positions.Add(offset);
+		uvs.Add(Vector2(0.5, 0.5));
+
+		// Create bottom circle
+		for (int i = 0; i < vertexCount; i++)
+		{
+			const double angle = (static_cast<double>(i) / vertexCount) * Math::PI * 2.0;
+			const double c = Math::Cos(angle);
+			const double s = Math::Sin(angle);
+
+			positions.Add(Vector3(c * radius, s * radius, 0.0) + offset);
+			uvs.Construct(c * 0.5 + 0.5, s * 0.5 + 0.5);
+		}
+
+		for (uint i = vertexOffset + 1; i < static_cast<uint>(positions.Count()) - 1; i++)
+		{
+			indices.Add(flipDirection ? i + 1 : i);
+			indices.Add(vertexOffset);
+			indices.Add(flipDirection ? i : i + 1);
+		}
+
+		// Connect the last base vertex to the first
+		indices.Add(flipDirection ? vertexOffset + 1 : static_cast<uint>(positions.Count()) - 1);
+		indices.Add(vertexOffset);
+		indices.Add(flipDirection ? static_cast<uint>(positions.Count()) - 1 : vertexOffset + 1);
 	}
 
 	Ref<Mesh> MeshPrimitives::CreateFromVertices(const string& name, const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices)

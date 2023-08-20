@@ -69,6 +69,7 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	MeshPrimitives::CreateXZGrid(Vector2(size, size), Vector3(0.0, -size * 0.5, 0.0), vertexPositions, vertexUVs, vertexIndices);
 	MeshPrimitives::CreateYZGrid(Vector2(size, size), Vector3(-size * 0.5, 0.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
 	MeshPrimitives::CreateBox(Vector3::One, Vector3(0.0, 5.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateCone(2.0, 1.0, 12, Vector3(2.0, 5.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
 	
 	_mesh = MeshPrimitives::CreateFromVertices("Mesh", vertexPositions, vertexUVs, vertexIndices);
 
