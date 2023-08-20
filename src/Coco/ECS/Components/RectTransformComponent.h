@@ -15,6 +15,7 @@ namespace Coco::ECS
 		Vector2 _localPosition;
 		double _localRotation;
 		Size _localSize;
+		Vector2 _localScale;
 		Vector2 _pivot;
 		int _localZIndex;
 
@@ -39,8 +40,9 @@ namespace Coco::ECS
 		const Matrix4x4& GetLocalTransformMatrix();
 
 		/// @brief Gets the global transform matrix
+		/// @param sized If true, then the matrix's scale component will also include this transform's size
 		/// @return The global transform matrix
-		const Matrix4x4& GetGlobalTransformMatrix();
+		Matrix4x4 GetGlobalTransformMatrix(bool sized = false);
 
 		/// @brief Gets the inverse of the global transform matrix
 		/// @return The inverse of the global transform matrix
@@ -94,6 +96,14 @@ namespace Coco::ECS
 		/// @brief Gets the z index local to the parent
 		/// @return The local z index
 		int GetLocalZIndex() const { return _localZIndex; }
+
+		/// @brief Sets the scale local to the parent
+		/// @param scale The local scale
+		void SetLocalScale(const Vector2& scale);
+
+		/// @brief Gets the scale local to the parent
+		/// @return The local scale
+		const Vector2& GetLocalScale() const { return _localScale; }
 
 		/// @brief Gets the parent transform, checking first if it exists
 		/// @param parentTransform Will be set to the parent transform

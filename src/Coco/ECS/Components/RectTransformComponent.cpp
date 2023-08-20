@@ -7,6 +7,7 @@ namespace Coco::ECS
 		_localPosition(Vector2::Zero),
 		_localRotation(0),
 		_localSize(Size(100, 100)),
+		_localScale(Vector2::One),
 		_pivot(Vector2::Zero),
 		_inheritParentTransform(true),
 		_localZIndex(0)
@@ -17,6 +18,7 @@ namespace Coco::ECS
 		_localPosition(position),
 		_localRotation(rotation),
 		_localSize(size),
+		_localScale(Vector2::One),
 		_pivot(pivot),
 		_localZIndex(zIndex)
 	{
@@ -30,11 +32,26 @@ namespace Coco::ECS
 		return _localTransformMatrix;
 	}
 
-	const Matrix4x4& RectTransformComponent::GetGlobalTransformMatrix()
+	Matrix4x4 RectTransformComponent::GetGlobalTransformMatrix(bool sized)
 	{
 		UpdateGlobalTransform();
+	
+		if(sized)
+			return _globalTransformMatrix;
 
-		return _globalTransformMatrix;
+		// For an unsized matrix, just remove the size component from the scale
+		const double invSizeW = 1.0 / _localSize.Width;
+		const double invSizeH = 1.0 / _localSize.Height;
+
+		Matrix4x4 m = _globalTransformMatrix;
+		m.Data[Matrix4x4::m11] *= invSizeW;
+		m.Data[Matrix4x4::m21] *= invSizeW;
+		m.Data[Matrix4x4::m31] *= invSizeW;
+
+		m.Data[Matrix4x4::m13] *= invSizeH;
+		m.Data[Matrix4x4::m23] *= invSizeH;
+		m.Data[Matrix4x4::m33] *= invSizeH;
+		return m;
 	}
 
 	const Matrix4x4& RectTransformComponent::GetInverseGlobalTransformMatrix()
@@ -80,6 +97,12 @@ namespace Coco::ECS
 		InvalidateTransform();
 	}
 
+	void RectTransformComponent::SetLocalScale(const Vector2& scale)
+	{
+		_localScale = scale;
+		InvalidateTransform();
+	}
+
 	bool RectTransformComponent::TryGetParent(RectTransformComponent*& parentTransform)
 	{
 		ECSService* ecs = ECSService::Get();
@@ -115,8 +138,8 @@ namespace Coco::ECS
 			return;
 
 		Quaternion rotation(Vector3::Forwards, _localRotation);
-		Vector3 scale(_localSize.Width, 1.0, _localSize.Height);
-		Vector3 pivotOffset = rotation * Vector3(_pivot.X, 0.0, _pivot.Y) * scale;
+		Vector3 scale(_localSize.Width * _localScale.X, 1.0, _localSize.Height * _localScale.Y);
+		Vector3 pivotOffset = rotation * (Vector3(_pivot.X, 0.0, _pivot.Y) * scale);
 
 		_localTransformMatrix = Matrix4x4::CreateTransform(Vector3(_localPosition.X, _localZIndex, _localPosition.Y) - pivotOffset, rotation, scale);
 		_isLocalTransformMatrixDirty = false;

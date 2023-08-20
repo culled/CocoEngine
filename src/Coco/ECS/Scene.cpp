@@ -30,7 +30,7 @@ namespace Coco::ECS
 			SpriteRendererComponent& renderer = ecs->GetComponent<SpriteRendererComponent>(entityID);
 			RectTransformComponent& transform = ecs->GetComponent<RectTransformComponent>(entityID);
 
-			renderView->AddRenderObject(renderer.GetMesh(), renderer.GetMaterial(), transform.GetGlobalTransformMatrix());
+			renderView->AddRenderObject(renderer.GetMesh(), renderer.GetMaterial(), transform.GetGlobalTransformMatrix(true));
 		}
 	}
 
