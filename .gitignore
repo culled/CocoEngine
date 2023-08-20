@@ -360,3 +360,6 @@ docs/generated/
 
 # Built shaders
 *.spv
+
+# Random things
+misc/
