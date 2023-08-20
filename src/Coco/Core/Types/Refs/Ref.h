@@ -15,6 +15,10 @@ namespace Coco
 		template<typename>
 		friend class Ref;
 
+	public:
+		/// @brief An empty reference
+		static const Ref Empty;
+
 	protected:
 		std::shared_ptr<RefControlBlock> _controlBlock = nullptr;
 		ValueType* _resource = nullptr;
@@ -150,4 +154,7 @@ namespace Coco
 
 		operator ValueType* () { return Get(); }
 	};
+
+	template<typename ValueType>
+	const Ref<ValueType> Ref<ValueType>::Empty = Ref<ValueType>();
 }

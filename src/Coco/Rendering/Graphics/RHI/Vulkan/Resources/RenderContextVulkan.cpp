@@ -244,6 +244,16 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
+	bool RenderContextVulkan::BeginPassImpl()
+	{
+		if (_currentRenderPassIndex > 0)
+		{
+			vkCmdNextSubpass(_commandBuffer->GetCmdBuffer(), VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
+		}
+
+		return true;
+	}
+
 	void RenderContextVulkan::EndImpl()
 	{
 		try
@@ -326,8 +336,8 @@ namespace Coco::Rendering::Vulkan
 				_currentPipeline = _device->GetRenderCache()->GetOrCreatePipeline(
 					*_currentVulkanRenderPass,
 					*shader,
-					_currentRenderPass.RenderPass->GetSubshaderName(),
-					_currentRenderPass.RenderPassIndex,
+					_currentRenderPass->GetSubshaderName(),
+					static_cast<uint32_t>(_currentRenderPassIndex),
 					_globalDescriptor.Layout);
 
 				vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, _currentPipeline->GetPipeline());
@@ -346,7 +356,7 @@ namespace Coco::Rendering::Vulkan
 			{
 				VkDescriptorSet set;
 				
-				if (GetOrAllocateMaterialDescriptorSet(*shader, _currentRenderPass.RenderPass->GetSubshaderName(), _currentMaterial, set))
+				if (GetOrAllocateMaterialDescriptorSet(*shader, _currentRenderPass->GetSubshaderName(), _currentMaterial, set))
 				{
 					// Bind the material descriptor set
 					vkCmdBindDescriptorSets(

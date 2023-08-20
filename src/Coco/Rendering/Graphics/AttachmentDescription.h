@@ -45,5 +45,7 @@ namespace Coco::Rendering
 
 		bool operator ==(const AttachmentDescription& other) const noexcept;
 		bool operator !=(const AttachmentDescription& other) const noexcept { return !(*this == other); }
+
+		bool IsCompatible(const AttachmentDescription& other) const noexcept;
 	};
 }

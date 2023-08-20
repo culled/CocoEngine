@@ -26,8 +26,9 @@ namespace Coco::Rendering
 	struct GlobalUniformObject
 	{
 		float Projection[4 * 4];	// 64 bytes
+		float Projection2D[4 * 4];	// 64 bytes
 		float View[4 * 4];			// 64 bytes
-		uint8_t Padding[128];		// 128 bytes - padding
+		uint8_t Padding[64];		// 64 bytes - padding
 
 		GlobalUniformObject() noexcept;
 		GlobalUniformObject(const RenderView* renderView) noexcept;

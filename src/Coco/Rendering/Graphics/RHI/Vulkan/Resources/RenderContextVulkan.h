@@ -102,6 +102,7 @@ namespace Coco::Rendering::Vulkan
 
 	protected:
 		virtual bool BeginImpl() final;
+		virtual bool BeginPassImpl() final;
 		virtual void EndImpl() final;
 		virtual void ResetImpl() final;
 

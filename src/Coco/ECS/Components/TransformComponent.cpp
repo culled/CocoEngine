@@ -47,6 +47,7 @@ namespace Coco::ECS
 	void TransformComponent::SetInheritParentTransform(bool inheritParentTransform)
 	{
 		_inheritParentTransform = inheritParentTransform;
+		InvalidateTransform();
 	}
 
 	void TransformComponent::SetLocalPosition(const Vector3& position)
@@ -172,7 +173,7 @@ namespace Coco::ECS
 		ECSService* ecs = ECSService::Get();
 		Entity* parent = nullptr;
 
-		if (_inheritParentTransform && ecs->TryGetEntityParent(Owner, parent))
+		if (_inheritParentTransform && ecs->TryGetEntityParent(Owner, parent) && ecs->HasComponent<TransformComponent>(parent->ID))
 		{
 			parentTransform = &ecs->GetComponent<TransformComponent>(parent->ID);
 			return true;
@@ -188,7 +189,8 @@ namespace Coco::ECS
 		
 		for (const auto& childID : childrenIDs)
 		{
-			ecs->GetComponent<TransformComponent>(childID).InvalidateTransform();
+			if(ecs->HasComponent<TransformComponent>(childID))
+				ecs->GetComponent<TransformComponent>(childID).InvalidateTransform();
 		}
 		
 		_isLocalTransformMatrixDirty = true;
@@ -210,7 +212,7 @@ namespace Coco::ECS
 			return;
 		
 		TransformComponent* parentTransform;
-		if (TryGetParent(parentTransform))
+		if (_inheritParentTransform && TryGetParent(parentTransform))
 		{
 			_globalTransformMatrix = GetLocalTransformMatrix() * parentTransform->GetGlobalTransformMatrix();
 		}

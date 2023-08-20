@@ -12,12 +12,14 @@ namespace Coco::Rendering
 {
 	RenderView::RenderView(
 		const RectInt& viewportRect, 
-		const Matrix4x4& projection, 
+		const Matrix4x4& projection,
+		const Matrix4x4& projection2D,
 		const Matrix4x4& view,
 		const List<RenderTarget>& renderTargets
 	) noexcept :
 		ViewportRect(viewportRect),
 		Projection(projection), 
+		Projection2D(projection2D),
 		View(view), 
 		RenderTargets(renderTargets),
 		Shaders{},
@@ -50,7 +52,7 @@ namespace Coco::Rendering
 		if (Shaders.contains(shader->ID))
 			return;
 
-		Shaders.try_emplace(shader->ID, shader->ID, shader->GetVersion());
+		Shaders.try_emplace(shader->ID, shader->ID, shader->GetVersion(), shader->GetGroupTag());
 		ShaderRenderData& shaderData = Shaders.at(shader->ID);
 
 		for (const Subshader& subshader : shader->GetSubshaders())

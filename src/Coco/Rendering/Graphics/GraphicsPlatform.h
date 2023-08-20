@@ -31,9 +31,6 @@ namespace Coco::Rendering
 	class COCOAPI GraphicsPlatform
 	{
 	public:
-		/// @brief Transforms Coco view space (forward on Y, up on Z, right on X) to Vulkan/DirectX view space (forward on Z, up on -Y, right on X)
-		static const Matrix4x4 CocoViewToRenderView;
-
 		/// @brief If true, this platform supports presenting images to windows
 		const bool SupportsPresentation;
 

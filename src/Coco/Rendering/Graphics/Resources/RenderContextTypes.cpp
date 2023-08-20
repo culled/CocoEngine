@@ -12,6 +12,7 @@ namespace Coco::Rendering
 		Padding{ 0 }
 	{
 		PopulateMatrix(&Projection[0], renderView->Projection);
+		PopulateMatrix(&Projection2D[0], renderView->Projection2D);
 		PopulateMatrix(&View[0], renderView->View);
 	}
 

@@ -11,6 +11,9 @@ namespace Coco::Rendering::Vulkan
     class GraphicsPlatformVulkan final : public GraphicsPlatform
     {
         friend class ManagedRef<GraphicsPlatformVulkan>;
+    public:
+        /// @brief Transforms Coco view space (forward on Y, up on Z, right on X) to Vulkan/DirectX view space (forward on Z, up on -Y, right on X)
+        static const Matrix4x4 CocoViewToRenderView;
 
     private:
         static const char* s_debugValidationLayerName;
@@ -37,7 +40,7 @@ namespace Coco::Rendering::Vulkan
         Ref<Buffer> CreateBuffer(const string& name, uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) final;
         Ref<Image> CreateImage(const string& name, const ImageDescription& description) final;
         Ref<ImageSampler> CreateImageSampler(const string& name, const ImageSamplerProperties& properties) final;
-        Matrix4x4 CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip) noexcept final;
+        Matrix4x4 CreateOrthographicProjection(double left, double right, double bottom, double top, double nearClip, double farClip) noexcept final;
         Matrix4x4 CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) noexcept final;
         Matrix4x4 CreatePerspectiveProjection(double fieldOfViewRadians, double aspectRatio, double nearClip, double farClip) noexcept final;
 

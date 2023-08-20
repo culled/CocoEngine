@@ -12,27 +12,31 @@ namespace Coco::Rendering
 	public:
 		/// @brief Creates a mesh along the XY plane
 		/// @param size The size of the mesh
+		/// @param offset The offset of the plane
 		/// @param subdivisions The number of subdivisions for the plane
 		/// @return The plane mesh
-		static Ref<Mesh> CreateXYPlane(const string& name, const Vector2& size, uint subdivisions = 0);
+		static Ref<Mesh> CreateXYPlane(const string& name, const Vector2& size, const Vector3& offset = Vector3::Zero, uint subdivisions = 0);
 
 		/// @brief Creates a mesh along the XZ plane
 		/// @param size The size of the mesh
+		/// @param offset The offset of the plane
 		/// @param subdivisions The number of subdivisions for the plane
 		/// @return The plane mesh
-		static Ref<Mesh> CreateXZPlane(const string& name, const Vector2& size, uint subdivisions = 0);
+		static Ref<Mesh> CreateXZPlane(const string& name, const Vector2& size, const Vector3& offset = Vector3::Zero, uint subdivisions = 0);
 
 		/// @brief Creates a mesh along the YZ plane
 		/// @param size The size of the mesh
+		/// @param offset The offset of the plane
 		/// @param subdivisions The number of subdivisions for the plane
 		/// @return The plane mesh
-		static Ref<Mesh> CreateYZPlane(const string& name, const Vector2& size, uint subdivisions = 0);
+		static Ref<Mesh> CreateYZPlane(const string& name, const Vector2& size, const Vector3& offset = Vector3::Zero, uint subdivisions = 0);
 
 		/// @brief Creates a box mesh
 		/// @param size The size of the box
+		/// @param offset The offset of the box
 		/// @param subdivisions The number of subdivisions for the box
 		/// @return The box mesh
-		static Ref<Mesh> CreateBox(const string& name, const Vector3& size, uint subdivisions = 0);
+		static Ref<Mesh> CreateBox(const string& name, const Vector3& size, const Vector3& offset = Vector3::Zero, uint subdivisions = 0);
 
 		/// @brief Creates verticies for an XY grid
 		/// @param size The size of the grid

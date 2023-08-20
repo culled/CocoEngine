@@ -5,15 +5,6 @@
 
 namespace Coco::Rendering
 {
-	const ActiveRenderPass ActiveRenderPass::None = ActiveRenderPass();
-
-	ActiveRenderPass::ActiveRenderPass() : RenderPass(Ref<IRenderPass>()), RenderPassIndex(Math::MaxValue<uint>())
-	{}
-
-	ActiveRenderPass::ActiveRenderPass(const Ref<IRenderPass>& renderPass, uint renderPassIndex) :
-		RenderPass(renderPass), RenderPassIndex(renderPassIndex)
-	{}
-
 	RenderContext::RenderContext(const ResourceID& id, const string& name) : RenderingResource(id, name)
 	{}
 
@@ -28,24 +19,33 @@ namespace Coco::Rendering
 
 		_currentRenderPipeline = pipeline;
 		_currentRenderView = renderView;
-		_currentRenderPass = ActiveRenderPass::None;
 		_globalUO = GlobalUniformObject(renderView.Get());
 
 		return BeginImpl();
+	}
+
+	bool RenderContext::BeginPass(Ref<IRenderPass> renderPass)
+	{
+		_currentRenderPassIndex++;
+		_currentRenderPass = renderPass;
+
+		return BeginPassImpl();
 	}
 
 	void RenderContext::End()
 	{
 		EndImpl();
 
-		_currentRenderView = Ref<Rendering::RenderView>();
-		_currentRenderPipeline = Ref<RenderPipeline>();
-		_currentRenderPass = ActiveRenderPass::None;
+		_currentRenderView = Ref<Rendering::RenderView>::Empty;
+		_currentRenderPipeline = Ref<RenderPipeline>::Empty;
+		_currentRenderPass = Ref<IRenderPass>::Empty;
+		_currentRenderPassIndex = -1;
 	}
 
 	void RenderContext::Reset()
 	{
-		_currentRenderPass = ActiveRenderPass::None;
+		_currentRenderPass = Ref<IRenderPass>::Empty;
+		_currentRenderPassIndex = -1;
 		_currentDrawCallCount = 0;
 		_currentTrianglesDrawn = 0;
 
@@ -61,10 +61,5 @@ namespace Coco::Rendering
 	{
 		drawCallCount = _currentDrawCallCount;
 		trianglesDrawn = _currentTrianglesDrawn;
-	}
-
-	void RenderContext::SetCurrentRenderPass(Ref<IRenderPass> renderPass, uint passIndex) noexcept
-	{
-		_currentRenderPass = ActiveRenderPass(renderPass, passIndex);
 	}
 }

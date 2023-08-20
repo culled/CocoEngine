@@ -34,8 +34,11 @@ namespace Coco::Rendering
 		/// @brief The subshaders that this shader uses
 		UnorderedMap<string, Subshader> Subshaders;
 
-		ShaderRenderData(const ResourceID& id, ResourceVersion version) : 
-			ID(id), Version(version), Subshaders{}
+		/// @brief The group that this shader is related to
+		string GroupTag;
+
+		ShaderRenderData(const ResourceID& id, ResourceVersion version, const string& groupTag) : 
+			ID(id), Version(version), GroupTag(groupTag), Subshaders{}
 		{}
 	};
 
@@ -151,6 +154,9 @@ namespace Coco::Rendering
 		/// @brief The view matrix used for rendering
 		const Matrix4x4 View;
 
+		/// @brief The projection matrix used for 2D rendering
+		const Matrix4x4 Projection2D;
+
 		/// @brief The render targets used for rendering
 		List<RenderTarget> RenderTargets;
 
@@ -171,7 +177,8 @@ namespace Coco::Rendering
 
 		RenderView(
 			const RectInt& viewportRect,  
-			const Matrix4x4& projection, 
+			const Matrix4x4& projection,
+			const Matrix4x4& projection2D,
 			const Matrix4x4& view, 
 			const List<RenderTarget>& renderTargets
 		) noexcept;

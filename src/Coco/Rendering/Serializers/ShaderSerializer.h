@@ -13,6 +13,7 @@ namespace Coco::Rendering
 	private:
 		static constexpr const char* s_shaderIDVariable = "id";
 		static constexpr const char* s_shaderNameVariable = "name";
+		static constexpr const char* s_shaderGroupVariable = "group";
 		static constexpr const char* s_subshaderSection = "subshaders";
 		static constexpr const char* s_stagesSection = "stages";
 		static constexpr const char* s_stateSection = "state";

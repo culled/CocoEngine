@@ -52,6 +52,9 @@ project "CocoSandbox"
             "echo %{AssetsDir}shaders\\built-in\\ObjectShader.frag.glsl to %{AssetsDir}shaders\\built-in\\ObjectShader.frag.spv",
             "%{BinDir.vulkan}\\glslc.exe -fshader-stage=frag %{AssetsDir}shaders\\built-in\\ObjectShader.frag.glsl -o %{AssetsDir}shaders\\built-in\\ObjectShader.frag.spv",
             "if %ERRORLEVEL% NEQ 0 (echo Error compiling fragment shader: %ERRORLEVEL% && exit)",
+            "echo %{AssetsDir}shaders\\built-in\\UIShader.vert.glsl to %{AssetsDir}shaders\\built-in\\UIShader.vert.spv",
+            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=vert %{AssetsDir}shaders\\built-in\\UIShader.vert.glsl -o %{AssetsDir}shaders\\built-in\\UIShader.vert.spv",
+            "if %ERRORLEVEL% NEQ 0 (echo Error compiling vertex shader: %ERRORLEVEL% && exit)",
             "echo Shaders compiled"
         }
 

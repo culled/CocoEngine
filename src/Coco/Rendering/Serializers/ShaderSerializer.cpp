@@ -75,6 +75,7 @@ namespace Coco::Rendering
 	{
 		string shaderID;
 		string shaderName;
+		string shaderGroup;
 		List<Subshader> subshaders;
 
 		std::stringstream stream(data);
@@ -88,6 +89,8 @@ namespace Coco::Rendering
 				shaderID = reader.GetValue();
 			else if (reader.IsKey(s_shaderNameVariable))
 				shaderName = reader.GetValue();
+			else if (reader.IsKey(s_shaderGroupVariable))
+				shaderGroup = reader.GetValue();
 			else if (reader.IsKey(s_subshaderSection))
 				ReadSubshaders(reader, subshaders);
 		}
@@ -96,6 +99,7 @@ namespace Coco::Rendering
 			throw InvalidOperationException("Shader file did not have subshaders");
 
 		ManagedRef<Shader> shader = CreateManagedRef<Shader>(UUID(shaderID), shaderName);
+		shader->SetGroupTag(shaderGroup);
 
 		for (const Subshader& subshader : subshaders)
 			shader->AddSubshader(subshader);

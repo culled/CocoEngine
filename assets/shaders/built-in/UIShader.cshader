@@ -1,19 +1,19 @@
 version=1
-id=7ff47760-9c54-43c3-870a-ff3728c31e61
-name=Object Shader
-group=
+id=7ff47760-9c54-43c3-870a-ff3728c31e62
+name=UI Shader
+group=UI
 subshaders
     main
         stages
-            0=shaders/built-in/ObjectShader.vert.spv
+            0=shaders/built-in/UIShader.vert.spv
             3=shaders/built-in/ObjectShader.frag.spv
         state
             topologyMode=3
             cullingMode=1
             fillMode=2
             enableDepthClamping=0
-            depthTestingMode=1
-            enableDepthWrite=1
+            depthTestingMode=0
+            enableDepthWrite=0
         attributes
             4
             2

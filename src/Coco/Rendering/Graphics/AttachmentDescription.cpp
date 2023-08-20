@@ -24,4 +24,9 @@ namespace Coco::Rendering
 			AlphaDestinationBlendFactor == other.AlphaDestinationBlendFactor && 
 			AlphaBlendOperation == other.AlphaBlendOperation;
 	}
+
+	bool AttachmentDescription::IsCompatible(const AttachmentDescription& other) const noexcept
+	{
+		return PixelFormat == other.PixelFormat;
+	}
 }

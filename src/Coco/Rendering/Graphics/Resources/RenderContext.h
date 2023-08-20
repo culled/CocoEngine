@@ -15,22 +15,6 @@ namespace Coco::Rendering
 	class Material;
 	class Mesh;
 
-	/// @brief A holder for the active render pass
-	struct ActiveRenderPass
-	{
-		/// @brief Represents no active render pass
-		static const ActiveRenderPass None;
-
-		/// @brief The currently rendering render pass
-		Ref<IRenderPass> RenderPass;
-
-		/// @brief The index in the RenderPipeline of the current render pass
-		uint RenderPassIndex;
-
-		ActiveRenderPass();
-		ActiveRenderPass(const Ref<IRenderPass>& renderPass, uint renderPassIndex);
-	};
-
 	/// @brief A context that can be used for rendering
 	class COCOAPI RenderContext : public RenderingResource
 	{
@@ -44,7 +28,10 @@ namespace Coco::Rendering
 		Ref<RenderPipeline> _currentRenderPipeline;
 
 		/// @brief The currently rendering render pass
-		ActiveRenderPass _currentRenderPass = ActiveRenderPass::None;
+		Ref<IRenderPass> _currentRenderPass = Ref<IRenderPass>::Empty;
+
+		/// @brief The index of the current render pass in the pipeline
+		int _currentRenderPassIndex = -1;
 
 		/// @brief The global uniform object
 		GlobalUniformObject _globalUO;
@@ -76,6 +63,11 @@ namespace Coco::Rendering
 		/// @param pipeline The render pipeline to use
 		/// @return True if rendering began successfully
 		bool Begin(Ref<Rendering::RenderView> renderView, Ref<RenderPipeline> pipeline);
+
+		/// @brief Begins rendering for a render pass
+		/// @param renderPass The render pass
+		/// @return True if renderpass rendering began successfully
+		bool BeginPass(Ref<IRenderPass> renderPass);
 
 		/// @brief Ends rendering for a scene
 		void End();
@@ -119,16 +111,12 @@ namespace Coco::Rendering
 		/// @return True if rendering started successfully
 		virtual bool BeginImpl() = 0;
 
+		virtual bool BeginPassImpl() = 0;
+
 		/// @brief Called when this render context ends rendering the current scene
 		virtual void EndImpl() = 0;
 
 		/// @brief Called when this render context should reset
 		virtual void ResetImpl() = 0;
-
-	private:
-		/// @brief Sets the current render pass
-		/// @param renderPass The render pass
-		/// @param passIndex The index of the pass in the current render pipeline
-		void SetCurrentRenderPass(Ref<IRenderPass> renderPass, uint passIndex) noexcept;
 	};
 }

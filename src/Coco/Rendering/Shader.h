@@ -14,6 +14,7 @@ namespace Coco::Rendering
 	{
 	private:
 		List<Subshader> _subshaders;
+		string _groupTag;
 
 	public:
 		Shader(const ResourceID& id, const string& name);
@@ -50,5 +51,8 @@ namespace Coco::Rendering
 			const List<ShaderDescriptor>& descriptors,
 			const List<ShaderTextureSampler>& samplers,
 			ShaderStageType bindPoint = ShaderStageType::Fragment);
+
+		void SetGroupTag(const string& groupTag) { _groupTag = groupTag; }
+		const string& GetGroupTag() const { return _groupTag; }
 	};
 }

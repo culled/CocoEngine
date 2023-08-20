@@ -16,6 +16,14 @@ List<AttachmentDescription> HelloTriangleRenderPass::GetAttachmentDescriptions()
 
 void HelloTriangleRenderPass::Execute(RenderContext& renderContext)
 {
-	for (const ObjectRenderData& objectData : renderContext.GetRenderView()->Objects)
-		renderContext.Draw(objectData);
+    const Ref<RenderView>& renderView = renderContext.GetRenderView();
+
+    for (const ObjectRenderData& objectData : renderView->Objects)
+    {
+        const MaterialRenderData& materialData = renderView->Materials.at(objectData.MaterialData);
+        const ShaderRenderData& shaderData = renderView->Shaders.at(materialData.ShaderID);
+
+        if(shaderData.GroupTag.empty())
+		    renderContext.Draw(objectData);
+    }
 }

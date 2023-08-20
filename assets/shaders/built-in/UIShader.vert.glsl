@@ -19,5 +19,5 @@ layout(location = 0) out vec2 outUV;
 
 void main() {
     outUV = inUV;
-    gl_Position = globalUBO.projection * globalUBO.view * constants.model * vec4(inPosition, 1.0);
+    gl_Position = globalUBO.projection2d * constants.model * vec4(inPosition, 1.0);
 }

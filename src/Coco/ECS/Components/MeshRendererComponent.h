@@ -7,7 +7,7 @@
 
 namespace Coco::ECS
 {
-	/// @brief A component that renders a mesh with a material
+	/// @brief A component that renders a 3D mesh with a material
 	class COCOAPI MeshRendererComponent : public EntityComponent
 	{
 	private:

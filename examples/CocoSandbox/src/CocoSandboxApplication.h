@@ -67,6 +67,10 @@ private:
 	Coco::ECS::EntityID _cameraEntityID;
 	Coco::ECS::EntityID _obj2ID;
 
+	//Coco::Ref<Coco::Rendering::Shader> _spriteShader;
+	Coco::Ref<Coco::Rendering::Material> _spriteMaterial;
+	Coco::ECS::EntityID _spriteEntityID;
+
 public:
 	CocoSandboxApplication();
 	~CocoSandboxApplication() final;

@@ -220,9 +220,12 @@ namespace Coco::ECS
 
 		SetRenderTargetOverrides(backbuffers);
 
+		Matrix4x4 projection2D = Rendering::RenderingService::Get()->GetPlatform()->CreateOrthographicProjection(0, backbufferSize.Width, 0.0, backbufferSize.Height, -1000, 1000);
+
 		return CreateManagedRef<Rendering::RenderView>(
 			RectInt(Vector2Int::Zero, backbufferSize),
 			GetProjectionMatrix(),
+			projection2D,
 			GetViewMatrix(),
 			GetRenderTargets(pipeline, backbufferSize));
 	}

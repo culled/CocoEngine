@@ -96,7 +96,7 @@ namespace Coco::Rendering
 		{
 			Ref<IRenderPass> renderPass = _renderPasses[i]->GetRenderPass();
 
-			renderContext.SetCurrentRenderPass(renderPass, i);
+			renderContext.BeginPass(renderPass);
 
 			try
 			{
@@ -130,7 +130,7 @@ namespace Coco::Rendering
 				if (pipelineAttachment.Description == AttachmentDescription::Empty)
 					pipelineAttachment.Description = attachmentDescription.AttachmentDescription;
 
-				if (pipelineAttachment.Description != attachmentDescription.AttachmentDescription)
+				if (!pipelineAttachment.Description.IsCompatible(attachmentDescription.AttachmentDescription))
 					throw RenderingOperationException("Conflicting render pipeline attachment binding");
 
 				pipelineAttachment.AddPassUse(rpI);

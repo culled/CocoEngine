@@ -14,9 +14,12 @@
 #include <Coco/ECS/Components/TransformComponent.h>
 #include <Coco/ECS/Components/CameraComponent.h>
 #include <Coco/ECS/Components/MeshRendererComponent.h>
+#include <Coco/ECS/Components/RectTransformComponent.h>
+#include <Coco/ECS/Components/SpriteRendererComponent.h>
 #include <Coco/ECS/Scene.h>
 
 #include "HelloTriangleRenderPass.h"
+#include "UIRenderPass.h"
 
 MainApplication(CocoSandboxApplication)
 
@@ -75,6 +78,7 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	List<int> attachmentMapping = { 0, 1 };
 	
 	pipeline->AddRenderPass(CreateSharedRef<HelloTriangleRenderPass>(), attachmentMapping);
+	pipeline->AddRenderPass(CreateSharedRef<UIRenderPass>(), { 0 });
 	_renderService->SetDefaultPipeline(pipeline);
 
 	// Setup our entities
@@ -100,6 +104,13 @@ CocoSandboxApplication::CocoSandboxApplication() :
 
 	_ecsService->GetEntity(obj2).SetParentID(_cameraEntityID);
 	_obj2ID = obj2;
+
+	//_spriteShader = engine->GetResourceLibrary()->Load<Shader>("shaders/built-in/UIShader.cshader");
+	_spriteMaterial = engine->GetResourceLibrary()->Load<Material>("materials/testUIMaterial.cmaterial");
+
+	_spriteEntityID = _ecsService->CreateEntity("Sprite");
+	_ecsService->AddComponent<ECS::RectTransformComponent>(_spriteEntityID, Vector2(50.0, 50.0), 0.0, Size(50.0, 50.0), Vector2(0.5, 0.5));
+	_ecsService->AddComponent<ECS::SpriteRendererComponent>(_spriteEntityID, _spriteMaterial);
 
 	LogInfo(_logger, "Sandbox application created");
 }
@@ -225,6 +236,9 @@ void CocoSandboxApplication::Tick(double deltaTime)
 		auto& obj2Transform = _ecsService->GetComponent<ECS::TransformComponent>(_obj2ID);
 		obj2Transform.SetGlobalPosition(obj2Transform.GetGlobalPosition() + Vector3(0.0, 10.0, 0.0));
 	}
+
+	auto& spriteTransform = _ecsService->GetComponent<ECS::RectTransformComponent>(_spriteEntityID);
+	spriteTransform.SetLocalRotation(Engine::Get()->GetRunningTime().GetTotalSeconds());
 }
 
 void CocoSandboxApplication::RenderTick(double deltaTime)

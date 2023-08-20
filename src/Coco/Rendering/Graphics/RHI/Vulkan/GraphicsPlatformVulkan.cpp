@@ -17,6 +17,12 @@ namespace Coco::Rendering::Vulkan
 {
 	const char* GraphicsPlatformVulkan::s_debugValidationLayerName = "VK_LAYER_KHRONOS_validation";
 
+	const Matrix4x4 GraphicsPlatformVulkan::CocoViewToRenderView({
+			1.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, -1.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 1.0 });
+
 	static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -178,7 +184,7 @@ namespace Coco::Rendering::Vulkan
 		return _device->CreateResource<ImageSamplerVulkan>(name, properties);
 	}
 
-	Matrix4x4 GraphicsPlatformVulkan::CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip) noexcept
+	Matrix4x4 GraphicsPlatformVulkan::CreateOrthographicProjection(double left, double right, double bottom, double top, double nearClip, double farClip) noexcept
 	{
 		Matrix4x4 ortho = Matrix4x4::Identity;
 
@@ -193,10 +199,10 @@ namespace Coco::Rendering::Vulkan
 		ortho.Data[Matrix4x4::m33] = a;
 
 		ortho.Data[Matrix4x4::m14] = -(right + left) / (right - left);
-		ortho.Data[Matrix4x4::m24] = -(top + bottom) / (top - bottom);
+		ortho.Data[Matrix4x4::m24] = -(bottom + top) / (bottom - top);
 		ortho.Data[Matrix4x4::m34] = b;
 
-		return GraphicsPlatform::CocoViewToRenderView * ortho;
+		return CocoViewToRenderView * ortho;
 	}
 
 	Matrix4x4 GraphicsPlatformVulkan::CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) noexcept
@@ -204,7 +210,7 @@ namespace Coco::Rendering::Vulkan
 		const double halfHeight = size * 0.5;
 		const double halfWidth = halfHeight * aspectRatio;
 
-		return CreateOrthographicProjection(-halfWidth, halfWidth, halfHeight, -halfHeight, nearClip, farClip);
+		return CreateOrthographicProjection(-halfWidth, halfWidth, -halfHeight, halfHeight, nearClip, farClip);
 	}
 
 	Matrix4x4 GraphicsPlatformVulkan::CreatePerspectiveProjection(double fieldOfViewRadians, double aspectRatio, double nearClip, double farClip) noexcept
@@ -225,7 +231,7 @@ namespace Coco::Rendering::Vulkan
 		perspective.Data[Matrix4x4::m34] = b;
 		perspective.Data[Matrix4x4::m43] = 1.0;
 
-		return GraphicsPlatform::CocoViewToRenderView * perspective;
+		return CocoViewToRenderView * perspective;
 	}
 
 	bool GraphicsPlatformVulkan::CheckValidationLayersSupport() noexcept

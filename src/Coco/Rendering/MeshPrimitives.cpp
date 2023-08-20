@@ -5,46 +5,46 @@ namespace Coco::Rendering
 {
 	constexpr uint CoordsToIndex(uint x, uint y, uint length) { return x * length + y; }
 
-	Ref<Mesh> MeshPrimitives::CreateXYPlane(const string& name, const Vector2& size, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateXYPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
 		List<uint> indices;
 
-		CreateXYGrid(size, Vector3::Zero, verts, uvs, indices, subdivisions);
+		CreateXYGrid(size, offset, verts, uvs, indices, subdivisions);
 
 		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateXZPlane(const string& name, const Vector2& size, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateXZPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
 		List<uint> indices;
 
-		CreateXZGrid(size, Vector3::Zero, verts, uvs, indices, subdivisions);
+		CreateXZGrid(size, offset, verts, uvs, indices, subdivisions);
 
 		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateYZPlane(const string& name, const Vector2& size, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateYZPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
 		List<uint> indices;
 
-		CreateYZGrid(size, Vector3::Zero, verts, uvs, indices, subdivisions);
+		CreateYZGrid(size, offset, verts, uvs, indices, subdivisions);
 
 		return CreateFromVertices(name, verts, uvs, indices);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateBox(const string& name, const Vector3& size, uint subdivisions)
+	Ref<Mesh> MeshPrimitives::CreateBox(const string& name, const Vector3& size, const Vector3& offset, uint subdivisions)
 	{
 		List<Vector3> verts;
 		List<Vector2> uvs;
 		List<uint> indices;
 
-		CreateBox(size, Vector3::Zero, verts, uvs, indices, subdivisions);
+		CreateBox(size, offset, verts, uvs, indices, subdivisions);
 
 		return CreateFromVertices(name, verts, uvs, indices);
 	}

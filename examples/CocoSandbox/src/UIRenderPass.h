@@ -5,10 +5,10 @@
 using namespace Coco;
 using namespace Coco::Rendering;
 
-class HelloTriangleRenderPass final : public IRenderPass 
+class UIRenderPass final : public IRenderPass
 {
 public:
-	HelloTriangleRenderPass() = default;
+	UIRenderPass() = default;
 
 	string GetSubshaderName() const noexcept final { return "main"; }
 	List<AttachmentDescription> GetAttachmentDescriptions() noexcept final;
