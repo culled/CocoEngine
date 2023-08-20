@@ -128,7 +128,7 @@ namespace Coco::Rendering
 
 				const double u = static_cast<double>(x) / (vertexSideCount - 1);
 				const double v = static_cast<double>(z) / (vertexSideCount - 1);
-				uvs.Construct(u, v);
+				uvs.Construct(-u, v);
 			}
 		}
 
