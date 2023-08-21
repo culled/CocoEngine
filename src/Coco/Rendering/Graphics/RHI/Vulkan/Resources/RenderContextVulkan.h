@@ -62,10 +62,8 @@ namespace Coco::Rendering::Vulkan
 		VulkanFramebuffer* _currentFramebuffer = nullptr;
 
 		Set<RenderContextStateChange> _stateChanges;
-		ResourceID _currentShader = Resource::InvalidID;
-		ResourceID _currentMaterial = Resource::InvalidID;
 		VulkanPipeline* _currentPipeline = nullptr;
-		UnorderedMap<ResourceID, VkDescriptorSet> _materialDescriptorSets;
+		UnorderedMap<ResourceID, VkDescriptorSet> _shaderDescriptorSets;
 
 		int _backbufferIndex = -1;
 
@@ -78,8 +76,6 @@ namespace Coco::Rendering::Vulkan
 		DefineResourceType(RenderContextVulkan)
 
 		void SetViewport(const RectInt& rect) final;
-		void UseShader(const ResourceID& shaderID) final;
-		void UseMaterial(const ResourceID& materialID) final;
 		void Draw(const ObjectRenderData& objectData) final;
 		bool IsAvaliableForRendering() noexcept final { return _renderingCompleteFence->IsSignalled(); }
 		void WaitForRenderingCompleted() final;
@@ -101,10 +97,12 @@ namespace Coco::Rendering::Vulkan
 		constexpr int GetBackbufferIndex() const { return _backbufferIndex; }
 
 	protected:
-		virtual bool BeginImpl() final;
-		virtual bool BeginPassImpl() final;
-		virtual void EndImpl() final;
-		virtual void ResetImpl() final;
+		bool BeginImpl() final;
+		bool BeginPassImpl() final;
+		void EndImpl() final;
+		void ResetImpl() final;
+		void NewShaderBound() final;
+		void NewMaterialBound() final;
 
 	private:
 		/// @brief Attempts to flush all state changes and bind the current state
@@ -114,12 +112,11 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Creates the global descriptor set
 		void CreateGlobalDescriptorSet();
 
-		/// @brief Creates a descriptor set for the currently bound material instance
-		/// @param subshader The subshader to use
-		/// @param materialID The ID of the material to use
+		/// @brief Creates a descriptor set for the currently bound shader instance
+		/// @param shader The shader to use
 		/// @param set Will be filled out with the descriptor set
 		/// @return True if the descriptor set was created
-		bool GetOrAllocateMaterialDescriptorSet(const VulkanShader& shader, const string& passName, const ResourceID& materialID, VkDescriptorSet& set);
+		bool GetOrAllocateShaderDescriptorSet(const VulkanShader& shader, VkDescriptorSet& set);
 
 		/// @brief Adds any necessary pre-render pass image transitions to the render targets
 		void AddPreRenderPassImageTransitions();

@@ -210,12 +210,9 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	cameraTransform.SetLocalPosition(cameraTransform.GetLocalPosition() + velocity * deltaTime);
 	cameraTransform.SetLocalRotation(orientation);
 
-	//ECS::CameraComponent& camera = _ecsService->GetComponent<ECS::CameraComponent>(_cameraEntityID);
-	//camera.SetViewMatrix(cameraTransform.GetGlobalTransformMatrix().Inverted());
-
 	//const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
 	//const double a = Math::Sin(t) * 0.5 + 0.5;
-	//_material->SetVector4("_BaseColor", Color(a, a, a, 1.0));
+	//_material->SetColor("_BaseColor", Color(a, a, a, 1.0));
 	
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{

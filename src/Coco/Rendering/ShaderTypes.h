@@ -4,9 +4,12 @@
 
 #include <Coco/Core/Types/String.h>
 #include <Coco/Core/Types/Map.h>
+#include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/List.h>
 #include "Graphics/Resources/BufferTypes.h"
 #include "Graphics/GraphicsPipelineState.h"
+#include <Coco/Core/Resources/ResourceTypes.h>
 
 namespace Coco::Rendering
 {
@@ -68,6 +71,23 @@ namespace Coco::Rendering
 		ShaderTextureSampler(const string& name) noexcept;
 	};
 
+	struct ShaderUniformData
+	{
+		ResourceID ID;
+		ResourceVersion Version;
+		bool Preserve;
+		UnorderedMap<string, Vector4> Vector4s;
+		UnorderedMap<string, Color> Colors;
+		UnorderedMap<string, ResourceID> Textures;
+
+		ShaderUniformData() :
+			ID(ResourceID::CreateV4()), Version(0), Preserve(false), Vector4s{}, Colors{}, Textures{}
+		{}
+
+		void Merge(const ShaderUniformData& other, bool overwriteProperties = false);
+		void CopyFrom(const ShaderUniformData& other);
+	};
+
 	/// @brief A render-pass specific shader
 	struct COCOAPI Subshader
 	{
@@ -104,6 +124,9 @@ namespace Coco::Rendering
 			const List<ShaderDescriptor>& descriptors,
 			const List<ShaderTextureSampler>& samplers,
 			ShaderStageType bindPoint = ShaderStageType::Fragment) noexcept;
+
+		List<char> GetUniformData(const ShaderUniformData& data, uint minimumAlignment) const;
+		uint64_t GetDescriptorDataSize(uint minimumAlignment) const;
 
 	private:
 		/// @brief Updates this subshader's vertex attribute offsets

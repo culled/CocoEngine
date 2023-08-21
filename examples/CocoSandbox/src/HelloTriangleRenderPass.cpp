@@ -23,7 +23,9 @@ void HelloTriangleRenderPass::Execute(RenderContext& renderContext)
         const MaterialRenderData& materialData = renderView->Materials.at(objectData.MaterialData);
         const ShaderRenderData& shaderData = renderView->Shaders.at(materialData.ShaderID);
 
-        if(shaderData.GroupTag.empty())
+        if (shaderData.GroupTag.empty())
+        {
 		    renderContext.Draw(objectData);
+        }
     }
 }

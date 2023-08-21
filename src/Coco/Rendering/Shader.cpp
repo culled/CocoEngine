@@ -36,4 +36,55 @@ namespace Coco::Rendering
 	{
 		_subshaders.Construct(name, stageFiles, pipelineState, attributes, descriptors, samplers, bindPoint);
 	}
+
+	ShaderUniformData Shader::GetUniformPropertyMap() const
+	{
+		ShaderUniformData data{};
+
+		for (const Subshader& subshader : _subshaders)
+		{
+			for (int i = 0; i < subshader.Descriptors.Count(); i++)
+			{
+				const ShaderDescriptor& descriptor = subshader.Descriptors[i];
+
+				switch (descriptor.Type)
+				{
+				case BufferDataFormat::Vector4:
+				{
+					// Skip duplicate properties
+					if (data.Vector4s.contains(descriptor.Name))
+						continue;
+
+					data.Vector4s[descriptor.Name] = Vector4::Zero;
+					break;
+				}
+				case BufferDataFormat::Color:
+				{
+					// Skip duplicate properties
+					if (data.Colors.contains(descriptor.Name))
+						continue;
+
+					data.Colors[descriptor.Name] = Color::Black;
+					break;
+				}
+				default:
+					break;
+				}
+			}
+
+			for (int i = 0; i < subshader.Samplers.Count(); i++)
+			{
+				const ShaderTextureSampler& sampler = subshader.Samplers[i];
+
+				// Skip duplicate properties
+				if (data.Textures.contains(sampler.Name))
+					continue;
+
+				data.Textures[sampler.Name] = Resource::InvalidID;
+				break;
+			}
+		}
+
+		return data;
+	}
 }

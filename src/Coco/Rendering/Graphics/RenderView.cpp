@@ -7,6 +7,7 @@
 #include "../Shader.h"
 #include "../Texture.h"
 #include "../Mesh.h"
+#include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering
 {
@@ -80,25 +81,15 @@ namespace Coco::Rendering
 		if (shader.IsValid())
 			AddShader(shader);
 
-		Materials.try_emplace(material->ID, material->ID, material->GetVersion(), shaderID, material->GetBufferData());
-		MaterialRenderData& materialData = Materials.at(material->ID);
+		Materials.try_emplace(material->ID, material->ID, material->GetVersion(), shaderID, material->GetUniformData());
 
-		for (const auto& kvp : material->GetSubshaderBindings())
-			materialData.SubshaderBindings.try_emplace(kvp.first, kvp.second);
+		ResourceLibrary* library = Engine::Get()->GetResourceLibrary();
 
-		for (const auto& kvp : material->GetTextureProperties())
+		for (const auto& texKVP : material->GetTextureProperties())
 		{
-			Ref<Texture> texture = kvp.second;
+			Ref<Texture> texture = library->GetResource<Texture>(texKVP.second);
 
-			if (texture.IsValid())
-			{
-				AddTexture(texture);
-				materialData.Samplers.try_emplace(kvp.first, texture->ID);
-			}
-			else
-			{
-				materialData.Samplers.try_emplace(kvp.first, Resource::InvalidID);
-			}
+			AddTexture(texture);
 		}
 	}
 

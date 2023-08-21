@@ -32,13 +32,12 @@ namespace Coco::Rendering
 	{
 		UpdatePropertyMaps(false);
 
-		auto it = _vector4Properties.find(name);
+		auto it = _uniformData.Vector4s.find(name);
 
-		if (it != _vector4Properties.end())
+		if (it != _uniformData.Vector4s.end())
 		{
 			(*it).second = value;
 			this->IncrementVersion();
-			_isBufferDataDirty = true;
 		}
 		else
 		{
@@ -48,9 +47,9 @@ namespace Coco::Rendering
 
 	Vector4 Material::GetVector4(const string& name) const
 	{
-		const auto it = _vector4Properties.find(name);
+		const auto it = _uniformData.Vector4s.find(name);
 
-		if (it != _vector4Properties.end())
+		if (it != _uniformData.Vector4s.end())
 		{
 			return (*it).second;
 		}
@@ -64,13 +63,12 @@ namespace Coco::Rendering
 	{
 		UpdatePropertyMaps(false);
 
-		auto it = _colorProperties.find(name);
+		auto it = _uniformData.Colors.find(name);
 
-		if (it != _colorProperties.end())
+		if (it != _uniformData.Colors.end())
 		{
 			(*it).second = value;
 			this->IncrementVersion();
-			_isBufferDataDirty = true;
 		}
 		else
 		{
@@ -80,9 +78,9 @@ namespace Coco::Rendering
 
 	Color Material::GetColor(const string name) const
 	{
-		const auto it = _colorProperties.find(name);
+		const auto it = _uniformData.Colors.find(name);
 
-		if (it != _colorProperties.end())
+		if (it != _uniformData.Colors.end())
 		{
 			return (*it).second;
 		}
@@ -96,11 +94,11 @@ namespace Coco::Rendering
 	{
 		UpdatePropertyMaps(false);
 
-		auto it = _textureProperties.find(name);
+		auto it = _uniformData.Textures.find(name);
 
-		if (it != _textureProperties.end())
+		if (it != _uniformData.Textures.end())
 		{
-			(*it).second = texture;
+			(*it).second = texture->ID;
 			this->IncrementVersion();
 		}
 		else
@@ -109,42 +107,18 @@ namespace Coco::Rendering
 		}
 	}
 
-	Ref<Texture> Material::GetTexture(const string& name) const
+	ResourceID Material::GetTexture(const string& name) const
 	{
-		const auto it = _textureProperties.find(name);
+		const auto it = _uniformData.Textures.find(name);
 
-		if (it != _textureProperties.cend())
+		if (it != _uniformData.Textures.cend())
 		{
 			return (*it).second;
 		}
 		else
 		{
-			return Ref<Texture>();
+			return Resource::InvalidID;
 		}
-	}
-
-	const List<uint8_t>& Material::GetBufferData()
-	{
-		if (_isBufferDataDirty)
-			UpdateBufferData();
-
-		return _bufferData;
-	}
-
-	bool Material::TryGetSubshaderBinding(const string& subshaderName, const SubshaderUniformBinding*& binding)
-	{
-		if (_isBufferDataDirty)
-			UpdateBufferData();
-
-		const auto it = _subshaderBindings.find(subshaderName);
-
-		if (it != _subshaderBindings.end())
-		{
-			binding = &(*it).second;
-			return true;
-		}
-
-		return false;
 	}
 
 	void Material::UpdatePropertyMaps(bool forceUpdate)
@@ -152,145 +126,11 @@ namespace Coco::Rendering
 		if (!forceUpdate && _propertyMapVersion == _shader->GetVersion())
 			return;
 
-		UnorderedMap<string, Vector4> vec4Properties;
-		UnorderedMap<string, Color> colorProperties;
-		UnorderedMap<string, Ref<Texture>> textureProperties;
-
-		List<Subshader> subshaders = _shader->GetSubshaders();
-
-		for (const Subshader& subshader : subshaders)
-		{
-			for (int i = 0; i < subshader.Descriptors.Count(); i++)
-			{
-				const ShaderDescriptor& descriptor = subshader.Descriptors[i];
-
-				switch (descriptor.Type)
-				{
-				case BufferDataFormat::Vector4:
-				{
-					// Skip duplicate properties
-					if (vec4Properties.contains(descriptor.Name))
-						continue;
-
-					if (_vector4Properties.contains(descriptor.Name))
-						vec4Properties[descriptor.Name] = _vector4Properties[descriptor.Name];
-					else
-						vec4Properties[descriptor.Name] = Vector4::Zero;
-					break;
-				}
-				case BufferDataFormat::Color:
-				{
-					// Skip duplicate properties
-					if (colorProperties.contains(descriptor.Name))
-						continue;
-
-					if (_colorProperties.contains(descriptor.Name))
-						colorProperties[descriptor.Name] = _colorProperties[descriptor.Name];
-					else
-						colorProperties[descriptor.Name] = Color::Black;
-					break;
-				}
-				default:
-					break;
-				}
-			}
-
-			for (int i = 0; i < subshader.Samplers.Count(); i++)
-			{
-				const ShaderTextureSampler& sampler = subshader.Samplers[i];
-
-				// Skip duplicate properties
-				if (textureProperties.contains(sampler.Name))
-					continue;
-
-				if (_textureProperties.contains(sampler.Name))
-					textureProperties[sampler.Name] = _textureProperties[sampler.Name];
-				else
-					textureProperties[sampler.Name] = Ref<Texture>();
-				break;
-			}
-		}
-
-		_vector4Properties = std::move(vec4Properties);
-		_colorProperties = std::move(colorProperties);
-		_textureProperties = std::move(textureProperties);
+		ShaderUniformData shaderData = _shader->GetUniformPropertyMap();
+		shaderData.CopyFrom(_uniformData);
+		_uniformData = std::move(shaderData);
+		
 		_propertyMapVersion = _shader->GetVersion();
-		_isBufferDataDirty = true;
-	}
-
-	void Material::UpdateBufferData()
-	{
-		RenderingService* renderService = EnsureRenderingService();
-
-		const uint alignment = renderService->GetPlatform()->GetDevice()->GetMinimumBufferAlignment();
-		const uint64_t alignedVec4Size = RenderingUtilities::GetOffsetForAlignment(Vector4Size, alignment);
-		Array<float, 4> tempVec4 = { 0.0f };
-
-		List<Subshader> subshaders = _shader->GetSubshaders();
-	
-		_subshaderBindings.clear();
-		_bufferData.Clear();
-		uint64_t offset = 0;
-
-		for (const Subshader& subshader : subshaders)
-		{
-			UnorderedMap<string, SubshaderUniformBinding>::iterator bindingIt = _subshaderBindings.end();
-			if (subshader.Descriptors.Count() > 0)
-				bindingIt = _subshaderBindings.try_emplace(subshader.PassName, offset).first;
-
-			for (int i = 0; i < subshader.Descriptors.Count(); i++)
-			{
-				const ShaderDescriptor& descriptor = subshader.Descriptors[i];
-
-				switch (descriptor.Type)
-				{
-				case BufferDataFormat::Vector4:
-				{
-					Vector4 vec4 = GetVector4(descriptor.Name);
-
-					tempVec4[0] = static_cast<float>(vec4.X);
-					tempVec4[1] = static_cast<float>(vec4.Y);
-					tempVec4[2] = static_cast<float>(vec4.Z);
-					tempVec4[3] = static_cast<float>(vec4.W);
-
-					_bufferData.Resize(_bufferData.Count() + alignedVec4Size);
-
-					uint8_t* dst = (_bufferData.Data() + offset);
-					std::memcpy(dst, tempVec4.data(), tempVec4.size() * sizeof(float));
-
-					offset += alignedVec4Size;
-					break;
-				}
-				case BufferDataFormat::Color:
-				{
-					Color c = GetColor(descriptor.Name).AsLinear();
-
-					tempVec4[0] = static_cast<float>(c.R);
-					tempVec4[1] = static_cast<float>(c.G);
-					tempVec4[2] = static_cast<float>(c.B);
-					tempVec4[3] = static_cast<float>(c.A);
-
-					_bufferData.Resize(_bufferData.Count() + alignedVec4Size);
-
-					uint8_t* dst = (_bufferData.Data() + offset);
-					std::memcpy(dst, tempVec4.data(), tempVec4.size() * sizeof(float));
-
-					offset += alignedVec4Size;
-					break;
-				}
-				default:
-					break;
-				}
-			}
-
-			if (bindingIt != _subshaderBindings.end())
-			{
-				SubshaderUniformBinding& binding = (*bindingIt).second;
-				binding.Size = offset - binding.Offset;
-			}
-		}
-
-		_isBufferDataDirty = false;
 	}
 
 	//MaterialInstance::MaterialInstance(const Material* material) : Material(material->Shader, FormattedString("{} (Instance)", material->Name))

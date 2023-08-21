@@ -7,7 +7,6 @@
 #include "Graphics/Resources/BufferTypes.h"
 #include "Shader.h"
 #include "Texture.h"
-#include "MaterialTypes.h"
 
 namespace Coco::Rendering
 {
@@ -18,28 +17,14 @@ namespace Coco::Rendering
 	{
 		friend MaterialInstance;
 
-	public:
-		/// @brief The size of a Vector4 uniform
-		static constexpr uint Vector4Size = GetBufferDataFormatSize(BufferDataFormat::Vector4);
-
 	protected:
 		/// @brief The shader that this material uses
 		Ref<Shader> _shader;
 
-		/// @brief The Vector4 properties of this material
-		UnorderedMap<string, Vector4> _vector4Properties;
-
-		/// @brief The Color properties of this material
-		UnorderedMap<string, Color> _colorProperties;
-
-		/// @brief The texture properties of this material
-		UnorderedMap<string, Ref<Texture>> _textureProperties;
+		ShaderUniformData _uniformData;
 
 	private:
 		ResourceVersion _propertyMapVersion = 0;
-		UnorderedMap<string, SubshaderUniformBinding> _subshaderBindings;
-		List<uint8_t> _bufferData;
-		bool _isBufferDataDirty = true;
 
 	public:
 		Material(const ResourceID& id, const string& name);
@@ -68,7 +53,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets all the Vector4 properties that this material has
 		/// @return This material's Vector4 properties
-		const UnorderedMap<string, Vector4>& GetVector4Properties() const noexcept { return _vector4Properties; }
+		const UnorderedMap<string, Vector4>& GetVector4Properties() const noexcept { return _uniformData.Vector4s; }
 
 		/// @brief Sets a Color property. Use this for proper color-space conversion
 		/// @param name The name of the Color property
@@ -82,7 +67,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets all the Color properties that this material has
 		/// @return This material's Color properties
-		const UnorderedMap<string, Color>& GetColorProperties() const noexcept { return _colorProperties; }
+		const UnorderedMap<string, Color>& GetColorProperties() const noexcept { return _uniformData.Colors; }
 
 		/// @brief Sets a texture property
 		/// @param name The name of the texture property
@@ -91,33 +76,18 @@ namespace Coco::Rendering
 
 		/// @brief Gets a texture property
 		/// @param name The name of the texture property
-		/// @return The texture, or a null reference if no property was found
-		Ref<Texture> GetTexture(const string& name) const;
+		/// @return The texture's ID, or an invalid ID if no property was found
+		ResourceID GetTexture(const string& name) const;
 
 		/// @brief Gets all the texture properties that this material has
 		/// @return This material's texture properties
-		const UnorderedMap<string, Ref<Texture>>& GetTextureProperties() const noexcept { return _textureProperties; }
+		const UnorderedMap<string, ResourceID>& GetTextureProperties() const noexcept { return _uniformData.Textures; }
 
-		/// @brief Gets uniform buffer data from this material's currently set properties
-		/// @return This material's properties as a byte array
-		const List<uint8_t>& GetBufferData();
-
-		/// @brief Tries to get a binding for a subshader with a given name
-		/// @param subshaderName The name of the subshader
-		/// @param binding Will be filled with a pointer to the binding if found
-		/// @return True if the binding was found
-		bool TryGetSubshaderBinding(const string& subshaderName, const SubshaderUniformBinding*& binding);
-
-		/// @brief Gets the map of subshader bindings to this material's uniform buffer data
-		/// @return The map of subshader bindings
-		const UnorderedMap<string, SubshaderUniformBinding>& GetSubshaderBindings() const noexcept { return _subshaderBindings; }
+		const ShaderUniformData& GetUniformData() const { return _uniformData; }
 
 	private:
 		/// @brief Updates the property maps from this material's shader
 		/// @param forceUpdate If true, the map will be updated regardless if it matches the version of the shader
 		void UpdatePropertyMaps(bool forceUpdate);
-
-		/// @brief Updates this material's buffer data from its currently set properties
-		void UpdateBufferData();
 	};
 }

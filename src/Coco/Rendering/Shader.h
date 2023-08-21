@@ -54,5 +54,7 @@ namespace Coco::Rendering
 
 		void SetGroupTag(const string& groupTag) { _groupTag = groupTag; }
 		const string& GetGroupTag() const { return _groupTag; }
+
+		ShaderUniformData GetUniformPropertyMap() const;
 	};
 }

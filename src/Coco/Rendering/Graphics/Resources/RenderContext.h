@@ -36,6 +36,10 @@ namespace Coco::Rendering
 		/// @brief The global uniform object
 		GlobalUniformObject _globalUO;
 
+		ShaderRenderData _currentShader;
+		ShaderUniformData _currentShaderUniformData;
+		MaterialRenderData _currentMaterial;
+
 		/// @brief The number of draw calls this render
 		uint64_t _currentDrawCallCount = 0;
 
@@ -84,13 +88,31 @@ namespace Coco::Rendering
 
 		/// @brief Sets the given shader as the one that will be used to draw subsequent geometry
 		/// @param shaderID The ID of the shader to use
-		virtual void UseShader(const ResourceID& shaderID) = 0;
+		void UseShader(const ResourceID& shaderID);
+
+		/// @brief Resets the current shader uniform data
+		void ResetShaderUniformData();
+
+		/// @brief Sets a Vector4 uniform
+		/// @param name The uniform name
+		/// @param value The value
+		void SetShaderVector4(const string& name, const Vector4& value);
+
+		/// @brief Sets a Color uniform
+		/// @param name The uniform name
+		/// @param value The value
+		void SetShaderColor(const string& name, const Color& value);
+
+		/// @brief Sets a Texture sampler
+		/// @param name The sampler name
+		/// @param textureID The ID of the texture resource
+		void SetShaderTexture(const string& name, const ResourceID& textureID);
 
 		/// @brief Sets the given material as the one that will be used to draw subsequent geometry
 		/// @param materialID The ID of the material to use
-		virtual void UseMaterial(const ResourceID& materialID) = 0;
+		void UseMaterial(const ResourceID& materialID);
 
-		/// @brief Draws an object
+		/// @brief Draws an object using its material
 		/// @param objectData The object to draw
 		virtual void Draw(const ObjectRenderData& objectData) = 0;
 
@@ -118,5 +140,19 @@ namespace Coco::Rendering
 
 		/// @brief Called when this render context should reset
 		virtual void ResetImpl() = 0;
+
+		/// @brief Called after a new shader has been bound
+		virtual void NewShaderBound() {}
+
+		/// @brief Called after a new material has been bound
+		virtual void NewMaterialBound() {}
+
+		/// @brief Called after a uniform's data has been changed
+		/// @param name The name of the uniform
+		virtual void UniformUpdated(const string& name) {}
+
+		/// @brief Called after a texture sampler's data has been changed
+		/// @param name The name of the texture sampler
+		virtual void TextureSamplerUpdated(const string& name) {}
 	};
 }

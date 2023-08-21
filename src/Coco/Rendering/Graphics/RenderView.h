@@ -10,7 +10,6 @@
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/List.h>
 #include "../ShaderTypes.h"
-#include "../MaterialTypes.h"
 
 namespace Coco::Rendering
 {
@@ -36,6 +35,10 @@ namespace Coco::Rendering
 
 		/// @brief The group that this shader is related to
 		string GroupTag;
+
+		ShaderRenderData() :
+			ID(Resource::InvalidID), Version(0), GroupTag{}, Subshaders{}
+		{}
 
 		ShaderRenderData(const ResourceID& id, ResourceVersion version, const string& groupTag) : 
 			ID(id), Version(version), GroupTag(groupTag), Subshaders{}
@@ -75,16 +78,14 @@ namespace Coco::Rendering
 		ResourceID ShaderID;
 
 		/// @brief The uniform data of this material
-		List<uint8_t> UniformData;
+		ShaderUniformData UniformData;
 
-		/// @brief Bindings between subshaders and their places in this material's uniform data
-		UnorderedMap<string, SubshaderUniformBinding> SubshaderBindings;
+		MaterialRenderData() :
+			ID(Resource::InvalidID), Version(0), ShaderID(Resource::InvalidID), UniformData{}
+		{}
 
-		/// @brief The textures that this material samples
-		UnorderedMap<string, ResourceID> Samplers;
-
-		MaterialRenderData(const ResourceID& id, ResourceVersion version, const ResourceID& shaderID, const List<uint8_t>& uniformData) :
-			ID(id), Version(version), ShaderID(shaderID), UniformData(uniformData), SubshaderBindings{}, Samplers{}
+		MaterialRenderData(const ResourceID& id, ResourceVersion version, const ResourceID& shaderID, const ShaderUniformData& uniformData) :
+			ID(id), Version(version), ShaderID(shaderID), UniformData(uniformData)
 		{}
 	};
 

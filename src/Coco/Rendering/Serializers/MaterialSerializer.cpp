@@ -41,7 +41,10 @@ namespace Coco::Rendering
 			writer.WriteLine(s_textureSection);
 			writer.IncrementIndentLevel();
 			for (const auto& textureKVP : material->GetTextureProperties())
-				writer.WriteLine(textureKVP.first, textureKVP.second.IsValid() ? textureKVP.second->GetFilePath() : "");
+			{
+				Ref<Texture> texture = library.GetResource<Texture>(textureKVP.second);
+				writer.WriteLine(textureKVP.first, texture.IsValid() ? texture->GetFilePath() : "");
+			}
 			writer.DecrementIndentLevel();
 
 			writer.Flush();

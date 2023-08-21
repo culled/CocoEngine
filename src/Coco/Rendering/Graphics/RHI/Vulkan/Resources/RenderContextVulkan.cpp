@@ -16,7 +16,6 @@
 #include "Cache/VulkanPipeline.h"
 #include "Cache/VulkanFramebuffer.h"
 #include "Cache/VulkanShaderResource.h"
-#include "Cache/VulkanMaterialResource.h"
 #include "../VulkanRenderCache.h"
 #include "ImageVulkan.h"
 #include "ImageSamplerVulkan.h"
@@ -90,41 +89,6 @@ namespace Coco::Rendering::Vulkan
 		scissor.extent.height = static_cast<uint32_t>(rect.Size.Height);
 
 		vkCmdSetScissor(_commandBuffer->GetCmdBuffer(), 0, 1, &scissor);
-	}
-
-	void RenderContextVulkan::UseShader(const ResourceID& shaderID)
-	{
-		// No need to change if the same shader is used
-		if (_currentShader == shaderID)
-			return;
-
-		_stateChanges.insert(RenderContextStateChange::Shader);
-		_currentShader = shaderID;
-
-		// Reset the pipeline and material as we're using a different shader
-		_currentPipeline = nullptr;
-		_currentMaterial = Resource::InvalidID;
-	}
-
-	void RenderContextVulkan::UseMaterial(const ResourceID& materialID)
-	{
-		// No need to change if the same material is used
-		if (_currentMaterial == materialID)
-			return;
-
-		// Bind the material's shader
-		if (materialID != Resource::InvalidID)
-		{
-			const MaterialRenderData& materialData = _currentRenderView->Materials.at(materialID);
-			UseShader(materialData.ShaderID);
-		}
-		else
-		{
-			UseShader(Resource::InvalidID);
-		}
-
-		_stateChanges.insert(RenderContextStateChange::Material);
-		_currentMaterial = materialID;
 	}
 
 	void RenderContextVulkan::Draw(const ObjectRenderData& objectData)
@@ -258,8 +222,8 @@ namespace Coco::Rendering::Vulkan
 	{
 		try
 		{
-			// Flush material data changes
-			_renderCache->FlushMaterialChanges();
+			// Flush uniform data changes
+			_renderCache->FlushUniformBufferChanges();
 
 			List<GraphicsSemaphore*> waitSemaphores;
 
@@ -286,8 +250,7 @@ namespace Coco::Rendering::Vulkan
 			LogError(_device->GetLogger(), FormattedString("Unable to end VulkanRenderContext: {}", ex.what()));
 		}
 
-		_currentMaterial = Resource::InvalidID;
-		_currentShader = Resource::InvalidID;
+		_currentShaderUniformData = ShaderUniformData();
 		_currentPipeline = nullptr;
 		_currentVulkanRenderPass = nullptr;
 	}
@@ -296,12 +259,10 @@ namespace Coco::Rendering::Vulkan
 	{
 		// Free all material descriptor sets
 		_renderCache->FreeDescriptorSets();
-		_materialDescriptorSets.clear();
+		_shaderDescriptorSets.clear();
 
 		// Clear all currently bound items
 		_stateChanges.clear();
-		_currentShader = Resource::InvalidID;
-		_currentMaterial = Resource::InvalidID;
 		_currentPipeline = nullptr;
 
 		// Reset render syncronization objects
@@ -315,6 +276,17 @@ namespace Coco::Rendering::Vulkan
 		_currentState = RenderContextState::Ready;
 	}
 
+	void RenderContextVulkan::NewShaderBound()
+	{
+		_stateChanges.insert(RenderContextStateChange::Shader);
+		_currentPipeline = nullptr;
+	}
+
+	void RenderContextVulkan::NewMaterialBound()
+	{
+		_stateChanges.insert(RenderContextStateChange::Material);
+	}
+
 	bool RenderContextVulkan::FlushStateChanges()
 	{
 		bool stateBound = false;
@@ -325,11 +297,10 @@ namespace Coco::Rendering::Vulkan
 				throw RenderingException("A render pass was not set");
 
 			// We need to have a shader bound to draw anything
-			if (_currentShader == Resource::InvalidID)
+			if (_currentShader.ID == Resource::InvalidID)
 				throw RenderingException("No shader was bound");
 
-			const ShaderRenderData& shaderData = _currentRenderView->Shaders.at(_currentShader);
-			VulkanShader* shader = _device->GetRenderCache()->GetOrCreateVulkanShader(shaderData);
+			VulkanShader* shader = _device->GetRenderCache()->GetOrCreateVulkanShader(_currentShader);
 
 			if (_stateChanges.contains(RenderContextStateChange::Shader))
 			{
@@ -351,21 +322,17 @@ namespace Coco::Rendering::Vulkan
 					0, 0);
 			}
 
-			// Rendering without a material is fine
-			if (_stateChanges.contains(RenderContextStateChange::Material) && _currentMaterial != Resource::InvalidID)
+			VkDescriptorSet set;
+
+			if (GetOrAllocateShaderDescriptorSet(*shader, set))
 			{
-				VkDescriptorSet set;
-				
-				if (GetOrAllocateMaterialDescriptorSet(*shader, _currentRenderPass->GetSubshaderName(), _currentMaterial, set))
-				{
-					// Bind the material descriptor set
-					vkCmdBindDescriptorSets(
-						_commandBuffer->GetCmdBuffer(),
-						VK_PIPELINE_BIND_POINT_GRAPHICS,
-						_currentPipeline->GetPipelineLayout(),
-						_materialDescriptorSetIndex, 1, &set,
-						0, 0);
-				}
+				// Bind the material descriptor set
+				vkCmdBindDescriptorSets(
+					_commandBuffer->GetCmdBuffer(),
+					VK_PIPELINE_BIND_POINT_GRAPHICS,
+					_currentPipeline->GetPipelineLayout(),
+					_materialDescriptorSetIndex, 1, &set,
+					0, 0);
 			}
 
 			// Ensure a pipeline state has been bound
@@ -423,18 +390,20 @@ namespace Coco::Rendering::Vulkan
 		vkUpdateDescriptorSets(_device->GetDevice(), 1, &descriptorWrite, 0, nullptr);
 	}
 
-	bool RenderContextVulkan::GetOrAllocateMaterialDescriptorSet(const VulkanShader& shader, const string& passName, const ResourceID& materialID, VkDescriptorSet& set)
+	bool RenderContextVulkan::GetOrAllocateShaderDescriptorSet(const VulkanShader& shader, VkDescriptorSet& set)
 	{
 		// Use the cached descriptor set if it exists
-		if (_materialDescriptorSets.contains(materialID))
+		const auto it = _shaderDescriptorSets.find(_currentShaderUniformData.ID);
+		if (it != _shaderDescriptorSets.cend())
 		{
-			set = _materialDescriptorSets.at(materialID);
+			set = it->second;
 			return true;
 		}
 
+		const string renderPassName = _currentRenderPass->GetSubshaderName();
 		const VulkanSubshader* subshader;
-		if (!shader.TryGetSubshader(passName, subshader))
-			throw RenderingException(FormattedString("Shader {} has no subshader named {}", shader.GetName(), passName));
+		if (!shader.TryGetSubshader(renderPassName, subshader))
+			throw RenderingException(FormattedString("Shader {} has no subshader named {}", shader.GetName(), renderPassName));
 
 		const Subshader& subshaderInfo = subshader->GetSubshader();
 
@@ -445,27 +414,21 @@ namespace Coco::Rendering::Vulkan
 		// Get the shader resource
 		VulkanShaderResource* shaderResource = _renderCache->GetOrCreateShaderResource(shader);
 
-		// Allocate this material's descriptor set
-		set = shaderResource->GetPool()->GetOrAllocateSet(subshader->GetDescriptorLayout(), materialID.ToHash());
-		_materialDescriptorSets[materialID] = set;
+		// Allocate this shader's descriptor set
+		auto[region, descriptorSet] = shaderResource->CreateOrUpdateBuffer(_currentShaderUniformData, *subshader);
+		_shaderDescriptorSets[_currentShaderUniformData.ID] = descriptorSet;
+		set = descriptorSet;
 
-		const MaterialRenderData& materialData = _currentRenderView->Materials.at(materialID);
-
-		VulkanMaterialResource* materialResource = _renderCache->GetOrCreateMaterialResource(materialData);
-
-		// Get the material's binding for this subshader
-		const SubshaderUniformBinding* subshaderBinding = nullptr;
-		if (materialData.SubshaderBindings.contains(passName))
-			subshaderBinding = &materialData.SubshaderBindings.at(passName);
+		bool hasUniforms = subshaderInfo.Descriptors.Count() > 0;
 
 		VkDescriptorBufferInfo bufferInfo = {};
 		List<VkDescriptorImageInfo> imageInfos(subshaderInfo.Samplers.Count());
-		List<VkWriteDescriptorSet> descriptorWrites(imageInfos.Count() + (subshaderBinding != nullptr ? 1 : 0));
+		List<VkWriteDescriptorSet> descriptorWrites(imageInfos.Count() + (hasUniforms ? 1 : 0));
 
 		uint32_t bindingIndex = 0;
 
-		// Write buffer binding (if it exists)
-		if (subshaderBinding != nullptr)
+		// Write buffer binding if we need it
+		if (hasUniforms)
 		{
 			VkWriteDescriptorSet& write = descriptorWrites[bindingIndex];
 			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -474,9 +437,9 @@ namespace Coco::Rendering::Vulkan
 			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			write.descriptorCount = 1;
 
-			bufferInfo.buffer = _renderCache->GetMaterialBuffer(materialResource->GetBufferIndex())->GetBuffer();
-			bufferInfo.offset = materialResource->GetOffset() + subshaderBinding->Offset;
-			bufferInfo.range = subshaderBinding->Size;
+			bufferInfo.buffer = shaderResource->GetUniformBuffer(region)->GetBuffer();
+			bufferInfo.offset = region.Offset;
+			bufferInfo.range = region.Length;
 
 			write.pBufferInfo = &bufferInfo;
 
@@ -488,7 +451,7 @@ namespace Coco::Rendering::Vulkan
 		{
 			const ShaderTextureSampler& textureSampler = subshaderInfo.Samplers[i];
 
-			ResourceID textureID = materialData.Samplers.contains(textureSampler.Name) ? materialData.Samplers.at(textureSampler.Name) : Resource::InvalidID;
+			ResourceID textureID = _currentShaderUniformData.Textures.contains(textureSampler.Name) ? _currentShaderUniformData.Textures.at(textureSampler.Name) : Resource::InvalidID;
 
 			Ref<Image> image;
 			Ref<ImageSampler> sampler;

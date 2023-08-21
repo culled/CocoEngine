@@ -36,7 +36,7 @@ namespace Coco::Rendering::Vulkan
 	};
 
 	/// @brief A subshader that can be used with Vulkan
-	struct VulkanSubshader
+	class VulkanSubshader
 	{
 		friend class VulkanShader;
 
