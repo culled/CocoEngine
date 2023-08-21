@@ -132,7 +132,7 @@ namespace Coco::Rendering
 
 		_currentMaterial = material;
 
-		_currentShaderUniformData.Merge(material.UniformData);
+		_currentShaderUniformData.Merge(material.UniformData, true);
 		_currentShaderUniformData.ID = material.ID;
 		_currentShaderUniformData.Version = material.Version;
 		_currentShaderUniformData.Preserve = true;
