@@ -113,6 +113,8 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	_ecsService->AddComponent<ECS::RectTransformComponent>(_spriteEntityID, Vector2(50.0, 50.0), 0.0, Size(50.0, 50.0), Vector2(0.5, 0.5));
 	_ecsService->AddComponent<ECS::SpriteRendererComponent>(_spriteEntityID, _spriteMaterial);
 
+	_renderService->AddSceneDataProvider(_ecsService->GetRootScene());
+
 	LogInfo(_logger, "Sandbox application created");
 }
 
@@ -245,6 +247,6 @@ void CocoSandboxApplication::RenderTick(double deltaTime)
 	
 	for (auto& window : windows)
 	{
-		_renderService->Render(window->GetPresenter(), _ecsService->GetComponent<ECS::CameraComponent>(_cameraEntityID), *_ecsService->GetRootScene());
+		_renderService->Render(window->GetPresenter(), _ecsService->GetComponent<ECS::CameraComponent>(_cameraEntityID));
 	}
 }

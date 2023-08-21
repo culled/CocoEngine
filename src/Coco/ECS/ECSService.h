@@ -202,22 +202,22 @@ namespace Coco::ECS
 		/// @param name The name of the scene
 		/// @param parentID If given, will be the parent of this scene
 		/// @return The created scene
-		Scene* CreateScene(const string& name = "", const SceneID& parentID = RootSceneID);
+		Ref<Scene> CreateScene(const string& name = "", const SceneID& parentID = RootSceneID);
 
 		/// @brief Gets the root scene
 		/// @return The root scene
-		Scene* GetRootScene() { return GetScene(RootSceneID); }
+		Ref<Scene> GetRootScene() { return GetScene(RootSceneID); }
 
 		/// @brief Gets a scene by its ID
 		/// @param sceneID The ID of the scene
 		/// @return The scene
-		Scene* GetScene(const SceneID& sceneID);
+		Ref<Scene> GetScene(const SceneID& sceneID);
 
 		/// @brief Gets a scene by its ID, checking first if it exists
 		/// @param sceneID The ID of the scene
 		/// @param scene Will be set to the scene if it exists
 		/// @return True if the scene exists
-		bool TryGetScene(const SceneID& sceneID, Scene*& scene);
+		bool TryGetScene(const SceneID& sceneID, Ref<Scene>& scene);
 
 		/// @brief Determines if the given scene is a descendant of an ancestor scene
 		/// @param sceneID The scene ID

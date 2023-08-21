@@ -31,14 +31,26 @@ namespace Coco::Rendering
 		_graphics.Reset();
 	}
 
+	void RenderingService::AddSceneDataProvider(Ref<ISceneDataProvider> provider)
+	{
+		if (_sceneDataProviders.Contains([provider](const Ref<ISceneDataProvider>& other) { return provider.Get() == other.Get(); }))
+			return;
+
+		_sceneDataProviders.Add(provider);
+	}
+
+	void RenderingService::RemoveSceneDataProvider(Ref<ISceneDataProvider> provider)
+	{
+		_sceneDataProviders.RemoveAll([provider](const Ref<ISceneDataProvider>& other) { return provider.Get() == other.Get(); });
+	}
+
 	void RenderingService::Render(
 		Ref<GraphicsPresenter> presenter,
-		ICameraDataProvider& cameraDataProvider,
-		ISceneDataProvider& sceneDataProvider)
+		ICameraDataProvider& cameraDataProvider)
 	{
 		if (_defaultPipeline)
 		{
-			Render(presenter, _defaultPipeline, cameraDataProvider, sceneDataProvider);
+			Render(presenter, _defaultPipeline, cameraDataProvider);
 		}
 		else
 		{
@@ -49,8 +61,7 @@ namespace Coco::Rendering
 	void RenderingService::Render(
 		Ref<GraphicsPresenter> presenter,
 		Ref<RenderPipeline> pipeline,
-		ICameraDataProvider& cameraDataProvider,
-		ISceneDataProvider& sceneDataProvider)
+		ICameraDataProvider& cameraDataProvider)
 	{
 		// Acquire the render context and backbuffer that we'll be using
 		Ref<RenderContext> renderContext;
@@ -65,7 +76,8 @@ namespace Coco::Rendering
 		ManagedRef<RenderView> view = cameraDataProvider.GetRenderView(pipeline, presenter->GetBackbufferSize(), { backbuffer });
 
 		// Add objects from the scene graph
-		sceneDataProvider.GetSceneData(view);
+		for(auto& sceneProvider : _sceneDataProviders)
+			sceneProvider->GetSceneData(view);
 
 		// Actually render with the pipeline
 		renderContext->Begin(view, pipeline);

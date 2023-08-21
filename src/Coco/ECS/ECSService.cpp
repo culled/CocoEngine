@@ -135,28 +135,28 @@ namespace Coco::ECS
 		return entities;
 	}
 
-	Scene* ECSService::CreateScene(const string& name, const SceneID& parentID)
+	Ref<Scene> ECSService::CreateScene(const string& name, const SceneID& parentID)
 	{
 		_scenes.Add(CreateManagedRef<Scene>(_nextSceneID, name, parentID));
 		_nextSceneID++;
 
-		return _scenes.Last().Get();
+		return _scenes.Last();
 	}
 
-	Scene* ECSService::GetScene(const SceneID& sceneID)
+	Ref<Scene> ECSService::GetScene(const SceneID& sceneID)
 	{
 		const auto it = _scenes.Find([sceneID](const auto& scene) { return scene->_id == sceneID; });
 
 		if (it == _scenes.end())
-			return nullptr;
+			return Ref<Scene>::Empty;
 
-		return (*it).Get();
+		return *it;
 	}
 
-	bool ECSService::TryGetScene(const SceneID& sceneID, Scene*& scene)
+	bool ECSService::TryGetScene(const SceneID& sceneID, Ref<Scene>& scene)
 	{
 		scene = GetScene(sceneID);
-		return scene == nullptr;
+		return scene.IsValid();
 	}
 
 	bool ECSService::IsDescendantOfScene(const SceneID& sceneID, const SceneID& ancestorID)

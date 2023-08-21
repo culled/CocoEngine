@@ -63,6 +63,8 @@ project "Coco"
             "Rendering/Graphics/Resources/**.cpp",
             "Rendering/Pipeline/**.h",
             "Rendering/Pipeline/**.cpp",
+            "Rendering/Providers/**.h",
+            "Rendering/Providers/**.cpp",
             "Rendering/Serializers/**.h",
             "Rendering/Serializers/**.cpp",
         }

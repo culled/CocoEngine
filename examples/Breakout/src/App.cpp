@@ -174,6 +174,8 @@ void App::CreateArena()
 	auto& ceilingTransform = _ecsService->AddComponent<TransformComponent>(ceiling);
 	ceilingTransform.SetGlobalPosition(_arenaOffset + Vector3::Forwards * (_arenaSize.Height * 0.5 - 0.5));
 	_ecsService->AddComponent<MeshRendererComponent>(ceiling, ceilingMesh, _wallMaterial);
+
+	_renderingService->AddSceneDataProvider(_ecsService->GetRootScene());
 }
 
 void App::StartGame()
@@ -188,7 +190,7 @@ void App::Tick(double deltaTime)
 
 void App::RenderTick(double deltaTime)
 {
-	_renderingService->Render(_windowingService->GetMainWindow()->GetPresenter(), _ecsService->GetComponent<CameraComponent>(_cameraEntity), *_ecsService->GetRootScene());
+	_renderingService->Render(_windowingService->GetMainWindow()->GetPresenter(), _ecsService->GetComponent<CameraComponent>(_cameraEntity));
 }
 
 bool App::HandleKeyPressed(Input::KeyboardKey key)

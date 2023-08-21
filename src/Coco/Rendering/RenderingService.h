@@ -28,6 +28,7 @@ namespace Coco::Rendering
         Ref<RenderPipeline> _defaultPipeline;
         Ref<Texture> _defaultDiffuseTexture;
         Ref<Texture> _defaultCheckerTexture;
+        List<Ref<ISceneDataProvider>> _sceneDataProviders;
 
     protected:
         RenderingService(const GraphicsPlatformCreationParameters& backendCreateParams);
@@ -55,25 +56,24 @@ namespace Coco::Rendering
         /// @return The default checker texture
         Ref<Texture> GetDefaultCheckerTexture() noexcept { return _defaultCheckerTexture; }
 
+        void AddSceneDataProvider(Ref<ISceneDataProvider> provider);
+        void RemoveSceneDataProvider(Ref<ISceneDataProvider> provider);
+
         /// @brief Renders using the default render pipeline for a graphics presenter
         /// @param presenter The presenter
         /// @param cameraDataProvider The provider for the camera data
-        /// @param sceneDataProvider The provider for the scene data
         void Render(
             Ref<GraphicsPresenter> presenter, 
-            ICameraDataProvider& cameraDataProvider,
-            ISceneDataProvider& sceneDataProvider);
+            ICameraDataProvider& cameraDataProvider);
 
         /// @brief Renders using a render pipeline for a graphics presenter
         /// @param presenter The presenter
         /// @param pipeline The render pipeline
         /// @param cameraDataProvider The provider for the camera data
-        /// @param sceneDataProvider The provider for the scene data
         void Render(
             Ref<GraphicsPresenter> presenter, 
             Ref<RenderPipeline> pipeline, 
-            ICameraDataProvider& cameraDataProvider, 
-            ISceneDataProvider& sceneDataProvider);
+            ICameraDataProvider& cameraDataProvider);
 
     private:
         /// @brief Performs rendering using a render pipeline
