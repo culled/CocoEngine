@@ -87,6 +87,8 @@ namespace Coco::Rendering::Vulkan
 			List<char> uniformData = subshader.GetUniformData(data, _device->GetMinimumBufferAlignment());
 			char* dst = buffer.MappedMemory + region.Offset;
 			std::memcpy(dst, uniformData.Data(), uniformData.Count());
+
+			region.Version = data.Version;
 		}
 
 		VkDescriptorSet set = _pool->GetOrAllocateSet(vulkanSubshader.GetDescriptorLayout(), data.ID.ToHash());
