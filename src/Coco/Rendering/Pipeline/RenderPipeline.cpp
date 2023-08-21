@@ -96,7 +96,11 @@ namespace Coco::Rendering
 		{
 			Ref<IRenderPass> renderPass = _renderPasses[i]->GetRenderPass();
 
-			renderContext.BeginPass(renderPass);
+			if (!renderContext.BeginPass(renderPass))
+			{
+				LogError(GetRenderingLogger(), FormattedString("Failed to begin pass \"{}\": {}", renderPass->GetSubshaderName()));
+				continue;
+			}
 
 			try
 			{
