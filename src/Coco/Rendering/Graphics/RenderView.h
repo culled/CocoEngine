@@ -18,7 +18,7 @@ namespace Coco::Rendering
 	class ImageSampler;
 	class Shader;
 	class Mesh;
-	class Material;
+	class IMaterial;
 	class Texture;
 
 	/// @brief Rendering data for a shader
@@ -190,7 +190,7 @@ namespace Coco::Rendering
 		/// @param mesh The object's mesh
 		/// @param material The object's material
 		/// @param modelMatrix The model matrix for the object
-		void AddRenderObject(Ref<Mesh> mesh, Ref<Material> material, const Matrix4x4& modelMatrix);
+		void AddRenderObject(Ref<Mesh> mesh, Ref<IMaterial> material, const Matrix4x4& modelMatrix);
 
 		/// @brief Adds a shader that will be used for rendering
 		/// @param shader The shader
@@ -202,7 +202,7 @@ namespace Coco::Rendering
 
 		/// @brief Adds a material that will be used for rendering
 		/// @param material The material
-		void AddMaterial(Ref<Material> material);
+		void AddMaterial(Ref<IMaterial> material);
 
 		/// @brief Adds a mesh that will be used for rendering
 		/// @param mesh The mesh

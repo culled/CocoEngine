@@ -3,6 +3,7 @@
 #include <Coco/Core/Core.h>
 
 #include "ResourceTypes.h"
+#include <Coco/Core/Events/Event.h>
 #include <atomic>
 
 #define DeclareResourceType std::type_index GetType() const noexcept override;

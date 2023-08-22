@@ -40,12 +40,12 @@ namespace Coco::Rendering
 		Objects.Clear();
 	}
 
-	void RenderView::AddRenderObject(Ref<Mesh> mesh, Ref<Material> material, const Matrix4x4& modelMatrix)
+	void RenderView::AddRenderObject(Ref<Mesh> mesh, Ref<IMaterial> material, const Matrix4x4& modelMatrix)
 	{
 		AddMaterial(material);
 		AddMesh(mesh);
 
-		Objects.Construct(mesh->ID, material->ID, modelMatrix);
+		Objects.Construct(mesh->ID, material->GetID(), modelMatrix);
 	}
 
 	void RenderView::AddShader(Ref<Shader> shader)
@@ -70,9 +70,11 @@ namespace Coco::Rendering
 		Textures.try_emplace(texture->ID, texture->ID, texture->GetVersion(), texture->GetImage(), texture->GetSampler());
 	}
 
-	void RenderView::AddMaterial(Ref<Material> material)
+	void RenderView::AddMaterial(Ref<IMaterial> material)
 	{
-		if (Materials.contains(material->ID))
+		const ResourceID& materialID = material->GetID();
+
+		if (Materials.contains(materialID))
 			return;
 
 		Ref<Shader> shader = material->GetShader();
@@ -81,11 +83,12 @@ namespace Coco::Rendering
 		if (shader.IsValid())
 			AddShader(shader);
 
-		Materials.try_emplace(material->ID, material->ID, material->GetVersion(), shaderID, material->GetUniformData());
+		const ShaderUniformData& uniformData = material->GetUniformData();
+		Materials.try_emplace(materialID, materialID, material->GetMaterialVersion(), shaderID, uniformData);
 
 		ResourceLibrary* library = Engine::Get()->GetResourceLibrary();
 
-		for (const auto& texKVP : material->GetTextureProperties())
+		for (const auto& texKVP : uniformData.Textures)
 		{
 			Ref<Texture> texture = library->GetResource<Texture>(texKVP.second);
 

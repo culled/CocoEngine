@@ -18,6 +18,15 @@ namespace Coco::Rendering
 	Material::~Material()
 	{}
 
+	ShaderUniformData Material::GetUniformData() const
+	{
+		ShaderUniformData data(_uniformData);
+		data.ID = ID;
+		data.Version = GetMaterialVersion();
+
+		return data;
+	}
+
 	void Material::SetShader(Ref<Shader> shader)
 	{
 		if (shader == _shader)
@@ -133,9 +142,95 @@ namespace Coco::Rendering
 		_propertyMapVersion = _shader->GetVersion();
 	}
 
-	//MaterialInstance::MaterialInstance(const Material* material) : Material(material->Shader, FormattedString("{} (Instance)", material->Name))
-	//{}
-	//
-	//MaterialInstance::~MaterialInstance()
-	//{}
+	MaterialInstance::MaterialInstance(const ResourceID& id, const string& name, Ref<Material> baseMaterial) :
+		RenderingResource(id, name),
+		_baseMaterial(baseMaterial)
+	{}
+
+	ResourceVersion MaterialInstance::GetMaterialVersion() const
+	{
+		return GetVersion() + _baseMaterial->GetMaterialVersion();
+	}
+
+	ShaderUniformData MaterialInstance::GetUniformData() const
+	{
+		ShaderUniformData data(_baseMaterial->GetUniformData());
+		data.ID = ID;
+		data.Version = GetMaterialVersion();
+		data.Merge(_uniformData, true);
+
+		return data;
+	}
+
+	void MaterialInstance::SetVector4(const string& name, const Vector4& value)
+	{
+		_uniformData.Vector4s[name] = value;
+		IncrementVersion();
+	}
+
+	Vector4 MaterialInstance::GetVector4(const string& name) const
+	{
+		if (_uniformData.Vector4s.contains(name))
+			return _uniformData.Vector4s.at(name);
+
+		return _baseMaterial->GetVector4(name);
+	}
+
+	UnorderedMap<string, Vector4> MaterialInstance::GetVector4Properties() const noexcept
+	{
+		UnorderedMap<string, Vector4> props(_baseMaterial->GetVector4Properties());
+
+		for (const auto& kvp : _uniformData.Vector4s)
+			props[kvp.first] = kvp.second;
+
+		return props;
+	}
+
+	void MaterialInstance::SetColor(const string& name, const Color& value)
+	{
+		_uniformData.Colors[name] = value;
+		IncrementVersion();
+	}
+
+	Color MaterialInstance::GetColor(const string name) const
+	{
+		if (_uniformData.Colors.contains(name))
+			return _uniformData.Colors.at(name);
+
+		return _baseMaterial->GetColor(name);
+	}
+
+	UnorderedMap<string, Color> MaterialInstance::GetColorProperties() const noexcept
+	{
+		UnorderedMap<string, Color> props(_baseMaterial->GetColorProperties());
+
+		for (const auto& kvp : _uniformData.Colors)
+			props[kvp.first] = kvp.second;
+
+		return props;
+	}
+
+	void MaterialInstance::SetTexture(const string& name, Ref<Texture> texture)
+	{
+		_uniformData.Textures[name] = texture->ID;
+		IncrementVersion();
+	}
+
+	ResourceID MaterialInstance::GetTexture(const string& name) const
+	{
+		if (_uniformData.Textures.contains(name))
+			return _uniformData.Textures.at(name);
+
+		return _baseMaterial->GetTexture(name);
+	}
+
+	UnorderedMap<string, ResourceID> MaterialInstance::GetTextureProperties() const noexcept
+	{
+		UnorderedMap<string, ResourceID> props(_baseMaterial->GetTextureProperties());
+
+		for (const auto& kvp : _uniformData.Textures)
+			props[kvp.first] = kvp.second;
+
+		return props;
+	}
 }

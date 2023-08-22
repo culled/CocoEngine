@@ -58,6 +58,7 @@ private:
 	Coco::Rendering::RenderingService* _renderService;
 	Coco::Ref<Coco::Rendering::Shader> _shader;
 	Coco::Ref<Coco::Rendering::Material> _material;
+	Coco::Ref<Coco::Rendering::MaterialInstance> _materialInstance;
 	Coco::Ref<Coco::Rendering::Texture> _texture;
 	uint _textureIndex = 0;
 

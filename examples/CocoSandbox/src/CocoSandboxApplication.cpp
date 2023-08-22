@@ -53,6 +53,7 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	_shader = engine->GetResourceLibrary()->Load<Shader>("shaders/built-in/ObjectShader.cshader");
 	_texture = engine->GetResourceLibrary()->Load<Texture>(s_textureFiles.at(0));
 	_material = engine->GetResourceLibrary()->Load<Material>("materials/testMaterial.cmaterial");
+	_materialInstance = engine->GetResourceLibrary()->CreateResource<MaterialInstance>("Instance", _material);
 
 	//_material = CreateRef<Material>(_shader);
 	_material->SetColor("_BaseColor", Color::White);
@@ -101,7 +102,7 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	obj2Transform.SetLocalPosition(Vector3(0, 30, 0));
 	obj2Transform.SetLocalRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
 
-	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, MeshPrimitives::CreateBox("Box", Vector3::One * 5.0), _material);
+	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, MeshPrimitives::CreateBox("Box", Vector3::One * 5.0), _materialInstance);
 
 	_ecsService->GetEntity(obj2).SetParentID(_cameraEntityID);
 	_obj2ID = obj2;
@@ -212,9 +213,9 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	cameraTransform.SetLocalPosition(cameraTransform.GetLocalPosition() + velocity * deltaTime);
 	cameraTransform.SetLocalRotation(orientation);
 
-	//const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
-	//const double a = Math::Sin(t) * 0.5 + 0.5;
-	//_material->SetColor("_BaseColor", Color(a, a, a, 1.0));
+	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
+	const double a = Math::Sin(t) * 0.5 + 0.5;
+	_materialInstance->SetColor("_BaseColor", Color(a, a, a, 1.0));
 	
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{
