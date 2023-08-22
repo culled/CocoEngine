@@ -17,6 +17,7 @@ namespace Coco::Rendering
 
 		/// @brief Allocates a command buffer
 		/// @param isPrimary If true, the buffer will be a top-level buffer
+		/// @param name The name of the command buffer
 		/// @return A command buffer
 		virtual Ref<CommandBuffer> Allocate(bool isPrimary, const string& name = "CommandBuffer") = 0;
 

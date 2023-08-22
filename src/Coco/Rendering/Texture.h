@@ -63,9 +63,7 @@ namespace Coco::Rendering
 		void SetPixels(uint64_t offset, uint64_t size, const void* pixelData);
 
 		/// @brief Sets the properties for sampling this texture
-		/// @param repeatMode The repeat mode
-		/// @param filterMode The filter mode
-		/// @param maxAnisotropy The maximum amount of anisotropy to use
+		/// @param samplerProperties The image sampler properties
 		void SetSamplerProperties(const ImageSamplerProperties& samplerProperties);
 
 		/// @brief Gets the image description of this texture

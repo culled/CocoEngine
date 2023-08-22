@@ -74,11 +74,14 @@ namespace Coco
 		/// @brief Creates a tick listener on the main loop
 		/// @tparam ObjectType The type of object
 		/// @param object The object
-		/// @param args Arguments to pass to the listener's constructor
+		/// @param handlerFunction A pointer to the function that will be called when the tick listener ticks
+		/// @param priority The priority for the listener
+		/// @param tickPeriod The period that the listener will tick. Leave at 0 for ticking every frame
+		/// @return A tick listener
 		template<typename ObjectType>
-		Ref<MainLoopTickListener> CreateTickListener(ObjectType* object, void(ObjectType::* handlerFunction)(double), int priority, double purgePeriod = 0.0)
+		Ref<MainLoopTickListener> CreateTickListener(ObjectType* object, void(ObjectType::* handlerFunction)(double), int priority, double tickPeriod = 0.0)
 		{
-			ManagedRef<MainLoopTickListener> tickListener = CreateManagedRef<MainLoopTickListener>(std::bind(handlerFunction, object, std::placeholders::_1), priority, purgePeriod);
+			ManagedRef<MainLoopTickListener> tickListener = CreateManagedRef<MainLoopTickListener>(std::bind(handlerFunction, object, std::placeholders::_1), priority, tickPeriod);
 			if (_isPerfomingTick)
 				_tickListenersToAdd.Add(std::move(tickListener));
 			else

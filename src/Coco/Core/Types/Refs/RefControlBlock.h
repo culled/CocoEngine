@@ -34,7 +34,7 @@ namespace Coco
 		const std::type_index& GetResourceType() const noexcept { return _resourceType; }
 
 		/// @brief Sets the type of resource that is managed
-		/// @param The type of resource
+		/// @param type The type of resource
 		void SetResourceType(const std::type_info& type) noexcept { _resourceType = type; }
 
 		/// @brief Adds a user to this resource

@@ -47,7 +47,6 @@ namespace Coco::Rendering
 		GraphicsPlatform& operator=(GraphicsPlatform&&) = delete;
 
 		/// @brief Creates a graphics platform
-		/// @param renderingService The rendering service
 		/// @param creationParams Platform creation parameters
 		/// @return A created graphics platform
 		static ManagedRef<GraphicsPlatform> CreatePlatform(const GraphicsPlatformCreationParameters& creationParams);
@@ -72,6 +71,7 @@ namespace Coco::Rendering
 		virtual Ref<GraphicsPresenter> CreatePresenter(const string& name) = 0;
 
 		/// @brief Creates a data buffer
+		/// @param name The name of the buffer
 		/// @param size The size of the buffer (in bytes)
 		/// @param usageFlags Flags for how the buffer will be used
 		/// @param bindOnCreate If true, the buffer will be bound after it is created
@@ -79,14 +79,14 @@ namespace Coco::Rendering
 		virtual Ref<Buffer> CreateBuffer(const string& name, uint64_t size, BufferUsageFlags usageFlags, bool bindOnCreate) = 0;
 
 		/// @brief Creates an image
+		/// @param name The name of the image
 		/// @param description The description for the image
 		/// @return The created image
 		virtual Ref<Image> CreateImage(const string& name, const ImageDescription& description) = 0;
 
 		/// @brief Creates an image sampler
-		/// @param filterMode The filter mode
-		/// @param repeatMode The repeat mode
-		/// @param maxAnisotropy The maximum anisotropy
+		/// @param name The name of the image sampler
+		/// @param properties The image sampler properties
 		/// @return The created image sampler
 		virtual Ref<ImageSampler> CreateImageSampler(const string& name, const ImageSamplerProperties& properties) = 0;
 

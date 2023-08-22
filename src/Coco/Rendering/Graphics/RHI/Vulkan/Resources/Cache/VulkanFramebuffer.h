@@ -35,7 +35,7 @@ namespace Coco::Rendering::Vulkan
 		bool NeedsUpdate() const noexcept final { return false; }
 
 		/// @brief Checks if this cached framebuffer needs to be updated
-		/// @param framebufferSize The desired size of the framebuffer
+		/// @param renderView The render view
 		/// @return True if this resource should be updated
 		bool NeedsUpdate(const Ref<RenderView>& renderView) const noexcept;
 

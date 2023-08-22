@@ -85,7 +85,7 @@ namespace Coco
 		}
 
 		/// @brief Removes a query handler by its ID
-		/// @param handlerId The ID of the handler
+		/// @param handlerID The ID of the handler
 		/// @return True if the query handler was found and removed
 		bool RemoveHandler(HandlerID handlerID) noexcept
 		{

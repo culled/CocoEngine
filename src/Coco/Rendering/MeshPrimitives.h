@@ -160,6 +160,7 @@ namespace Coco::Rendering
 			bool flipDirection = false);
 
 		/// @brief Creates a mesh from vertices
+		/// @param name The name of the mesh
 		/// @param positions The vertex positions
 		/// @param uvs The vertex UVs
 		/// @param indices The vertex indices

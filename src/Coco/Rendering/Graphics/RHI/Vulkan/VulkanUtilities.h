@@ -340,6 +340,7 @@ namespace Coco::Rendering::Vulkan
 
 	/// @brief Converts ImageUsageFlags to VkImageUsageFlags
 	/// @param usageFlags The image usage flags
+	/// @param pixelFormat The image's pixel format
 	/// @return The converted VkImageUsageFlags
 	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags, PixelFormat pixelFormat) noexcept;
 

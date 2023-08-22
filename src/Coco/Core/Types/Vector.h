@@ -226,7 +226,7 @@ namespace Coco
 		Vector3() = default;
 		Vector3(double x, double y, double z) noexcept;
 		Vector3(const Vector2& vec2, double z = 0.0) noexcept;
-		Vector3(const struct Vector4& vec4) noexcept;
+		Vector3(const Vector4& vec4) noexcept;
 		virtual ~Vector3() = default;
 
 		/// @brief Parses a Vector3 from a string

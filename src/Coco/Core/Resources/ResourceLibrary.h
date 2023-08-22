@@ -145,7 +145,6 @@ namespace Coco
 
 		/// @brief Deserializes a resource from a string. NOTE: a serializer for the resource type must have been created with this library for this to work
 		/// @tparam ResourceType The type of resource to create
-		/// @param name The name of resource
 		/// @param data The serialized data
 		/// @return The deserialized resource
 		template<typename ResourceType>

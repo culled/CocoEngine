@@ -168,8 +168,9 @@ namespace Coco::ECS
 		/// @param renderTargets The rendertargets to use
 		void SetRenderTargetOverrides(const List<Ref<Rendering::Image>>& renderTargets) { _renderTargetOverrides = renderTargets; }
 
-		/// @brief Gets rendertargets that match the given pipeline's attachment layout
+		/// @brief Gets render targets that match the given pipeline's attachment layout
 		/// @param pipeline The pipeline
+		/// @param size The size of the render targets
 		/// @return A list of render targets
 		List<Rendering::RenderTarget> GetRenderTargets(Ref<Rendering::RenderPipeline> pipeline, const SizeInt& size);
 
