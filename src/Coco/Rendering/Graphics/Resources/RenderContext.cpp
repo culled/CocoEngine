@@ -68,21 +68,24 @@ namespace Coco::Rendering
 		if (_currentShader.ID == shaderID)
 			return;
 
-		const ShaderRenderData& shader = _currentRenderView->Shaders.at(shaderID);
-
-		if(shader.Subshaders.contains(_currentRenderPass->GetSubshaderName()))
+		if (_currentRenderView->Shaders.contains(shaderID))
 		{
-			_currentShader = shader;
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString(
-				"Failed to bind shader: Shader {} does not have a subshader for the render pass {}", 
-				shaderID.AsString(),
-				_currentRenderPass->GetSubshaderName()
-			));
+			const ShaderRenderData& shader = _currentRenderView->Shaders.at(shaderID);
 
-			_currentShader = ShaderRenderData();
+			if (shader.Subshaders.contains(_currentRenderPass->GetSubshaderName()))
+			{
+				_currentShader = shader;
+			}
+			else
+			{
+				LogError(GetRenderingLogger(), FormattedString(
+					"Failed to bind shader: Shader {} does not have a subshader for the render pass {}",
+					shaderID.AsString(),
+					_currentRenderPass->GetSubshaderName()
+				));
+
+				_currentShader = ShaderRenderData();
+			}
 		}
 
 		// Reset shader-based items since we're using a different shader
@@ -124,18 +127,25 @@ namespace Coco::Rendering
 		if (_currentMaterial.ID == materialID)
 			return;
 
-		const MaterialRenderData& material = _currentRenderView->Materials.at(materialID);
+		if (_currentRenderView->Materials.contains(materialID))
+		{
+			const MaterialRenderData& material = _currentRenderView->Materials.at(materialID);
 
-		// Bind the material's shader if it's different than the current one
-		if (material.ShaderID != _currentShader.ID)
-			UseShader(material.ShaderID);
+			// Bind the material's shader if it's different than the current one
+			if (material.ShaderID != _currentShader.ID)
+				UseShader(material.ShaderID);
 
-		_currentMaterial = material;
+			_currentMaterial = material;
 
-		_currentShaderUniformData.Merge(material.UniformData, true);
-		_currentShaderUniformData.ID = material.ID;
-		_currentShaderUniformData.Version = material.Version;
-		_currentShaderUniformData.Preserve = true;
+			_currentShaderUniformData.Merge(material.UniformData, true);
+			_currentShaderUniformData.ID = material.ID;
+			_currentShaderUniformData.Version = material.Version;
+			_currentShaderUniformData.Preserve = true;
+		}
+		else
+		{
+			UseShader(Resource::InvalidID);
+		}
 
 		NewMaterialBound();
 	}

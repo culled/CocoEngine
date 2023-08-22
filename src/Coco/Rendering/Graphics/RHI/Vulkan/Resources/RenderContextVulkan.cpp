@@ -108,8 +108,9 @@ namespace Coco::Rendering::Vulkan
 			return;
 		}
 
-		// Bind the object's material
-		UseMaterial(objectData.MaterialData);
+		// Bind the object's material if it has one
+		if(objectData.MaterialData != Resource::InvalidID)
+			UseMaterial(objectData.MaterialData);
 
 		// Flush the pipeline state
 		if (!FlushStateChanges())
