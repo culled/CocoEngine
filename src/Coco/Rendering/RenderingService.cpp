@@ -48,9 +48,14 @@ namespace Coco::Rendering
 		Ref<GraphicsPresenter> presenter,
 		ICameraDataProvider& cameraDataProvider)
 	{
+		Render(presenter, cameraDataProvider, _sceneDataProviders);
+	}
+
+	void RenderingService::Render(Ref<GraphicsPresenter> presenter, ICameraDataProvider& cameraDataProvider, List<Ref<ISceneDataProvider>> sceneDataProviders)
+	{
 		if (_defaultPipeline)
 		{
-			Render(presenter, _defaultPipeline, cameraDataProvider);
+			Render(presenter, _defaultPipeline, cameraDataProvider, sceneDataProviders);
 		}
 		else
 		{
@@ -58,10 +63,16 @@ namespace Coco::Rendering
 		}
 	}
 
+	void RenderingService::Render(Ref<GraphicsPresenter> presenter, Ref<RenderPipeline> pipeline, ICameraDataProvider& cameraDataProvider)
+	{
+		Render(presenter, pipeline, cameraDataProvider, _sceneDataProviders);
+	}
+
 	void RenderingService::Render(
 		Ref<GraphicsPresenter> presenter,
 		Ref<RenderPipeline> pipeline,
-		ICameraDataProvider& cameraDataProvider)
+		ICameraDataProvider& cameraDataProvider,
+		List<Ref<ISceneDataProvider>> sceneDataProviders)
 	{
 		// Acquire the render context and backbuffer that we'll be using
 		Ref<RenderContext> renderContext;
@@ -76,7 +87,7 @@ namespace Coco::Rendering
 		ManagedRef<RenderView> view = cameraDataProvider.GetRenderView(pipeline, presenter->GetBackbufferSize(), { backbuffer });
 
 		// Add objects from the scene graph
-		for(auto& sceneProvider : _sceneDataProviders)
+		for(auto& sceneProvider : sceneDataProviders)
 			sceneProvider->GetSceneData(view);
 
 		// Actually render with the pipeline

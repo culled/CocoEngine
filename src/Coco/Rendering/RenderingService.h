@@ -66,6 +66,15 @@ namespace Coco::Rendering
             Ref<GraphicsPresenter> presenter, 
             ICameraDataProvider& cameraDataProvider);
 
+        /// @brief Renders using the default render pipeline for a graphics presenter
+        /// @param presenter The presenter
+        /// @param cameraDataProvider The provider for the camera data
+        /// @param sceneDataProviders The providers for the scene data
+        void Render(
+            Ref<GraphicsPresenter> presenter,
+            ICameraDataProvider& cameraDataProvider,
+            List<Ref<ISceneDataProvider>> sceneDataProviders);
+
         /// @brief Renders using a render pipeline for a graphics presenter
         /// @param presenter The presenter
         /// @param pipeline The render pipeline
@@ -74,6 +83,17 @@ namespace Coco::Rendering
             Ref<GraphicsPresenter> presenter, 
             Ref<RenderPipeline> pipeline, 
             ICameraDataProvider& cameraDataProvider);
+
+        /// @brief Renders using a render pipeline for a graphics presenter
+        /// @param presenter The presenter
+        /// @param pipeline The render pipeline
+        /// @param cameraDataProvider The provider for the camera data
+        /// @param sceneDataProviders The providers for the scene data
+        void Render(
+            Ref<GraphicsPresenter> presenter,
+            Ref<RenderPipeline> pipeline,
+            ICameraDataProvider& cameraDataProvider,
+            List<Ref<ISceneDataProvider>> sceneDataProviders);
 
     private:
         /// @brief Performs rendering using a render pipeline
