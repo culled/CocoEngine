@@ -123,6 +123,7 @@ workspace "CocoEngine"
     if (_ACTION ~= nil) then
         group "Engine"
             include "src\\Coco"
+            include "tests\\Coco.Tests"
 
         group ""
             include "examples\\CocoSandbox"
