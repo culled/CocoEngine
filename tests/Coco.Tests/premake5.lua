@@ -38,6 +38,11 @@ project "Coco.Tests"
 
         runtime "Debug"
         symbols "on"
+
+        postbuildcommands
+        {
+            "xcopy %{prj.location}files\\ %{TargetDir}files\\ /S /Y",
+        }
         
     filter { "configurations:Release" }
         runtime "Release"

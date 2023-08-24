@@ -106,7 +106,7 @@ namespace Coco
 	string File::ReadTextToEnd()
 	{
 		List<char> data = ReadToEnd();
-		return string(data.Data());
+		return string(data.Data(), data.Count());
 	}
 
 	uint64_t File::GetPosition()
