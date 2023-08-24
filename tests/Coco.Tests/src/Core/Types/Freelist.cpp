@@ -5,7 +5,7 @@
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace Coco;
 
-namespace CocoTests
+namespace Coco::Core::Types
 {
 	TEST_CLASS(FreelistTests)
 	{
