@@ -107,7 +107,8 @@ namespace Coco
 			if (!handler.IsValid())
 				return false;
 
-			SharedRef<HandlerType> lock = handler.Lock();
+			WeakSharedRef<HandlerType> handlerCopy(handler);
+			SharedRef<HandlerType> lock = handlerCopy.Lock();
 			return RemoveHandler(lock->ID);
 		}
 
@@ -126,6 +127,13 @@ namespace Coco
 			}
 
 			return false;
+		}
+
+		/// @brief Gets the number of handlers registered to this query
+		/// @return The number of query handlers
+		uint64_t GetHandlerCount() const
+		{
+			return _handlers.Count();
 		}
 
 		bool operator()(ReturnType* value, Args... params)

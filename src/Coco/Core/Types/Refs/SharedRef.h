@@ -201,12 +201,12 @@ namespace Coco
 		SharedRef<ValueType> Lock() noexcept
 		{
 			if (_controlBlock.expired())
-				return nullptr;
+				return SharedRef<ValueType>();
 
 			std::shared_ptr<RefControlBlock> controlBlock = _controlBlock.lock();
 
 			if (!controlBlock->IsValid())
-				return nullptr;
+				return SharedRef<ValueType>();
 
 			return SharedRef<ValueType>(controlBlock, _resource);
 		}
