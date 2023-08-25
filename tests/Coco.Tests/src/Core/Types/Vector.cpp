@@ -9,6 +9,26 @@ namespace Coco::Core::Types
 {
 	TEST_CLASS(VectorTests)
 	{
+		TEST_METHOD(Vector2IntCreate)
+		{
+			constexpr int x = 123;
+			constexpr int y = -8932;
+
+			Vector2Int v(x, y);
+
+			Assert::AreEqual(v.X, x);
+			Assert::AreEqual(v.Y, y);
+		}
+
+		TEST_METHOD(Vector2IntParse)
+		{
+			Vector2Int v(-123, 9800);
+			string t = v.ToString();
+			Vector2Int v2 = Vector2Int::Parse(t);
+
+			Assert::IsTrue(v == v2);
+		}
+
 		TEST_METHOD(Vector2Create)
 		{
 			constexpr double x = 0.12;

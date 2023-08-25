@@ -25,9 +25,15 @@ namespace Coco
 		SizeInt(int width, int height) noexcept;
 		virtual ~SizeInt() = default;
 
+		/// @brief Parses a SizeInt from a string
+		/// @param str The string
+		/// @return The parsed size
+		static SizeInt Parse(const string& str);
+
 		/// @brief Converts this size to a string
 		/// @return This size as a string
-		string ToString() const { return FormattedString("{} x {}", Width, Height); }
+		string ToString() const { return FormattedString("{}x{}", Width, Height); }
+
 
 		SizeInt operator+(const SizeInt& other) const noexcept { return SizeInt(Width + other.Width, Height + other.Height); }
 		void operator+=(const SizeInt& other) noexcept { Width += other.Width; Height += other.Height; }
@@ -69,6 +75,15 @@ namespace Coco
 		Size() noexcept = default;
 		Size(double width, double height) noexcept;
 		virtual ~Size() = default;
+
+		/// @brief Parses a Size from a string
+		/// @param str The string
+		/// @return The parsed size
+		static Size Parse(const string& str);
+
+		/// @brief Converts this size to a string
+		/// @return This size as a string
+		string ToString() const { return FormattedString("{}x{}", Width, Height); }
 
 		/// @brief Compares if this size equals another size
 		/// @param other The other size
