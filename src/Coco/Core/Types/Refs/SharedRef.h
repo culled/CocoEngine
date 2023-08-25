@@ -99,7 +99,7 @@ namespace Coco
 			if (this->_controlBlock)
 				this->_controlBlock->RemoveUse();
 
-			this->_controlBlock = std::make_shared<RefControlBlock>(resource);
+			this->_controlBlock = std::make_shared<RefControlBlock>(typeid(ValueType));
 			this->_resource = resource;
 		}
 
@@ -192,6 +192,25 @@ namespace Coco
 			_resource(static_cast<ValueType*>(sharedRef._resource))
 		{
 			static_assert(std::is_base_of<ValueType, OtherType>::value || std::is_base_of<OtherType, ValueType>::value, "Cannot convert reference types");
+		}
+
+		WeakSharedRef& operator=(const SharedRef<ValueType>& sharedRef) noexcept
+		{
+			_controlBlock = sharedRef._controlBlock;
+			_resource = sharedRef._resource;
+
+			return *this;
+		}
+
+		template<typename OtherType>
+		WeakSharedRef& operator=(const SharedRef<OtherType>& sharedRef) noexcept
+		{
+			static_assert(std::is_base_of<ValueType, OtherType>::value || std::is_base_of<OtherType, ValueType>::value, "Cannot convert reference types");
+
+			_controlBlock = sharedRef._controlBlock;
+			_resource = static_cast<ValueType*>(sharedRef._resource);
+
+			return *this;
 		}
 
 		~WeakSharedRef() = default;
