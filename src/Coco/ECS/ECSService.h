@@ -125,7 +125,7 @@ namespace Coco::ECS
 				}
 			}
 
-			throw Exception(FormattedString("Entity {} has no component of type {}", entityID.AsString(), typeid(ComponentType).name()));
+			throw Exception(FormattedString("Entity {} has no component of type {}", entityID.ToString(), typeid(ComponentType).name()));
 		}
 
 		/// @brief Checks if an entity has a component

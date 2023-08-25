@@ -47,7 +47,7 @@ namespace Coco
 
 		/// @brief Gets the pretty string representation of this UUID
 		/// @return The pretty string representation of this UUID
-		string AsString() const { return _uuid.str(); }
+		string ToString() const { return _uuid.str(); }
 
 		/// @brief Gets the hash of this UUID
 		/// @return The hash of this UUID

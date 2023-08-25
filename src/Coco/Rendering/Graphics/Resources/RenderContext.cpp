@@ -80,7 +80,7 @@ namespace Coco::Rendering
 			{
 				LogError(GetRenderingLogger(), FormattedString(
 					"Failed to bind shader: Shader {} does not have a subshader for the render pass {}",
-					shaderID.AsString(),
+					shaderID.ToString(),
 					_currentRenderPass->GetSubshaderName()
 				));
 
