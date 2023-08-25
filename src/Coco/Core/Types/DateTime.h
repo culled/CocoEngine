@@ -60,19 +60,19 @@ namespace Coco
 
 		/// @brief Gets the hour this DateTime represents
 		/// @return The hour
-		int64_t GetHour() const noexcept { return _unixMilliseconds / MSecsPerHour % 24; }
+		int GetHour() const noexcept { return static_cast<int>((_unixMilliseconds / MSecsPerHour) % 24); }
 
 		/// @brief Gets the minute this DateTime represents
 		/// @return The minute
-		int64_t GetMinute() const noexcept { return _unixMilliseconds / MSecsPerMinute % 60; }
+		int GetMinute() const noexcept { return static_cast<int>(_unixMilliseconds / MSecsPerMinute % 60); }
 
 		/// @brief Gets the second this DateTime represents
 		/// @return The second
-		int64_t GetSecond() const noexcept { return _unixMilliseconds / MSecsPerSecond % 60; }
+		int GetSecond() const noexcept { return static_cast<int>(_unixMilliseconds / MSecsPerSecond % 60); }
 
 		/// @brief Gets the millisecond this DateTime represents
 		/// @return The millisecond
-		int64_t GetMillisecond() const noexcept { return _unixMilliseconds % 1000; }
+		int GetMillisecond() const noexcept { return static_cast<int>(_unixMilliseconds % 1000); }
 
 		/// @brief Gets the number of hours since unix epoch
 		/// @return The hours since unix epoch

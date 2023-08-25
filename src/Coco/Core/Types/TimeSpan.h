@@ -33,22 +33,22 @@ namespace Coco
 		/// @brief Creates a TimeSpan with the given number of fractional days
 		/// @param days The number of fractional days
 		/// @return A TimeSpan
-		static TimeSpan FromDays(double days) noexcept { return TimeSpan(static_cast<int64_t>(days) * MicroSecsPerDay); }
+		static TimeSpan FromDays(double days) noexcept { return TimeSpan(static_cast<int64_t>(days * MicroSecsPerDay)); }
 
 		/// @brief Creates a TimeSpan with the given number of fractional hours
 		/// @param hours The number of fractional hours
 		/// @return A TimeSpan
-		static TimeSpan FromHours(double hours) noexcept { return TimeSpan(static_cast<int64_t>(hours) * MicroSecsPerHour); }
+		static TimeSpan FromHours(double hours) noexcept { return TimeSpan(static_cast<int64_t>(hours * MicroSecsPerHour)); }
 
 		/// @brief Creates a TimeSpan with the given number of fractional minutes
 		/// @param minutes The number of fractional minutes
 		/// @return A Timespan
-		static TimeSpan FromMinutes(double minutes) noexcept { return TimeSpan(static_cast<int64_t>(minutes) * MicroSecsPerMinute); }
+		static TimeSpan FromMinutes(double minutes) noexcept { return TimeSpan(static_cast<int64_t>(minutes * MicroSecsPerMinute)); }
 
 		/// @brief Creates a TimeSpan with the given number of fractional seconds
 		/// @param seconds The number of fractional seconds
 		/// @return A TimeSpan
-		static TimeSpan FromSeconds(double seconds) noexcept { return TimeSpan(static_cast<int64_t>(seconds) * MicroSecsPerSecond); }
+		static TimeSpan FromSeconds(double seconds) noexcept { return TimeSpan(static_cast<int64_t>(seconds * MicroSecsPerSecond)); }
 
 		/// @brief Creates a TimeSpan with the given number of fractional milliseconds
 		/// @param milliseconds The number of fractional milliseconds
