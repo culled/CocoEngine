@@ -74,7 +74,7 @@ namespace Coco
 		if (IsLinear)
 			return *this;
 
-		return Color(Math::Pow(R, gamma), Math::Pow(G, gamma), Math::Pow(B, gamma), true);
+		return Color(Math::Pow(R, gamma), Math::Pow(G, gamma), Math::Pow(B, gamma), A, true);
 	}
 
 	Color Color::AsGamma(double gamma) const
@@ -82,7 +82,7 @@ namespace Coco
 		if (!IsLinear)
 			return *this;
 
-		return Color(Math::Pow(R, 1.0 / gamma), Math::Pow(G, 1.0 / gamma), Math::Pow(B, 1.0 / gamma), false);
+		return Color(Math::Pow(R, 1.0 / gamma), Math::Pow(G, 1.0 / gamma), Math::Pow(B, 1.0 / gamma), A, false);
 	}
 
 	Color::operator Vector3() const noexcept
