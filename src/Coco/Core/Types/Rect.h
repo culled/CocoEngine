@@ -7,9 +7,20 @@
 
 namespace Coco
 {
+	struct Rect;
+
 	/// @brief A rectangle that uses integer coordinates
 	struct COCOAPI RectInt
 	{
+		/// @brief Sides of a rectangle
+		enum class RectangleSide
+		{
+			Left,
+			Top,
+			Right,
+			Bottom
+		};
+
 		/// @brief The size of the rectangle
 		SizeInt Size;
 
@@ -19,6 +30,7 @@ namespace Coco
 		RectInt() noexcept;
 		RectInt(const Vector2Int& offset, const SizeInt& size) noexcept;
 		RectInt(const Vector2Int& p0, const Vector2Int& p1) noexcept;
+		virtual ~RectInt() = default;
 
 		/// @brief Gets the bottom-left corner of this rectangle
 		/// @return The bottom-left corner of this rectangle
@@ -60,7 +72,26 @@ namespace Coco
 		/// @brief Tests if this rectangle intersects with a point
 		/// @param point The point
 		/// @return True if there is an intersection
-		bool Intersects(const Vector2Int& point) noexcept;
+		bool Intersects(const Vector2& point) noexcept;
+
+		/// @brief Gets the intersecting area between this rectangle and another
+		/// @param other The other rectangle
+		/// @return The intersecting area. Or if the rectangles do not intersect, will be the smallest rectangle between the two
+		RectInt GetIntersection(const RectInt& other) const noexcept;
+
+		/// @brief Gets the closest point on this rectangle relative to a point
+		/// @param point The point
+		/// @param side If given, will be set to the side that the point lies on
+		/// @return The closest point
+		Vector2 GetClosestPoint(const Vector2& point, RectangleSide* side = nullptr) const;
+
+		/// @brief Gets the closest point on this rectangle relative to another rectangle
+		/// @param other The other rectangle
+		/// @param side If given, will be set to the side that the point lies on
+		/// @return The closest point
+		Vector2 GetClosestPoint(const RectInt& other, RectangleSide* side = nullptr) const;
+
+		operator Rect() const;
 	};
 
 	/// @brief A rectangle that uses decinal coordinates
@@ -84,11 +115,18 @@ namespace Coco
 		Rect() noexcept;
 		Rect(const Vector2& offset, const Coco::Size& size) noexcept;
 		Rect(const Vector2& p0, const Vector2& p1) noexcept;
+		virtual ~Rect() = default;
 
 		/// @brief Gets the normal from a rectangle side
 		/// @param side The side of the rectangle
 		/// @return The normal of the given side
 		static Vector2 GetNormalOfSide(const RectangleSide& side);
+
+		/// @brief Creates a rectangle with its center at the given point
+		/// @param center The center of the rectangle
+		/// @param size The size of the rectangle
+		/// @return The rectangle
+		static Rect CreateWithCenterAndSize(const Vector2& center, const Coco::Size& size);
 
 		/// @brief Gets the bottom-left corner of this rectangle
 		/// @return The bottom-left corner of this rectangle
@@ -134,7 +172,7 @@ namespace Coco
 
 		/// @brief Gets the intersecting area between this rectangle and another
 		/// @param other The other rectangle
-		/// @return The intersecting area. Will be 0 sized rect if the two rectangles aren't intersecting
+		/// @return The intersecting area. Or if the rectangles do not intersect, will be the smallest rectangle between the two
 		Rect GetIntersection(const Rect& other) const noexcept;
 
 		/// @brief Gets the closest point on this rectangle relative to a point

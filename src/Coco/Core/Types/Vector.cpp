@@ -68,6 +68,12 @@ namespace Coco
 		return Vector2Int(values[0], values[1]);
 	}
 
+	double Vector2Int::DistanceBetween(const Vector2Int& a, const Vector2Int& b) noexcept
+	{
+		const Vector2Int diff = a - b;
+		return diff.GetLength();
+	}
+
 	Vector2Int::operator Vector2() const noexcept { return Vector2(X, Y); }
 
 	const Vector2 Vector2::Zero = Vector2(0.0, 0.0);

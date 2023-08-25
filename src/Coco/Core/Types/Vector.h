@@ -36,6 +36,20 @@ namespace Coco
 		/// @return The parsed Vector2Int
 		static Vector2Int Parse(const string& str);
 
+		/// @brief Returns the distance between two vectors
+		/// @param a The first vector
+		/// @param b The second vector
+		/// @return The distance between the vectors
+		static double DistanceBetween(const Vector2Int& a, const Vector2Int& b) noexcept;
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y); }
+
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
 		string ToString() const { return FormattedString("{}, {}", X, Y); }
