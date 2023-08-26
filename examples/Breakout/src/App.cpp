@@ -68,7 +68,7 @@ void App::Start()
 	Input::InputService::Get()->GetKeyboard()->OnKeyPressedEvent.AddHandler(this, &App::HandleKeyPressed);
 }
 
-void App::Lose()
+void App::EndGame(bool won)
 {
 	OnStopPlaying.Invoke();
 	_isPlaying = false;
@@ -195,7 +195,8 @@ void App::StartGame()
 
 void App::Tick(double deltaTime)
 {
-	CheckForCollisions();
+	if(_isPlaying)
+		CheckForCollisions();
 }
 
 void App::RenderTick(double deltaTime)
@@ -258,6 +259,9 @@ void App::CheckForCollisions()
 
 		ball.Bounce(hitPoint, normal);
 	}
+
+	if (_blockEntities.Count() == 0)
+		EndGame(true);
 }
 
 bool App::CollidedWithArena(const Rect& rect, Vector2& hitPoint, Vector2& hitNormal) const

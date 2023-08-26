@@ -81,7 +81,7 @@ void Ball::UpdateMovement(double dt)
 
 	if (pos.Y < -10.0)
 	{
-		App::Get()->Lose();
+		App::Get()->EndGame(false);
 	}
 }
 
