@@ -12,8 +12,8 @@ using namespace Coco::ECS;
 
 ResourceID Block::_blockMeshID = ResourceID::Nil;
 
-Block::Block(const EntityID& owner, const Vector3& position, const ResourceID& materialID, double speedValue) : ScriptComponent(owner),
-	_speedValue(speedValue)
+Block::Block(const EntityID& owner, const Vector3& position, const ResourceID& materialID, double speedValue, int points) : ScriptComponent(owner),
+	_speedValue(speedValue), _points(points)
 {
 	ECSService* ecs = ECSService::Get();
 

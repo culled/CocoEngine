@@ -38,7 +38,8 @@ Ball::~Ball()
 
 void Ball::Tick(double deltaTime)
 {
-	UpdateMovement(deltaTime);
+	if(App::Get()->GetIsPlaying())
+		UpdateMovement(deltaTime);
 }
 
 Rect Ball::GetRect() const
@@ -76,6 +77,12 @@ void Ball::UpdateMovement(double dt)
 	Vector3 position = transform.GetGlobalPosition();
 	position += _moveDirection * _moveSpeed * dt;
 	transform.SetGlobalPosition(position);
+	Vector3 pos = transform.GetGlobalPosition();
+
+	if (pos.Y < -10.0)
+	{
+		App::Get()->Lose();
+	}
 }
 
 bool Ball::HandleGameStarted()

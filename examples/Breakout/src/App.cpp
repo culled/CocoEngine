@@ -68,6 +68,14 @@ void App::Start()
 	Input::InputService::Get()->GetKeyboard()->OnKeyPressedEvent.AddHandler(this, &App::HandleKeyPressed);
 }
 
+void App::Lose()
+{
+	OnStopPlaying.Invoke();
+	_isPlaying = false;
+
+	LogInfo(GetLogger(), FormattedString("Your score: {} points", _score));
+}
+
 void App::ConfigureRenderPipeline()
 {
 	using namespace Coco::Rendering;
@@ -135,16 +143,17 @@ void App::CreateUnits()
 	const double blockEndX = _arenaSize.Width * 0.5 - 1.5;
 
 	double y = _blockStartingY;
-	for (int r = 0; r < _blockRows; r++)
+	for (int r = 0; r < _blockRowDatas.size(); r++)
 	{
+		const BlockData& data = _blockRowDatas.at(r);
 		Ref<Rendering::Material> blockRowMaterial = Engine::Get()->GetResourceLibrary()->CreateResource<Material>(FormattedString("Block Row {} Material", r), _basicShader);
-		blockRowMaterial->SetColor("_BaseColor", _blockRowColors.at(r));
+		blockRowMaterial->SetColor("_BaseColor", data.BlockColor);
 		blockRowMaterial->SetTexture("_MainTex", GetRenderingService()->GetDefaultDiffuseTexture());
 
 		for (double x = blockStartX; x <= blockEndX; x += 2.0)
 		{
 			EntityID block = _ecsService->CreateEntity("Block");
-			_ecsService->AddComponent<Block>(block, Vector3(x, y, 0.0), blockRowMaterial->ID, _blockRowSpeeds.at(r));
+			_ecsService->AddComponent<Block>(block, Vector3(x, y, 0.0), blockRowMaterial->ID, data.Speed, data.Points);
 			_blockEntities.Add(block);
 		}
 
@@ -181,6 +190,7 @@ void App::CreateArena()
 void App::StartGame()
 {
 	OnStartPlaying.Invoke();
+	_isPlaying = true;
 }
 
 void App::Tick(double deltaTime)
@@ -226,6 +236,7 @@ void App::CheckForCollisions()
 			_blockEntities.Remove(block);
 			ball.Bounce(hitPoint, normal);
 			ball.SpeedUp(b.GetSpeedValue());
+			_score += b.GetPointValue();
 		}
 	}
 

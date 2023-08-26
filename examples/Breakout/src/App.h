@@ -12,6 +12,17 @@
 
 using namespace Coco;
 
+struct BlockData
+{
+	Color BlockColor;
+	double Speed;
+	int Points;
+
+	BlockData(const Color& color, double speed, int points) :
+		BlockColor(color), Speed(speed), Points(points)
+	{}
+};
+
 class App : public Application
 {
 public:
@@ -42,26 +53,18 @@ private:
 	Size _arenaSize = Size(35.0, 16.0);
 	Vector3 _arenaOffset = Vector3(0.0, 0.0, 1.0);
 
-	int _blockRows = 6;
 	double _blockStartingY = 2.0;
-	Array<Color, 6> _blockRowColors = {
-		Color(0.27, 0.27, 0.77),
-		Color(0.27, 0.62, 0.28),
-		Color(0.64, 0.62, 0.17),
-		Color(0.71, 0.48, 0.19),
-		Color(0.78, 0.42, 0.23),
-		Color(0.78, 0.29, 0.27) 
-	};
-	Array<double, 6> _blockRowSpeeds = {
-		8.0,
-		8.5,
-		9.5,
-		11.0,
-		13.0,
-		16.0
+	Array<BlockData, 6> _blockRowDatas = {
+		BlockData(Color(0.27, 0.27, 0.77), 8.0, 1),
+		BlockData(Color(0.27, 0.62, 0.28), 8.5, 2),
+		BlockData(Color(0.64, 0.62, 0.17), 9.5, 3),
+		BlockData(Color(0.71, 0.48, 0.19), 11.0, 4),
+		BlockData(Color(0.78, 0.42, 0.23), 13.0, 5),
+		BlockData(Color(0.78, 0.29, 0.27), 16.0, 6),
 	};
 
 	bool _isPlaying = false;
+	int _score = 0;
 
 public:
 	App();
@@ -81,6 +84,8 @@ public:
 	ECS::Scene* GetScene() { return _ecsService->GetRootScene(); }
 
 	Ref<Rendering::Shader> GetBasicShader() { return _basicShader; }
+	void Lose();
+	bool GetIsPlaying() const { return _isPlaying; }
 
 private:
 	void ConfigureRenderPipeline();
