@@ -13,7 +13,7 @@ namespace Coco::Core::Types
 		TEST_METHOD(AllocateList)
 		{
 			constexpr uint64_t size = 512;
-			Freelist<size> list;
+			Freelist list(size);
 			Assert::AreEqual(list.GetFreeSpace(), size);
 		}
 
@@ -22,7 +22,7 @@ namespace Coco::Core::Types
 			constexpr uint64_t size = 512;
 			constexpr uint64_t allocateSize = 64;
 
-			Freelist<size> list;
+			Freelist list(size);
 			FreelistAllocatedBlock block;
 			Assert::IsTrue(list.Allocate(allocateSize, block));
 
@@ -39,7 +39,7 @@ namespace Coco::Core::Types
 			constexpr uint64_t size = 512;
 			constexpr uint64_t allocateSize = 64;
 
-			Freelist<size> list;
+			Freelist list(size);
 
 			FreelistAllocatedBlock block1;
 			Assert::IsTrue(list.Allocate(allocateSize, block1));
@@ -72,7 +72,7 @@ namespace Coco::Core::Types
 		TEST_METHOD(AllocateAndFreeVaryingSizeEntries)
 		{
 			constexpr uint64_t size = 512;
-			Freelist<size> list;
+			Freelist list(size);
 
 			constexpr uint64_t block1Size = 64;
 			FreelistAllocatedBlock block1;
@@ -109,6 +109,24 @@ namespace Coco::Core::Types
 			list.Return(block3);
 			list.Return(block4);
 			Assert::AreEqual(list.GetFreeSpace(), size);
+		}
+
+		TEST_METHOD(Resize)
+		{
+			Freelist list(64);
+
+			FreelistAllocatedBlock block1;
+			Assert::IsTrue(list.Allocate(32, block1));
+
+			list.Resize(128);
+			Assert::IsTrue(list.GetFreeSpace() == 96);
+
+			FreelistAllocatedBlock block2;
+			Assert::IsTrue(list.Allocate(64, block2));
+			Assert::IsTrue(list.GetFreeSpace() == 32);
+
+			list.Resize(96);
+			Assert::IsTrue(list.GetFreeSpace() == 0);
 		}
 	};
 }

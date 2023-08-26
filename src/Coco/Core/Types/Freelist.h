@@ -38,23 +38,25 @@ namespace Coco
 	};
 
 	/// @brief An list for allocating and returning blocks of its memory
-	/// @tparam Size The size of the memory that can be allocated
-	template<uint64_t Size>
 	class COCOAPI Freelist
 	{
 	private:
 		static constexpr uint64_t _minSplitSize = 32;
 
 		std::forward_list<FreelistNode> _freeNodes;
-		Array<char, Size> _data;
+		char* _data = nullptr;
+		uint64_t _size = 0;
 
 	public:
-		Freelist() :
-			_data{}
+		Freelist(uint64_t size)
 		{
-			_freeNodes.emplace_front(0, Size);
+			AllocateMemory(size);
 		}
-		virtual ~Freelist() = default;
+
+		virtual ~Freelist()
+		{
+			DeleteMemory();
+		}
 
 		/// @brief Tries to allocate a block of memory from this freelist
 		/// @param requiredSize The required size of memory
@@ -81,7 +83,7 @@ namespace Coco
 			}
 
 			// Split the free node if there will be leftover memory
-			if (it->Size - requiredSize > _minSplitSize)
+			if (it->Size - requiredSize >= _minSplitSize)
 			{
 				_freeNodes.emplace_after(it, it->Offset + requiredSize, it->Size - requiredSize);
 				block.Size = requiredSize;
@@ -92,7 +94,7 @@ namespace Coco
 			}
 
 			block.Offset = it->Offset;
-			block.Memory = _data.data() + block.Offset;
+			block.Memory = _data + block.Offset;
 
 			// Erase after the previous iterator
 			_freeNodes.erase_after(beforeIt);
@@ -104,6 +106,9 @@ namespace Coco
 		/// @param block The block to free
 		void Return(const FreelistAllocatedBlock& block)
 		{
+			if (block.Offset >= _size)
+				return;
+
 			std::forward_list<FreelistNode>::iterator beforeIt = _freeNodes.before_begin();
 			std::forward_list<FreelistNode>::iterator afterIt;
 
@@ -138,12 +143,12 @@ namespace Coco
 		void Clear()
 		{
 			_freeNodes.clear();
-			_freeNodes.emplace_front(0, Size);
+			_freeNodes.emplace_front(0, _size);
 		}
 
 		/// @brief Gets the amount of free memory in this Freelist
 		/// @return The number of free bytes in this list's memory
-		uint64_t GetFreeSpace()
+		uint64_t GetFreeSpace() const
 		{
 			uint64_t freeSpace = 0;
 
@@ -152,5 +157,84 @@ namespace Coco
 
 			return freeSpace;
 		}
+
+		/// @brief Gets the size of this freelist
+		/// @return The size
+		uint64_t GetSize() const { return _size; }
+
+		/// @brief Resizes this freelist, copying memory to the new, resized buffer
+		/// @param newSize The new size of this freelist
+		void Resize(uint64_t newSize)
+		{
+			if (newSize == _size)
+				return;
+
+			AllocateMemory(newSize);
+		}
+
+		private:
+			/// @brief Allocates new memory for this freelist, copying old data and adjusting the free nodes
+			/// @param size The new size of the freelist
+			void AllocateMemory(uint64_t size)
+			{
+				char* newData = new char[size];
+
+				if (_size > 0)
+				{
+					// Copy the old data to the new memory
+					std::memcpy(newData, _data, Math::Min(_size, size));
+				}
+
+				char* oldData = _data;
+				uint64_t oldSize = _size;
+
+				_data = newData;
+				_size = size;
+
+				if(oldSize > 0)
+					delete[] oldData;
+
+				// Add a free block if we previously had no free space and now have more memory
+				if (_freeNodes.empty() && _size > oldSize)
+				{
+					_freeNodes.emplace_front(oldSize, _size - oldSize);
+				}
+				else
+				{
+					auto beforeIt = _freeNodes.before_begin();
+					for (auto it = _freeNodes.begin(); it != _freeNodes.end(); it++)
+					{
+
+						if (it->Offset + it->Size > _size)
+						{
+							// Trim the block if its end extends past the new size
+							it->Size = _size - it->Offset;
+						}
+						else if (it->Offset + it->Size == oldSize && _size > oldSize)
+						{
+							// Extend the block if it was at the end of the old size and the list is bigger now
+							it->Size += _size - oldSize;
+						}
+
+						// Erase free blocks past the new size
+						while (it != _freeNodes.end() && (it->Offset >= _size || it->Size <= 0))
+						{
+							it = _freeNodes.erase_after(beforeIt);
+						}
+
+						if (it == _freeNodes.end())
+							break;
+
+						beforeIt = it;
+					}
+				}
+			}
+
+			/// @brief Deletes the memory associated with this freelist
+			void DeleteMemory()
+			{
+				delete[] _data;
+				_size = 0;
+			}
 	};
 }
