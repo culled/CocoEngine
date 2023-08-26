@@ -18,30 +18,24 @@ namespace Coco::Rendering::Vulkan
 		/// @brief The buffer
 		Ref<BufferVulkan> Buffer;
 
-		/// @brief The next open offset in the buffer
-		uint64_t CurrentOffset = 0;
-
-		/// @brief The amount of fragmented memory behind the current offset
-		uint64_t FragmentedSize = 0;
-
 		/// @brief The mapped memory of the buffer (if it has been locked)
 		char* MappedMemory = nullptr;
-
-		/// @brief Gets the size of the available memory region
-		/// @return The size of the free space past the current offset in the buffer
-		uint64_t GetFreeRegionSize() const noexcept;
 	};
 
+	/// @brief Defines a region in a shader uniform buffer
 	struct ShaderUniformBufferRegion
 	{
+		/// @brief The index of the buffer
 		int BufferIndex = -1;
-		uint64_t Offset = Math::MaxValue<uint64_t>();
-		uint64_t Length = 0;
-		bool Preserve = false;
+
+		/// @brief The version of the contents in this region
 		ResourceVersion Version = 0;
 
-		void Invalidate();
-		bool IsInvalid(uint64_t minimumSize) const;
+		/// @brief The allocated block of the buffer
+		FreelistAllocatedBlock AllocatedBlock;
+
+		/// @brief If true, this region will be preserved after the frame is rendered
+		bool Preserve = false;
 	};
 
 	/// @brief A cached resource for a Vulkan shader
@@ -84,8 +78,8 @@ namespace Coco::Rendering::Vulkan
 		void FlushBufferChanges();
 
 	private:
-		void InvalidateBufferRegions(uint bufferIndex);
-		void InvalidateBufferRegion(ShaderUniformBufferRegion& region);
+		void FreeBufferRegions(uint bufferIndex);
+		void FreeBufferRegion(ShaderUniformBufferRegion& region);
 		void FindBufferRegion(uint64_t requiredSize, ShaderUniformBufferRegion& region);
 		ShaderUniformBuffer& CreateAdditionalBuffer();
 

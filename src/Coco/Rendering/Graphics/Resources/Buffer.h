@@ -5,6 +5,12 @@
 #include <Coco/Core/Types/List.h>
 #include "BufferTypes.h"
 
+#ifdef GetFreeSpace
+#undef GetFreeSpace
+#endif
+
+#include <Coco/Core/Types/Freelist.h>
+
 namespace Coco::Rendering
 {
 	/// @brief A buffer that holds contiguous data for a graphics device
@@ -48,10 +54,24 @@ namespace Coco::Rendering
 		/// @return This buffer's size (in bytes)
 		virtual uint64_t GetSize() const noexcept = 0;
 
+		/// @brief Finds a region in this buffer that fits the required size
+		/// @param requiredSize The required size of the region
+		/// @param block Will be set to the block of allocated memory if successful
+		/// @return True if a region was found
+		virtual bool Allocate(uint64_t requiredSize, FreelistAllocatedBlock& block) = 0;
+
+		/// @brief Frees a region in this buffer
+		/// @param block The block to free
+		virtual void Free(const FreelistAllocatedBlock& block) = 0;
+
+		/// @brief Gets the unallocated space in this buffer
+		/// @return The unallocated space
+		virtual uint64_t GetFreeSpace() const = 0;
+
 		/// @brief Makes this buffer accessible for copying to/from the host.
 		/// NOTE: This buffer must have been created with the BufferUsageFlags::HostVisible flag for this to work
 		/// @param offset The offset in the buffer of the first byte to lock
-		/// @param size The number of bytes to lock<
+		/// @param size The number of bytes to lock
 		/// @return A pointer to the first locked byte of buffer memory
 		virtual void* Lock(uint64_t offset, uint64_t size) = 0;
 

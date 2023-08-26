@@ -439,8 +439,8 @@ namespace Coco::Rendering::Vulkan
 			write.descriptorCount = 1;
 
 			bufferInfo.buffer = shaderResource->GetUniformBuffer(region)->GetBuffer();
-			bufferInfo.offset = region.Offset;
-			bufferInfo.range = region.Length;
+			bufferInfo.offset = region.AllocatedBlock.Offset;
+			bufferInfo.range = region.AllocatedBlock.Size;
 
 			write.pBufferInfo = &bufferInfo;
 

@@ -13,7 +13,7 @@ namespace Coco::Rendering::Vulkan
 		uint64_t size,
 		bool bindOnCreate) :
 		GraphicsResource<GraphicsDeviceVulkan, Buffer>(id, name, usageFlags),
-		_size(size)
+		_size(size), _freelist(size)
 	{
 		// TODO: configurable memory properties?
 		uint localHostMemory = _device->GetMemoryFeatures().SupportsLocalHostBufferMemory ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0;
@@ -42,6 +42,8 @@ namespace Coco::Rendering::Vulkan
 
 	void BufferVulkan::Resize(uint64_t newSize, bool copyOldData)
 	{
+		_freelist.Resize(newSize);
+
 		// Create a new buffer at the requested size
 		VkBuffer newBuffer;
 		VkDeviceMemory newBufferMemory;
@@ -80,6 +82,16 @@ namespace Coco::Rendering::Vulkan
 
 		AssertVkResult(vkBindBufferMemory(_device->GetDevice(), _buffer, _bufferMemory, offset));
 		_isBound = true;
+	}
+
+	bool BufferVulkan::Allocate(uint64_t requiredSize, FreelistAllocatedBlock& block)
+	{
+		return _freelist.Allocate(requiredSize, block);
+	}
+
+	void BufferVulkan::Free(const FreelistAllocatedBlock& block)
+	{
+		_freelist.Return(block);
 	}
 
 	void* BufferVulkan::Lock(uint64_t offset, uint64_t size)

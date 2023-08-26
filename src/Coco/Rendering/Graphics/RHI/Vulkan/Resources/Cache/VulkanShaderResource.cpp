@@ -6,22 +6,6 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	uint64_t ShaderUniformBuffer::GetFreeRegionSize() const noexcept
-	{
-		return Buffer->GetSize() - CurrentOffset;
-	}
-
-	void ShaderUniformBufferRegion::Invalidate()
-	{
-		Offset = Math::MaxValue<uint64_t>();
-		Length = 0;
-	}
-
-	bool ShaderUniformBufferRegion::IsInvalid(uint64_t minimumSize) const
-	{
-		return Offset == Math::MaxValue<uint64_t>() || Length < minimumSize || BufferIndex == -1;
-	}
-
     VulkanShaderResource::VulkanShaderResource(const ResourceID& id, const string& name, const VulkanShader& shader) :
         GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), 
 		CachedResource(shader.ID, shader.GetVersion())
@@ -65,7 +49,7 @@ namespace Coco::Rendering::Vulkan
 
 		ShaderUniformBufferRegion& region = _bufferRegions.at(data.ID);
 
-		if (region.IsInvalid(dataSize))
+		if (region.AllocatedBlock.Size != dataSize)
 		{
 			FindBufferRegion(dataSize, region);
 			needsUpdate = true;
@@ -85,7 +69,7 @@ namespace Coco::Rendering::Vulkan
 				buffer.MappedMemory = reinterpret_cast<char*>(buffer.Buffer->Lock(0, _bufferSize));
 
 			List<char> uniformData = subshader.GetUniformData(data, _device->GetMinimumBufferAlignment());
-			char* dst = buffer.MappedMemory + region.Offset;
+			char* dst = buffer.MappedMemory + region.AllocatedBlock.Offset;
 			std::memcpy(dst, uniformData.Data(), uniformData.Count());
 
 			region.Version = data.Version;
@@ -112,13 +96,6 @@ namespace Coco::Rendering::Vulkan
 				buffer.Buffer->Unlock();
 
 			buffer.MappedMemory = nullptr;
-
-			// If the buffer is too fragmented, invalidate it to cause a reshuffling of data
-			if (static_cast<double>(buffer.FragmentedSize) / buffer.Buffer->GetSize() > _fragmentFlushThreshold)
-			{
-				LogInfo(_device->GetLogger(), FormattedString("Shader uniform buffer {} is too fragmented. Invalidating for new frame...", i));
-				InvalidateBufferRegions(i);
-			}
 		}
 
 		// Invalidate temporary regions
@@ -127,7 +104,7 @@ namespace Coco::Rendering::Vulkan
 			if (regionKVP.second.Preserve)
 				continue;
 
-			InvalidateBufferRegion(regionKVP.second);
+			FreeBufferRegion(regionKVP.second);
 		}
 	}
 
@@ -140,39 +117,36 @@ namespace Coco::Rendering::Vulkan
 		_pool = Ref<VulkanDescriptorPool>();
 	}
 
-	void VulkanShaderResource::InvalidateBufferRegions(uint bufferIndex)
+	void VulkanShaderResource::FreeBufferRegions(uint bufferIndex)
 	{
+		ShaderUniformBuffer& buffer = _uniformBuffers[bufferIndex];
+
 		for (auto& region : _bufferRegions)
 		{
 			if (region.second.BufferIndex != bufferIndex)
 				continue;
 
-			region.second.Invalidate();
+			buffer.Buffer->Free(region.second.AllocatedBlock);
 		}
-
-		ShaderUniformBuffer& buffer = _uniformBuffers[bufferIndex];
-		buffer.CurrentOffset = 0;
-		buffer.FragmentedSize = 0;
 	}
 
-	void VulkanShaderResource::InvalidateBufferRegion(ShaderUniformBufferRegion& region)
+	void VulkanShaderResource::FreeBufferRegion(ShaderUniformBufferRegion& region)
 	{
 		ShaderUniformBuffer& buffer = _uniformBuffers[region.BufferIndex];
-		buffer.FragmentedSize += region.Length;
-		region.Invalidate();
+		buffer.Buffer->Free(region.AllocatedBlock);
 	}
 
 	void VulkanShaderResource::FindBufferRegion(uint64_t requiredSize, ShaderUniformBufferRegion& region)
 	{
 		if (region.BufferIndex != -1)
-			_uniformBuffers[region.BufferIndex].FragmentedSize += region.Length;
+			FreeBufferRegion(region);
 
 		int freeBufferIndex = -1;
 
 		// Try to find a buffer that can fit this subshader data
 		for (int i = 0; i < _uniformBuffers.Count(); i++)
 		{
-			if (_uniformBuffers[i].GetFreeRegionSize() >= requiredSize)
+			if (_uniformBuffers[i].Buffer->Allocate(requiredSize, region.AllocatedBlock))
 			{
 				freeBufferIndex = i;
 				break;
@@ -185,16 +159,13 @@ namespace Coco::Rendering::Vulkan
 			CreateAdditionalBuffer();
 			LogInfo(_device->GetLogger(), FormattedString("Created addition shader uniform buffer. New buffer count is {}", _uniformBuffers.Count()));
 			freeBufferIndex = static_cast<int>(_uniformBuffers.Count()) - 1;
+			Assert(_uniformBuffers[freeBufferIndex].Buffer->Allocate(requiredSize, region.AllocatedBlock));
 		}
 
 		Assert(freeBufferIndex != -1);
+		Assert(region.AllocatedBlock.Size >= requiredSize);
 
-		ShaderUniformBuffer& buffer = _uniformBuffers[freeBufferIndex];
 		region.BufferIndex = freeBufferIndex;
-		region.Offset = buffer.CurrentOffset;
-		region.Length = requiredSize;
-
-		buffer.CurrentOffset += requiredSize;
 	}
 
 	ShaderUniformBuffer& VulkanShaderResource::CreateAdditionalBuffer()

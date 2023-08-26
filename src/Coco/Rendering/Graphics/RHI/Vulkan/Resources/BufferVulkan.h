@@ -5,6 +5,10 @@
 
 #include "../VulkanIncludes.h"
 
+#ifdef GetFreeSpace
+#undef GetFreeSpace
+#endif
+
 namespace Coco::Rendering::Vulkan
 {
 	class GraphicsDeviceVulkan;
@@ -23,6 +27,7 @@ namespace Coco::Rendering::Vulkan
 		uint _memoryPropertyFlags;
 		bool _isBound = false;
 		bool _isLocked = false;
+		Freelist _freelist;
 
 	protected:
 		BufferVulkan(
@@ -41,6 +46,9 @@ namespace Coco::Rendering::Vulkan
 		void CopyTo(uint64_t sourceOffset, Buffer* destination, uint64_t destinationOffset, uint64_t size) final;
 		void Bind(uint64_t offset) final;
 		uint64_t GetSize() const noexcept final { return _size; }
+		bool Allocate(uint64_t requiredSize, FreelistAllocatedBlock& block) final;
+		void Free(const FreelistAllocatedBlock& block) final;
+		uint64_t GetFreeSpace() const final { return _freelist.GetFreeSpace(); }
 		void* Lock(uint64_t offset, uint64_t size) final;
 		void Unlock() final;
 

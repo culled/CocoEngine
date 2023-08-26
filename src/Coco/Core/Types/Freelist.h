@@ -32,19 +32,13 @@ namespace Coco
 
 		/// @brief The size of the allocated block
 		uint64_t Size = 0;
-
-		/// @brief A pointer to the first byte of this block's memory
-		void* Memory = nullptr;
 	};
 
-	/// @brief An list for allocating and returning blocks of its memory
+	/// @brief A list for tracking allocations of memory blocks
 	class COCOAPI Freelist
 	{
 	private:
-		static constexpr uint64_t _minSplitSize = 32;
-
 		std::forward_list<FreelistNode> _freeNodes;
-		char* _data = nullptr;
 		uint64_t _size = 0;
 
 	public:
@@ -53,10 +47,7 @@ namespace Coco
 			AllocateMemory(size);
 		}
 
-		virtual ~Freelist()
-		{
-			DeleteMemory();
-		}
+		virtual ~Freelist() = default;
 
 		/// @brief Tries to allocate a block of memory from this freelist
 		/// @param requiredSize The required size of memory
@@ -83,7 +74,7 @@ namespace Coco
 			}
 
 			// Split the free node if there will be leftover memory
-			if (it->Size - requiredSize >= _minSplitSize)
+			if (it->Size - requiredSize >= 0)
 			{
 				_freeNodes.emplace_after(it, it->Offset + requiredSize, it->Size - requiredSize);
 				block.Size = requiredSize;
@@ -94,7 +85,6 @@ namespace Coco
 			}
 
 			block.Offset = it->Offset;
-			block.Memory = _data + block.Offset;
 
 			// Erase after the previous iterator
 			_freeNodes.erase_after(beforeIt);
@@ -177,22 +167,8 @@ namespace Coco
 			/// @param size The new size of the freelist
 			void AllocateMemory(uint64_t size)
 			{
-				char* newData = new char[size];
-
-				if (_size > 0)
-				{
-					// Copy the old data to the new memory
-					std::memcpy(newData, _data, Math::Min(_size, size));
-				}
-
-				char* oldData = _data;
 				uint64_t oldSize = _size;
-
-				_data = newData;
 				_size = size;
-
-				if(oldSize > 0)
-					delete[] oldData;
 
 				// Add a free block if we previously had no free space and now have more memory
 				if (_freeNodes.empty() && _size > oldSize)
@@ -228,13 +204,6 @@ namespace Coco
 						beforeIt = it;
 					}
 				}
-			}
-
-			/// @brief Deletes the memory associated with this freelist
-			void DeleteMemory()
-			{
-				delete[] _data;
-				_size = 0;
 			}
 	};
 }
