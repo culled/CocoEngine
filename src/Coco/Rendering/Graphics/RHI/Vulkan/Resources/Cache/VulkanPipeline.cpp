@@ -189,7 +189,7 @@ namespace Coco::Rendering::Vulkan
 		{
 			VkPipelineShaderStageCreateInfo stageInfo = {};
 			stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-			stageInfo.stage = ToVkShaderStageFlagBits(stage.StageType);
+			stageInfo.stage = ToVkShaderStageFlagBits(stage.Type);
 			stageInfo.module = stage.ShaderModule;
 			stageInfo.pName = stage.EntryPointName.c_str();
 

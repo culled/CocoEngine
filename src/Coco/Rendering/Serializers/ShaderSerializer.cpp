@@ -25,8 +25,14 @@ namespace Coco::Rendering
 
 				writer.WriteLine(s_stagesSection);
 				writer.IncrementIndentLevel();
-				for (const auto& kvp : subshader.StageFiles)
-					writer.WriteLine(ToString(static_cast<int>(kvp.first)), kvp.second);
+				for (const auto& stage : subshader.Stages)
+				{
+					writer.WriteLine(stage.EntryPointName);
+					writer.IncrementIndentLevel();
+					writer.WriteLine(s_stageTypeVariable, ToString(static_cast<int>(stage.Type)));
+					writer.WriteLine(s_stageFileVariable, stage.FilePath);
+					writer.DecrementIndentLevel();
+				}
 				writer.DecrementIndentLevel();
 
 				writer.WriteLine(s_stateSection);
@@ -118,7 +124,7 @@ namespace Coco::Rendering
 			while (reader.ReadIfIsIndentLevel(2))
 			{
 				if (reader.IsKey(s_stagesSection))
-					ReadSubshaderStages(reader, subshader.StageFiles);
+					ReadSubshaderStages(reader, subshader.Stages);
 				else if (reader.IsKey(s_stateSection))
 					ReadSubshaderState(reader, subshader.PipelineState);
 				else if (reader.IsKey(s_attributesSection))
@@ -135,12 +141,22 @@ namespace Coco::Rendering
 		}
 	}
 
-	void ShaderSerializer::ReadSubshaderStages(KeyValueReader& reader, UnorderedMap<ShaderStageType, string>& stageFiles)
+	void ShaderSerializer::ReadSubshaderStages(KeyValueReader& reader, List<ShaderStage>& stages)
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			ShaderStageType stageType = static_cast<ShaderStageType>(reader.GetKeyAsInt());
-			stageFiles[stageType] = reader.GetValue();
+			ShaderStage stage{};
+			stage.EntryPointName = reader.GetKey();
+			
+			while (reader.ReadIfIsIndentLevel(4))
+			{
+				if (reader.IsKey(s_stageTypeVariable))
+					stage.Type = static_cast<ShaderStageType>(reader.GetVariableValueAsInt());
+				else if (reader.IsKey(s_stageFileVariable))
+					stage.FilePath = reader.GetValue();
+			}
+			
+			stages.Add(stage);
 		}
 	}
 

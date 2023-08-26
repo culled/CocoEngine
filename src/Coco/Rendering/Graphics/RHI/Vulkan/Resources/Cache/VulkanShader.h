@@ -20,14 +20,8 @@ namespace Coco::Rendering::Vulkan
 	class VulkanDescriptorPool;
 
 	/// @brief A Vulkan subshader stage
-	struct VulkanShaderStage
+	struct VulkanShaderStage : public ShaderStage
 	{
-		/// @brief The name of the entry point
-		string EntryPointName;
-
-		/// @brief The type of this stage
-		ShaderStageType StageType;
-
 		/// @brief The Vulkan shader module
 		VkShaderModule ShaderModule = nullptr;
 
@@ -75,11 +69,9 @@ namespace Coco::Rendering::Vulkan
 		void DestroyShaderObjects() noexcept;
 
 		/// @brief Creates a shader stage from a compiled SPV file
-		/// @param stage The type of shader stage
-		/// @param entrypointName The name of the entrypoint
-		/// @param file The path to the shader stage file
+		/// @param stage The shader stage
 		/// @return A Vulkan shader stage
-		VulkanShaderStage CreateShaderStage(ShaderStageType stage, const string& entrypointName, const string& file);
+		VulkanShaderStage CreateShaderStage(const ShaderStage& stage);
 	};
 
 	/// @brief A cached Vulkan shader

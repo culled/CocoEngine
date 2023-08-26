@@ -5,8 +5,12 @@ group=
 subshaders
     main
         stages
-            0=shaders/built-in/ObjectShader.vert.spv
-            3=shaders/built-in/ObjectShader.frag.spv
+            main
+                type=0,
+                file=shaders/built-in/ObjectShader.vert.spv
+            main
+                type=3
+                file=shaders/built-in/ObjectShader.frag.spv
         state
             topologyMode=3
             cullingMode=1

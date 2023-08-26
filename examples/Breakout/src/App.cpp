@@ -95,8 +95,8 @@ void App::ConfigureRenderPipeline()
 	_basicShader->CreateSubshader(
 		"main",
 		{
-			{ ShaderStageType::Vertex, "shaders/built-in/ObjectShader.vert.spv" },
-			{ ShaderStageType::Fragment, "shaders/built-in/ObjectShader.frag.spv" },
+			ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/ObjectShader.vert.spv"),
+			ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/ObjectShader.frag.spv"),
 		},
 		pipelineState,
 		{

@@ -17,16 +17,69 @@ namespace Coco::Rendering
 		Name(name)
 	{}
 
+	ShaderUniformData::ShaderUniformData() :
+		ID(ResourceID::CreateV4()), Version(0), Preserve(false), Vector4s{}, Colors{}, Textures{}
+	{}
+
+	void ShaderUniformData::Merge(const ShaderUniformData& other, bool overwriteProperties)
+	{
+		for (const auto& vec4s : other.Vector4s)
+		{
+			if (!Vector4s.contains(vec4s.first) || overwriteProperties)
+				Vector4s[vec4s.first] = vec4s.second;
+		}
+
+		for (const auto& colors : other.Colors)
+		{
+			if (!Colors.contains(colors.first) || overwriteProperties)
+				Colors[colors.first] = colors.second;
+		}
+
+		for (const auto& textures : other.Textures)
+		{
+			if (!Textures.contains(textures.first) || overwriteProperties)
+				Textures[textures.first] = textures.second;
+		}
+	}
+
+	void ShaderUniformData::CopyFrom(const ShaderUniformData& other)
+	{
+		for (auto& vec4 : Vector4s)
+		{
+			if (other.Vector4s.contains(vec4.first))
+				vec4.second = other.Vector4s.at(vec4.first);
+		}
+
+		for (auto& color : Colors)
+		{
+			if (other.Colors.contains(color.first))
+				color.second = other.Colors.at(color.first);
+		}
+
+		for (auto& texture : Textures)
+		{
+			if (other.Textures.contains(texture.first))
+				texture.second = other.Textures.at(texture.first);
+		}
+	}
+
+	ShaderStage::ShaderStage() : EntryPointName(), Type(ShaderStageType::Unknown), FilePath()
+	{}
+
+	ShaderStage::ShaderStage(const string& entryPointName, ShaderStageType stageType, const string& filePath) :
+		EntryPointName(entryPointName), Type(stageType), FilePath(filePath)
+	{}
+
 	Subshader::Subshader(
 		const string& name,
-		const UnorderedMap<ShaderStageType, string>& stageFiles,
+		const List<ShaderStage>& stages,
 		const GraphicsPipelineState& pipelineState,
 		const List<ShaderVertexAttribute>& attributes,
 		const List<ShaderDescriptor>& descriptors,
 		const List<ShaderTextureSampler>& samplers,
 		ShaderStageType bindPoint) noexcept :
 		PassName(name),
-		StageFiles(stageFiles),
+		Stages(stages),
 		PipelineState(pipelineState),
 		Attributes(attributes),
 		Descriptors(descriptors),
@@ -118,48 +171,6 @@ namespace Coco::Rendering
 		{
 			attr._dataOffset = offset;
 			offset += GetBufferDataFormatSize(attr.DataFormat);
-		}
-	}
-
-	void ShaderUniformData::Merge(const ShaderUniformData& other, bool overwriteProperties)
-	{
-		for (const auto& vec4s : other.Vector4s)
-		{
-			if (!Vector4s.contains(vec4s.first) || overwriteProperties)
-				Vector4s[vec4s.first] = vec4s.second;
-		}
-
-		for (const auto& colors : other.Colors)
-		{
-			if (!Colors.contains(colors.first) || overwriteProperties)
-				Colors[colors.first] = colors.second;
-		}
-
-		for (const auto& textures : other.Textures)
-		{
-			if (!Textures.contains(textures.first) || overwriteProperties)
-				Textures[textures.first] = textures.second;
-		}
-	}
-
-	void ShaderUniformData::CopyFrom(const ShaderUniformData& other)
-	{
-		for (auto& vec4 : Vector4s)
-		{
-			if (other.Vector4s.contains(vec4.first))
-				vec4.second = other.Vector4s.at(vec4.first);
-		}
-
-		for (auto& color : Colors)
-		{
-			if (other.Colors.contains(color.first))
-				color.second = other.Colors.at(color.first);
-		}
-
-		for (auto& texture : Textures)
-		{
-			if (other.Textures.contains(texture.first))
-				texture.second = other.Textures.at(texture.first);
 		}
 	}
 }

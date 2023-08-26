@@ -37,7 +37,7 @@ namespace Coco::Rendering
 
 		/// @brief Creates a subshader for this shader
 		/// @param name The name of the subshader
-		/// @param stageFiles The files for each stage of the subshader
+		/// @param stages The stages for the subshader
 		/// @param pipelineState The pipeline state for the subshader
 		/// @param attributes The attributes for the subshader
 		/// @param descriptors The descriptors for the subshader
@@ -45,16 +45,23 @@ namespace Coco::Rendering
 		/// @param bindPoint The point in this subshader when the descriptors should be bound
 		void CreateSubshader(
 			const string& name, 
-			const UnorderedMap<ShaderStageType, string>& stageFiles,
+			const List<ShaderStage>& stages,
 			const GraphicsPipelineState& pipelineState, 
 			const List<ShaderVertexAttribute>& attributes,
 			const List<ShaderDescriptor>& descriptors,
 			const List<ShaderTextureSampler>& samplers,
 			ShaderStageType bindPoint = ShaderStageType::Fragment);
 
+		/// @brief Sets the tag for this shader
+		/// @param groupTag The tag
 		void SetGroupTag(const string& groupTag) { _groupTag = groupTag; }
+
+		/// @brief Gets the tag for this shader
+		/// @return This shader's tag
 		const string& GetGroupTag() const { return _groupTag; }
 
+		/// @brief Gets a shader uniform data object with empty uniforms for this shader
+		/// @return An empty shader uniform object
 		ShaderUniformData GetUniformPropertyMap() const;
 	};
 }

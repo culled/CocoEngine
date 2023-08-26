@@ -16,6 +16,8 @@ namespace Coco::Rendering
 		static constexpr const char* s_shaderGroupVariable = "group";
 		static constexpr const char* s_subshaderSection = "subshaders";
 		static constexpr const char* s_stagesSection = "stages";
+		static constexpr const char* s_stageTypeVariable = "type";
+		static constexpr const char* s_stageFileVariable = "file";
 		static constexpr const char* s_stateSection = "state";
 		static constexpr const char* s_stateTopologyModeVariable = "topologyMode";
 		static constexpr const char* s_stateCullingModeVariable = "cullingMode";
@@ -45,8 +47,8 @@ namespace Coco::Rendering
 
 		/// @brief Reads the stages of a subshader from a file
 		/// @param reader The reader
-		/// @param stageFiles Will be filled with subshader stage files
-		void ReadSubshaderStages(KeyValueReader& reader, UnorderedMap<ShaderStageType, string>& stageFiles);
+		/// @param stages Will be filled with subshader stages
+		void ReadSubshaderStages(KeyValueReader& reader, List<ShaderStage>& stages);
 
 		/// @brief Reads a GraphicsPipelineState for a subshader
 		/// @param reader The reader

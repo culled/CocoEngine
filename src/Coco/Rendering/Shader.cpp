@@ -27,14 +27,14 @@ namespace Coco::Rendering
 
 	void Shader::CreateSubshader(
 		const string& name, 
-		const UnorderedMap<ShaderStageType, string>& stageFiles,
+		const List<ShaderStage>& stages,
 		const GraphicsPipelineState& pipelineState, 
 		const List<ShaderVertexAttribute>& attributes,
 		const List<ShaderDescriptor>& descriptors,
 		const List<ShaderTextureSampler>& samplers,
 		ShaderStageType bindPoint)
 	{
-		_subshaders.Construct(name, stageFiles, pipelineState, attributes, descriptors, samplers, bindPoint);
+		_subshaders.Construct(name, stages, pipelineState, attributes, descriptors, samplers, bindPoint);
 	}
 
 	ShaderUniformData Shader::GetUniformPropertyMap() const

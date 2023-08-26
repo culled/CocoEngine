@@ -13,11 +13,11 @@ namespace Coco::Rendering::Vulkan
 		_device(device), _name(subshaderData.PassName), _subshader(subshaderData), _isValid(true)
 	{
 		// Load subshader modules
-		for (const auto& subshaderStagesKVP : _subshader.StageFiles)
+		for (const auto& subshaderStage : _subshader.Stages)
 		{
 			try
 			{
-				_shaderStages.Add(CreateShaderStage(subshaderStagesKVP.first, _subshader.PassName, subshaderStagesKVP.second));
+				_shaderStages.Add(CreateShaderStage(subshaderStage));
 			}
 			catch (const Exception& ex)
 			{
@@ -112,16 +112,17 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	VulkanShaderStage VulkanSubshader::CreateShaderStage(ShaderStageType stage, const string& subshaderName, const string& file)
+	VulkanShaderStage VulkanSubshader::CreateShaderStage(const ShaderStage& stage)
 	{
 		VulkanShaderStage shaderStage = {};
-		shaderStage.EntryPointName = subshaderName;
-		shaderStage.StageType = stage;
+		shaderStage.Type = stage.Type;
+		shaderStage.EntryPointName = stage.EntryPointName;
+		shaderStage.FilePath = stage.FilePath;
 
 		shaderStage.ShaderModuleCreateInfo = {};
 		shaderStage.ShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 
-		const string fullFilePath = Engine::Get()->GetResourceLibrary()->GetFullFilePath(file);
+		const string fullFilePath = Engine::Get()->GetResourceLibrary()->GetFullFilePath(shaderStage.FilePath);
 		List<char> byteCode = File::ReadAllBytes(fullFilePath);
 
 		shaderStage.ShaderModuleCreateInfo.codeSize = byteCode.Count();

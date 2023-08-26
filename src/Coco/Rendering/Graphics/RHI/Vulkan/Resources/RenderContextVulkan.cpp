@@ -312,6 +312,10 @@ namespace Coco::Rendering::Vulkan
 					static_cast<uint32_t>(_currentRenderPassIndex),
 					_globalDescriptor.Layout);
 
+				// Ensure a pipeline state has been bound
+				if (_currentPipeline == nullptr)
+					throw RenderingException("A pipeline was not bound");
+
 				vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, _currentPipeline->GetPipeline());
 
 				// Bind the global descriptor set
@@ -322,6 +326,10 @@ namespace Coco::Rendering::Vulkan
 					_globalDescriptorSetIndex, 1, &_globalDescriptorSet,
 					0, 0);
 			}
+
+			// Ensure a pipeline state has been bound
+			if (_currentPipeline == nullptr)
+				throw RenderingException("A pipeline was not bound");
 
 			VkDescriptorSet set;
 
@@ -335,10 +343,6 @@ namespace Coco::Rendering::Vulkan
 					_materialDescriptorSetIndex, 1, &set,
 					0, 0);
 			}
-
-			// Ensure a pipeline state has been bound
-			if(_currentPipeline == nullptr)
-				throw RenderingException("A pipeline was not bound");
 
 			stateBound = true;
 			_currentDrawCallCount++;
