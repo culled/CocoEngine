@@ -81,8 +81,7 @@ void Ball::UpdateMovement(double dt)
 bool Ball::HandleGameStarted()
 {
 	Random rand;
-	//_moveDirection = Vector3(rand.RandomRange(-1.0, 1.0), 1.0, 0.0);
-	_moveDirection = Vector3(0.1, 1.0, 0.0);
+	_moveDirection = Vector3(rand.RandomRange(-1.0, 1.0), 1.0, 0.0);
 	_moveDirection.Normalize();
 
 	return false;
