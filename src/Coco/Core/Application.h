@@ -42,6 +42,10 @@ namespace Coco
 		/// @return The created application
 		static ManagedRef<Application> Create();
 
+		/// @brief Gets the application's logger
+		/// @return The application's logger
+		Logging::Logger* GetLogger() noexcept { return _logger.Get(); }
+
 		/// @brief Called right before the main loop begins, but after all other engine initialization has happened
 		virtual void Start() = 0;
 

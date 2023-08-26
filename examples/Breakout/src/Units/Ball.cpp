@@ -51,12 +51,18 @@ Rect Ball::GetRect() const
 
 void Ball::Bounce(const Vector2& hitPoint, const Vector2& normal)
 {
-	_moveDirection = _moveDirection.Reflect(Vector3(normal.X, normal.Y, 0.0));
+	Vector3 vec3Normal(normal.X, normal.Y, 0.0);
+
+	if (_moveDirection.Dot(vec3Normal) < 0.0)
+	{
+		_moveDirection = _moveDirection.Reflect(vec3Normal);
+	}
+
 	Vector2 p = GetRect().GetClosestPoint(hitPoint);
 	double offset = Vector2::DistanceBetween(p, hitPoint);
 
 	TransformComponent& transform = ECSService::Get()->GetComponent<TransformComponent>(Owner);
-	transform.SetGlobalPosition(transform.GetGlobalPosition() + Vector3(normal.X, normal.Y, 0.0) * offset);
+	transform.SetGlobalPosition(transform.GetGlobalPosition() + vec3Normal * offset);
 }
 
 void Ball::SpeedUp(double newSpeed)
@@ -75,7 +81,8 @@ void Ball::UpdateMovement(double dt)
 bool Ball::HandleGameStarted()
 {
 	Random rand;
-	_moveDirection = Vector3(rand.RandomRange(-1.0, 1.0), 1.0, 0.0);
+	//_moveDirection = Vector3(rand.RandomRange(-1.0, 1.0), 1.0, 0.0);
+	_moveDirection = Vector3(0.1, 1.0, 0.0);
 	_moveDirection.Normalize();
 
 	return false;
