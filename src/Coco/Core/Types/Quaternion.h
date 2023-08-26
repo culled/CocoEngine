@@ -46,7 +46,7 @@ namespace Coco
 
 		/// @brief Gets the normal of this quaternion
 		/// @return The normal
-		double Normal() const noexcept { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
+		double GetNormal() const noexcept { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
 
 		/// @brief Normalizes this quaternion
 		/// @param safe If true, a check will be done to ensure the quaternion has a non-zero normal

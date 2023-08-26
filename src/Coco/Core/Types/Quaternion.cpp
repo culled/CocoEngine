@@ -102,7 +102,7 @@ namespace Coco
 			Math::Approximately(W, 0.0))
 			return;
 
-		const double l = Normal();
+		const double l = GetNormal();
 		X /= l;
 		Y /= l;
 		Z /= l;
