@@ -48,7 +48,7 @@ namespace Coco
 
 		/// @brief Gets the length of this vector
 		/// @return The length
-		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y); }
+		double GetLength() const noexcept { return Math::Sqrt(GetLengthSquared()); }
 
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
@@ -78,6 +78,151 @@ namespace Coco
 		bool operator!= (const Vector2Int& other) const noexcept { return X != other.X || Y != other.Y; }
 
 		operator Vector2() const noexcept;
+	};
+
+	/// @brief Represents a 3D vector using integer coordinates
+	struct COCOAPI Vector3Int
+	{
+		/// @brief A zero vector (0, 0, 0)
+		static const Vector3Int Zero;
+
+		/// @brief A vector with 1 for each axis (1, 1, 1)
+		static const Vector3Int One;
+
+		/// @brief The X component
+		int X = 0;
+
+		/// @brief The Y component
+		int Y = 0;
+
+		/// @brief The Z component
+		int Z = 0;
+
+		Vector3Int() noexcept = default;
+		Vector3Int(int x, int y, int z) noexcept;
+		virtual ~Vector3Int() = default;
+
+		/// @brief Parses a Vector3Int from a string
+		/// @param str The string
+		/// @return The parsed Vector3Int
+		static Vector3Int Parse(const string& str);
+
+		/// @brief Returns the distance between two vectors
+		/// @param a The first vector
+		/// @param b The second vector
+		/// @return The distance between the vectors
+		static double DistanceBetween(const Vector3Int& a, const Vector3Int& b) noexcept;
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		double GetLength() const noexcept { return Math::Sqrt(GetLengthSquared()); }
+
+		/// @brief Converts this vector to a string
+		/// @return This vector as a string
+		string ToString() const { return FormattedString("{}, {}, {}", X, Y, Z); }
+
+		Vector3Int operator+(const Vector3Int& other) const noexcept { return Vector3Int(X + other.X, Y + other.Y, Z + other.Z); }
+		void operator+=(const Vector3Int& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; }
+
+		Vector3Int operator-(const Vector3Int& other) const noexcept { return Vector3Int(X - other.X, Y - other.Y, Z - other.Z); }
+		void operator-=(const Vector3Int& other) noexcept { X -= other.X; Y -= other.Y; Z -= other.Z; }
+
+		Vector3Int operator*(const Vector3Int& other) const noexcept { return Vector3Int(X * other.X, Y * other.Y, Z * other.Z); }
+		void operator*=(const Vector3Int& other) noexcept { X *= other.X; Y *= other.Y; Z *= other.Z; }
+
+		Vector3Int operator*(int scalar) const noexcept { return Vector3Int(X * scalar, Y * scalar, Z * scalar); }
+		void operator*=(int scalar) noexcept { X *= scalar; Y *= scalar; Z *= scalar; }
+
+		Vector3Int operator/(const Vector3Int& other) const noexcept { return Vector3Int(X / other.X, Y / other.Y, Z / other.Z); }
+		void operator/=(const Vector3Int& other) noexcept { X /= other.X; Y /= other.Y; Z /= other.Z; }
+
+		Vector3Int operator/(int divisor) const noexcept { return Vector3Int(X / divisor, Y / divisor, Z / divisor); }
+		void operator/=(int divisor) noexcept { X /= divisor; Y /= divisor; Z /= divisor; }
+
+		Vector3Int operator-() const noexcept { return Vector3Int(-X, -Y, -Z); }
+
+		bool operator==(const Vector3Int& other) const noexcept { return X == other.X && Y == other.Y && Z == other.Z; }
+		bool operator!= (const Vector3Int& other) const noexcept { return X != other.X || Y != other.Y || Z != other.Z; }
+
+		operator Vector3() const noexcept;
+	};
+
+	/// @brief Represents a 4D vector using integer coordinates
+	struct COCOAPI Vector4Int
+	{
+		/// @brief A zero vector (0, 0, 0, 0)
+		static const Vector4Int Zero;
+
+		/// @brief A vector with 1 for each axis (1, 1, 1, 1)
+		static const Vector4Int One;
+
+		/// @brief The X component
+		int X = 0;
+
+		/// @brief The Y component
+		int Y = 0;
+
+		/// @brief The Z component
+		int Z = 0;
+
+		/// @brief The W component
+		int W = 0;
+
+		Vector4Int() noexcept = default;
+		Vector4Int(int x, int y, int z, int w) noexcept;
+		virtual ~Vector4Int() = default;
+
+		/// @brief Parses a Vector4Int from a string
+		/// @param str The string
+		/// @return The parsed Vector4Int
+		static Vector4Int Parse(const string& str);
+
+		/// @brief Returns the distance between two vectors
+		/// @param a The first vector
+		/// @param b The second vector
+		/// @return The distance between the vectors
+		static double DistanceBetween(const Vector4Int& a, const Vector4Int& b) noexcept;
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z + W * W; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		double GetLength() const noexcept { return Math::Sqrt(GetLengthSquared()); }
+
+		/// @brief Converts this vector to a string
+		/// @return This vector as a string
+		string ToString() const { return FormattedString("{}, {}, {}, {}", X, Y, Z, W); }
+
+		Vector4Int operator+(const Vector4Int& other) const noexcept { return Vector4Int(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
+		void operator+=(const Vector4Int& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; W += other.W; }
+
+		Vector4Int operator-(const Vector4Int& other) const noexcept { return Vector4Int(X - other.X, Y - other.Y, Z - other.Z, W - other.W); }
+		void operator-=(const Vector4Int& other) noexcept { X -= other.X; Y -= other.Y; Z -= other.Z; W -= other.W; }
+
+		Vector4Int operator*(const Vector4Int& other) const noexcept { return Vector4Int(X * other.X, Y * other.Y, Z * other.Z, W * other.W); }
+		void operator*=(const Vector4Int& other) noexcept { X *= other.X; Y *= other.Y; Z *= other.Z; W *= other.W; }
+
+		Vector4Int operator*(int scalar) const noexcept { return Vector4Int(X * scalar, Y * scalar, Z * scalar, W * scalar); }
+		void operator*=(int scalar) noexcept { X *= scalar; Y *= scalar; Z *= scalar; W *= scalar; }
+
+		Vector4Int operator/(const Vector4Int& other) const noexcept { return Vector4Int(X / other.X, Y / other.Y, Z / other.Z, W / other.W); }
+		void operator/=(const Vector4Int& other) noexcept { X /= other.X; Y /= other.Y; Z /= other.Z; W /= other.W; }
+
+		Vector4Int operator/(int divisor) const noexcept { return Vector4Int(X / divisor, Y / divisor, Z / divisor, W / divisor); }
+		void operator/=(int divisor) noexcept { X /= divisor; Y /= divisor; Z /= divisor; W /= divisor; }
+
+		Vector4Int operator-() const noexcept { return Vector4Int(-X, -Y, -Z, -W); }
+
+		bool operator==(const Vector4Int& other) const noexcept { return X == other.X && Y == other.Y && Z == other.Z && W == other.W; }
+		bool operator!= (const Vector4Int& other) const noexcept { return X != other.X || Y != other.Y || Z != other.Z || W != other.W; }
+
+		operator Vector4() const noexcept;
 	};
 
 	/// @brief Represents a 2D vector using decimal coordinates

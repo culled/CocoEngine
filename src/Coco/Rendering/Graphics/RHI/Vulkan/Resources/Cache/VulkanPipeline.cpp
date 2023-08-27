@@ -163,22 +163,18 @@ namespace Coco::Rendering::Vulkan
 		inputState.topology = ToVkPrimativeTopology(subshader.PipelineState.TopologyMode);
 		inputState.primitiveRestartEnable = VK_FALSE;
 
-		// TODO: make push constantes more configurable
-		VkPushConstantRange pushConstants = { };
-		pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		pushConstants.offset = 0;
-		pushConstants.size = sizeof(float) * 16; // 64 bytes for now
-
 		List<VkDescriptorSetLayout> descriptorSetLayouts = vulkanSubshader->GetDescriptorLayouts().Transform<VkDescriptorSetLayout>(
 			[](const VulkanDescriptorLayout& e) {return e.Layout; }
 		);
+
+		List<VkPushConstantRange> pushConstantRanges = vulkanSubshader->GetPushConstantRanges();
 
 		VkPipelineLayoutCreateInfo layoutInfo = {};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		layoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.Count());
 		layoutInfo.pSetLayouts = descriptorSetLayouts.Data();
-		layoutInfo.pushConstantRangeCount = 1;
-		layoutInfo.pPushConstantRanges = &pushConstants;
+		layoutInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.Count());
+		layoutInfo.pPushConstantRanges = pushConstantRanges.Data();
 
 		AssertVkResult(vkCreatePipelineLayout(_device->GetDevice(), &layoutInfo, nullptr, &_pipelineLayout));
 

@@ -37,7 +37,10 @@ void UIRenderPass::Execute(RenderContext& renderContext)
         if (shaderData.GroupTag == "UI")
         {
             renderContext.UseMaterial(materialData.ID);
+
             renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_Projection2D", renderView->Projection2D);
+            renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Draw, "_Model", objectData.ModelMatrix);
+
             renderContext.Draw(objectData);
         }
     }

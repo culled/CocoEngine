@@ -20,6 +20,7 @@ void OpaqueRenderPass::Execute(RenderContext& renderContext)
 
         renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_Projection", renderView->Projection);
         renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_View", renderView->View);
+        renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Draw, "_Model", object.ModelMatrix);
 
         renderContext.Draw(object);
     }

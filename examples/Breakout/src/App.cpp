@@ -106,6 +106,7 @@ void App::ConfigureRenderPipeline()
 		{
 			ShaderUniformDescriptor("_Projection", ShaderDescriptorScope::Global, ShaderStageType::Vertex, BufferDataFormat::Matrix4x4),
 			ShaderUniformDescriptor("_View", ShaderDescriptorScope::Global, ShaderStageType::Vertex, BufferDataFormat::Matrix4x4),
+			ShaderUniformDescriptor("_Model", ShaderDescriptorScope::Draw, ShaderStageType::Vertex, BufferDataFormat::Matrix4x4),
 			ShaderUniformDescriptor("_BaseColor", ShaderDescriptorScope::Instance, ShaderStageType::Fragment, BufferDataFormat::Color)
 		},
 		{

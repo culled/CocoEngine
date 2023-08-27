@@ -65,6 +65,10 @@ namespace Coco::Rendering::Vulkan
 		/// @return The descriptor layouts for this subshader
 		List<VulkanDescriptorLayout> GetDescriptorLayouts() const noexcept;
 
+		/// @brief Gets push constant ranges for this subshader
+		/// @return Push constant ranges for this subshader
+		List<VkPushConstantRange> GetPushConstantRanges() const;
+
 		/// @brief Gets the subshader info for this subshader
 		/// @return The subshader info for this subshader
 		const Subshader& GetSubshader() const noexcept { return _subshader; }

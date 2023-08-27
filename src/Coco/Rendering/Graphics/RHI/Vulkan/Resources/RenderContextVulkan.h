@@ -105,6 +105,9 @@ namespace Coco::Rendering::Vulkan
 		/// @return True if the state is bound
 		bool FlushStateChanges();
 
+		/// @brief Applies the current push constants
+		void ApplyPushConstants();
+
 		/// @brief Adds any necessary pre-render pass image transitions to the render targets
 		void AddPreRenderPassImageTransitions();
 

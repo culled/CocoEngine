@@ -71,7 +71,7 @@ namespace Coco::Rendering::Vulkan
 		if (!subshader.HasScope(ShaderDescriptorScope::Global))
 			return nullptr;
 
-		uint64_t dataSize = subshader.GetDescriptorDataSize(ShaderDescriptorScope::Global, _device->GetMinimumBufferAlignment());
+		uint64_t dataSize = subshader.GetUniformDataSize(ShaderDescriptorScope::Global, _device->GetMinimumBufferAlignment());
 
 		if (!_globalUniformBuffer.Buffer.IsValid() || _globalUniformBuffer.Buffer->GetSize() != dataSize)
 		{
@@ -151,7 +151,7 @@ namespace Coco::Rendering::Vulkan
 		const Subshader& subshader = vulkanSubshader.GetSubshader();
 
 		bool needsUpdate = false;
-		uint64_t dataSize = subshader.GetDescriptorDataSize(ShaderDescriptorScope::Instance, _device->GetMinimumBufferAlignment());
+		uint64_t dataSize = subshader.GetUniformDataSize(ShaderDescriptorScope::Instance, _device->GetMinimumBufferAlignment());
 
 		if (!_bufferRegions.contains(data.ID))
 		{

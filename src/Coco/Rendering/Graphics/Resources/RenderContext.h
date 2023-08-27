@@ -42,6 +42,9 @@ namespace Coco::Rendering
 		/// @brief The current instance uniform data
 		ShaderUniformData _currentInstanceUniformData;
 
+		/// @brief The current draw uniform data
+		ShaderUniformData _currentDrawUniformData;
+
 		/// @brief The currently bound material render data
 		MaterialRenderData _currentMaterial;
 
@@ -97,6 +100,48 @@ namespace Coco::Rendering
 
 		/// @brief Resets the current shader uniform data
 		void ResetShaderUniformData();
+
+		/// @brief Sets a int uniform
+		/// @param scope The scope of the uniform
+		/// @param name The uniform name
+		/// @param value The value
+		void SetShaderInt(ShaderDescriptorScope scope, const string& name, int32_t value);
+
+		/// @brief Sets a Vector2Int uniform
+		/// @param scope The scope of the uniform
+		/// @param name The uniform name
+		/// @param value The value
+		void SetShaderVector2Int(ShaderDescriptorScope scope, const string& name, const Vector2Int& value);
+
+		/// @brief Sets a Vector3Int uniform
+		/// @param scope The scope of the uniform
+		/// @param name The uniform name
+		/// @param value The value
+		void SetShaderVector3Int(ShaderDescriptorScope scope, const string& name, const Vector3Int& value);
+
+		/// @brief Sets a Vector4Int uniform
+		/// @param scope The scope of the uniform
+		/// @param name The uniform name
+		/// @param value The value
+		void SetShaderVector4Int(ShaderDescriptorScope scope, const string& name, const Vector4Int& value);
+
+		/// @brief Sets a float uniform
+		/// @param scope The scope of the uniform
+		/// @param name The uniform name
+		/// @param value The value
+		void SetShaderFloat(ShaderDescriptorScope scope, const string& name, float value);
+
+		/// @brief Sets a Vector2 uniform
+		/// @param scope The scope of the uniform
+		/// @param name The uniform name
+		/// @param value The value
+		void SetShaderVector2(ShaderDescriptorScope scope, const string& name, const Vector2& value);
+
+		/// @brief Sets a Vector3 uniform
+		/// @param scope The scope of the uniform
+		/// @param name The uniform name
+		/// @param value The value
+		void SetShaderVector3(ShaderDescriptorScope scope, const string& name, const Vector3& value);
 
 		/// @brief Sets a Vector4 uniform
 		/// @param scope The scope of the uniform

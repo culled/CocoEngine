@@ -98,6 +98,147 @@ namespace Coco::Rendering
 	{
 		_currentGlobalUniformData = ShaderUniformData();
 		_currentInstanceUniformData = ShaderUniformData();
+		_currentDrawUniformData = ShaderUniformData();
+	}
+
+	void RenderContext::SetShaderInt(ShaderDescriptorScope scope, const string& name, int32_t value)
+	{
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Ints[name] = value;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Ints[name] = value;
+			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Ints[name] = value;
+			break;
+		default:
+			break;
+		}
+
+		UniformUpdated(name);
+	}
+
+	void RenderContext::SetShaderVector2Int(ShaderDescriptorScope scope, const string& name, const Vector2Int& value)
+	{
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Vector2Ints[name] = value;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Vector2Ints[name] = value;
+			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Vector2Ints[name] = value;
+			break;
+		default:
+			break;
+		}
+
+		UniformUpdated(name);
+	}
+
+	void RenderContext::SetShaderVector3Int(ShaderDescriptorScope scope, const string& name, const Vector3Int& value)
+	{
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Vector3Ints[name] = value;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Vector3Ints[name] = value;
+			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Vector3Ints[name] = value;
+			break;
+		default:
+			break;
+		}
+
+		UniformUpdated(name);
+	}
+
+	void RenderContext::SetShaderVector4Int(ShaderDescriptorScope scope, const string& name, const Vector4Int& value)
+	{
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Vector4Ints[name] = value;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Vector4Ints[name] = value;
+			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Vector4Ints[name] = value;
+			break;
+		default:
+			break;
+		}
+
+		UniformUpdated(name);
+	}
+
+	void RenderContext::SetShaderFloat(ShaderDescriptorScope scope, const string& name, float value)
+	{
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Floats[name] = value;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Floats[name] = value;
+			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Floats[name] = value;
+			break;
+		default:
+			break;
+		}
+
+		UniformUpdated(name);
+	}
+
+	void RenderContext::SetShaderVector2(ShaderDescriptorScope scope, const string& name, const Vector2& value)
+	{
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Vector2s[name] = value;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Vector2s[name] = value;
+			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Vector2s[name] = value;
+			break;
+		default:
+			break;
+		}
+
+		UniformUpdated(name);
+	}
+
+	void RenderContext::SetShaderVector3(ShaderDescriptorScope scope, const string& name, const Vector3& value)
+	{
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Vector3s[name] = value;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Vector3s[name] = value;
+			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Vector3s[name] = value;
+			break;
+		default:
+			break;
+		}
+
+		UniformUpdated(name);
 	}
 
 	void RenderContext::SetShaderVector4(ShaderDescriptorScope scope, const string& name, const Vector4& value)
@@ -109,6 +250,9 @@ namespace Coco::Rendering
 			break;
 		case ShaderDescriptorScope::Instance:
 			_currentInstanceUniformData.Vector4s[name] = value;
+			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Vector4s[name] = value;
 			break;
 		default:
 			break;
@@ -127,6 +271,9 @@ namespace Coco::Rendering
 		case ShaderDescriptorScope::Instance:
 			_currentInstanceUniformData.Colors[name] = value;
 			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Colors[name] = value;
+			break;
 		default:
 			break;
 		}
@@ -144,6 +291,9 @@ namespace Coco::Rendering
 		case ShaderDescriptorScope::Instance:
 			_currentInstanceUniformData.Matrix4x4s[name] = value;
 			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Matrix4x4s[name] = value;
+			break;
 		default:
 			break;
 		}
@@ -160,6 +310,9 @@ namespace Coco::Rendering
 			break;
 		case ShaderDescriptorScope::Instance:
 			_currentInstanceUniformData.Textures[name] = textureID;
+			break;
+		case ShaderDescriptorScope::Draw:
+			_currentDrawUniformData.Textures[name] = textureID;
 			break;
 		default:
 			break;

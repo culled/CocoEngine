@@ -29,8 +29,11 @@ void HelloTriangleRenderPass::Execute(RenderContext& renderContext)
         if (shaderData.GroupTag.empty())
         {
             renderContext.UseMaterial(materialData.ID);
+
             renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_Projection", renderView->Projection);
             renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_View", renderView->View);
+            renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Draw, "_Model", objectData.ModelMatrix);
+
 		    renderContext.Draw(objectData);
         }
     }

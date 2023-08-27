@@ -117,6 +117,27 @@ namespace Coco::Rendering
 		/// @brief If true, this data will be preserved in the renderer between frames
 		bool Preserve;
 
+		/// @brief The int properties
+		UnorderedMap<string, int32_t> Ints;
+
+		/// @brief The Vector2Int properties
+		UnorderedMap<string, Vector2Int> Vector2Ints;
+
+		/// @brief The Vector3Int properties
+		UnorderedMap<string, Vector3Int> Vector3Ints;
+
+		/// @brief The Vector4Int properties
+		UnorderedMap<string, Vector4Int> Vector4Ints;
+
+		/// @brief The float properties
+		UnorderedMap<string, float> Floats;
+
+		/// @brief The vector2 properties
+		UnorderedMap<string, Vector2> Vector2s;
+
+		/// @brief The vector3 properties
+		UnorderedMap<string, Vector3> Vector3s;
+
 		/// @brief The vector4 properties
 		UnorderedMap<string, Vector4> Vector4s;
 
@@ -198,11 +219,11 @@ namespace Coco::Rendering
 		/// @return The uniform data as bytes
 		List<char> GetUniformData(ShaderDescriptorScope scope, const ShaderUniformData& data, uint minimumAlignment) const;
 
-		/// @brief Gets the size of this subshader's descriptors
-		/// @param scope The scope for the descriptors
-		/// @param minimumAlignment The minimum alignment for the descriptors
-		/// @return The number of bytes required for the descriptor data
-		uint64_t GetDescriptorDataSize(ShaderDescriptorScope scope, uint minimumAlignment) const;
+		/// @brief Gets the size of this subshader's uniforms
+		/// @param scope The scope for the uniforms
+		/// @param minimumAlignment The minimum alignment for the uniforms
+		/// @return The number of bytes required for the uniform data
+		uint64_t GetUniformDataSize(ShaderDescriptorScope scope, uint minimumAlignment) const;
 
 		/// @brief Gets a list of shader uniforms in the given scope
 		/// @param scope The scope of the uniforms
