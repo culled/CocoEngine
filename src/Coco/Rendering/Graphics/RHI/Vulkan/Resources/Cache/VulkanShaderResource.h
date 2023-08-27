@@ -38,6 +38,7 @@ namespace Coco::Rendering::Vulkan
 		bool Preserve = false;
 	};
 
+	/// @brief Data for a descriptor write
 	struct DescriptorWriteData
 	{
 		List<ShaderUniformDescriptor> Uniforms;
