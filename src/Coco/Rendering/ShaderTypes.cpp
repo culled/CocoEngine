@@ -6,8 +6,8 @@
 
 namespace Coco::Rendering
 {
-	ShaderVertexAttribute::ShaderVertexAttribute(BufferDataFormat dataFormat) noexcept :
-		DataFormat(dataFormat), _dataOffset(0)
+	ShaderVertexAttribute::ShaderVertexAttribute(const string& name, BufferDataFormat dataFormat) noexcept :
+		Name(name), DataFormat(dataFormat), _dataOffset(0)
 	{}
 
 	ShaderDescriptor::ShaderDescriptor(const string& name, ShaderDescriptorScope scope, ShaderStageType bindPoint) noexcept :

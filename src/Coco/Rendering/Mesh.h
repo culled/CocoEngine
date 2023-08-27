@@ -13,6 +13,7 @@ namespace Coco::Rendering
 	struct VertexData
 	{
 		float Position[3];	// 12 bytes
+		float Normal[3];	// 12 bytes
 		float UV0[2];		// 8 bytes
 	};
 
@@ -24,6 +25,7 @@ namespace Coco::Rendering
 		Ref<Buffer> _indexBuffer;
 
 		List<Vector3> _vertexPositions;
+		List<Vector3> _vertexNormals;
 		List<Vector2> _vertexUV0s;
 		List<uint32_t> _vertexIndices;
 
@@ -41,6 +43,10 @@ namespace Coco::Rendering
 		/// @brief Sets vertex positions for this mesh. NOTE: this will define the number of vertices this mesh has
 		/// @param positions The list of vertex positions
 		void SetPositions(const List<Vector3>& positions);
+
+		/// @brief Sets the normals for the mesh
+		/// @param normals The list of normals
+		void SetNormals(const List<Vector3>& normals);
 
 		/// @brief Sets the uvs for the mesh
 		/// @param uvs The list of UV coordinates

@@ -59,6 +59,7 @@ namespace Coco::Rendering
 		/// @param size The size of the grid
 		/// @param offset The offset of the grid center
 		/// @param positions Will be filled with the vertex positions
+		/// @param normals Will be filled with the vertex normals
 		/// @param uvs Will be filled with the vertex UV coordinates
 		/// @param indices Will be filled with the vertex indices
 		/// @param subdivisions The number of subdivisions for the grid
@@ -66,7 +67,8 @@ namespace Coco::Rendering
 		static void CreateXYGrid(
 			const Vector2& size, 
 			const Vector3& offset, 
-			List<Vector3>& positions, 
+			List<Vector3>& positions,
+			List<Vector3>& normals,
 			List<Vector2>& uvs, 
 			List<uint>& indices, 
 			uint subdivisions = 0,
@@ -76,6 +78,7 @@ namespace Coco::Rendering
 		/// @param size The size of the grid
 		/// @param offset The offset of the grid center
 		/// @param positions Will be filled with the vertex positions
+		/// @param normals Will be filled with the vertex normals
 		/// @param uvs Will be filled with the vertex UV coordinates
 		/// @param indices Will be filled with the vertex indices
 		/// @param subdivisions The number of subdivisions for the grid
@@ -83,7 +86,8 @@ namespace Coco::Rendering
 		static void CreateXZGrid(
 			const Vector2& size, 
 			const Vector3& offset, 
-			List<Vector3>& positions, 
+			List<Vector3>& positions,
+			List<Vector3>& normals,
 			List<Vector2>& uvs, 
 			List<uint>& indices, 
 			uint subdivisions = 0,
@@ -93,6 +97,7 @@ namespace Coco::Rendering
 		/// @param size The size of the grid
 		/// @param offset The offset of the grid center
 		/// @param positions Will be filled with the vertex positions
+		/// @param normals Will be filled with the vertex normals
 		/// @param uvs Will be filled with the vertex UV coordinates
 		/// @param indices Will be filled with the vertex indices
 		/// @param subdivisions The number of subdivisions for the grid
@@ -101,6 +106,7 @@ namespace Coco::Rendering
 			const Vector2& size, 
 			const Vector3& offset, 
 			List<Vector3>& positions,
+			List<Vector3>& normals,
 			List<Vector2>& uvs, 
 			List<uint>& indices, 
 			uint subdivisions = 0,
@@ -110,6 +116,7 @@ namespace Coco::Rendering
 		/// @param size The size of the box
 		/// @param offset The offset of the box center
 		/// @param positions Will be filled with the vertex positions
+		/// @param normals Will be filled with the vertex normals
 		/// @param uvs Will be filled with the vertex UV coordinates
 		/// @param indices Will be filled with the vertex indices
 		/// @param subdivisions The number of subdivisions for the box
@@ -117,7 +124,8 @@ namespace Coco::Rendering
 		static void CreateBox(
 			const Vector3& size, 
 			const Vector3& offset, 
-			List<Vector3>& positions, 
+			List<Vector3>& positions,
+			List<Vector3>& normals,
 			List<Vector2>& uvs, 
 			List<uint>& indices, 
 			uint subdivisions = 0,
@@ -129,6 +137,7 @@ namespace Coco::Rendering
 		/// @param baseVertexCount The number of vertices for the cone's base
 		/// @param offset The offset of the cone
 		/// @param positions Will be filled with the vertex positions
+		/// @param normals Will be filled with the vertex normals
 		/// @param uvs Will be filled with the vertex UV coordinates
 		/// @param indices Will be filled with the vertex indices
 		/// @param flipDirection If true, the faces will face towards the inside of the cone
@@ -138,6 +147,7 @@ namespace Coco::Rendering
 			int baseVertexCount,
 			const Vector3& offset,
 			List<Vector3>& positions,
+			List<Vector3>& normals,
 			List<Vector2>& uvs,
 			List<uint>& indices,
 			bool flipDirection = false);
@@ -147,6 +157,7 @@ namespace Coco::Rendering
 		/// @param vertexCount The number of vertices in the circle
 		/// @param offset The offset of the circle
 		/// @param positions Will be filled with the vertex positions
+		/// @param normals Will be filled with the vertex normals
 		/// @param uvs Will be filled with the vertex UV coordinates
 		/// @param indices Will be filled with the vertex indices
 		/// @param flipDirection If true, the faces will face in the -Z direction
@@ -155,6 +166,7 @@ namespace Coco::Rendering
 			int vertexCount,
 			const Vector3& offset,
 			List<Vector3>& positions,
+			List<Vector3>& normals,
 			List<Vector2>& uvs,
 			List<uint>& indices,
 			bool flipDirection = false);
@@ -162,9 +174,15 @@ namespace Coco::Rendering
 		/// @brief Creates a mesh from vertices
 		/// @param name The name of the mesh
 		/// @param positions The vertex positions
+		/// @param normals The vertex normals
 		/// @param uvs The vertex UVs
 		/// @param indices The vertex indices
 		/// @return A mesh with the given vertices
-		static Ref<Mesh> CreateFromVertices(const string& name, const List<Vector3>& positions, const List<Vector2>& uvs, const List<uint>& indices);
+		static Ref<Mesh> CreateFromVertices(
+			const string& name, 
+			const List<Vector3>& positions,
+			const List<Vector3>& normals,
+			const List<Vector2>& uvs, 
+			const List<uint>& indices);
 	};
 }

@@ -26,6 +26,7 @@ namespace Coco::Rendering
 		static constexpr const char* s_stateDepthTestingModeVariable = "depthTestingMode";
 		static constexpr const char* s_stateEnableDepthWriteVariable = "enableDepthWrite";
 		static constexpr const char* s_attributesSection = "attributes";
+		static constexpr const char* s_attributeTypeVariable = "type";
 		static constexpr const char* s_descriptorsSection = "descriptors";
 		static constexpr const char* s_descriptorScopeVariable = "scope";
 		static constexpr const char* s_descriptorBindPointVariable = "bindPoint";

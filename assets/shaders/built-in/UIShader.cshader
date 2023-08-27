@@ -10,7 +10,7 @@ subshaders
                 file=shaders/built-in/UIShader.vert.spv
             main
                 type=8
-                file=shaders/built-in/ObjectShader.frag.spv
+                file=shaders/built-in/UIShader.frag.spv
         state
             topologyMode=3
             cullingMode=1
@@ -19,8 +19,12 @@ subshaders
             depthTestingMode=0
             enableDepthWrite=0
         attributes
-            4
-            2
+            Position
+                type=4
+            Normal
+                type=4
+            UV
+                type=2
         descriptors
             _Projection2D
                 bindPoint=1

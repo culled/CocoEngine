@@ -7,6 +7,9 @@ using namespace Coco::Rendering;
 
 class HelloTriangleRenderPass final : public IRenderPass 
 {
+private:
+	Color _ambientColor = Color(0.25, 0.25, 0.25, 1.0);
+
 public:
 	HelloTriangleRenderPass() = default;
 

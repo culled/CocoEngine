@@ -25,6 +25,12 @@ namespace Coco::Rendering
 		MarkDirty();
 	}
 
+	void Mesh::SetNormals(const List<Vector3>& normals)
+	{
+		_vertexNormals = normals;
+		MarkDirty();
+	}
+
 	void Mesh::SetUVs(const List<Vector2>& uvs)
 	{
 		_vertexUV0s = uvs;
@@ -46,6 +52,14 @@ namespace Coco::Rendering
 
 		try
 		{
+			if (_vertexNormals.Count() != _vertexPositions.Count())
+			{
+				throw InvalidOperationException(FormattedString(
+					"Normal count ({}) doesn't match vertex count of {}",
+					_vertexNormals.Count(),
+					_vertexPositions.Count()));
+			}
+
 			if (_vertexUV0s.Count() != _vertexPositions.Count())
 			{
 				throw InvalidOperationException(FormattedString(
@@ -92,6 +106,10 @@ namespace Coco::Rendering
 				vertexData[i].Position[1] = static_cast<float>(_vertexPositions[i].Y);
 				vertexData[i].Position[2] = static_cast<float>(_vertexPositions[i].Z);
 
+				vertexData[i].Normal[0] = static_cast<float>(_vertexNormals[i].X);
+				vertexData[i].Normal[1] = static_cast<float>(_vertexNormals[i].Y);
+				vertexData[i].Normal[2] = static_cast<float>(_vertexNormals[i].Z);
+
 				vertexData[i].UV0[0] = static_cast<float>(_vertexUV0s[i].X);
 				vertexData[i].UV0[1] = static_cast<float>(_vertexUV0s[i].Y);
 			}
@@ -112,6 +130,7 @@ namespace Coco::Rendering
 			if (deleteLocalData)
 			{
 				_vertexPositions.Clear();
+				_vertexNormals.Clear();
 				_vertexUV0s.Clear();
 				_vertexIndices.Clear();
 			}

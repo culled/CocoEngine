@@ -153,6 +153,7 @@ namespace Coco::Rendering::Vulkan
 		shaderStage.ShaderModuleCreateInfo = {};
 		shaderStage.ShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 
+		// TODO: maybe store the full path in the shader stage after loading?
 		const string fullFilePath = Engine::Get()->GetResourceLibrary()->GetFullFilePath(shaderStage.FilePath);
 		List<char> byteCode = File::ReadAllBytes(fullFilePath);
 

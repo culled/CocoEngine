@@ -19,8 +19,12 @@ subshaders
             depthTestingMode=1
             enableDepthWrite=1
         attributes
-            4
-            2
+            Position
+                type=4
+            Normal
+                type=4
+            UV
+                type=2
         descriptors
             _Projection
                 bindPoint=1
@@ -30,14 +34,18 @@ subshaders
                 bindPoint=1
                 scope=0
                 type=9
-            _Model
-                bindPoint=1
-                scope=2
-                type=9
+            _AmbientColor
+                bindPoint=8
+                scope=0
+                type=8
             _BaseColor
                 bindPoint=8
                 scope=1
                 type=8
+            _Model
+                bindPoint=1
+                scope=2
+                type=9
         samplers
             _MainTex
                 bindPoint=8

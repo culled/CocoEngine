@@ -63,10 +63,13 @@ namespace Coco::Rendering
 		uint32_t _dataOffset;
 
 	public:
+		/// @brief The name of this attribute
+		string Name;
+
 		/// @brief The format of the data for this attribute
 		BufferDataFormat DataFormat;
 
-		ShaderVertexAttribute(BufferDataFormat dataFormat) noexcept;
+		ShaderVertexAttribute(const string& name, BufferDataFormat dataFormat) noexcept;
 
 		/// @brief Gets the auto-calculated offset from the start of the vertex data structure of this attribute
 		/// @return The offset from the start of the vertex data structure of this attribute

@@ -100,8 +100,9 @@ void App::ConfigureRenderPipeline()
 		},
 		pipelineState,
 		{
-			ShaderVertexAttribute(BufferDataFormat::Vector3),
-			ShaderVertexAttribute(BufferDataFormat::Vector2)
+			ShaderVertexAttribute("Position", BufferDataFormat::Vector3),
+			ShaderVertexAttribute("Normal", BufferDataFormat::Vector3),
+			ShaderVertexAttribute("UV", BufferDataFormat::Vector2)
 		},
 		{
 			ShaderUniformDescriptor("_Projection", ShaderDescriptorScope::Global, ShaderStageType::Vertex, BufferDataFormat::Matrix4x4),

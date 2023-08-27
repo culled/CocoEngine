@@ -63,16 +63,17 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	const double size = 30.0;
 	
 	List<Vector3> vertexPositions;
+	List<Vector3> vertexNormals;
 	List<Vector2> vertexUVs;
 	List<uint> vertexIndices;
 	
-	MeshPrimitives::CreateXYGrid(Vector2(size, size), Vector3(0.0, 0.0, -size * 0.5), vertexPositions, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateXZGrid(Vector2(size, size), Vector3(0.0, -size * 0.5, 0.0), vertexPositions, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateYZGrid(Vector2(size, size), Vector3(-size * 0.5, 0.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateBox(Vector3::One, Vector3(0.0, 5.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateCone(2.0, 1.0, 12, Vector3(2.0, 5.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateXYGrid(Vector2(size, size), Vector3(0.0, 0.0, -size * 0.5), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateXZGrid(Vector2(size, size), Vector3(0.0, -size * 0.5, 0.0), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateYZGrid(Vector2(size, size), Vector3(-size * 0.5, 0.0, 0.0), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateBox(Vector3::One, Vector3(0.0, 5.0, 0.0), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateCone(2.0, 1.0, 12, Vector3(2.0, 5.0, 0.0), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
 	
-	_mesh = MeshPrimitives::CreateFromVertices("Mesh", vertexPositions, vertexUVs, vertexIndices);
+	_mesh = MeshPrimitives::CreateFromVertices("Mesh", vertexPositions, vertexNormals, vertexUVs, vertexIndices);
 
 	// Setup our render pipeline
 	Ref<Rendering::RenderPipeline> pipeline = engine->GetResourceLibrary()->CreateResource<Rendering::RenderPipeline>("Pipeline");
@@ -213,9 +214,9 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	cameraTransform.SetLocalPosition(cameraTransform.GetLocalPosition() + velocity * deltaTime);
 	cameraTransform.SetLocalRotation(orientation);
 
-	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
-	const double a = Math::Sin(t) * 0.5 + 0.5;
-	_materialInstance->SetColor("_BaseColor", Color(a, a, a, 1.0));
+	//const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
+	//const double a = Math::Sin(t) * 0.5 + 0.5;
+	//_materialInstance->SetColor("_BaseColor", Color(a, a, a, 1.0));
 	
 	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
 	{

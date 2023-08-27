@@ -48,7 +48,13 @@ namespace Coco::Rendering
 				writer.WriteLine(s_attributesSection);
 				writer.IncrementIndentLevel();
 				for (const ShaderVertexAttribute& attr : subshader.Attributes)
-					writer.WriteLine(ToString(static_cast<int>(attr.DataFormat)));
+				{
+					writer.WriteLine(attr.Name);
+
+					writer.IncrementIndentLevel();
+					writer.WriteLine(s_attributeTypeVariable, ToString(static_cast<int>(attr.DataFormat)));
+					writer.DecrementIndentLevel();
+				}
 				writer.DecrementIndentLevel();
 
 				writer.WriteLine(s_descriptorsSection);
@@ -194,7 +200,16 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			attributes.Construct(static_cast<BufferDataFormat>(reader.GetKeyAsInt()));
+			string name = reader.GetKey();
+			BufferDataFormat type;
+
+			while (reader.ReadIfIsIndentLevel(4))
+			{
+				if (reader.IsKey(s_attributeTypeVariable))
+					type = static_cast<BufferDataFormat>(reader.GetVariableValueAsInt());
+			}
+
+			attributes.Construct(name, type);
 		}
 	}
 
