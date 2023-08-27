@@ -96,6 +96,7 @@ namespace Coco::Rendering
 		virtual ~ShaderTextureSampler() = default;
 	};
 
+	/// @brief A uniform for a shader
 	struct COCOAPI ShaderUniformDescriptor : public ShaderDescriptor
 	{
 		/// @brief The type of descriptor
