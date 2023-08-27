@@ -9,6 +9,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
+	VulkanShaderStage::VulkanShaderStage() : ShaderStage(), ShaderModuleCreateInfo{}
+	{}
 
 	VulkanSubshader::VulkanSubshader(GraphicsDeviceVulkan* device, const Subshader& subshaderData) :
 		_device(device), _name(subshaderData.PassName), _subshader(subshaderData), _isValid(true)

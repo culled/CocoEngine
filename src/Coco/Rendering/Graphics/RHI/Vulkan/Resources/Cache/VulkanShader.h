@@ -27,6 +27,8 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief The create info for the Vulkan shader module
 		VkShaderModuleCreateInfo ShaderModuleCreateInfo;
+
+		VulkanShaderStage();
 	};
 
 	/// @brief A subshader that can be used with Vulkan
