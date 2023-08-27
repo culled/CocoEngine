@@ -30,11 +30,10 @@ namespace Coco::Rendering
 		const List<ShaderStage>& stages,
 		const GraphicsPipelineState& pipelineState, 
 		const List<ShaderVertexAttribute>& attributes,
-		const List<ShaderDescriptor>& descriptors,
-		const List<ShaderTextureSampler>& samplers,
-		ShaderStageType bindPoint)
+		const List<ShaderUniformDescriptor>& uniforms,
+		const List<ShaderTextureSampler>& samplers)
 	{
-		_subshaders.Construct(name, stages, pipelineState, attributes, descriptors, samplers, bindPoint);
+		_subshaders.Construct(name, stages, pipelineState, attributes, uniforms, samplers);
 	}
 
 	ShaderUniformData Shader::GetUniformPropertyMap() const
@@ -43,28 +42,37 @@ namespace Coco::Rendering
 
 		for (const Subshader& subshader : _subshaders)
 		{
-			for (int i = 0; i < subshader.Descriptors.Count(); i++)
+			for (int i = 0; i < subshader.Uniforms.Count(); i++)
 			{
-				const ShaderDescriptor& descriptor = subshader.Descriptors[i];
+				const ShaderUniformDescriptor& uniform = subshader.Uniforms[i];
 
-				switch (descriptor.Type)
+				switch (uniform.Type)
 				{
 				case BufferDataFormat::Vector4:
 				{
 					// Skip duplicate properties
-					if (data.Vector4s.contains(descriptor.Name))
+					if (data.Vector4s.contains(uniform.Name))
 						continue;
 
-					data.Vector4s[descriptor.Name] = Vector4::Zero;
+					data.Vector4s[uniform.Name] = Vector4::Zero;
 					break;
 				}
 				case BufferDataFormat::Color:
 				{
 					// Skip duplicate properties
-					if (data.Colors.contains(descriptor.Name))
+					if (data.Colors.contains(uniform.Name))
 						continue;
 
-					data.Colors[descriptor.Name] = Color::Black;
+					data.Colors[uniform.Name] = Color::Black;
+					break;
+				}
+				case BufferDataFormat::Matrix4x4:
+				{
+					// Skip duplicate properties
+					if (data.Matrix4x4s.contains(uniform.Name))
+						continue;
+
+					data.Matrix4x4s[uniform.Name] = Matrix4x4::Identity;
 					break;
 				}
 				default:

@@ -6,7 +6,6 @@ layout(location = 1) in vec2 inUV;
 
 layout(set = 0, binding = 0) uniform globalUniformObject {
     mat4 projection;
-    mat4 projection2d;
     mat4 view;
 } globalUBO;
 

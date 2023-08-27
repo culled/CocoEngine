@@ -6,10 +6,10 @@ subshaders
     main
         stages
             main
-                type=0
+                type=1
                 file=shaders/built-in/UIShader.vert.spv
             main
-                type=3
+                type=8
                 file=shaders/built-in/ObjectShader.frag.spv
         state
             topologyMode=3
@@ -22,7 +22,15 @@ subshaders
             4
             2
         descriptors
-            _BaseColor=8
+            _Projection2D
+                bindPoint=1
+                scope=0
+                type=9
+            _BaseColor
+                bindPoint=8
+                scope=1
+                type=8
         samplers
             _MainTex
-        descriptorBindStage=3
+                bindPoint=8
+                scope=1

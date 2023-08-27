@@ -38,7 +38,7 @@ namespace Coco::Rendering::Vulkan
 		GraphicsDeviceVulkan* _device;
 		string _name;
 		List<VulkanShaderStage> _shaderStages;
-		VulkanDescriptorLayout _descriptorLayout;
+		UnorderedMap<ShaderDescriptorScope, VulkanDescriptorLayout> _descriptorLayouts;
 		Subshader _subshader;
 		bool _isValid;
 
@@ -57,8 +57,13 @@ namespace Coco::Rendering::Vulkan
 		const List<VulkanShaderStage>& GetStages() const noexcept { return _shaderStages; }
 
 		/// @brief Gets the descriptor layout for this subshader
+		/// @param scope The scope of the layout
 		/// @return The descriptor layout for this subshader
-		const VulkanDescriptorLayout& GetDescriptorLayout() const noexcept { return _descriptorLayout; }
+		const VulkanDescriptorLayout& GetDescriptorLayout(ShaderDescriptorScope scope) const noexcept { return _descriptorLayouts.at(scope); }
+
+		/// @brief Gets the descriptor layouts for this subshader
+		/// @return The descriptor layouts for this subshader
+		List<VulkanDescriptorLayout> GetDescriptorLayouts() const noexcept;
 
 		/// @brief Gets the subshader info for this subshader
 		/// @return The subshader info for this subshader
@@ -72,6 +77,11 @@ namespace Coco::Rendering::Vulkan
 		/// @param stage The shader stage
 		/// @return A Vulkan shader stage
 		VulkanShaderStage CreateShaderStage(const ShaderStage& stage);
+
+		/// @brief Creates a descriptor layout for the given scope of descriptors
+		/// @param scope The scope of the descriptors
+		/// @return The created descriptor layout
+		VulkanDescriptorLayout CreateDescriptorLayout(ShaderDescriptorScope scope);
 	};
 
 	/// @brief A cached Vulkan shader

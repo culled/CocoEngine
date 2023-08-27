@@ -104,10 +104,12 @@ void App::ConfigureRenderPipeline()
 			ShaderVertexAttribute(BufferDataFormat::Vector2)
 		},
 		{
-			ShaderDescriptor("_BaseColor", BufferDataFormat::Color)
+			ShaderUniformDescriptor("_Projection", ShaderDescriptorScope::Global, ShaderStageType::Vertex, BufferDataFormat::Matrix4x4),
+			ShaderUniformDescriptor("_View", ShaderDescriptorScope::Global, ShaderStageType::Vertex, BufferDataFormat::Matrix4x4),
+			ShaderUniformDescriptor("_BaseColor", ShaderDescriptorScope::Instance, ShaderStageType::Fragment, BufferDataFormat::Color)
 		},
 		{
-			ShaderTextureSampler("_MainTex")
+			ShaderTextureSampler("_MainTex", ShaderDescriptorScope::Instance, ShaderStageType::Fragment)
 		}
 		);
 

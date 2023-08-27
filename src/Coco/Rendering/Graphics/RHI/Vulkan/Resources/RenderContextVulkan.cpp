@@ -35,27 +35,16 @@ namespace Coco::Rendering::Vulkan
 
 		_commandBuffer = _pool->Allocate(true);
 
-		_globalUBO = _device->CreateResource<BufferVulkan>(FormattedString("{} Global UBO", name),
-			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
-			sizeof(GlobalUniformObject),
-			true);
-
 		_imageAvailableSemaphore = _device->CreateResource<GraphicsSemaphoreVulkan>(FormattedString("{} Image Available Semaphore", name));
 		_renderingCompleteSemaphore = _device->CreateResource<GraphicsSemaphoreVulkan>(FormattedString("{} Rendering Complete Semaphore", name));
 		_renderingCompleteFence = _device->CreateResource<GraphicsFenceVulkan>(FormattedString("{} Rendering Complete Fence", name), true);
 
 		_renderCache = CreateManagedRef<RenderContextVulkanCache>();
-
-		CreateGlobalDescriptorSet();
 	}
 
 	RenderContextVulkan::~RenderContextVulkan()
 	{
 		_device->WaitForIdle();
-
-		_device->PurgeResource(_globalDescriptorPool);
-		vkDestroyDescriptorSetLayout(_device->GetDevice(), _globalDescriptor.Layout, nullptr);
-		_globalDescriptor.Layout = nullptr;
 
 		_renderCache.Reset();
 		_currentFramebuffer = nullptr;
@@ -69,7 +58,6 @@ namespace Coco::Rendering::Vulkan
 		_device->PurgeResource(_imageAvailableSemaphore);
 		_device->PurgeResource(_renderingCompleteSemaphore);
 		_device->PurgeResource(_renderingCompleteFence);
-		_device->PurgeResource(_globalUBO);
 	}
 
 	void RenderContextVulkan::SetViewport(const RectInt& rect)
@@ -107,10 +95,6 @@ namespace Coco::Rendering::Vulkan
 			LogError(_device->GetLogger(), "Mesh has no index and/or vertex data. Skipping...");
 			return;
 		}
-
-		// Bind the object's material if it has one
-		if(objectData.MaterialData != Resource::InvalidID)
-			UseMaterial(objectData.MaterialData);
 
 		// Flush the pipeline state
 		if (!FlushStateChanges())
@@ -151,8 +135,6 @@ namespace Coco::Rendering::Vulkan
 				throw VulkanRenderingException("No RenderPipline was set");
 
 			_currentVulkanRenderPass = _device->GetRenderCache()->GetOrCreateRenderPass(_currentRenderPipeline);
-
-			_globalUBO->LoadData(0, sizeof(GlobalUniformObject), &_globalUO);
 
 			_currentFramebuffer = _renderCache->GetOrCreateFramebuffer(_currentRenderView, *_currentVulkanRenderPass, _currentRenderPipeline);
 
@@ -251,7 +233,6 @@ namespace Coco::Rendering::Vulkan
 			LogError(_device->GetLogger(), FormattedString("Unable to end VulkanRenderContext: {}", ex.what()));
 		}
 
-		_currentShaderUniformData = ShaderUniformData();
 		_currentPipeline = nullptr;
 		_currentVulkanRenderPass = nullptr;
 	}
@@ -259,12 +240,12 @@ namespace Coco::Rendering::Vulkan
 	void RenderContextVulkan::ResetImpl()
 	{
 		// Free all material descriptor sets
-		_renderCache->FreeDescriptorSets();
-		_shaderDescriptorSets.clear();
+		_renderCache->ResetForNewFrame();
 
 		// Clear all currently bound items
 		_stateChanges.clear();
 		_currentPipeline = nullptr;
+		ResetShaderUniformData();
 
 		// Reset render syncronization objects
 		_frameSignalSemaphores.Clear();
@@ -288,6 +269,16 @@ namespace Coco::Rendering::Vulkan
 		_stateChanges.insert(RenderContextStateChange::Material);
 	}
 
+	void RenderContextVulkan::UniformUpdated(const string& name)
+	{
+		_stateChanges.insert(RenderContextStateChange::Uniform);
+	}
+
+	void RenderContextVulkan::TextureSamplerUpdated(const string& name)
+	{
+		_stateChanges.insert(RenderContextStateChange::Texture);
+	}
+
 	bool RenderContextVulkan::FlushStateChanges()
 	{
 		bool stateBound = false;
@@ -302,6 +293,14 @@ namespace Coco::Rendering::Vulkan
 				throw RenderingException("No shader was bound");
 
 			VulkanShader* shader = _device->GetRenderCache()->GetOrCreateVulkanShader(_currentShader);
+			const string subshaderName = _currentRenderPass->GetSubshaderName();
+
+			const VulkanSubshader* vulkanSubshader;
+			if (!shader->TryGetSubshader(subshaderName, vulkanSubshader))
+				throw RenderingException(FormattedString("Shader {} has no subshader named {}", shader->GetName(), subshaderName));
+
+			// Get the shader resource
+			VulkanShaderResource* shaderResource = _renderCache->GetOrCreateShaderResource(*shader);
 
 			if (_stateChanges.contains(RenderContextStateChange::Shader))
 			{
@@ -309,8 +308,7 @@ namespace Coco::Rendering::Vulkan
 					*_currentVulkanRenderPass,
 					*shader,
 					_currentRenderPass->GetSubshaderName(),
-					static_cast<uint32_t>(_currentRenderPassIndex),
-					_globalDescriptor.Layout);
+					static_cast<uint32_t>(_currentRenderPassIndex));
 
 				// Ensure a pipeline state has been bound
 				if (_currentPipeline == nullptr)
@@ -318,30 +316,40 @@ namespace Coco::Rendering::Vulkan
 
 				vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, _currentPipeline->GetPipeline());
 
-				// Bind the global descriptor set
-				vkCmdBindDescriptorSets(
-					_commandBuffer->GetCmdBuffer(),
-					VK_PIPELINE_BIND_POINT_GRAPHICS,
-					_currentPipeline->GetPipelineLayout(),
-					_globalDescriptorSetIndex, 1, &_globalDescriptorSet,
-					0, 0);
+				VkDescriptorSet set = shaderResource->PrepareGlobalData(*vulkanSubshader, *_currentRenderView.Get(), _currentGlobalUniformData);
+
+				if (set != nullptr)
+				{
+					// Bind the global descriptor set
+					vkCmdBindDescriptorSets(
+						_commandBuffer->GetCmdBuffer(),
+						VK_PIPELINE_BIND_POINT_GRAPHICS,
+						_currentPipeline->GetPipelineLayout(),
+						_globalDescriptorSetIndex, 1, &set,
+						0, 0);
+				}
 			}
 
 			// Ensure a pipeline state has been bound
 			if (_currentPipeline == nullptr)
 				throw RenderingException("A pipeline was not bound");
 
-			VkDescriptorSet set;
-
-			if (GetOrAllocateShaderDescriptorSet(*shader, set))
+			if (_stateChanges.contains(RenderContextStateChange::Material) || 
+				_stateChanges.contains(RenderContextStateChange::Uniform) || 
+				_stateChanges.contains(RenderContextStateChange::Texture))
 			{
-				// Bind the material descriptor set
-				vkCmdBindDescriptorSets(
-					_commandBuffer->GetCmdBuffer(),
-					VK_PIPELINE_BIND_POINT_GRAPHICS,
-					_currentPipeline->GetPipelineLayout(),
-					_materialDescriptorSetIndex, 1, &set,
-					0, 0);
+				VkDescriptorSet set = shaderResource->PrepareInstanceData(*vulkanSubshader, *_currentRenderView.Get(), _currentInstanceUniformData);
+
+				if (set != nullptr)
+				{
+					// Bind the instance descriptor set
+					vkCmdBindDescriptorSets(
+						_commandBuffer->GetCmdBuffer(),
+						VK_PIPELINE_BIND_POINT_GRAPHICS,
+						_currentPipeline->GetPipelineLayout(),
+						_instanceDescriptorSetIndex, 1, &set,
+						0, 0);
+				}
 			}
 
 			stateBound = true;
@@ -355,151 +363,6 @@ namespace Coco::Rendering::Vulkan
 
 		_stateChanges.clear();
 		return stateBound;
-	}
-
-	void RenderContextVulkan::CreateGlobalDescriptorSet()
-	{
-		VkDescriptorSetLayoutBinding binding = {};
-		binding.binding = 0;
-		binding.descriptorCount = 1;
-		binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		binding.pImmutableSamplers = nullptr;
-		binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		_globalDescriptor.LayoutBindings.Add(binding);
-
-		VkDescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-		layoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutCreateInfo.bindingCount = 1;
-		layoutCreateInfo.pBindings = &binding;
-
-		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &layoutCreateInfo, nullptr, &_globalDescriptor.Layout));
-
-		_globalDescriptorPool = _device->CreateResource<VulkanDescriptorPool>(FormattedString("{} Global Descriptor Pool", _name), 1, List<VulkanDescriptorLayout>({ _globalDescriptor }));
-		_globalDescriptorSet = _globalDescriptorPool->GetOrAllocateSet(_globalDescriptor, 0);
-
-		// Update the descriptor sets
-		VkDescriptorBufferInfo globalUBOBufferInfo = {};
-		globalUBOBufferInfo.buffer = _globalUBO->GetBuffer();
-		globalUBOBufferInfo.offset = 0;
-		globalUBOBufferInfo.range = sizeof(GlobalUniformObject);
-
-		VkWriteDescriptorSet descriptorWrite = {};
-		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = _globalDescriptorSet;
-		descriptorWrite.dstBinding = 0;
-		descriptorWrite.dstArrayElement = 0;
-		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pBufferInfo = &globalUBOBufferInfo;
-
-		vkUpdateDescriptorSets(_device->GetDevice(), 1, &descriptorWrite, 0, nullptr);
-	}
-
-	bool RenderContextVulkan::GetOrAllocateShaderDescriptorSet(const VulkanShader& shader, VkDescriptorSet& set)
-	{
-		// Use the cached descriptor set if it exists
-		const auto it = _shaderDescriptorSets.find(_currentShaderUniformData.ID);
-		if (it != _shaderDescriptorSets.cend())
-		{
-			set = it->second;
-			return true;
-		}
-
-		const string renderPassName = _currentRenderPass->GetSubshaderName();
-		const VulkanSubshader* subshader;
-		if (!shader.TryGetSubshader(renderPassName, subshader))
-			throw RenderingException(FormattedString("Shader {} has no subshader named {}", shader.GetName(), renderPassName));
-
-		const Subshader& subshaderInfo = subshader->GetSubshader();
-
-		// Early out if no descriptors
-		if (subshaderInfo.Descriptors.Count() == 0 && subshaderInfo.Samplers.Count() == 0)
-			return false;
-
-		// Get the shader resource
-		VulkanShaderResource* shaderResource = _renderCache->GetOrCreateShaderResource(shader);
-
-		// Allocate this shader's descriptor set
-		auto[region, descriptorSet] = shaderResource->CreateOrUpdateBuffer(_currentShaderUniformData, *subshader);
-		_shaderDescriptorSets[_currentShaderUniformData.ID] = descriptorSet;
-		set = descriptorSet;
-
-		bool hasUniforms = subshaderInfo.Descriptors.Count() > 0;
-
-		VkDescriptorBufferInfo bufferInfo = {};
-		List<VkDescriptorImageInfo> imageInfos(subshaderInfo.Samplers.Count());
-		List<VkWriteDescriptorSet> descriptorWrites(imageInfos.Count() + (hasUniforms ? 1 : 0));
-
-		uint32_t bindingIndex = 0;
-
-		// Write buffer binding if we need it
-		if (hasUniforms)
-		{
-			VkWriteDescriptorSet& write = descriptorWrites[bindingIndex];
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstSet = set;
-			write.dstBinding = bindingIndex;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			write.descriptorCount = 1;
-
-			bufferInfo.buffer = shaderResource->GetUniformBuffer(region)->GetBuffer();
-			bufferInfo.offset = region.AllocatedBlock.Offset;
-			bufferInfo.range = region.AllocatedBlock.Size;
-
-			write.pBufferInfo = &bufferInfo;
-
-			bindingIndex++;
-		}
-
-		// Write texture bindings
-		for (uint32_t i = 0; i < subshaderInfo.Samplers.Count(); i++)
-		{
-			const ShaderTextureSampler& textureSampler = subshaderInfo.Samplers[i];
-
-			ResourceID textureID = _currentShaderUniformData.Textures.contains(textureSampler.Name) ? _currentShaderUniformData.Textures.at(textureSampler.Name) : Resource::InvalidID;
-
-			Ref<Image> image;
-			Ref<ImageSampler> sampler;
-
-			if (textureID != Resource::InvalidID)
-			{
-				const TextureRenderData& textureData = _currentRenderView->Textures.at(textureID);
-				image = textureData.Image;
-				sampler = textureData.Sampler;
-			}
-			else
-			{
-				Ref<Texture> defaultTexture = EnsureRenderingService()->GetDefaultCheckerTexture();
-				image = defaultTexture->GetImage();
-				sampler = defaultTexture->GetSampler();
-			}
-
-			if (!image.IsValid() || !sampler.IsValid())
-				throw RenderingException(FormattedString("The sampler or image reference for \"{}\" is empty", textureSampler.Name));
-
-			ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.Get());
-			ImageSamplerVulkan* vulkanSampler = static_cast<ImageSamplerVulkan*>(sampler.Get());
-
-			// Texture data
-			VkDescriptorImageInfo& imageInfo = imageInfos[i];
-			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = vulkanImage->GetNativeView();
-			imageInfo.sampler = vulkanSampler->GetSampler();
-
-			VkWriteDescriptorSet& write = descriptorWrites[bindingIndex];
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstSet = set;
-			write.dstBinding = bindingIndex;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			write.descriptorCount = 1;
-			write.pImageInfo = &imageInfo;
-
-			bindingIndex++;
-		}	
-
-		vkUpdateDescriptorSets(_device->GetDevice(), static_cast<uint32_t>(descriptorWrites.Count()), descriptorWrites.Data(), 0, nullptr);
-
-		return true;
 	}
 
 	void RenderContextVulkan::AddPreRenderPassImageTransitions()

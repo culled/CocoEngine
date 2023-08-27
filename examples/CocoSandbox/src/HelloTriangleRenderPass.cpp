@@ -20,11 +20,17 @@ void HelloTriangleRenderPass::Execute(RenderContext& renderContext)
 
     for (const ObjectRenderData& objectData : renderView->Objects)
     {
+        if (objectData.MaterialData == Resource::InvalidID)
+            continue;
+
         const MaterialRenderData& materialData = renderView->Materials.at(objectData.MaterialData);
         const ShaderRenderData& shaderData = renderView->Shaders.at(materialData.ShaderID);
 
         if (shaderData.GroupTag.empty())
         {
+            renderContext.UseMaterial(materialData.ID);
+            renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_Projection", renderView->Projection);
+            renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_View", renderView->View);
 		    renderContext.Draw(objectData);
         }
     }

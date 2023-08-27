@@ -28,10 +28,17 @@ void UIRenderPass::Execute(RenderContext& renderContext)
 
     for (const ObjectRenderData& objectData : renderView->Objects)
     {
+        if (objectData.MaterialData == Resource::InvalidID)
+            continue;
+
         const MaterialRenderData& materialData = renderView->Materials.at(objectData.MaterialData);
         const ShaderRenderData& shaderData = renderView->Shaders.at(materialData.ShaderID);
 
         if (shaderData.GroupTag == "UI")
+        {
+            renderContext.UseMaterial(materialData.ID);
+            renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_Projection2D", renderView->Projection2D);
             renderContext.Draw(objectData);
+        }
     }
 }

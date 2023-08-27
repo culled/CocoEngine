@@ -40,17 +40,15 @@ namespace Coco::Rendering
 		/// @param stages The stages for the subshader
 		/// @param pipelineState The pipeline state for the subshader
 		/// @param attributes The attributes for the subshader
-		/// @param descriptors The descriptors for the subshader
+		/// @param uniforms The uniforms for the subshader
 		/// @param samplers The texture samplers for the subshader
-		/// @param bindPoint The point in this subshader when the descriptors should be bound
 		void CreateSubshader(
 			const string& name, 
 			const List<ShaderStage>& stages,
 			const GraphicsPipelineState& pipelineState, 
 			const List<ShaderVertexAttribute>& attributes,
-			const List<ShaderDescriptor>& descriptors,
-			const List<ShaderTextureSampler>& samplers,
-			ShaderStageType bindPoint = ShaderStageType::Fragment);
+			const List<ShaderUniformDescriptor>& uniforms,
+			const List<ShaderTextureSampler>& samplers);
 
 		/// @brief Sets the tag for this shader
 		/// @param groupTag The tag

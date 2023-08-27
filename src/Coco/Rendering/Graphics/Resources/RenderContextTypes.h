@@ -11,7 +11,9 @@ namespace Coco::Rendering
 	enum class RenderContextStateChange
 	{
 		Shader,
-		Material
+		Material,
+		Uniform,
+		Texture
 	};
 
 	/// @brief States for a render context to be in
@@ -20,23 +22,5 @@ namespace Coco::Rendering
 		Ready,
 		CompilingDrawCalls,
 		DrawCallsSubmitted,
-	};
-
-	/// @brief An object that holds global uniform data that can be directly pushed to a shader
-	struct GlobalUniformObject
-	{
-		float Projection[4 * 4];	// 64 bytes
-		float Projection2D[4 * 4];	// 64 bytes
-		float View[4 * 4];			// 64 bytes
-		uint8_t Padding[64];		// 64 bytes - padding
-
-		GlobalUniformObject() noexcept;
-		GlobalUniformObject(const RenderView* renderView) noexcept;
-
-	private:
-		/// @brief Populates a float array pointer with matrix values
-		/// @param destinationMatrixPtr The pointer to the first element of the float array
-		/// @param sourceMatrix The matrix
-		static void PopulateMatrix(float* destinationMatrixPtr, const Matrix4x4& sourceMatrix) noexcept;
 	};
 }

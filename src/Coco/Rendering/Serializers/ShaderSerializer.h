@@ -27,8 +27,12 @@ namespace Coco::Rendering
 		static constexpr const char* s_stateEnableDepthWriteVariable = "enableDepthWrite";
 		static constexpr const char* s_attributesSection = "attributes";
 		static constexpr const char* s_descriptorsSection = "descriptors";
+		static constexpr const char* s_descriptorScopeVariable = "scope";
+		static constexpr const char* s_descriptorBindPointVariable = "bindPoint";
+		static constexpr const char* s_descriptorTypeVariable = "type";
 		static constexpr const char* s_samplersSection = "samplers";
-		static constexpr const char* s_subshaderBindStageVariable = "descriptorBindStage";
+		static constexpr const char* s_samplerScopeVariable = "scope";
+		static constexpr const char* s_samplerBindPointVariable = "bindPoint";
 
 	public:
 		ShaderSerializer() = default;
@@ -60,10 +64,10 @@ namespace Coco::Rendering
 		/// @param attributes Will be filled out with vertex attributes
 		void ReadSubshaderAttributes(KeyValueReader& reader, List<ShaderVertexAttribute>& attributes);
 
-		/// @brief Reads descriptors for a subshader
+		/// @brief Reads uniforms for a subshader
 		/// @param reader The reader
-		/// @param descriptors Will be filled out with descriptors
-		void ReadSubshaderDescriptors(KeyValueReader& reader, List<ShaderDescriptor>& descriptors);
+		/// @param uniforms Will be filled out with uniforms
+		void ReadSubshaderUniforms(KeyValueReader& reader, List<ShaderUniformDescriptor>& uniforms);
 
 		/// @brief Reads texture samplers for a subshader
 		/// @param reader The reader

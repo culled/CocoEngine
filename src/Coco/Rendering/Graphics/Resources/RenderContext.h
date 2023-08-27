@@ -33,11 +33,16 @@ namespace Coco::Rendering
 		/// @brief The index of the current render pass in the pipeline
 		int _currentRenderPassIndex = -1;
 
-		/// @brief The global uniform object
-		GlobalUniformObject _globalUO;
-
+		/// @brief The currently bound shader render data
 		ShaderRenderData _currentShader;
-		ShaderUniformData _currentShaderUniformData;
+
+		/// @brief The current global uniform data
+		ShaderUniformData _currentGlobalUniformData;
+
+		/// @brief The current instance uniform data
+		ShaderUniformData _currentInstanceUniformData;
+
+		/// @brief The currently bound material render data
 		MaterialRenderData _currentMaterial;
 
 		/// @brief The number of draw calls this render
@@ -94,25 +99,34 @@ namespace Coco::Rendering
 		void ResetShaderUniformData();
 
 		/// @brief Sets a Vector4 uniform
+		/// @param scope The scope of the uniform
 		/// @param name The uniform name
 		/// @param value The value
-		void SetShaderVector4(const string& name, const Vector4& value);
+		void SetShaderVector4(ShaderDescriptorScope scope, const string& name, const Vector4& value);
 
 		/// @brief Sets a Color uniform
+		/// @param scope The scope of the uniform
 		/// @param name The uniform name
 		/// @param value The value
-		void SetShaderColor(const string& name, const Color& value);
+		void SetShaderColor(ShaderDescriptorScope scope, const string& name, const Color& value);
+
+		/// @brief Sets a Matrix4x4 uniform
+		/// @param scope The scope of the uniform
+		/// @param name The uniform name
+		/// @param value The value
+		void SetShaderMatrix4x4(ShaderDescriptorScope scope, const string& name, const Matrix4x4& value);
 
 		/// @brief Sets a Texture sampler
+		/// @param scope The scope of the sampler
 		/// @param name The sampler name
 		/// @param textureID The ID of the texture resource
-		void SetShaderTexture(const string& name, const ResourceID& textureID);
+		void SetShaderTexture(ShaderDescriptorScope scope, const string& name, const ResourceID& textureID);
 
 		/// @brief Sets the given material as the one that will be used to draw subsequent geometry
 		/// @param materialID The ID of the material to use
 		void UseMaterial(const ResourceID& materialID);
 
-		/// @brief Draws an object using its material
+		/// @brief Draws an object
 		/// @param objectData The object to draw
 		virtual void Draw(const ObjectRenderData& objectData) = 0;
 

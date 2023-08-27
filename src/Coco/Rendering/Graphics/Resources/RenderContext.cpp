@@ -20,7 +20,6 @@ namespace Coco::Rendering
 
 		_currentRenderPipeline = pipeline;
 		_currentRenderView = renderView;
-		_globalUO = GlobalUniformObject(renderView.Get());
 
 		return BeginImpl();
 	}
@@ -97,26 +96,74 @@ namespace Coco::Rendering
 
 	void RenderContext::ResetShaderUniformData()
 	{
-		_currentShaderUniformData = ShaderUniformData();
+		_currentGlobalUniformData = ShaderUniformData();
+		_currentInstanceUniformData = ShaderUniformData();
 	}
 
-	void RenderContext::SetShaderVector4(const string& name, const Vector4& value)
+	void RenderContext::SetShaderVector4(ShaderDescriptorScope scope, const string& name, const Vector4& value)
 	{
-		_currentShaderUniformData.Vector4s[name] = value;
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Vector4s[name] = value;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Vector4s[name] = value;
+			break;
+		default:
+			break;
+		}
 
 		UniformUpdated(name);
 	}
 
-	void RenderContext::SetShaderColor(const string& name, const Color& value)
+	void RenderContext::SetShaderColor(ShaderDescriptorScope scope, const string& name, const Color& value)
 	{
-		_currentShaderUniformData.Colors[name] = value;
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Colors[name] = value;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Colors[name] = value;
+			break;
+		default:
+			break;
+		}
 
 		UniformUpdated(name);
 	}
 
-	void RenderContext::SetShaderTexture(const string& name, const ResourceID& textureID)
+	void RenderContext::SetShaderMatrix4x4(ShaderDescriptorScope scope, const string& name, const Matrix4x4& value)
 	{
-		_currentShaderUniformData.Textures[name] = textureID;
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Matrix4x4s[name] = value;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Matrix4x4s[name] = value;
+			break;
+		default:
+			break;
+		}
+
+		UniformUpdated(name);
+	}
+
+	void RenderContext::SetShaderTexture(ShaderDescriptorScope scope, const string& name, const ResourceID& textureID)
+	{
+		switch (scope)
+		{
+		case ShaderDescriptorScope::Global:
+			_currentGlobalUniformData.Textures[name] = textureID;
+			break;
+		case ShaderDescriptorScope::Instance:
+			_currentInstanceUniformData.Textures[name] = textureID;
+			break;
+		default:
+			break;
+		}
 
 		TextureSamplerUpdated(name);
 	}
@@ -137,10 +184,10 @@ namespace Coco::Rendering
 
 			_currentMaterial = material;
 
-			_currentShaderUniformData.Merge(material.UniformData, true);
-			_currentShaderUniformData.ID = material.ID;
-			_currentShaderUniformData.Version = material.Version;
-			_currentShaderUniformData.Preserve = true;
+			_currentInstanceUniformData.Merge(material.UniformData, true);
+			_currentInstanceUniformData.ID = material.ID;
+			_currentInstanceUniformData.Version = material.Version;
+			_currentInstanceUniformData.Preserve = true;
 		}
 		else
 		{

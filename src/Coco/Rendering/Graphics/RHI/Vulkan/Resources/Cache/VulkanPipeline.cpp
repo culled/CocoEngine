@@ -34,16 +34,16 @@ namespace Coco::Rendering::Vulkan
 		return _pipeline == nullptr || _pipelineLayout == nullptr || GetReferenceVersion() != GetResourceVersion(renderPass, shader);
 	}
 
-	void VulkanPipeline::Update(VulkanRenderPass& renderPass, const VulkanShader& shader, const VkDescriptorSetLayout& globalDescriptorLayout)
+	void VulkanPipeline::Update(VulkanRenderPass& renderPass, const VulkanShader& shader)
 	{
 		DestroyPipeline();
-		CreatePipeline(renderPass, shader, globalDescriptorLayout);
+		CreatePipeline(renderPass, shader);
 
 		UpdateReferenceVersion(GetResourceVersion(renderPass, shader));
 		IncrementVersion();
 	}
 
-	void VulkanPipeline::CreatePipeline(VulkanRenderPass& renderPass, const VulkanShader& shader, const VkDescriptorSetLayout& globalDescriptorLayout)
+	void VulkanPipeline::CreatePipeline(VulkanRenderPass& renderPass, const VulkanShader& shader)
 	{
 		const VulkanSubshader* vulkanSubshader;
 		if (!shader.TryGetSubshader(_subshaderName, vulkanSubshader))
@@ -169,15 +169,14 @@ namespace Coco::Rendering::Vulkan
 		pushConstants.offset = 0;
 		pushConstants.size = sizeof(float) * 16; // 64 bytes for now
 
-		Array<VkDescriptorSetLayout, 2> descriptorSetLayouts = {
-			globalDescriptorLayout,
-			vulkanSubshader->GetDescriptorLayout().Layout
-		};
+		List<VkDescriptorSetLayout> descriptorSetLayouts = vulkanSubshader->GetDescriptorLayouts().Transform<VkDescriptorSetLayout>(
+			[](const VulkanDescriptorLayout& e) {return e.Layout; }
+		);
 
 		VkPipelineLayoutCreateInfo layoutInfo = {};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		layoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-		layoutInfo.pSetLayouts = descriptorSetLayouts.data();
+		layoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.Count());
+		layoutInfo.pSetLayouts = descriptorSetLayouts.Data();
 		layoutInfo.pushConstantRangeCount = 1;
 		layoutInfo.pPushConstantRanges = &pushConstants;
 

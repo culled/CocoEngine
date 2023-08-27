@@ -5,6 +5,7 @@
 #include <Coco/Core/Types/String.h>
 #include <Coco/Core/Types/Map.h>
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/List.h>
 #include "Graphics/Resources/BufferTypes.h"
@@ -16,19 +17,40 @@ namespace Coco::Rendering
 	/// @brief Types of shader stages
 	enum class ShaderStageType
 	{
-		Vertex,
-		Tesselation,
-		Geometry,
-		Fragment,
-		Compute,
-		Unknown
+		None = 0,
+		Vertex = 1 << 0,
+		Tesselation = 1 << 1,
+		Geometry = 1 << 2,
+		Fragment = 1 << 3,
+		Compute = 1 << 4,
 	};
 
-	/// @brief Types of shader descriptors
-	enum class ShaderDescriptorType
+	constexpr auto operator<=>(const ShaderStageType& a, const ShaderStageType& b)
 	{
-		UniformColor,
-		UniformVector4
+		return static_cast<int>(a) <=> static_cast<int>(b);
+	}
+
+	constexpr ShaderStageType operator |=(ShaderStageType& a, const ShaderStageType& b)
+	{
+		return static_cast<ShaderStageType>(static_cast<int>(a) | static_cast<int>(b));
+	}
+
+	constexpr ShaderStageType operator &=(ShaderStageType& a, const ShaderStageType& b)
+	{
+		return static_cast<ShaderStageType>(static_cast<int>(a) & static_cast<int>(b));
+	}
+
+	/// @brief Scopes of shader descriptors
+	enum class ShaderDescriptorScope
+	{
+		/// @brief Updated once per frame
+		Global,
+		
+		/// @brief Updated once per instance
+		Instance,
+
+		/// @brief Updated per draw call
+		Draw
 	};
 
 	/// @brief An attribute that represents a kind of data within a contiguous vertex buffer
@@ -57,19 +79,30 @@ namespace Coco::Rendering
 		/// @brief The descriptor name (used for referencing from materials)
 		string Name;
 
-		/// @brief The type of descriptor
-		BufferDataFormat Type;
+		/// @brief The scope of this descriptor
+		ShaderDescriptorScope Scope;
 
-		ShaderDescriptor(const string& name, BufferDataFormat type) noexcept;
+		/// @brief The points in the rendering stage when this descriptor should be bound
+		ShaderStageType BindingPoints;
+
+		ShaderDescriptor(const string& name, ShaderDescriptorScope scope, ShaderStageType bindPoint) noexcept;
+		virtual ~ShaderDescriptor() = default;
 	};
 
 	/// @brief A texture sampler for a shader
-	struct COCOAPI ShaderTextureSampler
+	struct COCOAPI ShaderTextureSampler : public ShaderDescriptor
 	{
-		/// @brief The descriptor name (used for referencing from materials)
-		string Name;
+		ShaderTextureSampler(const string& name, ShaderDescriptorScope scope, ShaderStageType bindPoint) noexcept;
+		virtual ~ShaderTextureSampler() = default;
+	};
 
-		ShaderTextureSampler(const string& name) noexcept;
+	struct COCOAPI ShaderUniformDescriptor : public ShaderDescriptor
+	{
+		/// @brief The type of descriptor
+		BufferDataFormat Type;
+
+		ShaderUniformDescriptor(const string& name, ShaderDescriptorScope scope, ShaderStageType bindPoint, BufferDataFormat type) noexcept;
+		virtual ~ShaderUniformDescriptor() = default;
 	};
 
 	/// @brief A container for shader uniform data
@@ -89,6 +122,9 @@ namespace Coco::Rendering
 
 		/// @brief The color properties
 		UnorderedMap<string, Color> Colors;
+
+		/// @brief The matrix4x4 properties
+		UnorderedMap<string, Matrix4x4> Matrix4x4s;
 
 		/// @brief The texture properties
 		UnorderedMap<string, ResourceID> Textures;
@@ -139,14 +175,11 @@ namespace Coco::Rendering
 		/// @brief Vertex shader attributes for this subshader
 		List<ShaderVertexAttribute> Attributes;
 
-		/// @brief Descriptors for this subshader
-		List<ShaderDescriptor> Descriptors;
+		/// @brief Uniforms for this subshader
+		List<ShaderUniformDescriptor> Uniforms;
 
 		/// @brief Texture samplers for this subshader
 		List<ShaderTextureSampler> Samplers;
-
-		/// @brief The point in the render pipeline when the descriptors should be bound
-		ShaderStageType DescriptorBindingPoint = ShaderStageType::Fragment;
 
 		Subshader() = default;
 
@@ -155,20 +188,41 @@ namespace Coco::Rendering
 			const List<ShaderStage>& stages,
 			const GraphicsPipelineState& pipelineState,
 			const List<ShaderVertexAttribute>& attributes,
-			const List<ShaderDescriptor>& descriptors,
-			const List<ShaderTextureSampler>& samplers,
-			ShaderStageType bindPoint = ShaderStageType::Fragment) noexcept;
+			const List<ShaderUniformDescriptor>& uniforms,
+			const List<ShaderTextureSampler>& samplers) noexcept;
 
 		/// @brief Converts uniform data into a single list of data that can be loaded into a buffer
+		/// @param scope The scope for the uniform data
 		/// @param data The uniform data
 		/// @param minimumAlignment The minimum alignment for the data
 		/// @return The uniform data as bytes
-		List<char> GetUniformData(const ShaderUniformData& data, uint minimumAlignment) const;
+		List<char> GetUniformData(ShaderDescriptorScope scope, const ShaderUniformData& data, uint minimumAlignment) const;
 
 		/// @brief Gets the size of this subshader's descriptors
+		/// @param scope The scope for the descriptors
 		/// @param minimumAlignment The minimum alignment for the descriptors
 		/// @return The number of bytes required for the descriptor data
-		uint64_t GetDescriptorDataSize(uint minimumAlignment) const;
+		uint64_t GetDescriptorDataSize(ShaderDescriptorScope scope, uint minimumAlignment) const;
+
+		/// @brief Gets a list of shader uniforms in the given scope
+		/// @param scope The scope of the uniforms
+		/// @return A list of uniforms in the given scope
+		List<ShaderUniformDescriptor> GetScopedUniforms(ShaderDescriptorScope scope) const;
+
+		/// @brief Gets a list of shader texture samplers in the given scope
+		/// @param scope The scope of the texture samplers
+		/// @return A list of texture samplers in the given scope
+		List<ShaderTextureSampler> GetScopedSamplers(ShaderDescriptorScope scope) const;
+
+		/// @brief Determines if this subshader has any descriptors or samplers in the given scope
+		/// @param scope The scope
+		/// @return True if this subshader has any descriptors or samplers in the given scope
+		bool HasScope(ShaderDescriptorScope scope) const;
+
+		/// @brief Determines the binding stages for all uniforms within the given scope
+		/// @param scope The scope of the uniforms
+		/// @return The binding stages for all uniforms within the given scope
+		ShaderStageType GetUniformBindingStages(ShaderDescriptorScope scope) const;
 
 	private:
 		/// @brief Updates this subshader's vertex attribute offsets

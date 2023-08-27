@@ -11,6 +11,16 @@ List<AttachmentDescription> OpaqueRenderPass::GetAttachmentDescriptions() noexce
 
 void OpaqueRenderPass::Execute(RenderContext& renderContext)
 {
-    for (const ObjectRenderData& object : renderContext.GetRenderView()->Objects)
+    const Ref<RenderView> renderView = renderContext.GetRenderView();
+    for (const ObjectRenderData& object : renderView->Objects)
+    {
+        // Bind the object's material if it has one
+        if (object.MaterialData != Resource::InvalidID)
+            renderContext.UseMaterial(object.MaterialData);
+
+        renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_Projection", renderView->Projection);
+        renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_View", renderView->View);
+
         renderContext.Draw(object);
+    }
 }

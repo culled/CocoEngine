@@ -37,6 +37,7 @@ namespace Coco::Rendering
 		/// @brief Reads the properties section for a material
 		/// @param reader The reader
 		/// @param vec4Properties Will be filled with the Vector4 properties
+		/// @param colorProperties Will be filled with the Color properties
 		/// @param textureProperties Will be filled with the texture properties
 		void ReadPropertiesSection(
 			KeyValueReader& reader, 

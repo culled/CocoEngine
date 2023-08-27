@@ -67,10 +67,10 @@ namespace Coco::Rendering::Vulkan
 			shader.FlushBufferChanges();
 	}
 
-	void RenderContextVulkanCache::FreeDescriptorSets()
+	void RenderContextVulkanCache::ResetForNewFrame()
 	{
 		for (auto& shader : *_shaderCache)
-			shader.GetPool()->FreeSets();
+			shader.ResetForNewFrame();
 	}
 
 	void RenderContextVulkanCache::PurgeResources() noexcept

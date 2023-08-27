@@ -25,47 +25,18 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		// Create subshader descriptor layout
-		_descriptorLayout.LayoutBindings.Resize(_subshader.Samplers.Count() + (_subshader.Descriptors.Count() > 0 ? 1 : 0));
-		uint32_t bindingIndex = 0;
+		if (_subshader.HasScope(ShaderDescriptorScope::Global))
+			_descriptorLayouts.try_emplace(ShaderDescriptorScope::Global, CreateDescriptorLayout(ShaderDescriptorScope::Global));
 
-		if (_subshader.Descriptors.Count() > 0)
-		{
-			VkDescriptorSetLayoutBinding& binding = _descriptorLayout.LayoutBindings[bindingIndex];
-			binding.descriptorCount = 1;
-			binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			binding.pImmutableSamplers = nullptr;
-			binding.binding = bindingIndex;
-			binding.stageFlags = ToVkShaderStageFlagBits(_subshader.DescriptorBindingPoint);
-
-			bindingIndex++;
-		}
-
-		for (uint32_t i = 0; i < _subshader.Samplers.Count(); i++)
-		{
-			VkDescriptorSetLayoutBinding& binding = _descriptorLayout.LayoutBindings[bindingIndex];
-			binding.descriptorCount = 1;
-			binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			binding.pImmutableSamplers = nullptr;
-			binding.binding = bindingIndex;
-			binding.stageFlags = ToVkShaderStageFlagBits(_subshader.DescriptorBindingPoint);
-
-			bindingIndex++;
-		}
-
-		VkDescriptorSetLayoutCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		createInfo.bindingCount = static_cast<uint32_t>(_descriptorLayout.LayoutBindings.Count());
-		createInfo.pBindings = _descriptorLayout.LayoutBindings.Data();
-
-		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &createInfo, nullptr, &_descriptorLayout.Layout));
+		if (_subshader.HasScope(ShaderDescriptorScope::Instance))
+			_descriptorLayouts.try_emplace(ShaderDescriptorScope::Instance, CreateDescriptorLayout(ShaderDescriptorScope::Instance));
 	}
 
 	VulkanSubshader::VulkanSubshader(VulkanSubshader&& other) noexcept :
 		_name(std::move(other._name)),
 		_device(std::move(other._device)),
 		_shaderStages(std::move(other._shaderStages)),
-		_descriptorLayout(std::move(other._descriptorLayout)),
+		_descriptorLayouts(std::move(other._descriptorLayouts)),
 		_subshader(std::move(other._subshader)), 
 		_isValid(true)
 	{
@@ -77,7 +48,7 @@ namespace Coco::Rendering::Vulkan
 		_name = std::move(other._name);
 		_device = std::move(other._device);
 		_shaderStages = std::move(other._shaderStages);
-		_descriptorLayout = std::move(other._descriptorLayout);
+		_descriptorLayouts = std::move(other._descriptorLayouts);
 		_subshader = std::move(other._subshader);
 		_isValid = true;
 		other._isValid = false;
@@ -91,15 +62,34 @@ namespace Coco::Rendering::Vulkan
 			DestroyShaderObjects();
 	}
 
+	List<VulkanDescriptorLayout> VulkanSubshader::GetDescriptorLayouts() const noexcept
+	{
+		List<VulkanDescriptorLayout> layouts;
+
+		if (_descriptorLayouts.contains(ShaderDescriptorScope::Global))
+			layouts.Add(GetDescriptorLayout(ShaderDescriptorScope::Global));
+
+		if (_descriptorLayouts.contains(ShaderDescriptorScope::Instance))
+			layouts.Add(GetDescriptorLayout(ShaderDescriptorScope::Instance));
+
+		return layouts;
+	}
+
 	void VulkanSubshader::DestroyShaderObjects() noexcept
 	{
 		_device->WaitForIdle();
 
-		if (_descriptorLayout.Layout != nullptr)
+		for (auto& kvp : _descriptorLayouts)
 		{
-			vkDestroyDescriptorSetLayout(_device->GetDevice(), _descriptorLayout.Layout, nullptr);
-			_descriptorLayout.Layout = nullptr;
+			VulkanDescriptorLayout& layout = kvp.second;
+			if (layout.Layout != nullptr)
+			{
+				vkDestroyDescriptorSetLayout(_device->GetDevice(), layout.Layout, nullptr);
+				layout.Layout = nullptr;
+			}
 		}
+
+		_descriptorLayouts.clear();
 
 		for (VulkanShaderStage& stage : _shaderStages)
 		{
@@ -133,6 +123,51 @@ namespace Coco::Rendering::Vulkan
 		return shaderStage;
 	}
 
+	VulkanDescriptorLayout VulkanSubshader::CreateDescriptorLayout(ShaderDescriptorScope scope)
+	{
+		VulkanDescriptorLayout layout{};
+
+		List<ShaderUniformDescriptor> uniforms = _subshader.GetScopedUniforms(scope);
+		List<ShaderTextureSampler> samplers = _subshader.GetScopedSamplers(scope);
+
+		// Create subshader descriptor layout
+		layout.LayoutBindings.Resize(samplers.Count() + (uniforms.Count() > 0 ? 1 : 0));
+		uint32_t bindingIndex = 0;
+
+		if (uniforms.Count() > 0)
+		{
+			VkDescriptorSetLayoutBinding& binding = layout.LayoutBindings[bindingIndex];
+			binding.descriptorCount = 1;
+			binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			binding.pImmutableSamplers = nullptr;
+			binding.binding = bindingIndex;
+			binding.stageFlags = ToVkShaderStageFlagBits(_subshader.GetUniformBindingStages(scope));
+
+			bindingIndex++;
+		}
+
+		for (uint32_t i = 0; i < samplers.Count(); i++)
+		{
+			VkDescriptorSetLayoutBinding& binding = layout.LayoutBindings[bindingIndex];
+			binding.descriptorCount = 1;
+			binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			binding.pImmutableSamplers = nullptr;
+			binding.binding = bindingIndex;
+			binding.stageFlags = ToVkShaderStageFlagBits(samplers[i].BindingPoints);
+
+			bindingIndex++;
+		}
+
+		VkDescriptorSetLayoutCreateInfo createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		createInfo.bindingCount = static_cast<uint32_t>(layout.LayoutBindings.Count());
+		createInfo.pBindings = layout.LayoutBindings.Data();
+
+		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &createInfo, nullptr, &layout.Layout));
+
+		return layout;
+	}
+
 	VulkanShader::VulkanShader(const ResourceID& id, const string& name, const ShaderRenderData& shaderData) :
 		GraphicsResource<GraphicsDeviceVulkan, RenderingResource>(id, name), 
 		CachedResource(shaderData.ID, shaderData.Version)
@@ -142,7 +177,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		return GetReferenceVersion() != shaderData.Version || _subshaders.size() == 0 ||
 			std::any_of(_subshaders.cbegin(), _subshaders.cend(), [](const auto& kvp) {
-				return kvp.second._shaderStages.Count() == 0 || kvp.second._descriptorLayout.Layout == nullptr;
+				return kvp.second._shaderStages.Count() == 0 || kvp.second._descriptorLayouts.size() == 0;
 			});
 	}
 
@@ -174,7 +209,10 @@ namespace Coco::Rendering::Vulkan
 		List<VulkanDescriptorLayout> layouts;
 
 		for (auto& subshader : _subshaders)
-			layouts.Add(subshader.second.GetDescriptorLayout());
+		{
+			for(const auto& layout : subshader.second.GetDescriptorLayouts())
+				layouts.Add(layout);
+		}
 
 		return layouts;
 	}

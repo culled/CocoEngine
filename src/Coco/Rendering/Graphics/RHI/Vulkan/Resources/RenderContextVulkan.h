@@ -40,7 +40,7 @@ namespace Coco::Rendering::Vulkan
 
 	private:
 		static constexpr uint _globalDescriptorSetIndex = 0;
-		static constexpr uint _materialDescriptorSetIndex = 1;
+		static constexpr uint _instanceDescriptorSetIndex = 1;
 
 		Ref<CommandBufferPoolVulkan> _pool;
 		Ref<CommandBufferVulkan> _commandBuffer;
@@ -53,17 +53,11 @@ namespace Coco::Rendering::Vulkan
 		List<Ref<GraphicsSemaphoreVulkan>> _frameSignalSemaphores;
 		List<Ref<GraphicsSemaphoreVulkan>> _frameWaitSemaphores;
 
-		Ref<BufferVulkan> _globalUBO;
-		VulkanDescriptorLayout _globalDescriptor;
-		Ref<VulkanDescriptorPool> _globalDescriptorPool;
-		VkDescriptorSet _globalDescriptorSet;
-
 		VulkanRenderPass* _currentVulkanRenderPass = nullptr;
 		VulkanFramebuffer* _currentFramebuffer = nullptr;
 
 		Set<RenderContextStateChange> _stateChanges;
 		VulkanPipeline* _currentPipeline = nullptr;
-		UnorderedMap<ResourceID, VkDescriptorSet> _shaderDescriptorSets;
 
 		int _backbufferIndex = -1;
 
@@ -103,20 +97,13 @@ namespace Coco::Rendering::Vulkan
 		void ResetImpl() final;
 		void NewShaderBound() final;
 		void NewMaterialBound() final;
+		void UniformUpdated(const string& name) final;
+		void TextureSamplerUpdated(const string& name) final;
 
 	private:
 		/// @brief Attempts to flush all state changes and bind the current state
 		/// @return True if the state is bound
 		bool FlushStateChanges();
-
-		/// @brief Creates the global descriptor set
-		void CreateGlobalDescriptorSet();
-
-		/// @brief Creates a descriptor set for the currently bound shader instance
-		/// @param shader The shader to use
-		/// @param set Will be filled out with the descriptor set
-		/// @return True if the descriptor set was created
-		bool GetOrAllocateShaderDescriptorSet(const VulkanShader& shader, VkDescriptorSet& set);
 
 		/// @brief Adds any necessary pre-render pass image transitions to the render targets
 		void AddPreRenderPassImageTransitions();
