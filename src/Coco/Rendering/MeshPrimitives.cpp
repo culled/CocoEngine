@@ -65,6 +65,18 @@ namespace Coco::Rendering
 		return CreateFromVertices(name, verts, normals, uvs, indices);
 	}
 
+	Ref<Mesh> MeshPrimitives::CreateUVSphere(const string& name, int slices, int stacks, double radius, const Vector3& offset, bool flipDirection)
+	{
+		List<Vector3> verts;
+		List<Vector3> normals;
+		List<Vector2> uvs;
+		List<uint> indices;
+
+		CreateUVSphere(slices, stacks, radius, offset, verts, normals, uvs, indices, flipDirection);
+
+		return CreateFromVertices(name, verts, normals, uvs, indices);
+	}
+
 	void MeshPrimitives::CreateXYGrid(
 		const Vector2& size, 
 		const Vector3& offset, 
@@ -340,6 +352,107 @@ namespace Coco::Rendering
 		indices.Add(flipDirection ? vertexOffset + 1 : static_cast<uint>(positions.Count()) - 1);
 		indices.Add(vertexOffset);
 		indices.Add(flipDirection ? static_cast<uint>(positions.Count()) - 1 : vertexOffset + 1);
+	}
+
+	void MeshPrimitives::CreateUVSphere(
+		int slices, 
+		int stacks, 
+		double radius, 
+		const Vector3& offset, 
+		List<Vector3>& positions, 
+		List<Vector3>& normals, 
+		List<Vector2>& uvs, 
+		List<uint>& indices, 
+		bool flipDirection)
+	{
+		const uint vertexOffset = static_cast<uint>(positions.Count());
+ 
+		// Based on https://danielsieger.com/blog/2021/03/27/generating-spheres.html
+		
+		const double uOffset = 1.0 / (slices * 2);
+
+		// Add the top vertices
+		for (int j = 0; j < slices; j++)
+		{
+			double u = (static_cast<double>(j) / slices) + uOffset;
+
+			positions.Add(Vector3(0.0, 0.0, radius) + offset);
+			normals.Add(flipDirection ? Vector3::Down : Vector3::Up);
+			uvs.Add(Vector2(u, 1.0));
+		}
+
+		const double twoPI = 2.0 * Math::PI;
+
+		for (int i = 0; i < stacks - 1; i++)
+		{
+			double v = 1.0 - (static_cast<double>(i + 1) / stacks);
+			double phi = Math::PI * static_cast<double>(i + 1) / stacks;
+
+			for (int j = 0; j <= slices; j++)
+			{
+				double u = static_cast<double>(j) / slices;
+				double theta = twoPI * u;
+
+				Vector3 pos = Vector3(Math::Sin(phi) * Math::Cos(theta), Math::Sin(phi) * Math::Sin(theta), Math::Cos(phi));
+				positions.Add(pos * radius + offset);
+				normals.Add(pos.Normalized() * (flipDirection ? -1.0 : 1.0));
+				uvs.Add(Vector2(u, v));
+			}
+		}
+
+		// Add the bottom vertices
+		for (int j = 0; j < slices; j++)
+		{
+			double u = (static_cast<double>(j) / slices) + uOffset;
+
+			positions.Add(Vector3(0.0, 0.0, -radius) + offset);
+			normals.Add(flipDirection ? Vector3::Up : Vector3::Down);
+			uvs.Add(Vector2(u, 0.0));
+		}
+
+		const uint topRingOffset = slices;
+		const uint bottomRingOffset = topRingOffset + (slices + 1) * (stacks - 2);
+
+		// Add the top and bottom triangles
+		for (uint i = 0; i < slices; i++)
+		{
+			uint i0 = topRingOffset + i;
+			uint i1 = topRingOffset + i + 1;
+
+			indices.Add(vertexOffset + i);
+			indices.Add(vertexOffset + (flipDirection ? i0 : i1));
+			indices.Add(vertexOffset + (flipDirection ? i1 : i0));
+
+			i0 = bottomRingOffset + i;
+			i1 = bottomRingOffset + i + 1;
+
+			indices.Add(vertexOffset + bottomRingOffset + i + slices + 1);
+			indices.Add(vertexOffset + (flipDirection ? i1 : i0));
+			indices.Add(vertexOffset + (flipDirection ? i0 : i1));
+		}
+
+		// Add the middle triangles
+		for (uint j = 0; j < stacks - 2; j++)
+		{
+			uint j0 = topRingOffset + j * (slices + 1);
+			uint j1 = topRingOffset + (j + 1) * (slices + 1);
+
+			for (uint i = 0; i <= slices; i++)
+			{
+				uint i0 = j0 + i;
+				uint i1 = j0 + i + 1;
+				uint i2 = j1 + i + 1;
+				uint i3 = j1 + i;
+
+				indices.Add(vertexOffset + i0);
+				indices.Add(vertexOffset + (flipDirection ? i3 : i1));
+				indices.Add(vertexOffset + (flipDirection ? i1 : i3));
+
+				indices.Add(vertexOffset + i2);
+				indices.Add(vertexOffset + (flipDirection ? i1 : i3));
+				indices.Add(vertexOffset + (flipDirection ? i3 : i1));
+			}
+		}
 	}
 
 	Ref<Mesh> MeshPrimitives::CreateFromVertices(

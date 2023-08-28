@@ -53,7 +53,18 @@ namespace Coco::Rendering
 		/// @param baseVertexCount The number of vertices for the cone's base
 		/// @param offset The offset of the cone
 		/// @param flipDirection If true, the faces will face towards the inside of the cone
+		/// @return The cone mesh
 		static Ref<Mesh> CreateCone(const string& name, double height, double radius, int baseVertexCount, const Vector3& offset = Vector3::Zero, bool flipDirection = false);
+
+		/// @brief Creates a UV sphere mesh
+		/// @param name The name of the mesh
+		/// @param slices The number of vertical slices
+		/// @param stacks The number of horizontal slices
+		/// @param radius The radius
+		/// @param offset The world-space offset
+		/// @param flipDirection If true, the faces will face inside the sphere
+		/// @return The sphere mesh
+		static Ref<Mesh> CreateUVSphere(const string& name, int slices, int stacks, double radius, const Vector3& offset = Vector3::Zero, bool flipDirection = false);
 
 		/// @brief Creates verticies for an XY grid
 		/// @param size The size of the grid
@@ -164,6 +175,27 @@ namespace Coco::Rendering
 		static void CreateXYTriangleFan(
 			double radius,
 			int vertexCount,
+			const Vector3& offset,
+			List<Vector3>& positions,
+			List<Vector3>& normals,
+			List<Vector2>& uvs,
+			List<uint>& indices,
+			bool flipDirection = false);
+
+		/// @brief Creates a UV sphere
+		/// @param slices The number of vertical slices
+		/// @param stacks The number of horizontal slices
+		/// @param radius The radius
+		/// @param offset The world-space offset
+		/// @param positions Will be filled with vertex positions
+		/// @param normals Will be filled with vertex normals
+		/// @param uvs Will be filled with vertex uvs
+		/// @param indices Will be filled with vertex indices
+		/// @param flipDirection If true the faces will face inside the sphere
+		static void CreateUVSphere(
+			int slices, 
+			int stacks, 
+			double radius,
 			const Vector3& offset,
 			List<Vector3>& positions,
 			List<Vector3>& normals,
