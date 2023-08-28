@@ -484,6 +484,18 @@ namespace Coco::Rendering
 		return bindPoint;
 	}
 
+	uint32_t Subshader::GetVertexDataSize() const
+	{
+		uint32_t size = 0;
+
+		for (const auto& attr : Attributes)
+		{
+			size += GetBufferDataFormatSize(attr.DataFormat);
+		}
+
+		return size;
+	}
+
 	void Subshader::UpdateAttributeOffsets() noexcept
 	{
 		uint32_t offset = 0;

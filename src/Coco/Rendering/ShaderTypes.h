@@ -249,6 +249,10 @@ namespace Coco::Rendering
 		/// @return The binding stages for all uniforms within the given scope
 		ShaderStageType GetUniformBindingStages(ShaderDescriptorScope scope) const;
 
+		/// @brief Gets the size of one vertex's data from this subshader's attributes
+		/// @return The size of one vertex's data
+		uint32_t GetVertexDataSize() const;
+
 	private:
 		/// @brief Updates this subshader's vertex attribute offsets
 		void UpdateAttributeOffsets() noexcept;

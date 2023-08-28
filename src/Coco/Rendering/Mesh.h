@@ -9,14 +9,6 @@
 
 namespace Coco::Rendering
 {
-	/// @brief Vertex data that can be sent to the GPU
-	struct VertexData
-	{
-		float Position[3];	// 12 bytes
-		float Normal[3];	// 12 bytes
-		float UV0[2];		// 8 bytes
-	};
-
 	/// @brief Holds vertex and index data for rendering geometry
 	class COCOAPI Mesh : public RenderingResource
 	{

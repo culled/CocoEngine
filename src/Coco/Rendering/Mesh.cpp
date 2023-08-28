@@ -52,22 +52,6 @@ namespace Coco::Rendering
 
 		try
 		{
-			if (_vertexNormals.Count() != _vertexPositions.Count())
-			{
-				throw InvalidOperationException(FormattedString(
-					"Normal count ({}) doesn't match vertex count of {}",
-					_vertexNormals.Count(),
-					_vertexPositions.Count()));
-			}
-
-			if (_vertexUV0s.Count() != _vertexPositions.Count())
-			{
-				throw InvalidOperationException(FormattedString(
-					"UV0 count ({}) doesn't match vertex count of {}",
-					_vertexUV0s.Count(),
-					_vertexPositions.Count()));
-			}
-
 			if (_vertexIndices.Count() % 3 != 0)
 			{
 				throw InvalidOperationException(FormattedString(
@@ -78,7 +62,18 @@ namespace Coco::Rendering
 			_vertexCount = _vertexPositions.Count();
 			_indexCount = _vertexIndices.Count();
 
-			const uint64_t vertexBufferSize = _vertexCount * sizeof(VertexData);
+			bool hasNormals = _vertexNormals.Count() > 0;
+			bool hasUV0s = _vertexUV0s.Count() > 0;
+
+			uint64_t vertexStride = sizeof(float) * 3;
+
+			if (hasNormals)
+				vertexStride += sizeof(float) * 3;
+
+			if (hasUV0s)
+				vertexStride += sizeof(float) * 2;
+
+			const uint64_t vertexBufferSize = _vertexCount * vertexStride;
 			const uint64_t indexBufferSize = _indexCount * sizeof(uint32_t);
 
 			if (!_vertexBuffer.IsValid())
@@ -98,25 +93,44 @@ namespace Coco::Rendering
 				BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
 				true);
 
+			Array<float, 4> tempData = { 0.0f };
+
 			// Build the vertex data
-			List<VertexData> vertexData(_vertexPositions.Count());
-			for (uint64_t i = 0; i < vertexData.Count(); i++)
+			List<char> vertexData(vertexBufferSize);
+			for (uint64_t i = 0; i < _vertexCount; i++)
 			{
-				vertexData[i].Position[0] = static_cast<float>(_vertexPositions[i].X);
-				vertexData[i].Position[1] = static_cast<float>(_vertexPositions[i].Y);
-				vertexData[i].Position[2] = static_cast<float>(_vertexPositions[i].Z);
+				uint64_t offset = i * vertexStride;
+				char* dst = vertexData.Data() + offset;
 
-				vertexData[i].Normal[0] = static_cast<float>(_vertexNormals[i].X);
-				vertexData[i].Normal[1] = static_cast<float>(_vertexNormals[i].Y);
-				vertexData[i].Normal[2] = static_cast<float>(_vertexNormals[i].Z);
+				tempData[0] = static_cast<float>(_vertexPositions[i].X);
+				tempData[1] = static_cast<float>(_vertexPositions[i].Y);
+				tempData[2] = static_cast<float>(_vertexPositions[i].Z);
 
-				vertexData[i].UV0[0] = static_cast<float>(_vertexUV0s[i].X);
-				vertexData[i].UV0[1] = static_cast<float>(_vertexUV0s[i].Y);
+				std::memcpy(dst, tempData.data(), sizeof(float) * 3);
+				dst += sizeof(float) * 3;
+
+				if (hasNormals)
+				{
+					tempData[0] = static_cast<float>(_vertexNormals[i].X);
+					tempData[1] = static_cast<float>(_vertexNormals[i].Y);
+					tempData[2] = static_cast<float>(_vertexNormals[i].Z);
+
+					std::memcpy(dst, tempData.data(), sizeof(float) * 3);
+					dst += sizeof(float) * 3;
+				}
+
+				if (hasUV0s)
+				{
+					tempData[0] = static_cast<float>(_vertexUV0s[i].X);
+					tempData[1] = static_cast<float>(_vertexUV0s[i].Y);
+
+					std::memcpy(dst, tempData.data(), sizeof(float) * 2);
+				}
 			}
 
 			// Upload vertex data
 			stagingBuffer->LoadData(0, vertexData);
-			stagingBuffer->CopyTo(0, _vertexBuffer.Get(), 0, sizeof(VertexData) * vertexData.Count());
+			stagingBuffer->CopyTo(0, _vertexBuffer.Get(), 0, vertexData.Count());
 
 			// Resize for index data
 			stagingBuffer->Resize(indexBufferSize, false);

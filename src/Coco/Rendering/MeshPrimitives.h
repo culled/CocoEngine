@@ -64,7 +64,7 @@ namespace Coco::Rendering
 		/// @param offset The world-space offset
 		/// @param flipDirection If true, the faces will face inside the sphere
 		/// @return The sphere mesh
-		static Ref<Mesh> CreateUVSphere(const string& name, int slices, int stacks, double radius, const Vector3& offset = Vector3::Zero, bool flipDirection = false);
+		static Ref<Mesh> CreateUVSphere(const string& name, uint slices, uint stacks, double radius, const Vector3& offset = Vector3::Zero, bool flipDirection = false);
 
 		/// @brief Creates verticies for an XY grid
 		/// @param size The size of the grid
@@ -193,8 +193,7 @@ namespace Coco::Rendering
 		/// @param indices Will be filled with vertex indices
 		/// @param flipDirection If true the faces will face inside the sphere
 		static void CreateUVSphere(
-			int slices, 
-			int stacks, 
+			uint slices, uint stacks, 
 			double radius,
 			const Vector3& offset,
 			List<Vector3>& positions,

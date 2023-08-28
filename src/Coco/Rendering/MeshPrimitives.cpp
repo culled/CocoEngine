@@ -65,7 +65,7 @@ namespace Coco::Rendering
 		return CreateFromVertices(name, verts, normals, uvs, indices);
 	}
 
-	Ref<Mesh> MeshPrimitives::CreateUVSphere(const string& name, int slices, int stacks, double radius, const Vector3& offset, bool flipDirection)
+	Ref<Mesh> MeshPrimitives::CreateUVSphere(const string& name, uint slices, uint stacks, double radius, const Vector3& offset, bool flipDirection)
 	{
 		List<Vector3> verts;
 		List<Vector3> normals;
@@ -355,8 +355,8 @@ namespace Coco::Rendering
 	}
 
 	void MeshPrimitives::CreateUVSphere(
-		int slices, 
-		int stacks, 
+		uint slices,
+		uint stacks, 
 		double radius, 
 		const Vector3& offset, 
 		List<Vector3>& positions, 
@@ -372,7 +372,7 @@ namespace Coco::Rendering
 		const double uOffset = 1.0 / (slices * 2);
 
 		// Add the top vertices
-		for (int j = 0; j < slices; j++)
+		for (uint j = 0; j < slices; j++)
 		{
 			double u = (static_cast<double>(j) / slices) + uOffset;
 
@@ -383,12 +383,12 @@ namespace Coco::Rendering
 
 		const double twoPI = 2.0 * Math::PI;
 
-		for (int i = 0; i < stacks - 1; i++)
+		for (uint i = 0; i < stacks - 1; i++)
 		{
 			double v = 1.0 - (static_cast<double>(i + 1) / stacks);
 			double phi = Math::PI * static_cast<double>(i + 1) / stacks;
 
-			for (int j = 0; j <= slices; j++)
+			for (uint j = 0; j <= slices; j++)
 			{
 				double u = static_cast<double>(j) / slices;
 				double theta = twoPI * u;
@@ -401,7 +401,7 @@ namespace Coco::Rendering
 		}
 
 		// Add the bottom vertices
-		for (int j = 0; j < slices; j++)
+		for (uint j = 0; j < slices; j++)
 		{
 			double u = (static_cast<double>(j) / slices) + uOffset;
 

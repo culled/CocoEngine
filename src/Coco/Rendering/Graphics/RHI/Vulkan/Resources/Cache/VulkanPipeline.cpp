@@ -133,7 +133,7 @@ namespace Coco::Rendering::Vulkan
 
 		VkVertexInputBindingDescription vertexInput = {};
 		vertexInput.binding = 0; // The index of the binding
-		vertexInput.stride = sizeof(VertexData);
+		vertexInput.stride = subshader.GetVertexDataSize();
 		vertexInput.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // One data entry for each vertex
 
 		List<VkVertexInputBindingDescription> vertexInputs = { vertexInput };
