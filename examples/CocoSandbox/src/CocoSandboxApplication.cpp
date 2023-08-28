@@ -51,12 +51,10 @@ CocoSandboxApplication::CocoSandboxApplication() :
 
 	// Setup our basic shader
 	_shader = engine->GetResourceLibrary()->Load<Shader>("shaders/built-in/ObjectShader.cshader");
-	_texture = engine->GetResourceLibrary()->Load<Texture>(s_textureFiles.at(0));
 	_material = engine->GetResourceLibrary()->Load<Material>("materials/testMaterial.cmaterial");
-	_materialInstance = engine->GetResourceLibrary()->CreateResource<MaterialInstance>("Instance", _material);
 
 	//_material = CreateRef<Material>(_shader);
-	_material->SetColor("_BaseColor", Color::White);
+	//_material->SetColor("_BaseColor", Color::White);
 	//_material->SetTexture("_MainTex", _texture);
 
 	// Setup our basic mesh
@@ -104,7 +102,7 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	obj2Transform.SetLocalPosition(Vector3(0, 30, 0));
 	obj2Transform.SetLocalRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
 
-	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, MeshPrimitives::CreateBox("Box", Vector3::One * 5.0), _materialInstance);
+	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, MeshPrimitives::CreateBox("Box", Vector3::One * 5.0), _material);
 
 	_ecsService->GetEntity(obj2).SetParentID(_cameraEntityID);
 	_obj2ID = obj2;
@@ -219,12 +217,12 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	//const double a = Math::Sin(t) * 0.5 + 0.5;
 	//_materialInstance->SetColor("_BaseColor", Color(a, a, a, 1.0));
 	
-	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
-	{
-		_textureIndex = (_textureIndex + 1) % static_cast<uint>(s_textureFiles.size());
-		_texture = Engine::Get()->GetResourceLibrary()->Load<Texture>(s_textureFiles.at(_textureIndex));
-		_material->SetTexture("_MainTex", _texture);
-	}
+	//if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
+	//{
+	//	_textureIndex = (_textureIndex + 1) % static_cast<uint>(s_textureFiles.size());
+	//	_texture = Engine::Get()->GetResourceLibrary()->Load<Texture>(s_textureFiles.at(_textureIndex));
+	//	_material->SetTexture("_MainTex", _texture);
+	//}
 
 	// Update mesh data on the GPU if it is dirty
 	if (_mesh->GetIsDirty())

@@ -48,6 +48,70 @@ namespace Coco::Rendering
 
 				switch (uniform.Type)
 				{
+				case BufferDataFormat::Int:
+				{
+					// Skip duplicate properties
+					if (data.Ints.contains(uniform.Name))
+						continue;
+
+					data.Ints[uniform.Name] = 0;
+					break;
+				}
+				case BufferDataFormat::Vector2Int:
+				{
+					// Skip duplicate properties
+					if (data.Vector2Ints.contains(uniform.Name))
+						continue;
+
+					data.Vector2Ints[uniform.Name] = Vector2Int::Zero;
+					break;
+				}
+				case BufferDataFormat::Vector3Int:
+				{
+					// Skip duplicate properties
+					if (data.Vector3Ints.contains(uniform.Name))
+						continue;
+
+					data.Vector3Ints[uniform.Name] = Vector3Int::Zero;
+					break;
+				}
+				case BufferDataFormat::Vector4Int:
+				{
+					// Skip duplicate properties
+					if (data.Vector4Ints.contains(uniform.Name))
+						continue;
+
+					data.Vector4Ints[uniform.Name] = Vector4Int::Zero;
+					break;
+				}
+				case BufferDataFormat::Float:
+				{
+					// Skip duplicate properties
+					if (data.Floats.contains(uniform.Name))
+						continue;
+
+					data.Floats[uniform.Name] = 0.0f;
+					break;
+				}
+				case BufferDataFormat::Vector2:
+				{
+					// Skip duplicate properties
+					if (data.Vector2s.contains(uniform.Name))
+						continue;
+
+					data.Vector2s[uniform.Name] = Vector2::Zero;
+					break;
+				}
+				case BufferDataFormat::Vector3:
+				{
+					// Skip duplicate properties
+					if (data.Vector3s.contains(uniform.Name))
+						continue;
+
+					data.Vector3s[uniform.Name] = Vector3::Zero;
+					break;
+				}
+				
 				case BufferDataFormat::Vector4:
 				{
 					// Skip duplicate properties
@@ -89,7 +153,6 @@ namespace Coco::Rendering
 					continue;
 
 				data.Textures[sampler.Name] = Resource::InvalidID;
-				break;
 			}
 		}
 

@@ -1,0 +1,52 @@
+version=1
+id=7ff47760-9c54-43c3-870a-ff3721c31e61
+name=Unlit
+group=
+subshaders
+    main
+        stages
+            main
+                type=1
+                file=shaders/built-in/Unlit.vert.spv
+            main
+                type=8
+                file=shaders/built-in/Breakout.frag.spv
+        state
+            topologyMode=3
+            cullingMode=1
+            fillMode=2
+            enableDepthClamping=0
+            depthTestingMode=1
+            enableDepthWrite=1
+        attributes
+            Position
+                type=4
+            Normal
+                type=4
+            UV
+                type=2
+        descriptors
+            _Projection
+                bindPoint=1
+                scope=0
+                type=9
+            _View
+                bindPoint=1
+                scope=0
+                type=9
+            _AmbientColor
+                bindPoint=8
+                scope=0
+                type=8
+            _BaseColor
+                bindPoint=8
+                scope=1
+                type=8
+            _Model
+                bindPoint=1
+                scope=2
+                type=9
+        samplers
+            _MainTex
+                bindPoint=8
+                scope=1

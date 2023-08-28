@@ -18,6 +18,14 @@ namespace Coco::Rendering
 	Material::~Material()
 	{}
 
+	void Material::SetUniformData(const ShaderUniformData& uniformData)
+	{
+		UpdatePropertyMaps(false);
+
+		_uniformData.CopyFrom(uniformData);
+		IncrementVersion();
+	}
+
 	ShaderUniformData Material::GetUniformData() const
 	{
 		ShaderUniformData data(_uniformData);
@@ -367,6 +375,12 @@ namespace Coco::Rendering
 	ResourceVersion MaterialInstance::GetMaterialVersion() const
 	{
 		return GetVersion() + _baseMaterial->GetMaterialVersion();
+	}
+
+	void MaterialInstance::SetUniformData(const ShaderUniformData& uniformData)
+	{
+		_uniformData = uniformData;
+		IncrementVersion();
 	}
 
 	ShaderUniformData MaterialInstance::GetUniformData() const

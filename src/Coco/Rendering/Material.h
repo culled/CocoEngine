@@ -34,6 +34,7 @@ namespace Coco::Rendering
 
 		const ResourceID& GetID() const override { return ID; }
 		ResourceVersion GetMaterialVersion() const override { return GetVersion(); }
+		void SetUniformData(const ShaderUniformData& uniformData) override;
 		ShaderUniformData GetUniformData() const override;
 		Ref<Shader> GetShader() const noexcept override { return _shader; }
 
@@ -202,6 +203,7 @@ namespace Coco::Rendering
 
 		const ResourceID& GetID() const override { return ID; }
 		ResourceVersion GetMaterialVersion() const override;
+		void SetUniformData(const ShaderUniformData& uniformData) override;
 		ShaderUniformData GetUniformData() const override;
 		Ref<Shader> GetShader() const noexcept override { return _baseMaterial->GetShader(); }
 

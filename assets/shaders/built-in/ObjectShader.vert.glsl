@@ -8,6 +8,7 @@ layout(location = 2) in vec2 inUV;
 layout(set = 0, binding = 0) uniform globalUniformObject {
     mat4 projection;
     mat4 view;
+    vec3 viewPosition;
     vec4 ambientColor;
 } globalUBO;
 
@@ -20,13 +21,17 @@ layout(location = 0) out struct varyings
 {
     vec2 uv;
     vec3 worldNormal;
+    vec3 worldPosition;
+    vec3 viewPosition;
     vec4 ambientColor;
 } outVaryings;
 
 void main() {
     outVaryings.uv = inUV;
     outVaryings.worldNormal = mat3(constants.model) * inNormal;
+    outVaryings.worldPosition = (constants.model * vec4(inPosition, 1.0)).xyz;
+    outVaryings.viewPosition = globalUBO.viewPosition;
     outVaryings.ambientColor = globalUBO.ambientColor;
 
-    gl_Position = globalUBO.projection * globalUBO.view * constants.model * vec4(inPosition, 1.0);
+    gl_Position = globalUBO.projection * globalUBO.view * vec4(outVaryings.worldPosition, 1.0);
 }

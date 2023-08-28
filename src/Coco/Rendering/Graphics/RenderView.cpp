@@ -16,12 +16,14 @@ namespace Coco::Rendering
 		const Matrix4x4& projection,
 		const Matrix4x4& projection2D,
 		const Matrix4x4& view,
+		const Vector3& viewPosition,
 		const List<RenderTarget>& renderTargets
 	) noexcept :
 		ViewportRect(viewportRect),
 		Projection(projection), 
 		Projection2D(projection2D),
 		View(view), 
+		ViewPosition(viewPosition),
 		RenderTargets(renderTargets),
 		Shaders{},
 		Textures{},

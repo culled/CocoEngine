@@ -161,6 +161,33 @@ namespace Coco
 		return Matrix4x4::CreateWithScale(scale) * orientation.ToRotationMatrix() * Matrix4x4::CreateWithTranslation(position);
 	}
 
+	Matrix4x4 Matrix4x4::Parse(const string& str)
+	{
+		uint64_t currentCharacterIndex = 0;
+		uint8_t fieldIndex = 0;
+		Matrix4x4 m;
+
+		while (currentCharacterIndex < str.length())
+		{
+			if (fieldIndex >= CellCount)
+				break;
+
+			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
+
+			if (endIndex == string::npos)
+				endIndex = str.length();
+
+			string part = str.substr(currentCharacterIndex, endIndex - currentCharacterIndex);
+
+			m.Data[fieldIndex] = atof(part.c_str());
+
+			currentCharacterIndex = endIndex + 1;
+			fieldIndex++;
+		}
+
+		return m;
+	}
+
 	Matrix4x4 Matrix4x4::Inverted() const noexcept
 	{
 		Matrix4x4 inverse;

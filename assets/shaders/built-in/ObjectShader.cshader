@@ -34,6 +34,10 @@ subshaders
                 bindPoint=1
                 scope=0
                 type=9
+            _ViewPosition
+                bindPoint=1
+                scope=0
+                type=4
             _AmbientColor
                 bindPoint=8
                 scope=0
@@ -42,11 +46,21 @@ subshaders
                 bindPoint=8
                 scope=1
                 type=8
+            _Shininess
+                bindPoint=8
+                scope=1
+                type=0
             _Model
                 bindPoint=1
                 scope=2
                 type=9
         samplers
             _MainTex
+                bindPoint=8
+                scope=1
+            _RoughnessTex
+                bindPoint=8
+                scope=1
+            _NormalTex
                 bindPoint=8
                 scope=1

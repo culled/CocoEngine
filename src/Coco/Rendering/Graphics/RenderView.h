@@ -152,11 +152,14 @@ namespace Coco::Rendering
 		/// @brief The projection matrix used for rendering
 		const Matrix4x4 Projection;
 
+		/// @brief The projection matrix used for 2D rendering
+		const Matrix4x4 Projection2D;
+
 		/// @brief The view matrix used for rendering
 		const Matrix4x4 View;
 
-		/// @brief The projection matrix used for 2D rendering
-		const Matrix4x4 Projection2D;
+		/// @brief The position the view is rendering from
+		const Vector3 ViewPosition;
 
 		/// @brief The render targets used for rendering
 		List<RenderTarget> RenderTargets;
@@ -181,6 +184,7 @@ namespace Coco::Rendering
 			const Matrix4x4& projection,
 			const Matrix4x4& projection2D,
 			const Matrix4x4& view, 
+			const Vector3& viewPosition,
 			const List<RenderTarget>& renderTargets
 		) noexcept;
 

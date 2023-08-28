@@ -131,6 +131,11 @@ namespace Coco
 		/// @return A transform matrix
 		static Matrix4x4 CreateTransform(const Vector3& position, const Quaternion& orientation, const Vector3& scale) noexcept;
 
+		/// @brief Parses a Matrix4x4 from a string
+		/// @param str The string
+		/// @return The parsed matrix
+		static Matrix4x4 Parse(const string& str);
+
 		/// @brief Multiplies the rows of this matrix with the columns of another matrix
 		/// @param other The other matrix
 		/// @return The multiply result
@@ -183,6 +188,16 @@ namespace Coco
 		/// @brief Gets the scale component of this matrix
 		/// @return The scale component
 		Vector3 GetScale() const noexcept;
+
+		/// @brief Gets the string representation of this matrix
+		/// @return The string representation of the matrix
+		string ToString() const {
+			return FormattedString("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
+				Data[0], Data[1], Data[2], Data[3],
+				Data[4], Data[5], Data[6], Data[7],
+				Data[8], Data[9], Data[10], Data[11],
+				Data[12], Data[13], Data[14], Data[15]);
+		}
 
 		Matrix4x4 operator*(const Matrix4x4& other) const noexcept;
 		Vector4 operator*(const Vector4& vector) const noexcept;

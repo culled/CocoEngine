@@ -17,6 +17,10 @@ namespace Coco::Rendering
 		/// @return This material's version
 		virtual ResourceVersion GetMaterialVersion() const = 0;
 
+		/// @brief Sets uniform data for this material
+		/// @param uniformData The shader uniform data
+		virtual void SetUniformData(const ShaderUniformData& uniformData) = 0;
+
 		/// @brief Gets uniform data from this material
 		/// @return The shader uniform data
 		virtual ShaderUniformData GetUniformData() const = 0;

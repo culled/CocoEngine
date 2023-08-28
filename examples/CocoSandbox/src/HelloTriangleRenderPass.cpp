@@ -32,6 +32,7 @@ void HelloTriangleRenderPass::Execute(RenderContext& renderContext)
 
             renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_Projection", renderView->Projection);
             renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_View", renderView->View);
+            renderContext.SetShaderVector3(ShaderDescriptorScope::Global, "_ViewPosition", renderView->ViewPosition);
             renderContext.SetShaderColor(ShaderDescriptorScope::Global, "_AmbientColor", _ambientColor);
 
             renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Draw, "_Model", objectData.ModelMatrix);
