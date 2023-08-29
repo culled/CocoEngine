@@ -188,7 +188,7 @@ namespace Coco::Rendering
 		_defaultNormalTexture = Engine::Get()->GetResourceLibrary()->CreateResource<Texture>(
 			"RenderingService::DefaultNormalTexture",
 			size, size,
-			PixelFormat::RGBA8, ColorSpace::sRGB,
+			PixelFormat::RGBA8, ColorSpace::Linear,
 			ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
 
 		List<uint8_t> pixelData(size * size * channels);

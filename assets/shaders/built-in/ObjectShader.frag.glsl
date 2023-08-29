@@ -60,7 +60,6 @@ void main() {
     vec4 albedo = shaderUBO.baseColor * texture(baseTexSampler, inVaryings.uv);
 
     outColor = vec4((albedo * lightColor).xyz, 1.0);
-    //outColor = vec4(shaderUBO.normalMapStrength, 0.0, 0.0, 1.0);
 }
 
 vec4 calculateDirectionalLight(directionalLight light, float shininess, vec3 worldNormal, vec3 viewDirection) {
