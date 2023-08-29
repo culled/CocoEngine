@@ -154,6 +154,37 @@ namespace Coco::Rendering::Vulkan
 		return _platform->GetLogger();
 	}
 
+	uint GraphicsDeviceVulkan::GetDataTypeAlignment(BufferDataFormat type) const noexcept
+	{
+		switch (type)
+		{
+		case BufferDataFormat::Float:
+			return sizeof(float);
+		case BufferDataFormat::Int:
+			return sizeof(int32_t);
+		case BufferDataFormat::Vector2:
+			return sizeof(float) * 2;
+		case BufferDataFormat::Vector2Int:
+			return sizeof(int32_t) * 2;
+		case BufferDataFormat::Vector3:
+		case BufferDataFormat::Vector4:
+		case BufferDataFormat::Color:
+			return sizeof(float) * 4;
+		case BufferDataFormat::Vector3Int:
+		case BufferDataFormat::Vector4Int:
+			return sizeof(int32_t) * 4;
+		case BufferDataFormat::Matrix4x4:
+			return sizeof(float) * 16;
+		default:
+			return 0;
+		}
+	}
+
+	void GraphicsDeviceVulkan::AlignOffset(BufferDataFormat type, uint64_t& offset) const noexcept
+	{
+		offset = RenderingUtilities::GetOffsetForAlignment(offset, GetDataTypeAlignment(type));
+	}
+
 	void GraphicsDeviceVulkan::WaitForIdle() noexcept
 	{
 		vkDeviceWaitIdle(_device);

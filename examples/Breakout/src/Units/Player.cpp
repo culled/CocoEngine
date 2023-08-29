@@ -21,6 +21,7 @@ Player::Player(const EntityID& owner) : ScriptComponent(owner)
 	_material->SetTexture("_MainTex", app->GetRenderingService()->GetDefaultDiffuseTexture());
 
 	_mesh = MeshPrimitives::CreateXYPlane("Player Mesh", _size);
+	_mesh->EnsureChannels(true, true, true, true);
 	_mesh->UploadData();
 
 	ecs->AddComponent<MeshRendererComponent>(owner, _mesh, _material);

@@ -82,8 +82,7 @@ namespace Coco::Rendering::Vulkan
 		VulkanRenderPass& renderPass,
 		const VulkanShader& shader,
 		const string& subshaderName,
-		uint32_t subpassIndex,
-		const VkDescriptorSetLayout& globalDescriptorLayout)
+		uint32_t subpassIndex)
 	{
 		const ResourceID& id = VulkanPipeline::GetResourceID(renderPass, shader);
 		VulkanPipeline* resource;
@@ -101,7 +100,7 @@ namespace Coco::Rendering::Vulkan
 
 			try
 			{
-				resource->Update(renderPass, shader, globalDescriptorLayout);
+				resource->Update(renderPass, shader);
 			}
 			catch (const Exception& ex)
 			{

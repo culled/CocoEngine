@@ -48,8 +48,8 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Flushes any pending changes to the shader uniform buffers
 		void FlushUniformBufferChanges();
 
-		/// @brief Frees all descriptor sets from cached shader pools
-		void FreeDescriptorSets();
+		/// @brief Resets resources managed by this cache for a new frame
+		void ResetForNewFrame();
 
 		/// @brief Purges unused and invalid resources 
 		void PurgeResources() noexcept;

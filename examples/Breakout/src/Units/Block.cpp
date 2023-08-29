@@ -23,6 +23,7 @@ Block::Block(const EntityID& owner, const Vector3& position, const ResourceID& m
 	if (_blockMeshID == ResourceID::Nil)
 	{
 		mesh = Rendering::MeshPrimitives::CreateXYPlane("Block", _size);
+		mesh->EnsureChannels(true, true, true, true);
 		mesh->UploadData();
 
 		_blockMeshID = mesh->ID;

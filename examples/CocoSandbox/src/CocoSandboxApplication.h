@@ -39,14 +39,11 @@ namespace Coco::ECS
 	class ECSService;
 }
 
+class HelloTriangleRenderPass;
+
 class CocoSandboxApplication final : public Coco::Application
 {
 private:
-	static constexpr Coco::Array<const char*, 2> s_textureFiles = {
-		"textures/UV_Grid.ctexture",
-		"textures/LargeBlocks.ctexture"
-	};
-
 	Coco::Ref<Coco::MainLoopTickListener> _tickListener;
 	Coco::Ref<Coco::MainLoopTickListener> _renderTickListener;
 
@@ -58,9 +55,7 @@ private:
 	Coco::Rendering::RenderingService* _renderService;
 	Coco::Ref<Coco::Rendering::Shader> _shader;
 	Coco::Ref<Coco::Rendering::Material> _material;
-	Coco::Ref<Coco::Rendering::MaterialInstance> _materialInstance;
-	Coco::Ref<Coco::Rendering::Texture> _texture;
-	uint _textureIndex = 0;
+	Coco::SharedRef<HelloTriangleRenderPass> _mainRenderPass;
 
 	Coco::Ref<Coco::Rendering::Mesh> _mesh;
 

@@ -64,8 +64,7 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Updates this pipeline to reflect the current render pass and shader
 		/// @param renderPass The render pass
 		/// @param shader The shader
-		/// @param globalDescriptorLayout The global descriptor layout
-		void Update(VulkanRenderPass& renderPass, const VulkanShader& shader, const VkDescriptorSetLayout& globalDescriptorLayout);
+		void Update(VulkanRenderPass& renderPass, const VulkanShader& shader);
 
 		/// @brief Gets the underlying VkPipelineLayout
 		/// @return The Vulkan pipeline layout
@@ -77,8 +76,9 @@ namespace Coco::Rendering::Vulkan
 
 	private:
 		/// @brief Creates the pipeline layout and pipeline for the RenderPipeline and subshader combo
-		/// @param globalDescriptorLayout The global descriptor layout
-		void CreatePipeline(VulkanRenderPass& renderPass, const VulkanShader& shader, const VkDescriptorSetLayout& globalDescriptorLayout);
+		/// @param renderPass The render pass
+		/// @param shader The vulkan shader
+		void CreatePipeline(VulkanRenderPass& renderPass, const VulkanShader& shader);
 
 		/// @brief Destroys the pipeline layout and pipeline
 		void DestroyPipeline() noexcept;

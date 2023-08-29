@@ -34,16 +34,16 @@ namespace Coco::Rendering::Vulkan
 		return _pipeline == nullptr || _pipelineLayout == nullptr || GetReferenceVersion() != GetResourceVersion(renderPass, shader);
 	}
 
-	void VulkanPipeline::Update(VulkanRenderPass& renderPass, const VulkanShader& shader, const VkDescriptorSetLayout& globalDescriptorLayout)
+	void VulkanPipeline::Update(VulkanRenderPass& renderPass, const VulkanShader& shader)
 	{
 		DestroyPipeline();
-		CreatePipeline(renderPass, shader, globalDescriptorLayout);
+		CreatePipeline(renderPass, shader);
 
 		UpdateReferenceVersion(GetResourceVersion(renderPass, shader));
 		IncrementVersion();
 	}
 
-	void VulkanPipeline::CreatePipeline(VulkanRenderPass& renderPass, const VulkanShader& shader, const VkDescriptorSetLayout& globalDescriptorLayout)
+	void VulkanPipeline::CreatePipeline(VulkanRenderPass& renderPass, const VulkanShader& shader)
 	{
 		const VulkanSubshader* vulkanSubshader;
 		if (!shader.TryGetSubshader(_subshaderName, vulkanSubshader))
@@ -133,7 +133,7 @@ namespace Coco::Rendering::Vulkan
 
 		VkVertexInputBindingDescription vertexInput = {};
 		vertexInput.binding = 0; // The index of the binding
-		vertexInput.stride = sizeof(VertexData);
+		vertexInput.stride = subshader.GetVertexDataSize();
 		vertexInput.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // One data entry for each vertex
 
 		List<VkVertexInputBindingDescription> vertexInputs = { vertexInput };
@@ -163,23 +163,18 @@ namespace Coco::Rendering::Vulkan
 		inputState.topology = ToVkPrimativeTopology(subshader.PipelineState.TopologyMode);
 		inputState.primitiveRestartEnable = VK_FALSE;
 
-		// TODO: make push constantes more configurable
-		VkPushConstantRange pushConstants = { };
-		pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		pushConstants.offset = 0;
-		pushConstants.size = sizeof(float) * 16; // 64 bytes for now
+		List<VkDescriptorSetLayout> descriptorSetLayouts = vulkanSubshader->GetDescriptorLayouts().Transform<VkDescriptorSetLayout>(
+			[](const VulkanDescriptorLayout& e) {return e.Layout; }
+		);
 
-		Array<VkDescriptorSetLayout, 2> descriptorSetLayouts = {
-			globalDescriptorLayout,
-			vulkanSubshader->GetDescriptorLayout().Layout
-		};
+		List<VkPushConstantRange> pushConstantRanges = vulkanSubshader->GetPushConstantRanges();
 
 		VkPipelineLayoutCreateInfo layoutInfo = {};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		layoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-		layoutInfo.pSetLayouts = descriptorSetLayouts.data();
-		layoutInfo.pushConstantRangeCount = 1;
-		layoutInfo.pPushConstantRanges = &pushConstants;
+		layoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.Count());
+		layoutInfo.pSetLayouts = descriptorSetLayouts.Data();
+		layoutInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.Count());
+		layoutInfo.pPushConstantRanges = pushConstantRanges.Data();
 
 		AssertVkResult(vkCreatePipelineLayout(_device->GetDevice(), &layoutInfo, nullptr, &_pipelineLayout));
 
@@ -189,7 +184,7 @@ namespace Coco::Rendering::Vulkan
 		{
 			VkPipelineShaderStageCreateInfo stageInfo = {};
 			stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-			stageInfo.stage = ToVkShaderStageFlagBits(stage.StageType);
+			stageInfo.stage = ToVkShaderStageFlagBits(stage.Type);
 			stageInfo.module = stage.ShaderModule;
 			stageInfo.pName = stage.EntryPointName.c_str();
 

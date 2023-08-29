@@ -20,19 +20,15 @@ namespace Coco::Rendering::Vulkan
 	class VulkanDescriptorPool;
 
 	/// @brief A Vulkan subshader stage
-	struct VulkanShaderStage
+	struct VulkanShaderStage : public ShaderStage
 	{
-		/// @brief The name of the entry point
-		string EntryPointName;
-
-		/// @brief The type of this stage
-		ShaderStageType StageType;
-
 		/// @brief The Vulkan shader module
 		VkShaderModule ShaderModule = nullptr;
 
 		/// @brief The create info for the Vulkan shader module
 		VkShaderModuleCreateInfo ShaderModuleCreateInfo;
+
+		VulkanShaderStage();
 	};
 
 	/// @brief A subshader that can be used with Vulkan
@@ -44,7 +40,7 @@ namespace Coco::Rendering::Vulkan
 		GraphicsDeviceVulkan* _device;
 		string _name;
 		List<VulkanShaderStage> _shaderStages;
-		VulkanDescriptorLayout _descriptorLayout;
+		UnorderedMap<ShaderDescriptorScope, VulkanDescriptorLayout> _descriptorLayouts;
 		Subshader _subshader;
 		bool _isValid;
 
@@ -63,8 +59,22 @@ namespace Coco::Rendering::Vulkan
 		const List<VulkanShaderStage>& GetStages() const noexcept { return _shaderStages; }
 
 		/// @brief Gets the descriptor layout for this subshader
+		/// @param scope The scope of the layout
 		/// @return The descriptor layout for this subshader
-		const VulkanDescriptorLayout& GetDescriptorLayout() const noexcept { return _descriptorLayout; }
+		const VulkanDescriptorLayout& GetDescriptorLayout(ShaderDescriptorScope scope) const noexcept { return _descriptorLayouts.at(scope); }
+
+		/// @brief Gets the descriptor layouts for this subshader
+		/// @return The descriptor layouts for this subshader
+		List<VulkanDescriptorLayout> GetDescriptorLayouts() const noexcept;
+
+		/// @brief Gets the size of this subshader's uniform data
+		/// @param scope The scope of the uniforms
+		/// @return The size of the uniform data
+		uint GetUniformDataSize(ShaderDescriptorScope scope) const;
+
+		/// @brief Gets push constant ranges for this subshader
+		/// @return Push constant ranges for this subshader
+		List<VkPushConstantRange> GetPushConstantRanges() const;
 
 		/// @brief Gets the subshader info for this subshader
 		/// @return The subshader info for this subshader
@@ -75,11 +85,14 @@ namespace Coco::Rendering::Vulkan
 		void DestroyShaderObjects() noexcept;
 
 		/// @brief Creates a shader stage from a compiled SPV file
-		/// @param stage The type of shader stage
-		/// @param entrypointName The name of the entrypoint
-		/// @param file The path to the shader stage file
+		/// @param stage The shader stage
 		/// @return A Vulkan shader stage
-		VulkanShaderStage CreateShaderStage(ShaderStageType stage, const string& entrypointName, const string& file);
+		VulkanShaderStage CreateShaderStage(const ShaderStage& stage);
+
+		/// @brief Creates a descriptor layout for the given scope of descriptors
+		/// @param scope The scope of the descriptors
+		/// @return The created descriptor layout
+		VulkanDescriptorLayout CreateDescriptorLayout(ShaderDescriptorScope scope);
 	};
 
 	/// @brief A cached Vulkan shader

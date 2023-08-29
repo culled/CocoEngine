@@ -41,7 +41,6 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	_tickListener = engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::Tick, 0);
 	_renderTickListener = engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::RenderTick, 10000);
 
-
 	_inputService = engine->GetServiceManager()->CreateService<Input::InputService>();
 
 	Rendering::GraphicsPlatformCreationParameters createParams(Name, Rendering::RenderingRHI::Vulkan);
@@ -51,35 +50,34 @@ CocoSandboxApplication::CocoSandboxApplication() :
 
 	// Setup our basic shader
 	_shader = engine->GetResourceLibrary()->Load<Shader>("shaders/built-in/ObjectShader.cshader");
-	_texture = engine->GetResourceLibrary()->Load<Texture>(s_textureFiles.at(0));
 	_material = engine->GetResourceLibrary()->Load<Material>("materials/testMaterial.cmaterial");
-	_materialInstance = engine->GetResourceLibrary()->CreateResource<MaterialInstance>("Instance", _material);
 
 	//_material = CreateRef<Material>(_shader);
-	_material->SetColor("_BaseColor", Color::White);
+	//_material->SetColor("_BaseColor", Color::White);
 	//_material->SetTexture("_MainTex", _texture);
 
 	// Setup our basic mesh
 	const double size = 30.0;
 	
-	List<Vector3> vertexPositions;
-	List<Vector2> vertexUVs;
+	List<VertexData> vertices;
 	List<uint> vertexIndices;
 	
-	MeshPrimitives::CreateXYGrid(Vector2(size, size), Vector3(0.0, 0.0, -size * 0.5), vertexPositions, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateXZGrid(Vector2(size, size), Vector3(0.0, -size * 0.5, 0.0), vertexPositions, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateYZGrid(Vector2(size, size), Vector3(-size * 0.5, 0.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateBox(Vector3::One, Vector3(0.0, 5.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateCone(2.0, 1.0, 12, Vector3(2.0, 5.0, 0.0), vertexPositions, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateXYGrid(Vector2(size, size), Vector3(0.0, 0.0, -size * 0.5), vertices, vertexIndices);
+	MeshPrimitives::CreateXZGrid(Vector2(size, size), Vector3(0.0, -size * 0.5, 0.0), vertices, vertexIndices);
+	MeshPrimitives::CreateYZGrid(Vector2(size, size), Vector3(-size * 0.5, 0.0, 0.0), vertices, vertexIndices);
+	MeshPrimitives::CreateBox(Vector3::One, Vector3(0.0, 5.0, 0.0), vertices, vertexIndices);
+	MeshPrimitives::CreateCone(2.0, 1.0, 12, Vector3(2.0, 5.0, 0.0), vertices, vertexIndices);
+	MeshPrimitives::CreateUVSphere(12, 12, 0.5, Vector3(-2.0, 5.0, 0.0), vertices, vertexIndices);
 	
-	_mesh = MeshPrimitives::CreateFromVertices("Mesh", vertexPositions, vertexUVs, vertexIndices);
+	_mesh = MeshPrimitives::CreateFromVertices("Mesh", vertices, vertexIndices, false, true);
+	_mesh->EnsureChannels(true, true, true, true);
 
 	// Setup our render pipeline
 	Ref<Rendering::RenderPipeline> pipeline = engine->GetResourceLibrary()->CreateResource<Rendering::RenderPipeline>("Pipeline");
 	
 	List<int> attachmentMapping = { 0, 1 };
-	
-	pipeline->AddRenderPass(CreateSharedRef<HelloTriangleRenderPass>(), attachmentMapping);
+	_mainRenderPass = CreateSharedRef<HelloTriangleRenderPass>();
+	pipeline->AddRenderPass(_mainRenderPass, attachmentMapping);
 	pipeline->AddRenderPass(CreateSharedRef<UIRenderPass>(), { 0 });
 	_renderService->SetDefaultPipeline(pipeline);
 
@@ -102,7 +100,9 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	obj2Transform.SetLocalPosition(Vector3(0, 30, 0));
 	obj2Transform.SetLocalRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
 
-	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, MeshPrimitives::CreateBox("Box", Vector3::One * 5.0), _materialInstance);
+	Ref<Mesh> box = MeshPrimitives::CreateBox("Box", Vector3::One * 5.0);
+	box->EnsureChannels(true, true, true, true);
+	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, box, _material);
 
 	_ecsService->GetEntity(obj2).SetParentID(_cameraEntityID);
 	_obj2ID = obj2;
@@ -150,22 +150,20 @@ void CocoSandboxApplication::Start()
 
 		if (key == Input::KeyboardKey::D1)
 		{
-			_window->SetIsFullscreen(!_window->GetIsFullscreen());
-			return true;
-		} 
-		else if (key == Input::KeyboardKey::D2)
-		{
-			_window->SetState(Windowing::WindowState::Maximized);
-			return true;
-		}
-		else if (key == Input::KeyboardKey::D3)
-		{
-			_window->SetState(Windowing::WindowState::Normal);
-			return true;
-		}
-		else if (key == Input::KeyboardKey::G)
-		{
-			_window->Focus();
+			switch (_mainRenderPass->GetRenderMode())
+			{
+			case HelloTriangleRenderPass::RenderModeType::Default:
+				_mainRenderPass->SetRenderMode(HelloTriangleRenderPass::RenderModeType::Normals);
+				break;
+			case HelloTriangleRenderPass::RenderModeType::Normals:
+				_mainRenderPass->SetRenderMode(HelloTriangleRenderPass::RenderModeType::Lighting);
+				break;
+			case HelloTriangleRenderPass::RenderModeType::Lighting:
+				_mainRenderPass->SetRenderMode(HelloTriangleRenderPass::RenderModeType::Default);
+				break;
+			default:
+				break;
+			}
 			return true;
 		}
 
@@ -213,16 +211,16 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	cameraTransform.SetLocalPosition(cameraTransform.GetLocalPosition() + velocity * deltaTime);
 	cameraTransform.SetLocalRotation(orientation);
 
-	const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
-	const double a = Math::Sin(t) * 0.5 + 0.5;
-	_materialInstance->SetColor("_BaseColor", Color(a, a, a, 1.0));
+	//const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
+	//const double a = Math::Sin(t) * 0.5 + 0.5;
+	//_materialInstance->SetColor("_BaseColor", Color(a, a, a, 1.0));
 	
-	if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
-	{
-		_textureIndex = (_textureIndex + 1) % static_cast<uint>(s_textureFiles.size());
-		_texture = Engine::Get()->GetResourceLibrary()->Load<Texture>(s_textureFiles.at(_textureIndex));
-		_material->SetTexture("_MainTex", _texture);
-	}
+	//if (_inputService->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Space))
+	//{
+	//	_textureIndex = (_textureIndex + 1) % static_cast<uint>(s_textureFiles.size());
+	//	_texture = Engine::Get()->GetResourceLibrary()->Load<Texture>(s_textureFiles.at(_textureIndex));
+	//	_material->SetTexture("_MainTex", _texture);
+	//}
 
 	// Update mesh data on the GPU if it is dirty
 	if (_mesh->GetIsDirty())

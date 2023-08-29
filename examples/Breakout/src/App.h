@@ -84,7 +84,7 @@ public:
 	ECS::Scene* GetScene() { return _ecsService->GetRootScene(); }
 
 	Ref<Rendering::Shader> GetBasicShader() { return _basicShader; }
-	void Lose();
+	void EndGame(bool won);
 	bool GetIsPlaying() const { return _isPlaying; }
 
 private:

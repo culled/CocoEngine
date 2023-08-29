@@ -76,6 +76,52 @@ namespace Coco
 
 	Vector2Int::operator Vector2() const noexcept { return Vector2(X, Y); }
 
+	const Vector3Int Vector3Int::Zero = Vector3Int(0, 0, 0);
+	const Vector3Int Vector3Int::One = Vector3Int(1, 1, 1);
+
+	Vector3Int::Vector3Int(int x, int y, int z) noexcept : X(x), Y(y), Z(z)
+	{}
+
+	Vector3Int Vector3Int::Parse(const string& str)
+	{
+		Array<int, 3> values = { 0 };
+
+		ParseIntArray(str, std::span<int>{values});
+
+		return Vector3Int(values[0], values[1], values[2]);
+	}
+
+	double Vector3Int::DistanceBetween(const Vector3Int& a, const Vector3Int& b) noexcept
+	{
+		const Vector3Int diff = a - b;
+		return diff.GetLength();
+	}
+
+	Vector3Int::operator Vector3() const noexcept { return Vector3(X, Y, Z); }
+
+	const Vector4Int Vector4Int::Zero = Vector4Int(0, 0, 0, 0);
+	const Vector4Int Vector4Int::One = Vector4Int(1, 1, 1, 1);
+
+	Vector4Int::Vector4Int(int x, int y, int z, int w) noexcept : X(x), Y(y), Z(z), W(w)
+	{}
+
+	Vector4Int Vector4Int::Parse(const string& str)
+	{
+		Array<int, 4> values = { 0 };
+
+		ParseIntArray(str, std::span<int>{values});
+
+		return Vector4Int(values[0], values[1], values[2], values[3]);
+	}
+
+	double Vector4Int::DistanceBetween(const Vector4Int& a, const Vector4Int& b) noexcept
+	{
+		const Vector4Int diff = a - b;
+		return diff.GetLength();
+	}
+
+	Vector4Int::operator Vector4() const noexcept { return Vector4(X, Y, Z, W); }
+
 	const Vector2 Vector2::Zero = Vector2(0.0, 0.0);
 	const Vector2 Vector2::One = Vector2(1.0, 1.0);
 

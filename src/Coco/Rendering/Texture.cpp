@@ -9,7 +9,7 @@
 namespace Coco::Rendering
 {
 	Texture::Texture(const ResourceID& id, const string& name) : RenderingResource(id, name), 
-		_usageFlags(ImageUsageFlags::None)
+		_usageFlags(ImageUsageFlags::None), _colorSpace(ColorSpace::Unknown)
 	{}
 
 	Texture::Texture(

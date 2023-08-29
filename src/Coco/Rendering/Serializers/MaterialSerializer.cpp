@@ -23,28 +23,111 @@ namespace Coco::Rendering
 
 			writer.WriteLine(s_materialShaderVariable, material->GetShader() != nullptr ? material->GetShader()->GetFilePath() : "");
 			
-			writer.WriteLine(s_propertiesSection);
+			writer.WriteLine(s_uniformsSection);
 			writer.IncrementIndentLevel();
 
-			writer.WriteLine(s_vector4Section);
-			writer.IncrementIndentLevel();
-			for (const auto& vec4KVP : material->GetVector4Properties())
-				writer.WriteLine(vec4KVP.first, vec4KVP.second.ToString());
-			writer.DecrementIndentLevel();
+			const ShaderUniformData& uniforms = material->GetUniformData();
 
-			writer.WriteLine(s_colorSection);
-			writer.IncrementIndentLevel();
-			for (const auto& colorKVP : material->GetColorProperties())
-				writer.WriteLine(colorKVP.first, colorKVP.second.ToString());
-			writer.DecrementIndentLevel();
-
-			writer.WriteLine(s_textureSection);
-			writer.IncrementIndentLevel();
-			for (const auto& textureKVP : material->GetTextureProperties())
+			for (const auto& kvp : uniforms.Floats)
 			{
-				Ref<Texture> texture = library.GetResource<Texture>(textureKVP.second);
-				writer.WriteLine(textureKVP.first, texture.IsValid() ? texture->GetFilePath() : "");
+				writer.WriteLine(kvp.first);
+
+				writer.IncrementIndentLevel();
+				writer.WriteLine(s_uniformsTypeVariable, ToString(static_cast<int>(BufferDataFormat::Float)));
+				writer.WriteLine(s_uniformsValueVariable, ToString(kvp.second));
+				writer.DecrementIndentLevel();
 			}
+
+			for (const auto& kvp : uniforms.Vector2s)
+			{
+				writer.WriteLine(kvp.first);
+
+				writer.IncrementIndentLevel();
+				writer.WriteLine(s_uniformsTypeVariable, ToString(static_cast<int>(BufferDataFormat::Vector2)));
+				writer.WriteLine(s_uniformsValueVariable, kvp.second.ToString());
+				writer.DecrementIndentLevel();
+			}
+
+			for (const auto& kvp : uniforms.Vector3s)
+			{
+				writer.WriteLine(kvp.first);
+
+				writer.IncrementIndentLevel();
+				writer.WriteLine(s_uniformsTypeVariable, ToString(static_cast<int>(BufferDataFormat::Vector3)));
+				writer.WriteLine(s_uniformsValueVariable, kvp.second.ToString());
+				writer.DecrementIndentLevel();
+			}
+
+			for (const auto& kvp : uniforms.Vector4s)
+			{
+				writer.WriteLine(kvp.first);
+
+				writer.IncrementIndentLevel();
+				writer.WriteLine(s_uniformsTypeVariable, ToString(static_cast<int>(BufferDataFormat::Vector4)));
+				writer.WriteLine(s_uniformsValueVariable, kvp.second.ToString());
+				writer.DecrementIndentLevel();
+			}
+
+			for (const auto& kvp : uniforms.Ints)
+			{
+				writer.WriteLine(kvp.first);
+
+				writer.IncrementIndentLevel();
+				writer.WriteLine(s_uniformsTypeVariable, ToString(static_cast<int>(BufferDataFormat::Int)));
+				writer.WriteLine(s_uniformsValueVariable, ToString(kvp.second));
+				writer.DecrementIndentLevel();
+			}
+
+			for (const auto& kvp : uniforms.Vector2Ints)
+			{
+				writer.WriteLine(kvp.first);
+
+				writer.IncrementIndentLevel();
+				writer.WriteLine(s_uniformsTypeVariable, ToString(static_cast<int>(BufferDataFormat::Vector2Int)));
+				writer.WriteLine(s_uniformsValueVariable, kvp.second.ToString());
+				writer.DecrementIndentLevel();
+			}
+
+			for (const auto& kvp : uniforms.Vector3Ints)
+			{
+				writer.WriteLine(kvp.first);
+
+				writer.IncrementIndentLevel();
+				writer.WriteLine(s_uniformsTypeVariable, ToString(static_cast<int>(BufferDataFormat::Vector3Int)));
+				writer.WriteLine(s_uniformsValueVariable, kvp.second.ToString());
+				writer.DecrementIndentLevel();
+			}
+
+			for (const auto& kvp : uniforms.Vector4Ints)
+			{
+				writer.WriteLine(kvp.first);
+
+				writer.IncrementIndentLevel();
+				writer.WriteLine(s_uniformsTypeVariable, ToString(static_cast<int>(BufferDataFormat::Vector4Int)));
+				writer.WriteLine(s_uniformsValueVariable, kvp.second.ToString());
+				writer.DecrementIndentLevel();
+			}
+
+			for (const auto& kvp : uniforms.Colors)
+			{
+				writer.WriteLine(kvp.first);
+
+				writer.IncrementIndentLevel();
+				writer.WriteLine(s_uniformsTypeVariable, ToString(static_cast<int>(BufferDataFormat::Color)));
+				writer.WriteLine(s_uniformsValueVariable, kvp.second.ToString());
+				writer.DecrementIndentLevel();
+			}
+
+			for (const auto& kvp : uniforms.Matrix4x4s)
+			{
+				writer.WriteLine(kvp.first);
+
+				writer.IncrementIndentLevel();
+				writer.WriteLine(s_uniformsTypeVariable, ToString(static_cast<int>(BufferDataFormat::Matrix4x4)));
+				writer.WriteLine(s_uniformsValueVariable, kvp.second.ToString());
+				writer.DecrementIndentLevel();
+			}
+			
 			writer.DecrementIndentLevel();
 
 			writer.Flush();
@@ -64,9 +147,7 @@ namespace Coco::Rendering
 		string id;
 		string name;
 		string shaderPath;
-		UnorderedMap<string, Vector4> vec4Properties;
-		UnorderedMap<string, Color> colorProperties;
-		UnorderedMap<string, string> textureProperties;
+		ShaderUniformData uniforms{};
 
 		while (reader.ReadLine())
 		{
@@ -78,8 +159,8 @@ namespace Coco::Rendering
 				name = reader.GetValue();
 			else if (reader.IsKey(s_materialShaderVariable))
 				shaderPath = reader.GetValue();
-			else if (reader.IsKey(s_propertiesSection))
-				ReadPropertiesSection(reader, vec4Properties, colorProperties, textureProperties);
+			else if (reader.IsKey(s_uniformsSection))
+				ReadUniformsSection(reader, library, uniforms);
 		}
 
 		ManagedRef<Material> material = CreateManagedRef<Material>(UUID(id), name);
@@ -100,60 +181,72 @@ namespace Coco::Rendering
 		}
 
 		material->SetShader(shader);
-
-		for (const auto& vec4Prop : vec4Properties)
-			material->SetVector4(vec4Prop.first, vec4Prop.second);
-
-		for (const auto& colorProp : colorProperties)
-			material->SetColor(colorProp.first, colorProp.second);
-
-		for (const auto& textureProp : textureProperties)
-		{
-			Ref<Texture> texture = library.Load<Texture>(textureProp.second);
-			material->SetTexture(textureProp.first, texture);
-		}
+		material->SetUniformData(uniforms);
 
 		return std::move(material);
 	}
 
-	void MaterialSerializer::ReadPropertiesSection(
-		KeyValueReader& reader, 
-		UnorderedMap<string, Vector4>& vec4Properties,
-		UnorderedMap<string, Color>& colorProperties,
-		UnorderedMap<string, string>& textureProperties)
+	void MaterialSerializer::ReadUniformsSection(
+		KeyValueReader& reader,
+		ResourceLibrary& library,
+		ShaderUniformData& uniforms)
 	{
 		while (reader.ReadIfIsIndentLevel(1))
 		{
-			if (reader.IsKey(s_vector4Section))
-				ReadVector4Section(reader, vec4Properties);
-			else if (reader.IsKey(s_colorSection))
-				ReadColorSection(reader, colorProperties);
-			else if (reader.IsKey(s_textureSection))
-				ReadTextureSection(reader, textureProperties);
-		}
-	}
+			string name = reader.GetKey();
+			int uniformType;
+			string valueText;
 
-	void MaterialSerializer::ReadVector4Section(KeyValueReader& reader, UnorderedMap<string, Vector4>& vec4Properties)
-	{
-		while (reader.ReadIfIsIndentLevel(2))
-		{
-			vec4Properties[reader.GetKey()] = Vector4::Parse(reader.GetValue());
-		}
-	}
+			while (reader.ReadIfIsIndentLevel(2))
+			{
+				if (reader.IsKey(s_uniformsTypeVariable))
+					uniformType = reader.GetVariableValueAsInt();
+				else if (reader.IsKey(s_uniformsValueVariable))
+					valueText = reader.GetValue();
+			}
 
-	void MaterialSerializer::ReadColorSection(KeyValueReader& reader, UnorderedMap<string, Color>& colorProperties)
-	{
-		while (reader.ReadIfIsIndentLevel(2))
-		{
-			colorProperties[reader.GetKey()] = Color::Parse(reader.GetValue());
-		}
-	}
-
-	void MaterialSerializer::ReadTextureSection(KeyValueReader& reader, UnorderedMap<string, string>& textureProperties)
-	{
-		while (reader.ReadIfIsIndentLevel(2))
-		{
-			textureProperties[reader.GetKey()] = reader.GetValue();
+			switch (uniformType)
+			{
+			case static_cast<int>(BufferDataFormat::Float):
+				uniforms.Floats[name] = static_cast<float>(atof(valueText.c_str()));
+				break;
+			case static_cast<int>(BufferDataFormat::Vector2):
+				uniforms.Vector2s[name] = Vector2::Parse(valueText);
+				break;
+			case static_cast<int>(BufferDataFormat::Vector3):
+				uniforms.Vector3s[name] = Vector3::Parse(valueText);
+				break;
+			case static_cast<int>(BufferDataFormat::Vector4):
+				uniforms.Vector4s[name] = Vector4::Parse(valueText);
+				break;
+			case static_cast<int>(BufferDataFormat::Int):
+				uniforms.Ints[name] = atoi(valueText.c_str());
+				break;
+			case static_cast<int>(BufferDataFormat::Vector2Int):
+				uniforms.Vector2Ints[name] = Vector2Int::Parse(valueText);
+				break;
+			case static_cast<int>(BufferDataFormat::Vector3Int):
+				uniforms.Vector3Ints[name] = Vector3Int::Parse(valueText);
+				break;
+			case static_cast<int>(BufferDataFormat::Vector4Int):
+				uniforms.Vector4Ints[name] = Vector4Int::Parse(valueText);
+				break;
+			case static_cast<int>(BufferDataFormat::Color):
+				uniforms.Colors[name] = Color::Parse(valueText);
+				break;
+			case static_cast<int>(BufferDataFormat::Matrix4x4):
+				uniforms.Matrix4x4s[name] = Matrix4x4::Parse(valueText);
+				break;
+			case s_textureType:
+				{
+					Ref<Texture> texture = library.Load<Texture>(valueText);
+					uniforms.Textures[name] = texture->ID;
+				}
+				break;
+			default:
+				LogWarning(library.GetLogger(), FormattedString("Unsupported uniform type for {}", name));
+				break;
+			}
 		}
 	}
 }

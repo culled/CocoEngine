@@ -46,11 +46,11 @@ project "Breakout"
         {
             "if not exist %{AssetsDir}shaders mkdir %{AssetsDir}shaders",
             "echo Compiling shaders...", 
-            "echo %{AssetsDir}shaders\\built-in\\ObjectShader.vert.glsl to %{AssetsDir}shaders\\built-in\\ObjectShader.vert.spv",
-            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=vert %{AssetsDir}shaders\\built-in\\ObjectShader.vert.glsl -o %{AssetsDir}shaders\\built-in\\ObjectShader.vert.spv",
+            "echo %{AssetsDir}shaders\\built-in\\Unlit.vert.glsl to %{AssetsDir}shaders\\built-in\\Unlit.vert.spv",
+            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=vert %{AssetsDir}shaders\\built-in\\Unlit.vert.glsl -o %{AssetsDir}shaders\\built-in\\Unlit.vert.spv",
             "if %ERRORLEVEL% NEQ 0 (echo Error compiling vertex shader: %ERRORLEVEL% && exit)",
-            "echo %{AssetsDir}shaders\\built-in\\ObjectShader.frag.glsl to %{AssetsDir}shaders\\built-in\\ObjectShader.frag.spv",
-            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=frag %{AssetsDir}shaders\\built-in\\ObjectShader.frag.glsl -o %{AssetsDir}shaders\\built-in\\ObjectShader.frag.spv",
+            "echo %{AssetsDir}shaders\\built-in\\Unlit.frag.glsl to %{AssetsDir}shaders\\built-in\\Unlit.frag.spv",
+            "%{BinDir.vulkan}\\glslc.exe -fshader-stage=frag %{AssetsDir}shaders\\built-in\\Unlit.frag.glsl -o %{AssetsDir}shaders\\built-in\\Unlit.frag.spv",
             "if %ERRORLEVEL% NEQ 0 (echo Error compiling fragment shader: %ERRORLEVEL% && exit)",
             "echo Shaders compiled"
         }

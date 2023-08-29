@@ -25,8 +25,14 @@ namespace Coco::Rendering
 
 				writer.WriteLine(s_stagesSection);
 				writer.IncrementIndentLevel();
-				for (const auto& kvp : subshader.StageFiles)
-					writer.WriteLine(ToString(static_cast<int>(kvp.first)), kvp.second);
+				for (const auto& stage : subshader.Stages)
+				{
+					writer.WriteLine(stage.EntryPointName);
+					writer.IncrementIndentLevel();
+					writer.WriteLine(s_stageTypeVariable, ToString(static_cast<int>(stage.Type)));
+					writer.WriteLine(s_stageFileVariable, stage.FilePath);
+					writer.DecrementIndentLevel();
+				}
 				writer.DecrementIndentLevel();
 
 				writer.WriteLine(s_stateSection);
@@ -42,22 +48,42 @@ namespace Coco::Rendering
 				writer.WriteLine(s_attributesSection);
 				writer.IncrementIndentLevel();
 				for (const ShaderVertexAttribute& attr : subshader.Attributes)
-					writer.WriteLine(ToString(static_cast<int>(attr.DataFormat)));
+				{
+					writer.WriteLine(attr.Name);
+
+					writer.IncrementIndentLevel();
+					writer.WriteLine(s_attributeTypeVariable, ToString(static_cast<int>(attr.DataFormat)));
+					writer.DecrementIndentLevel();
+				}
 				writer.DecrementIndentLevel();
 
 				writer.WriteLine(s_descriptorsSection);
 				writer.IncrementIndentLevel();
-				for (const ShaderDescriptor& desc : subshader.Descriptors)
-					writer.WriteLine(desc.Name, ToString(static_cast<int>(desc.Type)));
+				for (const ShaderUniformDescriptor& uniform : subshader.Uniforms)
+				{
+					writer.WriteLine(uniform.Name);
+
+					writer.IncrementIndentLevel();
+					writer.WriteLine(s_descriptorScopeVariable, ToString(static_cast<int>(uniform.Scope)));
+					writer.WriteLine(s_descriptorBindPointVariable, ToString(static_cast<int>(uniform.BindingPoints)));
+					writer.WriteLine(s_descriptorTypeVariable, ToString(static_cast<int>(uniform.Type)));
+					writer.DecrementIndentLevel();
+				}
 				writer.DecrementIndentLevel();
 
 				writer.WriteLine(s_samplersSection);
 				writer.IncrementIndentLevel();
 				for (const ShaderTextureSampler& sampler : subshader.Samplers)
+				{
 					writer.WriteLine(sampler.Name);
-				writer.DecrementIndentLevel();
 
-				writer.WriteLine(s_subshaderBindStageVariable, ToString(static_cast<int>(subshader.DescriptorBindingPoint)));
+					writer.IncrementIndentLevel();
+					writer.WriteLine(s_samplerScopeVariable, ToString(static_cast<int>(sampler.Scope)));
+					writer.WriteLine(s_samplerBindPointVariable, ToString(static_cast<int>(sampler.BindingPoints)));
+					writer.WriteLine(s_samplerDefaultVariable, ToString(static_cast<int>(sampler.DefaultTexture)));
+					writer.DecrementIndentLevel();
+				}
+				writer.DecrementIndentLevel();
 
 				writer.SetIndentLevel(1);
 			}
@@ -118,29 +144,37 @@ namespace Coco::Rendering
 			while (reader.ReadIfIsIndentLevel(2))
 			{
 				if (reader.IsKey(s_stagesSection))
-					ReadSubshaderStages(reader, subshader.StageFiles);
+					ReadSubshaderStages(reader, subshader.Stages);
 				else if (reader.IsKey(s_stateSection))
 					ReadSubshaderState(reader, subshader.PipelineState);
 				else if (reader.IsKey(s_attributesSection))
 					ReadSubshaderAttributes(reader, subshader.Attributes);
 				else if (reader.IsKey(s_descriptorsSection))
-					ReadSubshaderDescriptors(reader, subshader.Descriptors);
+					ReadSubshaderUniforms(reader, subshader.Uniforms);
 				else if (reader.IsKey(s_samplersSection))
 					ReadSubshaderSamplers(reader, subshader.Samplers);
-				else if (reader.IsKey(s_subshaderBindStageVariable))
-					subshader.DescriptorBindingPoint = static_cast<ShaderStageType>(reader.GetVariableValueAsInt());
 			}
 
 			subshaders.Add(subshader);
 		}
 	}
 
-	void ShaderSerializer::ReadSubshaderStages(KeyValueReader& reader, UnorderedMap<ShaderStageType, string>& stageFiles)
+	void ShaderSerializer::ReadSubshaderStages(KeyValueReader& reader, List<ShaderStage>& stages)
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			ShaderStageType stageType = static_cast<ShaderStageType>(reader.GetKeyAsInt());
-			stageFiles[stageType] = reader.GetValue();
+			ShaderStage stage{};
+			stage.EntryPointName = reader.GetKey();
+			
+			while (reader.ReadIfIsIndentLevel(4))
+			{
+				if (reader.IsKey(s_stageTypeVariable))
+					stage.Type = static_cast<ShaderStageType>(reader.GetVariableValueAsInt());
+				else if (reader.IsKey(s_stageFileVariable))
+					stage.FilePath = reader.GetValue();
+			}
+			
+			stages.Add(stage);
 		}
 	}
 
@@ -167,15 +201,41 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			attributes.Construct(static_cast<BufferDataFormat>(reader.GetKeyAsInt()));
+			string name = reader.GetKey();
+			BufferDataFormat type;
+
+			while (reader.ReadIfIsIndentLevel(4))
+			{
+				if (reader.IsKey(s_attributeTypeVariable))
+					type = static_cast<BufferDataFormat>(reader.GetVariableValueAsInt());
+			}
+
+			attributes.Construct(name, type);
 		}
 	}
 
-	void ShaderSerializer::ReadSubshaderDescriptors(KeyValueReader& reader, List<ShaderDescriptor>& descriptors)
+	void ShaderSerializer::ReadSubshaderUniforms(KeyValueReader& reader, List<ShaderUniformDescriptor>& uniforms)
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			descriptors.Construct(reader.GetKey(), static_cast<BufferDataFormat>(reader.GetVariableValueAsInt()));
+			string name;
+			ShaderDescriptorScope scope;
+			BufferDataFormat type;
+			ShaderStageType bindingPoint;
+
+			name = reader.GetKey();
+
+			while (reader.ReadIfIsIndentLevel(4))
+			{
+				if (reader.IsKey(s_descriptorTypeVariable))
+					type = static_cast<BufferDataFormat>(reader.GetVariableValueAsInt());
+				else if (reader.IsKey(s_descriptorScopeVariable))
+					scope = static_cast<ShaderDescriptorScope>(reader.GetVariableValueAsInt());
+				else if (reader.IsKey(s_descriptorBindPointVariable))
+					bindingPoint = static_cast<ShaderStageType>(reader.GetVariableValueAsInt());
+			}
+
+			uniforms.Construct(name, scope, bindingPoint, type);
 		}
 	}
 
@@ -183,7 +243,24 @@ namespace Coco::Rendering
 	{
 		while (reader.ReadIfIsIndentLevel(3))
 		{
-			samplers.Construct(reader.GetKey());
+			string name;
+			ShaderDescriptorScope scope;
+			ShaderStageType bindingPoint;
+			ShaderTextureSampler::DefaultTextureType defaultTexture;
+
+			name = reader.GetKey();
+
+			while (reader.ReadIfIsIndentLevel(4))
+			{
+				if(reader.IsKey(s_samplerScopeVariable))
+					scope = static_cast<ShaderDescriptorScope>(reader.GetVariableValueAsInt());
+				else if (reader.IsKey(s_samplerBindPointVariable))
+					bindingPoint = static_cast<ShaderStageType>(reader.GetVariableValueAsInt());
+				else if (reader.IsKey(s_samplerDefaultVariable))
+					defaultTexture = static_cast<ShaderTextureSampler::DefaultTextureType>(reader.GetVariableValueAsInt());
+			}
+
+			samplers.Construct(name, scope, bindingPoint, defaultTexture);
 		}
 	}
 }

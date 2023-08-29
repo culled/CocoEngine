@@ -4,6 +4,7 @@
 
 namespace Coco::Rendering
 {
+    /// @brief Various rendering utilities
     class COCOAPI RenderingUtilities
     {
     public:

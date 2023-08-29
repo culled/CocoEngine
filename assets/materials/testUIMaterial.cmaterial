@@ -2,8 +2,10 @@ version=1
 id=97d26f59-7a72-41c0-b855-aaf8f03f76ea
 name=Test UI
 shader=shaders/built-in/UIShader.cshader
-properties
-    color
-        _BaseColor=1.0,1.0,1.0,1.0,0
-    texture
-        _MainTex=textures/UI Test.ctexture
+uniforms
+    _BaseColor
+        type=8
+        value=1.0,1.0,1.0,1.0,0
+    _MainTex
+        type=10
+        value=textures/UI Test.ctexture

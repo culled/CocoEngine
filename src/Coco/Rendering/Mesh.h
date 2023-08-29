@@ -4,16 +4,24 @@
 
 #include <Coco/Core/Types/List.h>
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Optional.h>
 #include "Graphics/Resources/Buffer.h"
 #include "RenderingExceptions.h"
 
 namespace Coco::Rendering
 {
-	/// @brief Vertex data that can be sent to the GPU
 	struct VertexData
 	{
-		float Position[3];	// 12 bytes
-		float UV0[2];		// 8 bytes
+		Vector3 Position = Vector3::Zero;
+		Optional<Vector3> Normal;
+		Optional<Vector2> UV0;
+		Optional<Vector4> Color;
+		Optional<Vector4> Tangent;
+
+		VertexData() = default;
+		VertexData(const Vector3& position);
+		VertexData(const Vector3& position, const Vector3& normal);
+		VertexData(const Vector3& position, const Vector3& normal, const Vector2& uv);
 	};
 
 	/// @brief Holds vertex and index data for rendering geometry
@@ -23,8 +31,7 @@ namespace Coco::Rendering
 		Ref<Buffer> _vertexBuffer;
 		Ref<Buffer> _indexBuffer;
 
-		List<Vector3> _vertexPositions;
-		List<Vector2> _vertexUV0s;
+		List<VertexData> _vertexData;
 		List<uint32_t> _vertexIndices;
 
 		uint64_t _vertexCount = 0;
@@ -38,17 +45,51 @@ namespace Coco::Rendering
 
 		DefineResourceType(Mesh)
 
+		/// @brief Calculates normals for vertices
+		/// @param vertices The vertices 
+		/// @param indices The vertex indices
+		static void CalculateNormals(List<VertexData>& vertices, const List<uint32_t> indices);
+
+		/// @brief Calculates tangents for vertices
+		/// @param vertices The vertices
+		/// @param indices The vertex indices
+		/// @return True if tangents were calculated successfully
+		static bool CalculateTangents(List<VertexData>& vertices, const List<uint32_t> indices);
+
+		/// @brief Sets vertex data for this mesh. NOTE: this will define the number of vertices this mesh has
+		/// @param vertices The list of vertices
+		void SetVertexData(const List<VertexData>& vertices);
+
 		/// @brief Sets vertex positions for this mesh. NOTE: this will define the number of vertices this mesh has
 		/// @param positions The list of vertex positions
 		void SetPositions(const List<Vector3>& positions);
+
+		/// @brief Sets the normals for the mesh
+		/// @param normals The list of normals
+		void SetNormals(const List<Vector3>& normals);
 
 		/// @brief Sets the uvs for the mesh
 		/// @param uvs The list of UV coordinates
 		void SetUVs(const List<Vector2>& uvs);
 
+		/// @brief Sets the colors for the mesh
+		/// @param colors The list of colors
+		void SetColors(const List<Vector4>& colors);
+
+		/// @brief Sets the tangents for the mesh
+		/// @param colors The list of tangents
+		void SetTangents(const List<Vector4>& tangents);
+
 		/// @brief Sets the indices for this mesh. NOTE: must be a multiple of <vertex count * 3>
 		/// @param indices The list of vertex indices
 		void SetIndices(const List<uint32_t>& indices);
+
+		/// @brief Ensures this mesh have vertex data for the specified channels
+		/// @param normal If true, default normal data will be added for this mesh
+		/// @param uv If true, default uv data will be added for this mesh
+		/// @param color If true, default color data will be added for this mesh
+		/// @param tangent If true, default tangent data will be added for this mesh
+		void EnsureChannels(bool normal, bool uv, bool color, bool tangent);
 
 		/// @brief Gets if this mesh has changes that haven't been uploaded to the GPU
 		/// @return True if this mesh has changes that haven't been uploaded to the GPU
@@ -74,6 +115,13 @@ namespace Coco::Rendering
 		/// @brief Gets the number of indices in the mesh
 		/// @return The number of vertex indices
 		constexpr uint64_t GetIndexCount() const noexcept { return _indexCount; }
+
+		/// @brief Calculates normals based on the current vertex data. NOTE: vertex positions and indices must have been set first!
+		void CalculateNormals();
+
+		/// @brief Calculates tangents based on the current vertex data. NOTE: vertex positions, normals and indices must have been set first!
+		/// @return True if the tangents were calculated successfully
+		bool CalculateTangents();
 
 	private:
 		/// @brief Marks this mesh as dirty and needing a re-upload of data

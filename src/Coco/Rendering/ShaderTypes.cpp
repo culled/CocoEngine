@@ -2,109 +2,268 @@
 
 #include "RenderingUtilities.h"
 #include <Coco/Core/Types/Array.h>
+#include <Coco/Core/Types/Matrix.h>
 
 namespace Coco::Rendering
 {
-	ShaderVertexAttribute::ShaderVertexAttribute(BufferDataFormat dataFormat) noexcept :
-		DataFormat(dataFormat), _dataOffset(0)
+	ShaderVertexAttribute::ShaderVertexAttribute(const string& name, BufferDataFormat dataFormat) noexcept :
+		Name(name), DataFormat(dataFormat), _dataOffset(0)
 	{}
 
-	ShaderDescriptor::ShaderDescriptor(const string& name, BufferDataFormat type) noexcept :
-		Name(name), Type(type)
+	ShaderDescriptor::ShaderDescriptor(const string& name, ShaderDescriptorScope scope, ShaderStageType bindPoint) noexcept :
+		Name(name), Scope(scope), BindingPoints(bindPoint)
 	{}
 
-	ShaderTextureSampler::ShaderTextureSampler(const string& name) noexcept :
-		Name(name)
+	ShaderTextureSampler::ShaderTextureSampler(const string& name, ShaderDescriptorScope scope, ShaderStageType bindPoint, DefaultTextureType defaultTexture) noexcept :
+		ShaderDescriptor(name, scope, bindPoint), DefaultTexture(defaultTexture)
+	{}
+
+	ShaderUniformDescriptor::ShaderUniformDescriptor(const string & name, ShaderDescriptorScope scope, ShaderStageType bindPoint, BufferDataFormat type) noexcept :
+		ShaderDescriptor(name, scope, bindPoint), Type(type)
+	{}
+
+	ShaderUniformData::ShaderUniformData() :
+		ID(ResourceID::CreateV4()), 
+		Version(0), 
+		Preserve(false), 
+		Ints{}, 
+		Vector2Ints{},
+		Vector3Ints{},
+		Vector4Ints{},
+		Floats{},
+		Vector2s{},
+		Vector3s{},
+		Vector4s {}, 
+		Matrix4x4s{}, 
+		Colors{}, 
+		Textures{}
+	{}
+
+	void ShaderUniformData::Merge(const ShaderUniformData& other, bool overwriteProperties)
+	{
+		for (const auto& ints : other.Ints)
+		{
+			if (!Ints.contains(ints.first) || overwriteProperties)
+				Ints[ints.first] = ints.second;
+		}
+
+		for (const auto& vec2Ints : other.Vector2Ints)
+		{
+			if (!Vector2Ints.contains(vec2Ints.first) || overwriteProperties)
+				Vector2Ints[vec2Ints.first] = vec2Ints.second;
+		}
+
+		for (const auto& vec3Ints : other.Vector3Ints)
+		{
+			if (!Vector3Ints.contains(vec3Ints.first) || overwriteProperties)
+				Vector3Ints[vec3Ints.first] = vec3Ints.second;
+		}
+
+		for (const auto& vec4Ints : other.Vector4Ints)
+		{
+			if (!Vector4Ints.contains(vec4Ints.first) || overwriteProperties)
+				Vector4Ints[vec4Ints.first] = vec4Ints.second;
+		}
+
+		for (const auto& floats : other.Floats)
+		{
+			if (!Floats.contains(floats.first) || overwriteProperties)
+				Floats[floats.first] = floats.second;
+		}
+
+		for (const auto& vec2s : other.Vector2s)
+		{
+			if (!Vector2s.contains(vec2s.first) || overwriteProperties)
+				Vector2s[vec2s.first] = vec2s.second;
+		}
+
+		for (const auto& vec3s : other.Vector3s)
+		{
+			if (!Vector3s.contains(vec3s.first) || overwriteProperties)
+				Vector3s[vec3s.first] = vec3s.second;
+		}
+
+		for (const auto& vec4s : other.Vector4s)
+		{
+			if (!Vector4s.contains(vec4s.first) || overwriteProperties)
+				Vector4s[vec4s.first] = vec4s.second;
+		}
+
+		for (const auto& colors : other.Colors)
+		{
+			if (!Colors.contains(colors.first) || overwriteProperties)
+				Colors[colors.first] = colors.second;
+		}
+
+		for (const auto& mat : other.Matrix4x4s)
+		{
+			if (!Matrix4x4s.contains(mat.first) || overwriteProperties)
+				Matrix4x4s[mat.first] = mat.second;
+		}
+
+		for (const auto& textures : other.Textures)
+		{
+			if (!Textures.contains(textures.first) || overwriteProperties)
+				Textures[textures.first] = textures.second;
+		}
+	}
+
+	void ShaderUniformData::CopyFrom(const ShaderUniformData& other)
+	{
+		for (auto& ints : Ints)
+		{
+			if (other.Ints.contains(ints.first))
+				ints.second = other.Ints.at(ints.first);
+		}
+
+		for (auto& vec2Int : Vector2Ints)
+		{
+			if (other.Vector2Ints.contains(vec2Int.first))
+				vec2Int.second = other.Vector2Ints.at(vec2Int.first);
+		}
+
+		for (auto& vec3Int : Vector3Ints)
+		{
+			if (other.Vector3Ints.contains(vec3Int.first))
+				vec3Int.second = other.Vector3Ints.at(vec3Int.first);
+		}
+
+		for (auto& vec4Int : Vector4Ints)
+		{
+			if (other.Vector4Ints.contains(vec4Int.first))
+				vec4Int.second = other.Vector4Ints.at(vec4Int.first);
+		}
+
+		for (auto& floats : Floats)
+		{
+			if (other.Floats.contains(floats.first))
+				floats.second = other.Floats.at(floats.first);
+		}
+
+		for (auto& vec2 : Vector2s)
+		{
+			if (other.Vector2s.contains(vec2.first))
+				vec2.second = other.Vector2s.at(vec2.first);
+		}
+
+		for (auto& vec3 : Vector3s)
+		{
+			if (other.Vector3s.contains(vec3.first))
+				vec3.second = other.Vector3s.at(vec3.first);
+		}
+
+		for (auto& vec4 : Vector4s)
+		{
+			if (other.Vector4s.contains(vec4.first))
+				vec4.second = other.Vector4s.at(vec4.first);
+		}
+
+		for (auto& color : Colors)
+		{
+			if (other.Colors.contains(color.first))
+				color.second = other.Colors.at(color.first);
+		}
+
+		for (auto& mat : Matrix4x4s)
+		{
+			if (other.Matrix4x4s.contains(mat.first))
+				mat.second = other.Matrix4x4s.at(mat.first);
+		}
+
+		for (auto& texture : Textures)
+		{
+			if (other.Textures.contains(texture.first))
+				texture.second = other.Textures.at(texture.first);
+		}
+	}
+
+	ShaderStage::ShaderStage() : EntryPointName(), Type(ShaderStageType::None), FilePath()
+	{}
+
+	ShaderStage::ShaderStage(const string& entryPointName, ShaderStageType stageType, const string& filePath) :
+		EntryPointName(entryPointName), Type(stageType), FilePath(filePath)
 	{}
 
 	Subshader::Subshader(
 		const string& name,
-		const UnorderedMap<ShaderStageType, string>& stageFiles,
+		const List<ShaderStage>& stages,
 		const GraphicsPipelineState& pipelineState,
 		const List<ShaderVertexAttribute>& attributes,
-		const List<ShaderDescriptor>& descriptors,
-		const List<ShaderTextureSampler>& samplers,
-		ShaderStageType bindPoint) noexcept :
+		const List<ShaderUniformDescriptor>& uniforms,
+		const List<ShaderTextureSampler>& samplers) noexcept :
 		PassName(name),
-		StageFiles(stageFiles),
+		Stages(stages),
 		PipelineState(pipelineState),
 		Attributes(attributes),
-		Descriptors(descriptors),
-		Samplers(samplers),
-		DescriptorBindingPoint(bindPoint)
+		Uniforms(uniforms),
+		Samplers(samplers)
 	{
 		UpdateAttributeOffsets();
 	}
 
-	List<char> Subshader::GetUniformData(const ShaderUniformData& data, uint minimumAlignment) const
+	List<ShaderUniformDescriptor> Subshader::GetScopedUniforms(ShaderDescriptorScope scope) const
 	{
-		const uint64_t alignedVec4Size = RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(BufferDataFormat::Vector4), minimumAlignment);
-		Array<float, 4> tempVec4 = { 0.0f };
+		List<ShaderUniformDescriptor> uniforms;
 
-		List<char> uniformData;
-		uint64_t offset = 0;
-
-		for (int i = 0; i < Descriptors.Count(); i++)
+		for (const auto& uniform : Uniforms)
 		{
-			const ShaderDescriptor& descriptor = Descriptors[i];
-
-			switch (descriptor.Type)
-			{
-			case BufferDataFormat::Vector4:
-			{
-				Vector4 vec4;
-
-				if (data.Vector4s.contains(descriptor.Name))
-					vec4 = data.Vector4s.at(descriptor.Name);
-
-				tempVec4[0] = static_cast<float>(vec4.X);
-				tempVec4[1] = static_cast<float>(vec4.Y);
-				tempVec4[2] = static_cast<float>(vec4.Z);
-				tempVec4[3] = static_cast<float>(vec4.W);
-
-				uniformData.Resize(uniformData.Count() + alignedVec4Size);
-
-				char* dst = (uniformData.Data() + offset);
-				std::memcpy(dst, tempVec4.data(), tempVec4.size() * sizeof(float));
-
-				offset += alignedVec4Size;
-				break;
-			}
-			case BufferDataFormat::Color:
-			{
-				Color c;
-
-				if (data.Colors.contains(descriptor.Name))
-					c = data.Colors.at(descriptor.Name).AsLinear();
-
-				tempVec4[0] = static_cast<float>(c.R);
-				tempVec4[1] = static_cast<float>(c.G);
-				tempVec4[2] = static_cast<float>(c.B);
-				tempVec4[3] = static_cast<float>(c.A);
-
-				uniformData.Resize(uniformData.Count() + alignedVec4Size);
-
-				char* dst = (uniformData.Data() + offset);
-				std::memcpy(dst, tempVec4.data(), tempVec4.size() * sizeof(float));
-
-				offset += alignedVec4Size;
-				break;
-			}
-			default:
-				break;
-			}
+			if (uniform.Scope == scope)
+				uniforms.Add(uniform);
 		}
 
-		return uniformData;
+		return uniforms;
 	}
 
-	uint64_t Subshader::GetDescriptorDataSize(uint minimumAlignment) const
+	List<ShaderTextureSampler> Subshader::GetScopedSamplers(ShaderDescriptorScope scope) const
 	{
-		uint64_t size = 0;
+		List<ShaderTextureSampler> samplers;
 
-		for (const auto& descriptor : Descriptors)
+		for (const ShaderTextureSampler& sampler : Samplers)
 		{
-			size += RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(descriptor.Type), minimumAlignment);
+			if (sampler.Scope == scope)
+				samplers.Add(sampler);
+		}
+
+		return samplers;
+	}
+
+	bool Subshader::HasScope(ShaderDescriptorScope scope) const
+	{
+		for (const ShaderUniformDescriptor& uniform : Uniforms)
+		{
+			if (uniform.Scope == scope)
+				return true;
+		}
+
+		for (const ShaderTextureSampler& sampler : Samplers)
+		{
+			if (sampler.Scope == scope)
+				return true;
+		}
+
+		return false;
+	}
+
+	ShaderStageType Subshader::GetUniformBindingStages(ShaderDescriptorScope scope) const
+	{
+		ShaderStageType bindPoint = ShaderStageType::None;
+
+		for (const auto& uniform : Uniforms)
+		{
+			if (uniform.Scope == scope && uniform.BindingPoints < bindPoint)
+				bindPoint |= uniform.BindingPoints;
+		}
+
+		return bindPoint;
+	}
+
+	uint32_t Subshader::GetVertexDataSize() const
+	{
+		uint32_t size = 0;
+
+		for (const auto& attr : Attributes)
+		{
+			size += GetBufferDataFormatSize(attr.DataFormat);
 		}
 
 		return size;
@@ -118,48 +277,6 @@ namespace Coco::Rendering
 		{
 			attr._dataOffset = offset;
 			offset += GetBufferDataFormatSize(attr.DataFormat);
-		}
-	}
-
-	void ShaderUniformData::Merge(const ShaderUniformData& other, bool overwriteProperties)
-	{
-		for (const auto& vec4s : other.Vector4s)
-		{
-			if (!Vector4s.contains(vec4s.first) || overwriteProperties)
-				Vector4s[vec4s.first] = vec4s.second;
-		}
-
-		for (const auto& colors : other.Colors)
-		{
-			if (!Colors.contains(colors.first) || overwriteProperties)
-				Colors[colors.first] = colors.second;
-		}
-
-		for (const auto& textures : other.Textures)
-		{
-			if (!Textures.contains(textures.first) || overwriteProperties)
-				Textures[textures.first] = textures.second;
-		}
-	}
-
-	void ShaderUniformData::CopyFrom(const ShaderUniformData& other)
-	{
-		for (auto& vec4 : Vector4s)
-		{
-			if (other.Vector4s.contains(vec4.first))
-				vec4.second = other.Vector4s.at(vec4.first);
-		}
-
-		for (auto& color : Colors)
-		{
-			if (other.Colors.contains(color.first))
-				color.second = other.Colors.at(color.first);
-		}
-
-		for (auto& texture : Textures)
-		{
-			if (other.Textures.contains(texture.first))
-				texture.second = other.Textures.at(texture.first);
 		}
 	}
 }

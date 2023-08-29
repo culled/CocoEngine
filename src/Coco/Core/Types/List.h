@@ -226,7 +226,7 @@ namespace Coco
 		/// @param converter The converter function that will be run for each element of this list. It should return an object of the new list type
 		/// @return A transformed list
 		template<typename OtherType>
-		List<OtherType> Transform(std::function<OtherType(ValueType*)> converter)
+		List<OtherType> Transform(std::function<OtherType(const ValueType&)> converter)
 		{
 			List<OtherType> other;
 

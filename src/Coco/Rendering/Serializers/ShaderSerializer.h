@@ -16,6 +16,8 @@ namespace Coco::Rendering
 		static constexpr const char* s_shaderGroupVariable = "group";
 		static constexpr const char* s_subshaderSection = "subshaders";
 		static constexpr const char* s_stagesSection = "stages";
+		static constexpr const char* s_stageTypeVariable = "type";
+		static constexpr const char* s_stageFileVariable = "file";
 		static constexpr const char* s_stateSection = "state";
 		static constexpr const char* s_stateTopologyModeVariable = "topologyMode";
 		static constexpr const char* s_stateCullingModeVariable = "cullingMode";
@@ -24,9 +26,15 @@ namespace Coco::Rendering
 		static constexpr const char* s_stateDepthTestingModeVariable = "depthTestingMode";
 		static constexpr const char* s_stateEnableDepthWriteVariable = "enableDepthWrite";
 		static constexpr const char* s_attributesSection = "attributes";
+		static constexpr const char* s_attributeTypeVariable = "type";
 		static constexpr const char* s_descriptorsSection = "descriptors";
+		static constexpr const char* s_descriptorScopeVariable = "scope";
+		static constexpr const char* s_descriptorBindPointVariable = "bindPoint";
+		static constexpr const char* s_descriptorTypeVariable = "type";
 		static constexpr const char* s_samplersSection = "samplers";
-		static constexpr const char* s_subshaderBindStageVariable = "descriptorBindStage";
+		static constexpr const char* s_samplerScopeVariable = "scope";
+		static constexpr const char* s_samplerBindPointVariable = "bindPoint";
+		static constexpr const char* s_samplerDefaultVariable = "default";
 
 	public:
 		ShaderSerializer() = default;
@@ -45,8 +53,8 @@ namespace Coco::Rendering
 
 		/// @brief Reads the stages of a subshader from a file
 		/// @param reader The reader
-		/// @param stageFiles Will be filled with subshader stage files
-		void ReadSubshaderStages(KeyValueReader& reader, UnorderedMap<ShaderStageType, string>& stageFiles);
+		/// @param stages Will be filled with subshader stages
+		void ReadSubshaderStages(KeyValueReader& reader, List<ShaderStage>& stages);
 
 		/// @brief Reads a GraphicsPipelineState for a subshader
 		/// @param reader The reader
@@ -58,10 +66,10 @@ namespace Coco::Rendering
 		/// @param attributes Will be filled out with vertex attributes
 		void ReadSubshaderAttributes(KeyValueReader& reader, List<ShaderVertexAttribute>& attributes);
 
-		/// @brief Reads descriptors for a subshader
+		/// @brief Reads uniforms for a subshader
 		/// @param reader The reader
-		/// @param descriptors Will be filled out with descriptors
-		void ReadSubshaderDescriptors(KeyValueReader& reader, List<ShaderDescriptor>& descriptors);
+		/// @param uniforms Will be filled out with uniforms
+		void ReadSubshaderUniforms(KeyValueReader& reader, List<ShaderUniformDescriptor>& uniforms);
 
 		/// @brief Reads texture samplers for a subshader
 		/// @param reader The reader

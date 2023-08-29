@@ -19,6 +19,7 @@ namespace Coco::Rendering
 		// Create default textures
 		CreateDefaultDiffuseTexture();
 		CreateDefaultCheckerTexture();
+		CreateDefaultNormalTexture();
 
 		ResourceLibrary* resourceLibrary = Engine::Get()->GetResourceLibrary();
 		resourceLibrary->CreateSerializer<TextureSerializer>();
@@ -175,5 +176,31 @@ namespace Coco::Rendering
 		}
 
 		_defaultCheckerTexture->SetPixels(0, pixelData.Count(), pixelData.Data());
+	}
+
+	void RenderingService::CreateDefaultNormalTexture()
+	{
+		LogInfo(GetLogger(), "Creating default normal texture...");
+
+		constexpr int size = 32;
+		constexpr int channels = 4;
+
+		_defaultNormalTexture = Engine::Get()->GetResourceLibrary()->CreateResource<Texture>(
+			"RenderingService::DefaultNormalTexture",
+			size, size,
+			PixelFormat::RGBA8, ColorSpace::Linear,
+			ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled);
+
+		List<uint8_t> pixelData(size * size * channels);
+
+		for (uint64_t i = 0; i < pixelData.Count(); i += channels)
+		{
+			pixelData[i] = 127;
+			pixelData[i + 1] = 127;
+			pixelData[i + 2] = 255;
+			pixelData[i + 3] = 255;
+		}
+
+		_defaultNormalTexture->SetPixels(0, pixelData.Count(), pixelData.Data());
 	}
 }

@@ -68,7 +68,7 @@ void App::Start()
 	Input::InputService::Get()->GetKeyboard()->OnKeyPressedEvent.AddHandler(this, &App::HandleKeyPressed);
 }
 
-void App::Lose()
+void App::EndGame(bool won)
 {
 	OnStopPlaying.Invoke();
 	_isPlaying = false;
@@ -95,19 +95,25 @@ void App::ConfigureRenderPipeline()
 	_basicShader->CreateSubshader(
 		"main",
 		{
-			{ ShaderStageType::Vertex, "shaders/built-in/ObjectShader.vert.spv" },
-			{ ShaderStageType::Fragment, "shaders/built-in/ObjectShader.frag.spv" },
+			ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Unlit.vert.spv"),
+			ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Unlit.frag.spv"),
 		},
 		pipelineState,
 		{
-			ShaderVertexAttribute(BufferDataFormat::Vector3),
-			ShaderVertexAttribute(BufferDataFormat::Vector2)
+			ShaderVertexAttribute("Position", BufferDataFormat::Vector3),
+			ShaderVertexAttribute("Normal", BufferDataFormat::Vector3),
+			ShaderVertexAttribute("UV", BufferDataFormat::Vector2),
+			ShaderVertexAttribute("Color", BufferDataFormat::Vector4),
+			ShaderVertexAttribute("Tangent", BufferDataFormat::Vector4),
 		},
 		{
-			ShaderDescriptor("_BaseColor", BufferDataFormat::Color)
+			ShaderUniformDescriptor("_Projection", ShaderDescriptorScope::Global, ShaderStageType::Vertex, BufferDataFormat::Matrix4x4),
+			ShaderUniformDescriptor("_View", ShaderDescriptorScope::Global, ShaderStageType::Vertex, BufferDataFormat::Matrix4x4),
+			ShaderUniformDescriptor("_Model", ShaderDescriptorScope::Draw, ShaderStageType::Vertex, BufferDataFormat::Matrix4x4),
+			ShaderUniformDescriptor("_BaseColor", ShaderDescriptorScope::Instance, ShaderStageType::Fragment, BufferDataFormat::Color)
 		},
 		{
-			ShaderTextureSampler("_MainTex")
+			ShaderTextureSampler("_MainTex", ShaderDescriptorScope::Instance, ShaderStageType::Fragment)
 		}
 		);
 
@@ -164,9 +170,11 @@ void App::CreateUnits()
 void App::CreateArena()
 {
 	Ref<Mesh> wallMesh = MeshPrimitives::CreateXYPlane("Wall Mesh", Size(1.0, _arenaSize.Height));
+	wallMesh->EnsureChannels(true, true, true, true);
 	wallMesh->UploadData();
 
 	Ref<Mesh> ceilingMesh = MeshPrimitives::CreateXYPlane("Ceiling Mesh", Size(_arenaSize.Width, 1.0));
+	ceilingMesh->EnsureChannels(true, true, true, true);
 	ceilingMesh->UploadData();
 
 	EntityID leftWall = _ecsService->CreateEntity("Left Wall");
@@ -195,7 +203,8 @@ void App::StartGame()
 
 void App::Tick(double deltaTime)
 {
-	CheckForCollisions();
+	if(_isPlaying)
+		CheckForCollisions();
 }
 
 void App::RenderTick(double deltaTime)
@@ -258,6 +267,9 @@ void App::CheckForCollisions()
 
 		ball.Bounce(hitPoint, normal);
 	}
+
+	if (_blockEntities.Count() == 0)
+		EndGame(true);
 }
 
 bool App::CollidedWithArena(const Rect& rect, Vector2& hitPoint, Vector2& hitNormal) const

@@ -1,0 +1,9 @@
+version=1
+id=da149cb0-5ffd-44aa-8b4f-5e5ff95b03fa
+name=Large Blocks Roughness
+imageFile=textures/LargeBlocks_R.png
+usageFlags=7
+filterMode=1
+repeatMode=0
+maxAnisotropy=16
+colorSpace=1

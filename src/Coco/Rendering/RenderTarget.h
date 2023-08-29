@@ -6,9 +6,13 @@
 
 namespace Coco::Rendering
 {
+	/// @brief An image that can be rendered to
 	struct RenderTarget
 	{
+		/// @brief The image
 		Ref<Rendering::Image> Image;
+
+		/// @brief The clear color for when rendering begins
 		Color ClearColor;
 
 		RenderTarget();

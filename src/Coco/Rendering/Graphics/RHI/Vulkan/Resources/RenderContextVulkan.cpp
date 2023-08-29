@@ -23,6 +23,7 @@
 #include "VulkanDescriptorPool.h"
 #include "BufferVulkan.h"
 #include "../CommandBufferPoolVulkan.h"
+#include <Coco/Rendering/RenderingUtilities.h>
 
 namespace Coco::Rendering::Vulkan
 {
@@ -35,27 +36,16 @@ namespace Coco::Rendering::Vulkan
 
 		_commandBuffer = _pool->Allocate(true);
 
-		_globalUBO = _device->CreateResource<BufferVulkan>(FormattedString("{} Global UBO", name),
-			BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
-			sizeof(GlobalUniformObject),
-			true);
-
 		_imageAvailableSemaphore = _device->CreateResource<GraphicsSemaphoreVulkan>(FormattedString("{} Image Available Semaphore", name));
 		_renderingCompleteSemaphore = _device->CreateResource<GraphicsSemaphoreVulkan>(FormattedString("{} Rendering Complete Semaphore", name));
 		_renderingCompleteFence = _device->CreateResource<GraphicsFenceVulkan>(FormattedString("{} Rendering Complete Fence", name), true);
 
 		_renderCache = CreateManagedRef<RenderContextVulkanCache>();
-
-		CreateGlobalDescriptorSet();
 	}
 
 	RenderContextVulkan::~RenderContextVulkan()
 	{
 		_device->WaitForIdle();
-
-		_device->PurgeResource(_globalDescriptorPool);
-		vkDestroyDescriptorSetLayout(_device->GetDevice(), _globalDescriptor.Layout, nullptr);
-		_globalDescriptor.Layout = nullptr;
 
 		_renderCache.Reset();
 		_currentFramebuffer = nullptr;
@@ -69,7 +59,6 @@ namespace Coco::Rendering::Vulkan
 		_device->PurgeResource(_imageAvailableSemaphore);
 		_device->PurgeResource(_renderingCompleteSemaphore);
 		_device->PurgeResource(_renderingCompleteFence);
-		_device->PurgeResource(_globalUBO);
 	}
 
 	void RenderContextVulkan::SetViewport(const RectInt& rect)
@@ -108,10 +97,6 @@ namespace Coco::Rendering::Vulkan
 			return;
 		}
 
-		// Bind the object's material if it has one
-		if(objectData.MaterialData != Resource::InvalidID)
-			UseMaterial(objectData.MaterialData);
-
 		// Flush the pipeline state
 		if (!FlushStateChanges())
 		{
@@ -129,9 +114,7 @@ namespace Coco::Rendering::Vulkan
 		BufferVulkan* indexBuffer = static_cast<BufferVulkan*>(meshData.IndexBuffer.Get());
 		vkCmdBindIndexBuffer(_commandBuffer->GetCmdBuffer(), indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		// Push the model matrix
-		Array<float, Matrix4x4::CellCount> modelMat = objectData.ModelMatrix.AsFloat();
-		vkCmdPushConstants(_commandBuffer->GetCmdBuffer(), _currentPipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * Matrix4x4::CellCount, modelMat.data());
+		ApplyPushConstants();
 
 		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), static_cast<uint>(meshData.IndexCount), 1, 0, 0, 0);
 
@@ -151,8 +134,6 @@ namespace Coco::Rendering::Vulkan
 				throw VulkanRenderingException("No RenderPipline was set");
 
 			_currentVulkanRenderPass = _device->GetRenderCache()->GetOrCreateRenderPass(_currentRenderPipeline);
-
-			_globalUBO->LoadData(0, sizeof(GlobalUniformObject), &_globalUO);
 
 			_currentFramebuffer = _renderCache->GetOrCreateFramebuffer(_currentRenderView, *_currentVulkanRenderPass, _currentRenderPipeline);
 
@@ -251,7 +232,6 @@ namespace Coco::Rendering::Vulkan
 			LogError(_device->GetLogger(), FormattedString("Unable to end VulkanRenderContext: {}", ex.what()));
 		}
 
-		_currentShaderUniformData = ShaderUniformData();
 		_currentPipeline = nullptr;
 		_currentVulkanRenderPass = nullptr;
 	}
@@ -259,12 +239,12 @@ namespace Coco::Rendering::Vulkan
 	void RenderContextVulkan::ResetImpl()
 	{
 		// Free all material descriptor sets
-		_renderCache->FreeDescriptorSets();
-		_shaderDescriptorSets.clear();
+		_renderCache->ResetForNewFrame();
 
 		// Clear all currently bound items
 		_stateChanges.clear();
 		_currentPipeline = nullptr;
+		ResetShaderUniformData();
 
 		// Reset render syncronization objects
 		_frameSignalSemaphores.Clear();
@@ -288,6 +268,16 @@ namespace Coco::Rendering::Vulkan
 		_stateChanges.insert(RenderContextStateChange::Material);
 	}
 
+	void RenderContextVulkan::UniformUpdated(const string& name)
+	{
+		_stateChanges.insert(RenderContextStateChange::Uniform);
+	}
+
+	void RenderContextVulkan::TextureSamplerUpdated(const string& name)
+	{
+		_stateChanges.insert(RenderContextStateChange::Texture);
+	}
+
 	bool RenderContextVulkan::FlushStateChanges()
 	{
 		bool stateBound = false;
@@ -302,6 +292,14 @@ namespace Coco::Rendering::Vulkan
 				throw RenderingException("No shader was bound");
 
 			VulkanShader* shader = _device->GetRenderCache()->GetOrCreateVulkanShader(_currentShader);
+			const string subshaderName = _currentRenderPass->GetSubshaderName();
+
+			const VulkanSubshader* vulkanSubshader;
+			if (!shader->TryGetSubshader(subshaderName, vulkanSubshader))
+				throw RenderingException(FormattedString("Shader {} has no subshader named {}", shader->GetName(), subshaderName));
+
+			// Get the shader resource
+			VulkanShaderResource* shaderResource = _renderCache->GetOrCreateShaderResource(*shader);
 
 			if (_stateChanges.contains(RenderContextStateChange::Shader))
 			{
@@ -309,36 +307,49 @@ namespace Coco::Rendering::Vulkan
 					*_currentVulkanRenderPass,
 					*shader,
 					_currentRenderPass->GetSubshaderName(),
-					static_cast<uint32_t>(_currentRenderPassIndex),
-					_globalDescriptor.Layout);
+					static_cast<uint32_t>(_currentRenderPassIndex));
+
+				// Ensure a pipeline state has been bound
+				if (_currentPipeline == nullptr)
+					throw RenderingException("A pipeline was not bound");
 
 				vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, _currentPipeline->GetPipeline());
 
-				// Bind the global descriptor set
-				vkCmdBindDescriptorSets(
-					_commandBuffer->GetCmdBuffer(),
-					VK_PIPELINE_BIND_POINT_GRAPHICS,
-					_currentPipeline->GetPipelineLayout(),
-					_globalDescriptorSetIndex, 1, &_globalDescriptorSet,
-					0, 0);
-			}
+				VkDescriptorSet set = shaderResource->PrepareGlobalData(*vulkanSubshader, *_currentRenderView.Get(), _currentGlobalUniformData);
 
-			VkDescriptorSet set;
-
-			if (GetOrAllocateShaderDescriptorSet(*shader, set))
-			{
-				// Bind the material descriptor set
-				vkCmdBindDescriptorSets(
-					_commandBuffer->GetCmdBuffer(),
-					VK_PIPELINE_BIND_POINT_GRAPHICS,
-					_currentPipeline->GetPipelineLayout(),
-					_materialDescriptorSetIndex, 1, &set,
-					0, 0);
+				if (set != nullptr)
+				{
+					// Bind the global descriptor set
+					vkCmdBindDescriptorSets(
+						_commandBuffer->GetCmdBuffer(),
+						VK_PIPELINE_BIND_POINT_GRAPHICS,
+						_currentPipeline->GetPipelineLayout(),
+						_globalDescriptorSetIndex, 1, &set,
+						0, 0);
+				}
 			}
 
 			// Ensure a pipeline state has been bound
-			if(_currentPipeline == nullptr)
+			if (_currentPipeline == nullptr)
 				throw RenderingException("A pipeline was not bound");
+
+			if (_stateChanges.contains(RenderContextStateChange::Material) || 
+				_stateChanges.contains(RenderContextStateChange::Uniform) || 
+				_stateChanges.contains(RenderContextStateChange::Texture))
+			{
+				VkDescriptorSet set = shaderResource->PrepareInstanceData(*vulkanSubshader, *_currentRenderView.Get(), _currentInstanceUniformData);
+
+				if (set != nullptr)
+				{
+					// Bind the instance descriptor set
+					vkCmdBindDescriptorSets(
+						_commandBuffer->GetCmdBuffer(),
+						VK_PIPELINE_BIND_POINT_GRAPHICS,
+						_currentPipeline->GetPipelineLayout(),
+						_instanceDescriptorSetIndex, 1, &set,
+						0, 0);
+				}
+			}
 
 			stateBound = true;
 			_currentDrawCallCount++;
@@ -353,149 +364,238 @@ namespace Coco::Rendering::Vulkan
 		return stateBound;
 	}
 
-	void RenderContextVulkan::CreateGlobalDescriptorSet()
+	void RenderContextVulkan::ApplyPushConstants()
 	{
-		VkDescriptorSetLayoutBinding binding = {};
-		binding.binding = 0;
-		binding.descriptorCount = 1;
-		binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		binding.pImmutableSamplers = nullptr;
-		binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		_globalDescriptor.LayoutBindings.Add(binding);
-
-		VkDescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-		layoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutCreateInfo.bindingCount = 1;
-		layoutCreateInfo.pBindings = &binding;
-
-		AssertVkResult(vkCreateDescriptorSetLayout(_device->GetDevice(), &layoutCreateInfo, nullptr, &_globalDescriptor.Layout));
-
-		_globalDescriptorPool = _device->CreateResource<VulkanDescriptorPool>(FormattedString("{} Global Descriptor Pool", _name), 1, List<VulkanDescriptorLayout>({ _globalDescriptor }));
-		_globalDescriptorSet = _globalDescriptorPool->GetOrAllocateSet(_globalDescriptor, 0);
-
-		// Update the descriptor sets
-		VkDescriptorBufferInfo globalUBOBufferInfo = {};
-		globalUBOBufferInfo.buffer = _globalUBO->GetBuffer();
-		globalUBOBufferInfo.offset = 0;
-		globalUBOBufferInfo.range = sizeof(GlobalUniformObject);
-
-		VkWriteDescriptorSet descriptorWrite = {};
-		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = _globalDescriptorSet;
-		descriptorWrite.dstBinding = 0;
-		descriptorWrite.dstArrayElement = 0;
-		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pBufferInfo = &globalUBOBufferInfo;
-
-		vkUpdateDescriptorSets(_device->GetDevice(), 1, &descriptorWrite, 0, nullptr);
-	}
-
-	bool RenderContextVulkan::GetOrAllocateShaderDescriptorSet(const VulkanShader& shader, VkDescriptorSet& set)
-	{
-		// Use the cached descriptor set if it exists
-		const auto it = _shaderDescriptorSets.find(_currentShaderUniformData.ID);
-		if (it != _shaderDescriptorSets.cend())
+		auto it = _currentShader.Subshaders.find(_currentRenderPass->GetSubshaderName());
+		if (it == _currentShader.Subshaders.end())
 		{
-			set = it->second;
-			return true;
+			LogError(_device->GetLogger(), FormattedString(
+				"Failed setting push constants. Shader {} has no subshader for pass {}", 
+				_currentShader.ID.ToString(), 
+				_currentRenderPass->GetSubshaderName()
+			));
+			return;
 		}
 
-		const string renderPassName = _currentRenderPass->GetSubshaderName();
-		const VulkanSubshader* subshader;
-		if (!shader.TryGetSubshader(renderPassName, subshader))
-			throw RenderingException(FormattedString("Shader {} has no subshader named {}", shader.GetName(), renderPassName));
+		List<ShaderUniformDescriptor> uniforms = it->second.GetScopedUniforms(ShaderDescriptorScope::Draw);
 
-		const Subshader& subshaderInfo = subshader->GetSubshader();
+		const uint minimumAlignment = _device->GetMinimumBufferAlignment();
+		const uint32_t alignedFloatSize = static_cast<uint32_t>(RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(BufferDataFormat::Float), minimumAlignment));
+		const uint32_t alignedVec2Size = static_cast<uint32_t>(RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(BufferDataFormat::Vector2), minimumAlignment));
+		const uint32_t alignedVec3Size = static_cast<uint32_t>(RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(BufferDataFormat::Vector3), minimumAlignment));
+		const uint32_t alignedVec4Size = static_cast<uint32_t>(RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(BufferDataFormat::Vector4), minimumAlignment));
+		const uint32_t alignedIntSize = static_cast<uint32_t>(RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(BufferDataFormat::Int), minimumAlignment));
+		const uint32_t alignedVec2IntSize = static_cast<uint32_t>(RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(BufferDataFormat::Vector2Int), minimumAlignment));
+		const uint32_t alignedVec3IntSize = static_cast<uint32_t>(RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(BufferDataFormat::Vector3Int), minimumAlignment));
+		const uint32_t alignedVec4IntSize = static_cast<uint32_t>(RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(BufferDataFormat::Vector4Int), minimumAlignment));
+		const uint32_t alignedMat4Size = static_cast<uint32_t>(RenderingUtilities::GetOffsetForAlignment(GetBufferDataFormatSize(BufferDataFormat::Matrix4x4), minimumAlignment));
 
-		// Early out if no descriptors
-		if (subshaderInfo.Descriptors.Count() == 0 && subshaderInfo.Samplers.Count() == 0)
-			return false;
+		Array<float, 16> tempData = { 0.0f };
+		Array<int32_t, 4> tempIntData = { 0 };
 
-		// Get the shader resource
-		VulkanShaderResource* shaderResource = _renderCache->GetOrCreateShaderResource(shader);
-
-		// Allocate this shader's descriptor set
-		auto[region, descriptorSet] = shaderResource->CreateOrUpdateBuffer(_currentShaderUniformData, *subshader);
-		_shaderDescriptorSets[_currentShaderUniformData.ID] = descriptorSet;
-		set = descriptorSet;
-
-		bool hasUniforms = subshaderInfo.Descriptors.Count() > 0;
-
-		VkDescriptorBufferInfo bufferInfo = {};
-		List<VkDescriptorImageInfo> imageInfos(subshaderInfo.Samplers.Count());
-		List<VkWriteDescriptorSet> descriptorWrites(imageInfos.Count() + (hasUniforms ? 1 : 0));
-
-		uint32_t bindingIndex = 0;
-
-		// Write buffer binding if we need it
-		if (hasUniforms)
+		uint32_t offset = 0;
+		for (int i = 0; i < uniforms.Count(); i++)
 		{
-			VkWriteDescriptorSet& write = descriptorWrites[bindingIndex];
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstSet = set;
-			write.dstBinding = bindingIndex;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			write.descriptorCount = 1;
+			const ShaderUniformDescriptor& uniform = uniforms[i];
+			VkShaderStageFlagBits stageFlags = ToVkShaderStageFlagBits(uniform.BindingPoints);
 
-			bufferInfo.buffer = shaderResource->GetUniformBuffer(region)->GetBuffer();
-			bufferInfo.offset = region.AllocatedBlock.Offset;
-			bufferInfo.range = region.AllocatedBlock.Size;
+			switch (uniform.Type)
+			{
+			case BufferDataFormat::Int:
+			{
+				int32_t v;
 
-			write.pBufferInfo = &bufferInfo;
+				if (_currentDrawUniformData.Ints.contains(uniform.Name))
+					v = _currentDrawUniformData.Ints.at(uniform.Name);
 
-			bindingIndex++;
+				vkCmdPushConstants(
+					_commandBuffer->GetCmdBuffer(),
+					_currentPipeline->GetPipelineLayout(),
+					stageFlags,
+					offset, sizeof(int32_t), &v);
+
+				offset += alignedIntSize;
+				break;
+			}
+			case BufferDataFormat::Vector2Int:
+			{
+				Vector2Int vec2;
+
+				if (_currentDrawUniformData.Vector2Ints.contains(uniform.Name))
+					vec2 = _currentDrawUniformData.Vector2Ints.at(uniform.Name);
+
+				tempIntData[0] = static_cast<int32_t>(vec2.X);
+				tempIntData[1] = static_cast<int32_t>(vec2.Y);
+
+				vkCmdPushConstants(
+					_commandBuffer->GetCmdBuffer(),
+					_currentPipeline->GetPipelineLayout(),
+					stageFlags,
+					offset, sizeof(int32_t) * 2, tempIntData.data());
+
+				offset += alignedVec2IntSize;
+				break;
+			}
+			case BufferDataFormat::Vector3Int:
+			{
+				Vector3Int vec3;
+
+				if (_currentDrawUniformData.Vector3Ints.contains(uniform.Name))
+					vec3 = _currentDrawUniformData.Vector3Ints.at(uniform.Name);
+
+				tempIntData[0] = static_cast<int32_t>(vec3.X);
+				tempIntData[1] = static_cast<int32_t>(vec3.Y);
+				tempIntData[2] = static_cast<int32_t>(vec3.Z);
+
+				vkCmdPushConstants(
+					_commandBuffer->GetCmdBuffer(),
+					_currentPipeline->GetPipelineLayout(),
+					stageFlags,
+					offset, sizeof(int32_t) * 3, tempIntData.data());
+
+				offset += alignedVec3IntSize;
+				break;
+			}
+			case BufferDataFormat::Vector4Int:
+			{
+				Vector4Int vec4;
+
+				if (_currentDrawUniformData.Vector4Ints.contains(uniform.Name))
+					vec4 = _currentDrawUniformData.Vector4Ints.at(uniform.Name);
+
+				tempIntData[0] = static_cast<int32_t>(vec4.X);
+				tempIntData[1] = static_cast<int32_t>(vec4.Y);
+				tempIntData[2] = static_cast<int32_t>(vec4.Z);
+				tempIntData[3] = static_cast<int32_t>(vec4.W);
+
+				vkCmdPushConstants(
+					_commandBuffer->GetCmdBuffer(),
+					_currentPipeline->GetPipelineLayout(),
+					stageFlags,
+					offset, sizeof(int32_t) * 4, tempIntData.data());
+
+				offset += alignedVec4IntSize;
+				break;
+			}
+			case BufferDataFormat::Float:
+			{
+				float v;
+
+				if (_currentDrawUniformData.Floats.contains(uniform.Name))
+					v = _currentDrawUniformData.Floats.at(uniform.Name);
+
+				vkCmdPushConstants(
+					_commandBuffer->GetCmdBuffer(),
+					_currentPipeline->GetPipelineLayout(),
+					stageFlags,
+					offset, sizeof(float), &v);
+
+				offset += alignedFloatSize;
+				break;
+			}
+			case BufferDataFormat::Vector2:
+			{
+				Vector2 vec2;
+
+				if (_currentDrawUniformData.Vector2s.contains(uniform.Name))
+					vec2 = _currentDrawUniformData.Vector2s.at(uniform.Name);
+
+				tempData[0] = static_cast<float>(vec2.X);
+				tempData[1] = static_cast<float>(vec2.Y);
+
+				vkCmdPushConstants(
+					_commandBuffer->GetCmdBuffer(),
+					_currentPipeline->GetPipelineLayout(),
+					stageFlags,
+					offset, sizeof(float) * 2, tempData.data());
+
+				offset += alignedVec2Size;
+				break;
+			}
+			case BufferDataFormat::Vector3:
+			{
+				Vector3 vec3;
+
+				if (_currentDrawUniformData.Vector3s.contains(uniform.Name))
+					vec3 = _currentDrawUniformData.Vector3s.at(uniform.Name);
+
+				tempData[0] = static_cast<float>(vec3.X);
+				tempData[1] = static_cast<float>(vec3.Y);
+				tempData[2] = static_cast<float>(vec3.Z);
+
+				vkCmdPushConstants(
+					_commandBuffer->GetCmdBuffer(),
+					_currentPipeline->GetPipelineLayout(),
+					stageFlags,
+					offset, sizeof(float) * 3, tempData.data());
+
+				offset += alignedVec3Size;
+				break;
+			}
+			case BufferDataFormat::Vector4:
+			{
+				Vector4 vec4;
+
+				if (_currentDrawUniformData.Vector4s.contains(uniform.Name))
+					vec4 = _currentDrawUniformData.Vector4s.at(uniform.Name);
+
+				tempData[0] = static_cast<float>(vec4.X);
+				tempData[1] = static_cast<float>(vec4.Y);
+				tempData[2] = static_cast<float>(vec4.Z);
+				tempData[3] = static_cast<float>(vec4.W);
+
+				vkCmdPushConstants(
+					_commandBuffer->GetCmdBuffer(),
+					_currentPipeline->GetPipelineLayout(),
+					stageFlags,
+					offset, sizeof(float) * 4, tempData.data());
+
+				offset += alignedVec4Size;
+				break;
+			}
+			case BufferDataFormat::Color:
+			{
+				Color c;
+
+				if (_currentDrawUniformData.Colors.contains(uniform.Name))
+					c = _currentDrawUniformData.Colors.at(uniform.Name).AsLinear();
+
+				tempData[0] = static_cast<float>(c.R);
+				tempData[1] = static_cast<float>(c.G);
+				tempData[2] = static_cast<float>(c.B);
+				tempData[3] = static_cast<float>(c.A);
+
+				vkCmdPushConstants(
+					_commandBuffer->GetCmdBuffer(),
+					_currentPipeline->GetPipelineLayout(),
+					stageFlags,
+					offset, sizeof(float) * 4, tempData.data());
+
+				offset += alignedVec4Size;
+				break;
+			}
+			case BufferDataFormat::Matrix4x4:
+			{
+				Matrix4x4 mat4;
+
+				if (_currentDrawUniformData.Matrix4x4s.contains(uniform.Name))
+					mat4 = _currentDrawUniformData.Matrix4x4s.at(uniform.Name);
+
+				tempData = mat4.AsFloat();
+
+				vkCmdPushConstants(
+					_commandBuffer->GetCmdBuffer(),
+					_currentPipeline->GetPipelineLayout(),
+					stageFlags,
+					offset, sizeof(float) * 16, tempData.data());
+
+				offset += alignedMat4Size;
+				break;
+			}
+			default:
+				break;
+			}
 		}
-
-		// Write texture bindings
-		for (uint32_t i = 0; i < subshaderInfo.Samplers.Count(); i++)
-		{
-			const ShaderTextureSampler& textureSampler = subshaderInfo.Samplers[i];
-
-			ResourceID textureID = _currentShaderUniformData.Textures.contains(textureSampler.Name) ? _currentShaderUniformData.Textures.at(textureSampler.Name) : Resource::InvalidID;
-
-			Ref<Image> image;
-			Ref<ImageSampler> sampler;
-
-			if (textureID != Resource::InvalidID)
-			{
-				const TextureRenderData& textureData = _currentRenderView->Textures.at(textureID);
-				image = textureData.Image;
-				sampler = textureData.Sampler;
-			}
-			else
-			{
-				Ref<Texture> defaultTexture = EnsureRenderingService()->GetDefaultCheckerTexture();
-				image = defaultTexture->GetImage();
-				sampler = defaultTexture->GetSampler();
-			}
-
-			if (!image.IsValid() || !sampler.IsValid())
-				throw RenderingException(FormattedString("The sampler or image reference for \"{}\" is empty", textureSampler.Name));
-
-			ImageVulkan* vulkanImage = static_cast<ImageVulkan*>(image.Get());
-			ImageSamplerVulkan* vulkanSampler = static_cast<ImageSamplerVulkan*>(sampler.Get());
-
-			// Texture data
-			VkDescriptorImageInfo& imageInfo = imageInfos[i];
-			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = vulkanImage->GetNativeView();
-			imageInfo.sampler = vulkanSampler->GetSampler();
-
-			VkWriteDescriptorSet& write = descriptorWrites[bindingIndex];
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstSet = set;
-			write.dstBinding = bindingIndex;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			write.descriptorCount = 1;
-			write.pImageInfo = &imageInfo;
-
-			bindingIndex++;
-		}	
-
-		vkUpdateDescriptorSets(_device->GetDevice(), static_cast<uint32_t>(descriptorWrites.Count()), descriptorWrites.Data(), 0, nullptr);
-
-		return true;
 	}
 
 	void RenderContextVulkan::AddPreRenderPassImageTransitions()
