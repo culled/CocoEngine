@@ -14,8 +14,8 @@ namespace Coco::Rendering
 		Name(name), Scope(scope), BindingPoints(bindPoint)
 	{}
 
-	ShaderTextureSampler::ShaderTextureSampler(const string& name, ShaderDescriptorScope scope, ShaderStageType bindPoint) noexcept :
-		ShaderDescriptor(name, scope, bindPoint)
+	ShaderTextureSampler::ShaderTextureSampler(const string& name, ShaderDescriptorScope scope, ShaderStageType bindPoint, DefaultTextureType defaultTexture) noexcept :
+		ShaderDescriptor(name, scope, bindPoint), DefaultTexture(defaultTexture)
 	{}
 
 	ShaderUniformDescriptor::ShaderUniformDescriptor(const string & name, ShaderDescriptorScope scope, ShaderStageType bindPoint, BufferDataFormat type) noexcept :

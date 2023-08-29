@@ -59,9 +59,9 @@ namespace Coco::Rendering
 
 	bool Mesh::CalculateTangents(List<VertexData>& vertices, const List<uint32_t> indices)
 	{
-		//List<VertexData> vertexCopy = vertices;
 		UnorderedMap<uint32_t, Vector4> tangents;
 
+		// https://stackoverflow.com/questions/5255806/how-to-calculate-tangent-and-binormal
 		for (uint32_t i = 0; i < indices.Count(); i += 3)
 		{
 			const uint32_t i0 = indices[i];
@@ -102,31 +102,6 @@ namespace Coco::Rendering
 			tangents[i0] += tangent4;
 			tangents[i1] += tangent4;
 			tangents[i2] += tangent4;
-
-			//Vector3 edge1 = vertices[i1].Position - vertices[i0].Position;
-			//Vector3 edge2 = vertices[i2].Position - vertices[i0].Position;
-			//
-			//Vector2 deltaUV1 = vertices[i1].UV0.value() - vertices[i0].UV0.value();
-			//Vector2 deltaUV2 = vertices[i2].UV0.value() - vertices[i0].UV0.value();
-			//
-			//double dividend = deltaUV1.X * deltaUV2.Y - deltaUV2.X * deltaUV1.Y;
-			//double fc = 1.0 / dividend;
-			//
-			//Vector3 tangent(
-			//	fc * (deltaUV2.Y * edge1.X - deltaUV1.Y * edge2.X),
-			//	fc * (deltaUV2.Y * edge1.Y - deltaUV1.Y * edge2.Y),
-			//	fc * (deltaUV2.Y * edge1.Z - deltaUV1.Y * edge2.Z)
-			//);
-			//tangent.Normalize();
-			//
-			//double handedness = ((deltaUV1.Y * deltaUV2.X - deltaUV2.Y * deltaUV1.X) < 0.0) ? -1.0 : 1.0;
-			//
-			//Vector4 tangent4(tangent, handedness);
-			//
-			//// TODO: tangent smoothing?
-			//vertexCopy[i0].Tangent = tangent4;
-			//vertexCopy[i1].Tangent = tangent4;
-			//vertexCopy[i2].Tangent = tangent4;
 		}
 
 		for (uint32_t i = 0; i < vertices.Count(); i++)
@@ -137,8 +112,6 @@ namespace Coco::Rendering
 
 			vertices[i].Tangent = Vector4(xyz, t.W > 0.0 ? 1.0 : -1.0);
 		}
-
-		//vertices = vertexCopy;
 
 		return true;
 	}

@@ -80,6 +80,7 @@ namespace Coco::Rendering
 					writer.IncrementIndentLevel();
 					writer.WriteLine(s_samplerScopeVariable, ToString(static_cast<int>(sampler.Scope)));
 					writer.WriteLine(s_samplerBindPointVariable, ToString(static_cast<int>(sampler.BindingPoints)));
+					writer.WriteLine(s_samplerDefaultVariable, ToString(static_cast<int>(sampler.DefaultTexture)));
 					writer.DecrementIndentLevel();
 				}
 				writer.DecrementIndentLevel();
@@ -245,6 +246,7 @@ namespace Coco::Rendering
 			string name;
 			ShaderDescriptorScope scope;
 			ShaderStageType bindingPoint;
+			ShaderTextureSampler::DefaultTextureType defaultTexture;
 
 			name = reader.GetKey();
 
@@ -254,9 +256,11 @@ namespace Coco::Rendering
 					scope = static_cast<ShaderDescriptorScope>(reader.GetVariableValueAsInt());
 				else if (reader.IsKey(s_samplerBindPointVariable))
 					bindingPoint = static_cast<ShaderStageType>(reader.GetVariableValueAsInt());
+				else if (reader.IsKey(s_samplerDefaultVariable))
+					defaultTexture = static_cast<ShaderTextureSampler::DefaultTextureType>(reader.GetVariableValueAsInt());
 			}
 
-			samplers.Construct(name, scope, bindingPoint);
+			samplers.Construct(name, scope, bindingPoint, defaultTexture);
 		}
 	}
 }

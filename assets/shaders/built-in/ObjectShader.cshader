@@ -66,9 +66,12 @@ subshaders
             _MainTex
                 bindPoint=8
                 scope=1
+                default=0
             _RoughnessTex
                 bindPoint=8
                 scope=1
+                default=0
             _NormalTex
                 bindPoint=8
                 scope=1
+                default=2

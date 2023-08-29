@@ -95,7 +95,18 @@ namespace Coco::Rendering
 	/// @brief A texture sampler for a shader
 	struct COCOAPI ShaderTextureSampler : public ShaderDescriptor
 	{
-		ShaderTextureSampler(const string& name, ShaderDescriptorScope scope, ShaderStageType bindPoint) noexcept;
+		/// @brief Types of default textures
+		enum class DefaultTextureType
+		{
+			White,
+			Checker,
+			Normal
+		};
+
+		/// @brief The default for this texture
+		DefaultTextureType DefaultTexture;
+
+		ShaderTextureSampler(const string& name, ShaderDescriptorScope scope, ShaderStageType bindPoint, DefaultTextureType defaultTexture = DefaultTextureType::White) noexcept;
 		virtual ~ShaderTextureSampler() = default;
 	};
 

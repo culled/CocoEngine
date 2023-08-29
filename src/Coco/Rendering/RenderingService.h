@@ -28,6 +28,7 @@ namespace Coco::Rendering
         Ref<RenderPipeline> _defaultPipeline;
         Ref<Texture> _defaultDiffuseTexture;
         Ref<Texture> _defaultCheckerTexture;
+        Ref<Texture> _defaultNormalTexture;
         List<Ref<ISceneDataProvider>> _sceneDataProviders;
 
     protected:
@@ -56,7 +57,16 @@ namespace Coco::Rendering
         /// @return The default checker texture
         Ref<Texture> GetDefaultCheckerTexture() noexcept { return _defaultCheckerTexture; }
 
+        /// @brief Gets the default normal texture
+        /// @return The default normal texture
+        Ref<Texture> GetDefaultNormalTexture() noexcept { return _defaultNormalTexture; }
+
+        /// @brief Adds a scene data provider to the list of default providers
+        /// @param provider The provider
         void AddSceneDataProvider(Ref<ISceneDataProvider> provider);
+
+        /// @brief Removes a scene data provider from the list of default providers
+        /// @param provider The provider
         void RemoveSceneDataProvider(Ref<ISceneDataProvider> provider);
 
         /// @brief Renders using the default render pipeline for a graphics presenter
@@ -106,6 +116,9 @@ namespace Coco::Rendering
 
         /// @brief Creates the default checker texture
         void CreateDefaultCheckerTexture();
+
+        /// @brief Creates the default normal texture
+        void CreateDefaultNormalTexture();
     };
 }
 

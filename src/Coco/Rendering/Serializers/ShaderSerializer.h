@@ -34,6 +34,7 @@ namespace Coco::Rendering
 		static constexpr const char* s_samplersSection = "samplers";
 		static constexpr const char* s_samplerScopeVariable = "scope";
 		static constexpr const char* s_samplerBindPointVariable = "bindPoint";
+		static constexpr const char* s_samplerDefaultVariable = "default";
 
 	public:
 		ShaderSerializer() = default;

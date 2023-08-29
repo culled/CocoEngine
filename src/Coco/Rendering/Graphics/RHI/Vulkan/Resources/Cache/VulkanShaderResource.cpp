@@ -237,7 +237,22 @@ namespace Coco::Rendering::Vulkan
 			}
 			else
 			{
-				Ref<Texture> defaultTexture = EnsureRenderingService()->GetDefaultCheckerTexture();
+				Ref<Texture> defaultTexture;
+
+				switch (textureSampler.DefaultTexture)
+				{
+				case ShaderTextureSampler::DefaultTextureType::White:
+					defaultTexture = EnsureRenderingService()->GetDefaultDiffuseTexture();
+					break;
+				case ShaderTextureSampler::DefaultTextureType::Normal:
+					defaultTexture = EnsureRenderingService()->GetDefaultNormalTexture();
+					break;
+				case ShaderTextureSampler::DefaultTextureType::Checker:
+				default:
+					defaultTexture = EnsureRenderingService()->GetDefaultCheckerTexture();
+					break;
+				}
+
 				image = defaultTexture->GetImage();
 				sampler = defaultTexture->GetSampler();
 			}
