@@ -89,6 +89,9 @@ namespace Coco::Rendering::Vulkan
 			offset += GetBufferDataFormatSize(uniform.Type);
 		}
 
+		// Pad out the data size so they fill a block accessible by the minimum buffer alignment
+		offset = RenderingUtilities::GetOffsetForAlignment(offset, _device->GetMinimumBufferAlignment());
+
 		return static_cast<uint>(offset);
 	}
 

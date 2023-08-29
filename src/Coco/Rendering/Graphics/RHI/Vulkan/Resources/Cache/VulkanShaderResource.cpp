@@ -6,6 +6,7 @@
 #include <Coco/Rendering/Texture.h>
 #include "../ImageVulkan.h"
 #include "../ImageSamplerVulkan.h"
+#include <Coco/Rendering/RenderingUtilities.h>
 
 namespace Coco::Rendering::Vulkan
 {
@@ -553,6 +554,9 @@ namespace Coco::Rendering::Vulkan
 
 			offset += dataSize;
 		}
+
+		// Pad the data to fit in the minimum buffer alignment
+		uniformData.Resize(RenderingUtilities::GetOffsetForAlignment(uniformData.Count(), _device->GetMinimumBufferAlignment()));
 
 		return uniformData;
 	}
