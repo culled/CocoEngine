@@ -185,7 +185,7 @@ namespace Coco::Rendering
 		constexpr int size = 32;
 		constexpr int channels = 4;
 
-		_defaultDiffuseTexture = Engine::Get()->GetResourceLibrary()->CreateResource<Texture>(
+		_defaultNormalTexture = Engine::Get()->GetResourceLibrary()->CreateResource<Texture>(
 			"RenderingService::DefaultNormalTexture",
 			size, size,
 			PixelFormat::RGBA8, ColorSpace::sRGB,
