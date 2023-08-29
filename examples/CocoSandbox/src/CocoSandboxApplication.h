@@ -39,6 +39,8 @@ namespace Coco::ECS
 	class ECSService;
 }
 
+class HelloTriangleRenderPass;
+
 class CocoSandboxApplication final : public Coco::Application
 {
 private:
@@ -53,6 +55,7 @@ private:
 	Coco::Rendering::RenderingService* _renderService;
 	Coco::Ref<Coco::Rendering::Shader> _shader;
 	Coco::Ref<Coco::Rendering::Material> _material;
+	Coco::SharedRef<HelloTriangleRenderPass> _mainRenderPass;
 
 	Coco::Ref<Coco::Rendering::Mesh> _mesh;
 

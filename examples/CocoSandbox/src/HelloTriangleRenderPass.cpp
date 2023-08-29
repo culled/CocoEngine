@@ -34,10 +34,16 @@ void HelloTriangleRenderPass::Execute(RenderContext& renderContext)
             renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_View", renderView->View);
             renderContext.SetShaderVector3(ShaderDescriptorScope::Global, "_ViewPosition", renderView->ViewPosition);
             renderContext.SetShaderColor(ShaderDescriptorScope::Global, "_AmbientColor", _ambientColor);
+            renderContext.SetShaderInt(ShaderDescriptorScope::Global, "_RenderMode", static_cast<int>(_renderMode));
 
             renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Draw, "_Model", objectData.ModelMatrix);
 
 		    renderContext.Draw(objectData);
         }
     }
+}
+
+void HelloTriangleRenderPass::SetRenderMode(RenderModeType mode)
+{
+    _renderMode = mode;
 }

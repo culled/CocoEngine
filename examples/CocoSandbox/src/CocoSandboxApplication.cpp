@@ -76,8 +76,8 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	Ref<Rendering::RenderPipeline> pipeline = engine->GetResourceLibrary()->CreateResource<Rendering::RenderPipeline>("Pipeline");
 	
 	List<int> attachmentMapping = { 0, 1 };
-	
-	pipeline->AddRenderPass(CreateSharedRef<HelloTriangleRenderPass>(), attachmentMapping);
+	_mainRenderPass = CreateSharedRef<HelloTriangleRenderPass>();
+	pipeline->AddRenderPass(_mainRenderPass, attachmentMapping);
 	pipeline->AddRenderPass(CreateSharedRef<UIRenderPass>(), { 0 });
 	_renderService->SetDefaultPipeline(pipeline);
 
@@ -150,22 +150,20 @@ void CocoSandboxApplication::Start()
 
 		if (key == Input::KeyboardKey::D1)
 		{
-			_window->SetIsFullscreen(!_window->GetIsFullscreen());
-			return true;
-		} 
-		else if (key == Input::KeyboardKey::D2)
-		{
-			_window->SetState(Windowing::WindowState::Maximized);
-			return true;
-		}
-		else if (key == Input::KeyboardKey::D3)
-		{
-			_window->SetState(Windowing::WindowState::Normal);
-			return true;
-		}
-		else if (key == Input::KeyboardKey::G)
-		{
-			_window->Focus();
+			switch (_mainRenderPass->GetRenderMode())
+			{
+			case HelloTriangleRenderPass::RenderModeType::Default:
+				_mainRenderPass->SetRenderMode(HelloTriangleRenderPass::RenderModeType::Normals);
+				break;
+			case HelloTriangleRenderPass::RenderModeType::Normals:
+				_mainRenderPass->SetRenderMode(HelloTriangleRenderPass::RenderModeType::Lighting);
+				break;
+			case HelloTriangleRenderPass::RenderModeType::Lighting:
+				_mainRenderPass->SetRenderMode(HelloTriangleRenderPass::RenderModeType::Default);
+				break;
+			default:
+				break;
+			}
 			return true;
 		}
 

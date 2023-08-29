@@ -12,6 +12,7 @@ layout(set = 0, binding = 0) uniform globalUniformObject {
     mat4 view;
     vec3 viewPosition;
     vec4 ambientColor;
+    int renderMode;
 } globalUBO;
 
 layout(push_constant) uniform pushConstants {
@@ -30,6 +31,11 @@ layout(location = 0) out struct varyings
     vec4 worldTangent;
 } outVaryings;
 
+layout(location = 10) flat out struct flats
+{
+    int renderMode;
+} outFlats;
+
 void main() {
     outVaryings.uv = inUV;
     outVaryings.worldNormal = mat3(constants.model) * inNormal;
@@ -38,6 +44,7 @@ void main() {
     outVaryings.ambientColor = globalUBO.ambientColor;
     outVaryings.vertexColor = inColor;
     outVaryings.worldTangent = vec4(normalize(mat3(constants.model) * inTangent.xyz), inTangent.w);
+    outFlats.renderMode = globalUBO.renderMode;
 
     gl_Position = globalUBO.projection * globalUBO.view * vec4(outVaryings.worldPosition, 1.0);
 }

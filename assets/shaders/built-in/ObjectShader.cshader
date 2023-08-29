@@ -46,6 +46,10 @@ subshaders
                 bindPoint=8
                 scope=0
                 type=8
+            _RenderMode
+                bindPoint=8
+                scope=0
+                type=1
             _BaseColor
                 bindPoint=8
                 scope=1
