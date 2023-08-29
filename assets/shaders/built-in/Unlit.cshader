@@ -25,6 +25,10 @@ subshaders
                 type=4
             UV
                 type=2
+            Color
+                type=6
+            Tangent
+                type=6
         descriptors
             _Projection
                 bindPoint=1

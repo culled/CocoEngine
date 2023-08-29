@@ -102,7 +102,9 @@ void App::ConfigureRenderPipeline()
 		{
 			ShaderVertexAttribute("Position", BufferDataFormat::Vector3),
 			ShaderVertexAttribute("Normal", BufferDataFormat::Vector3),
-			ShaderVertexAttribute("UV", BufferDataFormat::Vector2)
+			ShaderVertexAttribute("UV", BufferDataFormat::Vector2),
+			ShaderVertexAttribute("Color", BufferDataFormat::Vector4),
+			ShaderVertexAttribute("Tangent", BufferDataFormat::Vector4),
 		},
 		{
 			ShaderUniformDescriptor("_Projection", ShaderDescriptorScope::Global, ShaderStageType::Vertex, BufferDataFormat::Matrix4x4),
@@ -168,9 +170,11 @@ void App::CreateUnits()
 void App::CreateArena()
 {
 	Ref<Mesh> wallMesh = MeshPrimitives::CreateXYPlane("Wall Mesh", Size(1.0, _arenaSize.Height));
+	wallMesh->EnsureChannels(true, true, true, true);
 	wallMesh->UploadData();
 
 	Ref<Mesh> ceilingMesh = MeshPrimitives::CreateXYPlane("Ceiling Mesh", Size(_arenaSize.Width, 1.0));
+	ceilingMesh->EnsureChannels(true, true, true, true);
 	ceilingMesh->UploadData();
 
 	EntityID leftWall = _ecsService->CreateEntity("Left Wall");

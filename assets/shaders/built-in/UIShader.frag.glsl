@@ -12,7 +12,5 @@ layout(set = 1, binding = 1) uniform sampler2D baseTexSampler;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    //outColor = shaderUBO.baseColor;
-    //outColor = vec4(inUV, 0.0, 1.0);
     outColor = shaderUBO.baseColor * texture(baseTexSampler, inUV);
 }
