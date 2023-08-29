@@ -7,82 +7,68 @@ namespace Coco::Rendering
 
 	Ref<Mesh> MeshPrimitives::CreateXYPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions, bool flipDirection)
 	{
-		List<Vector3> verts;
-		List<Vector3> normals;
-		List<Vector2> uvs;
+		List<VertexData> verts;
 		List<uint> indices;
 
-		CreateXYGrid(size, offset, verts, normals, uvs, indices, subdivisions, flipDirection);
+		CreateXYGrid(size, offset, verts, indices, subdivisions, flipDirection);
 
-		return CreateFromVertices(name, verts, normals, uvs, indices);
+		return CreateFromVertices(name, verts, indices, false, true);
 	}
 
 	Ref<Mesh> MeshPrimitives::CreateXZPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions, bool flipDirection)
 	{
-		List<Vector3> verts;
-		List<Vector3> normals;
-		List<Vector2> uvs;
+		List<VertexData> verts;
 		List<uint> indices;
 
-		CreateXZGrid(size, offset, verts, normals, uvs, indices, subdivisions, flipDirection);
+		CreateXZGrid(size, offset, verts, indices, subdivisions, flipDirection);
 
-		return CreateFromVertices(name, verts, normals, uvs, indices);
+		return CreateFromVertices(name, verts, indices, false, true);
 	}
 
 	Ref<Mesh> MeshPrimitives::CreateYZPlane(const string& name, const Vector2& size, const Vector3& offset, uint subdivisions, bool flipDirection)
 	{
-		List<Vector3> verts;
-		List<Vector3> normals;
-		List<Vector2> uvs;
+		List<VertexData> verts;
 		List<uint> indices;
 
-		CreateYZGrid(size, offset, verts, normals, uvs, indices, subdivisions, flipDirection);
+		CreateYZGrid(size, offset, verts, indices, subdivisions, flipDirection);
 
-		return CreateFromVertices(name, verts, normals, uvs, indices);
+		return CreateFromVertices(name, verts, indices, false, true);
 	}
 
 	Ref<Mesh> MeshPrimitives::CreateBox(const string& name, const Vector3& size, const Vector3& offset, uint subdivisions, bool flipDirection)
 	{
-		List<Vector3> verts;
-		List<Vector3> normals;
-		List<Vector2> uvs;
+		List<VertexData> verts;
 		List<uint> indices;
 
-		CreateBox(size, offset, verts, normals, uvs, indices, subdivisions, flipDirection);
+		CreateBox(size, offset, verts, indices, subdivisions, flipDirection);
 
-		return CreateFromVertices(name, verts, normals, uvs, indices);
+		return CreateFromVertices(name, verts, indices, false, true);
 	}
 
 	Ref<Mesh> MeshPrimitives::CreateCone(const string& name, double height, double radius, int baseVertexCount, const Vector3& offset, bool flipDirection)
 	{
-		List<Vector3> verts;
-		List<Vector3> normals;
-		List<Vector2> uvs;
+		List<VertexData> verts;
 		List<uint> indices;
 
-		CreateCone(height, radius, baseVertexCount, offset, verts, normals, uvs, indices, flipDirection);
+		CreateCone(height, radius, baseVertexCount, offset, verts, indices, flipDirection);
 
-		return CreateFromVertices(name, verts, normals, uvs, indices);
+		return CreateFromVertices(name, verts, indices, false, true);
 	}
 
 	Ref<Mesh> MeshPrimitives::CreateUVSphere(const string& name, uint slices, uint stacks, double radius, const Vector3& offset, bool flipDirection)
 	{
-		List<Vector3> verts;
-		List<Vector3> normals;
-		List<Vector2> uvs;
+		List<VertexData> verts;
 		List<uint> indices;
 
-		CreateUVSphere(slices, stacks, radius, offset, verts, normals, uvs, indices, flipDirection);
+		CreateUVSphere(slices, stacks, radius, offset, verts, indices, flipDirection);
 
-		return CreateFromVertices(name, verts, normals, uvs, indices);
+		return CreateFromVertices(name, verts, indices, false, true);
 	}
 
 	void MeshPrimitives::CreateXYGrid(
 		const Vector2& size, 
-		const Vector3& offset, 
-		List<Vector3>& positions,
-		List<Vector3>& normals,
-		List<Vector2>& uvs, 
+		const Vector3& offset,
+		List<VertexData>& vertices,
 		List<uint>& indices, 
 		uint subdivisions,
 		bool flipDirection)
@@ -91,7 +77,7 @@ namespace Coco::Rendering
 		const double vertexScaling = 1.0 / (vertexSideCount - 1);
 		const Vector3 scale = Vector3(size.X, size.Y, 1.0);
 
-		const uint indexOffset = static_cast<uint>(positions.Count());
+		const uint indexOffset = static_cast<uint>(vertices.Count());
 
 		Vector3 normalDir = flipDirection ? Vector3::Down : Vector3::Up;
 
@@ -99,13 +85,16 @@ namespace Coco::Rendering
 		{
 			for (uint y = 0; y < vertexSideCount; y++)
 			{
-				positions.Add(Vector3(x * vertexScaling - 0.5, y * vertexScaling - 0.5, 0.0) * scale + offset);
-
-				normals.Add(normalDir);
-
 				const double u = static_cast<double>(x) / (vertexSideCount - 1);
 				const double v = static_cast<double>(y) / (vertexSideCount - 1);
-				uvs.Construct(flipDirection ? -u : u, v);
+
+				vertices.Add(
+					VertexData(
+						Vector3(x * vertexScaling - 0.5, y * vertexScaling - 0.5, 0.0) * scale + offset,
+						normalDir,
+						Vector2(flipDirection ? -u : u, v)
+					)
+				);
 			}
 		}
 
@@ -129,10 +118,8 @@ namespace Coco::Rendering
 
 	void MeshPrimitives::CreateXZGrid(
 		const Vector2& size, 
-		const Vector3& offset, 
-		List<Vector3>& positions,
-		List<Vector3>& normals,
-		List<Vector2>& uvs, 
+		const Vector3& offset,
+		List<VertexData>& vertices,
 		List<uint>& indices, 
 		uint subdivisions,
 		bool flipDirection)
@@ -141,7 +128,7 @@ namespace Coco::Rendering
 		const double vertexScaling = 1.0 / (vertexSideCount - 1);
 		const Vector3 scale = Vector3(size.X, 1.0, size.Y);
 
-		const uint indexOffset = static_cast<uint>(positions.Count());
+		const uint indexOffset = static_cast<uint>(vertices.Count());
 
 		Vector3 normalDir = flipDirection ? Vector3::Backwards : Vector3::Forwards;
 
@@ -149,13 +136,16 @@ namespace Coco::Rendering
 		{
 			for (uint z = 0; z < vertexSideCount; z++)
 			{
-				positions.Add(Vector3(x * vertexScaling - 0.5, 0.0, z * vertexScaling - 0.5) * scale + offset);
-
-				normals.Add(normalDir);
-
 				const double u = static_cast<double>(x) / (vertexSideCount - 1);
 				const double v = static_cast<double>(z) / (vertexSideCount - 1);
-				uvs.Construct(flipDirection ? u : -u, v);
+
+				vertices.Add(
+					VertexData(
+						Vector3(x * vertexScaling - 0.5, 0.0, z * vertexScaling - 0.5) * scale + offset,
+						normalDir,
+						Vector2(flipDirection ? u : -u, v)
+					)
+				);
 			}
 		}
 
@@ -179,10 +169,8 @@ namespace Coco::Rendering
 
 	void MeshPrimitives::CreateYZGrid(
 		const Vector2& size, 
-		const Vector3& offset, 
-		List<Vector3>& positions,
-		List<Vector3>& normals,
-		List<Vector2>& uvs, 
+		const Vector3& offset,
+		List<VertexData>& vertices,
 		List<uint>& indices, 
 		uint subdivisions,
 		bool flipDirection)
@@ -191,7 +179,7 @@ namespace Coco::Rendering
 		const double vertexScaling = 1.0 / (vertexSideCount - 1);
 		const Vector3 scale = Vector3(1.0, size.X, size.Y);
 
-		const uint indexOffset = static_cast<uint>(positions.Count());
+		const uint indexOffset = static_cast<uint>(vertices.Count());
 
 		Vector3 normalDir = flipDirection ? Vector3::Left : Vector3::Right;
 
@@ -199,13 +187,16 @@ namespace Coco::Rendering
 		{
 			for (uint z = 0; z < vertexSideCount; z++)
 			{
-				positions.Add(Vector3(0.0, y * vertexScaling - 0.5, z * vertexScaling - 0.5) * scale + offset);
-
-				normals.Add(normalDir);
-
 				const double u = static_cast<double>(y) / (vertexSideCount - 1);
 				const double v = static_cast<double>(z) / (vertexSideCount - 1);
-				uvs.Construct(flipDirection ? -u : u, v);
+
+				vertices.Add(
+					VertexData(
+						Vector3(0.0, y * vertexScaling - 0.5, z * vertexScaling - 0.5) * scale + offset,
+						normalDir,
+						Vector2(flipDirection ? -u : u, v)
+					)
+				);
 			}
 		}
 
@@ -229,10 +220,8 @@ namespace Coco::Rendering
 	
 	void MeshPrimitives::CreateBox(
 		const Vector3& size, 
-		const Vector3& offset, 
-		List<Vector3>& positions,
-		List<Vector3>& normals,
-		List<Vector2>& uvs, 
+		const Vector3& offset,
+		List<VertexData>& vertices,
 		List<uint>& indices, 
 		uint subdivisions,
 		bool flipDirection)
@@ -240,44 +229,40 @@ namespace Coco::Rendering
 		const Vector3 sizeOffset = size * 0.5;
 
 		// X face
-		CreateYZGrid(Vector2(size.Y, size.Z), Vector3::Right * sizeOffset.X + offset, positions, normals, uvs, indices, subdivisions, flipDirection);
+		CreateYZGrid(Vector2(size.Y, size.Z), Vector3::Right * sizeOffset.X + offset, vertices, indices, subdivisions, flipDirection);
 
 		// -X face
-		CreateYZGrid(Vector2(size.Y, size.Z), Vector3::Left * sizeOffset.X + offset, positions, normals, uvs, indices, subdivisions, !flipDirection);
+		CreateYZGrid(Vector2(size.Y, size.Z), Vector3::Left * sizeOffset.X + offset, vertices, indices, subdivisions, !flipDirection);
 
 		// Y face
-		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Forwards * sizeOffset.Y + offset, positions, normals, uvs, indices, subdivisions, flipDirection);
+		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Forwards * sizeOffset.Y + offset, vertices, indices, subdivisions, flipDirection);
 
 		// -Y face
-		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Backwards * sizeOffset.Y + offset, positions, normals, uvs, indices, subdivisions, !flipDirection);
+		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Backwards * sizeOffset.Y + offset, vertices, indices, subdivisions, !flipDirection);
 
 		// Z face
-		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Up * sizeOffset.Z + offset, positions, normals, uvs, indices, subdivisions, flipDirection);
+		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Up * sizeOffset.Z + offset, vertices, indices, subdivisions, flipDirection);
 
 		// -Z face
-		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Down * sizeOffset.Z + offset, positions, normals, uvs, indices, subdivisions, !flipDirection);
+		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Down * sizeOffset.Z + offset, vertices, indices, subdivisions, !flipDirection);
 	}
 
 	void MeshPrimitives::CreateCone(
 		double height, 
 		double radius, 
 		int baseVertexCount, 
-		const Vector3& offset, 
-		List<Vector3>& positions,
-		List<Vector3>& normals,
-		List<Vector2>& uvs, 
+		const Vector3& offset,
+		List<VertexData>& vertices,
 		List<uint>& indices, 
 		bool flipDirection)
 	{
-		const uint vertexOffset = static_cast<uint>(positions.Count());
+		const uint vertexOffset = static_cast<uint>(vertices.Count());
 
 		Vector3 topPosition = Vector3(0.0, 0.0, height) + offset;
 		Vector3 topNormal = flipDirection ? Vector3::Down : Vector3::Up;
 
 		// Add the top vertex
-		positions.Add(topPosition);
-		normals.Add(topNormal);
-		uvs.Add(Vector2(0.25, 0.25));
+		vertices.Add(VertexData(topPosition, topNormal, Vector2(0.25, 0.25)));
 
 		for (int i = 0; i < baseVertexCount; i++)
 		{
@@ -285,17 +270,17 @@ namespace Coco::Rendering
 			const double c = Math::Cos(angle);
 			const double s = Math::Sin(angle);
 
+			VertexData data{};
 			Vector3 pos = Vector3(c * radius, s * radius, 0.0) + offset;
-			positions.Add(pos);
 
 			Vector3 toTop = (topPosition - pos).Normalized();
 			Vector3 right = toTop.Cross(Vector3::Up);
-			normals.Add(right.Cross(toTop).Normalized());
+			Vector3 normal = right.Cross(toTop).Normalized();
 
-			uvs.Construct(c * 0.5 + 0.25, s * 0.5 + 0.25);
+			vertices.Add(VertexData(pos, normal, Vector2(c * 0.5 + 0.25, s * 0.5 + 0.25)));
 		}
 
-		for (uint i = vertexOffset + 1; i < static_cast<uint>(positions.Count()) - 1; i++)
+		for (uint i = vertexOffset + 1; i < static_cast<uint>(vertices.Count()) - 1; i++)
 		{
 			indices.Add(flipDirection ? i + 1 : i);
 			indices.Add(vertexOffset);
@@ -303,31 +288,27 @@ namespace Coco::Rendering
 		}
 		
 		// Connect the last base vertex to the first
-		indices.Add(flipDirection ? vertexOffset + 1 : static_cast<uint>(positions.Count()) - 1);
+		indices.Add(flipDirection ? vertexOffset + 1 : static_cast<uint>(vertices.Count()) - 1);
 		indices.Add(vertexOffset);
-		indices.Add(flipDirection ? static_cast<uint>(positions.Count()) - 1 : vertexOffset + 1);
+		indices.Add(flipDirection ? static_cast<uint>(vertices.Count()) - 1 : vertexOffset + 1);
 
-		CreateXYTriangleFan(radius, baseVertexCount, offset, positions, normals, uvs, indices, !flipDirection);
+		CreateXYTriangleFan(radius, baseVertexCount, offset, vertices, indices, !flipDirection);
 	}
 
 	void MeshPrimitives::CreateXYTriangleFan(
 		double radius, 
 		int vertexCount, 
-		const Vector3& offset, 
-		List<Vector3>& positions,
-		List<Vector3>& normals,
-		List<Vector2>& uvs, 
+		const Vector3& offset,
+		List<VertexData>& vertices,
 		List<uint>& indices, 
 		bool flipDirection)
 	{
-		const uint vertexOffset = static_cast<uint>(positions.Count());
+		const uint vertexOffset = static_cast<uint>(vertices.Count());
 
 		Vector3 normalDir = flipDirection ? Vector3::Down : Vector3::Up;
 
 		// Add the middle vertex
-		positions.Add(offset);
-		normals.Add(normalDir);
-		uvs.Add(Vector2(0.5, 0.5));
+		vertices.Add(VertexData(offset, normalDir, Vector2(0.5, 0.5)));
 
 		// Create bottom circle
 		for (int i = 0; i < vertexCount; i++)
@@ -336,12 +317,16 @@ namespace Coco::Rendering
 			const double c = Math::Cos(angle);
 			const double s = Math::Sin(angle);
 
-			positions.Add(Vector3(c * radius, s * radius, 0.0) + offset);
-			normals.Add(normalDir);
-			uvs.Construct(c * 0.5 + 0.5, s * 0.5 + 0.5);
+			vertices.Add(
+				VertexData(
+					Vector3(c * radius, s * radius, 0.0) + offset,
+					normalDir,
+					Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5)
+				)
+			);
 		}
 
-		for (uint i = vertexOffset + 1; i < static_cast<uint>(positions.Count()) - 1; i++)
+		for (uint i = vertexOffset + 1; i < static_cast<uint>(vertices.Count()) - 1; i++)
 		{
 			indices.Add(flipDirection ? i + 1 : i);
 			indices.Add(vertexOffset);
@@ -349,23 +334,21 @@ namespace Coco::Rendering
 		}
 
 		// Connect the last base vertex to the first
-		indices.Add(flipDirection ? vertexOffset + 1 : static_cast<uint>(positions.Count()) - 1);
+		indices.Add(flipDirection ? vertexOffset + 1 : static_cast<uint>(vertices.Count()) - 1);
 		indices.Add(vertexOffset);
-		indices.Add(flipDirection ? static_cast<uint>(positions.Count()) - 1 : vertexOffset + 1);
+		indices.Add(flipDirection ? static_cast<uint>(vertices.Count()) - 1 : vertexOffset + 1);
 	}
 
 	void MeshPrimitives::CreateUVSphere(
 		uint slices,
 		uint stacks, 
 		double radius, 
-		const Vector3& offset, 
-		List<Vector3>& positions, 
-		List<Vector3>& normals, 
-		List<Vector2>& uvs, 
+		const Vector3& offset,
+		List<VertexData>& vertices,
 		List<uint>& indices, 
 		bool flipDirection)
 	{
-		const uint vertexOffset = static_cast<uint>(positions.Count());
+		const uint vertexOffset = static_cast<uint>(vertices.Count());
  
 		// Based on https://danielsieger.com/blog/2021/03/27/generating-spheres.html
 		
@@ -376,9 +359,7 @@ namespace Coco::Rendering
 		{
 			double u = (static_cast<double>(j) / slices) + uOffset;
 
-			positions.Add(Vector3(0.0, 0.0, radius) + offset);
-			normals.Add(flipDirection ? Vector3::Down : Vector3::Up);
-			uvs.Add(Vector2(u, 1.0));
+			vertices.Add(VertexData(Vector3(0.0, 0.0, radius) + offset, flipDirection ? Vector3::Down : Vector3::Up, Vector2(u, 1.0)));
 		}
 
 		const double twoPI = 2.0 * Math::PI;
@@ -394,9 +375,7 @@ namespace Coco::Rendering
 				double theta = twoPI * u;
 
 				Vector3 pos = Vector3(Math::Sin(phi) * Math::Cos(theta), Math::Sin(phi) * Math::Sin(theta), Math::Cos(phi));
-				positions.Add(pos * radius + offset);
-				normals.Add(pos.Normalized() * (flipDirection ? -1.0 : 1.0));
-				uvs.Add(Vector2(u, v));
+				vertices.Add(VertexData(pos * radius + offset, pos.Normalized() * (flipDirection ? -1.0 : 1.0), Vector2(u, v)));
 			}
 		}
 
@@ -405,9 +384,7 @@ namespace Coco::Rendering
 		{
 			double u = (static_cast<double>(j) / slices) + uOffset;
 
-			positions.Add(Vector3(0.0, 0.0, -radius) + offset);
-			normals.Add(flipDirection ? Vector3::Up : Vector3::Down);
-			uvs.Add(Vector2(u, 0.0));
+			vertices.Add(VertexData(Vector3(0.0, 0.0, -radius) + offset, flipDirection ? Vector3::Up : Vector3::Down, Vector2(u, 0.0)));
 		}
 
 		const uint topRingOffset = slices;
@@ -456,17 +433,21 @@ namespace Coco::Rendering
 	}
 
 	Ref<Mesh> MeshPrimitives::CreateFromVertices(
-		const string& name, 
-		const List<Vector3>& positions,
-		const List<Vector3>& normals, 
-		const List<Vector2>& uvs, 
-		const List<uint>& indices)
+		const string& name,
+		const List<VertexData>& vertices,
+		const List<uint>& indices,
+		bool calculateNormals,
+		bool calculateTangents)
 	{
 		Ref<Mesh> mesh = Engine::Get()->GetResourceLibrary()->CreateResource<Mesh>(name);
-		mesh->SetPositions(positions);
-		mesh->SetNormals(normals);
-		mesh->SetUVs(uvs);
+		mesh->SetVertexData(vertices);
 		mesh->SetIndices(indices);
+
+		if (calculateNormals)
+			mesh->CalculateNormals();
+
+		if (calculateTangents)
+			mesh->CalculateTangents();
 
 		return mesh;
 	}

@@ -73,6 +73,8 @@ namespace Coco::Rendering::Vulkan
         Version GetAPIVersion() const noexcept final { return _apiVersion; }
         const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const noexcept final { return _memoryFeatures; };
         constexpr uint GetMinimumBufferAlignment() const noexcept final { return _minUniformBufferAlignment; }
+        uint GetDataTypeAlignment(BufferDataFormat type) const noexcept final;
+        void AlignOffset(BufferDataFormat type, uint64_t& offset) const noexcept final;
         void WaitForIdle() noexcept final;
 
         /// @brief Creates a graphics device with the given parameters

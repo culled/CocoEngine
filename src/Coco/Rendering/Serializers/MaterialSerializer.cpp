@@ -208,7 +208,7 @@ namespace Coco::Rendering
 			switch (uniformType)
 			{
 			case static_cast<int>(BufferDataFormat::Float):
-				uniforms.Floats[name] = atof(valueText.c_str());
+				uniforms.Floats[name] = static_cast<float>(atof(valueText.c_str()));
 				break;
 			case static_cast<int>(BufferDataFormat::Vector2):
 				uniforms.Vector2s[name] = Vector2::Parse(valueText);

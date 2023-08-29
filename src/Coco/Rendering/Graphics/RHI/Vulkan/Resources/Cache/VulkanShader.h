@@ -67,6 +67,11 @@ namespace Coco::Rendering::Vulkan
 		/// @return The descriptor layouts for this subshader
 		List<VulkanDescriptorLayout> GetDescriptorLayouts() const noexcept;
 
+		/// @brief Gets the size of this subshader's uniform data
+		/// @param scope The scope of the uniforms
+		/// @return The size of the uniform data
+		uint GetUniformDataSize(ShaderDescriptorScope scope) const;
+
 		/// @brief Gets push constant ranges for this subshader
 		/// @return Push constant ranges for this subshader
 		List<VkPushConstantRange> GetPushConstantRanges() const;

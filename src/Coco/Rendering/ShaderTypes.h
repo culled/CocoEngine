@@ -216,19 +216,6 @@ namespace Coco::Rendering
 			const List<ShaderUniformDescriptor>& uniforms,
 			const List<ShaderTextureSampler>& samplers) noexcept;
 
-		/// @brief Converts uniform data into a single list of data that can be loaded into a buffer
-		/// @param scope The scope for the uniform data
-		/// @param data The uniform data
-		/// @param minimumAlignment The minimum alignment for the data
-		/// @return The uniform data as bytes
-		List<char> GetUniformData(ShaderDescriptorScope scope, const ShaderUniformData& data, uint minimumAlignment) const;
-
-		/// @brief Gets the size of this subshader's uniforms
-		/// @param scope The scope for the uniforms
-		/// @param minimumAlignment The minimum alignment for the uniforms
-		/// @return The number of bytes required for the uniform data
-		uint64_t GetUniformDataSize(ShaderDescriptorScope scope, uint minimumAlignment) const;
-
 		/// @brief Gets a list of shader uniforms in the given scope
 		/// @param scope The scope of the uniforms
 		/// @return A list of uniforms in the given scope

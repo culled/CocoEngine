@@ -41,7 +41,6 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	_tickListener = engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::Tick, 0);
 	_renderTickListener = engine->GetMainLoop()->CreateTickListener(this, &CocoSandboxApplication::RenderTick, 10000);
 
-
 	_inputService = engine->GetServiceManager()->CreateService<Input::InputService>();
 
 	Rendering::GraphicsPlatformCreationParameters createParams(Name, Rendering::RenderingRHI::Vulkan);
@@ -60,19 +59,18 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	// Setup our basic mesh
 	const double size = 30.0;
 	
-	List<Vector3> vertexPositions;
-	List<Vector3> vertexNormals;
-	List<Vector2> vertexUVs;
+	List<VertexData> vertices;
 	List<uint> vertexIndices;
 	
-	MeshPrimitives::CreateXYGrid(Vector2(size, size), Vector3(0.0, 0.0, -size * 0.5), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateXZGrid(Vector2(size, size), Vector3(0.0, -size * 0.5, 0.0), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateYZGrid(Vector2(size, size), Vector3(-size * 0.5, 0.0, 0.0), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateBox(Vector3::One, Vector3(0.0, 5.0, 0.0), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateCone(2.0, 1.0, 12, Vector3(2.0, 5.0, 0.0), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
-	MeshPrimitives::CreateUVSphere(12, 12, 0.5, Vector3(-2.0, 5.0, 0.0), vertexPositions, vertexNormals, vertexUVs, vertexIndices);
+	MeshPrimitives::CreateXYGrid(Vector2(size, size), Vector3(0.0, 0.0, -size * 0.5), vertices, vertexIndices);
+	MeshPrimitives::CreateXZGrid(Vector2(size, size), Vector3(0.0, -size * 0.5, 0.0), vertices, vertexIndices);
+	MeshPrimitives::CreateYZGrid(Vector2(size, size), Vector3(-size * 0.5, 0.0, 0.0), vertices, vertexIndices);
+	MeshPrimitives::CreateBox(Vector3::One, Vector3(0.0, 5.0, 0.0), vertices, vertexIndices);
+	MeshPrimitives::CreateCone(2.0, 1.0, 12, Vector3(2.0, 5.0, 0.0), vertices, vertexIndices);
+	MeshPrimitives::CreateUVSphere(12, 12, 0.5, Vector3(-2.0, 5.0, 0.0), vertices, vertexIndices);
 	
-	_mesh = MeshPrimitives::CreateFromVertices("Mesh", vertexPositions, vertexNormals, vertexUVs, vertexIndices);
+	_mesh = MeshPrimitives::CreateFromVertices("Mesh", vertices, vertexIndices, false, true);
+	_mesh->EnsureChannels(true, true, true, true);
 
 	// Setup our render pipeline
 	Ref<Rendering::RenderPipeline> pipeline = engine->GetResourceLibrary()->CreateResource<Rendering::RenderPipeline>("Pipeline");
@@ -102,7 +100,9 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	obj2Transform.SetLocalPosition(Vector3(0, 30, 0));
 	obj2Transform.SetLocalRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
 
-	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, MeshPrimitives::CreateBox("Box", Vector3::One * 5.0), _material);
+	Ref<Mesh> box = MeshPrimitives::CreateBox("Box", Vector3::One * 5.0);
+	box->EnsureChannels(true, true, true, true);
+	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, box, _material);
 
 	_ecsService->GetEntity(obj2).SetParentID(_cameraEntityID);
 	_obj2ID = obj2;

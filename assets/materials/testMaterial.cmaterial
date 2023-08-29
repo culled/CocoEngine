@@ -6,6 +6,9 @@ uniforms
     _Shininess
         type=0
         value=64.0
+    _NormalMapStrength
+        type=0
+        value=1.0
     _BaseColor
         type=8
         value=1.0,1.0,1.0,1.0,0

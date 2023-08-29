@@ -71,7 +71,7 @@ namespace Coco::Rendering::Vulkan
 		if (!subshader.HasScope(ShaderDescriptorScope::Global))
 			return nullptr;
 
-		uint64_t dataSize = subshader.GetUniformDataSize(ShaderDescriptorScope::Global, _device->GetMinimumBufferAlignment());
+		uint64_t dataSize = vulkanSubshader.GetUniformDataSize(ShaderDescriptorScope::Global);
 
 		if (!_globalUniformBuffer.Buffer.IsValid() || _globalUniformBuffer.Buffer->GetSize() != dataSize)
 		{
@@ -84,7 +84,7 @@ namespace Coco::Rendering::Vulkan
 		// Map the buffer data if it isn't already
 		_globalUniformBuffer.MappedMemory = reinterpret_cast<char*>(_globalUniformBuffer.Buffer->Lock(0, dataSize));
 
-		List<char> uniformData = subshader.GetUniformData(ShaderDescriptorScope::Global, globalData, _device->GetMinimumBufferAlignment());
+		List<char> uniformData = GetUniformData(ShaderDescriptorScope::Global, globalData, subshader);
 
 		Assert(uniformData.Count() == dataSize);
 
@@ -151,7 +151,7 @@ namespace Coco::Rendering::Vulkan
 		const Subshader& subshader = vulkanSubshader.GetSubshader();
 
 		bool needsUpdate = false;
-		uint64_t dataSize = subshader.GetUniformDataSize(ShaderDescriptorScope::Instance, _device->GetMinimumBufferAlignment());
+		uint64_t dataSize = vulkanSubshader.GetUniformDataSize(ShaderDescriptorScope::Instance);
 
 		if (!_bufferRegions.contains(data.ID))
 		{
@@ -180,7 +180,7 @@ namespace Coco::Rendering::Vulkan
 			if (buffer.MappedMemory == nullptr)
 				buffer.MappedMemory = reinterpret_cast<char*>(buffer.Buffer->Lock(0, _bufferSize));
 
-			List<char> uniformData = subshader.GetUniformData(ShaderDescriptorScope::Instance, data, _device->GetMinimumBufferAlignment());
+			List<char> uniformData = GetUniformData(ShaderDescriptorScope::Instance, data, subshader);
 			char* dst = buffer.MappedMemory + region.AllocatedBlock.Offset;
 			std::memcpy(dst, uniformData.Data(), uniformData.Count());
 
@@ -366,5 +366,179 @@ namespace Coco::Rendering::Vulkan
 			true);
 
 		return buffer;
+	}
+
+	List<char> VulkanShaderResource::GetUniformData(ShaderDescriptorScope scope, const ShaderUniformData& data, const Subshader& subshader) const
+	{
+		Array<float, 16> tempData = { 0.0f };
+		Array<int32_t, 4> tempIntData = { 0 };
+
+		List<char> uniformData;
+		uint64_t offset = 0;
+		List<ShaderUniformDescriptor> uniforms = subshader.GetScopedUniforms(scope);
+
+		for (int i = 0; i < uniforms.Count(); i++)
+		{
+			const ShaderUniformDescriptor& uniform = uniforms[i];
+			const uint dataSize = GetBufferDataFormatSize(uniform.Type);
+
+			uint64_t preAlignOffset = offset;
+			_device->AlignOffset(uniform.Type, offset);
+
+			uniformData.Resize(uniformData.Count() + dataSize + (offset - preAlignOffset));
+
+			char* dst = (uniformData.Data() + offset);
+
+			switch (uniform.Type)
+			{
+			case BufferDataFormat::Int:
+			{
+				int32_t v = 0;
+
+				if (data.Ints.contains(uniform.Name))
+					v = data.Ints.at(uniform.Name);
+
+				std::memcpy(dst, &v, dataSize);
+
+				break;
+			}
+			case BufferDataFormat::Vector2Int:
+			{
+				Vector2Int vec2;
+
+				if (data.Vector2Ints.contains(uniform.Name))
+					vec2 = data.Vector2Ints.at(uniform.Name);
+
+				tempIntData[0] = static_cast<int32_t>(vec2.X);
+				tempIntData[1] = static_cast<int32_t>(vec2.Y);
+
+				std::memcpy(dst, tempIntData.data(), dataSize);
+
+				break;
+			}
+			case BufferDataFormat::Vector3Int:
+			{
+				Vector3Int vec3;
+
+				if (data.Vector3Ints.contains(uniform.Name))
+					vec3 = data.Vector3Ints.at(uniform.Name);
+
+				tempIntData[0] = static_cast<int32_t>(vec3.X);
+				tempIntData[1] = static_cast<int32_t>(vec3.Y);
+				tempIntData[2] = static_cast<int32_t>(vec3.Z);
+
+				std::memcpy(dst, tempIntData.data(), dataSize);
+
+				break;
+			}
+			case BufferDataFormat::Vector4Int:
+			{
+				Vector4Int vec4;
+
+				if (data.Vector4Ints.contains(uniform.Name))
+					vec4 = data.Vector4Ints.at(uniform.Name);
+
+				tempIntData[0] = static_cast<int32_t>(vec4.X);
+				tempIntData[1] = static_cast<int32_t>(vec4.Y);
+				tempIntData[2] = static_cast<int32_t>(vec4.Z);
+				tempIntData[3] = static_cast<int32_t>(vec4.W);
+
+				std::memcpy(dst, tempIntData.data(), dataSize);
+
+				break;
+			}
+			case BufferDataFormat::Float:
+			{
+				float v = 0.0f;
+
+				if (data.Floats.contains(uniform.Name))
+					v = data.Floats.at(uniform.Name);
+
+				std::memcpy(dst, &v, dataSize);
+
+				break;
+			}
+			case BufferDataFormat::Vector2:
+			{
+				Vector2 vec2;
+
+				if (data.Vector2s.contains(uniform.Name))
+					vec2 = data.Vector2s.at(uniform.Name);
+
+				tempData[0] = static_cast<float>(vec2.X);
+				tempData[1] = static_cast<float>(vec2.Y);
+
+				std::memcpy(dst, tempData.data(), dataSize);
+
+				break;
+			}
+			case BufferDataFormat::Vector3:
+			{
+				Vector3 vec3;
+
+				if (data.Vector3s.contains(uniform.Name))
+					vec3 = data.Vector3s.at(uniform.Name);
+
+				tempData[0] = static_cast<float>(vec3.X);
+				tempData[1] = static_cast<float>(vec3.Y);
+				tempData[2] = static_cast<float>(vec3.Z);
+
+				std::memcpy(dst, tempData.data(), dataSize);
+
+				break;
+			}
+			case BufferDataFormat::Vector4:
+			{
+				Vector4 vec4;
+
+				if (data.Vector4s.contains(uniform.Name))
+					vec4 = data.Vector4s.at(uniform.Name);
+
+				tempData[0] = static_cast<float>(vec4.X);
+				tempData[1] = static_cast<float>(vec4.Y);
+				tempData[2] = static_cast<float>(vec4.Z);
+				tempData[3] = static_cast<float>(vec4.W);
+
+				std::memcpy(dst, tempData.data(), dataSize);
+
+				break;
+			}
+			case BufferDataFormat::Color:
+			{
+				Color c;
+
+				if (data.Colors.contains(uniform.Name))
+					c = data.Colors.at(uniform.Name).AsLinear();
+
+				tempData[0] = static_cast<float>(c.R);
+				tempData[1] = static_cast<float>(c.G);
+				tempData[2] = static_cast<float>(c.B);
+				tempData[3] = static_cast<float>(c.A);
+
+				std::memcpy(dst, tempData.data(), dataSize);
+
+				break;
+			}
+			case BufferDataFormat::Matrix4x4:
+			{
+				Matrix4x4 mat4;
+
+				if (data.Matrix4x4s.contains(uniform.Name))
+					mat4 = data.Matrix4x4s.at(uniform.Name);
+
+				tempData = mat4.AsFloat();
+
+				std::memcpy(dst, tempData.data(), dataSize);
+
+				break;
+			}
+			default:
+				break;
+			}
+
+			offset += dataSize;
+		}
+
+		return uniformData;
 	}
 }

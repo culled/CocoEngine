@@ -141,6 +141,8 @@ namespace Coco::Rendering::Vulkan
 		/// @return The created uniform buffer
 		ShaderUniformBuffer CreateBuffer(uint64_t size);
 
+		List<char> GetUniformData(ShaderDescriptorScope scope, const ShaderUniformData& data, const Subshader& subshader) const;
+
 		/// @brief Destroys the descriptor pool
 		void DestroyPool();
 	};

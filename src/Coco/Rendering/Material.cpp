@@ -10,19 +10,15 @@ namespace Coco::Rendering
 	{}
 
 	Material::Material(const ResourceID& id, const string& name, Ref<Shader> shader) : RenderingResource(id, name),
-		_shader(shader)
-	{
-		UpdatePropertyMaps(true);
-	}
+		_shader(shader), _uniformData{}
+	{}
 
 	Material::~Material()
 	{}
 
 	void Material::SetUniformData(const ShaderUniformData& uniformData)
 	{
-		UpdatePropertyMaps(false);
-
-		_uniformData.CopyFrom(uniformData);
+		_uniformData.Merge(uniformData, true);
 		IncrementVersion();
 	}
 
@@ -41,25 +37,13 @@ namespace Coco::Rendering
 			return;
 
 		_shader = shader;
-		UpdatePropertyMaps(true);
 		IncrementVersion();
 	}
 
 	void Material::SetInt(const string& name, int32_t value)
 	{
-		UpdatePropertyMaps(false);
-
-		auto it = _uniformData.Ints.find(name);
-
-		if (it != _uniformData.Ints.end())
-		{
-			(*it).second = value;
-			this->IncrementVersion();
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no int property named \"{}\"", _shader->GetName(), name));
-		}
+		_uniformData.Ints[name] = value;
+		this->IncrementVersion();
 	}
 
 	int32_t Material::GetInt(const string& name) const
@@ -78,19 +62,8 @@ namespace Coco::Rendering
 
 	void Material::SetVector2Int(const string& name, const Vector2Int& value)
 	{
-		UpdatePropertyMaps(false);
-
-		auto it = _uniformData.Vector2Ints.find(name);
-
-		if (it != _uniformData.Vector2Ints.end())
-		{
-			(*it).second = value;
-			this->IncrementVersion();
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector2int property named \"{}\"", _shader->GetName(), name));
-		}
+		_uniformData.Vector2Ints[name] = value;
+		this->IncrementVersion();
 	}
 
 	Vector2Int Material::GetVector2Int(const string& name) const
@@ -109,19 +82,8 @@ namespace Coco::Rendering
 
 	void Material::SetVector3Int(const string& name, const Vector3Int& value)
 	{
-		UpdatePropertyMaps(false);
-
-		auto it = _uniformData.Vector3Ints.find(name);
-
-		if (it != _uniformData.Vector3Ints.end())
-		{
-			(*it).second = value;
-			this->IncrementVersion();
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector3int property named \"{}\"", _shader->GetName(), name));
-		}
+		_uniformData.Vector3Ints[name] = value;
+		this->IncrementVersion();
 	}
 
 	Vector3Int Material::GetVector3Int(const string& name) const
@@ -140,19 +102,8 @@ namespace Coco::Rendering
 
 	void Material::SetVector4Int(const string& name, const Vector4Int& value)
 	{
-		UpdatePropertyMaps(false);
-
-		auto it = _uniformData.Vector4Ints.find(name);
-
-		if (it != _uniformData.Vector4Ints.end())
-		{
-			(*it).second = value;
-			this->IncrementVersion();
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4int property named \"{}\"", _shader->GetName(), name));
-		}
+		_uniformData.Vector4Ints[name] = value;
+		this->IncrementVersion();
 	}
 
 	Vector4Int Material::GetVector4Int(const string& name) const
@@ -171,19 +122,8 @@ namespace Coco::Rendering
 
 	void Material::SetFloat(const string& name, float value)
 	{
-		UpdatePropertyMaps(false);
-
-		auto it = _uniformData.Floats.find(name);
-
-		if (it != _uniformData.Floats.end())
-		{
-			(*it).second = value;
-			this->IncrementVersion();
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no float property named \"{}\"", _shader->GetName(), name));
-		}
+		_uniformData.Floats[name] = value;
+		this->IncrementVersion();
 	}
 
 	float Material::GetFloat(const string& name) const
@@ -202,19 +142,8 @@ namespace Coco::Rendering
 
 	void Material::SetVector2(const string& name, const Vector2& value)
 	{
-		UpdatePropertyMaps(false);
-
-		auto it = _uniformData.Vector2s.find(name);
-
-		if (it != _uniformData.Vector2s.end())
-		{
-			(*it).second = value;
-			this->IncrementVersion();
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector2 property named \"{}\"", _shader->GetName(), name));
-		}
+		_uniformData.Vector2s[name] = value;
+		this->IncrementVersion();
 	}
 
 	Vector2 Material::GetVector2(const string& name) const
@@ -233,19 +162,8 @@ namespace Coco::Rendering
 
 	void Material::SetVector3(const string& name, const Vector3& value)
 	{
-		UpdatePropertyMaps(false);
-
-		auto it = _uniformData.Vector3s.find(name);
-
-		if (it != _uniformData.Vector3s.end())
-		{
-			(*it).second = value;
-			this->IncrementVersion();
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector3 property named \"{}\"", _shader->GetName(), name));
-		}
+		_uniformData.Vector3s[name] = value;
+		this->IncrementVersion();
 	}
 
 	Vector3 Material::GetVector3(const string& name) const
@@ -264,19 +182,8 @@ namespace Coco::Rendering
 
 	void Material::SetVector4(const string& name, const Vector4& value)
 	{
-		UpdatePropertyMaps(false);
-
-		auto it = _uniformData.Vector4s.find(name);
-
-		if (it != _uniformData.Vector4s.end())
-		{
-			(*it).second = value;
-			this->IncrementVersion();
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no vector4 property named \"{}\"", _shader->GetName(), name));
-		}
+		_uniformData.Vector4s[name] = value;
+		this->IncrementVersion();
 	}
 
 	Vector4 Material::GetVector4(const string& name) const
@@ -295,19 +202,8 @@ namespace Coco::Rendering
 
 	void Material::SetColor(const string& name, const Color& value)
 	{
-		UpdatePropertyMaps(false);
-
-		auto it = _uniformData.Colors.find(name);
-
-		if (it != _uniformData.Colors.end())
-		{
-			(*it).second = value;
-			this->IncrementVersion();
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no color property named \"{}\"", _shader->GetName(), name));
-		}
+		_uniformData.Colors[name] = value;
+		this->IncrementVersion();
 	}
 
 	Color Material::GetColor(const string name) const
@@ -326,19 +222,8 @@ namespace Coco::Rendering
 
 	void Material::SetTexture(const string& name, Ref<Texture> texture)
 	{
-		UpdatePropertyMaps(false);
-
-		auto it = _uniformData.Textures.find(name);
-
-		if (it != _uniformData.Textures.end())
-		{
-			(*it).second = texture->ID;
-			this->IncrementVersion();
-		}
-		else
-		{
-			LogError(GetRenderingLogger(), FormattedString("Shader \"{}\" has no texture property named \"{}\"", _shader->GetName(), name));
-		}
+		_uniformData.Textures[name] = texture->ID;
+		this->IncrementVersion();
 	}
 
 	ResourceID Material::GetTexture(const string& name) const
@@ -353,18 +238,6 @@ namespace Coco::Rendering
 		{
 			return Resource::InvalidID;
 		}
-	}
-
-	void Material::UpdatePropertyMaps(bool forceUpdate)
-	{
-		if (!forceUpdate && _propertyMapVersion == _shader->GetVersion())
-			return;
-
-		ShaderUniformData shaderData = _shader->GetUniformPropertyMap();
-		shaderData.CopyFrom(_uniformData);
-		_uniformData = std::move(shaderData);
-		
-		_propertyMapVersion = _shader->GetVersion();
 	}
 
 	MaterialInstance::MaterialInstance(const ResourceID& id, const string& name, Ref<Material> baseMaterial) :

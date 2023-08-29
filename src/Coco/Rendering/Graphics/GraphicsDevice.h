@@ -8,6 +8,7 @@
 #include <Coco/Core/Resources/ResourceLibrary.h>
 #include "GraphicsDeviceTypes.h"
 #include "../RenderingResource.h"
+#include "Resources/BufferTypes.h"
 
 namespace Coco::Logging
 {
@@ -62,6 +63,16 @@ namespace Coco::Rendering
 		/// @brief Gets the minimum alignment for a buffer that this device supports
 		/// @return The minimum buffer alignment for this device
 		virtual uint GetMinimumBufferAlignment() const noexcept = 0;
+
+		/// @brief Gets the alignment for a type of data in a buffer
+		/// @param type The data type
+		/// @return The alignment for the given data type
+		virtual uint GetDataTypeAlignment(BufferDataFormat type) const noexcept = 0;
+
+		/// @brief Aligns an offset for a given type of data
+		/// @param type The data type
+		/// @param offset The offset
+		virtual void AlignOffset(BufferDataFormat type, uint64_t& offset) const noexcept = 0;
 
 		/// @brief Blocks until this device has finished all async operations
 		virtual void WaitForIdle() noexcept = 0;

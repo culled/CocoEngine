@@ -22,9 +22,6 @@ namespace Coco::Rendering
 
 		ShaderUniformData _uniformData;
 
-	private:
-		ResourceVersion _propertyMapVersion = 0;
-
 	public:
 		Material(const ResourceID& id, const string& name);
 		Material(const ResourceID& id, const string& name, Ref<Shader> shader);
@@ -181,11 +178,6 @@ namespace Coco::Rendering
 		/// @brief Gets all the texture properties that this material has
 		/// @return This material's texture properties
 		const UnorderedMap<string, ResourceID>& GetTextureProperties() const noexcept { return _uniformData.Textures; }
-
-	private:
-		/// @brief Updates the property maps from this material's shader
-		/// @param forceUpdate If true, the map will be updated regardless if it matches the version of the shader
-		void UpdatePropertyMaps(bool forceUpdate);
 	};
 
 	/// @brief An instance of a material that can override parameters of the material its based on

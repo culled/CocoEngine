@@ -78,16 +78,30 @@ namespace Coco::Rendering::Vulkan
 		return layouts;
 	}
 
+	uint VulkanSubshader::GetUniformDataSize(ShaderDescriptorScope scope) const
+	{
+		uint64_t offset = 0;
+		List<ShaderUniformDescriptor> uniforms = _subshader.GetScopedUniforms(scope);
+
+		for (const auto& uniform : uniforms)
+		{
+			_device->AlignOffset(uniform.Type, offset);
+			offset += GetBufferDataFormatSize(uniform.Type);
+		}
+
+		return static_cast<uint>(offset);
+	}
+
 	List<VkPushConstantRange> VulkanSubshader::GetPushConstantRanges() const
 	{
-		uint minimumAlignment = _device->GetMinimumBufferAlignment();
+		const uint dataSize = GetUniformDataSize(ShaderDescriptorScope::Draw);
 
 		// TODO: check maximum push constant range size
-		if (_subshader.GetUniformDataSize(ShaderDescriptorScope::Draw, minimumAlignment) > 128)
+		if (dataSize > 128)
 		{
 			LogError(_device->GetLogger(), FormattedString(
 				"Cannot have a push constant buffer greater than 128 bytes. Requested: {} bytes",
-				_subshader.GetUniformDataSize(ShaderDescriptorScope::Draw, minimumAlignment)
+				dataSize
 			));
 
 			return List<VkPushConstantRange>();
@@ -97,20 +111,22 @@ namespace Coco::Rendering::Vulkan
 
 		List<VkPushConstantRange> ranges(drawUniforms.Count());
 
-		uint32_t offset = 0;
+		uint64_t offset = 0;
 
 		for (int i = 0; i < drawUniforms.Count(); i++)
 		{
 			const ShaderUniformDescriptor& uniform = drawUniforms[i];
+			const uint32_t size = GetBufferDataFormatSize(uniform.Type);
 
-			uint32_t size = GetBufferDataFormatSize(uniform.Type);
+			_device->AlignOffset(uniform.Type, offset);
+
 			VkPushConstantRange& range = ranges[i];
 
-			range.offset = offset;
+			range.offset = static_cast<uint32_t>(offset);
 			range.size = size;
 			range.stageFlags = ToVkShaderStageFlagBits(uniform.BindingPoints);
 
-			offset += static_cast<uint32_t>(RenderingUtilities::GetOffsetForAlignment(size, minimumAlignment));
+			offset += size;
 		}
 
 		return ranges;
