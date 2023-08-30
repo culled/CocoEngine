@@ -98,8 +98,7 @@ CocoSandboxApplication::CocoSandboxApplication() :
 
 	ECS::EntityID obj2 = _ecsService->CreateEntity("2");
 	auto& obj2Transform = _ecsService->AddComponent<ECS::TransformComponent>(obj2);
-	obj2Transform.SetLocalPosition(Vector3(0, 30, 0));
-	obj2Transform.SetLocalRotation(Quaternion(Vector3::Up, Math::Deg2Rad(180)));
+	obj2Transform.SetPositionAndRotation(Vector3(0, 30, 0), Quaternion(Vector3::Up, Math::Deg2Rad(180)));
 
 	Ref<Mesh> box = MeshPrimitives::CreateBox("Box", Vector3::One * 5.0);
 	box->EnsureChannels(true, true, true, true);
@@ -210,8 +209,9 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	if (keyboard->IsKeyPressed(Input::KeyboardKey::Q))
 		velocity += orientation * Vector3::Down * 5.0;
 	
-	cameraTransform.SetLocalPosition(cameraTransform.GetLocalPosition() + velocity * deltaTime);
-	cameraTransform.SetLocalRotation(orientation);
+	cameraTransform.SetPositionAndRotation(
+		cameraTransform.GetLocalPosition() + velocity * deltaTime,
+		orientation);
 
 	//const double t = Coco::Engine::Get()->GetMainLoop()->GetRunningTime();
 	//const double a = Math::Sin(t) * 0.5 + 0.5;

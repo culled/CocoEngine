@@ -182,6 +182,66 @@ namespace Coco::ECS
 		return false;
 	}
 
+	void TransformComponent::SetPositionAndRotation(const Vector3& position, const Quaternion& rotation, bool globalSpace)
+	{
+		if (globalSpace)
+		{
+			SetGlobalPosition(position);
+			SetGlobalRotation(rotation);
+		}
+		else
+		{
+			SetLocalPosition(position);
+			SetLocalRotation(rotation);
+		}
+	}
+
+	void TransformComponent::SetPositionAndRotation(const Vector3& position, const Vector3& eulerAngles, bool globalSpace)
+	{
+		if (globalSpace)
+		{
+			SetGlobalPosition(position);
+			SetGlobalEulerAngles(eulerAngles);
+		}
+		else
+		{
+			SetLocalPosition(position);
+			SetLocalEulerAngles(eulerAngles);
+		}
+	}
+
+	void TransformComponent::SetTransform(const Vector3& position, const Quaternion& rotation, const Vector3& scale, bool globalSpace)
+	{
+		if (globalSpace)
+		{
+			SetGlobalPosition(position);
+			SetGlobalRotation(rotation);
+			SetGlobalScale(scale);
+		}
+		else
+		{
+			SetLocalPosition(position);
+			SetLocalRotation(rotation);
+			SetLocalScale(scale);
+		}
+	}
+
+	void TransformComponent::SetTransform(const Vector3& position, const Vector3& eulerAngles, const Vector3& scale, bool globalSpace)
+	{
+		if (globalSpace)
+		{
+			SetGlobalPosition(position);
+			SetGlobalEulerAngles(eulerAngles);
+			SetGlobalScale(scale);
+		}
+		else
+		{
+			SetLocalPosition(position);
+			SetLocalEulerAngles(eulerAngles);
+			SetLocalScale(scale);
+		}
+	}
+
 	void TransformComponent::InvalidateTransform()
 	{
 		ECSService* ecs = ECSService::Get();

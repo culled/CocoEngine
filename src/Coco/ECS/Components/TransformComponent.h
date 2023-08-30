@@ -154,6 +154,32 @@ namespace Coco::ECS
 		/// @return True if the parent transform exists
 		bool TryGetParent(TransformComponent*& parentTransform);
 
+		/// @brief Sets the position and rotation of this transform
+		/// @param position The position
+		/// @param rotation The rotation
+		/// @param globalSpace If true, the position and rotation will be interpreted in global space instead of local space
+		void SetPositionAndRotation(const Vector3& position, const Quaternion& rotation, bool globalSpace = false);
+
+		/// @brief Sets the position and rotation of this transform
+		/// @param position The position
+		/// @param eulerAngles The euler angles
+		/// @param globalSpace If true, the position and rotation will be interpreted in global space instead of local space
+		void SetPositionAndRotation(const Vector3& position, const Vector3& eulerAngles, bool globalSpace = false);
+
+		/// @brief Sets the position, rotation, and scale of this transform
+		/// @param position The position
+		/// @param rotation The rotation
+		/// @param scale The scale
+		/// @param globalSpace If true, the position, rotation, and scale will be interpreted in global space instead of local space
+		void SetTransform(const Vector3& position, const Quaternion& rotation, const Vector3& scale, bool globalSpace = false);
+
+		/// @brief Sets the position, rotation, and scale of this transform
+		/// @param position The position
+		/// @param eulerAngles The euler angles
+		/// @param scale The scale
+		/// @param globalSpace If true, the position, rotation, and scale will be interpreted in global space instead of local space
+		void SetTransform(const Vector3& position, const Vector3& eulerAngles, const Vector3& scale, bool globalSpace = false);
+
 	private:
 		/// @brief Marks this transform as needing to be recalculated
 		void InvalidateTransform();
