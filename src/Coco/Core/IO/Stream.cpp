@@ -19,22 +19,24 @@ namespace Coco
 	{
 		std::istream& s = GetReadStream();
 		const uint64_t pos = GetPosition();
-		const std::ios_base::iostate state = s.rdstate();
 
 		ReadLine(text, lineEnd);
 
-		s.setstate(state);
-
+		s.clear();
 		Seek(pos);
+
+		Assert(GetPosition() == pos);
 	}
 
 	bool StreamReader::ReadLine(string& text, char lineEnd)
 	{
 		std::istream& s = GetReadStream();
 
+		uint64_t p = GetPosition();
 		std::getline(s, text, lineEnd);
+		uint64_t read = GetPosition() - p;
 
-		return !text.empty();
+		return read != 0;
 	}
 
 	List<char> StreamReader::Read(uint64_t bytesToRead)

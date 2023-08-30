@@ -20,7 +20,12 @@ namespace Coco
 			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
 
 			if (endIndex == string::npos)
-				endIndex = str.length();
+			{
+				endIndex = str.find_first_of(' ', currentCharacterIndex);
+
+				if(endIndex == string::npos)
+					endIndex = str.length();
+			}
 
 			string part = str.substr(currentCharacterIndex, endIndex);
 			values[fieldIndex] = atoi(part.c_str());
@@ -43,7 +48,12 @@ namespace Coco
 			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
 
 			if (endIndex == string::npos)
-				endIndex = str.length();
+			{
+				endIndex = str.find_first_of(' ', currentCharacterIndex);
+
+				if (endIndex == string::npos)
+					endIndex = str.length();
+			}
 
 			string part = str.substr(currentCharacterIndex, endIndex - currentCharacterIndex);
 			values[fieldIndex] = atof(part.c_str());
