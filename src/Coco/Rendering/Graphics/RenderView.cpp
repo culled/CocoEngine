@@ -8,6 +8,7 @@
 #include "../Texture.h"
 #include "../Mesh.h"
 #include <Coco/Core/Engine.h>
+#include "../RenderingService.h"
 
 namespace Coco::Rendering
 {
@@ -42,26 +43,33 @@ namespace Coco::Rendering
 		Objects.Clear();
 	}
 
-	void RenderView::AddRenderObject(Ref<Mesh> mesh, const List<Ref<IMaterial>>& materials, const Matrix4x4& modelMatrix)
+	void RenderView::AddRenderObject(Ref<Mesh> mesh, uint submeshIndex, Ref<IMaterial> material, const Matrix4x4& modelMatrix)
 	{	
-		AddMesh(mesh);
-
-		List<ResourceID> materialIDs;
-
-		for (uint i = 0; i < mesh->GetSubmeshCount(); i++)
+		if (!mesh.IsValid())
 		{
-			if (i < materials.Count() && materials[i].IsValid())
-			{
-				AddMaterial(materials[i]);
-				materialIDs.Add(materials[i]->GetID());
-			}
-			else
-			{
-				materialIDs.Add(Resource::InvalidID);
-			}
+			LogError(RenderingService::Get()->GetLogger(), "Mesh is not valid");
+			return;
 		}
 
-		Objects.Construct(mesh->ID, materialIDs, modelMatrix);
+		if (submeshIndex >= mesh->GetSubmeshCount())
+		{
+			LogError(RenderingService::Get()->GetLogger(), FormattedString(
+				"Submesh index ({}) is higher than the number of submeshes ({})", 
+				submeshIndex, mesh->GetSubmeshCount()
+			));
+			return;
+		}
+
+		if (!material.IsValid())
+		{
+			LogError(RenderingService::Get()->GetLogger(), "Material is not valid");
+			return;
+		}
+
+		AddMesh(mesh);
+		AddMaterial(material);
+
+		Objects.Construct(mesh->ID, submeshIndex, material->GetID(), modelMatrix);
 	}
 
 	void RenderView::AddShader(Ref<Shader> shader)

@@ -80,7 +80,7 @@ namespace Coco::Rendering::Vulkan
 		vkCmdSetScissor(_commandBuffer->GetCmdBuffer(), 0, 1, &scissor);
 	}
 
-	void RenderContextVulkan::Draw(const ObjectRenderData& objectData, uint submeshIndex)
+	void RenderContextVulkan::Draw(const ObjectRenderData& objectData)
 	{
 		MeshRenderData& meshData = _currentRenderView->Meshs.at(objectData.MeshData);
 
@@ -97,17 +97,17 @@ namespace Coco::Rendering::Vulkan
 			return;
 		}
 
-		if (submeshIndex >= meshData.Submeshes.Count())
+		if (objectData.SubmeshIndex >= meshData.Submeshes.Count())
 		{
 			LogError(_device->GetLogger(), "Invalid submesh index. Skipping...");
 			return;
 		}
 
-		const SubmeshData& submesh = meshData.Submeshes[submeshIndex];
+		const SubmeshData& submesh = meshData.Submeshes[objectData.SubmeshIndex];
 
-		if (submesh.Count == 0)
+		if (submesh.IndexCount == 0)
 		{
-			LogError(_device->GetLogger(), FormattedString("Submesh {} has no index data. Skipping...", submeshIndex));
+			LogError(_device->GetLogger(), FormattedString("Submesh {} has no index data. Skipping...", objectData.SubmeshIndex));
 			return;
 		}
 
@@ -130,8 +130,8 @@ namespace Coco::Rendering::Vulkan
 
 		ApplyPushConstants();
 
-		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), submesh.Count, 1, submesh.Offset, 0, 0);
-		_currentTrianglesDrawn += submesh.Count / 3;
+		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), submesh.IndexCount, 1, submesh.FirstIndexOffset, 0, 0);
+		_currentTrianglesDrawn += submesh.IndexCount / 3;
 	}
 
 	void RenderContextVulkan::WaitForRenderingCompleted()

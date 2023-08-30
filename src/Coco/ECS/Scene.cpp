@@ -22,7 +22,15 @@ namespace Coco::ECS
 			MeshRendererComponent& renderer = ecs->GetComponent<MeshRendererComponent>(entityID);
 			TransformComponent& transform = ecs->GetComponent<TransformComponent>(entityID);
 	
-			renderView->AddRenderObject(renderer.GetMesh(), renderer.GetMaterials(), transform.GetGlobalTransformMatrix());
+			List<Ref<Rendering::IMaterial>> materials = renderer.GetMaterials();
+			Ref<Rendering::Mesh> mesh = renderer.GetMesh();
+			for (uint i = 0; i < mesh->GetSubmeshCount(); i++)
+			{
+				if (i >= materials.Count())
+					break;
+
+				renderView->AddRenderObject(renderer.GetMesh(), i, materials[i], transform.GetGlobalTransformMatrix());
+			}
 		}
 		
 		for (const auto& entityID : SceneView<RectTransformComponent, SpriteRendererComponent>(*this))
@@ -30,7 +38,7 @@ namespace Coco::ECS
 			SpriteRendererComponent& renderer = ecs->GetComponent<SpriteRendererComponent>(entityID);
 			RectTransformComponent& transform = ecs->GetComponent<RectTransformComponent>(entityID);
 
-			renderView->AddRenderObject(renderer.GetMesh(), { renderer.GetMaterial() }, transform.GetGlobalTransformMatrix(true));
+			renderView->AddRenderObject(renderer.GetMesh(), 0, renderer.GetMaterial(), transform.GetGlobalTransformMatrix(true));
 		}
 	}
 

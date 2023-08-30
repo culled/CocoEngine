@@ -70,7 +70,7 @@ namespace Coco::Rendering::Vulkan
 		DefineResourceType(RenderContextVulkan)
 
 		void SetViewport(const RectInt& rect) final;
-		void Draw(const ObjectRenderData& objectData, uint submeshIndex) final;
+		void Draw(const ObjectRenderData& objectData) final;
 		bool IsAvaliableForRendering() noexcept final { return _renderingCompleteFence->IsSignalled(); }
 		void WaitForRenderingCompleted() final;
 

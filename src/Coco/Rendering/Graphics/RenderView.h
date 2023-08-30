@@ -89,17 +89,17 @@ namespace Coco::Rendering
 		{}
 	};
 
-	/// @brief Rendering data for a submesh
 	struct SubmeshData
 	{
-		/// @brief The offset of this submesh's first index in the index buffer
-		uint32_t Offset;
+		/// @brief The offset of the first index of the index buffer
+		uint64_t FirstIndexOffset;
 
-		/// @brief The number of indices in this submesh
-		uint32_t Count;
+		/// @brief The number of indices
+		uint64_t IndexCount;
 
-		SubmeshData(uint32_t offset, uint32_t count) :
-			Offset(offset), Count(count)
+		SubmeshData(uint64_t firstIndexOffset, uint64_t indexCount) :
+			FirstIndexOffset(firstIndexOffset),
+			IndexCount(indexCount)
 		{}
 	};
 
@@ -121,9 +121,9 @@ namespace Coco::Rendering
 		/// @brief The index buffer that the mesh uses
 		Ref<Buffer> IndexBuffer;
 
-		/// @brief The submeshes for this mesh
+		/// @brief The submeshes within this mesh
 		List<SubmeshData> Submeshes;
-
+		
 		MeshRenderData(
 			const ResourceID& id, 
 			ResourceVersion version, 
@@ -135,7 +135,7 @@ namespace Coco::Rendering
 			Version(version), 
 			VertexBuffer(vertexBuffer), 
 			VertexCount(vertexCount), 
-			IndexBuffer(indexBuffer), 
+			IndexBuffer(indexBuffer),
 			Submeshes(submeshes)
 		{}
 	};
@@ -146,14 +146,17 @@ namespace Coco::Rendering
 		/// @brief The mesh data that this object uses
 		ResourceID MeshData;
 
-		/// @brief The material datas that this object uses for each submesh
-		List<ResourceID> MaterialDatas;
+		/// @brief The index of the submesh that this object uses
+		uint SubmeshIndex;
+
+		/// @brief The material data that this object uses
+		ResourceID MaterialData;
 		
 		/// @brief The model matrix for this object
 		Matrix4x4 ModelMatrix;
 
-		ObjectRenderData(const ResourceID& meshData, const List<ResourceID>& materialDatas, const Matrix4x4& modelMatrix) :
-			MeshData(meshData), MaterialDatas(materialDatas), ModelMatrix(modelMatrix)
+		ObjectRenderData(const ResourceID& meshData, uint submeshIndex, const ResourceID& materialData, const Matrix4x4& modelMatrix) :
+			MeshData(meshData), SubmeshIndex(submeshIndex), MaterialData(materialData), ModelMatrix(modelMatrix)
 		{}
 	};
 
@@ -206,9 +209,10 @@ namespace Coco::Rendering
 		
 		/// @brief Adds an object to be rendered
 		/// @param mesh The object's mesh
-		/// @param materials The object's materials, one for each submesh
+		/// @param submeshIndex The index of the submesh to be rendered
+		/// @param material The object's material
 		/// @param modelMatrix The model matrix for the object
-		void AddRenderObject(Ref<Mesh> mesh, const List<Ref<IMaterial>>& materials, const Matrix4x4& modelMatrix);
+		void AddRenderObject(Ref<Mesh> mesh, uint submeshIndex, Ref<IMaterial> material, const Matrix4x4& modelMatrix);
 
 		/// @brief Adds a shader that will be used for rendering
 		/// @param shader The shader

@@ -173,8 +173,7 @@ namespace Coco::Rendering
 
 		/// @brief Draws an object
 		/// @param objectData The object to draw
-		/// @param submeshIndex The submesh index of the object
-		virtual void Draw(const ObjectRenderData& objectData, uint submeshIndex) = 0;
+		virtual void Draw(const ObjectRenderData& objectData) = 0;
 
 		/// @brief Gets if this render context can be immediately used for rendering
 		/// @return True if this render context can immediately be used for rendering
