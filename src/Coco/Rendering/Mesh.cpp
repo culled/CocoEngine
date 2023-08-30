@@ -33,9 +33,9 @@ namespace Coco::Rendering
 
 	void Mesh::CalculateNormals(List<VertexData>& vertices, const List<uint32_t> indices)
 	{
-		UnorderedMap<uint32_t, Vector3> normals;
+		UnorderedMap<uint64_t, Vector3> normals;
 
-		for (uint32_t i = 0; i < indices.Count(); i += 3)
+		for (uint64_t i = 0; i < indices.Count(); i += 3)
 		{
 			const uint32_t i0 = indices[i];
 			const uint32_t i1 = indices[i + 1];
@@ -51,7 +51,7 @@ namespace Coco::Rendering
 			normals[i2] += normal;
 		}
 
-		for (uint32_t i = 0; i < vertices.Count(); i++)
+		for (uint64_t i = 0; i < vertices.Count(); i++)
 		{
 			vertices[i].Normal = normals[i].Normalized();
 		}
@@ -59,10 +59,10 @@ namespace Coco::Rendering
 
 	bool Mesh::CalculateTangents(List<VertexData>& vertices, const List<uint32_t> indices)
 	{
-		UnorderedMap<uint32_t, Vector4> tangents;
+		UnorderedMap<uint64_t, Vector4> tangents;
 
 		// https://stackoverflow.com/questions/5255806/how-to-calculate-tangent-and-binormal
-		for (uint32_t i = 0; i < indices.Count(); i += 3)
+		for (uint64_t i = 0; i < indices.Count(); i += 3)
 		{
 			const uint32_t i0 = indices[i];
 			const uint32_t i1 = indices[i + 1];
@@ -104,7 +104,7 @@ namespace Coco::Rendering
 			tangents[i2] += tangent4;
 		}
 
-		for (uint32_t i = 0; i < vertices.Count(); i++)
+		for (uint64_t i = 0; i < vertices.Count(); i++)
 		{
 			const Vector4& t = tangents[i];
 			Vector3 xyz(t.X, t.Y, t.Z);
@@ -204,9 +204,14 @@ namespace Coco::Rendering
 		MarkDirty();
 	}
 
-	void Mesh::SetIndices(const List<uint32_t>& indices)
+	void Mesh::SetIndices(const List<uint32_t>& indices, uint submeshIndex)
 	{
-		_vertexIndices = indices;
+		if (submeshIndex >= _submeshes.Count())
+			_submeshes.Resize(submeshIndex + 1);
+
+		Submesh& submesh = _submeshes[submeshIndex];
+		submesh.Indices = indices;
+
 		MarkDirty();
 	}
 
@@ -236,142 +241,22 @@ namespace Coco::Rendering
 			return true;
 
 		GraphicsPlatform* platform = EnsureRenderingService()->GetPlatform();
+		Ref<Buffer> stagingBuffer = Ref<Buffer>::Empty;
 
 		try
 		{
 			if (_vertexData.Count() == 0)
-			{
 				throw InvalidOperationException("No vertex data has been set");
-			}
-
-			if (_vertexIndices.Count() % 3 != 0)
-			{
-				throw InvalidOperationException(FormattedString(
-					"Index count must be a multiple of 3: {} % 3 != 0",
-					_vertexIndices.Count()));
-			}
-
-			_vertexCount = _vertexData.Count();
-			_indexCount = _vertexIndices.Count();
-
-			bool hasNormals = _vertexData[0].Normal.has_value();
-			bool hasUV0s = _vertexData[0].UV0.has_value();
-			bool hasColors = _vertexData[0].Color.has_value();
-			bool hasTangents = _vertexData[0].Tangent.has_value();
-
-			uint64_t vertexStride = sizeof(float) * 3;
-
-			if (hasNormals)
-				vertexStride += sizeof(float) * 3;
-
-			if (hasUV0s)
-				vertexStride += sizeof(float) * 2;
-
-			if (hasColors)
-				vertexStride += sizeof(float) * 4;
-
-			if (hasTangents)
-				vertexStride += sizeof(float) * 4;
-
-			const uint64_t vertexBufferSize = _vertexCount * vertexStride;
-			const uint64_t indexBufferSize = _indexCount * sizeof(uint32_t);
-
-			if (!_vertexBuffer.IsValid())
-				_vertexBuffer = platform->CreateBuffer(FormattedString("{} vertex buffer", _name),
-					vertexBufferSize,
-					BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Vertex,
-					true);
-
-			if (!_indexBuffer.IsValid())
-				_indexBuffer = platform->CreateBuffer(FormattedString("{} index buffer", _name),
-					indexBufferSize,
-					BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Index,
-					true);
 
 			Ref<Buffer> stagingBuffer = platform->CreateBuffer(FormattedString("{} staging buffer", _name),
-				vertexBufferSize,
+				_vertexData.Count(),
 				BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination | BufferUsageFlags::HostVisible,
 				true);
 
-			Array<float, 4> tempData = { 0.0f };
-
-			// Build the vertex data
-			List<char> vertexData(vertexBufferSize);
-			for (uint64_t i = 0; i < _vertexCount; i++)
-			{
-				const VertexData& vertex = _vertexData[i];
-
-				uint64_t offset = i * vertexStride;
-				char* dst = vertexData.Data() + offset;
-
-				tempData[0] = static_cast<float>(vertex.Position.X);
-				tempData[1] = static_cast<float>(vertex.Position.Y);
-				tempData[2] = static_cast<float>(vertex.Position.Z);
-
-				std::memcpy(dst, tempData.data(), sizeof(float) * 3);
-				dst += sizeof(float) * 3;
-
-				if (hasNormals)
-				{
-					tempData[0] = static_cast<float>(vertex.Normal.value().X);
-					tempData[1] = static_cast<float>(vertex.Normal.value().Y);
-					tempData[2] = static_cast<float>(vertex.Normal.value().Z);
-
-					std::memcpy(dst, tempData.data(), sizeof(float) * 3);
-					dst += sizeof(float) * 3;
-				}
-
-				if (hasUV0s)
-				{
-					tempData[0] = static_cast<float>(vertex.UV0.value().X);
-					tempData[1] = static_cast<float>(vertex.UV0.value().Y);
-
-					std::memcpy(dst, tempData.data(), sizeof(float) * 2);
-
-					dst += sizeof(float) * 2;
-				}
-
-				if (hasColors)
-				{
-					tempData[0] = static_cast<float>(vertex.Color.value().X);
-					tempData[1] = static_cast<float>(vertex.Color.value().Y);
-					tempData[2] = static_cast<float>(vertex.Color.value().Z);
-					tempData[3] = static_cast<float>(vertex.Color.value().W);
-
-					std::memcpy(dst, tempData.data(), sizeof(float) * 4);
-					dst += sizeof(float) * 4;
-				}
-
-				if (hasTangents)
-				{
-					tempData[0] = static_cast<float>(vertex.Tangent.value().X);
-					tempData[1] = static_cast<float>(vertex.Tangent.value().Y);
-					tempData[2] = static_cast<float>(vertex.Tangent.value().Z);
-					tempData[3] = static_cast<float>(vertex.Tangent.value().W);
-
-					std::memcpy(dst, tempData.data(), sizeof(float) * 4);
-					dst += sizeof(float) * 4;
-				}
-			}
-
-			// Upload vertex data
-			stagingBuffer->LoadData(0, vertexData);
-			stagingBuffer->CopyTo(0, _vertexBuffer.Get(), 0, vertexData.Count());
-
-			// Resize for index data
-			stagingBuffer->Resize(indexBufferSize, false);
-
-			// Upload index data
-			stagingBuffer->LoadData(0, _vertexIndices);
-			stagingBuffer->CopyTo(0, _indexBuffer.Get(), 0, sizeof(uint32_t) * _vertexIndices.Count());
-
+			UploadVertexBufferData(stagingBuffer, deleteLocalData);
+			UploadIndexBufferData(stagingBuffer, deleteLocalData);	
 			platform->PurgeResource(stagingBuffer);
-
-			if (deleteLocalData)
-			{
-				_vertexData.Clear();
-				_vertexIndices.Clear();
-			}
+			IncrementVersion();
 
 			_isDirty = false;
 
@@ -384,6 +269,9 @@ namespace Coco::Rendering
 				ex.what()
 			));
 
+			if (stagingBuffer.IsValid())
+				platform->PurgeResource(stagingBuffer);
+
 			_vertexCount = 0;
 			_indexCount = 0;
 
@@ -393,12 +281,165 @@ namespace Coco::Rendering
 
 	void Mesh::CalculateNormals()
 	{
-		CalculateNormals(_vertexData, _vertexIndices);
+		for(const auto& submesh : _submeshes)
+			CalculateNormals(_vertexData, submesh.Indices);
+
+		MarkDirty();
 	}
 
 	bool Mesh::CalculateTangents()
 	{
-		return CalculateTangents(_vertexData, _vertexIndices);
+		for (const auto& submesh : _submeshes)
+			if (!CalculateTangents(_vertexData, submesh.Indices))
+				return false;
+
+		MarkDirty();
+
+		return true;
+	}
+
+	void Mesh::UploadVertexBufferData(Ref<Buffer> stagingBuffer, bool deleteVertexData)
+	{
+		bool hasNormals = _vertexData[0].Normal.has_value();
+		bool hasUV0s = _vertexData[0].UV0.has_value();
+		bool hasColors = _vertexData[0].Color.has_value();
+		bool hasTangents = _vertexData[0].Tangent.has_value();
+
+		uint64_t vertexStride = sizeof(float) * 3;
+
+		if (hasNormals)
+			vertexStride += sizeof(float) * 3;
+
+		if (hasUV0s)
+			vertexStride += sizeof(float) * 2;
+
+		if (hasColors)
+			vertexStride += sizeof(float) * 4;
+
+		if (hasTangents)
+			vertexStride += sizeof(float) * 4;
+
+		_vertexCount = _vertexData.Count();
+		const uint64_t vertexBufferSize = _vertexCount * vertexStride;
+
+		Array<float, 4> tempData = { 0.0f };
+
+		// Build the vertex data
+		List<char> vertexData(vertexBufferSize);
+		for (uint64_t i = 0; i < _vertexCount; i++)
+		{
+			const VertexData& vertex = _vertexData[i];
+
+			uint64_t offset = i * vertexStride;
+			char* dst = vertexData.Data() + offset;
+
+			tempData[0] = static_cast<float>(vertex.Position.X);
+			tempData[1] = static_cast<float>(vertex.Position.Y);
+			tempData[2] = static_cast<float>(vertex.Position.Z);
+
+			std::memcpy(dst, tempData.data(), sizeof(float) * 3);
+			dst += sizeof(float) * 3;
+
+			if (hasNormals)
+			{
+				tempData[0] = static_cast<float>(vertex.Normal.value().X);
+				tempData[1] = static_cast<float>(vertex.Normal.value().Y);
+				tempData[2] = static_cast<float>(vertex.Normal.value().Z);
+
+				std::memcpy(dst, tempData.data(), sizeof(float) * 3);
+				dst += sizeof(float) * 3;
+			}
+
+			if (hasUV0s)
+			{
+				tempData[0] = static_cast<float>(vertex.UV0.value().X);
+				tempData[1] = static_cast<float>(vertex.UV0.value().Y);
+
+				std::memcpy(dst, tempData.data(), sizeof(float) * 2);
+
+				dst += sizeof(float) * 2;
+			}
+
+			if (hasColors)
+			{
+				tempData[0] = static_cast<float>(vertex.Color.value().X);
+				tempData[1] = static_cast<float>(vertex.Color.value().Y);
+				tempData[2] = static_cast<float>(vertex.Color.value().Z);
+				tempData[3] = static_cast<float>(vertex.Color.value().W);
+
+				std::memcpy(dst, tempData.data(), sizeof(float) * 4);
+				dst += sizeof(float) * 4;
+			}
+
+			if (hasTangents)
+			{
+				tempData[0] = static_cast<float>(vertex.Tangent.value().X);
+				tempData[1] = static_cast<float>(vertex.Tangent.value().Y);
+				tempData[2] = static_cast<float>(vertex.Tangent.value().Z);
+				tempData[3] = static_cast<float>(vertex.Tangent.value().W);
+
+				std::memcpy(dst, tempData.data(), sizeof(float) * 4);
+				dst += sizeof(float) * 4;
+			}
+		}
+
+		if (!_vertexBuffer.IsValid())
+			_vertexBuffer = EnsureRenderingService()->GetPlatform()->CreateBuffer(FormattedString("{} vertex buffer", _name),
+				vertexBufferSize,
+				BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Vertex,
+				true);
+
+		stagingBuffer->Resize(vertexBufferSize, false);
+
+		// Upload vertex data
+		stagingBuffer->LoadData(0, vertexData);
+		stagingBuffer->CopyTo(0, _vertexBuffer.Get(), 0, vertexBufferSize);
+
+		if (deleteVertexData)
+			_vertexData.Clear();
+	}
+
+	void Mesh::UploadIndexBufferData(Ref<Buffer> stagingBuffer, bool deleteSubmeshIndices)
+	{
+		List<uint32_t> indexData;
+
+		_indexCount = 0;
+		uint i = 0;
+
+		for (auto& submesh : _submeshes)
+		{
+			_indexCount += submesh.Indices.Count();
+
+			submesh.IndexBufferOffset = static_cast<uint32_t>(indexData.Count());
+			submesh.IndexCount = static_cast<uint32_t>(submesh.Indices.Count());
+
+			indexData.Resize(_indexCount);
+
+			std::memcpy(indexData.Data() + submesh.IndexBufferOffset, submesh.Indices.Data(), submesh.IndexCount * sizeof(uint32_t));
+
+			i++;
+		}
+
+		const uint64_t indexBufferSize = sizeof(uint32_t) * _indexCount;
+
+		if (!_indexBuffer.IsValid())
+			_indexBuffer = EnsureRenderingService()->GetPlatform()->CreateBuffer(FormattedString("{} index buffer", _name),
+				indexBufferSize,
+				BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource | BufferUsageFlags::Index,
+				true);
+
+		// Resize for index data
+		stagingBuffer->Resize(indexBufferSize, false);
+
+		// Upload index data
+		stagingBuffer->LoadData(0, indexData);
+		stagingBuffer->CopyTo(0, _indexBuffer.Get(), 0, indexBufferSize);
+
+		if (deleteSubmeshIndices)
+		{
+			for (auto& submesh : _submeshes)
+				submesh.Indices.Clear();
+		}
 	}
 
 	void Mesh::MarkDirty() noexcept

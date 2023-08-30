@@ -64,6 +64,7 @@ namespace Coco::Rendering::Vulkan
 		_buffer = newBuffer;
 		_bufferMemory = newBufferMemory;
 		_memoryIndex = newBufferMemoryIndex;
+		_size = newSize;
 
 		// The buffer is bound due to the copy
 		_isBound = true;

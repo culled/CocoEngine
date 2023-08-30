@@ -71,6 +71,7 @@ CocoSandboxApplication::CocoSandboxApplication() :
 	
 	_mesh = MeshPrimitives::CreateFromVertices("Mesh", vertices, vertexIndices, false, true);
 	_mesh->EnsureChannels(true, true, true, true);
+	_mesh->UploadData();
 
 	// Setup our render pipeline
 	Ref<Rendering::RenderPipeline> pipeline = engine->GetResourceLibrary()->CreateResource<Rendering::RenderPipeline>("Pipeline");
@@ -102,6 +103,7 @@ CocoSandboxApplication::CocoSandboxApplication() :
 
 	Ref<Mesh> box = MeshPrimitives::CreateBox("Box", Vector3::One * 5.0);
 	box->EnsureChannels(true, true, true, true);
+	box->UploadData();
 	_ecsService->AddComponent<ECS::MeshRendererComponent>(obj2, box, _material);
 
 	_ecsService->GetEntity(obj2).SetParentID(_cameraEntityID);
@@ -222,14 +224,6 @@ void CocoSandboxApplication::Tick(double deltaTime)
 	//	_material->SetTexture("_MainTex", _texture);
 	//}
 
-	// Update mesh data on the GPU if it is dirty
-	if (_mesh->GetIsDirty())
-		_mesh->UploadData();
-
-	auto& obj2Mesh = _ecsService->GetComponent<ECS::MeshRendererComponent>(_obj2ID);
-	if (obj2Mesh.GetMesh()->GetIsDirty())
-		obj2Mesh.GetMesh()->UploadData();
-	
 	if (keyboard->WasKeyJustPressed(Input::KeyboardKey::F))
 	{
 		auto& obj2Transform = _ecsService->GetComponent<ECS::TransformComponent>(_obj2ID);

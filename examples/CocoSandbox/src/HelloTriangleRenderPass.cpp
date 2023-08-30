@@ -20,26 +20,33 @@ void HelloTriangleRenderPass::Execute(RenderContext& renderContext)
 
     for (const ObjectRenderData& objectData : renderView->Objects)
     {
-        if (objectData.MaterialData == Resource::InvalidID)
-            continue;
+        const MeshRenderData& meshData = renderView->Meshs.at(objectData.MeshData);
 
-        const MaterialRenderData& materialData = renderView->Materials.at(objectData.MaterialData);
-        const ShaderRenderData& shaderData = renderView->Shaders.at(materialData.ShaderID);
-
-        if (shaderData.GroupTag.empty())
+        for (uint i = 0; i < meshData.Submeshes.Count(); i++)
         {
-            renderContext.UseMaterial(materialData.ID);
+            const ResourceID& materialID = objectData.MaterialDatas[i];
 
-            renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_Projection", renderView->Projection);
-            renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_View", renderView->View);
-            renderContext.SetShaderVector3(ShaderDescriptorScope::Global, "_ViewPosition", renderView->ViewPosition);
-            renderContext.SetShaderColor(ShaderDescriptorScope::Global, "_AmbientColor", _ambientColor);
-            renderContext.SetShaderInt(ShaderDescriptorScope::Global, "_RenderMode", static_cast<int>(_renderMode));
+            if (materialID == Resource::InvalidID)
+                continue;
 
-            renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Draw, "_Model", objectData.ModelMatrix);
+            const MaterialRenderData& materialData = renderView->Materials.at(materialID);
+            const ShaderRenderData& shaderData = renderView->Shaders.at(materialData.ShaderID);
 
-		    renderContext.Draw(objectData);
-        }
+            if (shaderData.GroupTag.empty())
+            {
+                renderContext.UseMaterial(materialData.ID);
+
+                renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_Projection", renderView->Projection);
+                renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_View", renderView->View);
+                renderContext.SetShaderVector3(ShaderDescriptorScope::Global, "_ViewPosition", renderView->ViewPosition);
+                renderContext.SetShaderColor(ShaderDescriptorScope::Global, "_AmbientColor", _ambientColor);
+                renderContext.SetShaderInt(ShaderDescriptorScope::Global, "_RenderMode", static_cast<int>(_renderMode));
+
+                renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Draw, "_Model", objectData.ModelMatrix);
+
+                renderContext.Draw(objectData, i);
+            }
+        }    
     }
 }
 

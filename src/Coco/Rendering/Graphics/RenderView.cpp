@@ -42,12 +42,26 @@ namespace Coco::Rendering
 		Objects.Clear();
 	}
 
-	void RenderView::AddRenderObject(Ref<Mesh> mesh, Ref<IMaterial> material, const Matrix4x4& modelMatrix)
-	{
-		AddMaterial(material);
+	void RenderView::AddRenderObject(Ref<Mesh> mesh, const List<Ref<IMaterial>>& materials, const Matrix4x4& modelMatrix)
+	{	
 		AddMesh(mesh);
 
-		Objects.Construct(mesh->ID, material->GetID(), modelMatrix);
+		List<ResourceID> materialIDs;
+
+		for (uint i = 0; i < mesh->GetSubmeshCount(); i++)
+		{
+			if (i < materials.Count() && materials[i].IsValid())
+			{
+				AddMaterial(materials[i]);
+				materialIDs.Add(materials[i]->GetID());
+			}
+			else
+			{
+				materialIDs.Add(Resource::InvalidID);
+			}
+		}
+
+		Objects.Construct(mesh->ID, materialIDs, modelMatrix);
 	}
 
 	void RenderView::AddShader(Ref<Shader> shader)
@@ -103,6 +117,11 @@ namespace Coco::Rendering
 		if (Meshs.contains(mesh->ID))
 			return;
 
-		Meshs.try_emplace(mesh->ID, mesh->ID, mesh->GetVersion(), mesh->GetVertexBuffer(), mesh->GetVertexCount(), mesh->GetIndexBuffer(), mesh->GetIndexCount());
+		List<SubmeshData> submeshDatas;
+
+		for (const auto& submesh : mesh->GetSubmeshes())
+			submeshDatas.Construct(submesh.IndexBufferOffset, submesh.IndexCount);
+
+		Meshs.try_emplace(mesh->ID, mesh->ID, mesh->GetVersion(), mesh->GetVertexBuffer(), mesh->GetVertexCount(), mesh->GetIndexBuffer(), submeshDatas);
 	}
 }

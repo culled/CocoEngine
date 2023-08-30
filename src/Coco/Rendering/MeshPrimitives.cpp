@@ -441,7 +441,7 @@ namespace Coco::Rendering
 	{
 		Ref<Mesh> mesh = Engine::Get()->GetResourceLibrary()->CreateResource<Mesh>(name);
 		mesh->SetVertexData(vertices);
-		mesh->SetIndices(indices);
+		mesh->SetIndices(indices, 0);
 
 		if (calculateNormals)
 			mesh->CalculateNormals();

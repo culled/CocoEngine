@@ -11,20 +11,22 @@ namespace Coco::ECS
 	class COCOAPI MeshRendererComponent : public EntityComponent
 	{
 	private:
-		Ref<Rendering::IMaterial> _material;
+		List<Ref<Rendering::IMaterial>> _materials;
 		Ref<Rendering::Mesh> _mesh;
 
 	public:
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const EntityID& ownerID, Ref<Rendering::Mesh> mesh, Ref<Rendering::IMaterial> material);
+		MeshRendererComponent(const EntityID& ownerID, Ref<Rendering::Mesh> mesh, const List<Ref<Rendering::IMaterial>>& materials);
 
-		/// @brief Sets the material that the mesh will be rendered with
+		/// @brief Sets the material for a slot that the mesh will be rendered with
 		/// @param material The material
-		void SetMaterial(Ref<Rendering::IMaterial> material) { _material = material; }
+		/// @param slot The slot for the material. This should correspond with the submesh index of this renderer's mesh
+		void SetMaterial(Ref<Rendering::IMaterial> material, uint slot);
 
-		/// @brief Gets the material that the mesh will be rendered with
-		/// @return The material
-		Ref<Rendering::IMaterial> GetMaterial() { return _material; }
+		/// @brief Gets the materials that the mesh will be rendered with
+		/// @return The materials
+		List<Ref<Rendering::IMaterial>> GetMaterials() const { return _materials; }
 
 		/// @brief Sets the mesh that will be rendered
 		/// @param mesh The mesh

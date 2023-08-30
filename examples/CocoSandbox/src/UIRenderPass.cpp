@@ -28,10 +28,11 @@ void UIRenderPass::Execute(RenderContext& renderContext)
 
     for (const ObjectRenderData& objectData : renderView->Objects)
     {
-        if (objectData.MaterialData == Resource::InvalidID)
+        const ResourceID& materialID = objectData.MaterialDatas[0];
+        if (materialID == Resource::InvalidID)
             continue;
 
-        const MaterialRenderData& materialData = renderView->Materials.at(objectData.MaterialData);
+        const MaterialRenderData& materialData = renderView->Materials.at(materialID);
         const ShaderRenderData& shaderData = renderView->Shaders.at(materialData.ShaderID);
 
         if (shaderData.GroupTag == "UI")
@@ -41,7 +42,7 @@ void UIRenderPass::Execute(RenderContext& renderContext)
             renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Global, "_Projection2D", renderView->Projection2D);
             renderContext.SetShaderMatrix4x4(ShaderDescriptorScope::Draw, "_Model", objectData.ModelMatrix);
 
-            renderContext.Draw(objectData);
+            renderContext.Draw(objectData, 0);
         }
     }
 }

@@ -24,6 +24,17 @@ namespace Coco::Rendering
 		VertexData(const Vector3& position, const Vector3& normal, const Vector2& uv);
 	};
 
+	struct Submesh
+	{
+		List<uint32_t> Indices;
+		uint32_t IndexBufferOffset;
+		uint32_t IndexCount;
+
+		Submesh() :
+			Indices{}, IndexBufferOffset(0), IndexCount(0)
+		{}
+	};
+
 	/// @brief Holds vertex and index data for rendering geometry
 	class COCOAPI Mesh : public RenderingResource
 	{
@@ -32,7 +43,7 @@ namespace Coco::Rendering
 		Ref<Buffer> _indexBuffer;
 
 		List<VertexData> _vertexData;
-		List<uint32_t> _vertexIndices;
+		List<Submesh> _submeshes;
 
 		uint64_t _vertexCount = 0;
 		uint64_t _indexCount = 0;
@@ -80,9 +91,10 @@ namespace Coco::Rendering
 		/// @param colors The list of tangents
 		void SetTangents(const List<Vector4>& tangents);
 
-		/// @brief Sets the indices for this mesh. NOTE: must be a multiple of <vertex count * 3>
+		/// @brief Sets the indices for this mesh. NOTE: must be a multiple of 3
 		/// @param indices The list of vertex indices
-		void SetIndices(const List<uint32_t>& indices);
+		/// @param submeshIndex The index of the submesh that will draw these triangles
+		void SetIndices(const List<uint32_t>& indices, uint submeshIndex);
 
 		/// @brief Ensures this mesh have vertex data for the specified channels
 		/// @param normal If true, default normal data will be added for this mesh
@@ -116,6 +128,14 @@ namespace Coco::Rendering
 		/// @return The number of vertex indices
 		constexpr uint64_t GetIndexCount() const noexcept { return _indexCount; }
 
+		/// @brief Gets the number of submeshes in this mesh
+		/// @return The number of submeshes
+		uint64_t GetSubmeshCount() const { return _submeshes.Count(); }
+
+		/// @brief Gets the submeshes that make up this mesh
+		/// @return A list of submeshes
+		List<Submesh> GetSubmeshes() const { return _submeshes; }
+
 		/// @brief Calculates normals based on the current vertex data. NOTE: vertex positions and indices must have been set first!
 		void CalculateNormals();
 
@@ -124,6 +144,9 @@ namespace Coco::Rendering
 		bool CalculateTangents();
 
 	private:
+		void UploadVertexBufferData(Ref<Buffer> stagingBuffer, bool deleteVertexData);
+		void UploadIndexBufferData(Ref<Buffer> stagingBuffer, bool deleteSubmeshIndices);
+
 		/// @brief Marks this mesh as dirty and needing a re-upload of data
 		void MarkDirty() noexcept;
 	};

@@ -22,7 +22,7 @@ namespace Coco::ECS
 			MeshRendererComponent& renderer = ecs->GetComponent<MeshRendererComponent>(entityID);
 			TransformComponent& transform = ecs->GetComponent<TransformComponent>(entityID);
 	
-			renderView->AddRenderObject(renderer.GetMesh(), renderer.GetMaterial(), transform.GetGlobalTransformMatrix());
+			renderView->AddRenderObject(renderer.GetMesh(), renderer.GetMaterials(), transform.GetGlobalTransformMatrix());
 		}
 		
 		for (const auto& entityID : SceneView<RectTransformComponent, SpriteRendererComponent>(*this))
@@ -30,7 +30,7 @@ namespace Coco::ECS
 			SpriteRendererComponent& renderer = ecs->GetComponent<SpriteRendererComponent>(entityID);
 			RectTransformComponent& transform = ecs->GetComponent<RectTransformComponent>(entityID);
 
-			renderView->AddRenderObject(renderer.GetMesh(), renderer.GetMaterial(), transform.GetGlobalTransformMatrix(true));
+			renderView->AddRenderObject(renderer.GetMesh(), { renderer.GetMaterial() }, transform.GetGlobalTransformMatrix(true));
 		}
 	}
 
