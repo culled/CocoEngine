@@ -39,6 +39,13 @@ project "Coco.Platforms.Win32"
         }
 
         defines { "COCO_SERVICES_WINDOWING" }
+
+        if (_OPTIONS["high-dpi"] ~= nil) then
+            print("Adding HighDPI support to Win32 platform")
+
+            defines { "COCO_HIGHDPI_SUPPORT" }
+            links { "shcore.lib" }
+        end
     else
         removefiles 
         {
@@ -76,11 +83,6 @@ project "Coco.Platforms.Win32"
     --        defines { "COCO_RENDERING_DX12" }
     --    end
     --end
-
-    if (_OPTIONS["high-dpi"] ~= nil) then
-        defines { "COCO_HIGHDPI_SUPPORT" }
-        links { "shcore.lib" }
-    end
 
     -- Build configs
     filter { "configurations:Debug" }

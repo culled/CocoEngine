@@ -322,8 +322,8 @@ namespace Coco::Platforms::Win32
 
 	Vector2Int Win32Window::GetRelativePosition(const Vector2Int& position, HWND relativeTo)
 	{
-		POINT p{position.X, position.Y};
-		::MapWindowPoints(HWND_DESKTOP, relativeTo, &p, 2);
+		POINT p{position.X == CW_USEDEFAULT ? 0 : position.X, position.Y == CW_USEDEFAULT ? 0 : position.Y };
+		::MapWindowPoints(HWND_DESKTOP, relativeTo, &p, 1);
 		return Vector2Int(p.x, p.y);
 	}
 
@@ -362,6 +362,7 @@ namespace Coco::Platforms::Win32
 				SWP_NOZORDER | SWP_NOACTIVATE);
 
 			OnDPIChanged.Invoke(GetDPI());
+			break;
 		}
 #endif
 		case WM_MOVE:

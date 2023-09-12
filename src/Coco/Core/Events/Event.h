@@ -66,16 +66,16 @@ namespace Coco
 	private:
 		/// @brief Adds a handler to this event
 		/// @param handler The handler
-		void AddHandler(HandlerType* handler)
+		void AddHandler(HandlerType& handler)
 		{
-			_handlers.insert(_handlers.begin(), handler);
+			_handlers.insert(_handlers.begin(), &handler);
 		}
 
 		/// @brief Removes a handler from this event
 		/// @param handler The handler
-		void RemoveHandler(HandlerType* handler)
+		void RemoveHandler(HandlerType& handler)
 		{
-			auto it = std::find(_handlers.begin(), _handlers.end(), handler);
+			auto it = std::find(_handlers.begin(), _handlers.end(), &handler);
 
 			if (it != _handlers.end())
 				_handlers.erase(it);
@@ -126,23 +126,20 @@ namespace Coco
 		/// @brief Connects this handler to an event.
 		/// NOTE: This will disconnect from the current event if one is already connected
 		/// @param source The event
-		void Connect(EventType* source)
+		void Connect(EventType& source)
 		{
-			if (!source)
-				return;
-
 			if (_event)
 				Disconnect();
 
-			_event = source;
-			_event->AddHandler(this);
+			_event = &source;
+			_event->AddHandler(*this);
 		}
 
 		/// @brief Disconnects from the connected event
 		void Disconnect()
 		{
 			if (_event)
-				_event->RemoveHandler(this);
+				_event->RemoveHandler(*this);
 
 			_event = nullptr;
 		}

@@ -68,14 +68,14 @@ namespace Coco
 	private:
 		/// @brief Adds a handler to this query
 		/// @param handler The handler
-		void AddHandler(HandlerType* handler)
+		void AddHandler(HandlerType& handler)
 		{
 			_handlers.insert(_handlers.begin(), handler);
 		}
 
 		/// @brief Removes a handler from this query
 		/// @param handler The handler
-		void RemoveHandler(HandlerType* handler)
+		void RemoveHandler(HandlerType& handler)
 		{
 			auto it = std::find(_handlers.begin(), _handlers.end(), handler);
 
@@ -128,23 +128,20 @@ namespace Coco
 		/// @brief Connects this handler to a query.
 		/// NOTE: This will disconnect from the current query if one is already connected
 		/// @param source The query
-		void Connect(QueryType* source)
+		void Connect(QueryType& source)
 		{
-			if (!source)
-				return;
-
 			if (_query)
 				Disconnect();
 
-			_query = source;
-			_query->AddHandler(this);
+			_query = &source;
+			_query->AddHandler(*this);
 		}
 
 		/// @brief Disconnects from the connected query
 		void Disconnect()
 		{
 			if (_query)
-				_query->RemoveHandler(this);
+				_query->RemoveHandler(*this);
 
 			_query = nullptr;
 		}

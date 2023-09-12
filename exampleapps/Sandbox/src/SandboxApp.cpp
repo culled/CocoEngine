@@ -19,6 +19,18 @@ SandboxApp::SandboxApp() :
 		WindowCreateParams windowCreateParams("Sandbox", SizeInt(1280, 720));
 		Window* win = windowing->CreateWindow(windowCreateParams);
 		win->Show();
+
+		_focusChangedHandler.SetCallback([&](bool focused) { LogInfo(_log, "New focus state: {}", focused) return true; });
+		_focusChangedHandler.Connect(win->OnFocusChanged);
+
+		_positionChangedHandler.SetCallback([&](const Vector2Int& pos) { LogInfo(_log, "New position: {}", pos.ToString()) return true; });
+		_positionChangedHandler.Connect(win->OnPositionChanged);
+
+		_sizeChangedHandler.SetCallback([&](const SizeInt& size) { LogInfo(_log, "New size: {}", size.ToString()) return true; });
+		_sizeChangedHandler.Connect(win->OnResized);
+
+		_dpiChangedHandler.SetCallback([&](uint16 dpi) { LogInfo(_log, "New dpi: {}", dpi) return true; });
+		_dpiChangedHandler.Connect(win->OnDPIChanged);
 	}
 
 	LogTrace(_log, "Sandbox app initialized")

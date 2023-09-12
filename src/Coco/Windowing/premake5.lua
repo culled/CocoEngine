@@ -33,6 +33,8 @@ project "Coco.Windowing"
 
     if (_OPTIONS["high-dpi"] ~= nil) then
         defines { "COCO_HIGHDPI_SUPPORT" }
+
+        print("Adding HighDPI support to windowing service")
     end
 
     -- Build configs
