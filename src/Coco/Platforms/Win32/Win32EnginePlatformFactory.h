@@ -3,7 +3,7 @@
 #include <Coco/Core/Platform/EnginePlatformFactory.h>
 #include "WindowsIncludes.h"
 
-namespace Coco::Win32
+namespace Coco::Platforms::Win32
 {
 	/// @brief A factory that creates a Win32EnginePlatform
 	class Win32EnginePlatformFactory : public EnginePlatformFactory

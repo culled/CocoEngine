@@ -1,7 +1,14 @@
 #include "CPWinpch.h"
 #include "Win32EnginePlatform.h"
 
-namespace Coco::Win32
+#include <Coco/Core/Engine.h>
+
+#ifdef COCO_SERVICES_WINDOWING
+#include "Win32Window.h"
+#endif // COCO_SERVICES_WINDOWING
+
+
+namespace Coco::Platforms::Win32
 {
 	Win32EnginePlatform::Win32EnginePlatform(HINSTANCE hInstance) :
 		_hInstance(hInstance),
@@ -9,6 +16,13 @@ namespace Coco::Win32
 	{
 		GetProcessArgumentsFromWindows();
 		GetTimingInfo();
+
+#ifdef COCO_SERVICES_WINDOWING
+		if (!RegisterWindowClass())
+		{
+			throw std::exception("Failed to register window class");
+		}
+#endif
 	}
 
 	Win32EnginePlatform::~Win32EnginePlatform()
@@ -54,7 +68,12 @@ namespace Coco::Win32
 
 	void Win32EnginePlatform::ProcessMessages()
 	{
-		// TODO
+		MSG message = {};
+		while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE) > 0)
+		{
+			TranslateMessage(&message);
+			DispatchMessage(&message);
+		}
 	}
 
 	void Win32EnginePlatform::PushProcessArgument(const char* arg)
@@ -133,7 +152,7 @@ namespace Coco::Win32
 #if UNICODE || _UNICODE
 		std::wstring wStr = StringToWideString(message);
 		const wchar_t* str = wStr.c_str();
-		DWORD length = wStr.length();
+		DWORD length = static_cast<DWORD>(wStr.length());
 #else
 		const char* str = message;
 		DWORD length = strlen(message);
@@ -166,6 +185,61 @@ namespace Coco::Win32
 			flags |= MB_ICONINFORMATION;
 
 		MessageBox(NULL, messageStr, titleStr, flags);
+	}
+
+	LRESULT Win32EnginePlatform::ProcessMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		switch (message)
+		{
+#ifdef COCO_SERVICES_WINDOWING
+		case WM_NCCREATE:
+		case WM_CREATE:
+		{
+			// Set our window pointer so we can access it when the window receives messages
+			const LPCREATESTRUCT createPtr = reinterpret_cast<LPCREATESTRUCT>(lParam);
+			const Win32Window* windowPtr = static_cast<Win32Window*>(createPtr->lpCreateParams);
+			SetWindowLongPtr(windowHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(windowPtr));
+			break;
+		}
+		case WM_CLOSE: // A window has been requested to close
+			DispatchWindowMessage(windowHandle, message, wParam, lParam);
+			return 0;
+		case WM_SIZE: // A window has been resized
+		case WM_MOVE: // A window has finished moving
+		case WM_DPICHANGED: // A window's dpi changed
+		case WM_SETFOCUS: // A window got focus
+		case WM_KILLFOCUS: // A window lost focus
+			DispatchWindowMessage(windowHandle, message, wParam, lParam);
+			break;
+#endif
+		case WM_ERASEBKGND:
+			// Erasing will be handled by us to prevent flicker
+			return 1;
+#ifdef COCO_SERVICES_INPUT
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+		case WM_MOUSEMOVE:
+		case WM_MOUSEWHEEL:
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONDBLCLK:
+		case WM_LBUTTONUP:
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONDBLCLK:
+		case WM_MBUTTONUP:
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONDBLCLK:
+		case WM_RBUTTONUP:
+		case WM_XBUTTONDOWN:
+		case WM_XBUTTONDBLCLK:
+		case WM_XBUTTONUP:
+			HandleInputMessage(message, wParam, lParam);
+			break;
+#endif
+		default: break;
+		}
+		return DefWindowProc(windowHandle, message, wParam, lParam);
 	}
 
 	void Win32EnginePlatform::GetProcessArgumentsFromWindows()
@@ -210,4 +284,96 @@ namespace Coco::Win32
 
 		_startTime = GetSeconds();
 	}
+
+#ifdef COCO_SERVICES_WINDOWING
+	const wchar_t* Win32EnginePlatform::sWindowClassName = L"CocoWindow";
+
+	UniqueRef<Windowing::Window> Win32EnginePlatform::CreatePlatformWindow(const Windowing::WindowCreateParams& createParams)
+	{
+		return CreateUniqueRef<Win32Window>(createParams);
+	}
+
+	BOOL MonitorEnumCallback(HMONITOR monitor, HDC context, LPRECT rect, LPARAM data)
+	{
+		std::vector<Windowing::DisplayInfo>* displays = reinterpret_cast<std::vector<Windowing::DisplayInfo>*>(data);
+
+		MONITORINFOEX monitorInfo{ sizeof(MONITORINFOEX) };
+		::GetMonitorInfo(monitor, &monitorInfo);
+
+		string name = WideStringToString(monitorInfo.szDevice);
+
+		Windowing::DisplayInfo info{};
+		info.Name = WideStringToString(monitorInfo.szDevice);
+		info.Offset = Vector2Int(monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top);
+		info.Resolution = SizeInt(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top);
+		info.IsPrimary = (monitorInfo.dwFlags & MONITORINFOF_PRIMARY) == MONITORINFOF_PRIMARY;
+
+#ifdef COCO_HIGHDPI_SUPPORT
+		UINT dpiX, dpiY;
+		::GetDpiForMonitor(monitor, MDT_DEFAULT, &dpiX, &dpiY);
+
+		info.DPI = static_cast<uint16>(dpiX);
+#else
+		info.DPI = Windowing::Window::DefaultDPI;
+#endif
+
+		displays->push_back(info);
+
+		return TRUE;
+	}
+
+	std::vector<Windowing::DisplayInfo> Win32EnginePlatform::GetDisplays() const
+	{
+		std::vector<Windowing::DisplayInfo> displayInfos;
+		EnumDisplayMonitors(NULL, NULL, &MonitorEnumCallback, reinterpret_cast<LPARAM>(&displayInfos));
+
+		return displayInfos;
+	}
+
+	void Win32EnginePlatform::SetDPIAwareMode(bool dpiAware)
+	{
+#ifdef COCO_HIGHDPI_SUPPORT
+		// NOTE: if compiling for versions of windows earlier than Win10 Creators Update, this may need to change
+		DPI_AWARENESS_CONTEXT mode = dpiAware ? DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 : DPI_AWARENESS_CONTEXT_UNAWARE;
+
+		if (!::SetProcessDpiAwarenessContext(mode))
+		{
+			CocoError("Failed to set the DPI aware mode (code {})", GetLastError())
+		}
+#else
+		CocoError("Cannot set dpi awareness: Engine was not built with high-dpi support")
+#endif
+	}
+
+	bool Win32EnginePlatform::RegisterWindowClass()
+	{
+		HICON icon = LoadIcon(_hInstance, IDI_APPLICATION);
+		WNDCLASS windowClass = { };
+		windowClass.lpfnWndProc = &Win32EnginePlatform::ProcessMessage;
+		windowClass.hInstance = _hInstance;
+		windowClass.lpszClassName = sWindowClassName;
+		windowClass.cbClsExtra = 0;
+		windowClass.cbWndExtra = 0;
+		windowClass.hIcon = icon;
+		windowClass.hCursor = LoadCursor(NULL, IDC_ARROW); // TODO: change cursor type
+		windowClass.hbrBackground = NULL;
+		windowClass.style = CS_DBLCLKS; // Get doubleclicks
+
+		return RegisterClass(&windowClass);
+	}
+
+	void Win32EnginePlatform::DispatchWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		LONG_PTR userPtr = GetWindowLongPtr(windowHandle, GWLP_USERDATA);
+		Win32Window* window = reinterpret_cast<Win32Window*>(userPtr);
+
+		if (!window)
+		{
+			CocoError("Target window of message was null")
+			return;
+		}
+
+		window->ProcessMessage(message, wParam, lParam);
+	}
+#endif
 }

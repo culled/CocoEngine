@@ -32,20 +32,20 @@ project "Coco.Platforms.Win32"
         "Coco.Core",
     }
 
-    --if (Services["Windowing"]) then 
-    --    links
-    --    {
-    --        "Coco.Windowing"
-    --    }
+    if (Services["Windowing"]) then 
+        links
+        {
+            "Coco.Windowing"
+        }
 
-    --    defines { "COCO_SERVICES_WINDOWING" }
-    --else
-    --    removefiles 
-    --    {
-    --        "Win32Window.h",
-    --        "Win32Window.cpp",
-    --    }
-    --end
+        defines { "COCO_SERVICES_WINDOWING" }
+    else
+        removefiles 
+        {
+            "Win32Window.h",
+            "Win32Window.cpp",
+        }
+    end
 
     --if (Services["Input"]) then 
     --    links

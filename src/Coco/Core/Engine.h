@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "Platform/EnginePlatformFactory.h"
 #include "MainLoop/MainLoop.h"
+#include "Services/ServiceManager.h"
 
 namespace Coco
 {
@@ -17,6 +18,7 @@ namespace Coco
 		UniqueRef<Log> _log;
 		UniqueRef<EnginePlatform> _platform;
 		UniqueRef<MainLoop> _mainLoop;
+		UniqueRef<ServiceManager> _serviceManager;
 		UniqueRef<Application> _app;
 		int _exitCode;
 
@@ -67,6 +69,14 @@ namespace Coco
 		/// @brief Gets the engine's main loop
 		/// @return The main loop
 		const MainLoop* GetMainLoop() const { return _mainLoop.get(); }
+
+		/// @brief Gets the engine's service manager
+		/// @return The service manager
+		ServiceManager* GetServiceManager() { return _serviceManager.get(); }
+
+		/// @brief Gets the engine's service manager
+		/// @return The service manager
+		const ServiceManager* GetServiceManager() const { return _serviceManager.get(); }
 
 	private:
 		/// @brief Performs setup based on process arguments

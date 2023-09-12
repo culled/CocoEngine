@@ -16,6 +16,7 @@ namespace Coco
 		SetupFromProcessArguments();
 
 		_mainLoop = CreateUniqueRef<MainLoop>();
+		_serviceManager = CreateUniqueRef<ServiceManager>();
 
 		try
 		{
@@ -35,7 +36,7 @@ namespace Coco
 	Engine::~Engine()
 	{
 		_app.reset();
-
+		_serviceManager.reset();
 		_mainLoop.reset();
 
 		LogTrace(_log, "Engine shutdown. Bye!")

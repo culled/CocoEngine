@@ -2,7 +2,7 @@
 #include "Win32EnginePlatformFactory.h"
 #include "Win32EnginePlatform.h"
 
-namespace Coco::Win32
+namespace Coco::Platforms::Win32
 {
 	Win32EnginePlatformFactory::Win32EnginePlatformFactory(HINSTANCE hInstance) :
 		_hInstance(hInstance)

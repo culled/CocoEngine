@@ -153,7 +153,7 @@ workspace "CocoEngine"
             include "src\\Coco\\Core"
 
             if(Services["Windowing"] == true) then         
-                --include "src\\Coco\\Windowing"
+                include "src\\Coco\\Windowing"
             end
 
             if (Services["Input"] == true) then 
