@@ -1,6 +1,7 @@
 #include "SandboxApp.h"
 #include <Coco/Core/Engine.h>
 #include <Coco/Windowing/WindowService.h>
+#include <Coco/Input/InputService.h>
 
 using namespace Coco;
 
@@ -13,9 +14,10 @@ SandboxApp::SandboxApp() :
 	Engine::Get()->GetMainLoop()->AddListener(_tickListener);
 	Engine::Get()->GetMainLoop()->SetTargetTicksPerSecond(60);
 
+	ServiceManager* services = Engine::Get()->GetServiceManager();
 	{
 		using namespace Coco::Windowing;
-		WindowService* windowing = Engine::Get()->GetServiceManager()->Create<WindowService>(true);
+		WindowService* windowing = services->Create<WindowService>(true);
 		WindowCreateParams windowCreateParams("Sandbox", SizeInt(1280, 720));
 		Window* win = windowing->CreateWindow(windowCreateParams);
 		win->Show();
@@ -33,6 +35,11 @@ SandboxApp::SandboxApp() :
 		_dpiChangedHandler.Connect(win->OnDPIChanged);
 	}
 
+	{
+		using namespace Coco::Input;
+		services->Create<InputService>();
+	}
+
 	LogTrace(_log, "Sandbox app initialized")
 }
 
@@ -43,4 +50,25 @@ SandboxApp::~SandboxApp()
 
 void SandboxApp::Tick(const TickInfo& tickInfo)
 {
+	Input::InputService* input = Engine::Get()->GetServiceManager()->Get<Input::InputService>();
+
+	if (input->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::A))
+	{
+		LogInfo(_log, "Pressed A")
+	}
+	
+	if (input->GetKeyboard()->WasKeyJustReleased(Input::KeyboardKey::S))
+	{
+		LogInfo(_log, "Released S")
+	}
+
+	if (input->GetMouse()->WasButtonJustPressed(Input::MouseButton::Left))
+	{
+		LogInfo(_log, "Pressed left mouse")
+	}
+
+	if (input->GetMouse()->WasButtonJustReleased(Input::MouseButton::Right))
+	{
+		LogInfo(_log, "Released right mouse")
+	}
 }

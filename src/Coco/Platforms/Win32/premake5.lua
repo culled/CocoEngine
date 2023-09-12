@@ -54,14 +54,14 @@ project "Coco.Platforms.Win32"
         }
     end
 
-    --if (Services["Input"]) then 
-    --    links
-    --    {
-    --        "Coco.Input"
-    --    }
-    --
-    --    defines { "COCO_SERVICES_INPUT" }
-    --end
+    if (Services["Input"]) then 
+        links
+        {
+            "Coco.Input"
+        }
+    
+        defines { "COCO_SERVICES_INPUT" }
+    end
 
     --if (Services["Rendering"]) then 
     --    links

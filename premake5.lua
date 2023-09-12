@@ -157,7 +157,7 @@ workspace "CocoEngine"
             end
 
             if (Services["Input"] == true) then 
-                --include "src\\Coco\\Input"
+                include "src\\Coco\\Input"
             end
 
             if (Services["Rendering"] == true) then 

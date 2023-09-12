@@ -4,6 +4,9 @@ A modular C++ realtime game engine.
 
 ## Services
 * Windowing
+  - Allows creating GUI windows on a platform and drawing rendered output
+* Input
+  - Receives input from the platform and keeps track of mouse and keyboard states (more input types planned)
 
 ## Supported Platforms
 * Windows x64 (Win32)

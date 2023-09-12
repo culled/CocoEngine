@@ -7,6 +7,9 @@
 #include "Win32Window.h"
 #endif // COCO_SERVICES_WINDOWING
 
+#ifdef COCO_SERVICES_INPUT
+#include <Coco/Input/InputService.h>
+#endif
 
 namespace Coco::Platforms::Win32
 {
@@ -374,6 +377,105 @@ namespace Coco::Platforms::Win32
 		}
 
 		window->ProcessMessage(message, wParam, lParam);
+	}
+#endif
+
+#ifdef COCO_SERVICES_INPUT
+	void Win32EnginePlatform::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		ServiceManager* services = Engine::Get()->GetServiceManager();
+
+		using namespace Coco::Input;
+		if (!services->Has<InputService>())
+			return;
+
+		InputService* input = services->Get<InputService>();
+
+		switch (message)
+		{
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+			input->GetKeyboard()->UpdateKeyState(static_cast<KeyboardKey>(wParam), true);
+			break;
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+			input->GetKeyboard()->UpdateKeyState(static_cast<KeyboardKey>(wParam), false);
+			break;
+		case WM_MOUSEMOVE:
+		{
+			const int x = GET_X_LPARAM(lParam);
+			const int y = GET_Y_LPARAM(lParam);
+
+			input->GetMouse()->UpdatePositionState(Vector2Int(x, y));
+			break;
+		}
+		case WM_MOUSEWHEEL:
+		{
+			int yDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+
+			if (yDelta != 0)
+			{
+				// Flatten the z delta to be platform-independent
+				yDelta = (yDelta >= 0) ? 1 : -1;
+
+				input->GetMouse()->UpdateScrollState(Vector2Int(0, yDelta));
+			}
+
+			break;
+		}
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONDBLCLK:
+		case WM_LBUTTONUP:
+		{
+			if (message == WM_LBUTTONDBLCLK)
+			{
+				//input->GetMouse()->DoubleClicked(MouseButton::Left);
+			}
+
+			input->GetMouse()->UpdateButtonState(MouseButton::Left, message != WM_LBUTTONUP);
+			break;
+		}
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONDBLCLK:
+		case WM_MBUTTONUP:
+		{
+			if (message == WM_MBUTTONDBLCLK)
+			{
+				//input->GetMouse()->DoubleClicked(MouseButton::Middle);
+			}
+
+			input->GetMouse()->UpdateButtonState(MouseButton::Middle, message != WM_MBUTTONUP);
+			break;
+		}
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONDBLCLK:
+		case WM_RBUTTONUP:
+		{
+			if (message == WM_RBUTTONDBLCLK)
+			{
+				//input->GetMouse()->DoubleClicked(MouseButton::Right);
+			}
+
+			input->GetMouse()->UpdateButtonState(MouseButton::Right, message != WM_RBUTTONUP);
+			break;
+		}
+		case WM_XBUTTONDOWN:
+		case WM_XBUTTONDBLCLK:
+		case WM_XBUTTONUP:
+		{
+			const Input::MouseButton button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? MouseButton::Button3 : MouseButton::Button4;
+
+			if (message == WM_XBUTTONDBLCLK)
+			{
+				//input->GetMouse()->DoubleClicked(button);
+			}
+
+			input->GetMouse()->UpdateButtonState(button, message != WM_XBUTTONUP);
+			break;
+		}
+		default:
+			break;
+		}
 	}
 #endif
 }
