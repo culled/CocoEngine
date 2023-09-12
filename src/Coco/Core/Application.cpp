@@ -15,4 +15,9 @@ namespace Coco
 	{
 		Engine::cGet()->GetLog()->CopySinksTo(*_log);
 	}
+
+	Application::~Application()
+	{
+		_log.reset();
+	}
 }

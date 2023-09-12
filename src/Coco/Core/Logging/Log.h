@@ -8,6 +8,7 @@
 
 namespace Coco
 {
+	/// @brief A log that messages can be written to
 	class Log
 	{
 	private:
@@ -19,13 +20,36 @@ namespace Coco
 		Log(const string& name, LogMessageSeverity minimumSeverity);
 		~Log();
 
+		/// @brief Adds a sink to this log
+		/// @param sink The sink
 		void AddSink(const SharedRef<LogSink>& sink);
+
+		/// @brief Removes a sink from this log
+		/// @param sink The sink
 		void RemoveSink(const SharedRef<LogSink>& sink);
+
+		/// @brief Copies this log's sinks to another log
+		/// @param log The destination log
 		void CopySinksTo(Log& log) const;
+
+		/// @brief Writes a message to this log
+		/// @param severity The severity of the message
+		/// @param message The message
 		void Write(LogMessageSeverity severity, const char* message);
+
+		/// @brief Sets the minimum severity of messages that this log will write
+		/// @param severity The minimum message severity
 		void SetMinimumSeverity(LogMessageSeverity severity);
+
+		/// @brief Gets the minimum message severity of this log
+		/// @return The minimum message severity
 		LogMessageSeverity GetMinimumSeverity() const { return _minSeverity; }
 
+		/// @brief Writes a formatted message to this log
+		/// @tparam ...Args The types of arguments
+		/// @param severity The severity of the message
+		/// @param format The message format
+		/// @param ...args The arguments to write into the formatted message
 		template<typename ... Args>
 		void FormatWrite(LogMessageSeverity severity, const char* format, Args&&... args)
 		{

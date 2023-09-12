@@ -14,5 +14,4 @@ SandboxApp::SandboxApp() :
 SandboxApp::~SandboxApp()
 {
 	LogTrace(_log, "Sandbox app shutdown")
-	_log.reset();
 }

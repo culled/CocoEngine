@@ -27,7 +27,7 @@ namespace Coco
 		Application(const ApplicationCreateParameters& createParams);
 
 	public:
-		virtual ~Application() = default;
+		virtual ~Application();
 
 		/// @brief Gets the name of this application
 		/// @return The application name
@@ -37,7 +37,12 @@ namespace Coco
 		/// @return The application version
 		Version GetVersion() const { return _createParams.Version; }
 
+		/// @brief Gets the application's log
+		/// @return The application's log
 		Log* GetLog() { return _log.get(); }
+
+		/// @brief Gets the application's log
+		/// @return The application's log
 		const Log* GetLog() const { return _log.get(); }
 	};
 }

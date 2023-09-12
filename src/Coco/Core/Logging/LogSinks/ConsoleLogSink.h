@@ -3,6 +3,7 @@
 
 namespace Coco
 {
+    /// @brief A LogSink that writes to the console window
     class ConsoleLogSink : public LogSink
     {
     public:

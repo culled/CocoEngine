@@ -34,16 +34,32 @@ namespace Coco
 		/// @param code The exit code
 		void SetExitCode(int code);
 
+		/// @brief Gets the platform that the engine is running on
+		/// @return The platform
 		EnginePlatform* GetPlatform() { return _platform.get(); }
+
+		/// @brief Gets the platform that the engine is running on
+		/// @return The platform
 		const EnginePlatform* GetPlatform() const { return _platform.get(); }
 
+		/// @brief Gets the application that the engine is running
+		/// @return The application
 		Application* GetApp() { return _app.get(); }
+
+		/// @brief Gets the application that the engine is running
+		/// @return The application
 		const Application* GetApp() const { return _app.get(); }
 
+		/// @brief Gets the engine's log
+		/// @return The engine's log
 		Log* GetLog() { return _log.get(); }
+
+		/// @brief Gets the engine's log
+		/// @return The engine's log
 		const Log* GetLog() const { return _log.get(); }
 
 	private:
+		/// @brief Performs setup based on process arguments
 		void SetupFromProcessArguments();
 	};
 }

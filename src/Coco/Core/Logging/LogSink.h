@@ -4,6 +4,7 @@
 
 namespace Coco
 {
+	/// @brief A sink that writes log messages
 	class LogSink
 	{
 	public:
