@@ -14,4 +14,9 @@ namespace Coco
 		Minor(minor),
 		Patch(patch)
 	{}
+
+	string Version::ToString() const
+	{
+		return FormatString("{}.{}.{}", Major, Minor, Patch);
+	}
 }

@@ -21,6 +21,8 @@ namespace Coco::Windowing
 		{
 			throw std::exception("Platform does not support windowing");
 		}
+
+		CocoTrace("WindowService initialized")
 	}
 
 	WindowService::~WindowService()

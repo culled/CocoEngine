@@ -20,4 +20,9 @@ namespace Coco
 	{
 		_log.reset();
 	}
+
+	void Application::Quit(int exitCode)
+	{
+		Engine::Get()->GetMainLoop()->Stop();
+	}
 }

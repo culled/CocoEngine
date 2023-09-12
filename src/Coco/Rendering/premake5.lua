@@ -1,20 +1,24 @@
-project "Sandbox"
-    kind "WindowedApp"
+project "Coco.Rendering"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++20"
     staticruntime "off"
 
-    defines {"COCO_ASSERTIONS"}
-    
-    targetdir "%{OutputDir.bin}%{prj.name}"
-    objdir "%{OutputDir.obj}%{prj.name}"
+    pchheader "Renderpch.h"
+    pchsource "Renderpch.cpp"
 
-    TargetDir = "%{OutputDir.bin}%{prj.name}\\"
+    OutputBin = "%{OutputDir.bin}%{prj.name}"
+    OutputObj = "%{OutputDir.obj}%{prj.name}"
+
+    targetdir(OutputBin)
+    objdir(OutputObj)
+
+    defines { "COCO_ASSERTIONS" }
 
     files
     {
-        "src/**.h",
-        "src/**.cpp",
+        "**.h",
+        "**.cpp",
     }
 
     includedirs
@@ -24,14 +28,17 @@ project "Sandbox"
 
     links
     {
-        "Coco.Core",
-        "Coco.Input",
-        "Coco.Windowing",
-        "Coco.Rendering",
-        "Coco.Platforms.Win32",
+        "Coco.Core"
     }
 
     if (RenderRHI["Vulkan"] == true) then
+        defines { "COCO_RENDERING_VULKAN" }
+
+        includedirs
+        {
+            "%{IncludeDir.vulkan}"
+        }
+
         libdirs
         {
             "%{LibraryDir.vulkan}"
@@ -43,6 +50,7 @@ project "Sandbox"
         }
     end
 
+    -- Build configs
     filter { "configurations:Debug" }
         defines
         { 
@@ -50,8 +58,6 @@ project "Sandbox"
             "COCO_LOG_INFO",
             "COCO_LOG_WARNING",
         }
-
-        debugargs { "--show-console" }
 
         runtime "Debug"
         symbols "on"

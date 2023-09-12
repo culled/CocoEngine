@@ -19,6 +19,8 @@ namespace Coco
 	/// @brief Base class for an application run by the Engine
 	class Application : public Singleton<Application>
 	{
+		friend class Engine;
+
 	protected:
 		ApplicationCreateParameters _createParams;
 		UniqueRef<Log> _log;
@@ -31,7 +33,7 @@ namespace Coco
 
 		/// @brief Gets the name of this application
 		/// @return The application name
-		const string& GetName() const { return _createParams.Name; }
+		const char* GetName() const { return _createParams.Name.c_str(); }
 
 		/// @brief Gets the version of this application
 		/// @return The application version
@@ -44,6 +46,14 @@ namespace Coco
 		/// @brief Gets the application's log
 		/// @return The application's log
 		const Log* GetLog() const { return _log.get(); }
+
+		/// @brief Calls to quit the application
+		/// @param exitCode The code to quit with
+		void Quit(int exitCode = 0);
+
+	protected:
+		/// @brief Called after the engine has completed initialization and right before the main loop starts
+		virtual void Start() {}
 	};
 }
 

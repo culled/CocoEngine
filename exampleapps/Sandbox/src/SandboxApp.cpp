@@ -2,6 +2,8 @@
 #include <Coco/Core/Engine.h>
 #include <Coco/Windowing/WindowService.h>
 #include <Coco/Input/InputService.h>
+#include <Coco/Rendering/RenderService.h>
+#include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
 
 using namespace Coco;
 
@@ -15,6 +17,21 @@ SandboxApp::SandboxApp() :
 	Engine::Get()->GetMainLoop()->SetTargetTicksPerSecond(60);
 
 	ServiceManager* services = Engine::Get()->GetServiceManager();
+	{
+		using namespace Coco::Input;
+		services->Create<InputService>();
+	}
+
+	{
+		using namespace Coco::Rendering;
+		GraphicsDeviceCreateParams deviceParams{};
+		GraphicsPlatformCreateParams platformParams(*this);
+		platformParams.DeviceCreateParameters = deviceParams;
+
+		Vulkan::VulkanGraphicsPlatformFactory vulkanFactory(platformParams);
+		services->Create<RenderService>(vulkanFactory);
+	}
+
 	{
 		using namespace Coco::Windowing;
 		WindowService* windowing = services->Create<WindowService>(true);
@@ -35,11 +52,6 @@ SandboxApp::SandboxApp() :
 		_dpiChangedHandler.Connect(win->OnDPIChanged);
 	}
 
-	{
-		using namespace Coco::Input;
-		services->Create<InputService>();
-	}
-
 	LogTrace(_log, "Sandbox app initialized")
 }
 
@@ -48,27 +60,16 @@ SandboxApp::~SandboxApp()
 	LogTrace(_log, "Sandbox app shutdown")
 }
 
-void SandboxApp::Tick(const TickInfo& tickInfo)
+void SandboxApp::Start()
+{}
+
+void SandboxApp::Tick(const TickInfo & tickInfo)
 {
 	Input::InputService* input = Engine::Get()->GetServiceManager()->Get<Input::InputService>();
 
-	if (input->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::A))
+	if (input->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Escape))
 	{
-		LogInfo(_log, "Pressed A")
-	}
-	
-	if (input->GetKeyboard()->WasKeyJustReleased(Input::KeyboardKey::S))
-	{
-		LogInfo(_log, "Released S")
-	}
-
-	if (input->GetMouse()->WasButtonJustPressed(Input::MouseButton::Left))
-	{
-		LogInfo(_log, "Pressed left mouse")
-	}
-
-	if (input->GetMouse()->WasButtonJustReleased(Input::MouseButton::Right))
-	{
-		LogInfo(_log, "Released right mouse")
+		Quit();
+		return;
 	}
 }

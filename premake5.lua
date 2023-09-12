@@ -161,7 +161,7 @@ workspace "CocoEngine"
             end
 
             if (Services["Rendering"] == true) then 
-                --include "src\\Coco\\Rendering"
+                include "src\\Coco\\Rendering"
             end
 
         group "Engine/Platforms"

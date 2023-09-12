@@ -25,7 +25,7 @@ namespace Coco
 		catch (const std::exception& ex)
 		{
 			SetExitCode(-1);
-			LogCritical(_log, "Error Creating Application", ex.what(), true)
+			LogCritical(_log, "Error creating application: {}", ex.what())
 			_platform->ShowMessageBox("Error Creating Application", ex.what(), true);
 			DebuggerBreak
 		}
@@ -54,9 +54,19 @@ namespace Coco
 			return _exitCode;
 		}
 
-		_mainLoop->Run();
-
-		return _exitCode;
+		try
+		{
+			_app->Start();
+			_mainLoop->Run();
+			return _exitCode;
+		}
+		catch (const std::exception& ex)
+		{
+			LogCritical(_log, "Uncaught runtime exception: {}", ex.what())
+			_platform->ShowMessageBox("Uncaught Runtime Exception", ex.what(), true);
+			DebuggerBreak
+			return -1;
+		}
 	}
 
 	void Engine::SetExitCode(int code)

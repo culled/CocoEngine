@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Defines.h"
+#include "String.h"
 
 namespace Coco
 {
@@ -18,5 +19,9 @@ namespace Coco
 
 		Version();
 		Version(uint32 major, uint32 minor, uint32 patch);
+
+		/// @brief Gets the string representation of this version
+		/// @return The string representation
+		string ToString() const;
 	};
 }

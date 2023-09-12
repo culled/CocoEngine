@@ -15,7 +15,7 @@ namespace Coco::Input
 		loop->AddListener(_preTickHandler);
 		loop->AddListener(_postTickHandler);
 
-		CocoTrace("InputService created")
+		CocoTrace("InputService initialized")
 	}
 
 	InputService::~InputService()
@@ -27,7 +27,7 @@ namespace Coco::Input
 		_mouse.reset();
 		_keyboard.reset();
 
-		CocoTrace("InputService destroyed")
+		CocoTrace("InputService shutdown")
 	}
 
 	void InputService::HandlePreTick(const TickInfo& tickInfo)

@@ -18,6 +18,10 @@ public:
 	SandboxApp();
 	~SandboxApp();
 
+protected:
+	void Start() final;
+
+private:
 	void Tick(const TickInfo& tickInfo);
 };
 
