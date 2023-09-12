@@ -1,44 +1,37 @@
 #pragma once
 
-#include <Coco/Core/API.h>
-
-#include "Array.h"
+#include <Coco/Core/Corepch.h>
+#include "../Defines.h"
 
 namespace Coco
 {
 	struct TimeSpan;
 
-	/// @brief Represents a point in time
-	struct COCOAPI DateTime
+	/// @brief Represents a point in time, with millisecond precision
+	struct DateTime
 	{
-		/// @brief The days in each month. Index 0 is a non-leap year, index 1 is a leap year
-		static constexpr Array<Array<int, 12>, 2> DaysPerMonth = {
-			Array<int, 12>({ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }),
-			Array<int, 12>({ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 })
-		};
-
 		/// @brief The number of milliseconds in a second
-		static constexpr int64_t MSecsPerSecond = 1000;
+		static constexpr int64 MSecsPerSecond = 1000;
 
 		/// @brief The number of milliseconds in a minute
-		static constexpr int64_t MSecsPerMinute = 60000;
+		static constexpr int64 MSecsPerMinute = 60000;
 
 		/// @brief The number of milliseconds in an hour
-		static constexpr int64_t MSecsPerHour = 3600000;
+		static constexpr int64 MSecsPerHour = 3600000;
 
 		/// @brief The number of milliseconds in a day
-		static constexpr int64_t MSecsPerDay = 86400000;
+		static constexpr int64 MSecsPerDay = 86400000;
 
 		/// @brief The epoch year for unix time
 		static constexpr int UnixEpochYear = 1970;
 
-	public:
-		int64_t _unixMilliseconds = 0;
+		/// @brief The number of milliseconds since unix epoch
+		int64 UnixMilliseconds;
 
-	public:
-		DateTime() noexcept = default;
-		DateTime(int64_t unixMilliseconds) noexcept;
-		DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond) noexcept;
+		DateTime();
+		DateTime(int64 unixMilliseconds);
+		DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond);
+
 		virtual ~DateTime() = default;
 
 		/// @brief Gets if the given year is a leap year
@@ -46,63 +39,6 @@ namespace Coco
 		/// @return True if the year is a leap year
 		static constexpr bool IsLeapYear(int year) noexcept { return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0); }
 
-		/// @brief Gets the year this DateTime represents
-		/// @return The year
-		int GetYear() const noexcept;
-
-		/// @brief Gets the month this DateTime represents
-		/// @return The month
-		int GetMonth() const noexcept;
-
-		/// @brief Gets the day this DateTime represents
-		/// @return The day
-		int GetDay() const noexcept;
-
-		/// @brief Gets the hour this DateTime represents
-		/// @return The hour
-		int GetHour() const noexcept { return static_cast<int>((_unixMilliseconds / MSecsPerHour) % 24); }
-
-		/// @brief Gets the minute this DateTime represents
-		/// @return The minute
-		int GetMinute() const noexcept { return static_cast<int>(_unixMilliseconds / MSecsPerMinute % 60); }
-
-		/// @brief Gets the second this DateTime represents
-		/// @return The second
-		int GetSecond() const noexcept { return static_cast<int>(_unixMilliseconds / MSecsPerSecond % 60); }
-
-		/// @brief Gets the millisecond this DateTime represents
-		/// @return The millisecond
-		int GetMillisecond() const noexcept { return static_cast<int>(_unixMilliseconds % 1000); }
-
-		/// @brief Gets the number of hours since unix epoch
-		/// @return The hours since unix epoch
-		double GetTotalHours() const noexcept { return static_cast<double>(_unixMilliseconds) / MSecsPerHour; }
-
-		/// @brief Gets the number of minutes since unix epoch
-		/// @return The minutes since unix epoch
-		double GetTotalMinutes() const noexcept { return static_cast<double>(_unixMilliseconds) / MSecsPerMinute; }
-
-		/// @brief Gets the number of seconds since unix epoch
-		/// @return The seconds since unix epoch
-		double GetTotalSeconds() const noexcept { return static_cast<double>(_unixMilliseconds) / MSecsPerSecond; }
-
-		/// @brief Gets the number of milliseconds since unix epoch
-		/// @return The milliseconds since unix epoch
-		constexpr int64_t GetTotalMilliseconds() const noexcept { return _unixMilliseconds; }
-
-		TimeSpan operator -(const DateTime& other) const noexcept;
-		DateTime operator +(const TimeSpan& timeSpan) const noexcept;
-		void operator+=(const TimeSpan& timeSpan) noexcept;
-		void operator-=(const TimeSpan& timeSpan) noexcept;
-
-		bool operator <(const DateTime& other) const noexcept {	return _unixMilliseconds < other._unixMilliseconds; }
-		bool operator <=(const DateTime& other) const noexcept { return _unixMilliseconds <= other._unixMilliseconds; }
-		bool operator >(const DateTime& other) const noexcept { return _unixMilliseconds > other._unixMilliseconds; }
-		bool operator >=(const DateTime& other) const noexcept { return _unixMilliseconds >= other._unixMilliseconds; }
-		bool operator ==(const DateTime& other) const noexcept { return _unixMilliseconds == other._unixMilliseconds; }
-		bool operator !=(const DateTime& other) const noexcept { return _unixMilliseconds != other._unixMilliseconds; }
-
-	private:
 		/// @brief Calculates the total amount of days since unix epoch for a date
 		/// @param year The year
 		/// @param month The month
@@ -115,6 +51,64 @@ namespace Coco
 		/// @param year Will be filled with the year
 		/// @param month Will be filled with the month
 		/// @param day Will be filled with the day
-		static void EpochToYearsMonthDays(int64_t unixMilliseconds, int& year, int& month, int& day) noexcept;
+		static void EpochToYearsMonthDays(int64 unixMilliseconds, int& year, int& month, int& day) noexcept;
+
+		/// @brief Calculates the number of milliseconds from epoch a date is
+		/// @param year The year
+		/// @param month The month
+		/// @param day The day
+		/// @param hour The hour
+		/// @param minute The minute
+		/// @param second The second
+		/// @param millisecond The millisecond
+		/// @return The milliseconds since unix epoch
+		static int64 TimeToUnixMilliseconds(int year, int month, int day, int hour, int minute, int second, int millisecond);
+
+		/// @brief Gets the year this DateTime represents
+		/// @return The year
+		int GetYear() const;
+
+		/// @brief Gets the month this DateTime represents
+		/// @return The month
+		int GetMonth() const;
+
+		/// @brief Gets the day this DateTime represents
+		/// @return The day
+		int GetDay() const;
+
+		/// @brief Gets the hour this DateTime represents
+		/// @return The hour
+		constexpr int GetHour() const { return static_cast<int>((UnixMilliseconds / MSecsPerHour) % 24); }
+
+		/// @brief Gets the minute this DateTime represents
+		/// @return The minute
+		constexpr int GetMinute() const { return static_cast<int>((UnixMilliseconds / MSecsPerMinute) % 60); }
+
+		/// @brief Gets the second this DateTime represents
+		/// @return The second
+		constexpr int GetSecond() const { return static_cast<int>((UnixMilliseconds / MSecsPerSecond) % 60); }
+
+		/// @brief Gets the millisecond this DateTime represents
+		/// @return The millisecond
+		constexpr int GetMillisecond() const { return static_cast<int>(UnixMilliseconds % MSecsPerSecond); }
+
+		/// @brief Gets the fractional hours since unix epoch
+		/// @return The fractional hours
+		constexpr double GetTotalHours() const { return static_cast<double>(UnixMilliseconds) / MSecsPerHour; }
+
+		/// @brief Gets the fractional minutes since unix epoch
+		/// @return The fractional minutes
+		constexpr double GetTotalMinutes() const { return static_cast<double>(UnixMilliseconds) / MSecsPerMinute; }
+
+		/// @brief Gets the fractional seconds since unix epoch
+		/// @return The fractional seconds
+		constexpr double GetTotalSeconds() const { return static_cast<double>(UnixMilliseconds) / MSecsPerSecond; }
+
+		constexpr auto operator<=>(const DateTime& other) const { return UnixMilliseconds <=> other.UnixMilliseconds; }
+
+		DateTime operator +(const TimeSpan& time) const;
+		DateTime operator -(const TimeSpan& time) const;
+		void operator +=(const TimeSpan& time);
+		void operator -=(const TimeSpan& time);
 	};
 }

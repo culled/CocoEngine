@@ -1,38 +1,36 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-
 namespace Coco
 {
 	/// @brief Provides singleton access to a class
-	/// @tparam Type The class type
-	template<typename Type>
-	class COCOAPI Singleton
+	/// @tparam ClassType The type of class
+	template<typename ClassType>
+	class Singleton
 	{
 	private:
-		static Type* _instance;
+		static ClassType* _sInstance;
 
 	protected:
-		Singleton() = default;
-
-		/// @brief Sets the singleton instance
-		/// @param instance The singleton instance
-		void SetSingleton(Type* instance) noexcept
+		Singleton()
 		{
-			_instance = instance;
+			_sInstance = static_cast<ClassType*>(this);
+		}
+
+		~Singleton()
+		{
+			_sInstance = nullptr;
 		}
 
 	public:
-		virtual ~Singleton() = default;
+		/// @brief Gets the singleton instance
+		/// @return The singleton instance
+		static ClassType* Get() { return _sInstance; }
 
-		/// @brief Gets the singleton instance (if one has been set)
-		/// @returns The singleton instance 
-		static Type* Get() noexcept
-		{
-			return _instance;
-		}
+		/// @brief Gets the singleton instance
+		/// @return The singleton instance
+		static const ClassType* cGet() { return _sInstance; }
 	};
 
-	template<typename Type>
-	Type* Singleton<Type>::_instance = nullptr;
+	template<typename ClassType>
+	ClassType* Singleton<ClassType>::_sInstance = nullptr;
 }

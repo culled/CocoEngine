@@ -3,7 +3,7 @@ workspace "CocoEngine"
     platforms { "Win64" }
     architecture "x64"
 
-    startproject "CocoSandbox"
+    startproject "Sandbox"
 
     OutputFolder = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}\\"
 
@@ -27,7 +27,15 @@ workspace "CocoEngine"
     -- External program directories
     BinDir = {}
 
+    -- Build options
+    newoption {
+        trigger = "high-dpi",
+        description = "Include high-dpi support in the engine build"
+    }
+
     -- Service includes
+    Services = {}
+
     newoption {
         trigger = "service-input",
         description = "Include the input service in the engine build"
@@ -48,11 +56,24 @@ workspace "CocoEngine"
         description = "Include all the services in the engine build"
     }
 
-    if (_OPTIONS["service-input"] ~= nil or _OPTIONS["services-all"] ~= nil) then print("Including input service") end
-    if (_OPTIONS["service-rendering"] ~= nil or _OPTIONS["services-all"] ~= nil) then print("Including rendering service") end
-    if (_OPTIONS["service-windowing"] ~= nil or _OPTIONS["service-rendering"] ~= nil or _OPTIONS["services-all"] ~= nil) then print("Including windowing service") end
+    if (_OPTIONS["service-input"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
+        print("Including input service") 
+        Services["Input"] = true
+    end
+
+    if (_OPTIONS["service-rendering"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
+        print("Including rendering service") 
+        Services["Rendering"] = true
+    end
+
+    if (_OPTIONS["service-windowing"] ~= nil or _OPTIONS["service-rendering"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
+        print("Including windowing service") 
+        Services["Windowing"] = true
+    end
 
     -- Rendering RHI options
+    RenderRHI = {}
+
     newoption {
         trigger = "renderRHI-vulkan",
         description = "Include Vulkan RHI in the engine build"
@@ -79,19 +100,30 @@ workspace "CocoEngine"
         description = "Include all rendering RHIs in the engine build"
     }
 
-    if (_OPTIONS["renderRHI-vulkan"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then print("Including Vulkan RHI") end
-    if (_OPTIONS["renderRHI-opengl"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then print("Including OpenGL RHI") end
-    if (_OPTIONS["renderRHI-dx12"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then print("Including DirectX12 RHI") end
+    if (Services["Rendering"] ~= nil) then
+        if (_OPTIONS["renderRHI-vulkan"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then
+            print("Including Vulkan RHI")
+            RenderRHI["Vulkan"] = true
 
-    if (_OPTIONS["renderRHI-vulkan"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then
-        if (_OPTIONS["vulkan-sdk-path"] == nil) then
-            error("Vulkan was included but the Vulkan sdk path was not given")
-        else
-            print("Vulkan path specified at " .. _OPTIONS["vulkan-sdk-path"])
+            if (_OPTIONS["vulkan-sdk-path"] == nil) then
+                error("Vulkan was included but the Vulkan sdk path was not given")
+            else
+                print("Vulkan path specified at " .. _OPTIONS["vulkan-sdk-path"])
 
-            IncludeDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Include\\"
-            LibraryDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Lib\\"
-            BinDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Bin\\"
+                IncludeDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Include\\"
+                LibraryDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Lib\\"
+                BinDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Bin\\"
+            end
+        end
+
+        if (_OPTIONS["renderRHI-opengl"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then 
+            print("Including OpenGL RHI") 
+            RenderRHI["OpenGL"] = true
+        end
+
+        if (_OPTIONS["renderRHI-dx12"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then 
+            print("Including DirectX12 RHI") 
+            RenderRHI["DX12"] = true
         end
     end
     
@@ -116,16 +148,34 @@ workspace "CocoEngine"
         description = "Include all platforms in the engine build"
     }
 
-    if (_OPTIONS["platform-windows"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then print("Including Windows platform") end
-    if (_OPTIONS["platform-mac"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then print("Including Mac platform") end
-    if (_OPTIONS["platform-linux"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then print("Including Linux platform") end
-    
     if (_ACTION ~= nil) then
         group "Engine"
-            include "src\\Coco"
-            include "tests\\Coco.Tests"
+            include "src\\Coco\\Core"
 
-        group ""
-            include "examples\\CocoSandbox"
-            include "examples\\Breakout"
+            if(Services["Windowing"] == true) then         
+                --include "src\\Coco\\Windowing"
+            end
+
+            if (Services["Input"] == true) then 
+                --include "src\\Coco\\Input"
+            end
+
+            if (Services["Rendering"] == true) then 
+                --include "src\\Coco\\Rendering"
+            end
+
+        group "Engine/Platforms"
+            if (_OPTIONS["platform-windows"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then 
+                print("Including Windows platform")
+                include "src\\Coco\\Platforms\\Win32"
+            end
+
+            if (_OPTIONS["platform-mac"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then print("Including Mac platform") end
+            if (_OPTIONS["platform-linux"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then print("Including Linux platform") end
+
+        group "Tests"
+            --include "tests\\Coco\\Core"
+
+        group "Example Apps"
+            include "exampleapps\\Sandbox"
     end

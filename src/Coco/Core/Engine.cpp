@@ -1,88 +1,55 @@
+#include "Corepch.h"
 #include "Engine.h"
 
-#include <Coco/Core/Application.h>
-#include <Coco/Core/Logging/Logger.h>
-#include <Coco/Core/Services/EngineServiceManager.h>
-#include <Coco/Core/Types/TimeSpan.h>
-#include <Coco/Core/MainLoop/MainLoop.h>
-#include <Coco/Core/Platform/IEnginePlatform.h>
+#include "Logging/LogSinks/ConsoleLogSink.h"
 
 namespace Coco
 {
-	ExitCode Engine::Run(ManagedRef<Platform::IEnginePlatform> platform)
+	const char* Engine::sShowConsoleArgument = "--show-console";
+
+	Engine::Engine(const EnginePlatformFactory& platformFactory)
 	{
-		if(!platform.IsValid())
-			return ExitCode::FatalError;
+		_platform = platformFactory.Create();
+		_log = CreateUniqueRef<Log>("Coco", LogMessageSeverity::Trace);
 
-		try
-		{
-			ManagedRef<Engine> engine = CreateManagedRef<Engine>(platform.Get());
-			return engine->Run();
-		}
-		catch (const Exception& ex)
-		{
-			platform->ShowMessageBox("Fatal error", string(ex.what()), true);
-			DebuggerBreak();
-			return ExitCode::FatalError;
-		}
-	}
+		SetupFromProcessArguments();
 
-	TimeSpan Engine::GetRunningTime() const noexcept
-	{
-		return _platform->GetLocalTime() - _startTime;
-	}
+		_app.reset(CreateApplication());
 
-	Engine::Engine(Platform::IEnginePlatform* platform) :
-		_platform(platform),
-		_startTime(platform->GetLocalTime()),
-		_logger(CreateManagedRef<Logging::Logger>("Coco")),
-		_serviceManager(CreateManagedRef<EngineServiceManager>()),
-		_mainLoop(CreateManagedRef<MainLoop>())
-	{
-		this->SetSingleton(this);
-
-		_resourceLibrary = CreateManagedRef<ResourceLibrary>("assets/");
-		_application = Application::Create();
-
-		LogTrace(_logger, "Engine created");
+		LogTrace(_log, "Engine initialized")
 	}
 
 	Engine::~Engine()
 	{
-		LogTrace(_logger, "Shutting down engine...");
+		_app.reset();
 
-		_application.Reset();
-		_resourceLibrary.Reset();
-		_serviceManager.Reset();
-		_mainLoop.Reset();
+		LogTrace(_log, "Engine shutdown. Bye!")
+		_log.reset();
 
-		LogTrace(_logger, "Bye bye ;)");
-		_logger.Reset();
+		_platform.reset();
 	}
 
-	ExitCode Engine::Run()
+	int Engine::Run()
 	{
-		LogTrace(_logger, "Engine starting...");
-
-		try
-		{
-			_serviceManager->Start();
-			_platform->Start();
-			_application->Start();
-
-			LogTrace(_logger, "Main loop starting...");
-
-			_mainLoop->Run();
-
+		// Early exit if there was an error during setup
+		if (_exitCode != 0)
 			return _exitCode;
-		}
-		catch (Exception ex)
-		{
-			LogFatal(_logger, FormattedString("Fatal error: {0}", ex.what()));
-			_platform->ShowMessageBox("Fatal error", string(ex.what()), true);
 
-			DebuggerBreak();
-			return ExitCode::FatalError;
+		return _exitCode;
+	}
+
+	void Engine::SetExitCode(int code)
+	{
+		_exitCode = code;
+	}
+
+	void Engine::SetupFromProcessArguments()
+	{
+		if (_platform->HasProcessArgument(sShowConsoleArgument))
+		{
+			_platform->ShowConsoleWindow(true);
+
+			_log->AddSink(CreateSharedRef<ConsoleLogSink>());
 		}
 	}
 }

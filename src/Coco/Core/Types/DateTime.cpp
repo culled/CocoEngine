@@ -1,61 +1,27 @@
+#include "Corepch.h"
 #include "DateTime.h"
-
-#include <Coco/Core/Types/TimeSpan.h>
+#include "TimeSpan.h"
 
 namespace Coco
 {
-	DateTime::DateTime(int64_t unixMilliseconds) noexcept :
-		_unixMilliseconds(unixMilliseconds)
+	/// @brief The days in each month. Index 0 is a non-leap year, index 1 is a leap year
+	constexpr std::array<std::array<int, 12>, 2> DaysPerMonth = {
+		std::array<int, 12>({ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }),
+		std::array<int, 12>({ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 })
+	};
+
+
+	DateTime::DateTime() :
+		UnixMilliseconds(0)
 	{}
 
-	DateTime::DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond) noexcept
-	{
-		const int days = DaysSinceEpoch(year, month, day);
+	DateTime::DateTime(int64 unixMilliseconds) :
+		UnixMilliseconds(unixMilliseconds)
+	{}
 
-		_unixMilliseconds = days * MSecsPerDay +
-			hour * MSecsPerHour +
-			minute * MSecsPerMinute +
-			second * MSecsPerSecond +
-			millisecond;
-	}
-
-	int DateTime::GetYear() const noexcept
-	{
-		int year;
-		int month;
-		int day;
-
-		EpochToYearsMonthDays(_unixMilliseconds, year, month, day);
-
-		return year;
-	}
-
-	int DateTime::GetMonth() const noexcept
-	{
-		int year;
-		int month;
-		int day;
-
-		EpochToYearsMonthDays(_unixMilliseconds, year, month, day);
-
-		return month;
-	}
-
-	int DateTime::GetDay() const noexcept
-	{
-		int year;
-		int month;
-		int day;
-
-		EpochToYearsMonthDays(_unixMilliseconds, year, month, day);
-
-		return day;
-	}
-
-	TimeSpan DateTime::operator -(const DateTime& other) const noexcept { return TimeSpan((_unixMilliseconds - other._unixMilliseconds) * 1000); }
-	DateTime DateTime::operator +(const TimeSpan& timeSpan) const noexcept { return DateTime(_unixMilliseconds + static_cast<int64_t>(timeSpan.GetTotalMilliseconds())); }
-	void DateTime::operator+=(const TimeSpan& timeSpan) noexcept { _unixMilliseconds += static_cast<int64_t>(timeSpan.GetTotalMilliseconds()); }
-	void DateTime::operator-=(const TimeSpan& timeSpan) noexcept { _unixMilliseconds -= static_cast<int64_t>(timeSpan.GetTotalMilliseconds()); }
+	DateTime::DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond) :
+		UnixMilliseconds(TimeToUnixMilliseconds(year, month, day, hour, minute, second, millisecond))
+	{}
 
 	int DateTime::DaysSinceEpoch(int year, int month, int day) noexcept
 	{
@@ -89,9 +55,9 @@ namespace Coco
 		return dayCount;
 	}
 
-	void DateTime::EpochToYearsMonthDays(int64_t unixMilliseconds, int& year, int& month, int& day) noexcept
+	void DateTime::EpochToYearsMonthDays(int64 unixMilliseconds, int& year, int& month, int& day) noexcept
 	{
-		const int64_t daysSinceEpoch = unixMilliseconds / MSecsPerDay;
+		const int64 daysSinceEpoch = unixMilliseconds / MSecsPerDay;
 		int currentYear = UnixEpochYear;
 		int currentDay = static_cast<int>(daysSinceEpoch);
 
@@ -128,5 +94,56 @@ namespace Coco
 		// Month and day are not 0 indexed, so add 1 to them
 		month = currentMonthIndex + 1;
 		day = currentDay + 1;
+	}
+
+	int64 DateTime::TimeToUnixMilliseconds(int year, int month, int day, int hour, int minute, int second, int millisecond)
+	{
+		int days = DaysSinceEpoch(year, month, day);
+
+		return days * MSecsPerDay + hour * MSecsPerHour + minute * MSecsPerMinute + second * MSecsPerSecond + millisecond;
+	}
+
+	int DateTime::GetYear() const
+	{
+		int year, month, day;
+		EpochToYearsMonthDays(UnixMilliseconds, year, month, day);
+
+		return year;
+	}
+
+	int DateTime::GetMonth() const
+	{
+		int year, month, day;
+		EpochToYearsMonthDays(UnixMilliseconds, year, month, day);
+
+		return month;
+	}
+
+	int DateTime::GetDay() const
+	{
+		int year, month, day;
+		EpochToYearsMonthDays(UnixMilliseconds, year, month, day);
+
+		return day;
+	}
+
+	DateTime DateTime::operator+(const TimeSpan& time) const
+	{
+		return DateTime(UnixMilliseconds + static_cast<int64>(round(time.GetMilliseconds())));
+	}
+
+	DateTime DateTime::operator-(const TimeSpan& time) const
+	{
+		return DateTime(UnixMilliseconds - static_cast<int64>(round(time.GetMilliseconds())));
+	}
+
+	void DateTime::operator+=(const TimeSpan& time)
+	{
+		UnixMilliseconds += static_cast<int64>(round(time.GetMilliseconds()));
+	}
+
+	void DateTime::operator-=(const TimeSpan& time)
+	{
+		UnixMilliseconds -= static_cast<int64>(round(time.GetMilliseconds()));
 	}
 }
