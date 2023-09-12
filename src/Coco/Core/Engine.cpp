@@ -7,14 +7,27 @@ namespace Coco
 {
 	const char* Engine::sShowConsoleArgument = "--show-console";
 
-	Engine::Engine(const EnginePlatformFactory& platformFactory)
+	Engine::Engine(const EnginePlatformFactory& platformFactory) :
+		_exitCode(0)
 	{
 		_platform = platformFactory.Create();
 		_log = CreateUniqueRef<Log>("Coco", LogMessageSeverity::Trace);
 
 		SetupFromProcessArguments();
 
-		_app.reset(CreateApplication());
+		_mainLoop = CreateUniqueRef<MainLoop>();
+
+		try
+		{
+			_app.reset(CreateApplication());
+		}
+		catch (const std::exception& ex)
+		{
+			SetExitCode(-1);
+			LogCritical(_log, "Error Creating Application", ex.what(), true)
+			_platform->ShowMessageBox("Error Creating Application", ex.what(), true);
+			DebuggerBreak
+		}
 
 		LogTrace(_log, "Engine initialized")
 	}
@@ -22,6 +35,8 @@ namespace Coco
 	Engine::~Engine()
 	{
 		_app.reset();
+
+		_mainLoop.reset();
 
 		LogTrace(_log, "Engine shutdown. Bye!")
 		_log.reset();
@@ -33,7 +48,12 @@ namespace Coco
 	{
 		// Early exit if there was an error during setup
 		if (_exitCode != 0)
+		{
+			LogCritical(_log, "There was an error during setup, stopping run...")
 			return _exitCode;
+		}
+
+		_mainLoop->Run();
 
 		return _exitCode;
 	}

@@ -3,6 +3,7 @@
 #include "Core.h"
 #include "Application.h"
 #include "Platform/EnginePlatformFactory.h"
+#include "MainLoop/MainLoop.h"
 
 namespace Coco
 {
@@ -15,6 +16,7 @@ namespace Coco
 	private:
 		UniqueRef<Log> _log;
 		UniqueRef<EnginePlatform> _platform;
+		UniqueRef<MainLoop> _mainLoop;
 		UniqueRef<Application> _app;
 		int _exitCode;
 
@@ -57,6 +59,14 @@ namespace Coco
 		/// @brief Gets the engine's log
 		/// @return The engine's log
 		const Log* GetLog() const { return _log.get(); }
+
+		/// @brief Gets the engine's main loop
+		/// @return The main loop
+		MainLoop* GetMainLoop() { return _mainLoop.get(); }
+
+		/// @brief Gets the engine's main loop
+		/// @return The main loop
+		const MainLoop* GetMainLoop() const { return _mainLoop.get(); }
 
 	private:
 		/// @brief Performs setup based on process arguments

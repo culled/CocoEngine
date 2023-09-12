@@ -29,3 +29,19 @@ using int64 = long long;
 #else
 // TODO: more platforms
 #endif
+
+#ifdef COCO_ASSERTIONS
+#if _MSC_VER
+#include <intrin.h>
+// Causes an attached debugger to break
+#define DebuggerBreak __debugbreak();
+#else
+// Causes an attached debugger to break
+#define DebuggerBreak __builtin_trap();
+#endif
+// Generic assertion
+#define Assert(Expression) if(Expression) {} else { DebuggerBreak }
+#else
+#define DebuggerBreak
+#define Assert
+#endif
