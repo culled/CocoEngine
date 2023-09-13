@@ -1,8 +1,9 @@
 #include "Windowpch.h"
 #include "Window.h"
 
-#include <Coco/Windowing/WindowService.h>
+#include "WindowService.h"
 #include <Coco/Core/Engine.h>
+#include <Coco/Rendering/RenderService.h>
 
 namespace Coco::Windowing
 {
@@ -21,8 +22,14 @@ namespace Coco::Windowing
 
 	Window::Window(const WindowCreateParams& createParams) :
 		ID(_id++),
-		_parentID(createParams.ParentWindow)
-	{}
+		_parentID(createParams.ParentWindow),
+		_presenter(nullptr)
+	{
+		if (!Rendering::RenderService::Get())
+			throw std::exception("No RenderService is active");
+
+		_presenter = Rendering::RenderService::Get()->GetPlatform()->CreatePresenter();
+	}
 
 	Window::~Window()
 	{
@@ -32,6 +39,8 @@ namespace Coco::Windowing
 		}
 		catch(...)
 		{ }
+
+		_presenter.reset();
 	}
 
 	void Window::Close()
@@ -78,5 +87,13 @@ namespace Coco::Windowing
 		{
 			CocoError("Error while invoking Window::OnResized event: {}", ex.what())
 		}
+
+		// Lazy initialize surface until we're visible
+		if (!_presenter->SurfaceInitialized())
+		{
+			_presenter->InitializeSurface(CreateSurface());
+		}
+
+		_presenter->SetFramebufferSize(GetClientAreaSize());
 	}
 }

@@ -2,6 +2,7 @@
 #include "Win32Window.h"
 #include "Win32EnginePlatform.h"
 #include <Coco/Core/Engine.h>
+#include <Coco/Rendering/RenderService.h>
 
 #pragma push_macro("CreateWindow")
 #undef CreateWindow
@@ -297,6 +298,16 @@ namespace Coco::Platforms::Win32
 		return ::GetActiveWindow() == _handle;
 	}
 
+	SharedRef<Rendering::GraphicsPresenterSurface> Win32Window::CreateSurface()
+	{
+		if (!Rendering::RenderService::Get())
+			throw std::exception("No RenderService is active");
+
+		Win32EnginePlatform* platform = static_cast<Win32EnginePlatform*>(Engine::Get()->GetPlatform());
+
+		return platform->CreateSurfaceForWindow(Rendering::RenderService::cGet()->GetPlatform()->GetName(), *this);
+	}
+
 	DWORD Win32Window::GetWindowFlags(bool canResize, bool isFullscreen)
 	{
 		DWORD flags = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
@@ -329,66 +340,91 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
-		switch (message)
+		try
 		{
-		case WM_CLOSE:
-			Close();
-			break;
-		case WM_SIZE:
-		{
-			LPRECT rect = reinterpret_cast<LPRECT>(lParam);
+			switch (message)
+			{
+			case WM_CLOSE:
+				Close();
+				break;
+			case WM_SIZE:
+			{
+				LPRECT rect = reinterpret_cast<LPRECT>(lParam);
 
-			const WORD width = LOWORD(lParam);
-			const WORD height = HIWORD(lParam);
-			SizeInt size = GetClientAreaSize();
+				const WORD width = LOWORD(lParam);
+				const WORD height = HIWORD(lParam);
+				SizeInt size = GetClientAreaSize();
 
-			// Update if coming out of minimized state
-			if (size.Width == 0 && size.Height == 0 && width > 0 && height > 0)
-				UpdateFullscreenState(GetIsFullscreen());
+				// Update if coming out of minimized state
+				if (size.Width == 0 && size.Height == 0 && width > 0 && height > 0)
+					UpdateFullscreenState(GetIsFullscreen());
 
-			HandleResized();
-			break;
-		}
+				HandleResized();
+				break;
+			}
 #ifdef COCO_HIGHDPI_SUPPORT
-		case WM_DPICHANGED:
-		{
-			const UINT newDpiY = HIWORD(wParam);
-			const UINT newDpiX = LOWORD(wParam);
+			case WM_DPICHANGED:
+			{
+				const UINT newDpiY = HIWORD(wParam);
+				const UINT newDpiX = LOWORD(wParam);
 
-			LPRECT suggestedRect = reinterpret_cast<LPRECT>(lParam);
-			SetWindowPos(_handle, NULL,
-				suggestedRect->left, suggestedRect->top,
-				suggestedRect->right - suggestedRect->left, suggestedRect->bottom - suggestedRect->top,
-				SWP_NOZORDER | SWP_NOACTIVATE);
+				LPRECT suggestedRect = reinterpret_cast<LPRECT>(lParam);
+				SetWindowPos(_handle, NULL,
+					suggestedRect->left, suggestedRect->top,
+					suggestedRect->right - suggestedRect->left, suggestedRect->bottom - suggestedRect->top,
+					SWP_NOZORDER | SWP_NOACTIVATE);
 
-			OnDPIChanged.Invoke(GetDPI());
-			break;
-		}
+				try
+				{
+					OnDPIChanged.Invoke(GetDPI());
+				}
+				catch (const std::exception& ex)
+				{
+					CocoError("Error invoking Win32Window::OnDPIChanged: {}", ex.what())
+				}
+				break;
+			}
 #endif
-		case WM_MOVE:
-		{
-			const int16 x = LOWORD(lParam);
-			const int16 y = HIWORD(lParam);
-			OnPositionChanged.Invoke(Vector2Int(x, y));
-			break;
+			case WM_MOVE:
+			{
+				const int16 x = LOWORD(lParam);
+				const int16 y = HIWORD(lParam);
+
+				try
+				{
+					OnPositionChanged.Invoke(Vector2Int(x, y));
+				}
+				catch (const std::exception& ex)
+				{
+					CocoError("Error invoking Win32Window::OnPositionChanged: {}", ex.what())
+				}
+				break;
+			}
+			//case WM_STYLECHANGED:
+			//{
+			//	LPSTYLESTRUCT style = reinterpret_cast<LPSTYLESTRUCT>(lParam);
+			//	break;
+			//}
+			case WM_SETFOCUS:
+			case WM_KILLFOCUS:
+			{
+				try
+				{
+					OnFocusChanged.Invoke(message == WM_SETFOCUS);
+				}
+				catch (const std::exception& ex)
+				{
+					CocoError("Error invoking Win32Window::OnFocusChanged: {}", ex.what())
+				}
+				break;
+			}
+			default:
+				break;
+			}
 		}
-		case WM_STYLECHANGED:
+		catch (...)
 		{
-			LPSTYLESTRUCT style = reinterpret_cast<LPSTYLESTRUCT>(lParam);
-			break;
-		}
-		case WM_SETFOCUS:
-		{
-			OnFocusChanged.Invoke(true);
-			break;
-		}
-		case WM_KILLFOCUS:
-		{
-			OnFocusChanged.Invoke(false);
-			break;
-		}
-		default:
-			break;
+			Engine::Get()->CrashWithException();
 		}
 	}
 

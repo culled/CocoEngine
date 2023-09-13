@@ -43,6 +43,13 @@ namespace Coco::Platforms::Win32
         void Focus() final;
         bool HasFocus() const final;
 
+        /// @brief Gets this window's internal handle
+        /// @return The window handle
+        HWND GetHandle() const { return _handle; }
+
+    protected:
+        SharedRef<Rendering::GraphicsPresenterSurface> CreateSurface() final;
+
     private:
         /// @brief Gets window flags for the given options
         /// @param canResize If true, will add window flags for resizing

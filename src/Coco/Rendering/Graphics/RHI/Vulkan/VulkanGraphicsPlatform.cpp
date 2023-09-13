@@ -2,11 +2,13 @@
 #include "VulkanGraphicsPlatform.h"
 #include "VulkanGraphicsDevice.h"
 #include "VulkanUtils.h"
-
+#include "VulkanGraphicsPresenter.h"
+#include "../../../RenderingPlatform.h"
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
 {
+	const char* VulkanGraphicsPlatform::sVulkanRHIName = "Vulkan";
 	const char* VulkanGraphicsPlatform::_sDebugValidationLayerName = "VK_LAYER_KHRONOS_validation";
 
 	VulkanGraphicsPlatform::VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams) :
@@ -39,6 +41,11 @@ namespace Coco::Rendering::Vulkan
 	UniqueRef<GraphicsDevice> VulkanGraphicsPlatform::CreateDevice(const GraphicsDeviceCreateParams& createParams)
 	{
 		return VulkanGraphicsDevice::Create(_vulkanInstance, createParams);
+	}
+
+	UniqueRef<GraphicsPresenter> VulkanGraphicsPlatform::CreatePresenter()
+	{
+		return CreateUniqueRef<VulkanGraphicsPresenter>();
 	}
 
 	bool VulkanGraphicsPlatform::CheckValidationLayerSupport()
@@ -154,6 +161,18 @@ namespace Coco::Rendering::Vulkan
 
 		std::vector<const char*> extensions;
 		std::vector<const char*> layers;
+
+		if (createParams.PresentationSupport)
+			extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+
+		if (const RenderingPlatform* platform = dynamic_cast<const RenderingPlatform*>(engine->GetPlatform()))
+		{
+			platform->GetPlatformRenderingExtensions(sVulkanRHIName, createParams.PresentationSupport, extensions);
+		}
+		else
+		{
+			throw std::exception("Platform is not a RenderingPlatform");
+		}
 
 		for (const auto& ext : createParams.RenderingExtensions)
 		{

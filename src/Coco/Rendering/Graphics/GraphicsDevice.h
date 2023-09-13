@@ -48,5 +48,12 @@ namespace Coco::Rendering
 		/// @brief Gets the api version of this device
 		/// @return This device's api version
 		virtual Version GetAPIVersion() const = 0;
+
+		/// @brief Gets this device's memory features
+		/// @return This device's memory features
+		virtual const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const = 0;
+
+		/// @brief Waits until the device has finished all queued work
+		virtual void WaitForIdle() const = 0;
 	};
 }

@@ -43,5 +43,7 @@ namespace Coco
 
 		SizeInt() = default;
 		SizeInt(uint32 width, uint32 height);
+
+		constexpr bool operator==(const SizeInt& other) { return Width == other.Width && Height == other.Height; }
 	};
 }

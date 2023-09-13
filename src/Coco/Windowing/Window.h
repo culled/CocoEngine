@@ -6,6 +6,7 @@
 #include <Coco/Core/Events/Event.h>
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Rendering/Graphics/GraphicsPresenter.h>
 
 namespace Coco::Windowing
 {
@@ -84,6 +85,7 @@ namespace Coco::Windowing
 	private:
 		static std::atomic<WindowID> _id;
 		WindowID _parentID;
+		UniqueRef<Rendering::GraphicsPresenter> _presenter;
 
 	protected:
 		Window(const WindowCreateParams& createParams);
@@ -147,6 +149,14 @@ namespace Coco::Windowing
 		/// @return True if this window has focus
 		virtual bool HasFocus() const = 0;
 
+		/// @brief Gets this window's GraphicsPresenter
+		/// @return This window's GraphicsPresenter
+		Rendering::GraphicsPresenter* GetPresenter() { return _presenter.get(); }
+
+		/// @brief Gets this window's GraphicsPresenter
+		/// @return This window's GraphicsPresenter
+		const Rendering::GraphicsPresenter* GetPresenter() const { return _presenter.get(); }
+
 		/// @brief Closes this window
 		void Close();
 
@@ -155,6 +165,10 @@ namespace Coco::Windowing
 		WindowID GetParentID() const;
 
 	protected:
+		/// @brief Creates a surface for this window to render to
+		/// @return The surface
+		virtual SharedRef<Rendering::GraphicsPresenterSurface> CreateSurface() = 0;
+
 		/// @brief Gets the parent window from the window service, if one exists
 		/// @return A pointer to the parent window, or nullptr if the parent could not be found or this window has no parent
 		Window* GetParentWindow();

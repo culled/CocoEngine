@@ -60,11 +60,9 @@ namespace Coco
 			_mainLoop->Run();
 			return _exitCode;
 		}
-		catch (const std::exception& ex)
+		catch (...)
 		{
-			LogCritical(_log, "Uncaught runtime exception: {}", ex.what())
-			_platform->ShowMessageBox("Uncaught Runtime Exception", ex.what(), true);
-			DebuggerBreak
+			CrashWithException();
 			return -1;
 		}
 	}
@@ -72,6 +70,20 @@ namespace Coco
 	void Engine::SetExitCode(int code)
 	{
 		_exitCode = code;
+	}
+
+	void Engine::CrashWithException()
+	{
+		try
+		{
+			throw;
+		}
+		catch (const std::exception& ex)
+		{
+			LogCritical(_log, "Uncaught runtime exception: {}", ex.what())
+			_platform->ShowMessageBox("Uncaught Runtime Exception", ex.what(), true);
+			DebuggerBreak
+		}
 	}
 
 	void Engine::SetupFromProcessArguments()

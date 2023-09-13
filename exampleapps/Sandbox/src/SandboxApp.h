@@ -9,11 +9,6 @@ class SandboxApp : public Application
 private:
 	TickListener _tickListener;
 
-	EventHandler<const Vector2Int&> _positionChangedHandler;
-	EventHandler<const SizeInt&> _sizeChangedHandler;
-	EventHandler<uint16> _dpiChangedHandler;
-	EventHandler<bool> _focusChangedHandler;
-
 public:
 	SandboxApp();
 	~SandboxApp();

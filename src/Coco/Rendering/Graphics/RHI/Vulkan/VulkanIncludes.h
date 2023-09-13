@@ -4,6 +4,8 @@
 #include <vulkan/vk_enum_string_helper.h>
 
 #include <Coco/Core/Types/String.h>
+
+// Throws an exception if the expression does not evaluate to a VK_SUCCESS
 #define AssertVkSuccess(Expression) {	\
 	VkResult result = Expression;		\
 	if(result != VK_SUCCESS) {			\

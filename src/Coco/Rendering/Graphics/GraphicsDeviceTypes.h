@@ -10,4 +10,13 @@ namespace Coco::Rendering
 		CPU,
 		Other
 	};
+
+	/// @brief Memory features for a GraphicsDevice
+	struct GraphicsDeviceMemoryFeatures
+	{
+		/// @brief If true, this device support host visible local memory
+		bool SupportsHostVisibleLocalMemory;
+
+		GraphicsDeviceMemoryFeatures();
+	};
 }

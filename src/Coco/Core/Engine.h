@@ -78,6 +78,10 @@ namespace Coco
 		/// @return The service manager
 		const ServiceManager* GetServiceManager() const { return _serviceManager.get(); }
 
+		/// @brief Causes a crash and rethrows the captured exception.
+		/// NOTE: only works in the catch clause of a try-catch block
+		void CrashWithException();
+
 	private:
 		/// @brief Performs setup based on process arguments
 		void SetupFromProcessArguments();

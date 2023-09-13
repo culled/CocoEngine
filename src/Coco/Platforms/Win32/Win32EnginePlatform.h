@@ -3,14 +3,23 @@
 
 #include "WindowsIncludes.h"
 
+#ifdef COCO_SERVICES_RENDERING
+#include <Coco/Rendering/RenderingPlatform.h>
+#include "Win32RenderingExtensions.h"
+#endif
+
 #ifdef COCO_SERVICES_WINDOWING
 #include <Coco/Windowing/WindowingPlatform.h>
+#include "Win32WindowExtensions.h"
 #endif
 
 namespace Coco::Platforms::Win32
 {
     /// @brief Win32 implementation of an EnginePlatform
     class Win32EnginePlatform : public EnginePlatform
+#ifdef COCO_SERVICES_RENDERING
+		, public Rendering::RenderingPlatform
+#endif
 #ifdef COCO_SERVICES_WINDOWING
 		, public Windowing::WindowingPlatform
 #endif
@@ -59,9 +68,31 @@ namespace Coco::Platforms::Win32
 		/// @brief Gets timing information for the processor
 		void GetTimingInfo();
 
+#ifdef COCO_SERVICES_RENDERING
+	public:
+		SharedRef<Win32RenderingExtensions> _renderingExtensions;
+
+		/// @brief Sets the rendering extension provider that this platform should use
+		/// @param renderingExtensions The extension provider
+		void SetRenderingExtensions(SharedRef<Win32RenderingExtensions> renderingExtensions);
+
+		void GetPlatformRenderingExtensions(const char* renderRHIName, bool includePresentationExtensions, std::vector<const char*>& outExtensions) const final;
+#endif
+
 #ifdef COCO_SERVICES_WINDOWING
 	public:
 		static const wchar_t* sWindowClassName;
+		SharedRef<Win32WindowExtensions> _windowExtensions;
+
+		/// @brief Sets the window extension provider that this platform should use
+		/// @param windowExtensions The extension provider
+		void SetWindowExtensions(SharedRef<Win32WindowExtensions> windowExtensions);
+
+		/// @brief Creates a surface for a window
+		/// @param renderRHIName The name of the render RHI being used
+		/// @param window The window to create the surface for
+		/// @return A surface for the window
+		SharedRef<Rendering::GraphicsPresenterSurface> CreateSurfaceForWindow(const char* renderRHIName, const Win32Window& window) const;
 
 		bool SupportsMultipleWindows() const final { return true; }
 		UniqueRef<Windowing::Window> CreatePlatformWindow(const Windowing::WindowCreateParams& createParams) final;

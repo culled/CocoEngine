@@ -8,6 +8,9 @@ namespace Coco::Rendering::Vulkan
 	/// @brief Vulkan implementation of a GraphicsPlatform
 	class VulkanGraphicsPlatform : public GraphicsPlatform
 	{
+	public:
+		static const char* sVulkanRHIName;
+
 	private:
 		static const char* _sDebugValidationLayerName;
 
@@ -19,10 +22,17 @@ namespace Coco::Rendering::Vulkan
 		VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams);
 		~VulkanGraphicsPlatform();
 
+		const char* GetName() const final { return sVulkanRHIName; }
 		UniqueRef<GraphicsDevice> CreateDevice(const GraphicsDeviceCreateParams& createParams) final;
+		UniqueRef<GraphicsPresenter> CreatePresenter() final;
 
-		VkInstance GetVulkanInstance() { return _vulkanInstance; }
-		const VkInstance GetVulkanInstance() const { return _vulkanInstance; }
+		/// @brief Gets the Vulkan instance
+		/// @return The Vulkan instance
+		VkInstance GetVulkanInstance() const { return _vulkanInstance; }
+
+		/// @brief Gets the Vulkan platform allocation callbacks
+		/// @return The platform allocation callbacks
+		VkAllocationCallbacks* GetAllocationCallbacks() { return nullptr; } // TODO: allocation callbacks
 
 	private:
 		/// @brief Checks if validation layers are supported

@@ -20,11 +20,17 @@ namespace Coco::Platforms::Win32
 		GetProcessArgumentsFromWindows();
 		GetTimingInfo();
 
+#ifdef COCO_SERVICES_RENDERING
+		_renderingExtensions = CreateSharedRef<Win32RenderingExtensions>();
+#endif
+
 #ifdef COCO_SERVICES_WINDOWING
 		if (!RegisterWindowClass())
 		{
 			throw std::exception("Failed to register window class");
 		}
+
+		_windowExtensions = CreateSharedRef<Win32WindowExtensions>();
 #endif
 	}
 
@@ -288,8 +294,30 @@ namespace Coco::Platforms::Win32
 		_startTime = GetSeconds();
 	}
 
+#ifdef COCO_SERVICES_RENDERING
+	void Win32EnginePlatform::SetRenderingExtensions(SharedRef<Win32RenderingExtensions> renderingExtensions)
+	{
+		_renderingExtensions = renderingExtensions;
+	}
+
+	void Win32EnginePlatform::GetPlatformRenderingExtensions(const char* renderRHIName, bool includePresentationExtensions, std::vector<const char*>& extensions) const
+	{
+		_renderingExtensions->GetRenderingExtensions(renderRHIName, includePresentationExtensions, extensions);
+	}
+#endif
+
 #ifdef COCO_SERVICES_WINDOWING
 	const wchar_t* Win32EnginePlatform::sWindowClassName = L"CocoWindow";
+
+	void Win32::Win32EnginePlatform::SetWindowExtensions(SharedRef<Win32WindowExtensions> windowExtensions)
+	{
+		_windowExtensions = windowExtensions;
+	}
+
+	SharedRef<Rendering::GraphicsPresenterSurface> Win32::Win32EnginePlatform::CreateSurfaceForWindow(const char* renderRHIName, const Win32Window& window) const
+	{
+		return _windowExtensions->CreateSurfaceForWindow(renderRHIName, window);
+	}
 
 	UniqueRef<Windowing::Window> Win32EnginePlatform::CreatePlatformWindow(const Windowing::WindowCreateParams& createParams)
 	{

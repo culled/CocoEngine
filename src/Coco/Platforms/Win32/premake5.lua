@@ -32,6 +32,43 @@ project "Coco.Platforms.Win32"
         "Coco.Core",
     }
 
+    if (Services["Input"]) then 
+        links
+        {
+            "Coco.Input"
+        }
+    
+        defines { "COCO_SERVICES_INPUT" }
+    end
+
+    if (Services["Rendering"]) then 
+        links
+        {
+            "Coco.Rendering"
+        }
+
+        defines { "COCO_SERVICES_RENDERING" }
+
+        if(RenderRHI["Vulkan"] == true) then
+            defines { "COCO_RENDERING_VULKAN" }
+            includedirs { "%{IncludeDir.vulkan}" }
+        end
+
+        if(RenderRHI["OpenGL"] == true) then
+            defines { "COCO_RENDERING_OPENGL" }
+        end
+        
+        if(RenderRHI["DX12"] == true) then
+            defines { "COCO_RENDERING_DX12" }
+        end
+    else
+        removefiles 
+        {
+            "Win32RenderingExtensions.h",
+            "Win32RenderingExtensions.cpp",
+        }
+    end
+
     if (Services["Windowing"]) then 
         links
         {
@@ -51,38 +88,10 @@ project "Coco.Platforms.Win32"
         {
             "Win32Window.h",
             "Win32Window.cpp",
+            "Win32WindowExtensions.h",
+            "Win32WindowExtensions.cpp",
         }
     end
-
-    if (Services["Input"]) then 
-        links
-        {
-            "Coco.Input"
-        }
-    
-        defines { "COCO_SERVICES_INPUT" }
-    end
-
-    --if (Services["Rendering"]) then 
-    --    links
-    --    {
-    --        "Coco.Rendering"
-    --    }
---
-    --    defines { "COCO_SERVICES_RENDERING" }
---
-    --    if(RenderRHI["Vulkan"] == true) then
-    --        defines { "COCO_RENDERING_VULKAN" }
-    --    end
---
-    --    if(RenderRHI["OpenGL"] == true) then
-    --        defines { "COCO_RENDERING_OPENGL" }
-    --    end
---
-    --    if(RenderRHI["DX12"] == true) then
-    --        defines { "COCO_RENDERING_DX12" }
-    --    end
-    --end
 
     -- Build configs
     filter { "configurations:Debug" }
