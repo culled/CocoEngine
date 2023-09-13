@@ -54,6 +54,14 @@ namespace Coco::Math
 	template<typename ValueType>
 	constexpr ValueType Abs(const ValueType& v) { return std::abs(v); }
 
+	/// @brief Raises the given base by the exponent
+	/// @tparam ValueType The type of value
+	/// @param base The base
+	/// @param exp The exponent
+	/// @return The base raised to the power of the exponent
+	template<typename ValueType>
+	constexpr ValueType Pow(const ValueType& base, const ValueType& exp) { return std::pow(base, exp); }
+
 	/// @brief Tests two decimal types for equality
 	/// @tparam ValueType The type
 	/// @param a The first number
