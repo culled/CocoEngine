@@ -14,7 +14,8 @@ namespace Coco::Rendering::Vulkan
 	VulkanGraphicsPlatform::VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams) :
 		_vulkanInstance(nullptr),
 		_debugMessenger(nullptr),
-		_usingValidationLayers(false)
+		_usingValidationLayers(false),
+		_supportsPresentation(createParams.PresentationSupport)
 	{
 		CreateVulkanInstance(createParams);
 
@@ -40,7 +41,12 @@ namespace Coco::Rendering::Vulkan
 
 	UniqueRef<GraphicsDevice> VulkanGraphicsPlatform::CreateDevice(const GraphicsDeviceCreateParams& createParams)
 	{
-		return VulkanGraphicsDevice::Create(_vulkanInstance, createParams);
+		GraphicsDeviceCreateParams createParamsCopy = createParams;
+
+		// Overwrite presentation support if the platform doesn't support it
+		createParamsCopy.SupportsPresentation = _supportsPresentation && createParams.SupportsPresentation;
+
+		return VulkanGraphicsDevice::Create(_vulkanInstance, createParamsCopy);
 	}
 
 	UniqueRef<GraphicsPresenter> VulkanGraphicsPlatform::CreatePresenter()

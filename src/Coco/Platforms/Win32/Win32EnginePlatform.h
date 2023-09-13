@@ -1,6 +1,7 @@
 #pragma once
-#include <Coco\Core\Platform\EnginePlatform.h>
+#include <Coco/Core/Platform/EnginePlatform.h>
 
+#include <Coco/Core/Types/Refs.h>
 #include "WindowsIncludes.h"
 
 #ifdef COCO_SERVICES_RENDERING

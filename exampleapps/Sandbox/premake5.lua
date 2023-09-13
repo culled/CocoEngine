@@ -25,22 +25,34 @@ project "Sandbox"
     links
     {
         "Coco.Core",
-        "Coco.Input",
-        "Coco.Windowing",
-        "Coco.Rendering",
-        "Coco.Platforms.Win32",
     }
 
-    if (RenderRHI["Vulkan"] == true) then
-        libdirs
-        {
-            "%{LibraryDir.vulkan}"
-        }
+    if (Services["Input"] == true) then
+        links { "Coco.Input" }
+    end
 
-        links
-        {
-            "vulkan-1.lib"
-        }
+    if (Services["Rendering"] == true) then
+        links { "Coco.Rendering" }
+
+        if (RenderRHI["Vulkan"] == true) then
+            libdirs
+            {
+                "%{LibraryDir.vulkan}"
+            }
+    
+            links
+            {
+                "vulkan-1.lib"
+            }
+        end
+    end
+
+    if (Services["Windowing"] == true) then
+        links { "Coco.Windowing" }
+    end
+
+    if (Platforms["Win32"] == true) then
+        links { "Coco.Platforms.Win32" }
     end
 
     filter { "configurations:Debug" }

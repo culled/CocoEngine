@@ -22,7 +22,7 @@ SandboxApp::SandboxApp() :
 		services->Create<InputService>();
 	}
 
-	{
+	 {
 		using namespace Coco::Rendering;
 		GraphicsDeviceCreateParams deviceParams{};
 		GraphicsPlatformCreateParams platformParams(*this, true);

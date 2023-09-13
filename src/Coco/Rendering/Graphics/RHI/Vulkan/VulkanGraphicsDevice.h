@@ -75,7 +75,7 @@ namespace Coco::Rendering::Vulkan
 		DeviceQueue* _presentQueue;
 
 	public:
-		VulkanGraphicsDevice(VkInstance instance, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreateParams& createParams);
+		VulkanGraphicsDevice(VkInstance instance, const GraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice);
 		~VulkanGraphicsDevice();
 
 		/// @brief Creates a VulkanGraphicsDevice

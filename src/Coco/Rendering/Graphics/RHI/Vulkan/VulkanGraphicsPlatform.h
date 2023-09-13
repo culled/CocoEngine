@@ -17,6 +17,7 @@ namespace Coco::Rendering::Vulkan
 		VkInstance _vulkanInstance;
 		VkDebugUtilsMessengerEXT _debugMessenger;
 		bool _usingValidationLayers;
+		bool _supportsPresentation;
 
 	public:
 		VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams);

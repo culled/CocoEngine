@@ -66,7 +66,11 @@ workspace "CocoEngine"
         Services["Rendering"] = true
     end
 
-    if (_OPTIONS["service-windowing"] ~= nil or _OPTIONS["service-rendering"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
+    if (_OPTIONS["service-windowing"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
+        if (Services["Rendering"] ~= true) then
+            error("Rendering service must be included with windowing service")
+        end
+
         print("Including windowing service") 
         Services["Windowing"] = true
     end
@@ -128,9 +132,11 @@ workspace "CocoEngine"
     end
     
     -- Platform options
+    Platforms = {}
+
     newoption {
-        trigger = "platform-windows",
-        description = "Include Windows platform in the engine build"
+        trigger = "platform-win32",
+        description = "Include Win32 platform in the engine build"
     }
 
     newoption {
@@ -148,13 +154,24 @@ workspace "CocoEngine"
         description = "Include all platforms in the engine build"
     }
 
+    if (_OPTIONS["platform-win32"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then 
+        print("Including Win32 platform")
+        Platforms["Win32"] = true
+    end
+
+    if (_OPTIONS["platform-osx"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then 
+        print("Including Mac platform") 
+        Platforms["OSX"] = true
+    end
+
+    if (_OPTIONS["platform-linux"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then 
+        print("Including Linux platform") 
+        Platforms["Linux"] = true
+    end
+
     if (_ACTION ~= nil) then
         group "Engine"
             include "src\\Coco\\Core"
-
-            if(Services["Windowing"] == true) then         
-                include "src\\Coco\\Windowing"
-            end
 
             if (Services["Input"] == true) then 
                 include "src\\Coco\\Input"
@@ -164,14 +181,14 @@ workspace "CocoEngine"
                 include "src\\Coco\\Rendering"
             end
 
-        group "Engine/Platforms"
-            if (_OPTIONS["platform-windows"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then 
-                print("Including Windows platform")
-                include "src\\Coco\\Platforms\\Win32"
+            if(Services["Windowing"] == true) then         
+                include "src\\Coco\\Windowing"
             end
 
-            if (_OPTIONS["platform-mac"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then print("Including Mac platform") end
-            if (_OPTIONS["platform-linux"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then print("Including Linux platform") end
+        group "Engine/Platforms"
+            if (Platforms["Win32"] == true) then
+                include "src\\Coco\\Platforms\\Win32"
+            end
 
         group "Tests"
             --include "tests\\Coco\\Core"

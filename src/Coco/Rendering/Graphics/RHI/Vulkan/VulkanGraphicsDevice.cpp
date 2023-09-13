@@ -23,7 +23,7 @@ namespace Coco::Rendering::Vulkan
 		Queue(queue)
 	{}
 
-	VulkanGraphicsDevice::VulkanGraphicsDevice(VkInstance instance, VkPhysicalDevice physicalDevice, const GraphicsDeviceCreateParams& createParams) :
+	VulkanGraphicsDevice::VulkanGraphicsDevice(VkInstance instance, const GraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice) :
 		_instance(instance),
 		_physicalDevice(physicalDevice),
 		_device(nullptr),
@@ -75,7 +75,7 @@ namespace Coco::Rendering::Vulkan
 				return nullptr;
 		}
 
-		return CreateUniqueRef<VulkanGraphicsDevice>(instance, device, createParams);
+		return CreateUniqueRef<VulkanGraphicsDevice>(instance, createParams, device);
 	}
 
 	void VulkanGraphicsDevice::WaitForIdle() const
