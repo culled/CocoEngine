@@ -1,49 +1,89 @@
 #pragma once
 
 #include "String.h"
+#include "Vector.h"
 
 namespace Coco
 {
-	/// @brief Template for sizes
-	/// @tparam ValueType The type of value to use
-	template<typename ValueType>
-	struct SizeBase
+	/// @brief A size that is backed by double values
+	struct Size
 	{
+		/// @brief A size with zero width and height
+		static const Size Zero;
+
 		/// @brief The width
-		ValueType Width;
+		double Width;
 
 		/// @brief The height
-		ValueType Height;
+		double Height;
 
-		SizeBase() :
-			Width{},
-			Height{}
-		{}
+		Size();
+		Size(double width, double height);
 
-		SizeBase(ValueType width, ValueType height) :
-			Width(width),
-			Height(height)
-		{}
+		constexpr void operator+=(const Size& other) { Width += other.Width; Height += other.Height; }
+		constexpr void operator-=(const Size& other) { Width -= other.Width; Height -= other.Height; }
 
-		virtual ~SizeBase() = default;
+		Size operator+(const Size& other) const { return Size(Width + other.Width, Height + other.Height); }
+		Size operator-(const Size& other) const { return Size(Width - other.Width, Height - other.Height); }
+
+		constexpr void operator*=(double scalar) { Width *= scalar; Height *= scalar; }
+		constexpr void operator/=(double divisor) { Width /= divisor; Height /= divisor; }
+
+		Size operator*(double scalar) { return Size(Width * scalar, Height * scalar); }
+		Size operator/(double divisor) { return Size(Width / divisor, Height / divisor); }
+
+		operator Vector2() const { return Vector2(Width, Height); }
+
+		/// @brief Determines if this size equals another
+		/// @param other The other size
+		/// @param threshold The threshold used to determine equality
+		/// @return True if the given size equals this one
+		constexpr bool Equals(const Size& other, double threshold = Math::Epsilon) const
+		{
+			return Math::Approximately(Width, other.Width, threshold) &&
+				Math::Approximately(Height, other.Height, threshold);
+		}
 
 		/// @brief Gets a string representation of this size
 		/// @return The string representation
-		string ToString() const
-		{
-			return FormatString("{}x{}", Width, Height);
-		}
+		string ToString() const;
 	};
 
-	/// @brief A size that uses uint32 values
-	struct SizeInt : SizeBase<uint32>
+	/// @brief A size that is backed by int values
+	struct SizeInt
 	{
 		/// @brief A size with zero width and height
 		static const SizeInt Zero;
 
-		SizeInt() = default;
-		SizeInt(uint32 width, uint32 height);
+		/// @brief The width
+		int Width;
 
-		constexpr bool operator==(const SizeInt& other) { return Width == other.Width && Height == other.Height; }
+		/// @brief The height
+		int Height;
+
+		SizeInt();
+		SizeInt(int width, int height);
+
+		constexpr bool operator==(const SizeInt& other) const { return Width == other.Width && Height == other.Height; }
+
+		constexpr void operator+=(const SizeInt& other) { Width += other.Width; Height += other.Height; }
+		constexpr void operator-=(const SizeInt& other) { Width -= other.Width; Height -= other.Height; }
+
+		SizeInt operator+(const SizeInt& other) const { return SizeInt(Width + other.Width, Height + other.Height); }
+		SizeInt operator-(const SizeInt& other) const { return SizeInt(Width - other.Width, Height - other.Height); }
+
+		constexpr void operator*=(int scalar) { Width *= scalar; Height *= scalar; }
+		constexpr void operator/=(int divisor) { Width /= divisor; Height /= divisor; }
+
+		SizeInt operator*(int scalar) { return SizeInt(Width * scalar, Height * scalar); }
+		SizeInt operator/(int divisor) { return SizeInt(Width / divisor, Height / divisor); }
+
+		operator Size() const { return Size(Width, Height); }
+
+		operator Vector2Int() const { return Vector2Int(Width, Height); }
+
+		/// @brief Gets a string representation of this size
+		/// @return The string representation
+		string ToString() const;
 	};
 }

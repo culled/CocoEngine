@@ -45,7 +45,13 @@ namespace Coco::Math
 	/// @brief Gets the smallest discernable value of a type
 	/// @tparam ValueType The type of value
 	template<typename ValueType>
-	constexpr auto Epsilon = std::numeric_limits<ValueType>::epsilon;
+	constexpr auto EpsilonValue = std::numeric_limits<ValueType>::epsilon;
+
+	/// @brief The smallest discernable value of a double 
+	constexpr double Epsilon = EpsilonValue<double>();
+
+	/// @brief The smallest discernable value of a float 
+	constexpr float EpsilonF = EpsilonValue<float>();
 
 	/// @brief Gets the absolute value of a value
 	/// @tparam ValueType The type of value
@@ -62,14 +68,30 @@ namespace Coco::Math
 	template<typename ValueType>
 	constexpr ValueType Pow(const ValueType& base, const ValueType& exp) { return std::pow(base, exp); }
 
+	/// @brief Gets the square root of a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The square root
+	template<typename ValueType>
+	constexpr double Sqrt(const ValueType& v) { return std::sqrt(v); }
+
+	/// @brief Tests if two decimal values are within range of each other
+	/// @tparam ValueType The type of value
+	/// @param a The first number
+	/// @param b The second number
+	/// @param threshold The threshold that the two numbers must be within range of each other.
+	/// @return True if the two numbers are within the threshold of each other
+	template<typename ValueType>
+	constexpr bool Approximately(const ValueType& a, const ValueType& b, const ValueType& threshold)
+	{
+		return Abs(a - b) <= threshold * Max(Abs(a), Abs(b));
+	}
+
 	/// @brief Tests two decimal types for equality
 	/// @tparam ValueType The type
 	/// @param a The first number
 	/// @param b The second number
 	/// @return True if the two are equal within an acceptable error of each other
 	template<typename ValueType>
-	constexpr bool Equal(const ValueType& a, const ValueType& b)
-	{
-		return Abs(a - b) <= Epsilon<ValueType>() * Max(Abs(a), Abs(b));
-	}
+	constexpr bool Equal(const ValueType& a, const ValueType& b) { return Approximately(a, b, EpsilonValue<ValueType>()); }
 }
