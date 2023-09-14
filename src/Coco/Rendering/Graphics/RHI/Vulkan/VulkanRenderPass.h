@@ -39,12 +39,10 @@ namespace Coco::Rendering::Vulkan
 	class VulkanRenderPass : GraphicsDeviceResource<VulkanGraphicsDevice>
 	{
 	private:
-		static const uint64 _sStaleTickThreshold;
-
 		VulkanRenderPassKey _key;
 		VkRenderPass _renderPass;
 		std::vector<VulkanSubpassInfo> _subpassInfos;
-		uint64 _lastUsedTick;
+		double _lastUsedTime;
 
 	public:
 		VulkanRenderPass(CompiledRenderPipeline& pipeline);

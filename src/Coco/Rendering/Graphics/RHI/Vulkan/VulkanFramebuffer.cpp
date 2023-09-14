@@ -1,13 +1,12 @@
 #include "Renderpch.h"
 #include "VulkanFramebuffer.h"
 #include "VulkanGraphicsDevice.h"
+#include "VulkanRenderContextCache.h"
 
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	const uint64 VulkanFramebuffer::_sStaleTickThreshold = 240;
-
 	VulkanFramebuffer::VulkanFramebuffer(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages) :
 		_key(MakeKey(size, renderPass, attachmentImages)),
 		_size(size),
@@ -65,12 +64,12 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanFramebuffer::Use()
 	{
-		_lastUsedTick = Engine::cGet()->GetMainLoop()->GetCurrentTick().TickNumber;
+		_lastUsedTime = Engine::cGet()->GetMainLoop()->GetCurrentTick().UnscaledTime;
 	}
 
 	bool VulkanFramebuffer::IsStale() const
 	{
-		uint64 currentTick = Engine::cGet()->GetMainLoop()->GetCurrentTick().TickNumber;
-		return currentTick - _lastUsedTick > _sStaleTickThreshold;
+		double currentTime = Engine::cGet()->GetMainLoop()->GetCurrentTick().UnscaledTime;
+		return currentTime - _lastUsedTime > VulkanRenderContextCache::sPurgeThreshold;
 	}
 }

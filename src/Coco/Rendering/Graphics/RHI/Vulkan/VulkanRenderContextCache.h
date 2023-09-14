@@ -16,6 +16,9 @@ namespace Coco::Rendering::Vulkan
 		/// @brief The period between purges in seconds
 		static const double sPurgePeriod;
 
+		/// @brief The time since a resource's use that it should be considered stale
+		static const double sPurgeThreshold;
+
 	private:
 		std::unordered_map<VulkanFramebufferKey, VulkanFramebuffer> _framebuffers;
 		TickListener _tickListener;

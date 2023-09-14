@@ -7,6 +7,7 @@ namespace Coco::Rendering::Vulkan
 {
 	const int VulkanRenderContextCache::sPurgePriority = 1000;
 	const double VulkanRenderContextCache::sPurgePeriod = 5.0;
+	const double VulkanRenderContextCache::sPurgeThreshold = 4.0;
 
 	VulkanRenderContextCache::VulkanRenderContextCache() :
 		_tickListener(this, &VulkanRenderContextCache::TickCallback, sPurgePriority)

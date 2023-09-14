@@ -18,14 +18,12 @@ namespace Coco::Rendering::Vulkan
 	class VulkanFramebuffer : public GraphicsDeviceResource<VulkanGraphicsDevice>
 	{
 	private:
-		static const uint64 _sStaleTickThreshold;
-
 		VulkanFramebufferKey _key;
 		SizeInt _size;
 		std::vector<VulkanImage*> _attachmentImages;
 		VkRenderPass _renderPass;
 		VkFramebuffer _framebuffer;
-		uint64 _lastUsedTick;
+		double _lastUsedTime;
 
 	public:
 		VulkanFramebuffer(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages);

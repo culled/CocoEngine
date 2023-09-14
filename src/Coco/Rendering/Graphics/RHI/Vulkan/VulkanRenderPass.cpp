@@ -2,13 +2,12 @@
 #include "VulkanRenderPass.h"
 #include "VulkanGraphicsDevice.h"
 #include "VulkanUtils.h"
+#include "VulkanGraphicsDeviceCache.h"
 
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	const uint64 VulkanRenderPass::_sStaleTickThreshold = 240;
-
 	VulkanSubpassInfo::VulkanSubpassInfo() :
 		ColorAttachments{},
 		ColorAttachmentReferences{},
@@ -21,7 +20,8 @@ namespace Coco::Rendering::Vulkan
 	VulkanRenderPass::VulkanRenderPass(CompiledRenderPipeline& pipeline) : 
 		_key(MakeKey(pipeline)),
 		_renderPass(nullptr),
-		_subpassInfos(pipeline.RenderPasses.size())
+		_subpassInfos(pipeline.RenderPasses.size()),
+		_lastUsedTime(0)
 	{
 		Assert(pipeline.RenderPasses.size() != 0)
 
@@ -185,12 +185,12 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanRenderPass::Use()
 	{
-		_lastUsedTick = Engine::cGet()->GetMainLoop()->GetCurrentTick().TickNumber;
+		_lastUsedTime = Engine::cGet()->GetMainLoop()->GetCurrentTick().UnscaledTime;
 	}
 
 	bool VulkanRenderPass::IsStale() const
 	{
-		uint64 currentTick = Engine::cGet()->GetMainLoop()->GetCurrentTick().TickNumber;
-		return currentTick - _lastUsedTick > _sStaleTickThreshold;
+		double currentTime = Engine::cGet()->GetMainLoop()->GetCurrentTick().UnscaledTime;
+		return currentTime - _lastUsedTime > VulkanGraphicsDeviceCache::sPurgeThreshold;
 	}
 }
