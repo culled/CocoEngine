@@ -14,12 +14,13 @@ namespace Coco::Rendering::Vulkan
 	{
 		_tickListener.SetTickPeriod(sPurgePeriod);
 
-		Engine::Get()->GetMainLoop()->AddListener(_tickListener);
+		MainLoop::Get()->AddListener(_tickListener);
 	}
 
 	VulkanGraphicsDeviceCache::~VulkanGraphicsDeviceCache()
 	{
-		Engine::Get()->GetMainLoop()->RemoveListener(_tickListener);
+		MainLoop::Get()->RemoveListener(_tickListener);
+
 		_renderPasses.clear();
 	}
 

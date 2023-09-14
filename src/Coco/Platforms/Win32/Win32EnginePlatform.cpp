@@ -411,13 +411,13 @@ namespace Coco::Platforms::Win32
 #ifdef COCO_SERVICES_INPUT
 	void Win32EnginePlatform::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
-		ServiceManager* services = Engine::Get()->GetServiceManager();
+		ServiceManager* services = ServiceManager::Get();
 
 		using namespace Coco::Input;
-		if (!services->Has<InputService>())
+		if (!services->HasService<InputService>())
 			return;
 
-		InputService* input = services->Get<InputService>();
+		InputService* input = services->GetService<InputService>();
 
 		switch (message)
 		{

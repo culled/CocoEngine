@@ -3,11 +3,12 @@
 #include "../Corepch.h"
 #include "TickInfo.h"
 #include "TickListener.h"
+#include "../Types/Singleton.h"
 
 namespace Coco
 {
 	/// @brief A loop that ticks listeners
-	class MainLoop
+	class MainLoop : public Singleton<MainLoop>
 	{
 	private:
 		std::vector<TickListener*> _tickListeners;

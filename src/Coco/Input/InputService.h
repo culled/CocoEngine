@@ -2,6 +2,7 @@
 
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Services/EngineService.h>
+#include <Coco/Core/Types/Singleton.h>
 #include <Coco/Core/MainLoop/TickListener.h>
 #include "Keyboard.h"
 #include "Mouse.h"
@@ -9,7 +10,7 @@
 namespace Coco::Input
 {
 	/// @brief An EngineService that handles input from peripherals
-	class InputService : public EngineService
+	class InputService : public EngineService, public Singleton<InputService>
 	{
 	public:
 		/// @brief Priority for the tick handling input processing

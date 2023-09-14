@@ -10,12 +10,12 @@ namespace Coco
 			_services.erase(*it);
 	}
 
-	bool ServiceManager::Has(const std::type_info& type)
+	bool ServiceManager::HasService(const std::type_info& type)
 	{
 		return _services.contains(type);
 	}
 
-	EngineService* ServiceManager::Get(const std::type_info& type)
+	EngineService* ServiceManager::GetService(const std::type_info& type)
 	{
 		return _services.at(type).get();
 	}
