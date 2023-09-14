@@ -27,7 +27,7 @@ namespace Coco::Platforms::Win32
         const char* GetTitle() const final { return _title.c_str(); }
 
         void SetIsFullscreen(bool fullscreen) final;
-        bool GetIsFullscreen() const final { return _isFullscreen; }
+        bool IsFullscreen() const final { return _isFullscreen; }
 
         void SetPosition(const Vector2Int& position, bool relativeToParent) final;
         Vector2Int GetPosition(bool relativeToParent) const final;
@@ -42,6 +42,8 @@ namespace Coco::Platforms::Win32
 
         void Focus() final;
         bool HasFocus() const final;
+
+        bool IsVisible() const final;
 
         /// @brief Gets this window's internal handle
         /// @return The window handle

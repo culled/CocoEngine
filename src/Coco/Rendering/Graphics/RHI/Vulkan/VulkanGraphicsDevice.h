@@ -4,9 +4,13 @@
 #include <Coco/Core/Core.h>
 #include "VulkanIncludes.h"
 #include <Coco/Core/Types/Version.h>
+#include "VulkanCommandBufferPool.h"
+#include "VulkanGraphicsDeviceCache.h"
 
 namespace Coco::Rendering::Vulkan
 {
+	class VulkanGraphicsDevice;
+
 	/// @brief A ranking for a VkPhysicalDevice
 	struct PhysicalDeviceRanking
 	{
@@ -54,7 +58,10 @@ namespace Coco::Rendering::Vulkan
 		/// @brief The actual queue
 		VkQueue Queue;
 
-		DeviceQueue(Type type, uint8 familyIndex, VkQueue queue);
+		/// @brief The command buffer pool
+		VulkanCommandBufferPool Pool;
+
+		DeviceQueue(VulkanGraphicsDevice* device, Type type, uint8 familyIndex, VkQueue queue);
 	};
 
 	/// @brief Vulkan implementation of a GraphicsDevice
@@ -73,6 +80,7 @@ namespace Coco::Rendering::Vulkan
 		UniqueRef<DeviceQueue> _transferQueue;
 		UniqueRef<DeviceQueue> _computeQueue;
 		DeviceQueue* _presentQueue;
+		UniqueRef<VulkanGraphicsDeviceCache> _cache;
 
 	public:
 		VulkanGraphicsDevice(VkInstance instance, const GraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice);
@@ -116,6 +124,10 @@ namespace Coco::Rendering::Vulkan
 		/// @param surface The surface to check presentation support for
 		/// @return The present queue, or nullptr if presentation isn't supported
 		DeviceQueue* GetOrCreatePresentQueue(VkSurfaceKHR surface);
+
+		/// @brief Gets this device's cache
+		/// @return The device cache
+		VulkanGraphicsDeviceCache* GetCache() { return _cache.get(); }
 
 	private:
 		/// @brief Gets queue family information for a device

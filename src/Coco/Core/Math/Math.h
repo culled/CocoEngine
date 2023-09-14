@@ -94,4 +94,24 @@ namespace Coco::Math
 	/// @return True if the two are equal within an acceptable error of each other
 	template<typename ValueType>
 	constexpr bool Equal(const ValueType& a, const ValueType& b) { return Approximately(a, b, EpsilonValue<ValueType>()); }
+
+	/// @brief Combines hashes using a seed
+	/// @param seed The seed to use when combining
+	/// @return The combined hash
+	static constexpr uint64 CombineHashes(uint64 seed) { return seed; }
+
+	/// @brief Combines hashes using a seed
+	/// @tparam ...Hashes The types of hashes
+	/// @param seed The seed to use when combining
+	/// @param value The first hash
+	/// @param ...hashes The remaining hashes
+	/// @return The combined hash
+	template<typename ... Hashes>
+	static constexpr uint64 CombineHashes(uint64 seed, uint64 value, Hashes... hashes)
+	{
+		// https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
+		std::hash<uint64> hasher;
+		seed ^= hasher(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		return CombineHashes(seed, hashes...);
+	}
 }

@@ -43,7 +43,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	ImagePixelFormat ToImagePixelFormat(VkFormat format)
+	ImagePixelFormat GetPixelFormat(VkFormat format)
 	{
 		switch (format)
 		{
@@ -54,6 +54,20 @@ namespace Coco::Rendering::Vulkan
 			return ImagePixelFormat::Depth32_Stencil8;
 		default:
 			return ImagePixelFormat::Unknown;
+		}
+	}
+
+	ImageColorSpace GetColorSpace(VkFormat format)
+	{
+		switch (format)
+		{
+		case VK_FORMAT_R8G8B8A8_SRGB:
+			return ImageColorSpace::sRGB;
+		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
+			return ImageColorSpace::Linear;
+		default:
+			return ImageColorSpace::Unknown;
 		}
 	}
 
@@ -92,5 +106,24 @@ namespace Coco::Rendering::Vulkan
 		default:
 			return VSyncMode::EveryVBlank;
 		}
+	}
+
+	VkImageLayout ToAttachmentLayout(ImagePixelFormat pixelFormat)
+	{
+		if (IsDepthFormat(pixelFormat) || IsStencilFormat(pixelFormat))
+		{
+			if (!IsStencilFormat(pixelFormat))
+			{
+				return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+			}
+			else if (!IsDepthFormat(pixelFormat))
+			{
+				return VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+			}
+
+			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		}
+
+		return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 }

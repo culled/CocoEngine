@@ -18,7 +18,7 @@ namespace Coco::Rendering::Vulkan
 	VulkanGraphicsPresenter::VulkanGraphicsPresenter(): 
 		_isSwapchainDirty(true),
 		_framebufferSize(SizeInt::Zero),
-		_vSyncMode(VSyncMode::Immediate),
+		_vSyncMode(VSyncMode::EveryVBlank),
 		_currentContextIndex(0),
 		_backbufferDescription{},
 		_renderContexts{},
@@ -221,7 +221,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		for (const VkSurfaceFormatKHR& format : supportDetails.SurfaceFormats)
 		{
-			if (ToImagePixelFormat(format.format) == ImagePixelFormat::RGBA8 && ToImageColorSpace(format.colorSpace) == ImageColorSpace::sRGB)
+			if (GetPixelFormat(format.format) == ImagePixelFormat::RGBA8 && ToImageColorSpace(format.colorSpace) == ImageColorSpace::sRGB)
 				return format;
 		}
 
@@ -381,8 +381,8 @@ namespace Coco::Rendering::Vulkan
 		_backbufferDescription = ImageDescription(
 			_framebufferSize.Width, _framebufferSize.Height,
 			1,
-			ToImagePixelFormat(surfaceFormat.format),
-			ToImageColorSpace(surfaceFormat.colorSpace),
+			GetPixelFormat(surfaceFormat.format),
+			GetColorSpace(surfaceFormat.format),
 			_sBackbufferUsageFlags
 		);
 		try

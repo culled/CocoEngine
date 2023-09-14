@@ -43,6 +43,10 @@ namespace Coco::Windowing
 		/// @return Information for all connected displays
 		std::vector<DisplayInfo> GetDisplays() const;
 
+		/// @brief Gets a list of all windows currently visible
+		/// @return A list of visible windows
+		std::vector<Window*> GetVisibleWindows() const;
+
 	protected:
 		/// @brief Called when a window is closed
 		/// @param window The window that closed

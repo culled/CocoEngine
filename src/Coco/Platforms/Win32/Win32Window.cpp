@@ -150,7 +150,7 @@ namespace Coco::Platforms::Win32
 		CheckWindowHandle()
 
 		::ShowWindow(_handle, SW_SHOW);
-		UpdateFullscreenState(GetIsFullscreen());
+		UpdateFullscreenState(IsFullscreen());
 	}
 
 	void Win32Window::SetTitle(const char* title)
@@ -168,7 +168,7 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::SetIsFullscreen(bool fullscreen)
 	{
-		if (GetIsFullscreen() == fullscreen)
+		if (IsFullscreen() == fullscreen)
 			return;
 
 		UpdateFullscreenState(fullscreen);
@@ -298,6 +298,13 @@ namespace Coco::Platforms::Win32
 		return ::GetActiveWindow() == _handle;
 	}
 
+	bool Win32Window::IsVisible() const
+	{
+		SizeInt size = GetClientAreaSize();
+
+		return IsWindowVisible(_handle) && size.Width > 0 && size.Height > 0;
+	}
+
 	SharedRef<Rendering::GraphicsPresenterSurface> Win32Window::CreateSurface()
 	{
 		if (!Rendering::RenderService::Get())
@@ -357,7 +364,7 @@ namespace Coco::Platforms::Win32
 
 				// Update if coming out of minimized state
 				if (size.Width == 0 && size.Height == 0 && width > 0 && height > 0)
-					UpdateFullscreenState(GetIsFullscreen());
+					UpdateFullscreenState(IsFullscreen());
 
 				HandleResized();
 				break;

@@ -33,6 +33,16 @@ namespace Coco::Rendering
 	/// @return The number of channels
 	uint8 GetPixelFormatChannelCount(ImagePixelFormat format);
 
+	/// @brief Determines if the given format is a depth format
+	/// @param format The format
+	/// @return True if the format is a depth format
+	bool IsDepthFormat(ImagePixelFormat format);
+
+	/// @brief Determines if the given format is a stencil format
+	/// @param format The format
+	/// @return True if the format is a stencil format
+	bool IsStencilFormat(ImagePixelFormat format);
+
 	/// @brief Image color spaces
 	enum class ImageColorSpace
 	{

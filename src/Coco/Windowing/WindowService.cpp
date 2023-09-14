@@ -98,6 +98,17 @@ namespace Coco::Windowing
 		}
 	}
 
+	std::vector<Window*> WindowService::GetVisibleWindows() const
+	{
+		std::vector<Window*> visibleWindows;
+
+		for (const auto& window : _windows)
+			if (window->IsVisible())
+				visibleWindows.push_back(window.get());
+
+		return visibleWindows;
+	}
+
 	void WindowService::WindowClosed(Window& window)
 	{
 		bool isMainWindow = GetMainWindow() == &window;

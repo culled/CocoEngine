@@ -17,10 +17,11 @@ namespace Coco::Rendering::Vulkan
 		ComputeQueueFamily{}
 	{}
 
-	DeviceQueue::DeviceQueue(Type type, uint8 familyIndex, VkQueue queue) :
+	DeviceQueue::DeviceQueue(VulkanGraphicsDevice* device, Type type, uint8 familyIndex, VkQueue queue) :
 		QueueType(type),
 		FamilyIndex(familyIndex),
-		Queue(queue)
+		Queue(queue),
+		Pool(device, queue, familyIndex)
 	{}
 
 	VulkanGraphicsDevice::VulkanGraphicsDevice(VkInstance instance, const GraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice) :
@@ -31,7 +32,8 @@ namespace Coco::Rendering::Vulkan
 		_graphicsQueue(nullptr),
 		_transferQueue(nullptr),
 		_computeQueue(nullptr),
-		_presentQueue(nullptr)
+		_presentQueue(nullptr),
+		_cache(CreateUniqueRef<VulkanGraphicsDeviceCache>())
 	{
 		GetPhysicalDeviceProperties();
 		CreateLogicalDevice(createParams);
@@ -48,6 +50,8 @@ namespace Coco::Rendering::Vulkan
 	VulkanGraphicsDevice::~VulkanGraphicsDevice()
 	{
 		WaitForIdle();
+
+		_cache.reset();
 
 		_graphicsQueue.reset();
 		_transferQueue.reset();
@@ -339,22 +343,19 @@ namespace Coco::Rendering::Vulkan
 			VkQueue queue;
 			vkGetDeviceQueue(_device, familyIndex, 0, &queue);
 
-			if (!queueFamilies.GraphicsQueueFamily.has_value() && queueFamilies.GraphicsQueueFamily.value() == queueFamily)
+			if (queueFamilies.GraphicsQueueFamily.has_value() && queueFamilies.GraphicsQueueFamily.value() == queueFamily)
 			{
-				_graphicsQueue = CreateUniqueRef<DeviceQueue>(DeviceQueue::Type::Graphics, familyIndex, queue);
-				// TODO: create graphics command queue
+				_graphicsQueue = CreateUniqueRef<DeviceQueue>(this, DeviceQueue::Type::Graphics, familyIndex, queue);
 			}
 
-			if (!queueFamilies.TransferQueueFamily.has_value() && queueFamilies.TransferQueueFamily.value() == queueFamily)
+			if (queueFamilies.TransferQueueFamily.has_value() && queueFamilies.TransferQueueFamily.value() == queueFamily)
 			{
-				_transferQueue = CreateUniqueRef<DeviceQueue>(DeviceQueue::Type::Transfer, familyIndex, queue);
-				// TODO: create transfer command queue
+				_transferQueue = CreateUniqueRef<DeviceQueue>(this, DeviceQueue::Type::Transfer, familyIndex, queue);
 			}
 
-			if (!queueFamilies.ComputeQueueFamily.has_value() && queueFamilies.ComputeQueueFamily.value() == queueFamily)
+			if (queueFamilies.ComputeQueueFamily.has_value() && queueFamilies.ComputeQueueFamily.value() == queueFamily)
 			{
-				_computeQueue = CreateUniqueRef<DeviceQueue>(DeviceQueue::Type::Compute, familyIndex, queue);
-				// TODO: create compute command queue
+				_computeQueue = CreateUniqueRef<DeviceQueue>(this, DeviceQueue::Type::Compute, familyIndex, queue);
 			}
 		}
 	}

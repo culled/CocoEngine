@@ -5,6 +5,8 @@
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
 
+#include "Rendering/BasicRenderPass.h"
+
 using namespace Coco;
 
 MainApplication(SandboxApp)
@@ -40,6 +42,9 @@ SandboxApp::SandboxApp() :
 		win->Show();
 	}
 
+	_pipeline = CreateSharedRef<Rendering::RenderPipeline>();
+	_pipeline->AddRenderPass(CreateSharedRef<BasicRenderPass>(), { 0 });
+
 	LogTrace(_log, "Sandbox app initialized")
 }
 
@@ -53,11 +58,23 @@ void SandboxApp::Start()
 
 void SandboxApp::Tick(const TickInfo & tickInfo)
 {
-	Input::InputService* input = Engine::Get()->GetServiceManager()->Get<Input::InputService>();
+	ServiceManager* services = Engine::Get()->GetServiceManager();
+	Input::InputService* input = services->Get<Input::InputService>();
 
 	if (input->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Escape))
 	{
 		Quit();
 		return;
+	}
+
+	Windowing::WindowService* windowing = services->Get<Windowing::WindowService>();
+	Rendering::RenderService* rendering = services->Get<Rendering::RenderService>();
+	
+	std::vector<Windowing::Window*> visibleWindows = windowing->GetVisibleWindows();
+
+	for (Windowing::Window* window : visibleWindows)
+	{
+		Rendering::GraphicsPresenter* presenter = window->GetPresenter();
+		rendering->Render(*presenter, *_pipeline);
 	}
 }

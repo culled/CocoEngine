@@ -1,14 +1,14 @@
-Coordinate system: Right-handed
+Coordinate system: Left-handed
 	- X-axis = index finger
 	- Y-axis = middle finger
 	- Z-axis = thumb
 
 +X = right
-+Y = forward
-+Z = Up
++Y = up
++Z = forward
 
 
-	   (Z) (Y)
+	   (Y) (Z)
 	    |  /
 	    | /
 	    |/
@@ -16,9 +16,9 @@ Coordinate system: Right-handed
 	   /|
 	  / |
 	 /  |
-       (-Y)(-Z)
+       (-Z)(-Y)
 
-Positive rotation = turn counter clockwise
+Positive rotation = turn clockwise
 
 Rotation Matrix:
 	[xx, yx, zx]

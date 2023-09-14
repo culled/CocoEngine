@@ -29,10 +29,15 @@ namespace Coco::Rendering::Vulkan
 	/// @return The format
 	VkFormat ToVkFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace);
 
-	/// @brief Converts a VkFormat to an ImagePixelFormat
+	/// @brief Gets the pixel format of a VkFormat
 	/// @param format The format
 	/// @return The pixel format
-	ImagePixelFormat ToImagePixelFormat(VkFormat format);
+	ImagePixelFormat GetPixelFormat(VkFormat format);
+
+	/// @brief Gets the color space of a VkFormat
+	/// @param colorSpace The color space 
+	/// @return The color space
+	ImageColorSpace GetColorSpace(VkFormat format);
 
 	/// @brief Converts a VkColorSpaceKHR to an ImageColorSpace
 	/// @param colorSpace The color space 
@@ -48,4 +53,9 @@ namespace Coco::Rendering::Vulkan
 	/// @param presentMode The present mode
 	/// @return The v-sync mode
 	VSyncMode ToVSyncMode(VkPresentModeKHR presentMode);
+
+	/// @brief Converts a ImagePixelFormat to a VkImageLayout
+	/// @param pixelFormat The pixel format
+	/// @return The image layout
+	VkImageLayout ToAttachmentLayout(ImagePixelFormat pixelFormat);
 }

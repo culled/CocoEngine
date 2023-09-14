@@ -110,7 +110,7 @@ namespace Coco::Windowing
 
 		/// @brief Gets this window's fullscreen state
 		/// @return If this window is fullscreen
-		virtual bool GetIsFullscreen() const = 0;
+		virtual bool IsFullscreen() const = 0;
 
 		/// @brief Sets the top-left position of this window
 		/// @param position The position
@@ -148,6 +148,10 @@ namespace Coco::Windowing
 		/// @brief Determines if this window has focus
 		/// @return True if this window has focus
 		virtual bool HasFocus() const = 0;
+
+		/// @brief Determines if this window is visible
+		/// @return True if this window is visible
+		virtual bool IsVisible() const = 0;
 
 		/// @brief Gets this window's GraphicsPresenter
 		/// @return This window's GraphicsPresenter

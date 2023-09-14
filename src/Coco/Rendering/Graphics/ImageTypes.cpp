@@ -36,6 +36,28 @@ namespace Coco::Rendering
 		}
 	}
 
+	bool IsDepthFormat(ImagePixelFormat format)
+	{
+		switch (format)
+		{
+		case ImagePixelFormat::Depth32_Stencil8:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	bool IsStencilFormat(ImagePixelFormat format)
+	{
+		switch (format)
+		{
+		case ImagePixelFormat::Depth32_Stencil8:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	const ImageDescription ImageDescription::Empty = ImageDescription();
 
 	ImageDescription::ImageDescription() : 
