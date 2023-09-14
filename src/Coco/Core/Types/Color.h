@@ -5,7 +5,7 @@
 namespace Coco
 {
 	/// @brief Represents a color composed of normalized R, G, B, and A decimal values
-	class Color
+	struct Color
 	{
 		/// @brief The default gamma value to convert linear <-> sRGB
 		static constexpr double DefaultGamma = 2.2;

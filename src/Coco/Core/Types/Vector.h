@@ -6,7 +6,7 @@
 
 namespace Coco
 {
-	/// @brief A Vector2 backed by doubles
+	/// @brief Represents a 2D vector using decimal coordinates
 	struct Vector2
 	{
 		/// @brief A zero-vector (0, 0)
@@ -62,6 +62,15 @@ namespace Coco
 		/// @return The distance between the points
 		static double DistanceBetween(const Vector2& p0, const Vector2& p1);
 
+		/// @brief Determines if this vector equals another
+		/// @param other The other vector
+		/// @return True if the two vectors are equal
+		constexpr bool Equals(const Vector2& other, double threshold = Math::Epsilon) const
+		{
+			return Math::Approximately(X, other.X, threshold) &&
+				Math::Approximately(Y, other.Y, threshold);
+		}
+
 		/// @brief Gets the squared length of this vector
 		/// @return The squared length
 		constexpr double GetLengthSquared() const { return X * X + Y * Y; }
@@ -70,21 +79,42 @@ namespace Coco
 		/// @return The length
 		constexpr double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
 
-		/// @brief Determines if this vector equals another
+		/// @brief Normalizes this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		void Normalize(bool safe = true);
+
+		/// @brief Gets a normalized copy of this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		/// @return A normalized copy of this vector
+		Vector2 Normalized(bool safe = true) const;
+
+		/// @brief Calculates the dot product of this vector with another vector
 		/// @param other The other vector
-		/// @return True if the two vectors are equal
-		constexpr bool Equals(const Vector2& other, double threshold = Math::Epsilon) const 
-		{ 
-			return Math::Approximately(X, other.X, threshold) && 
-				Math::Approximately(Y, other.Y, threshold);
-		}
+		/// @return The dot product of this vector and the other vector
+		double Dot(const Vector2& other) const { return X * other.X + Y * other.Y; }
+
+		/// @brief Projects this vector along a normal vector.
+		/// @param normal The normal vector
+		/// @return The projected vector
+		Vector2 Project(const Vector2& normal) const;
+
+		/// @brief Calculates this vector reflected on a plane with the given normal
+		/// @param normal The normal vector
+		/// @return The reflection vector
+		Vector2 Reflect(const Vector2& normal) const;
+
+		/// @brief Calculates this vector refracted through a plane with the given normal
+		/// @param normal The normal vector
+		/// @param ior The index of refraction
+		/// @return The refraction vector
+		Vector2 Refract(const Vector2& normal, double ior) const;
 
 		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
 		string ToString() const;
 	};
 
-	/// @brief A Vector2 backed by ints
+	/// @brief Represents a 2D vector using integer coordinates
 	struct Vector2Int
 	{
 		/// @brief A zero-vector (0, 0)
@@ -145,6 +175,11 @@ namespace Coco
 		/// @return The distance between the points
 		static double DistanceBetween(const Vector2Int& p0, const Vector2Int& p1);
 
+		/// @brief Determines if this vector equals another
+		/// @param other The other vector
+		/// @return True if the two vectors are equal
+		constexpr bool Equals(const Vector2Int& other) const { return X == other.X && Y == other.Y; }
+
 		/// @brief Gets the squared length of this vector
 		/// @return The squared length
 		constexpr int GetLengthSquared() const { return X * X + Y * Y; }
@@ -153,12 +188,223 @@ namespace Coco
 		/// @return The length
 		constexpr double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
 
-		/// @brief Determines if this vector equals another
-		/// @param other The other vector
-		/// @return True if the two vectors are equal
-		constexpr bool Equals(const Vector2Int& other) const { return X == other.X && Y == other.Y; }
-
 		/// @brief Gets the string representation of this vector
+		/// @return This vector as a string
+		string ToString() const;
+	};
+
+	/// @brief Represents a 3D vector using decimal coordinates
+	struct Vector3
+	{
+		/// @brief A zero vector (0, 0, 0)
+		static const Vector3 Zero;
+
+		/// @brief A vector with 1 for each axis (1, 1, 1)
+		static const Vector3 One;
+
+		/// @brief A vector pointing to the right (1, 0, 0)
+		static const Vector3 Right;
+
+		/// @brief A vector pointing to the left (-1, 0, 0)
+		static const Vector3 Left;
+
+		/// @brief A vector pointing up (0, 1, 0)
+		static const Vector3 Up;
+
+		/// @brief A vector pointing down (0, -1, 0)
+		static const Vector3 Down;
+
+		/// @brief A vector pointing forward (0, 0, 1)
+		static const Vector3 Forwards;
+
+		/// @brief A vector pointing backward (0, 0, -1)
+		static const Vector3 Backwards;
+
+		/// @brief The X component
+		double X;
+
+		/// @brief The Y component
+		double Y;
+
+		/// @brief The Z component
+		double Z;
+
+		Vector3();
+		Vector3(double x, double y, double z);
+		Vector3(const Vector2& vec2, double z = 0.0);
+
+		Vector3 operator+(const Vector3& other) const { return Vector3(X + other.X, Y + other.Y, Z + other.Z); }
+		Vector3 operator-(const Vector3& other) const { return Vector3(X - other.X, Y - other.Y, Z - other.Z); }
+
+		constexpr void operator+=(const Vector3& other) { X += other.X; Y += other.Y; Z += other.Z; }
+		constexpr void operator-=(const Vector3& other) { X -= other.X; Y -= other.Y; Z -= other.Z; }
+
+		Vector3 operator*(const Vector3& other) const { return Vector3(X * other.X, Y * other.Y, Z * other.Z); }
+		Vector3 operator*(double scalar) const { return Vector3(X * scalar, Y * scalar, Z * scalar); }
+
+		constexpr void operator*=(const Vector3& other) { X *= other.X; Y *= other.Y; Z *= other.Z; }
+		constexpr void operator*=(double scalar) { X *= scalar; Y *= scalar; Z *= scalar; }
+
+		Vector3 operator/(const Vector3& other) const { return Vector3(X / other.X, Y / other.Y, Z / other.Z); }
+		Vector3 operator/(double divisor) const { return Vector3(X / divisor, Y / divisor, Z / divisor); }
+
+		constexpr void operator/=(const Vector3& other) { X /= other.X; Y /= other.Y; Z /= other.Z; }
+		constexpr void operator/=(double divisor) { X /= divisor; Y /= divisor; Z /= divisor; }
+
+		Vector3 operator-() const { return Vector3(-X, -Y, -Z); }
+
+		/// @brief Returns the distance between two points
+		/// @param p0 The first point
+		/// @param p1 The second point
+		/// @return The distance between the point
+		static double DistanceBetween(const Vector3& p0, const Vector3& p1);
+
+		/// @brief Compares if this vector equals another vector
+		/// @param other The other vector
+		/// @param tolerance The difference tolerance
+		/// @return True if the two vectors are within the tolerance of each other
+		constexpr bool Equals(const Vector3& other, double tolerance = Math::Epsilon) const
+		{
+			return Math::Approximately(X, other.X, tolerance) &&
+				Math::Approximately(Y, other.Y, tolerance) &&
+				Math::Approximately(Z, other.Z, tolerance);
+		}
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr double GetLengthSquared() const { return X * X + Y * Y + Z * Z; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		constexpr double GetLength() const { return Math::Sqrt(X * X + Y * Y + Z * Z); }
+
+		/// @brief Normalizes this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		void Normalize(bool safe = true);
+
+		/// @brief Gets a normalized copy of this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		/// @return A normalized copy of this vector
+		Vector3 Normalized(bool safe = true) const;
+
+		/// @brief Calculates the dot product of this vector with another vector
+		/// @param other The other vector
+		/// @return The dot product of this vector and the other vector
+		constexpr double Dot(const Vector3& other) const { return X * other.X + Y * other.Y + Z * other.Z; }
+
+		/// @brief Calculates the cross product of this vector with another vector. The resulting vector is orthogonal to both vectors
+		/// @param other The other vector
+		/// @return The cross product
+		Vector3 Cross(const Vector3& other) const { return Vector3(Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X); }
+
+		/// @brief Projects this vector along a normal vector.
+		/// @param normal The normal vector
+		/// @return The projected vector
+		Vector3 Project(const Vector3& normal) const;
+
+		/// @brief Calculates this vector reflected on a plane with the given normal
+		/// @param normal The normal vector
+		/// @return The reflection vector
+		Vector3 Reflect(const Vector3& normal) const;
+
+		/// @brief Calculates this vector refracted through a plane with the given normal
+		/// @param normal The normal vector
+		/// @param ior The index of refraction
+		/// @return The refraction vector
+		Vector3 Refract(const Vector3& normal, double ior) const;
+
+		/// @brief Converts this vector to a string
+		/// @return This vector as a string
+		string ToString() const;
+	};
+
+	/// @brief Represents a 4D vector using decimal coordinates
+	struct Vector4
+	{
+		/// @brief A zero vector (0, 0, 0, 0)
+		static const Vector4 Zero;
+
+		/// @brief A vector with 1 for each axis (1, 1, 1, 1)
+		static const Vector4 One;
+
+		/// @brief The X component
+		double X;
+
+		/// @brief The Y component
+		double Y;
+
+		/// @brief The Z component
+		double Z;
+
+		/// @brief The W component
+		double W;
+
+		Vector4();
+		Vector4(double x, double y, double z, double w);
+		Vector4(const Vector2& vec2, double z = 0.0, double w = 0.0);
+		Vector4(const Vector3& vec3, double w = 0.0);
+
+		Vector4 operator+(const Vector4& other) const { return Vector4(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
+		Vector4 operator-(const Vector4& other) const { return Vector4(X - other.X, Y - other.Y, Z - other.Z, W - other.W); }
+
+		void operator+=(const Vector4& other) { X += other.X; Y += other.Y; Z += other.Z; W += other.W; }
+		void operator-=(const Vector4& other) { X -= other.X; Y -= other.Y; Z -= other.Z; W -= other.W; }
+
+		Vector4 operator*(const Vector4& other) const { return Vector4(X * other.X, Y * other.Y, Z * other.Z, W * other.W); }
+		Vector4 operator*(double scalar) const { return Vector4(X * scalar, Y * scalar, Z * scalar, W * scalar); }
+
+		void operator*=(const Vector4& other) { X *= other.X; Y *= other.Y; Z *= other.Z; W *= other.W; }
+		void operator*=(double scalar) { X *= scalar; Y *= scalar; Z *= scalar; W *= scalar; }
+
+		Vector4 operator/(const Vector4& other) const { return Vector4(X / other.X, Y / other.Y, Z / other.Z, W / other.W); }
+		Vector4 operator/(double divisor) const { return Vector4(X / divisor, Y / divisor, Z / divisor, W / divisor); }
+
+		void operator/=(const Vector4& other) { X /= other.X; Y /= other.Y; Z /= other.Z; W /= other.W; }
+		void operator/=(double divisor) { X /= divisor; Y /= divisor; Z /= divisor; W /= divisor; }
+
+		Vector4 operator-() const { return Vector4(-X, -Y, -Z, -W); }
+
+		/// @brief Returns the distance between two points
+		/// @param p0 The first point
+		/// @param p1 The second point
+		/// @return The distance between the point
+		static double DistanceBetween(const Vector4& p0, const Vector4& p1);
+
+		/// @brief Compares if this vector equals another vector
+		/// @param other The other vector
+		/// @param tolerance The difference tolerance
+		/// @return True if the two vectors are within the tolerance of each other
+		constexpr bool Equals(const Vector4& other, double tolerance = Math::Epsilon) const
+		{
+			return Math::Approximately(X, other.X, tolerance) &&
+				Math::Approximately(Y, other.Y, tolerance) &&
+				Math::Approximately(Z, other.Z, tolerance) &&
+				Math::Approximately(W, other.W, tolerance);
+		}
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr double GetLengthSquared() const { return X * X + Y * Y + Z * Z + W * W; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		constexpr double GetLength() const { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
+
+		/// @brief Normalizes this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		void Normalize(bool safe = true);
+
+		/// @brief Gets a normalized copy of this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		/// @return A normalized copy of this vector
+		Vector4 Normalized(bool safe = true) const;
+
+		/// @brief Calculates the dot product of this vector with another vector
+		/// @param other The other vector
+		/// @return The dot product of this vector and the other vector
+		constexpr double Dot(const Vector4& other) const { return X * other.X + Y * other.Y + Z * other.Z + W * other.W; }
+
+		/// @brief Converts this vector to a string
 		/// @return This vector as a string
 		string ToString() const;
 	};
