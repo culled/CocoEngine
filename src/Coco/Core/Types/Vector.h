@@ -46,7 +46,7 @@ namespace Coco
 		Vector2 operator/(double divisor) const { return Vector2(X / divisor, Y / divisor); }
 
 		constexpr void operator*=(double scalar) { X *= scalar; Y *= scalar; }
-		constexpr void operator/=(double scalar) { X /= scalar; Y /= scalar; }
+		constexpr void operator/=(double divisor) { X /= divisor; Y /= divisor; }
 
 		Vector2 operator*(const Vector2& other) const { return Vector2(X * other.X, Y * other.Y); }
 		Vector2 operator/(const Vector2& other) const { return Vector2(X / other.X, Y / other.Y); }
@@ -60,7 +60,7 @@ namespace Coco
 		/// @param p0 The first point
 		/// @param p1 The second point
 		/// @return The distance between the points
-		static double DistanceBetween(const Vector2& p0, const Vector2& p1);
+		static double DistanceBetween(const Vector2& p0, const Vector2& p1) { return(p0 - p1).GetLength(); }
 
 		/// @brief Determines if this vector equals another
 		/// @param other The other vector
@@ -154,7 +154,7 @@ namespace Coco
 		Vector2Int operator/(int divisor) const { return Vector2Int(X / divisor, Y / divisor); }
 
 		constexpr void operator*=(int scalar) { X *= scalar; Y *= scalar; }
-		constexpr void operator/=(int scalar) { X /= scalar; Y /= scalar; }
+		constexpr void operator/=(int divisor) { X /= divisor; Y /= divisor; }
 
 		Vector2Int operator*(const Vector2Int& other) const { return Vector2Int(X * other.X, Y * other.Y); }
 		Vector2Int operator/(const Vector2Int& other) const { return Vector2Int(X / other.X, Y / other.Y); }
@@ -173,7 +173,7 @@ namespace Coco
 		/// @param p0 The first point
 		/// @param p1 The second point
 		/// @return The distance between the points
-		static double DistanceBetween(const Vector2Int& p0, const Vector2Int& p1);
+		static double DistanceBetween(const Vector2Int& p0, const Vector2Int& p1) { return(p0 - p1).GetLength(); }
 
 		/// @brief Determines if this vector equals another
 		/// @param other The other vector
@@ -215,10 +215,10 @@ namespace Coco
 		static const Vector3 Down;
 
 		/// @brief A vector pointing forward (0, 0, 1)
-		static const Vector3 Forwards;
+		static const Vector3 Forward;
 
 		/// @brief A vector pointing backward (0, 0, -1)
-		static const Vector3 Backwards;
+		static const Vector3 Backward;
 
 		/// @brief The X component
 		double X;
@@ -257,7 +257,7 @@ namespace Coco
 		/// @param p0 The first point
 		/// @param p1 The second point
 		/// @return The distance between the point
-		static double DistanceBetween(const Vector3& p0, const Vector3& p1);
+		static double DistanceBetween(const Vector3& p0, const Vector3& p1) { return(p0 - p1).GetLength(); }
 
 		/// @brief Compares if this vector equals another vector
 		/// @param other The other vector
@@ -314,6 +314,94 @@ namespace Coco
 		Vector3 Refract(const Vector3& normal, double ior) const;
 
 		/// @brief Converts this vector to a string
+		/// @return This vector as a string
+		string ToString() const;
+	};
+
+	/// @brief Represents a 3D vector using integer coordinates
+	struct Vector3Int
+	{
+		/// @brief A zero-vector (0, 0, 0)
+		static const Vector3Int Zero;
+
+		/// @brief A vector with one in each axis (1, 1, 1)
+		static const Vector3Int One;
+
+		/// @brief A vector pointing to the right (1, 0, 0)
+		static const Vector3Int Right;
+
+		/// @brief A vector pointing to the left (-1, 0, 0)
+		static const Vector3Int Left;
+
+		/// @brief A vector pointing upwards (0, 1, 0)
+		static const Vector3Int Up;
+
+		/// @brief A vector pointing downwards (0, -1, 0)
+		static const Vector3Int Down;
+
+		/// @brief A vector pointing forward (0, 0, 1)
+		static const Vector3Int Forward;
+
+		/// @brief A vector pointing backwards (0, 0, -1)
+		static const Vector3Int Backward;
+
+		/// @brief The x value
+		int X;
+
+		/// @brief The y value
+		int Y;
+
+		/// @brief The z value
+		int Z;
+
+		Vector3Int();
+		Vector3Int(int x, int y, int z);
+
+		Vector3Int operator+(const Vector3Int& other) const { return Vector3Int(X + other.X, Y + other.Y, Z + other.Z); }
+		Vector3Int operator-(const Vector3Int& other) const { return Vector3Int(X - other.X, Y - other.Y, Z - other.Z); }
+
+		constexpr void operator+=(const Vector3Int& other) { X += other.X; Y += other.Y; Z += other.Z; }
+		constexpr void operator-=(const Vector3Int& other) { X -= other.X; Y -= other.Y; Z -= other.Z; }
+
+		Vector3Int operator*(int scalar) const { return Vector3Int(X * scalar, Y * scalar, Z * scalar); }
+		Vector3Int operator/(int divisor) const { return Vector3Int(X / divisor, Y / divisor, Z / divisor); }
+
+		constexpr void operator*=(int scalar) { X *= scalar; Y *= scalar; Z *= scalar; }
+		constexpr void operator/=(int divisor) { X /= divisor; Y /= divisor; Z /= divisor; }
+
+		Vector3Int operator*(const Vector3Int& other) const { return Vector3Int(X * other.X, Y * other.Y, Z * other.Z); }
+		Vector3Int operator/(const Vector3Int& other) const { return Vector3Int(X / other.X, Y / other.Y, Z / other.Z); }
+
+		constexpr void operator*=(const Vector3Int& other) { X *= other.X; Y *= other.Y; Z *= other.Z; }
+		constexpr void operator/=(const Vector3Int& other) { X /= other.X; Y /= other.Y; Z /= other.Z; }
+
+		constexpr bool operator==(const Vector3Int& other) const { return Equals(other); }
+		constexpr bool operator!=(const Vector3Int& other) const { return !Equals(other); }
+
+		Vector3Int operator-() const { return Vector3Int(-X, -Y, -Z); }
+
+		operator Vector3() const { return Vector3(X, Y, Z); }
+
+		/// @brief Returns the distance between two points
+		/// @param p0 The first point
+		/// @param p1 The second point
+		/// @return The distance between the points
+		static double DistanceBetween(const Vector3Int& p0, const Vector3Int& p1) { return (p0 - p1).GetLength(); }
+
+		/// @brief Determines if this vector equals another
+		/// @param other The other vector
+		/// @return True if the two vectors are equal
+		constexpr bool Equals(const Vector3Int& other) const { return X == other.X && Y == other.Y && Z == other.Z; }
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr int GetLengthSquared() const { return X * X + Y * Y + Z * Z; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		constexpr double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
+
+		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
 		string ToString() const;
 	};
@@ -405,6 +493,79 @@ namespace Coco
 		constexpr double Dot(const Vector4& other) const { return X * other.X + Y * other.Y + Z * other.Z + W * other.W; }
 
 		/// @brief Converts this vector to a string
+		/// @return This vector as a string
+		string ToString() const;
+	};
+
+	/// @brief Represents a 4D vector using integer coordinates
+	struct Vector4Int
+	{
+		/// @brief A zero-vector (0, 0, 0, 0)
+		static const Vector4Int Zero;
+
+		/// @brief A vector with one in each axis (1, 1, 1, 1)
+		static const Vector4Int One;
+
+		/// @brief The x value
+		int X;
+
+		/// @brief The y value
+		int Y;
+
+		/// @brief The z value
+		int Z;
+
+		/// @brief The w value
+		int W;
+
+		Vector4Int();
+		Vector4Int(int x, int y, int z, int w);
+
+		Vector4Int operator+(const Vector4Int& other) const { return Vector4Int(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
+		Vector4Int operator-(const Vector4Int& other) const { return Vector4Int(X - other.X, Y - other.Y, Z - other.Z, W - other.W); }
+
+		constexpr void operator+=(const Vector4Int& other) { X += other.X; Y += other.Y; Z += other.Z; W += other.W; }
+		constexpr void operator-=(const Vector4Int& other) { X -= other.X; Y -= other.Y; Z -= other.Z; W -= other.W; }
+
+		Vector4Int operator*(int scalar) const { return Vector4Int(X * scalar, Y * scalar, Z * scalar, W * scalar); }
+		Vector4Int operator/(int divisor) const { return Vector4Int(X / divisor, Y / divisor, Z / divisor, W / divisor); }
+
+		constexpr void operator*=(int scalar) { X *= scalar; Y *= scalar; Z *= scalar; W *= scalar; }
+		constexpr void operator/=(int divisor) { X /= divisor; Y /= divisor; Z /= divisor; W /= divisor; }
+
+		Vector4Int operator*(const Vector4Int& other) const { return Vector4Int(X * other.X, Y * other.Y, Z * other.Z, W * other.W); }
+		Vector4Int operator/(const Vector4Int& other) const { return Vector4Int(X / other.X, Y / other.Y, Z / other.Z, W / other.W); }
+
+		constexpr void operator*=(const Vector4Int& other) { X *= other.X; Y *= other.Y; Z *= other.Z; W *= other.W; }
+		constexpr void operator/=(const Vector4Int& other) { X /= other.X; Y /= other.Y; Z /= other.Z; W /= other.W; }
+
+		constexpr bool operator==(const Vector4Int& other) const { return Equals(other); }
+		constexpr bool operator!=(const Vector4Int& other) const { return !Equals(other); }
+
+		Vector4Int operator-() const { return Vector4Int(-X, -Y, -Z, -W); }
+
+		operator Vector4() const { return Vector4(X, Y, Z, W); }
+
+		/// @brief Returns the distance between two points
+		/// @param p0 The first point
+		/// @param p1 The second point
+		/// @return The distance between the points
+		static double DistanceBetween(const Vector4Int& p0, const Vector4Int& p1) { return (p0 - p1).GetLength(); }
+
+		/// @brief Determines if this vector equals another
+		/// @param other The other vector
+		/// @return True if the two vectors are equal
+		constexpr bool Equals(const Vector4Int& other) const { return X == other.X && Y == other.Y && Z == other.Z && W == other.W; }
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr int GetLengthSquared() const { return X * X + Y * Y + Z * Z + W * W; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		constexpr double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
+
+		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
 		string ToString() const;
 	};

@@ -23,7 +23,7 @@ namespace Coco
 		_freeNodes.clear();
 	}
 
-	bool Freelist::Allocate(uint64 requiredSize, FreelistNode& block)
+	bool Freelist::Allocate(uint64 requiredSize, FreelistNode& outBlock)
 	{
 		ListIterator beforeIt = _freeNodes.before_begin();
 		ListIterator it;
@@ -47,14 +47,14 @@ namespace Coco
 		if (it->Size - requiredSize >= 0)
 		{
 			_freeNodes.emplace_after(it, it->Offset + requiredSize, it->Size - requiredSize);
-			block.Size = requiredSize;
+			outBlock.Size = requiredSize;
 		}
 		else
 		{
-			block.Size = it->Size;
+			outBlock.Size = it->Size;
 		}
 
-		block.Offset = it->Offset;
+		outBlock.Offset = it->Offset;
 
 		// Erase after the previous iterator
 		_freeNodes.erase_after(beforeIt);

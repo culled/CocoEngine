@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Coco/Core/Corepch.h>
-#include <Coco/Core/Defines.h>
+#include "../Corepch.h"
+#include "../Defines.h"
 
 namespace Coco
 {
@@ -78,6 +78,9 @@ namespace Coco
 		template<typename RefType>
 		friend class Ref;
 
+		template<typename RefType>
+		friend class ManagedRef;
+
 	private:
 		UniqueRef<ValueType> _instance;
 		SharedRef<bool> _state;
@@ -97,7 +100,9 @@ namespace Coco
 		ManagedRef(ManagedRef<OtherType>&& other) :
 			_instance(std::move(other._instance)),
 			_state(std::move(other._state))
-		{}
+		{
+			static_assert(std::is_base_of<ValueType, OtherType>::value || std::is_base_of<OtherType, ValueType>::value, "Cannot convert reference types");
+		}
 
 		template<typename OtherType>
 		ManagedRef(const ManagedRef<OtherType>&) = delete;
@@ -107,22 +112,24 @@ namespace Coco
 			Invalidate();
 		}
 
-		ValueType* operator->() { return _instance.get(); }
-		const ValueType* operator->() const { return _instance.get(); }
-
-		ValueType& operator*() { return *_instance; }
-		const ValueType& operator*() const { return *_instance; }
-
 		template<typename OtherType>
 		ManagedRef& operator=(const ManagedRef<OtherType>&) = delete;
 
 		template<typename OtherType>
 		ManagedRef& operator=(ManagedRef<OtherType>&& other)
 		{
+			static_assert(std::is_base_of<ValueType, OtherType>::value || std::is_base_of<OtherType, ValueType>::value, "Cannot convert reference types");
+
 			_instance.swap(other._instance);
 			_state.swap(other._state);
 			return *this;
 		}
+
+		ValueType* operator->() { return _instance.get(); }
+		const ValueType* operator->() const { return _instance.get(); }
+
+		ValueType& operator*() { return *_instance; }
+		const ValueType& operator*() const { return *_instance; }
 
 		/// @brief Invalidates the managed object and all references to it
 		void Invalidate()
@@ -161,6 +168,9 @@ namespace Coco
 	template<typename ValueType>
 	class Ref
 	{
+		template<typename OtherType>
+		friend class Ref;
+
 	private:
 		ValueType* _ptr;
 		SharedRef<bool> _state;
@@ -173,19 +183,34 @@ namespace Coco
 
 		template<typename RefType>
 		Ref(const ManagedRef<RefType>& ref) :
-			_ptr(ref.Get()),
+			_ptr(static_cast<ValueType*>(ref.Get())),
 			_state(ref._state)
-		{}
+		{
+			static_assert(std::is_base_of<ValueType, RefType>::value || std::is_base_of<RefType, ValueType>::value, "Cannot convert reference types");
+		}
 
 		template<typename RefType>
 		Ref(Ref<RefType>&& ref) :
-			_ptr(ref._ptr),
+			_ptr(static_cast<ValueType*>(ref._ptr)),
 			_state(ref._state)
-		{}
+		{
+			static_assert(std::is_base_of<ValueType, RefType>::value || std::is_base_of<RefType, ValueType>::value, "Cannot convert reference types");
+		}
 
 		~Ref()
 		{
 			Invalidate();
+		}
+
+		template<typename RefType>
+		Ref& operator=(const ManagedRef<RefType>& ref)
+		{
+			static_assert(std::is_base_of<ValueType, RefType>::value || std::is_base_of<RefType, ValueType>::value, "Cannot convert reference types");
+
+			_ptr = static_cast<ValueType*>(ref.Get());
+			_state = ref._state;
+
+			return *this;
 		}
 
 		ValueType* operator->() { return _ptr; }
@@ -193,15 +218,6 @@ namespace Coco
 
 		ValueType& operator*() { return *_ptr; }
 		const ValueType& operator*() const { return *_ptr; }
-
-		template<typename RefType>
-		Ref& operator=(const ManagedRef<RefType>& ref)
-		{
-			_ptr = ref.Get();
-			_state = ref._state;
-
-			return *this;
-		}
 
 		/// @brief Invalidates this reference
 		void Invalidate()

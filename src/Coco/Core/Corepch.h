@@ -9,6 +9,7 @@
 #include <typeindex>
 #include <limits>
 #include <cmath>
+#include <type_traits>
 
 #include <span>
 #include <array>

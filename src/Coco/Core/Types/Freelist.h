@@ -18,6 +18,7 @@ namespace Coco
 		FreelistNode(uint64 offset, uint64 size);
 	};
 
+	/// @brief Tracks allocations within a block of memory
 	class Freelist
 	{
 	private:
@@ -31,9 +32,9 @@ namespace Coco
 
 		/// @brief Tries to allocate a block of memory from this freelist
 		/// @param requiredSize The required size of memory
-		/// @param block The block that will be filled with the memory information
+		/// @param outBlock Will be filled with the memory information if successful
 		/// @return True if a block was allocated successfully
-		bool Allocate(uint64 requiredSize, FreelistNode& block);
+		bool Allocate(uint64 requiredSize, FreelistNode& outBlock);
 
 		/// @brief Frees a block of memory in this freelist
 		/// @param block The block to free

@@ -19,11 +19,6 @@ namespace Coco
 		Y(y)
 	{}
 
-	double Vector2::DistanceBetween(const Vector2& p0, const Vector2& p1)
-	{
-		return (p0 - p1).GetLength();
-	}
-
 	void Vector2::Normalize(bool safe)
 	{
 		const double length = GetLength();
@@ -93,11 +88,6 @@ namespace Coco
 		Y(y)
 	{}
 
-	double Vector2Int::DistanceBetween(const Vector2Int& p0, const Vector2Int& p1)
-	{
-		return (p0 - p1).GetLength();
-	}
-
 	string Vector2Int::ToString() const
 	{
 		return FormatString("{}, {}", X, Y);
@@ -109,8 +99,8 @@ namespace Coco
 	const Vector3 Vector3::Left = Vector3(-1, 0, 0);
 	const Vector3 Vector3::Up = Vector3(0, 1, 0);
 	const Vector3 Vector3::Down = Vector3(0, -1, 0);
-	const Vector3 Vector3::Forwards = Vector3(0, 0, 1);
-	const Vector3 Vector3::Backwards = Vector3(0, 0, -1);
+	const Vector3 Vector3::Forward = Vector3(0, 0, 1);
+	const Vector3 Vector3::Backward = Vector3(0, 0, -1);
 
 	Vector3::Vector3() : 
 		Vector3(0, 0, 0)
@@ -125,11 +115,6 @@ namespace Coco
 	Vector3::Vector3(const Vector2& vec2, double z) : 
 		Vector3(vec2.X, vec2.Y, 0)
 	{}
-
-	double Vector3::DistanceBetween(const Vector3& p0, const Vector3& p1)
-	{
-		return(p0 - p1).GetLength();
-	}
 
 	void Vector3::Normalize(bool safe)
 	{
@@ -185,8 +170,32 @@ namespace Coco
 		return FormatString("{}, {}, {}", X, Y, Z);
 	}
 
-	static const Vector4 Zero = Vector4(0, 0, 0, 0);
-	static const Vector4 One = Vector4(1, 1, 1, 1);
+	const Vector3Int Vector3Int::Zero = Vector3Int(0, 0, 0);
+	const Vector3Int Vector3Int::One = Vector3Int(1, 1, 1);
+	const Vector3Int Vector3Int::Right = Vector3Int(1, 0, 0);
+	const Vector3Int Vector3Int::Left = Vector3Int(-1, 0, 0);
+	const Vector3Int Vector3Int::Up = Vector3Int(0, 1, 0);
+	const Vector3Int Vector3Int::Down = Vector3Int(0, -1, 0);
+	const Vector3Int Vector3Int::Forward = Vector3Int(0, 0, 1);
+	const Vector3Int Vector3Int::Backward = Vector3Int(0, 0, -1);
+
+	Vector3Int::Vector3Int() :
+		Vector3Int(0, 0, 0)
+	{}
+
+	Vector3Int::Vector3Int(int x, int y, int z) :
+		X(x),
+		Y(y),
+		Z(z)
+	{}
+
+	string Vector3Int::ToString() const
+	{
+		return FormatString("{}, {}, {}", X, Y, Z);
+	}
+
+	const Vector4 Vector4::Zero = Vector4(0, 0, 0, 0);
+	const Vector4 Vector4::One = Vector4(1, 1, 1, 1);
 
 	Vector4::Vector4() : 
 		Vector4(0, 0, 0, 0)
@@ -233,6 +242,25 @@ namespace Coco
 	}
 
 	string Vector4::ToString() const
+	{
+		return FormatString("{}, {}, {}, {}", X, Y, Z, W);
+	}
+
+	const Vector4Int Vector4Int::Zero = Vector4Int(0, 0, 0, 0);
+	const Vector4Int Vector4Int::One = Vector4Int(1, 1, 1, 1);
+
+	Vector4Int::Vector4Int() :
+		Vector4Int(0, 0, 0, 0)
+	{}
+
+	Vector4Int::Vector4Int(int x, int y, int z, int w) :
+		X(x),
+		Y(y),
+		Z(z),
+		W(w)
+	{}
+
+	string Vector4Int::ToString() const
 	{
 		return FormatString("{}, {}, {}, {}", X, Y, Z, W);
 	}
