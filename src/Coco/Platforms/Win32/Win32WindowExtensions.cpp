@@ -1,7 +1,5 @@
 #include "CPWinpch.h"
 #include "Win32WindowExtensions.h"
-#include "Win32Window.h"
-#include "Win32EnginePlatform.h"
 #include <Coco/Core/Engine.h>
 #include <Coco/Rendering/RenderService.h>
 
@@ -12,6 +10,9 @@
 #include "WindowsIncludes.h"
 #include <vulkan/vulkan_win32.h>
 #endif
+
+#include "Win32Window.h"
+#include "Win32EnginePlatform.h"
 
 namespace Coco::Platforms::Win32
 {

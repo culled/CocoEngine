@@ -8,7 +8,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanImage::VulkanImage(const ImageDescription& description, VkImage image) :
+	VulkanImage::VulkanImage(const GraphicsDeviceResourceID& id, const ImageDescription& description, VkImage image) :
+		GraphicsDeviceResource<VulkanGraphicsDevice>(id),
 		_image(image),
 		_isManagedExternally(true),
 		_description(description)

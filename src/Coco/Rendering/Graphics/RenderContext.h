@@ -1,8 +1,10 @@
 #pragma once
 
 #include <Coco/Core/Types/Refs.h>
+#include <Coco/Core/Types/Vector.h>
 #include "GraphicsFence.h"
 #include "GraphicsSemaphore.h"
+#include "ShaderUniformData.h"
 #include "RenderView.h"
 
 namespace Coco::Rendering
@@ -21,6 +23,12 @@ namespace Coco::Rendering
 
 		/// @brief The index of the RenderPass in the pipeline
 		uint32 CurrentPassIndex;
+
+		ShaderUniformData GlobalUniforms;
+		ShaderUniformData InstanceUniforms;
+		ShaderUniformData DrawUniforms;
+
+		uint64 TrianglesDrawn;
 
 		ContextRenderOperation(Rendering::RenderView& renderView, CompiledRenderPipeline& pipeline);
 
@@ -82,6 +90,21 @@ namespace Coco::Rendering
 		/// @param semaphore The semaphore
 		virtual void AddRenderCompletedSignalSemaphore(GraphicsSemaphore& semaphore) = 0;
 
+		virtual void SetShader(const RenderPassShaderData& shader) = 0;
+		virtual void Draw(const MeshData& mesh) = 0;
+
+		void SetFloat(UniformScope scope, ShaderUniformData::UniformKey key, float value);
+		void SetFloat2(UniformScope scope, ShaderUniformData::UniformKey key, const Vector2& value);
+		void SetFloat3(UniformScope scope, ShaderUniformData::UniformKey key, const Vector3& value);
+		void SetFloat4(UniformScope scope, ShaderUniformData::UniformKey key, const Vector4& value);
+		// TODO: void SetMatrix4x4(UniformScope scope, ShaderUniformData::UniformKey key, const Matrix4x4& value);
+		void SetInt(UniformScope scope, ShaderUniformData::UniformKey key, int32 value);
+		void SetInt2(UniformScope scope, ShaderUniformData::UniformKey key, const Vector2Int& value);
+		void SetInt3(UniformScope scope, ShaderUniformData::UniformKey key, const Vector3Int& value);
+		void SetInt4(UniformScope scope, ShaderUniformData::UniformKey key, const Vector4Int& value);
+		void SetBool(UniformScope scope, ShaderUniformData::UniformKey key, bool value);
+		void SetTextureSampler(UniformScope scope, ShaderUniformData::UniformKey key, const Ref<Image>& image, const Ref<ImageSampler>& sampler);
+
 		/// @brief Resets this context
 		void Reset();
 
@@ -113,5 +136,10 @@ namespace Coco::Rendering
 
 		/// @brief Called when this context has finished rendering
 		virtual void EndImpl() = 0;
+
+		/// @brief Called when a uniform changes
+		/// @param scope The scope of the uniform
+		/// @param key The key of the uniform
+		virtual void UniformChanged(UniformScope scope, ShaderUniformData::UniformKey key) = 0;
 	};
 }

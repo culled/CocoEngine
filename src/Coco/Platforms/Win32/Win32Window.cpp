@@ -2,7 +2,12 @@
 #include "Win32Window.h"
 #include "Win32EnginePlatform.h"
 #include <Coco/Core/Engine.h>
+
+#pragma push_macro("GetFreeSpace")
+#undef GetFreeSpace
 #include <Coco/Rendering/RenderService.h>
+#include <Coco/Rendering/Graphics/GraphicsPresenter.h>
+#pragma pop_macro("GetFreeSpace")
 
 #pragma push_macro("CreateWindow")
 #undef CreateWindow
@@ -76,20 +81,18 @@ namespace Coco::Platforms::Win32
 		HWND _parentWindowHandle = NULL;
 		if (createParams.ParentWindow != Window::InvalidID)
 		{
-			if (Win32Window* parentWindow = dynamic_cast<Win32Window*>(GetParentWindow()))
+			Win32Window* parentWindow = static_cast<Win32Window*>(GetParentWindow().Get());
+			_parentWindowHandle = parentWindow->_handle;
+
+			if (!createParams.DisplayIndex.has_value())
 			{
-				_parentWindowHandle = parentWindow->_handle;
+				Vector2Int relativePosition = GetRelativePosition(pos, _parentWindowHandle);
 
-				if (!createParams.DisplayIndex.has_value())
-				{
-					Vector2Int relativePosition = GetRelativePosition(pos, _parentWindowHandle);
+				if (pos.X != CW_USEDEFAULT)
+					pos.X = relativePosition.X;
 
-					if (pos.X != CW_USEDEFAULT)
-						pos.X = relativePosition.X;
-
-					if (pos.Y != CW_USEDEFAULT)
-						pos.Y = relativePosition.Y;
-				}
+				if (pos.Y != CW_USEDEFAULT)
+					pos.Y = relativePosition.Y;
 			}
 		}
 
@@ -182,10 +185,8 @@ namespace Coco::Platforms::Win32
 
 		if (relativeToParent)
 		{
-			if (const Win32Window* parent = dynamic_cast<const Win32Window*>(GetParentWindow()))
-			{
-				pos = GetRelativePosition(position, parent->_handle);
-			}
+			const Win32Window* parent = static_cast<const Win32Window*>(GetParentWindow().Get());
+			pos = GetRelativePosition(position, parent->_handle);
 		}
 
 		if (!::SetWindowPos(
@@ -210,10 +211,8 @@ namespace Coco::Platforms::Win32
 
 		if (relativeToParent)
 		{
-			if (const Win32Window* parent = dynamic_cast<const Win32Window*>(GetParentWindow()))
-			{
-				pos = GetRelativePosition(pos, parent->_handle);
-			}
+			const Win32Window* parent = static_cast<const Win32Window*>(GetParentWindow().Get());
+			pos = GetRelativePosition(pos, parent->_handle);
 		}
 
 		return pos;

@@ -26,7 +26,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanRenderPass& VulkanGraphicsDeviceCache::GetOrCreateRenderPass(CompiledRenderPipeline& pipeline)
 	{
-		VulkanRenderPassKey key = VulkanRenderPass::MakeKey(pipeline);
+		GraphicsDeviceResourceID key = VulkanRenderPass::MakeKey(pipeline);
 
 		auto it = _renderPasses.find(key);
 

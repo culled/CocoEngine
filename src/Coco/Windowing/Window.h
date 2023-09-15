@@ -4,9 +4,15 @@
 
 #include <Coco/Core/Math/Math.h>
 #include <Coco/Core/Events/Event.h>
+#include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
-#include <Coco/Rendering/Graphics/GraphicsPresenter.h>
+
+namespace Coco::Rendering
+{
+	class GraphicsPresenter;
+	struct GraphicsPresenterSurface;
+}
 
 namespace Coco::Windowing
 {
@@ -85,7 +91,7 @@ namespace Coco::Windowing
 	private:
 		static std::atomic<WindowID> _id;
 		WindowID _parentID;
-		UniqueRef<Rendering::GraphicsPresenter> _presenter;
+		Ref<Rendering::GraphicsPresenter> _presenter;
 
 	protected:
 		Window(const WindowCreateParams& createParams);
@@ -155,11 +161,7 @@ namespace Coco::Windowing
 
 		/// @brief Gets this window's GraphicsPresenter
 		/// @return This window's GraphicsPresenter
-		Rendering::GraphicsPresenter* GetPresenter() { return _presenter.get(); }
-
-		/// @brief Gets this window's GraphicsPresenter
-		/// @return This window's GraphicsPresenter
-		const Rendering::GraphicsPresenter* GetPresenter() const { return _presenter.get(); }
+		Ref<Rendering::GraphicsPresenter> GetPresenter() const { return _presenter; }
 
 		/// @brief Closes this window
 		void Close();
@@ -175,11 +177,7 @@ namespace Coco::Windowing
 
 		/// @brief Gets the parent window from the window service, if one exists
 		/// @return A pointer to the parent window, or nullptr if the parent could not be found or this window has no parent
-		Window* GetParentWindow();
-
-		/// @brief Gets the parent window from the window service, if one exists
-		/// @return A pointer to the parent window, or nullptr if the parent could not be found or this window has no parent
-		const Window* GetParentWindow() const;
+		Ref<Window> GetParentWindow() const;
 
 		/// @brief Called when this window is resized
 		void HandleResized();

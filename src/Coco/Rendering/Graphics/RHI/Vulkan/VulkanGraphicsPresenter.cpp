@@ -15,7 +15,8 @@ namespace Coco::Rendering::Vulkan
 
 	const ImageUsageFlags VulkanGraphicsPresenter::_sBackbufferUsageFlags = ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled | ImageUsageFlags::Presented;
 
-	VulkanGraphicsPresenter::VulkanGraphicsPresenter(): 
+	VulkanGraphicsPresenter::VulkanGraphicsPresenter(const GraphicsDeviceResourceID& id) :
+		GraphicsDeviceResource<VulkanGraphicsDevice>(id),
 		_isSwapchainDirty(true),
 		_framebufferSize(SizeInt::Zero),
 		_vSyncMode(VSyncMode::EveryVBlank),
@@ -71,7 +72,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	bool VulkanGraphicsPresenter::PrepareForRender(RenderContext*& outContext, Image*& outBackbuffer)
+	bool VulkanGraphicsPresenter::PrepareForRender(RenderContext*& outContext, Ref<Image>& outBackbuffer)
 	{
 		if (!EnsureSwapchain())
 		{
@@ -122,7 +123,7 @@ namespace Coco::Rendering::Vulkan
 
 		context->SetBackbufferIndex(imageIndex);
 		outContext = context;
-		outBackbuffer = _backbuffers.at(imageIndex).get();
+		outBackbuffer = _backbuffers.at(imageIndex);
 		_acquiredBackbufferIndices.emplace_back(imageIndex);
 
 		return true;
@@ -396,7 +397,7 @@ namespace Coco::Rendering::Vulkan
 
 			for (size_t i = 0; i < images.size(); i++)
 			{
-				_backbuffers.emplace_back(CreateUniqueRef<VulkanImage>(_backbufferDescription, images[i]));
+				_backbuffers.emplace_back(CreateManagedRef<VulkanImage>(ID, _backbufferDescription, images[i]));
 			}
 		}
 		catch (const std::exception& ex)
@@ -439,7 +440,7 @@ namespace Coco::Rendering::Vulkan
 		{
 			for (size_t i = 0; i < _backbuffers.size(); i++)
 			{
-				_renderContexts.emplace_back(CreateUniqueRef<VulkanRenderContext>());
+				_renderContexts.emplace_back(CreateUniqueRef<VulkanRenderContext>(ID));
 			}
 		}
 		catch (const std::exception& ex)

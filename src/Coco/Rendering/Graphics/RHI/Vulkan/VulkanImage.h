@@ -23,7 +23,7 @@ namespace Coco::Rendering::Vulkan
         VkImageView _nativeView;
 
     public:
-        VulkanImage(const ImageDescription& description, VkImage image);
+        VulkanImage(const GraphicsDeviceResourceID& id, const ImageDescription& description, VkImage image);
         ~VulkanImage();
 
         ImageDescription GetDescription() const final { return _description; }

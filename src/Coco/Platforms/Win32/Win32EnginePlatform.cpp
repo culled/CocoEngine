@@ -319,9 +319,9 @@ namespace Coco::Platforms::Win32
 		return _windowExtensions->CreateSurfaceForWindow(renderRHIName, window);
 	}
 
-	UniqueRef<Windowing::Window> Win32EnginePlatform::CreatePlatformWindow(const Windowing::WindowCreateParams& createParams)
+	ManagedRef<Windowing::Window> Win32EnginePlatform::CreatePlatformWindow(const Windowing::WindowCreateParams& createParams)
 	{
-		return CreateUniqueRef<Win32Window>(createParams);
+		return CreateManagedRef<Win32Window>(createParams);
 	}
 
 	BOOL MonitorEnumCallback(HMONITOR monitor, HDC context, LPRECT rect, LPARAM data)

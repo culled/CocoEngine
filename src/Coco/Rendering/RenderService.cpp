@@ -21,19 +21,21 @@ namespace Coco::Rendering
 		CocoTrace("RenderService shutdown")
 	}
 
-	void RenderService::Render(GraphicsPresenter& presenter, RenderPipeline& pipeline)
+	void RenderService::Render(Ref<GraphicsPresenter> presenter, RenderPipeline& pipeline)
 	{
-		RenderContext* context;
-		Image* backbuffer;
+		Assert(presenter.IsValid())
 
-		if (!presenter.PrepareForRender(context, backbuffer))
+		RenderContext* context;
+		Ref<Image> backbuffer;
+
+		if (!presenter->PrepareForRender(context, backbuffer))
 		{
 			CocoError("Failed to prepare presenter for rendering")
 			return;
 		}
 
 		// TODO: get RenderView and other rendering-related items from scene
-		SizeInt size = presenter.GetFramebufferSize();
+		SizeInt size = presenter->GetFramebufferSize();
 		RectInt viewport(Vector2Int::Zero, size);
 		std::vector<RenderTarget> rts{ RenderTarget(backbuffer, Color(0.1, 0.2, 0.3, 1.0)) };
 
@@ -41,7 +43,7 @@ namespace Coco::Rendering
 
 		ExecuteRender(*context, pipeline, view);
 
-		if (!presenter.Present(*context))
+		if (!presenter->Present(*context))
 		{
 			CocoError("Failed to present rendered image")
 		}

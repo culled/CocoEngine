@@ -1,5 +1,6 @@
 #include "Renderpch.h"
 #include "VulkanGraphicsDevice.h"
+#include "VulkanGraphicsPresenter.h"
 
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Engine.h>
@@ -33,7 +34,8 @@ namespace Coco::Rendering::Vulkan
 		_transferQueue(nullptr),
 		_computeQueue(nullptr),
 		_presentQueue(nullptr),
-		_cache(CreateUniqueRef<VulkanGraphicsDeviceCache>())
+		_cache(CreateUniqueRef<VulkanGraphicsDeviceCache>()),
+		_resources{}
 	{
 		GetPhysicalDeviceProperties();
 		CreateLogicalDevice(createParams);
@@ -57,6 +59,9 @@ namespace Coco::Rendering::Vulkan
 		_transferQueue.reset();
 		_computeQueue.reset();
 		_presentQueue = nullptr;
+
+		CocoTrace("Destroying {} resources", _resources.GetCount())
+		_resources.Clear();
 
 		if (_device)
 		{
@@ -87,7 +92,27 @@ namespace Coco::Rendering::Vulkan
 		vkDeviceWaitIdle(_device);
 	}
 
+	Ref<GraphicsPresenter> VulkanGraphicsDevice::CreatePresenter()
+	{
+		return _resources.Create<VulkanGraphicsPresenter>();
+	}
+
 	DeviceQueue* VulkanGraphicsDevice::GetQueue(DeviceQueue::Type queueType)
+	{
+		switch (queueType)
+		{
+		case DeviceQueue::Type::Graphics:
+			return _graphicsQueue.get();
+		case DeviceQueue::Type::Transfer:
+			return _transferQueue.get();
+		case DeviceQueue::Type::Compute:
+			return _computeQueue.get();
+		default:
+			return nullptr;
+		}
+	}
+
+	const DeviceQueue* VulkanGraphicsDevice::GetQueue(DeviceQueue::Type queueType) const
 	{
 		switch (queueType)
 		{
@@ -115,6 +140,37 @@ namespace Coco::Rendering::Vulkan
 			_presentQueue = _computeQueue.get();
 
 		return _presentQueue;
+	}
+
+	bool VulkanGraphicsDevice::FindMemoryIndex(uint32 type, VkMemoryPropertyFlags memoryProperties, uint32& outIndex) const
+	{
+		VkPhysicalDeviceMemoryProperties deviceMemoryProperties{};
+		vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &deviceMemoryProperties);
+
+		for (uint32 i = 0; i < deviceMemoryProperties.memoryTypeCount; i++)
+		{
+			if (type & (1 << i) && (deviceMemoryProperties.memoryTypes[i].propertyFlags & memoryProperties) == memoryProperties)
+			{
+				outIndex = i;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	void VulkanGraphicsDevice::WaitForQueueIdle(DeviceQueue::Type queueType) const
+	{
+		const DeviceQueue* queue = GetQueue(queueType);
+		VkResult result = VK_ERROR_UNKNOWN;
+
+		if (queue)
+		{
+			result = vkQueueWaitIdle(queue->Queue);
+		}
+
+		if (result != VK_SUCCESS)
+			WaitForIdle();
 	}
 
 	PhysicalDeviceQueueFamilyInfo VulkanGraphicsDevice::GetQueueFamilyInfo(VkPhysicalDevice device)

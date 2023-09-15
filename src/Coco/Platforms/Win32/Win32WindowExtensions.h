@@ -1,11 +1,12 @@
 #pragma once
 
 #include <Coco/Core/Types/Refs.h>
-#include "Win32Window.h"
 #include <Coco/Rendering/Graphics/GraphicsPresenterTypes.h>
 
 namespace Coco::Platforms::Win32
 {
+    class Win32Window;
+
     /// @brief Provides window extensions to a Win32EnginePlatform
     class Win32WindowExtensions
     {

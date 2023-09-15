@@ -18,7 +18,7 @@ namespace Coco::Rendering::Vulkan
 	{}
 
 	VulkanRenderPass::VulkanRenderPass(CompiledRenderPipeline& pipeline) : 
-		_key(MakeKey(pipeline)),
+		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(pipeline)),
 		_renderPass(nullptr),
 		_subpassInfos(pipeline.RenderPasses.size()),
 		_lastUsedTime(0)
@@ -178,7 +178,7 @@ namespace Coco::Rendering::Vulkan
 		CocoTrace("Destroyed VulkanRenderPass")
 	}
 
-	VulkanRenderPassKey VulkanRenderPass::MakeKey(CompiledRenderPipeline& pipeline)
+	GraphicsDeviceResourceID VulkanRenderPass::MakeKey(CompiledRenderPipeline& pipeline)
 	{
 		return Math::CombineHashes(pipeline.Version, pipeline.PipelineHash);
 	}

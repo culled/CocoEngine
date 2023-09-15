@@ -3,6 +3,7 @@
 #include "VulkanIncludes.h"
 #include "../../GraphicsDeviceTypes.h"
 #include "../../GraphicsPipelineTypes.h"
+#include "../../BufferTypes.h"
 #include "../../ImageTypes.h"
 #include "../../GraphicsPresenterTypes.h"
 #include <Coco/Core/Types/Version.h>
@@ -61,4 +62,5 @@ namespace Coco::Rendering::Vulkan
 	VkImageLayout ToAttachmentLayout(ImagePixelFormat pixelFormat);
 
 	VkSampleCountFlagBits ToVkSampleCountFlagBits(MSAASamples samples);
+	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags);
 }

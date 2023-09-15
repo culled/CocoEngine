@@ -2,6 +2,7 @@
 
 #include "../Renderpch.h"
 #include "GraphicsDeviceTypes.h"
+#include "GraphicsPresenter.h"
 #include <Coco/Core/Types/Version.h>
 
 namespace Coco::Rendering
@@ -55,5 +56,9 @@ namespace Coco::Rendering
 
 		/// @brief Waits until the device has finished all queued work
 		virtual void WaitForIdle() const = 0;
+
+		/// @brief Creates a GraphicsPresenter
+		/// @return The created presenter
+		virtual Ref<GraphicsPresenter> CreatePresenter() = 0;
 	};
 }

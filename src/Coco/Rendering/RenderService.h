@@ -38,7 +38,7 @@ namespace Coco::Rendering
 		/// @return The graphics device
 		const GraphicsDevice* GetDevice() const { return _device.get(); }
 
-		void Render(GraphicsPresenter& presenter, RenderPipeline& pipeline);
+		void Render(Ref<GraphicsPresenter> presenter, RenderPipeline& pipeline);
 
 	private:
 		/// @brief Performs rendering

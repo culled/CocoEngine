@@ -1,8 +1,6 @@
 #pragma once
 #include <Coco/Core/Platform/EnginePlatform.h>
-
 #include <Coco/Core/Types/Refs.h>
-#include "WindowsIncludes.h"
 
 #ifdef COCO_SERVICES_RENDERING
 #include <Coco/Rendering/RenderingPlatform.h>
@@ -13,6 +11,8 @@
 #include <Coco/Windowing/WindowingPlatform.h>
 #include "Win32WindowExtensions.h"
 #endif
+
+#include "WindowsIncludes.h"
 
 namespace Coco::Platforms::Win32
 {
@@ -96,7 +96,7 @@ namespace Coco::Platforms::Win32
 		SharedRef<Rendering::GraphicsPresenterSurface> CreateSurfaceForWindow(const char* renderRHIName, const Win32Window& window) const;
 
 		bool SupportsMultipleWindows() const final { return true; }
-		UniqueRef<Windowing::Window> CreatePlatformWindow(const Windowing::WindowCreateParams& createParams) final;
+		ManagedRef<Windowing::Window> CreatePlatformWindow(const Windowing::WindowCreateParams& createParams) final;
 		std::vector<Windowing::DisplayInfo> GetDisplays() const final;
 		void SetDPIAwareMode(bool dpiAware) final;
 

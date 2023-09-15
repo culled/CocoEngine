@@ -32,14 +32,10 @@ namespace Coco::Rendering::Vulkan
 		VulkanSubpassInfo();
 	};
 
-	/// @brief A key that can be used to identify a VulkanRenderPass
-	using VulkanRenderPassKey = uint64;
-
 	/// @brief A Vulkan render pass created from a CompiledRenderPipeline
-	class VulkanRenderPass : GraphicsDeviceResource<VulkanGraphicsDevice>
+	class VulkanRenderPass : public GraphicsDeviceResource<VulkanGraphicsDevice>
 	{
 	private:
-		VulkanRenderPassKey _key;
 		VkRenderPass _renderPass;
 		std::vector<VulkanSubpassInfo> _subpassInfos;
 		double _lastUsedTime;
@@ -51,11 +47,7 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Makes a key from linked to a given pipeline
 		/// @param pipeline The pipeline
 		/// @return A key
-		static VulkanRenderPassKey MakeKey(CompiledRenderPipeline& pipeline);
-
-		/// @brief Gets this RenderPass's key
-		/// @return The key
-		VulkanRenderPassKey GetKey() const { return _key; }
+		static GraphicsDeviceResourceID MakeKey(CompiledRenderPipeline& pipeline);
 
 		/// @brief Gets the Vulkan render pass
 		/// @return The Vulkan render pass

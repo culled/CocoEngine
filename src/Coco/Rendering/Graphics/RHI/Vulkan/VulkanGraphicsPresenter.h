@@ -37,20 +37,20 @@ namespace Coco::Rendering::Vulkan
         ImageDescription _backbufferDescription;
 
         std::vector<UniqueRef<VulkanRenderContext>> _renderContexts;
-        std::vector<UniqueRef<VulkanImage>> _backbuffers;
+        std::vector<ManagedRef<VulkanImage>> _backbuffers;
         std::vector<uint32> _acquiredBackbufferIndices;
 
         VkSwapchainKHR _swapchain;
         VkSurfaceKHR _surface;
 
     public:
-        VulkanGraphicsPresenter();
+        VulkanGraphicsPresenter(const GraphicsDeviceResourceID& id);
         ~VulkanGraphicsPresenter();
 
         void InitializeSurface(const SharedRef<GraphicsPresenterSurface>& surface) final;
         bool SurfaceInitialized() const final { return _surface != nullptr; }
 
-        bool PrepareForRender(RenderContext*& outContext, Image*& outBackbuffer) final;
+        bool PrepareForRender(RenderContext*& outContext, Ref<Image>& outBackbuffer) final;
         bool Present(RenderContext& context) final;
 
         void SetVSync(VSyncMode mode) final;

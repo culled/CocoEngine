@@ -3,7 +3,6 @@
 #include "../Renderpch.h"
 #include <Coco/Core/Types/Refs.h>
 #include "GraphicsDevice.h"
-#include "GraphicsPresenter.h"
 
 namespace Coco
 {
@@ -45,9 +44,5 @@ namespace Coco::Rendering
 		/// @param createParams Parameters for creating a GraphicsDevice
 		/// @return A GraphicsDevice
 		virtual UniqueRef<GraphicsDevice> CreateDevice(const GraphicsDeviceCreateParams& createParams) = 0;
-
-		/// @brief Creates a GraphicsPresenter
-		/// @return The created presenter
-		virtual UniqueRef<GraphicsPresenter> CreatePresenter() = 0;
 	};
 }

@@ -18,7 +18,7 @@ namespace Coco::Windowing
 		/// @brief Creates a platform-specific window
 		/// @param createParams The parameters to create the window with
 		/// @return The created window
-		virtual UniqueRef<Window> CreatePlatformWindow(const WindowCreateParams& createParams) = 0;
+		virtual ManagedRef<Window> CreatePlatformWindow(const WindowCreateParams& createParams) = 0;
 
 		/// @brief Gets information for all connected displays
 		/// @return Information for all connected displays

@@ -5,6 +5,7 @@
 #include "VulkanUtils.h"
 #include "VulkanFramebuffer.h"
 #include "VulkanRenderPass.h"
+#include "VulkanBuffer.h"
 
 #include <Coco/Core/Engine.h>
 
@@ -14,15 +15,20 @@ namespace Coco::Rendering::Vulkan
 		Framebuffer(framebuffer),
 		RenderPass(renderPass),
 		WaitOnSemaphores{},
-		RenderCompletedSignalSemaphores{}
+		RenderCompletedSignalSemaphores{},
+		ViewportRect{},
+		ScissorRect{},
+		StateChanges{},
+		CurrentShaderID{}
 	{}
 
-	VulkanRenderContext::VulkanRenderContext() :
+	VulkanRenderContext::VulkanRenderContext(const GraphicsDeviceResourceID& id) :
+		GraphicsDeviceResource<VulkanGraphicsDevice>(id),
 		_backbufferIndex(-1),
 		_vulkanRenderOperation{},
-		_imageAvailableSemaphore(CreateUniqueRef<VulkanGraphicsSemaphore>()),
-		_renderCompletedSemaphore(CreateUniqueRef<VulkanGraphicsSemaphore>()),
-		_renderCompletedFence(CreateUniqueRef<VulkanGraphicsFence>(true)),
+		_imageAvailableSemaphore(CreateUniqueRef<VulkanGraphicsSemaphore>(id)),
+		_renderCompletedSemaphore(CreateUniqueRef<VulkanGraphicsSemaphore>(id)),
+		_renderCompletedFence(CreateUniqueRef<VulkanGraphicsFence>(id, true)),
 		_cache(CreateUniqueRef<VulkanRenderContextCache>())
 	{
 		DeviceQueue* graphicsQueue = _device->GetQueue(DeviceQueue::Type::Graphics);
@@ -58,12 +64,14 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanRenderContext::SetViewportRect(const RectInt& viewportRect)
 	{
-		_viewportRect = viewportRect;
+		Assert(_vulkanRenderOperation.has_value())
+		_vulkanRenderOperation->ViewportRect = viewportRect;
 	}
 
 	void VulkanRenderContext::SetScissorRect(const RectInt& scissorRect)
 	{
-		_scissorRect = scissorRect;
+		Assert(_vulkanRenderOperation.has_value())
+		_vulkanRenderOperation->ScissorRect = scissorRect;
 	}
 
 	void VulkanRenderContext::AddWaitOnSemaphore(GraphicsSemaphore& semaphore)
@@ -82,6 +90,49 @@ namespace Coco::Rendering::Vulkan
 		_vulkanRenderOperation->RenderCompletedSignalSemaphores.push_back(vulkanSemaphore);
 	}
 
+	void VulkanRenderContext::SetShader(const RenderPassShaderData& shader)
+	{
+		Assert(_vulkanRenderOperation.has_value())
+
+		if (_vulkanRenderOperation->CurrentShaderID.has_value() && _vulkanRenderOperation->CurrentShaderID.value() == shader.ID)
+			return;
+
+		// TODO: maybe get the VulkanRenderPassShader here
+		_vulkanRenderOperation->CurrentShaderID = shader.ID;
+
+		_renderOperation->GlobalUniforms.Clear();
+		_renderOperation->InstanceUniforms.Clear();
+		_renderOperation->DrawUniforms.Clear();
+
+		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Shader);
+	}
+
+	void VulkanRenderContext::Draw(const MeshData& mesh)
+	{
+		Assert(_vulkanRenderOperation.has_value())
+		Assert(mesh.IndexBuffer.IsValid())
+		Assert(mesh.VertexBuffer.IsValid())
+
+		if (!FlushStateChanges())
+		{
+			CocoError("Failed to setup state for mesh. Skipping...")
+			return;
+		}
+
+		// Bind the vertex buffer
+		std::array<VkDeviceSize, 1> offsets = { 0 };
+		VulkanBuffer* vertexBuffer = static_cast<VulkanBuffer*>(mesh.VertexBuffer.Get());
+		VkBuffer vertexVkBuffer = vertexBuffer->GetBuffer();
+		vkCmdBindVertexBuffers(_commandBuffer->GetCmdBuffer(), 0, 1, &vertexVkBuffer, offsets.data());
+
+		// Bind the index buffer
+		VulkanBuffer* indexBuffer = static_cast<VulkanBuffer*>(mesh.IndexBuffer.Get());
+		vkCmdBindIndexBuffer(_commandBuffer->GetCmdBuffer(), indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), mesh.IndexCount, 1, mesh.FirstIndexOffset, 0, 0);
+		_renderOperation->TrianglesDrawn += mesh.IndexCount / 3;
+	}
+
 	void VulkanRenderContext::SetBackbufferIndex(uint32 index)
 	{
 		_backbufferIndex = static_cast<int>(index);
@@ -98,14 +149,16 @@ namespace Coco::Rendering::Vulkan
 
 	bool VulkanRenderContext::BeginImpl()
 	{
-
 		try
 		{
 			const std::vector<RenderTarget>& rts = _renderOperation->RenderView.GetRenderTargets();
 			std::vector<VulkanImage*> vulkanImages(rts.size());
 
 			for (size_t i = 0; i < rts.size(); i++)
-				vulkanImages.at(i) = static_cast<VulkanImage*>(rts.at(i).Image);
+			{
+				Assert(rts.at(i).Image.IsValid())
+				vulkanImages.at(i) = static_cast<VulkanImage*>(rts.at(i).Image.Get());
+			}
 
 			VulkanRenderPass& renderPass = _device->GetCache()->GetOrCreateRenderPass(_renderOperation->Pipeline);
 			VulkanFramebuffer& framebuffer = _cache->GetOrCreateFramebuffer(_renderOperation->RenderView.GetViewportRect().Size, renderPass, vulkanImages);
@@ -114,6 +167,10 @@ namespace Coco::Rendering::Vulkan
 			_vulkanRenderOperation.emplace(VulkanContextRenderOperation(framebuffer, renderPass));
 			_vulkanRenderOperation->WaitOnSemaphores.push_back(_imageAvailableSemaphore.get());
 			_vulkanRenderOperation->RenderCompletedSignalSemaphores.push_back(_renderCompletedSemaphore.get());
+
+			const RectInt& viewportRect = _renderOperation->RenderView.GetViewportRect();
+			_vulkanRenderOperation->ViewportRect = viewportRect;
+			_vulkanRenderOperation->ScissorRect = _renderOperation->RenderView.GetScissorRect();
 
 			_commandBuffer->Begin(true, false);
 
@@ -124,7 +181,6 @@ namespace Coco::Rendering::Vulkan
 			beginInfo.renderPass = renderPass.GetRenderPass();
 			beginInfo.framebuffer = framebuffer.GetFramebuffer();
 
-			const RectInt& viewportRect = _renderOperation->RenderView.GetViewportRect();
 			beginInfo.renderArea.offset.x = static_cast<uint32_t>(viewportRect.Offset.X);
 			beginInfo.renderArea.offset.y = static_cast<uint32_t>(-viewportRect.Offset.Y); // TODO: check if this is correct
 			beginInfo.renderArea.extent.width = static_cast<uint32_t>(viewportRect.Size.Width);
@@ -172,17 +228,15 @@ namespace Coco::Rendering::Vulkan
 
 	bool VulkanRenderContext::BeginNextPassImpl()
 	{
+		Assert(_vulkanRenderOperation.has_value())
 		vkCmdNextSubpass(_commandBuffer->GetCmdBuffer(), VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
 		return true;
 	}
 
 	void VulkanRenderContext::EndImpl()
 	{
-		if (_currentState != State::InRender || !_vulkanRenderOperation.has_value())
-		{
-			CocoError("RenderContext End() called when it wasn't recording")
-			return;
-		}
+		Assert(_vulkanRenderOperation.has_value())
+		Assert(_currentState == State::InRender)
 
 		vkCmdEndRenderPass(_commandBuffer->GetCmdBuffer());
 
@@ -193,6 +247,13 @@ namespace Coco::Rendering::Vulkan
 			&_vulkanRenderOperation->WaitOnSemaphores,
 			&_vulkanRenderOperation->RenderCompletedSignalSemaphores,
 			_renderCompletedFence.get());
+	}
+
+	void VulkanRenderContext::UniformChanged(UniformScope scope, ShaderUniformData::UniformKey key)
+	{
+		Assert(_vulkanRenderOperation.has_value())
+
+		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Uniform);
 	}
 
 	void VulkanRenderContext::AddPreRenderPassImageTransitions()
@@ -208,9 +269,9 @@ namespace Coco::Rendering::Vulkan
 				continue;
 
 			VkImageLayout layout = ToAttachmentLayout(attachment.PixelFormat);
-			VulkanImage* image = static_cast<VulkanImage*>(_renderOperation->RenderView.GetRenderTarget(i).Image);
+			VulkanImage* image = static_cast<VulkanImage*>(_renderOperation->RenderView.GetRenderTarget(i).Image.Get());
 
-			// TODO: image->TransitionLayout(_vulkanRenderOperation->CommandBuffer, layout);
+			image->TransitionLayout(*_commandBuffer, layout);
 		}
 	}
 
@@ -222,7 +283,7 @@ namespace Coco::Rendering::Vulkan
 		{
 			const AttachmentFormat& attachment = attachmentFormats.at(i);
 			VkImageLayout layout = ToAttachmentLayout(attachment.PixelFormat);
-			VulkanImage* image = static_cast<VulkanImage*>(_renderOperation->RenderView.GetRenderTarget(i).Image);
+			VulkanImage* image = static_cast<VulkanImage*>(_renderOperation->RenderView.GetRenderTarget(i).Image.Get());
 
 			// Since Vulkan automatically transitions layouts between passes, update the image's layout to match the layouts of the attachments
 			image->_currentLayout = layout;
@@ -233,5 +294,19 @@ namespace Coco::Rendering::Vulkan
 				image->TransitionLayout(*_commandBuffer, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 			}
 		}
+	}
+
+	bool VulkanRenderContext::FlushStateChanges()
+	{
+		Assert(_vulkanRenderOperation.has_value())
+
+		// Early out if no state changes since last draw
+		if (_vulkanRenderOperation->StateChanges.size() == 0)
+			return true;
+
+		// TODO: setup state
+
+		_vulkanRenderOperation->StateChanges.clear();
+		return true;
 	}
 }

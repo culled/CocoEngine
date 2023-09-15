@@ -8,7 +8,7 @@
 namespace Coco::Rendering::Vulkan
 {
 	VulkanFramebuffer::VulkanFramebuffer(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages) :
-		_key(MakeKey(size, renderPass, attachmentImages)),
+		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(size, renderPass, attachmentImages)),
 		_size(size),
 		_renderPass(renderPass.GetRenderPass()),
 		_attachmentImages(attachmentImages),
@@ -49,7 +49,7 @@ namespace Coco::Rendering::Vulkan
 		CocoTrace("Destroyed VulkanFramebuffer")
 	}
 
-	VulkanFramebufferKey VulkanFramebuffer::MakeKey(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages)
+	GraphicsDeviceResourceID VulkanFramebuffer::MakeKey(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages)
 	{
 		std::hash<VulkanImage*> imageHasher;
 		uint64 imageHash = 0;
@@ -59,7 +59,7 @@ namespace Coco::Rendering::Vulkan
 			imageHash = Math::CombineHashes(imageHash, imageHasher(image));
 		}
 
-		return Math::CombineHashes(size.Width, size.Height, renderPass.GetKey(), imageHash);
+		return Math::CombineHashes(size.Width, size.Height, renderPass.ID, imageHash);
 	}
 
 	void VulkanFramebuffer::Use()

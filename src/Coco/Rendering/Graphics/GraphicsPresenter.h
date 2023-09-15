@@ -26,7 +26,7 @@ namespace Coco::Rendering
 		/// @param outContext The RenderContext to use for rendering
 		/// @param outBackbuffer The image that can be used for rendering to
 		/// @return True if preparations were successful
-		virtual bool PrepareForRender(RenderContext*& outContext, Image*& outBackbuffer) = 0;
+		virtual bool PrepareForRender(RenderContext*& outContext, Ref<Image>& outBackbuffer) = 0;
 
 		/// @brief Queues a RenderContext's output to be presented
 		/// @param context The context to present

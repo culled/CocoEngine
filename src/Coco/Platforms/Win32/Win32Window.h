@@ -1,5 +1,7 @@
 #pragma once
+
 #include <Coco/Windowing/Window.h>
+
 #include "WindowsIncludes.h"
 
 namespace Coco::Platforms::Win32

@@ -38,7 +38,7 @@ SandboxApp::SandboxApp() :
 		using namespace Coco::Windowing;
 		WindowService* windowing = services->CreateService<WindowService>(true);
 		WindowCreateParams windowCreateParams("Sandbox", SizeInt(1280, 720));
-		Window* win = windowing->CreateWindow(windowCreateParams);
+		Ref<Window> win = windowing->CreateWindow(windowCreateParams);
 		win->Show();
 	}
 
@@ -70,11 +70,11 @@ void SandboxApp::Tick(const TickInfo & tickInfo)
 	Windowing::WindowService* windowing = services->GetService<Windowing::WindowService>();
 	Rendering::RenderService* rendering = services->GetService<Rendering::RenderService>();
 	
-	std::vector<Windowing::Window*> visibleWindows = windowing->GetVisibleWindows();
+	std::vector<Ref<Windowing::Window>> visibleWindows = windowing->GetVisibleWindows();
 
-	for (Windowing::Window* window : visibleWindows)
+	for (const Ref<Windowing::Window>& window : visibleWindows)
 	{
-		Rendering::GraphicsPresenter* presenter = window->GetPresenter();
-		rendering->Render(*presenter, *_pipeline);
+		Ref<Rendering::GraphicsPresenter> presenter = window->GetPresenter();
+		rendering->Render(presenter, *_pipeline);
 	}
 }

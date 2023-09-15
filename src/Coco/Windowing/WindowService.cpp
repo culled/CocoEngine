@@ -32,57 +32,44 @@ namespace Coco::Windowing
 		CocoTrace("WindowService shutdown")
 	}
 
-	Window* WindowService::CreateWindow(const WindowCreateParams& createParams)
+	Ref<Window> WindowService::CreateWindow(const WindowCreateParams& createParams)
 	{
 		if (WindowingPlatform* windowPlatform = dynamic_cast<WindowingPlatform*>(Engine::Get()->GetPlatform()))
 		{
 			if (_windows.size() > 0 && !windowPlatform->SupportsMultipleWindows())
 			{
 				CocoError("Platform does not support multiple windows")
-				return nullptr;
+				return Ref<Window>();
 			}
 
 			auto& window = _windows.emplace_back(windowPlatform->CreatePlatformWindow(createParams));
 
-			return window.get();
+			return window;
 		}
 
 		CocoError("Platform does not support creating windows")
-		return nullptr;
+		return Ref<Window>();
 	}
 
-	Window* WindowService::GetMainWindow()
+	Ref<Window> WindowService::GetMainWindow() const
 	{
 		if(_windows.size() > 0)
-			return _windows.front().get();
+			return _windows.front();
 
-		return nullptr;
+		return Ref<Window>();
 	}
 
-	Window* WindowService::GetWindow(const WindowID& windowID)
+	Ref<Window> WindowService::GetWindow(const WindowID& windowID) const
 	{
-		auto it = std::find_if(_windows.begin(), _windows.end(), [windowID](const UniqueRef<Window>& w)
+		auto it = std::find_if(_windows.begin(), _windows.end(), [windowID](const ManagedRef<Window>& w)
 			{
 				return w->ID == windowID;
 			});
 
 		if (it != _windows.end())
-			return it->get();
+			return *it;
 
-		return nullptr;
-	}
-
-	const Window* WindowService::GetWindow(const WindowID& windowID) const
-	{
-		auto it = std::find_if(_windows.cbegin(), _windows.cend(), [windowID](const UniqueRef<Window>& w)
-			{
-				return w->ID == windowID;
-			});
-
-		if (it != _windows.end())
-			return it->get();
-
-		return nullptr;
+		return Ref<Window>();
 	}
 
 	std::vector<DisplayInfo> WindowService::GetDisplays() const
@@ -98,20 +85,20 @@ namespace Coco::Windowing
 		}
 	}
 
-	std::vector<Window*> WindowService::GetVisibleWindows() const
+	std::vector<Ref<Window>> WindowService::GetVisibleWindows() const
 	{
-		std::vector<Window*> visibleWindows;
+		std::vector<Ref<Window>> visibleWindows;
 
 		for (const auto& window : _windows)
 			if (window->IsVisible())
-				visibleWindows.push_back(window.get());
+				visibleWindows.push_back(window);
 
 		return visibleWindows;
 	}
 
 	void WindowService::WindowClosed(Window& window)
 	{
-		bool isMainWindow = GetMainWindow() == &window;
+		bool isMainWindow = GetMainWindow().Get() == &window;
 
 		// Stop the program if the main window was closed
 		if (isMainWindow)
@@ -120,8 +107,8 @@ namespace Coco::Windowing
 		}
 		else
 		{
-			auto it = std::find_if(_windows.begin(), _windows.end(), [windowPtr = &window](const UniqueRef<Window>& p) {
-				return p.get() == windowPtr;
+			auto it = std::find_if(_windows.begin(), _windows.end(), [windowPtr = &window](const ManagedRef<Window>& p) {
+				return p.Get() == windowPtr;
 				});
 
 			if (it == _windows.end())

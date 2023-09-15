@@ -144,4 +144,38 @@ namespace Coco::Rendering::Vulkan
 			return VK_SAMPLE_COUNT_1_BIT;
 		}
 	}
+
+	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags)
+	{
+		VkBufferUsageFlags flags = 0;
+
+		if ((usageFlags & BufferUsageFlags::TransferSource) == BufferUsageFlags::TransferSource)
+			flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+		if ((usageFlags & BufferUsageFlags::TransferDestination) == BufferUsageFlags::TransferDestination)
+			flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+		if ((usageFlags & BufferUsageFlags::UniformTexel) == BufferUsageFlags::UniformTexel)
+			flags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::StorageTexel) == BufferUsageFlags::StorageTexel)
+			flags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::Uniform) == BufferUsageFlags::Uniform)
+			flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::Storage) == BufferUsageFlags::Storage)
+			flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::Index) == BufferUsageFlags::Index)
+			flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::Vertex) == BufferUsageFlags::Vertex)
+			flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::Indirect) == BufferUsageFlags::Indirect)
+			flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+
+		return flags;
+	}
 }

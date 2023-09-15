@@ -23,12 +23,12 @@ namespace Coco::Windowing
 	Window::Window(const WindowCreateParams& createParams) :
 		ID(_id++),
 		_parentID(createParams.ParentWindow),
-		_presenter(nullptr)
+		_presenter()
 	{
 		if (!Rendering::RenderService::Get())
 			throw std::exception("No RenderService is active");
 
-		_presenter = Rendering::RenderService::Get()->GetPlatform()->CreatePresenter();
+		_presenter = Rendering::RenderService::Get()->GetDevice()->CreatePresenter();
 	}
 
 	Window::~Window()
@@ -40,7 +40,7 @@ namespace Coco::Windowing
 		catch(...)
 		{ }
 
-		_presenter.reset();
+		_presenter.Invalidate();
 	}
 
 	void Window::Close()
@@ -67,12 +67,7 @@ namespace Coco::Windowing
 		return _parentID;
 	}
 
-	Window* Window::GetParentWindow()
-	{
-		return WindowService::Get()->GetWindow(_parentID);
-	}
-
-	const Window* Window::GetParentWindow() const
+	Ref<Window> Window::GetParentWindow() const
 	{
 		return WindowService::Get()->GetWindow(_parentID);
 	}

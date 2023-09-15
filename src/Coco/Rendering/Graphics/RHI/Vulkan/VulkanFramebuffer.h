@@ -11,14 +11,10 @@ namespace Coco::Rendering::Vulkan
 {
 	class VulkanGraphicsDevice;
 
-	/// @brief A key that can be used to identify a VulkanFramebuffer
-	using VulkanFramebufferKey = uint64;
-
 	/// @brief A Vulkan framebuffer
 	class VulkanFramebuffer : public GraphicsDeviceResource<VulkanGraphicsDevice>
 	{
 	private:
-		VulkanFramebufferKey _key;
 		SizeInt _size;
 		std::vector<VulkanImage*> _attachmentImages;
 		VkRenderPass _renderPass;
@@ -34,11 +30,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param renderPass The render pass being used
 		/// @param attachmentImages Images being used as attachments
 		/// @return A unique key
-		static VulkanFramebufferKey MakeKey(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages);
-
-		/// @brief Gets this frambuffer's key
-		/// @return The key
-		VulkanFramebufferKey GetKey() const { return _key; }
+		static GraphicsDeviceResourceID MakeKey(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages);
 
 		/// @brief Gets the Vulkan framebuffer
 		/// @return The Vulkan framebuffer

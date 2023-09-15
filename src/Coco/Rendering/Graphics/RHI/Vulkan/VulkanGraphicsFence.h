@@ -14,7 +14,7 @@ namespace Coco::Rendering::Vulkan
         VkFence _fence;
 
     public:
-        VulkanGraphicsFence(bool startSignaled);
+        VulkanGraphicsFence(const GraphicsDeviceResourceID& id, bool startSignaled);
         ~VulkanGraphicsFence();
 
         bool IsSignaled() const final;

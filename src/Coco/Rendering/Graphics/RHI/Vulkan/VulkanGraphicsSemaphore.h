@@ -15,7 +15,7 @@ namespace Coco::Rendering::Vulkan
         VkSemaphore _semaphore;
 
     public:
-        VulkanGraphicsSemaphore();
+        VulkanGraphicsSemaphore(const GraphicsDeviceResourceID& id);
         ~VulkanGraphicsSemaphore();
 
         /// @brief Gets the Vulkan semaphore

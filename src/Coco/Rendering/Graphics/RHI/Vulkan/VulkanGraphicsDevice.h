@@ -6,6 +6,7 @@
 #include <Coco/Core/Types/Version.h>
 #include "VulkanCommandBufferPool.h"
 #include "VulkanGraphicsDeviceCache.h"
+#include <Coco/Core/Resources/ResourceLibrary.h>
 
 namespace Coco::Rendering::Vulkan
 {
@@ -81,6 +82,7 @@ namespace Coco::Rendering::Vulkan
 		UniqueRef<DeviceQueue> _computeQueue;
 		DeviceQueue* _presentQueue;
 		UniqueRef<VulkanGraphicsDeviceCache> _cache;
+		TypedResourceLibrary<GraphicsDeviceResourceID, GraphicsDeviceResourceBase, GraphicsDeviceResourceIDGenerator> _resources;
 
 	public:
 		VulkanGraphicsDevice(VkInstance instance, const GraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice);
@@ -98,6 +100,7 @@ namespace Coco::Rendering::Vulkan
 		Version GetAPIVersion() const final { return _apiVersion; }
 		const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const final { return _memoryFeatures; }
 		void WaitForIdle() const final;
+		Ref<GraphicsPresenter> CreatePresenter() final;
 
 		/// @brief Gets the Vulkan instance that this device was created with
 		/// @return The Vulkan instance
@@ -120,6 +123,11 @@ namespace Coco::Rendering::Vulkan
 		/// @return The queue, or nullptr if it doesn't exist
 		DeviceQueue* GetQueue(DeviceQueue::Type queueType);
 
+		/// @brief Gets a queue on this device
+		/// @param queueType The type of queue
+		/// @return The queue, or nullptr if it doesn't exist
+		const DeviceQueue* GetQueue(DeviceQueue::Type queueType) const;
+
 		/// @brief Gets or creates a queue that can be used for presentation operations
 		/// @param surface The surface to check presentation support for
 		/// @return The present queue, or nullptr if presentation isn't supported
@@ -128,6 +136,17 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Gets this device's cache
 		/// @return The device cache
 		VulkanGraphicsDeviceCache* GetCache() { return _cache.get(); }
+
+		/// @brief Finds the heap index for a type of memory
+		/// @param type The memory types
+		/// @param memoryProperties The memory properties
+		/// @param outIndex Will be set to the heap index
+		/// @return True if memory was found that supports the given properties
+		bool FindMemoryIndex(uint32 type, VkMemoryPropertyFlags memoryProperties, uint32& outIndex) const;
+
+		/// @brief Waits until a queue has finished all operations
+		/// @param queueType The queue to wait for
+		void WaitForQueueIdle(DeviceQueue::Type queueType) const;
 
 	private:
 		/// @brief Gets queue family information for a device

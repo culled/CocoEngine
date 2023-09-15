@@ -26,7 +26,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanFramebuffer& VulkanRenderContextCache::GetOrCreateFramebuffer(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages)
 	{
-		VulkanFramebufferKey key = VulkanFramebuffer::MakeKey(size, renderPass, attachmentImages);
+		GraphicsDeviceResourceID key = VulkanFramebuffer::MakeKey(size, renderPass, attachmentImages);
 
 		auto it = _framebuffers.find(key);
 

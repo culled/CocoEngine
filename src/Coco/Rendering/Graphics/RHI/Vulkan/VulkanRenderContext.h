@@ -10,6 +10,7 @@
 #include "VulkanFramebuffer.h"
 #include "VulkanRenderPass.h"
 #include "VulkanRenderContextCache.h"
+#include "../../../ShaderTypes.h"
 
 namespace Coco::Rendering::Vulkan
 {
@@ -18,17 +19,33 @@ namespace Coco::Rendering::Vulkan
     /// @brief Holds Vulkan data that a VulkanRenderContext uses during actual rendering
     struct VulkanContextRenderOperation
     {
+        enum class StateChangeType
+        {
+            None,
+            Shader,
+            Uniform
+        };
+
         /// @brief The framebuffer being rendered to
         VulkanFramebuffer& Framebuffer;
 
         /// @brief The render pass being used
         VulkanRenderPass& RenderPass;
 
+        /// @brief The current viewport rectangle
+        RectInt ViewportRect;
+
+        /// @brief The current scissor rectangle
+        RectInt ScissorRect;
+
         /// @brief Semaphores to wait on before rendering
         std::vector<VulkanGraphicsSemaphore*> WaitOnSemaphores;
 
         /// @brief Semaphores to signal once rendering completes
         std::vector<VulkanGraphicsSemaphore*> RenderCompletedSignalSemaphores;
+
+        std::set<StateChangeType> StateChanges;
+        std::optional<uint64> CurrentShaderID;
 
         VulkanContextRenderOperation(VulkanFramebuffer& framebuffer, VulkanRenderPass& renderPass);
     };
@@ -46,11 +63,8 @@ namespace Coco::Rendering::Vulkan
         std::optional<VulkanContextRenderOperation> _vulkanRenderOperation;
         int _backbufferIndex;
 
-        RectInt _viewportRect;
-        RectInt _scissorRect;
-
     public:
-        VulkanRenderContext();
+        VulkanRenderContext(const GraphicsDeviceResourceID& id);
         ~VulkanRenderContext();
 
         void WaitForRenderingToComplete() final;
@@ -62,6 +76,8 @@ namespace Coco::Rendering::Vulkan
         void SetScissorRect(const RectInt& scissorRect) final;
         void AddWaitOnSemaphore(GraphicsSemaphore& semaphore) final;
         void AddRenderCompletedSignalSemaphore(GraphicsSemaphore& semaphore) final;
+        void SetShader(const RenderPassShaderData& shader) final;
+        void Draw(const MeshData& mesh) final;
 
         /// @brief Sets the index of the backbuffer this context is rendering to when obtained via a VulkanGraphicsPresenter
         /// @param index The backbuffer index
@@ -76,6 +92,7 @@ namespace Coco::Rendering::Vulkan
         bool BeginImpl() final;
         bool BeginNextPassImpl() final;
         void EndImpl() final;
+        void UniformChanged(UniformScope scope, ShaderUniformData::UniformKey key) final;
 
     private:
         /// @brief Adds image transitions before the render pass begins
@@ -83,5 +100,9 @@ namespace Coco::Rendering::Vulkan
 
         /// @brief Adds image transitions after the render pass ends
         void AddPostRenderPassImageTransitions();
+
+        /// @brief Flushes pending state changes to complete setup for a drawing operation
+        /// @return True if the state was setup successfully
+        bool FlushStateChanges();
     };
 }

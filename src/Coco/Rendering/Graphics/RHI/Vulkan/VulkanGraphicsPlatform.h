@@ -25,7 +25,6 @@ namespace Coco::Rendering::Vulkan
 
 		const char* GetName() const final { return sVulkanRHIName; }
 		UniqueRef<GraphicsDevice> CreateDevice(const GraphicsDeviceCreateParams& createParams) final;
-		UniqueRef<GraphicsPresenter> CreatePresenter() final;
 
 		/// @brief Gets the Vulkan instance
 		/// @return The Vulkan instance

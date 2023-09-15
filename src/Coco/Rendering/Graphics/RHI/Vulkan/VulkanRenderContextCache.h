@@ -20,7 +20,7 @@ namespace Coco::Rendering::Vulkan
 		static const double sPurgeThreshold;
 
 	private:
-		std::unordered_map<VulkanFramebufferKey, VulkanFramebuffer> _framebuffers;
+		std::unordered_map<GraphicsDeviceResourceID, VulkanFramebuffer> _framebuffers;
 		TickListener _tickListener;
 
 	public:

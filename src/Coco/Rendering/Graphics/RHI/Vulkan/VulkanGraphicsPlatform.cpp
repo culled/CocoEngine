@@ -2,7 +2,6 @@
 #include "VulkanGraphicsPlatform.h"
 #include "VulkanGraphicsDevice.h"
 #include "VulkanUtils.h"
-#include "VulkanGraphicsPresenter.h"
 #include "../../../RenderingPlatform.h"
 #include <Coco/Core/Engine.h>
 
@@ -47,11 +46,6 @@ namespace Coco::Rendering::Vulkan
 		createParamsCopy.SupportsPresentation = _supportsPresentation && createParams.SupportsPresentation;
 
 		return VulkanGraphicsDevice::Create(_vulkanInstance, createParamsCopy);
-	}
-
-	UniqueRef<GraphicsPresenter> VulkanGraphicsPlatform::CreatePresenter()
-	{
-		return CreateUniqueRef<VulkanGraphicsPresenter>();
 	}
 
 	bool VulkanGraphicsPlatform::CheckValidationLayerSupport()

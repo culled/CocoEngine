@@ -14,7 +14,7 @@ namespace Coco::Windowing
 		friend Window;
 
 	private:
-		std::vector<UniqueRef<Window>> _windows;
+		std::vector<ManagedRef<Window>> _windows;
 
 	public:
 		WindowService(bool dpiAware);
@@ -23,21 +23,16 @@ namespace Coco::Windowing
 		/// @brief Creates a window
 		/// @param createParams The parameters to create the window with
 		/// @return The created window, or nullptr if the window couldn't be created
-		Window* CreateWindow(const WindowCreateParams& createParams);
+		Ref<Window> CreateWindow(const WindowCreateParams& createParams);
 
 		/// @brief Gets the first window created (if one exists) 
 		/// @return The first created window, or nullptr if no windows have been created
-		Window* GetMainWindow();
+		Ref<Window> GetMainWindow() const;
 
 		/// @brief Gets a window from its ID
 		/// @param windowID The id of the window
 		/// @return A pointer to the window, or nullptr if it doesn't exist
-		Window* GetWindow(const WindowID& windowID);
-
-		/// @brief Gets a window from its ID
-		/// @param windowID The id of the window
-		/// @return A pointer to the window, or nullptr if it doesn't exist
-		const Window* GetWindow(const WindowID& windowID) const;
+		Ref<Window> GetWindow(const WindowID& windowID) const;
 
 		/// @brief Gets information for all connected displays
 		/// @return Information for all connected displays
@@ -45,7 +40,7 @@ namespace Coco::Windowing
 
 		/// @brief Gets a list of all windows currently visible
 		/// @return A list of visible windows
-		std::vector<Window*> GetVisibleWindows() const;
+		std::vector<Ref<Window>> GetVisibleWindows() const;
 
 	protected:
 		/// @brief Called when a window is closed
