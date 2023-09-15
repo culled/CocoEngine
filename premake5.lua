@@ -191,7 +191,7 @@ workspace "CocoEngine"
             end
 
         group "Tests"
-            --include "tests\\Coco\\Core"
+            include "tests\\Coco\\Core"
 
         group "Example Apps"
             include "exampleapps\\Sandbox"

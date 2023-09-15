@@ -129,21 +129,21 @@ namespace Coco
 
 	DateTime DateTime::operator+(const TimeSpan& time) const
 	{
-		return DateTime(UnixMilliseconds + static_cast<int64>(round(time.GetMilliseconds())));
+		return DateTime(UnixMilliseconds + static_cast<int64>(Math::Round(time.GetMilliseconds())));
 	}
 
 	DateTime DateTime::operator-(const TimeSpan& time) const
 	{
-		return DateTime(UnixMilliseconds - static_cast<int64>(round(time.GetMilliseconds())));
+		return DateTime(UnixMilliseconds - static_cast<int64>(Math::Round(time.GetMilliseconds())));
 	}
 
 	void DateTime::operator+=(const TimeSpan& time)
 	{
-		UnixMilliseconds += static_cast<int64>(round(time.GetMilliseconds()));
+		UnixMilliseconds += static_cast<int64>(Math::Round(time.GetMilliseconds()));
 	}
 
 	void DateTime::operator-=(const TimeSpan& time)
 	{
-		UnixMilliseconds -= static_cast<int64>(round(time.GetMilliseconds()));
+		UnixMilliseconds -= static_cast<int64>(Math::Round(time.GetMilliseconds()));
 	}
 }

@@ -70,14 +70,14 @@ namespace Coco
 		/// @param handler The handler
 		void AddHandler(HandlerType& handler)
 		{
-			_handlers.insert(_handlers.begin(), handler);
+			_handlers.insert(_handlers.begin(), &handler);
 		}
 
 		/// @brief Removes a handler from this query
 		/// @param handler The handler
 		void RemoveHandler(HandlerType& handler)
 		{
-			auto it = std::find(_handlers.begin(), _handlers.end(), handler);
+			auto it = std::find(_handlers.begin(), _handlers.end(), &handler);
 
 			if (it != _handlers.end())
 				_handlers.erase(it);

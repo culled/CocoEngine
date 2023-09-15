@@ -69,4 +69,157 @@ namespace Coco
 	{
 		return std::find_if(start, end, [ref](const UniqueRef<ValueType>& other) { return ref.get() == other.get(); });
 	}
+
+	/// @brief A managed object that can give out tracking references
+	/// @tparam ValueType The type of value
+	template<typename ValueType>
+	class ManagedRef
+	{
+		template<typename RefType>
+		friend class Ref;
+
+	private:
+		UniqueRef<ValueType> _instance;
+		SharedRef<bool> _state;
+
+	public:
+		ManagedRef() :
+			_instance(nullptr),
+			_state(nullptr)
+		{}
+
+		ManagedRef(ValueType* ptr) :
+			_instance(ptr),
+			_state(CreateSharedRef<bool>(true))
+		{}
+
+		template<typename OtherType>
+		ManagedRef(ManagedRef<OtherType>&& other) :
+			_instance(std::move(other._instance)),
+			_state(std::move(other._state))
+		{}
+
+		template<typename OtherType>
+		ManagedRef(const ManagedRef<OtherType>&) = delete;
+
+		~ManagedRef()
+		{
+			Invalidate();
+		}
+
+		ValueType* operator->() { return _instance.get(); }
+		const ValueType* operator->() const { return _instance.get(); }
+
+		ValueType& operator*() { return *_instance; }
+		const ValueType& operator*() const { return *_instance; }
+
+		template<typename OtherType>
+		ManagedRef& operator=(const ManagedRef<OtherType>&) = delete;
+
+		template<typename OtherType>
+		ManagedRef& operator=(ManagedRef<OtherType>&& other)
+		{
+			_instance.swap(other._instance);
+			_state.swap(other._state);
+			return *this;
+		}
+
+		/// @brief Invalidates the managed object and all references to it
+		void Invalidate()
+		{
+			if (_state)
+				*_state = false;
+			_instance.reset();
+		}
+
+		/// @brief Gets the managed instance
+		/// @return The managed instance
+		ValueType* Get() const { return _instance.get(); }
+
+		/// @brief Determines if the managed instance is valid
+		/// @return True if the instance is valid
+		bool IsValid() const { return _state ? *_state : false; }
+
+		/// @brief Gets the number of references to the instance (including this one)
+		/// @return The number of references
+		uint64 GetUseCount() const { return _state ? _state.use_count() : 0; }
+	};
+
+	/// @brief Creates a ManagedRef
+	/// @tparam ValueType The type of value
+	/// @tparam Args The types of arguments
+	/// @param args Arguments to pass to the object's constructor
+	/// @return A ManagedRef
+	template<typename ValueType, typename ... Args>
+	ManagedRef<ValueType> CreateManagedRef(Args&& ... args)
+	{
+		return ManagedRef(new ValueType(std::forward<Args>(args)...));
+	}
+
+	/// @brief A reference to a managed object
+	/// @tparam ValueType The type of value
+	template<typename ValueType>
+	class Ref
+	{
+	private:
+		ValueType* _ptr;
+		SharedRef<bool> _state;
+
+	public:
+		Ref() :
+			_ptr(nullptr),
+			_state(nullptr)
+		{}
+
+		template<typename RefType>
+		Ref(const ManagedRef<RefType>& ref) :
+			_ptr(ref.Get()),
+			_state(ref._state)
+		{}
+
+		template<typename RefType>
+		Ref(Ref<RefType>&& ref) :
+			_ptr(ref._ptr),
+			_state(ref._state)
+		{}
+
+		~Ref()
+		{
+			Invalidate();
+		}
+
+		ValueType* operator->() { return _ptr; }
+		const ValueType* operator->() const { return _ptr; }
+
+		ValueType& operator*() { return *_ptr; }
+		const ValueType& operator*() const { return *_ptr; }
+
+		template<typename RefType>
+		Ref& operator=(const ManagedRef<RefType>& ref)
+		{
+			_ptr = ref.Get();
+			_state = ref._state;
+
+			return *this;
+		}
+
+		/// @brief Invalidates this reference
+		void Invalidate()
+		{
+			_state.reset();
+			_ptr = nullptr;
+		}
+
+		/// @brief Gets the managed instance
+		/// @return The managed instance
+		ValueType* Get() const { return _ptr; }
+
+		/// @brief Determines if the managed instance is valid
+		/// @return True if the instance is valid
+		bool IsValid() const { return _state ? *_state : false; }
+
+		/// @brief Gets the number of references to the instance (including this one)
+		/// @return The number of references
+		uint64 GetUseCount() const { return _state ? _state.use_count() : 0; }
+	};
 }

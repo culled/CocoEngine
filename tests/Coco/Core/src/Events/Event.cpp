@@ -20,7 +20,7 @@ namespace Events
 			Assert::IsFalse(h.IsConnected());
 
 			// Connect the handler to the event
-			h.Connect(&e);
+			h.Connect(e);
 			Assert::IsTrue(e.GetHandlerCount() == 1);
 			Assert::IsTrue(h.IsConnected());
 
@@ -40,7 +40,7 @@ namespace Events
 
 			// Connect an event handler with a callback function
 			EventHandler<int> h([testValue](int v) { Assert::AreEqual(v, testValue); return true; });
-			h.Connect(&e);
+			h.Connect(e);
 
 			// Invoke the event and make sure it is handled
 			Assert::IsTrue(e.Invoke(testValue));
@@ -56,11 +56,11 @@ namespace Events
 
 			// Create a handler that will fail the test if called and connect it
 			EventHandler<> h1([]() { Assert::Fail(); return true; });
-			h1.Connect(&e);
+			h1.Connect(e);
 
 			// Connect another handler which should handle the event and prevent the failing handler from being called
 			EventHandler<> h2([]() { return true; });
-			h2.Connect(&e);
+			h2.Connect(e);
 
 			// Invoke the event
 			Assert::IsTrue(e.Invoke());
@@ -73,7 +73,7 @@ namespace Events
 			{
 				// Create a handler in this scope and connect it
 				EventHandler<> h;
-				h.Connect(&e);
+				h.Connect(e);
 
 				Assert::IsTrue(e.GetHandlerCount() == 1);
 			}
@@ -89,7 +89,7 @@ namespace Events
 			{
 				// Create an event in this scope and connect the handler
 				Event<> e;
-				h.Connect(&e);
+				h.Connect(e);
 
 				Assert::IsTrue(h.IsConnected());
 			}

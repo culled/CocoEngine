@@ -20,7 +20,7 @@ namespace Events
 			Assert::IsFalse(h.IsConnected());
 
 			// Connect the handler to the query
-			h.Connect(&e);
+			h.Connect(e);
 			Assert::IsTrue(e.GetHandlerCount() == 1);
 			Assert::IsTrue(h.IsConnected());
 
@@ -41,7 +41,7 @@ namespace Events
 
 			// Connect a query handler with a callback function
 			QueryHandler<int, int> h([testValue](int& v, int a) { Assert::AreEqual(a, testValue); v = a; return true; });
-			h.Connect(&e);
+			h.Connect(e);
 
 			// Invoke the query, make sure it is handled, and make sure the query value gets modified correctly
 			Assert::IsTrue(e.Invoke(v, testValue));
@@ -58,11 +58,11 @@ namespace Events
 
 			// Create a handler that will fail the test if called and connect it
 			QueryHandler<int> h1([](int& v) { Assert::Fail(); return true; });
-			h1.Connect(&e);
+			h1.Connect(e);
 
 			// Connect another handler which should handle the query and prevent the failing handler from being called
 			QueryHandler<int> h2([](int& v) { return true; });
-			h2.Connect(&e);
+			h2.Connect(e);
 
 			// Invoke the query
 			int v = 0;
@@ -76,7 +76,7 @@ namespace Events
 			{
 				// Create a handler in this scope and connect it
 				QueryHandler<int> h;
-				h.Connect(&e);
+				h.Connect(e);
 
 				Assert::IsTrue(e.GetHandlerCount() == 1);
 			}
@@ -92,7 +92,7 @@ namespace Events
 			{
 				// Create a query in this scope and connect the handler
 				Query<int> e;
-				h.Connect(&e);
+				h.Connect(e);
 
 				Assert::IsTrue(h.IsConnected());
 			}
