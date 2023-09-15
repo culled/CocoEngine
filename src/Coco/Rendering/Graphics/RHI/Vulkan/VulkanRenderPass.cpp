@@ -33,7 +33,7 @@ namespace Coco::Rendering::Vulkan
 			VkImageLayout layout = ToAttachmentLayout(attachment.PixelFormat);
 
 			VkAttachmentDescription description{};
-			description.samples = VK_SAMPLE_COUNT_1_BIT; // TODO: msaa
+			description.samples = ToVkSampleCountFlagBits(attachment.SampleCount);
 			description.format = ToVkFormat(attachment.PixelFormat, ImageColorSpace::Linear);
 
 			description.loadOp = attachment.ShouldPreserve ?

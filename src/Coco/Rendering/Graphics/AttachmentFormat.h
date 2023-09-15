@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ImageTypes.h"
+#include "GraphicsPipelineTypes.h"
 
 namespace Coco::Rendering
 {
@@ -13,8 +14,11 @@ namespace Coco::Rendering
 		/// @brief If true, this attachment will be preserved between frames
 		bool ShouldPreserve;
 
+		/// @brief The number of MSAA samples
+		MSAASamples SampleCount;
+
 		AttachmentFormat();
-		AttachmentFormat(ImagePixelFormat pixelFormat, bool shouldPreserve);
+		AttachmentFormat(ImagePixelFormat pixelFormat, bool shouldPreserve, MSAASamples msaaSamples = MSAASamples::One);
 
 		/// @brief Determines if this AttachmentFormat is compatible with another
 		/// @param other The other format

@@ -33,6 +33,11 @@ workspace "CocoEngine"
         description = "Include high-dpi support in the engine build"
     }
 
+    newoption {
+        trigger = "tests",
+        description = "Include the test projects"
+    }
+
     -- Service includes
     Services = {}
 
@@ -190,8 +195,12 @@ workspace "CocoEngine"
                 include "src\\Coco\\Platforms\\Win32"
             end
 
-        group "Tests"
-            include "tests\\Coco\\Core"
+        if (_OPTIONS["tests"]) then
+            print "Including test projects"
+            
+            group "Tests"
+                include "tests\\Coco\\Core"
+        end
 
         group "Example Apps"
             include "exampleapps\\Sandbox"

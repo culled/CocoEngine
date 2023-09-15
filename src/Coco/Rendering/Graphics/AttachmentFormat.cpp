@@ -3,14 +3,14 @@
 
 namespace Coco::Rendering
 {
-    AttachmentFormat::AttachmentFormat() :
-        PixelFormat(ImagePixelFormat::Unknown),
-        ShouldPreserve(false)
+    AttachmentFormat::AttachmentFormat() : 
+        AttachmentFormat(ImagePixelFormat::Unknown, false)
     {}
 
-    AttachmentFormat::AttachmentFormat(ImagePixelFormat pixelFormat, bool shouldPreserve) :
+    AttachmentFormat::AttachmentFormat(ImagePixelFormat pixelFormat, bool shouldPreserve, MSAASamples msaaSamples) :
         PixelFormat(pixelFormat),
-        ShouldPreserve(shouldPreserve)
+        ShouldPreserve(shouldPreserve),
+        SampleCount(msaaSamples)
     {}
 
     bool AttachmentFormat::IsCompatible(const AttachmentFormat& other) const

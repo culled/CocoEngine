@@ -126,4 +126,22 @@ namespace Coco::Rendering::Vulkan
 
 		return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
+
+	VkSampleCountFlagBits ToVkSampleCountFlagBits(MSAASamples samples)
+	{
+		switch (samples)
+		{
+		case MSAASamples::Two:
+			return VK_SAMPLE_COUNT_2_BIT;
+		case MSAASamples::Four:
+			return VK_SAMPLE_COUNT_4_BIT;
+		case MSAASamples::Eight:
+			return VK_SAMPLE_COUNT_8_BIT;
+		case MSAASamples::Sixteen:
+			return VK_SAMPLE_COUNT_16_BIT;
+		case MSAASamples::One:
+		default:
+			return VK_SAMPLE_COUNT_1_BIT;
+		}
+	}
 }
