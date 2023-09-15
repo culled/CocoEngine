@@ -6,7 +6,7 @@
 #include <Coco/Core/Types/Vector.h>
 #include "Image.h"
 #include "Buffer.h"
-#include "../Shader.h"
+#include "RenderPassShader.h"
 
 namespace Coco::Rendering
 {

@@ -1,5 +1,5 @@
 #include "Renderpch.h"
-#include "ShaderTypes.h"
+#include "RenderPassShaderTypes.h"
 
 namespace Coco::Rendering
 {

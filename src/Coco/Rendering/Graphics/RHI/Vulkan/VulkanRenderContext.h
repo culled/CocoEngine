@@ -10,7 +10,7 @@
 #include "VulkanFramebuffer.h"
 #include "VulkanRenderPass.h"
 #include "VulkanRenderContextCache.h"
-#include "../../../ShaderTypes.h"
+#include "../../RenderPassShaderTypes.h"
 
 namespace Coco::Rendering::Vulkan
 {

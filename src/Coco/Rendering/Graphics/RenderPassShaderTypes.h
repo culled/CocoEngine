@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Coco/Core/Types/String.h>
-#include "Graphics/BufferTypes.h"
-#include "Graphics/ShaderUniformData.h"
+#include "BufferTypes.h"
+#include "ShaderUniformData.h"
 
 namespace Coco::Rendering
 {
