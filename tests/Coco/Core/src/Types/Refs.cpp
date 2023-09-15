@@ -77,4 +77,25 @@ namespace Coco::Core::Types
 			Assert::AreEqual(r->a, a);
 		}
 	};
+
+	TEST_CLASS(RefTests)
+	{
+		TEST_METHOD(TemporaryRef)
+		{
+			constexpr int v = 123;
+			UniqueRef<int> vRef = CreateUniqueRef<int>(v);
+
+			Ref<int> tempRef;
+			Assert::IsFalse(tempRef.IsValid());
+
+			tempRef = Ref<int>(vRef.get());
+			Assert::IsTrue(tempRef.IsValid());
+			Assert::IsTrue(tempRef.GetUseCount() == 1);
+			Assert::AreEqual(tempRef.Get(), vRef.get());
+
+			tempRef.Invalidate();
+			Assert::IsFalse(tempRef.IsValid());
+		}
+
+	};
 }
