@@ -93,6 +93,7 @@ namespace Coco
 		void PostTick();
 
 		/// @brief Waits for the next tick based on the target tick rate
-		void WaitForTargetTickTime();
+		/// @param lastTickTime The platform-time of the last tick
+		void WaitForTargetTickTime(double lastTickTime);
 	};
 }

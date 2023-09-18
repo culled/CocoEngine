@@ -80,16 +80,17 @@ namespace Coco
 		_lastTick = _currentTick;
 
 		bool didPerformFullTick = true;
-		double preProcessTime = 0.0;
+		double preProcessPlatformTime = 0.0;
+		double lastTickPlatformTime = 0.0;
 
 		while (_isRunning)
 		{
 			if (_targetTicksPerSecond > 0)
-				WaitForTargetTickTime();
+				WaitForTargetTickTime(lastTickPlatformTime);
 
 			// Save the pre-process time only if we performed a full tick so we can calculate an adjusted delta time
 			if (didPerformFullTick)
-				preProcessTime = platform->GetRunningTime();
+				preProcessPlatformTime = platform->GetRunningTime();
 
 			platform->ProcessMessages();
 
@@ -102,13 +103,15 @@ namespace Coco
 			if (_listenersNeedSorting)
 				SortTickHandlers();
 
-			double currentTime = Engine::Get()->GetPlatform()->GetRunningTime();
-			_currentTick.UnscaledDeltaTime = currentTime - _lastTick.UnscaledTime;
+			double currentPlatformTime = Engine::Get()->GetPlatform()->GetRunningTime();
+			double timeDelta = currentPlatformTime - lastTickPlatformTime;
+			lastTickPlatformTime = currentPlatformTime;
 
 			// Adjust the delta time to be consistent if needed
 			if (!_useAbsoluteTiming)
-				_currentTick.UnscaledDeltaTime -= currentTime - preProcessTime;
+				timeDelta -= currentPlatformTime - preProcessPlatformTime;
 
+			_currentTick.UnscaledDeltaTime = timeDelta;
 			_currentTick.UnscaledTime += _currentTick.UnscaledDeltaTime;
 			_currentTick.DeltaTime = _currentTick.UnscaledDeltaTime * _timeScale;
 			_currentTick.Time += _currentTick.DeltaTime;
@@ -160,9 +163,9 @@ namespace Coco
 	{
 	}
 
-	void MainLoop::WaitForTargetTickTime()
+	void MainLoop::WaitForTargetTickTime(double lastTickTime)
 	{
-		const double nextTickTime = _lastTick.UnscaledTime + (1.0 / _targetTicksPerSecond);
+		const double nextTickTime = lastTickTime + (1.0 / _targetTicksPerSecond);
 
 		EnginePlatform* platform = Engine::Get()->GetPlatform();
 
