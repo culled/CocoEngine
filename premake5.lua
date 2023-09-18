@@ -22,7 +22,7 @@ workspace "CocoEngine"
     IncludeDir["uuid_v4"] = "%{wks.location}\\src\\Vendor\\uuid_v4"
 
     -- Assets directory
-    AssetsDir = "%{wks.location}\\assets\\"
+    AssetsDir = "%{wks.location}assets\\"
 
     -- External program directories
     BinDir = {}

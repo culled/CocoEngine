@@ -55,6 +55,12 @@ project "Sandbox"
         links { "Coco.Platforms.Win32" }
     end
 
+    filter { "system:windows", "options:renderRHI-vulkan or options:renderRHIs-all" }
+        postbuildcommands {
+            "call \"%{wks.location}\\scripts\\vulkan-compile-shaders.bat\" %{BinDir.vulkan} %{AssetsDir}",
+            "xcopy %{AssetsDir} %{TargetDir}assets\\ /S /Y /I"
+        }
+
     filter { "configurations:Debug" }
         defines
         { 
@@ -64,6 +70,7 @@ project "Sandbox"
         }
 
         debugargs { "--show-console" }
+        debugdir "%{TargetDir}"
 
         runtime "Debug"
         symbols "on"

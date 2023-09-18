@@ -1,6 +1,7 @@
 #pragma once
 #include "../../../Renderpch.h"
-#include "VulkanFramebuffer.h"
+#include "CachedResources/VulkanFramebuffer.h"
+#include "CachedResources/VulkanUniformData.h"
 
 #include <Coco/Core/MainLoop/TickListener.h>
 
@@ -21,6 +22,7 @@ namespace Coco::Rendering::Vulkan
 
 	private:
 		std::unordered_map<GraphicsDeviceResourceID, VulkanFramebuffer> _framebuffers;
+		std::unordered_map<GraphicsDeviceResourceID, VulkanUniformData> _uniformDatas;
 		TickListener _tickListener;
 
 	public:
@@ -33,6 +35,10 @@ namespace Coco::Rendering::Vulkan
 		/// @param attachmentImages Images being used as attachments
 		/// @return A framebuffer
 		VulkanFramebuffer& GetOrCreateFramebuffer(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages);
+
+		VulkanUniformData& GetOrCreateUniformData(const VulkanRenderPassShader& shader);
+
+		void ResetForNextRender();
 
 		/// @brief Purges all stale resources
 		void PurgeStaleResources();

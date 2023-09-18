@@ -48,6 +48,57 @@ namespace Coco::Rendering::Vulkan
 		return VulkanGraphicsDevice::Create(_vulkanInstance, createParamsCopy);
 	}
 
+	Matrix4x4 VulkanGraphicsPlatform::CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip)
+	{
+		Matrix4x4 ortho;
+
+		const double w = 2.0 / (right - left);
+		const double h = 2.0 / (top - bottom);
+		const double a = 1.0 / (nearClip - farClip);
+		const double b = a * nearClip;
+
+		// This creates an orthographic matrix to transform Coco view coordinates to Vulkan/DirectX with the directions: right = X, up = -Y, forward = Z
+		ortho.Data[Matrix4x4::m11] = -w;
+		ortho.Data[Matrix4x4::m22] = -h;
+		ortho.Data[Matrix4x4::m33] = a;
+
+		ortho.Data[Matrix4x4::m14] = (right + left) / (left - right);
+		ortho.Data[Matrix4x4::m24] = (bottom + top) / (top - bottom);
+		ortho.Data[Matrix4x4::m34] = b;
+
+		ortho.Data[Matrix4x4::m44] = 1.0;
+
+		return ortho;
+	}
+
+	Matrix4x4 VulkanGraphicsPlatform::CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip)
+	{
+		const double halfSize = size / 2.0;
+
+		return CreateOrthographicProjection(-halfSize * aspectRatio, halfSize * aspectRatio, halfSize, -halfSize, nearClip, farClip);
+	}
+
+	Matrix4x4 VulkanGraphicsPlatform::CreatePerspectiveProjection(double verticalFOVRadians, double aspectRatio, double nearClip, double farClip)
+	{
+		Matrix4x4 perspective;
+
+		const double h = 1.0 / Math::Tan(verticalFOVRadians * 0.5);
+		const double w = h / aspectRatio;
+		const double a = farClip / (farClip - nearClip);
+		const double b = (-nearClip * farClip) / (farClip - nearClip);
+
+		// This creates a projection matrix to transform Coco view coordinates to Vulkan/DirectX with the directions: right = X, up = -Y, forward = Z
+		perspective.Data[Matrix4x4::m11] = -w;
+		perspective.Data[Matrix4x4::m22] = -h;
+		perspective.Data[Matrix4x4::m33] = a;
+		perspective.Data[Matrix4x4::m44] = 0.0;
+
+		perspective.Data[Matrix4x4::m34] = b;
+		perspective.Data[Matrix4x4::m43] = 1.0;
+
+		return perspective;
+	}
+
 	bool VulkanGraphicsPlatform::CheckValidationLayerSupport()
 	{
 		uint32_t layerCount;

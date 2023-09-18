@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Coco/Core/Defines.h>
+
 namespace Coco::Rendering
 {
 	/// @brief Types of topology that can be rendered
@@ -85,6 +87,33 @@ namespace Coco::Rendering
 		Sixteen
 	};
 
+	struct BlendState
+	{
+		/// @brief The blend factor for the color source
+		BlendFactorMode ColorSourceFactor;
+
+		/// @brief The blend factor for the color destination
+		BlendFactorMode ColorDestinationFactor;
+
+		/// @brief The operation to use for combining the source and destination colors
+		BlendOperation ColorBlendOperation;
+
+		/// @brief The blend factor for the alpha source
+		BlendFactorMode AlphaSourceBlendFactor;
+
+		/// @brief The blend factor for the alpha destination
+		BlendFactorMode AlphaDestinationBlendFactor;
+
+		/// @brief The operation to use for combining the source and destination alphas
+		BlendOperation AlphaBlendOperation;
+
+		BlendState();
+
+		bool operator==(const BlendState& other) const;
+
+		uint64 GetHash() const;
+	};
+
 	/// @brief A state for the graphics pipeline
 	struct GraphicsPipelineState
 	{
@@ -112,5 +141,7 @@ namespace Coco::Rendering
 		GraphicsPipelineState();
 
 		bool operator==(const GraphicsPipelineState& other) const;
+
+		uint64 GetHash() const;
 	};
 }

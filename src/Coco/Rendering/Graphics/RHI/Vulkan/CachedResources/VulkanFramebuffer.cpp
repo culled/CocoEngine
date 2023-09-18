@@ -1,7 +1,7 @@
 #include "Renderpch.h"
 #include "VulkanFramebuffer.h"
-#include "VulkanGraphicsDevice.h"
-#include "VulkanRenderContextCache.h"
+#include "../VulkanGraphicsDevice.h"
+#include "../VulkanRenderContextCache.h"
 
 #include <Coco/Core/Engine.h>
 
@@ -64,12 +64,12 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanFramebuffer::Use()
 	{
-		_lastUsedTime = Engine::cGet()->GetMainLoop()->GetCurrentTick().UnscaledTime;
+		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
 	}
 
 	bool VulkanFramebuffer::IsStale() const
 	{
-		double currentTime = Engine::cGet()->GetMainLoop()->GetCurrentTick().UnscaledTime;
+		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
 		return currentTime - _lastUsedTime > VulkanRenderContextCache::sPurgeThreshold;
 	}
 }

@@ -44,7 +44,7 @@ namespace Coco::Platforms::Win32
 		void Sleep(uint64 milliseconds) final;
 		void ProcessMessages() final;
 		void PushProcessArgument(const char* arg) final;
-		const std::vector<string>& GetProcessArguments() const final { return _processArguments; }
+		std::span<const string> GetProcessArguments() const final { return _processArguments; }
 		bool HasProcessArgument(const char* arg) const final;
 		void ShowConsoleWindow(bool show) final;
 		void WriteToConsole(const char* message, ConsoleColor color) final;

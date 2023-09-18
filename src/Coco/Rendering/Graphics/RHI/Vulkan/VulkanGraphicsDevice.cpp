@@ -1,6 +1,10 @@
 #include "Renderpch.h"
 #include "VulkanGraphicsDevice.h"
 #include "VulkanGraphicsPresenter.h"
+#include "VulkanBuffer.h"
+#include "VulkanImage.h"
+#include "VulkanImageSampler.h"
+#include "../../GraphicsDeviceResource.h"
 
 #include <Coco/Core/Core.h>
 #include <Coco/Core/Engine.h>
@@ -92,9 +96,64 @@ namespace Coco::Rendering::Vulkan
 		vkDeviceWaitIdle(_device);
 	}
 
+	uint8 VulkanGraphicsDevice::GetDataTypeAlignment(BufferDataType type) const
+	{
+		switch (type)
+		{
+		case BufferDataType::Float:
+			return BufferFloatSize;
+		case BufferDataType::Float2:
+			return BufferFloatSize * 2;
+		case BufferDataType::Float3:
+		case BufferDataType::Float4:
+			return BufferFloatSize * 4;
+		case BufferDataType::Int:
+			return BufferIntSize;
+		case BufferDataType::Int2:
+			return BufferIntSize * 2;
+		case BufferDataType::Int3:
+		case BufferDataType::Int4:
+			return BufferIntSize * 4;
+		case BufferDataType::Mat4x4:
+			return BufferFloatSize * 16;
+		default:
+			return 0;
+		}
+	}
+
+	void VulkanGraphicsDevice::AlignOffset(BufferDataType type, uint64& offset) const
+	{
+		offset = GetOffsetForAlignment(offset, GetDataTypeAlignment(type));
+	}
+
 	Ref<GraphicsPresenter> VulkanGraphicsDevice::CreatePresenter()
 	{
 		return _resources.Create<VulkanGraphicsPresenter>();
+	}
+
+	Ref<Buffer> VulkanGraphicsDevice::CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind)
+	{
+		return _resources.Create<VulkanBuffer>(size, usageFlags, bind);
+	}
+
+	Ref<Image> VulkanGraphicsDevice::CreateImage(const ImageDescription& description)
+	{
+		return _resources.Create<VulkanImage>(description);
+	}
+
+	Ref<ImageSampler> VulkanGraphicsDevice::CreateImageSampler(const ImageSamplerDescription& description)
+	{
+		return _resources.Create<VulkanImageSampler>(description);
+	}
+
+	void VulkanGraphicsDevice::PurgeUnusedResources()
+	{
+		uint64 purgeCount = _resources.PurgeUnused();
+
+		if (purgeCount)
+		{
+			CocoTrace("Purged {} graphics resources", purgeCount)
+		}
 	}
 
 	DeviceQueue* VulkanGraphicsDevice::GetQueue(DeviceQueue::Type queueType)
@@ -378,6 +437,7 @@ namespace Coco::Rendering::Vulkan
 
 		// TODO: configurable features
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		deviceFeatures.depthClamp = VK_TRUE;
 
 		// Create the logical device
 		VkDeviceCreateInfo createInfo{};
@@ -426,6 +486,7 @@ namespace Coco::Rendering::Vulkan
 		_deviceType = ToGraphicsDeviceType(deviceProperties.deviceType);
 		_driverVersion = ToVersion(deviceProperties.driverVersion);
 		_apiVersion = ToVersion(deviceProperties.apiVersion);
+		_minUniformBufferAlignment = static_cast<uint32>(deviceProperties.limits.minUniformBufferOffsetAlignment);
 
 		// Get the memory features of the physical device
 		VkPhysicalDeviceMemoryProperties memoryProperties{};

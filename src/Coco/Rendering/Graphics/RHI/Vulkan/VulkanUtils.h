@@ -5,6 +5,8 @@
 #include "../../GraphicsPipelineTypes.h"
 #include "../../BufferTypes.h"
 #include "../../ImageTypes.h"
+#include "../../ImageSamplerTypes.h"
+#include "../../RenderPassShaderTypes.h"
 #include "../../GraphicsPresenterTypes.h"
 #include <Coco/Core/Types/Version.h>
 
@@ -46,6 +48,10 @@ namespace Coco::Rendering::Vulkan
 	/// @return The converted color space
 	ImageColorSpace ToImageColorSpace(VkColorSpaceKHR colorSpace);
 
+	VkImageType ToVkImageType(ImageDimensionType type);
+
+	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags, ImagePixelFormat pixelFormat);
+
 	/// @brief Converts a VSyncMode to a VkPresentModeKHR
 	/// @param vsyncMode The v-sync mode
 	/// @return The converted present mode
@@ -63,4 +69,17 @@ namespace Coco::Rendering::Vulkan
 
 	VkSampleCountFlagBits ToVkSampleCountFlagBits(MSAASamples samples);
 	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags);
+	VkShaderStageFlags ToVkShaderStageFlags(ShaderStageFlags stageFlags);
+	VkShaderStageFlagBits ToVkShaderStageFlagBits(ShaderStageType stage);
+	VkPolygonMode ToVkPolygonMode(PolygonFillMode fillMode);
+	VkCullModeFlags ToVkCullModeFlags(CullMode cullMode);
+	VkFrontFace ToVkFrontFace(TriangleWindingMode windingMode);
+	VkCompareOp ToVkCompareOp(DepthTestingMode depthMode);
+	VkBlendFactor ToVkBlendFactor(BlendFactorMode mode);
+	VkBlendOp ToVkBlendOp(BlendOperation op);
+	VkFormat ToVkFormat(BufferDataType type);
+	VkPrimitiveTopology ToVkPrimitiveTopology(TopologyMode mode);
+	VkFilter ToVkFilter(ImageFilterMode mode);
+	VkSamplerAddressMode ToVkSamplerAddressMode(ImageRepeatMode repeatMode);
+	VkSamplerMipmapMode ToVkSamplerMipmapMode(MipMapFilterMode mode);
 }

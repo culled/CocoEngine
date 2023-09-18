@@ -40,7 +40,11 @@ namespace Coco::Windowing
 		catch(...)
 		{ }
 
-		_presenter.Invalidate();
+		if (_presenter.IsValid())
+		{
+			_presenter.Invalidate();
+			Rendering::RenderService::Get()->GetDevice()->PurgeUnusedResources();
+		}
 	}
 
 	void Window::Close()

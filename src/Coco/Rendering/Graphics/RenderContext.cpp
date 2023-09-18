@@ -124,6 +124,42 @@ namespace Coco::Rendering
 		UniformChanged(scope, key);
 	}
 
+	void RenderContext::SetFloat4(UniformScope scope, ShaderUniformData::UniformKey key, const Color& value, bool asLinear)
+	{
+		Color v;
+
+		if (asLinear)
+			v = value.AsLinear();
+		else
+			v = value.AsGamma();
+
+		SetFloat4(scope, key, Vector4(v.R, v.G, v.B, v.A));
+	}
+
+	void RenderContext::SetMatrix4x4(UniformScope scope, ShaderUniformData::UniformKey key, const Matrix4x4& value)
+	{
+		Assert(_renderOperation.has_value())
+
+		ShaderUniformData::Mat4x4 v = ShaderUniformData::ToMat4x4(value);
+
+		switch (scope)
+		{
+		case UniformScope::Global:
+			_renderOperation->GlobalUniforms.Mat4x4s[key] = v;
+			break;
+		case UniformScope::Instance:
+			_renderOperation->InstanceUniforms.Mat4x4s[key] = v;
+			break;
+		case UniformScope::Draw:
+			_renderOperation->DrawUniforms.Mat4x4s[key] = v;
+			break;
+		default:
+			return;
+		}
+
+		UniformChanged(scope, key);
+	}
+
 	void RenderContext::SetInt(UniformScope scope, ShaderUniformData::UniformKey key, int32 value)
 	{
 		Assert(_renderOperation.has_value())

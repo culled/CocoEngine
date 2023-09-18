@@ -41,6 +41,29 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
+	VulkanUniformData& VulkanRenderContextCache::GetOrCreateUniformData(const VulkanRenderPassShader& shader)
+	{
+		GraphicsDeviceResourceID key = VulkanUniformData::MakeKey(shader);
+
+		auto it = _uniformDatas.find(key);
+
+		if (it == _uniformDatas.end())
+		{
+			it = _uniformDatas.try_emplace(key, shader).first;
+		}
+
+		VulkanUniformData& resource = it->second;
+		resource.Use();
+
+		return resource;
+	}
+
+	void VulkanRenderContextCache::ResetForNextRender()
+	{
+		for (auto it = _uniformDatas.begin(); it != _uniformDatas.end(); it++)
+			it->second.ResetForNextRender();
+	}
+
 	void VulkanRenderContextCache::PurgeStaleResources()
 	{
 		uint64 framebuffersPurged = 0;

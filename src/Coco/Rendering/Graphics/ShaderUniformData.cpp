@@ -6,6 +6,7 @@ namespace Coco::Rendering
 	const ShaderUniformData ShaderUniformData::Empty = ShaderUniformData();
 
 	ShaderUniformData::ShaderUniformData() :
+		Version(TemporaryVersion),
 		Floats{},
 		Float2s{},
 		Float3s{},
@@ -26,8 +27,11 @@ namespace Coco::Rendering
 		return stringHash(view);
 	}
 
+	ShaderUniformData::Mat4x4 ShaderUniformData::ToMat4x4(const Matrix4x4& v) { return v.AsFloatArray(); }
+
 	void ShaderUniformData::Clear()
 	{
+		Version = TemporaryVersion;
 		Floats.clear();
 		Float2s.clear();
 		Float3s.clear();

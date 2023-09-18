@@ -68,6 +68,16 @@ namespace Coco
 			return Ref<ResourceType>(_resources.at(id));
 		}
 
+		void Remove(const IDType& id)
+		{
+			auto it = _resources.find(id);
+
+			if (it == _resources.end())
+				return;
+
+			_resources.erase(it);
+		}
+
 		/// @brief Clears all resources from this library
 		void Clear()
 		{
@@ -90,7 +100,7 @@ namespace Coco
 			auto it = _resources.begin();
 			while (it != _resources.end())
 			{
-				if (it->GetUseCount() == 1)
+				if (it->second.GetUseCount() == 1)
 				{
 					it = _resources.erase(it);
 					purgeCount++;

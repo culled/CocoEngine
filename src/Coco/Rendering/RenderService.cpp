@@ -10,18 +10,30 @@ namespace Coco::Rendering
 		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
 
+		CreateDefaultDiffuseTexture();
+		CreateDefaultNormalTexture();
+		CreateDefaultCheckerTexture();
+
 		CocoTrace("RenderService initialized")
 	}
 
 	RenderService::~RenderService()
 	{
+		_defaultDiffuseTexture.Invalidate();
+		_defaultNormalTexture.Invalidate();
+		_defaultCheckerTexture.Invalidate();
+
 		_device.reset();
 		_platform.reset();
 
 		CocoTrace("RenderService shutdown")
 	}
 
-	void RenderService::Render(Ref<GraphicsPresenter> presenter, RenderPipeline& pipeline)
+	void RenderService::Render(
+		Ref<GraphicsPresenter> presenter, 
+		RenderPipeline& pipeline, 
+		RenderViewProvider& renderViewProvider, 
+		std::span<SceneDataProvider*> sceneDataProviders)
 	{
 		Assert(presenter.IsValid())
 
@@ -34,14 +46,18 @@ namespace Coco::Rendering
 			return;
 		}
 
-		// TODO: get RenderView and other rendering-related items from scene
-		SizeInt size = presenter->GetFramebufferSize();
-		RectInt viewport(Vector2Int::Zero, size);
-		std::vector<RenderTarget> rts{ RenderTarget(backbuffer, Color(0.1, 0.2, 0.3, 1.0)) };
+		std::array<Ref<Image>, 1> backbuffers{ backbuffer };
+		UniqueRef<RenderView> view = renderViewProvider.CreateRenderView(pipeline, presenter->GetFramebufferSize(), backbuffers);
 
-		RenderView view(viewport, viewport, rts);
+		for (SceneDataProvider* provider : sceneDataProviders)
+		{
+			if (!provider)
+				continue;
 
-		ExecuteRender(*context, pipeline, view);
+			provider->GatherSceneData(*view);
+		}
+
+		ExecuteRender(*context, pipeline, *view);
 
 		if (!presenter->Present(*context))
 		{
@@ -80,5 +96,87 @@ namespace Coco::Rendering
 		}
 
 		context.End();
+	}
+
+	void RenderService::CreateDefaultDiffuseTexture()
+	{
+		constexpr uint32 size = 32;
+		constexpr uint8 channels = 4;
+
+		_defaultDiffuseTexture = CreateManagedRef<Texture>(
+			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
+			ImageSamplerDescription()
+		);
+
+		std::vector<uint8> pixelData(size * size * channels);
+
+		for (uint64_t i = 0; i < pixelData.size(); i++)
+		{
+			pixelData[i] = 255;
+		}
+
+		_defaultDiffuseTexture->SetPixels(0, pixelData.data(), pixelData.size());
+
+		CocoTrace("Created default diffuse texture");
+	}
+
+	void RenderService::CreateDefaultNormalTexture()
+	{
+		constexpr uint32 size = 32;
+		constexpr uint8 channels = 4;
+
+		_defaultNormalTexture = CreateManagedRef<Texture>(
+			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::Linear, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
+			ImageSamplerDescription()
+		);
+
+		std::vector<uint8> pixelData(size * size * channels);
+
+		for (uint64_t i = 0; i < pixelData.size(); i += channels)
+		{
+			pixelData[i] = 127;
+			pixelData[i + 1] = 127;
+			pixelData[i + 2] = 255;
+			pixelData[i + 3] = 255;
+		}
+
+		_defaultNormalTexture->SetPixels(0, pixelData.data(), pixelData.size());
+
+		CocoTrace("Created default normal texture");
+	}
+
+	void RenderService::CreateDefaultCheckerTexture()
+	{
+		constexpr uint32 size = 32;
+		constexpr uint8 channels = 4;
+
+		_defaultCheckerTexture = CreateManagedRef<Texture>(
+			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
+			ImageSamplerDescription(ImageFilterMode::Nearest, ImageRepeatMode::Repeat, MipMapFilterMode::Nearest, 1)
+		);
+
+		std::vector<uint8> pixelData(size * size * channels);
+
+		for (uint32 x = 0; x < size; x++)
+		{
+			for (uint32 y = 0; y < size; y++)
+			{
+				const uint32 baseIndex = ((x * size) + y) * channels;
+				pixelData[baseIndex + 0] = 255;
+				pixelData[baseIndex + 1] = 255;
+				pixelData[baseIndex + 2] = 255;
+				pixelData[baseIndex + 3] = 255;
+
+				if (((x % 2) && (y % 2)) || !(y % 2))
+				{
+					pixelData[baseIndex + 1] = 0; // Green = 0
+					pixelData[baseIndex + 2] = 0; // Red = 0
+				}
+			}
+		}
+
+		_defaultCheckerTexture->SetPixels(0, pixelData.data(), pixelData.size());
+
+		CocoTrace("Created default checker texture");
 	}
 }

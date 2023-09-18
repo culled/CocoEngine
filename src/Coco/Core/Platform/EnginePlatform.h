@@ -57,7 +57,7 @@ namespace Coco
 
 		/// @brief Gets the process arguments
 		/// @return The process arguments
-		virtual const std::vector<string>& GetProcessArguments() const = 0;
+		virtual std::span<const string> GetProcessArguments() const = 0;
 
 		/// @brief Checks if the given argument exists in the process arguments
 		/// @param arg The argument

@@ -62,7 +62,7 @@ namespace Coco::Rendering
 		/// @param offset The offset in the buffer to start loading data to, in bytes
 		/// @param data The data to load
 		template<typename DataType>
-		void LoadData(uint64 offset, const std::span<DataType>& data)
+		void LoadData(uint64 offset, std::span<DataType> data)
 		{
 			uint64 byteSize = sizeof(DataType) * data.size();
 			void* bufferData = Lock(offset, byteSize);

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../../../Renderpch.h"
-#include "../../GraphicsDeviceResource.h"
-#include "VulkanIncludes.h"
+#include "../../../../Renderpch.h"
+#include "../../../GraphicsDeviceResource.h"
+#include "../VulkanIncludes.h"
 #include <Coco/Core/Types/Size.h>
-#include "VulkanImage.h"
+#include "../VulkanImage.h"
 #include "VulkanRenderPass.h"
 
 namespace Coco::Rendering::Vulkan

@@ -25,6 +25,9 @@ namespace Coco::Rendering::Vulkan
 
 		const char* GetName() const final { return sVulkanRHIName; }
 		UniqueRef<GraphicsDevice> CreateDevice(const GraphicsDeviceCreateParams& createParams) final;
+		Matrix4x4 CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip) final;
+		Matrix4x4 CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) final;
+		Matrix4x4 CreatePerspectiveProjection(double verticalFOVRadians, double aspectRatio, double nearClip, double farClip) final;
 
 		/// @brief Gets the Vulkan instance
 		/// @return The Vulkan instance

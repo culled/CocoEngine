@@ -10,6 +10,7 @@
 #include <limits>
 #include <cmath>
 #include <type_traits>
+#include <numbers>
 
 #include <span>
 #include <array>

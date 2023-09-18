@@ -77,7 +77,7 @@ namespace Coco
 
 		/// @brief Gets the length of this vector
 		/// @return The length
-		constexpr double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
+		double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
 
 		/// @brief Normalizes this vector
 		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
@@ -107,7 +107,7 @@ namespace Coco
 		/// @param normal The normal vector
 		/// @param ior The index of refraction
 		/// @return The refraction vector
-		Vector2 Refract(const Vector2& normal, double ior) const;
+		//Vector2 Refract(const Vector2& normal, double ior) const;
 
 		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
@@ -186,7 +186,7 @@ namespace Coco
 
 		/// @brief Gets the length of this vector
 		/// @return The length
-		constexpr double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
+		double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
 
 		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
@@ -276,7 +276,7 @@ namespace Coco
 
 		/// @brief Gets the length of this vector
 		/// @return The length
-		constexpr double GetLength() const { return Math::Sqrt(X * X + Y * Y + Z * Z); }
+		double GetLength() const { return Math::Sqrt(X * X + Y * Y + Z * Z); }
 
 		/// @brief Normalizes this vector
 		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
@@ -295,7 +295,13 @@ namespace Coco
 		/// @brief Calculates the cross product of this vector with another vector. The resulting vector is orthogonal to both vectors
 		/// @param other The other vector
 		/// @return The cross product
-		Vector3 Cross(const Vector3& other) const { return Vector3(Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X); }
+		Vector3 Cross(const Vector3& other) const 
+		{ 
+			return Vector3(
+				Y * other.Z - Z * other.Y, 
+				Z * other.X - X * other.Z, 
+				X * other.Y - Y * other.X); 
+		}
 
 		/// @brief Projects this vector along a normal vector.
 		/// @param normal The normal vector
@@ -311,7 +317,7 @@ namespace Coco
 		/// @param normal The normal vector
 		/// @param ior The index of refraction
 		/// @return The refraction vector
-		Vector3 Refract(const Vector3& normal, double ior) const;
+		//Vector3 Refract(const Vector3& normal, double ior) const;
 
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
@@ -399,7 +405,7 @@ namespace Coco
 
 		/// @brief Gets the length of this vector
 		/// @return The length
-		constexpr double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
+		double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
 
 		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
@@ -476,7 +482,7 @@ namespace Coco
 
 		/// @brief Gets the length of this vector
 		/// @return The length
-		constexpr double GetLength() const { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
+		double GetLength() const { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
 
 		/// @brief Normalizes this vector
 		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
@@ -563,7 +569,7 @@ namespace Coco
 
 		/// @brief Gets the length of this vector
 		/// @return The length
-		constexpr double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
+		double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
 
 		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string

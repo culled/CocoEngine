@@ -2,6 +2,7 @@
 
 #include "../../Image.h"
 #include "../../GraphicsDeviceResource.h"
+#include "VulkanBuffer.h"
 
 #include "VulkanIncludes.h"
 
@@ -11,7 +12,7 @@ namespace Coco::Rendering::Vulkan
     class VulkanCommandBuffer;
 
     /// @brief Vulkan implementation of an Image
-    class VulkanImage : public Image, GraphicsDeviceResource<VulkanGraphicsDevice>
+    class VulkanImage : public Image, public GraphicsDeviceResource<VulkanGraphicsDevice>
     {
         friend class VulkanRenderContext;
 
@@ -21,12 +22,17 @@ namespace Coco::Rendering::Vulkan
         ImageDescription _description;
         VkImageLayout _currentLayout;
         VkImageView _nativeView;
+        VkDeviceMemory _imageMemory;
+        uint32 _memoryIndex;
 
     public:
+        VulkanImage(const GraphicsDeviceResourceID& id, const ImageDescription& description);
         VulkanImage(const GraphicsDeviceResourceID& id, const ImageDescription& description, VkImage image);
         ~VulkanImage();
 
         ImageDescription GetDescription() const final { return _description; }
+        uint64 GetSize() const final;
+        void SetPixels(uint64 offset, const void* pixelData, uint64 size) final;
 
         /// @brief Gets the Vulkan image
         /// @return The Vulkan image
@@ -42,7 +48,12 @@ namespace Coco::Rendering::Vulkan
         void TransitionLayout(VulkanCommandBuffer& commandBuffer, VkImageLayout to);
 
     private:
+        /// @brief Creates the image from the set description
+        void CreateImage();
+
         /// @brief Creates the native image view
         void CreateNativeImageView();
+
+        void CopyFromBuffer(VulkanCommandBuffer& commandBuffer, VulkanBuffer& source);
     };
 }

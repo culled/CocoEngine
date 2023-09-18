@@ -10,6 +10,12 @@ namespace Coco::Rendering
 	/// @brief A shader for a single RenderPass
 	struct RenderPassShader
 	{
+		/// @brief The hash of this shader
+		uint64 Hash;
+
+		/// @brief The version of this shader
+		uint64 Version;
+
 		/// @brief The name of the RenderPass this shader is used for
 		string PassName;
 
@@ -18,6 +24,9 @@ namespace Coco::Rendering
 
 		/// @brief The graphics pipeline state for this shader
 		GraphicsPipelineState PipelineState;
+
+		/// @brief Blending states for this shader's attachments
+		std::vector<BlendState> AttachmentBlendStates;
 
 		/// @brief The vertex attributes for this shader
 		std::vector<ShaderVertexAttribute> VertexAttributes;
@@ -35,6 +44,7 @@ namespace Coco::Rendering
 			const string& passName,
 			const std::vector<ShaderStage>& stages,
 			const GraphicsPipelineState& pipelineState,
+			const std::vector<BlendState>& attachmentBlendStates,
 			const std::vector<ShaderVertexAttribute>& vertexAttributes,
 			const std::vector<ShaderDataUniform>& dataUniforms,
 			const std::vector<ShaderTextureUniform>& textureUniforms);
@@ -56,7 +66,14 @@ namespace Coco::Rendering
 		/// @return The binding points for all uniforms in the scope
 		ShaderStageFlags GetUniformScopeBindStages(UniformScope scope) const;
 
+		/// @brief Determines if this shader has any uniforms for the given scope
+		/// @return True if this shader has any uniforms for the given scope
+		bool HasScope(UniformScope scope) const;
+
 		/// @brief Calculates the offsets for each vertex attribute and the total vertex data size
 		void CalculateAttributeOffsets();
+
+	private:
+		void CalculateHash();
 	};
 }

@@ -1,8 +1,8 @@
 #include "Renderpch.h"
 #include "VulkanRenderPass.h"
-#include "VulkanGraphicsDevice.h"
-#include "VulkanUtils.h"
-#include "VulkanGraphicsDeviceCache.h"
+#include "../VulkanGraphicsDevice.h"
+#include "../VulkanUtils.h"
+#include "../VulkanGraphicsDeviceCache.h"
 
 #include <Coco/Core/Engine.h>
 
@@ -21,7 +21,8 @@ namespace Coco::Rendering::Vulkan
 		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(pipeline)),
 		_renderPass(nullptr),
 		_subpassInfos(pipeline.RenderPasses.size()),
-		_lastUsedTime(0)
+		_attachments(pipeline.InputAttachments),
+		_multisamplingMode(MSAASamples::One)
 	{
 		Assert(pipeline.RenderPasses.size() != 0)
 
@@ -31,6 +32,9 @@ namespace Coco::Rendering::Vulkan
 		for (const AttachmentFormat& attachment : pipeline.InputAttachments)
 		{
 			VkImageLayout layout = ToAttachmentLayout(attachment.PixelFormat);
+
+			if (attachment.SampleCount > _multisamplingMode)
+				_multisamplingMode = attachment.SampleCount;
 
 			VkAttachmentDescription description{};
 			description.samples = ToVkSampleCountFlagBits(attachment.SampleCount);
@@ -111,7 +115,7 @@ namespace Coco::Rendering::Vulkan
 			subpassDescription.pPreserveAttachments = subpass.PreserveAttachments.data();
 
 			subpassDescription.inputAttachmentCount = 0; // TODO: input attachments
-			subpassDescription.pResolveAttachments = nullptr; // TODO: resolve attachments
+			subpassDescription.pResolveAttachments = nullptr; // TODO: MSAA resolve attachments
 
 			subpass.SubpassDescription = subpassDescription;
 			subpasses.at(i) = subpassDescription;
@@ -183,14 +187,21 @@ namespace Coco::Rendering::Vulkan
 		return Math::CombineHashes(pipeline.Version, pipeline.PipelineHash);
 	}
 
+	const VulkanSubpassInfo& VulkanRenderPass::GetSubpassInfo(uint64 index) const
+	{
+		Assert(index < _subpassInfos.size())
+
+		return _subpassInfos.at(index);
+	}
+
 	void VulkanRenderPass::Use()
 	{
-		_lastUsedTime = Engine::cGet()->GetMainLoop()->GetCurrentTick().UnscaledTime;
+		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
 	}
 
 	bool VulkanRenderPass::IsStale() const
 	{
-		double currentTime = Engine::cGet()->GetMainLoop()->GetCurrentTick().UnscaledTime;
+		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
 		return currentTime - _lastUsedTime > VulkanGraphicsDeviceCache::sPurgeThreshold;
 	}
 }

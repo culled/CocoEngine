@@ -4,6 +4,7 @@
 #include <Coco/Core/Defines.h>
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Matrix.h>
 #include "Image.h"
 #include "ImageSampler.h"
 
@@ -35,11 +36,14 @@ namespace Coco::Rendering
 		using int3 = std::array<int32, 3>;
 		using int4 = std::array<int32, 4>;
 
-		using Mat4x4 = std::array<float, 16>;
+		using Mat4x4 = std::array<float, Matrix4x4::CellCount>;
 
 		using TextureSampler = std::pair<Ref<Image>, Ref<ImageSampler>>;
 
+		static constexpr uint64 TemporaryVersion = Math::MaxValue<uint64>();
 		static const ShaderUniformData Empty;
+
+		uint64 Version;
 
 		std::unordered_map<UniformKey, float> Floats;
 		std::unordered_map<UniformKey, float2> Float2s;
@@ -64,6 +68,8 @@ namespace Coco::Rendering
 		constexpr static float2 ToFloat2(const Vector2& v) { return float2{ static_cast<float>(v.X), static_cast<float>(v.Y) }; }
 		constexpr static float3 ToFloat3(const Vector3& v) { return float3{ static_cast<float>(v.X), static_cast<float>(v.Y), static_cast<float>(v.Z) }; }
 		constexpr static float4 ToFloat4(const Vector4& v) { return float4{ static_cast<float>(v.X), static_cast<float>(v.Y), static_cast<float>(v.Z), static_cast<float>(v.W) }; }
+
+		static Mat4x4 ToMat4x4(const Matrix4x4& v);
 
 		constexpr static int2 ToInt2(const Vector2Int& v) { return int2{ v.X, v.Y }; }
 		constexpr static int3 ToInt3(const Vector3Int& v) { return int3{ v.X, v.Y, v.Z }; }

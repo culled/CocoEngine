@@ -76,6 +76,7 @@ namespace Coco::Rendering::Vulkan
 		GraphicsDeviceType _deviceType;
 		Version _driverVersion;
 		Version _apiVersion;
+		uint32 _minUniformBufferAlignment;
 		GraphicsDeviceMemoryFeatures _memoryFeatures;
 		UniqueRef<DeviceQueue> _graphicsQueue;
 		UniqueRef<DeviceQueue> _transferQueue;
@@ -100,7 +101,14 @@ namespace Coco::Rendering::Vulkan
 		Version GetAPIVersion() const final { return _apiVersion; }
 		const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const final { return _memoryFeatures; }
 		void WaitForIdle() const final;
+		constexpr uint32 GetMinimumBufferAlignment() const final { return _minUniformBufferAlignment; }
+		uint8 GetDataTypeAlignment(BufferDataType type) const final;
+		void AlignOffset(BufferDataType type, uint64& offset) const final;
 		Ref<GraphicsPresenter> CreatePresenter() final;
+		Ref<Buffer> CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind) final;
+		Ref<Image> CreateImage(const ImageDescription& description) final;
+		Ref<ImageSampler> CreateImageSampler(const ImageSamplerDescription& description) final;
+		void PurgeUnusedResources() final;
 
 		/// @brief Gets the Vulkan instance that this device was created with
 		/// @return The Vulkan instance

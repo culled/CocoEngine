@@ -3,8 +3,8 @@
 #include "VulkanGraphicsDevice.h"
 #include "VulkanImage.h"
 #include "VulkanUtils.h"
-#include "VulkanFramebuffer.h"
-#include "VulkanRenderPass.h"
+#include "CachedResources/VulkanFramebuffer.h"
+#include "CachedResources/VulkanRenderPass.h"
 #include "VulkanBuffer.h"
 
 #include <Coco/Core/Engine.h>
@@ -19,8 +19,12 @@ namespace Coco::Rendering::Vulkan
 		ViewportRect{},
 		ScissorRect{},
 		StateChanges{},
-		CurrentShaderID{}
+		CurrentShaderID{},
+		BoundPipeline{}
 	{}
+
+	const uint32 VulkanRenderContext::sGlobalDescriptorSetIndex = 0;
+	const uint32 VulkanRenderContext::sInstanceDescriptorSetIndex = 1;
 
 	VulkanRenderContext::VulkanRenderContext(const GraphicsDeviceResourceID& id) :
 		GraphicsDeviceResource<VulkanGraphicsDevice>(id),
@@ -66,12 +70,30 @@ namespace Coco::Rendering::Vulkan
 	{
 		Assert(_vulkanRenderOperation.has_value())
 		_vulkanRenderOperation->ViewportRect = viewportRect;
+
+		VkViewport viewport{};
+		viewport.x = static_cast<float>(viewportRect.Offset.X);
+		viewport.y = static_cast<float>(viewportRect.Offset.Y);
+		viewport.width = static_cast<float>(viewportRect.Size.Width);
+		viewport.height = static_cast<float>(viewportRect.Size.Height);
+		viewport.minDepth = 0.0f; // TODO: configurable min/max depth
+		viewport.maxDepth = 1.0f;
+
+		vkCmdSetViewport(_commandBuffer->GetCmdBuffer(), 0, 1, &viewport);
 	}
 
 	void VulkanRenderContext::SetScissorRect(const RectInt& scissorRect)
 	{
 		Assert(_vulkanRenderOperation.has_value())
 		_vulkanRenderOperation->ScissorRect = scissorRect;
+
+		VkRect2D scissor{};
+		scissor.offset.x = static_cast<uint32_t>(scissorRect.Offset.X);
+		scissor.offset.y = static_cast<uint32_t>(scissorRect.Offset.Y);
+		scissor.extent.width = static_cast<uint32_t>(scissorRect.Size.Width);
+		scissor.extent.height = static_cast<uint32_t>(scissorRect.Size.Height);
+
+		vkCmdSetScissor(_commandBuffer->GetCmdBuffer(), 0, 1, &scissor);
 	}
 
 	void VulkanRenderContext::AddWaitOnSemaphore(GraphicsSemaphore& semaphore)
@@ -105,6 +127,7 @@ namespace Coco::Rendering::Vulkan
 		_renderOperation->DrawUniforms.Clear();
 
 		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Shader);
+		_vulkanRenderOperation->BoundInstanceDescriptors.reset();
 	}
 
 	void VulkanRenderContext::Draw(const MeshData& mesh)
@@ -151,13 +174,13 @@ namespace Coco::Rendering::Vulkan
 	{
 		try
 		{
-			const std::vector<RenderTarget>& rts = _renderOperation->RenderView.GetRenderTargets();
+			std::span<RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
 			std::vector<VulkanImage*> vulkanImages(rts.size());
 
 			for (size_t i = 0; i < rts.size(); i++)
 			{
-				Assert(rts.at(i).Image.IsValid())
-				vulkanImages.at(i) = static_cast<VulkanImage*>(rts.at(i).Image.Get());
+				Assert(rts[i].Image.IsValid())
+				vulkanImages.at(i) = static_cast<VulkanImage*>(rts[i].Image.Get());
 			}
 
 			VulkanRenderPass& renderPass = _device->GetCache()->GetOrCreateRenderPass(_renderOperation->Pipeline);
@@ -182,7 +205,7 @@ namespace Coco::Rendering::Vulkan
 			beginInfo.framebuffer = framebuffer.GetFramebuffer();
 
 			beginInfo.renderArea.offset.x = static_cast<uint32_t>(viewportRect.Offset.X);
-			beginInfo.renderArea.offset.y = static_cast<uint32_t>(-viewportRect.Offset.Y); // TODO: check if this is correct
+			beginInfo.renderArea.offset.y = static_cast<uint32_t>(viewportRect.Offset.Y); // TODO: check if this is correct
 			beginInfo.renderArea.extent.width = static_cast<uint32_t>(viewportRect.Size.Width);
 			beginInfo.renderArea.extent.height = static_cast<uint32_t>(viewportRect.Size.Height);
 
@@ -191,7 +214,7 @@ namespace Coco::Rendering::Vulkan
 			// Set clear clear color for each render target
 			for (size_t i = 0; i < clearValues.size(); i++)
 			{
-				const RenderTarget& rt = rts.at(i);
+				const RenderTarget& rt = rts[i];
 				const AttachmentFormat& attachment = _renderOperation->Pipeline.InputAttachments.at(i);
 				VkClearValue& clearValue = clearValues.at(i);
 
@@ -216,6 +239,9 @@ namespace Coco::Rendering::Vulkan
 			beginInfo.pClearValues = clearValues.data();
 
 			vkCmdBeginRenderPass(_commandBuffer->GetCmdBuffer(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+			SetViewportRect(_vulkanRenderOperation->ViewportRect);
+			SetScissorRect(_vulkanRenderOperation->ScissorRect);
 		}
 		catch (const std::exception& ex)
 		{
@@ -247,6 +273,8 @@ namespace Coco::Rendering::Vulkan
 			&_vulkanRenderOperation->WaitOnSemaphores,
 			&_vulkanRenderOperation->RenderCompletedSignalSemaphores,
 			_renderCompletedFence.get());
+
+		_cache->ResetForNextRender();
 	}
 
 	void VulkanRenderContext::UniformChanged(UniformScope scope, ShaderUniformData::UniformKey key)
@@ -304,9 +332,78 @@ namespace Coco::Rendering::Vulkan
 		if (_vulkanRenderOperation->StateChanges.size() == 0)
 			return true;
 
-		// TODO: setup state
+		bool stateBound = true;
+
+		try
+		{
+			if (!_vulkanRenderOperation->CurrentShaderID.has_value())
+				throw std::exception("No shader was bound");
+
+			const RenderPassShaderData& boundShaderData = _renderOperation->RenderView.GetRenderPassShaderData(_vulkanRenderOperation->CurrentShaderID.value());
+			VulkanRenderPassShader& shader = _device->GetCache()->GetOrCreateShader(boundShaderData.ShaderData);
+			VulkanUniformData& uniformData = _cache->GetOrCreateUniformData(shader);
+			VulkanPipeline* pipeline = nullptr;
+
+			if (_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Shader))
+			{
+				pipeline = &_device->GetCache()->GetOrPipeline(
+					_vulkanRenderOperation->RenderPass,
+					shader,
+					_renderOperation->CurrentPassIndex
+				);
+
+				_vulkanRenderOperation->BoundPipeline = pipeline;
+
+				vkCmdBindPipeline(_commandBuffer->GetCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetPipeline());
+
+				VkDescriptorSet set = uniformData.PrepareData(VulkanUniformData::sGlobalInstanceID, _renderOperation->GlobalUniforms, shader, true);
+				if (set)
+				{
+					// Bind the global descriptor set
+					vkCmdBindDescriptorSets(
+						_commandBuffer->GetCmdBuffer(),
+						VK_PIPELINE_BIND_POINT_GRAPHICS,
+						pipeline->GetPipelineLayout(),
+						sGlobalDescriptorSetIndex, 1, &set,
+						0, 0);
+				}
+			}
+
+			Assert(_vulkanRenderOperation->BoundPipeline.has_value())
+			pipeline = _vulkanRenderOperation->BoundPipeline.value();
+
+			if (_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Uniform) ||
+				!_vulkanRenderOperation->BoundInstanceDescriptors.has_value())
+			{
+				// HACK: temporary
+				uint64 instanceID = shader.GetInfo().Hash + shader.ID;
+				VkDescriptorSet set = uniformData.PrepareData(instanceID, _renderOperation->InstanceUniforms, shader, true);
+
+				if (set)
+				{
+					VulkanPipeline* pipeline = _vulkanRenderOperation->BoundPipeline.value();
+
+					// Bind the instance descriptor set
+					vkCmdBindDescriptorSets(
+						_commandBuffer->GetCmdBuffer(),
+						VK_PIPELINE_BIND_POINT_GRAPHICS,
+						pipeline->GetPipelineLayout(),
+						sInstanceDescriptorSetIndex, 1, &set,
+						0, 0);
+
+					_vulkanRenderOperation->BoundInstanceDescriptors = set;
+				}
+			}
+
+			uniformData.PreparePushConstants(*_commandBuffer, pipeline->GetPipelineLayout(), _renderOperation->DrawUniforms, shader);
+		}
+		catch (const std::exception& ex)
+		{
+			CocoError("Error flushing state changes: {}", ex.what())
+			stateBound = false;
+		}
 
 		_vulkanRenderOperation->StateChanges.clear();
-		return true;
+		return stateBound;
 	}
 }

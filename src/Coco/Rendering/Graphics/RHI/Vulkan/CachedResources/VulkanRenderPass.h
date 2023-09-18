@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../GraphicsDeviceResource.h"
-#include "VulkanIncludes.h"
-#include "../../../Pipeline/CompiledRenderPipeline.h"
+#include "../../../GraphicsDeviceResource.h"
+#include "../VulkanIncludes.h"
+#include "../../../../Pipeline/CompiledRenderPipeline.h"
 
 namespace Coco::Rendering::Vulkan
 {
@@ -37,7 +37,9 @@ namespace Coco::Rendering::Vulkan
 	{
 	private:
 		VkRenderPass _renderPass;
+		std::vector<AttachmentFormat> _attachments;
 		std::vector<VulkanSubpassInfo> _subpassInfos;
+		MSAASamples _multisamplingMode;
 		double _lastUsedTime;
 
 	public:
@@ -52,6 +54,9 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Gets the Vulkan render pass
 		/// @return The Vulkan render pass
 		VkRenderPass GetRenderPass() const { return _renderPass; }
+
+		MSAASamples GetMultisamplingMode() const { return _multisamplingMode; }
+		const VulkanSubpassInfo& GetSubpassInfo(uint64 index) const;
 
 		/// @brief Marks this render pass as used
 		void Use();

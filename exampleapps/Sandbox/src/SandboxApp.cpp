@@ -13,7 +13,9 @@ MainApplication(SandboxApp)
 
 SandboxApp::SandboxApp() : 
 	Application(ApplicationCreateParameters("Sandbox", Version(0, 0, 1))),
-	_tickListener(this, &SandboxApp::Tick, 0)
+	_tickListener(this, &SandboxApp::Tick, 0),
+	_renderViewProvider(CreateUniqueRef<BasicRenderViewProvider>()),
+	_sceneDataProvider(CreateUniqueRef<BasicSceneDataProvider>())
 {
 	MainLoop::Get()->AddListener(_tickListener);
 	MainLoop::Get()->SetTargetTicksPerSecond(60);
@@ -71,10 +73,11 @@ void SandboxApp::Tick(const TickInfo & tickInfo)
 	Rendering::RenderService* rendering = services->GetService<Rendering::RenderService>();
 	
 	std::vector<Ref<Windowing::Window>> visibleWindows = windowing->GetVisibleWindows();
+	std::array<SceneDataProvider*, 1> dataProviders = { _sceneDataProvider.get()};
 
 	for (const Ref<Windowing::Window>& window : visibleWindows)
 	{
 		Ref<Rendering::GraphicsPresenter> presenter = window->GetPresenter();
-		rendering->Render(presenter, *_pipeline);
+		rendering->Render(presenter, *_pipeline, *_renderViewProvider, dataProviders);
 	}
 }

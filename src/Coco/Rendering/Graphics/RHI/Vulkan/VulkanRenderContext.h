@@ -7,8 +7,9 @@
 #include "VulkanGraphicsFence.h"
 #include "VulkanCommandBuffer.h"
 #include "../../../Pipeline/CompiledRenderPipeline.h"
-#include "VulkanFramebuffer.h"
-#include "VulkanRenderPass.h"
+#include "CachedResources/VulkanFramebuffer.h"
+#include "CachedResources/VulkanRenderPass.h"
+#include "CachedResources/VulkanPipeline.h"
 #include "VulkanRenderContextCache.h"
 #include "../../RenderPassShaderTypes.h"
 
@@ -46,6 +47,8 @@ namespace Coco::Rendering::Vulkan
 
         std::set<StateChangeType> StateChanges;
         std::optional<uint64> CurrentShaderID;
+        std::optional<VulkanPipeline*> BoundPipeline;
+        std::optional<VkDescriptorSet> BoundInstanceDescriptors;
 
         VulkanContextRenderOperation(VulkanFramebuffer& framebuffer, VulkanRenderPass& renderPass);
     };
@@ -53,6 +56,10 @@ namespace Coco::Rendering::Vulkan
     /// @brief Vulkan implementation of a RenderContext
     class VulkanRenderContext : public RenderContext, public GraphicsDeviceResource<VulkanGraphicsDevice>
     {
+    public:
+        static const uint32 sGlobalDescriptorSetIndex;
+        static const uint32 sInstanceDescriptorSetIndex;
+
     private:
         UniqueRef<VulkanGraphicsSemaphore> _imageAvailableSemaphore;
         UniqueRef<VulkanGraphicsSemaphore> _renderCompletedSemaphore;

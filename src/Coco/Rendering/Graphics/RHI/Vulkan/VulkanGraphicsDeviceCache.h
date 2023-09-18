@@ -1,6 +1,8 @@
 #pragma once
 #include "../../../Renderpch.h"
-#include "VulkanRenderPass.h"
+#include "CachedResources/VulkanRenderPass.h"
+#include "CachedResources/VulkanRenderPassShader.h"
+#include "CachedResources/VulkanPipeline.h"
 
 #include <Coco/Core/MainLoop/TickListener.h>
 
@@ -21,6 +23,8 @@ namespace Coco::Rendering::Vulkan
 
 	private:
 		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderPass> _renderPasses;
+		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderPassShader> _shaders;
+		std::unordered_map<GraphicsDeviceResourceID, VulkanPipeline> _pipelines;
 		TickListener _tickListener;
 
 	public:
@@ -31,6 +35,12 @@ namespace Coco::Rendering::Vulkan
 		/// @param pipeline The pipeline to use
 		/// @return A render pass
 		VulkanRenderPass& GetOrCreateRenderPass(CompiledRenderPipeline& pipeline);
+
+		VulkanRenderPassShader& GetOrCreateShader(const RenderPassShader& shaderInfo);
+		VulkanPipeline& GetOrPipeline(
+			const VulkanRenderPass& renderPass,
+			const VulkanRenderPassShader& shader,
+			uint32 subpassIndex);
 
 		/// @brief Purges all stale resources
 		void PurgeStaleResources();

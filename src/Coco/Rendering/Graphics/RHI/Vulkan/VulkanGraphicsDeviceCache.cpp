@@ -41,6 +41,40 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
+	VulkanRenderPassShader& VulkanGraphicsDeviceCache::GetOrCreateShader(const RenderPassShader& shaderInfo)
+	{
+		GraphicsDeviceResourceID key = VulkanRenderPassShader::MakeKey(shaderInfo);
+
+		auto it = _shaders.find(key);
+
+		if (it == _shaders.end())
+		{
+			it = _shaders.try_emplace(key, shaderInfo).first;
+		}
+
+		VulkanRenderPassShader& resource = it->second;
+		resource.Use();
+
+		return resource;
+	}
+
+	VulkanPipeline& VulkanGraphicsDeviceCache::GetOrPipeline(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader, uint32 subpassIndex)
+	{
+		GraphicsDeviceResourceID key = VulkanPipeline::MakeKey(renderPass, shader, subpassIndex);
+
+		auto it = _pipelines.find(key);
+
+		if (it == _pipelines.end())
+		{
+			it = _pipelines.try_emplace(key, renderPass, shader, subpassIndex).first;
+		}
+
+		VulkanPipeline& resource = it->second;
+		resource.Use();
+
+		return resource;
+	}
+
 	void VulkanGraphicsDeviceCache::PurgeStaleResources()
 	{
 		uint64 renderPassesPurged = 0;
@@ -62,9 +96,28 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		if (renderPassesPurged > 0)
+		uint64 shadersPurged = 0;
+
 		{
-			CocoTrace("Purged {} VulkanRenderPasses", renderPassesPurged)
+			auto it = _shaders.begin();
+
+			while (it != _shaders.end())
+			{
+				if (it->second.IsStale())
+				{
+					it = _shaders.erase(it);
+					shadersPurged++;
+				}
+				else
+				{
+					it++;
+				}
+			}
+		}
+
+		if (renderPassesPurged > 0 || shadersPurged > 0)
+		{
+			CocoTrace("Purged {} VulkanRenderPasses and {} VulkanRenderPassShaders", renderPassesPurged, shadersPurged)
 		}
 	}
 

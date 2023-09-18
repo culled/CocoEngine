@@ -8,6 +8,9 @@
 #include "Graphics/GraphicsPresenter.h"
 #include "Graphics/RenderView.h"
 #include "Pipeline/RenderPipeline.h"
+#include "Providers/RenderViewProvider.h"
+#include "Providers/SceneDataProvider.h"
+#include "Texture.h"
 
 namespace Coco::Rendering
 {
@@ -17,6 +20,9 @@ namespace Coco::Rendering
 	private:
 		UniqueRef<GraphicsPlatform> _platform;
 		UniqueRef<GraphicsDevice> _device;
+		ManagedRef<Texture> _defaultDiffuseTexture;
+		ManagedRef<Texture> _defaultNormalTexture;
+		ManagedRef<Texture> _defaultCheckerTexture;
 
 	public:
 		RenderService(const GraphicsPlatformFactory& platformFactory);
@@ -38,7 +44,11 @@ namespace Coco::Rendering
 		/// @return The graphics device
 		const GraphicsDevice* GetDevice() const { return _device.get(); }
 
-		void Render(Ref<GraphicsPresenter> presenter, RenderPipeline& pipeline);
+		Ref<Texture> GetDefaultDiffuseTexture() const { return _defaultDiffuseTexture; }
+		Ref<Texture> GetDefaultNormalTexture() const { return _defaultNormalTexture; }
+		Ref<Texture> GetDefaultCheckerTexture() const { return _defaultCheckerTexture; }
+
+		void Render(Ref<GraphicsPresenter> presenter, RenderPipeline& pipeline, RenderViewProvider& renderViewProvider, std::span<SceneDataProvider*> sceneDataProviders);
 
 	private:
 		/// @brief Performs rendering
@@ -46,5 +56,14 @@ namespace Coco::Rendering
 		/// @param pipeline The pipeline to render with
 		/// @param renderView The view to render with
 		void ExecuteRender(RenderContext& context, RenderPipeline& pipeline, RenderView& renderView);
+
+		/// @brief Creates the default diffuse texture
+		void CreateDefaultDiffuseTexture();
+
+		/// @brief Creates the default normal texture
+		void CreateDefaultNormalTexture();
+
+		/// @brief Creates the default checker texture
+		void CreateDefaultCheckerTexture();
 	};
 }

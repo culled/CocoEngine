@@ -2,6 +2,7 @@
 
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Matrix.h>
 #include "GraphicsFence.h"
 #include "GraphicsSemaphore.h"
 #include "ShaderUniformData.h"
@@ -97,7 +98,8 @@ namespace Coco::Rendering
 		void SetFloat2(UniformScope scope, ShaderUniformData::UniformKey key, const Vector2& value);
 		void SetFloat3(UniformScope scope, ShaderUniformData::UniformKey key, const Vector3& value);
 		void SetFloat4(UniformScope scope, ShaderUniformData::UniformKey key, const Vector4& value);
-		// TODO: void SetMatrix4x4(UniformScope scope, ShaderUniformData::UniformKey key, const Matrix4x4& value);
+		void SetFloat4(UniformScope scope, ShaderUniformData::UniformKey key, const Color& value, bool asLinear = true);
+		void SetMatrix4x4(UniformScope scope, ShaderUniformData::UniformKey key, const Matrix4x4& value);
 		void SetInt(UniformScope scope, ShaderUniformData::UniformKey key, int32 value);
 		void SetInt2(UniformScope scope, ShaderUniformData::UniformKey key, const Vector2Int& value);
 		void SetInt3(UniformScope scope, ShaderUniformData::UniformKey key, const Vector3Int& value);
