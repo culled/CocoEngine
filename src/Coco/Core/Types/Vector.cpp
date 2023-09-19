@@ -100,8 +100,8 @@ namespace Coco
 	const Vector3 Vector3::Left = Vector3(-1, 0, 0);
 	const Vector3 Vector3::Up = Vector3(0, 1, 0);
 	const Vector3 Vector3::Down = Vector3(0, -1, 0);
-	const Vector3 Vector3::Forward = Vector3(0, 0, 1);
-	const Vector3 Vector3::Backward = Vector3(0, 0, -1);
+	const Vector3 Vector3::Forward = Vector3(0, 0, -1);
+	const Vector3 Vector3::Backward = Vector3(0, 0, 1);
 
 	Vector3::Vector3() : 
 		Vector3(0, 0, 0)
@@ -178,8 +178,8 @@ namespace Coco
 	const Vector3Int Vector3Int::Left = Vector3Int(-1, 0, 0);
 	const Vector3Int Vector3Int::Up = Vector3Int(0, 1, 0);
 	const Vector3Int Vector3Int::Down = Vector3Int(0, -1, 0);
-	const Vector3Int Vector3Int::Forward = Vector3Int(0, 0, 1);
-	const Vector3Int Vector3Int::Backward = Vector3Int(0, 0, -1);
+	const Vector3Int Vector3Int::Forward = Vector3Int(0, 0, -1);
+	const Vector3Int Vector3Int::Backward = Vector3Int(0, 0, 1);
 
 	Vector3Int::Vector3Int() :
 		Vector3Int(0, 0, 0)

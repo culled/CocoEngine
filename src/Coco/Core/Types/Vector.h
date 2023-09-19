@@ -214,10 +214,10 @@ namespace Coco
 		/// @brief A vector pointing down (0, -1, 0)
 		static const Vector3 Down;
 
-		/// @brief A vector pointing forward (0, 0, 1)
+		/// @brief A vector pointing forward (0, 0, -1)
 		static const Vector3 Forward;
 
-		/// @brief A vector pointing backward (0, 0, -1)
+		/// @brief A vector pointing backward (0, 0, 1)
 		static const Vector3 Backward;
 
 		/// @brief The X component
@@ -345,10 +345,10 @@ namespace Coco
 		/// @brief A vector pointing downwards (0, -1, 0)
 		static const Vector3Int Down;
 
-		/// @brief A vector pointing forward (0, 0, 1)
+		/// @brief A vector pointing forward (0, 0, -1)
 		static const Vector3Int Forward;
 
-		/// @brief A vector pointing backwards (0, 0, -1)
+		/// @brief A vector pointing backwards (0, 0, 1)
 		static const Vector3Int Backward;
 
 		/// @brief The x value

@@ -5,18 +5,18 @@ Coordinate system: Right-handed
 
 +X = left
 +Y = up
-+Z = forward
++Z = backward
 
 
-	   (Y) (Z)
+	   (Y) (-Z)
 	    |  /
 	    | /
 	    |/
-(X)---------+--------(-X)
+(-X)--------+--------(X)
 	   /|
 	  / |
 	 /  |
-       (-Z)(-Y)
+       (Z)(-Y)
 
 Positive rotation = turn counter-clockwise when looking from the positive to negative direction on the axis
 

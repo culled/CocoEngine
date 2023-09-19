@@ -152,41 +152,26 @@ namespace Coco
 		return copy;
 	}
 
-	// TODO: ensure correct for left-handed coordinates
 	Vector3 Quaternion::ToEulerAngles() const
 	{
 		Vector3 eulerAngles;
 
 		// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 
-		// TODO: fix for new axis system
-		const double w2 = W * W;
-		const double x2 = X * X;
-		const double y2 = Y * Y;
-		const double z2 = Z * Z;
-		const double unitLength = w2 + x2 + y2 + z2;
-		const double abcd = W * X + Y * Z;
+		// Roll (Z-axis rotation)
+		double sinr_cosp = 2 * (W * Z + X * Y);
+		double cosr_cosp = 1 - 2 * (Z * Z + X * X);
+		eulerAngles.Z = std::atan2(sinr_cosp, cosr_cosp);
 
-		if (abcd > (0.5 - Math::Epsilon) * unitLength)
-		{
-			eulerAngles.Y = 2.0 * Math::Atan2(Y, W);
-			eulerAngles.X = Math::PI * 0.5;
-			eulerAngles.Z = 0.0;
-		}
-		else if (abcd < (-0.5 + Math::Epsilon) * unitLength)
-		{
-			eulerAngles.Y = -2.0 * Math::Atan2(Y, W);
-			eulerAngles.X = -Math::PI * 0.5;
-			eulerAngles.Z = 0.0;
-		}
-		else
-		{
-			const double adbc = W * Z - X * Y;
-			const double acbd = W * Y - X * Z;
-			eulerAngles.Y = Math::Atan2(2.0 * adbc, 1.0 - 2.0 * (z2 + x2));
-			eulerAngles.X = Math::Asin(2.0 * abcd / unitLength);
-			eulerAngles.Z = Math::Atan2(2.0 * acbd, 1.0 - 2.0 * (y2 + x2));
-		}
+		// Pitch (X-axis rotation)
+		double sinp = std::sqrt(1 + 2 * (W * X - Z * Y));
+		double cosp = std::sqrt(1 - 2 * (W * X - Z * Y));
+		eulerAngles.X = 2 * std::atan2(sinp, cosp) - Math::HalfPI;
+
+		// Yaw (Y-axis rotation)
+		double siny_cosp = 2 * (W * Y + Z * X);
+		double cosy_cosp = 1 - 2 * (X * X + Y * Y);
+		eulerAngles.Y = std::atan2(siny_cosp, cosy_cosp);
 
 		return eulerAngles;
 	}
