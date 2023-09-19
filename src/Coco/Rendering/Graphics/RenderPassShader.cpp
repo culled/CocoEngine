@@ -8,6 +8,7 @@ namespace Coco::Rendering
 	std::hash<string> _sStringHasher;
 
 	RenderPassShader::RenderPassShader(
+		uint64 id,
 		const string& passName,
 		const std::vector<ShaderStage>& stages,
 		const GraphicsPipelineState& pipelineState,
@@ -15,6 +16,7 @@ namespace Coco::Rendering
 		const std::vector<ShaderVertexAttribute>& vertexAttributes,
 		const std::vector<ShaderDataUniform>& dataUniforms,
 		const std::vector<ShaderTextureUniform>& textureUniforms) :
+		ID(id),
 		Hash(0),
 		Version(0),
 		PassName(passName),

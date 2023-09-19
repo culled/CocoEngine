@@ -10,6 +10,9 @@ namespace Coco::Rendering
 	/// @brief A shader for a single RenderPass
 	struct RenderPassShader
 	{
+		/// @brief The ID of this shader
+		uint64 ID;
+
 		/// @brief The hash of this shader (auto-calculated after calling CalculateHash())
 		uint64 Hash;
 
@@ -41,6 +44,7 @@ namespace Coco::Rendering
 		std::vector<ShaderTextureUniform> TextureUniforms;
 
 		RenderPassShader(
+			uint64 id,
 			const string& passName,
 			const std::vector<ShaderStage>& stages,
 			const GraphicsPipelineState& pipelineState,

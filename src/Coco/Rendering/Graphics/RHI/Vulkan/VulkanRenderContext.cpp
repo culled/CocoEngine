@@ -101,7 +101,6 @@ namespace Coco::Rendering::Vulkan
 		if (!semaphore.IsValid())
 		{
 			CocoError("Wait on semaphore was invalid")
-			Assert(false)
 			return;
 		}
 
@@ -116,7 +115,6 @@ namespace Coco::Rendering::Vulkan
 		if (!semaphore.IsValid())
 		{
 			CocoError("Signal semaphore was invalid")
-			Assert(false)
 			return;
 		}
 
@@ -133,14 +131,17 @@ namespace Coco::Rendering::Vulkan
 		if (_vulkanRenderOperation->CurrentShaderID.has_value() && _vulkanRenderOperation->CurrentShaderID.value() == shader.ID)
 			return;
 
-		// TODO: maybe get the VulkanRenderPassShader here
 		_vulkanRenderOperation->CurrentShaderID = shader.ID;
 
+		// Clear shader-specific uniforms
 		_renderOperation->InstanceUniforms.Clear();
 		_renderOperation->DrawUniforms.Clear();
 
-		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Shader);
+		// Reset shader-specific bindings
+		_vulkanRenderOperation->BoundPipeline.reset();
 		_vulkanRenderOperation->BoundInstanceDescriptors.reset();
+
+		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Shader);
 	}
 
 	void VulkanRenderContext::Draw(const MeshData& mesh)
@@ -165,8 +166,16 @@ namespace Coco::Rendering::Vulkan
 		VulkanBuffer* indexBuffer = static_cast<VulkanBuffer*>(mesh.IndexBuffer.Get());
 		vkCmdBindIndexBuffer(_commandBuffer->GetCmdBuffer(), indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), mesh.IndexCount, 1, mesh.FirstIndexOffset, 0, 0);
+		// Draw the mesh
+		vkCmdDrawIndexed(_commandBuffer->GetCmdBuffer(), 
+			static_cast<uint32>(mesh.IndexCount), 
+			1, 
+			static_cast<uint32>(mesh.FirstIndexOffset), 
+			0, 0);
+
+		_renderOperation->VerticesDrawn += mesh.VertexCount;
 		_renderOperation->TrianglesDrawn += mesh.IndexCount / 3;
+		_renderOperation->DrawUniforms.Clear();
 	}
 
 	void VulkanRenderContext::SetBackbufferIndex(uint32 index)
@@ -179,6 +188,7 @@ namespace Coco::Rendering::Vulkan
 		_backbufferIndex = -1;
 		_vulkanRenderOperation.reset();
 		_renderCompletedFence->Reset();
+		_cache->ResetForNextRender();
 
 		return true;
 	}
@@ -187,6 +197,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		try
 		{
+			// Get the images from the render targets
 			std::span<const RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
 			std::vector<VulkanImage*> vulkanImages(rts.size());
 
@@ -212,6 +223,7 @@ namespace Coco::Rendering::Vulkan
 
 			AddPreRenderPassImageTransitions();
 
+			// Start the first render pass
 			VkRenderPassBeginInfo beginInfo{};
 			beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			beginInfo.renderPass = renderPass.GetRenderPass();
@@ -253,6 +265,7 @@ namespace Coco::Rendering::Vulkan
 
 			vkCmdBeginRenderPass(_commandBuffer->GetCmdBuffer(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+			// Since viewport and scissors are dynamic, we must set them at least once
 			SetViewportRect(_vulkanRenderOperation->ViewportRect);
 			SetScissorRect(_vulkanRenderOperation->ScissorRect);
 		}
@@ -281,13 +294,10 @@ namespace Coco::Rendering::Vulkan
 
 		AddPostRenderPassImageTransitions();
 
-		// Submit the command buffer and free it
 		_commandBuffer->EndAndSubmit(
 			&_vulkanRenderOperation->WaitOnSemaphores,
 			&_vulkanRenderOperation->RenderCompletedSignalSemaphores,
 			_renderCompletedFence);
-
-		_cache->ResetForNextRender();
 	}
 
 	void VulkanRenderContext::UniformChanged(UniformScope scope, ShaderUniformData::UniformKey key)
@@ -357,12 +367,13 @@ namespace Coco::Rendering::Vulkan
 			VulkanUniformData& uniformData = _cache->GetOrCreateUniformData(shader);
 			VulkanPipeline* pipeline = nullptr;
 
+			// Bind the new shader if it changed
 			if (_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Shader))
 			{
 				pipeline = &_device->GetCache()->GetOrPipeline(
 					_vulkanRenderOperation->RenderPass,
-					shader,
-					_renderOperation->CurrentPassIndex
+					_renderOperation->CurrentPassIndex,
+					shader
 				);
 
 				_vulkanRenderOperation->BoundPipeline = pipeline;

@@ -85,9 +85,28 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		if (framebuffersPurged > 0)
+		uint64 uniformDatasPurged = 0;
+
 		{
-			CocoTrace("Purged {} VulkanFramebuffers", framebuffersPurged)
+			auto it = _uniformDatas.begin();
+
+			while (it != _uniformDatas.end())
+			{
+				if (it->second.IsStale())
+				{
+					it = _uniformDatas.erase(it);
+					uniformDatasPurged++;
+				}
+				else
+				{
+					it++;
+				}
+			}
+		}
+
+		if (framebuffersPurged > 0 || uniformDatasPurged > 0)
+		{
+			CocoTrace("Purged {} VulkanFramebuffers and {} VulkanUniformDatas", framebuffersPurged, uniformDatasPurged)
 		}
 	}
 

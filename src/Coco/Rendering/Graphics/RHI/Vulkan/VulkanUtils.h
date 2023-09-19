@@ -48,8 +48,15 @@ namespace Coco::Rendering::Vulkan
 	/// @return The converted color space
 	ImageColorSpace ToImageColorSpace(VkColorSpaceKHR colorSpace);
 
+	/// @brief Converts an ImageDimensionType to a VkImageType
+	/// @param type The image dimension type
+	/// @return The image type
 	VkImageType ToVkImageType(ImageDimensionType type);
 
+	/// @brief Convertes usage flags and a pixel format to VkImageUsageFlags
+	/// @param usageFlags The image usage flags
+	/// @param pixelFormat The image pixel format
+	/// @return The image usage flags
 	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags, ImagePixelFormat pixelFormat);
 
 	/// @brief Converts a VSyncMode to a VkPresentModeKHR
@@ -67,19 +74,78 @@ namespace Coco::Rendering::Vulkan
 	/// @return The image layout
 	VkImageLayout ToAttachmentLayout(ImagePixelFormat pixelFormat);
 
+	/// @brief Converts MSAASamples to VkSampleCountFlagBits
+	/// @param samples The msaa samples
+	/// @return The VkSampleCountFlagBits
 	VkSampleCountFlagBits ToVkSampleCountFlagBits(MSAASamples samples);
+
+	/// @brief Converts BufferUsageFlags to VkBufferUsageFlags
+	/// @param usageFlags The usage flags
+	/// @return The VkBufferUsageFlags
 	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags);
+
+	/// @brief Converts ShaderStageFlags to VkShaderStageFlags
+	/// @param stageFlags The shader stage flags
+	/// @return The VkShaderStageFlags
 	VkShaderStageFlags ToVkShaderStageFlags(ShaderStageFlags stageFlags);
+
+	/// @brief Converts a ShaderStageType to VkShaderStageFlagBits
+	/// @param stage The shader stage
+	/// @return The VkShaderStageFlagBits
 	VkShaderStageFlagBits ToVkShaderStageFlagBits(ShaderStageType stage);
+
+	/// @brief Converts a PolygonFillMode to a VkPolygonMode
+	/// @param fillMode The fill mode
+	/// @return The VkPolygonMode
 	VkPolygonMode ToVkPolygonMode(PolygonFillMode fillMode);
+
+	/// @brief Converts a CullMode to VkCullModeFlags
+	/// @param cullMode The cull mode
+	/// @return The VkCullModeFlags
 	VkCullModeFlags ToVkCullModeFlags(CullMode cullMode);
+
+	/// @brief Converts a TriangleWindingMode to a VkFrontFace
+	/// @param windingMode The winding mode
+	/// @return The VkFrontFace
 	VkFrontFace ToVkFrontFace(TriangleWindingMode windingMode);
+
+	/// @brief Converts a DepthTestingMode to a VkCompareOp
+	/// @param depthMode The depth mode
+	/// @return The VkCompareOp
 	VkCompareOp ToVkCompareOp(DepthTestingMode depthMode);
+
+	/// @brief Converts a BlendFactorMode to a VkBlendFactor
+	/// @param mode The blend factor mode
+	/// @return The VkBlendFactor
 	VkBlendFactor ToVkBlendFactor(BlendFactorMode mode);
+
+	/// @brief Converts a BlendOperation to a VkBlendOp
+	/// @param op The blend operation
+	/// @return The VkBlendOp
 	VkBlendOp ToVkBlendOp(BlendOperation op);
+
+	/// @brief Converts a BufferDataType to a VkFormat
+	/// @param type The data type
+	/// @return The VkFormat
 	VkFormat ToVkFormat(BufferDataType type);
+
+	/// @brief Converts a TopologyMode to a VkPrimitiveTopology
+	/// @param mode The topology mode
+	/// @return The VkPrimitiveTopology
 	VkPrimitiveTopology ToVkPrimitiveTopology(TopologyMode mode);
+
+	/// @brief Converts an ImageFilterMode to a VkFilter
+	/// @param mode The filter mode
+	/// @return The VkFilter
 	VkFilter ToVkFilter(ImageFilterMode mode);
+
+	/// @brief Converts an ImageRepeatMode to a VkSamplerAddressMode
+	/// @param repeatMode The repeat mode
+	/// @return The VkSamplerAddressMode
 	VkSamplerAddressMode ToVkSamplerAddressMode(ImageRepeatMode repeatMode);
+
+	/// @brief Converts a MipMapFilterMode to a VkSamplerMipmapMode
+	/// @param mode The filter mode
+	/// @return The VkSamplerMipmapMode
 	VkSamplerMipmapMode ToVkSamplerMipmapMode(MipMapFilterMode mode);
 }

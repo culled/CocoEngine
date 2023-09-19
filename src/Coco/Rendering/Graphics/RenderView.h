@@ -49,10 +49,10 @@ namespace Coco::Rendering
 		Ref<Buffer> IndexBuffer;
 		
 		/// @brief The offset in the index buffer of the first index to draw
-		uint32 FirstIndexOffset;
+		uint64 FirstIndexOffset;
 
 		/// @brief The number of indices to draw
-		uint32 IndexCount;
+		uint64 IndexCount;
 
 		MeshData(
 			uint64 id,
@@ -60,8 +60,8 @@ namespace Coco::Rendering
 			const Ref<Buffer>& vertexBuffer,
 			uint64 vertexCount,
 			const Ref<Buffer>& indexBuffer,
-			uint32 firstIndexOffset,
-			uint32 indexCount);
+			uint64 firstIndexOffset,
+			uint64 indexCount);
 	};
 
 	/// @brief Data for a single RenderPassShader
@@ -85,13 +85,16 @@ namespace Coco::Rendering
 		/// @brief The id of this shader
 		uint64 ID;
 
+		/// @brief The version of this shader
+		uint64 Version;
+
 		/// @brief The group of this shader
 		string GroupTag;
 
 		/// @brief Renderpass shaders for this shader
 		std::unordered_map<string, uint64> RenderPassShaders;
 
-		ShaderData(uint64 id, const string& groupTag, const std::unordered_map<string, uint64>& passShaders);
+		ShaderData(uint64 id, uint64 version, const string& groupTag, const std::unordered_map<string, uint64>& passShaders);
 	};
 
 	/// @brief Data for an object to render

@@ -16,7 +16,6 @@ namespace Coco::Rendering::Vulkan
 		createInfo.magFilter = ToVkFilter(_description.MagnifyFilter);
 		createInfo.minFilter = ToVkFilter(_description.MinimizeFilter);
 
-		// TODO: individual repeat modes?
 		createInfo.addressModeU = ToVkSamplerAddressMode(_description.RepeatModeU);
 		createInfo.addressModeV = ToVkSamplerAddressMode(_description.RepeatModeV);
 		createInfo.addressModeW = ToVkSamplerAddressMode(_description.RepeatModeW);

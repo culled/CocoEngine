@@ -10,13 +10,13 @@ namespace Coco::Rendering
 	struct SubMesh
 	{
 		/// @brief The offset of the first index in the buffer
-		uint32 Offset;
+		uint64 Offset;
 
 		/// @brief The number of indices in the buffer
-		uint32 Count;
+		uint64 Count;
 
 		SubMesh();
-		SubMesh(uint32 offset, uint32 count);
+		SubMesh(uint64 offset, uint64 count);
 	};
 
 	/// @brief Defines geometry data used for rendering
@@ -36,6 +36,14 @@ namespace Coco::Rendering
 	public:
 		Mesh();
 		~Mesh();
+
+		/// @brief Gets this mesh's ID
+		/// @return This mesh's ID
+		uint64 GetID() const;
+
+		/// @brief Gets this mesh's version
+		/// @return This mesh's version
+		uint64 GetVersion() const { return 0; } // TODO: mesh versioning
 
 		/// @brief Sets the vertices of this mesh
 		/// @param format The format of the vertex data

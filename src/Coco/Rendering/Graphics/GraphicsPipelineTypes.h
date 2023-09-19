@@ -111,6 +111,8 @@ namespace Coco::Rendering
 
 		bool operator==(const BlendState& other) const;
 
+		/// @brief Gets the hash of this blend state
+		/// @return The hash
 		uint64 GetHash() const;
 	};
 
@@ -142,6 +144,8 @@ namespace Coco::Rendering
 
 		bool operator==(const GraphicsPipelineState& other) const;
 
+		/// @brief Gets the hash of this pipeline state
+		/// @return The hash
 		uint64 GetHash() const;
 	};
 }

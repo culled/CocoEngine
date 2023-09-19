@@ -36,8 +36,12 @@ namespace Coco::Rendering::Vulkan
 		/// @return A framebuffer
 		VulkanFramebuffer& GetOrCreateFramebuffer(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages);
 
+		/// @brief Gets/creates a uniform data container for a shader
+		/// @param shader The shader
+		/// @return The uniform data container
 		VulkanUniformData& GetOrCreateUniformData(const VulkanRenderPassShader& shader);
 
+		/// @brief Resets this cache for a new render
 		void ResetForNextRender();
 
 		/// @brief Purges all stale resources

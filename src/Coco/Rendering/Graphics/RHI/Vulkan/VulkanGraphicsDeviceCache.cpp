@@ -58,7 +58,10 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
-	VulkanPipeline& VulkanGraphicsDeviceCache::GetOrPipeline(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader, uint32 subpassIndex)
+	VulkanPipeline& VulkanGraphicsDeviceCache::GetOrPipeline(
+		const VulkanRenderPass& renderPass, 
+		uint32 subpassIndex, 
+		const VulkanRenderPassShader& shader)
 	{
 		GraphicsDeviceResourceID key = VulkanPipeline::MakeKey(renderPass, shader, subpassIndex);
 

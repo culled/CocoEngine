@@ -13,6 +13,13 @@ namespace Coco::Rendering
 		_passShaders.clear();
 	}
 
+	uint64 Shader::GetID() const
+	{
+		// HACK: temporary
+		std::hash<const Shader*> hasher;
+		return hasher(this);
+	}
+
 	void Shader::SetGroupTag(const char* groupTag)
 	{
 		_groupTag = groupTag;
@@ -20,7 +27,9 @@ namespace Coco::Rendering
 
 	void Shader::AddRenderPassShader(RenderPassShader&& passShader)
 	{
-		_passShaders.emplace_back(std::forward<RenderPassShader>(passShader));
+		RenderPassShader& shader = _passShaders.emplace_back(std::forward<RenderPassShader>(passShader));
+
+		shader.ID = Math::CombineHashes(GetID(), _passShaders.size());
 	}
 
 	bool Shader::TryGetRenderPassShader(const char* renderPassName, const RenderPassShader*& outRenderPassShader) const

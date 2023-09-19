@@ -53,7 +53,10 @@ namespace Coco::Rendering
 		/// @param nearClip The distance to the near clipping plane
 		/// @param farClip The distance to the far clipping plane
 		/// @return An orthographic projection matrix
-		virtual Matrix4x4 CreateOrthographicProjection(double left, double right, double top, double bottom, double nearClip, double farClip) = 0;
+		virtual Matrix4x4 CreateOrthographicProjection(
+			double left, double right, 
+			double top, double bottom, 
+			double nearClip, double farClip) = 0;
 
 		/// @brief Creates an orthographic projection matrix
 		/// @param size The vertical size of the view frustrum
@@ -69,6 +72,9 @@ namespace Coco::Rendering
 		/// @param nearClip The distance to the near clipping plane
 		/// @param farClip The distance to the far clipping plane
 		/// @return A perspective projection matrix
-		virtual Matrix4x4 CreatePerspectiveProjection(double verticalFOVRadians, double aspectRatio, double nearClip, double farClip) = 0;
+		virtual Matrix4x4 CreatePerspectiveProjection(
+			double verticalFOVRadians, 
+			double aspectRatio, 
+			double nearClip, double farClip) = 0;
 	};
 }

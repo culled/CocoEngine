@@ -36,7 +36,7 @@ namespace Coco::Rendering::Vulkan
         uint8 _currentContextIndex;
         ImageDescription _backbufferDescription;
 
-        std::vector<UniqueRef<VulkanRenderContext>> _renderContexts;
+        std::vector<ManagedRef<VulkanRenderContext>> _renderContexts;
         std::vector<ManagedRef<VulkanImage>> _backbuffers;
         std::vector<uint32> _acquiredBackbufferIndices;
 
@@ -47,10 +47,10 @@ namespace Coco::Rendering::Vulkan
         VulkanGraphicsPresenter(const GraphicsDeviceResourceID& id);
         ~VulkanGraphicsPresenter();
 
-        void InitializeSurface(const SharedRef<GraphicsPresenterSurface>& surface) final;
+        void InitializeSurface(const GraphicsPresenterSurface& surface) final;
         bool SurfaceInitialized() const final { return _surface != nullptr; }
 
-        bool PrepareForRender(RenderContext*& outContext, Ref<Image>& outBackbuffer) final;
+        bool PrepareForRender(Ref<RenderContext>& outContext, Ref<Image>& outBackbuffer) final;
         bool Present(RenderContext& context) final;
 
         void SetVSync(VSyncMode mode) final;

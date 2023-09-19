@@ -10,7 +10,7 @@ namespace Coco::Rendering
 		SubMesh(0, 0)
 	{}
 
-	SubMesh::SubMesh(uint32 offset, uint32 count) :
+	SubMesh::SubMesh(uint64 offset, uint64 count) :
 		Offset(offset),
 		Count(count)
 	{}
@@ -34,6 +34,13 @@ namespace Coco::Rendering
 
 		if(RenderService::Get())
 			RenderService::Get()->GetDevice()->PurgeUnusedResources();
+	}
+
+	uint64 Mesh::GetID() const
+	{
+		// HACK: temporary
+		std::hash<const Mesh*> hasher;
+		return hasher(this);
 	}
 
 	void Mesh::SetVertices(const VertexDataFormat& format, std::span<VertexData> vertices)
@@ -116,11 +123,11 @@ namespace Coco::Rendering
 			{
 				const std::vector<uint32>& submeshIndices = kvp.second;
 
-				uint32 indexOffset = static_cast<uint32>(_indexCount);
-				_submeshes.try_emplace(kvp.first, offset, static_cast<uint32>(submeshIndices.size()));
-				offset += submeshIndices.size();
+				_submeshes.try_emplace(kvp.first, offset, submeshIndices.size());
 
-				Assert(memcpy_s(indexBufferData.data() + indexOffset * sizeof(uint32), indexBufferData.size(), submeshIndices.data(), sizeof(uint32) * submeshIndices.size()) == 0)
+				Assert(memcpy_s(indexBufferData.data() + offset * sizeof(uint32), indexBufferData.size(), submeshIndices.data(), sizeof(uint32) * submeshIndices.size()) == 0)
+
+				offset += submeshIndices.size();
 			}
 
 			if (!_indexBuffer.IsValid())

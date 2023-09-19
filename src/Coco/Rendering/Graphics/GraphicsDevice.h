@@ -67,18 +67,42 @@ namespace Coco::Rendering
 		/// @brief Waits until the device has finished all queued work
 		virtual void WaitForIdle() const = 0;
 
+		/// @brief Gets the minimum alignment for a buffer for this device
+		/// @return The minimum buffer alignment
 		virtual uint32 GetMinimumBufferAlignment() const = 0;
+
+		/// @brief Gets the alignment for the given type of data
+		/// @param type The type of data
+		/// @return The alignment for the type of data
 		virtual uint8 GetDataTypeAlignment(BufferDataType type) const = 0;
+
+		/// @brief Aligns an offset to align with the alignment of the given type of data
+		/// @param type The data type
+		/// @param offset The offset to modify
 		virtual void AlignOffset(BufferDataType type, uint64& offset) const = 0;
 
 		/// @brief Creates a GraphicsPresenter
 		/// @return The created presenter
 		virtual Ref<GraphicsPresenter> CreatePresenter() = 0;
 
+		/// @brief Creates a Buffer
+		/// @param size The size of the buffer, in bytes
+		/// @param usageFlags The usage flags
+		/// @param bind If true, the buffer will be bound after it's created
+		/// @return The created buffer
 		virtual Ref<Buffer> CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind) = 0;
+
+		/// @brief Creates an Image
+		/// @param description The image description
+		/// @return The image
 		virtual Ref<Image> CreateImage(const ImageDescription& description) = 0;
+
+		/// @brief Creates an ImageSampler
+		/// @param description The sampler description
+		/// @return The image sampler
 		virtual Ref<ImageSampler> CreateImageSampler(const ImageSamplerDescription& description) = 0;
 
+		/// @brief Purges any resources that are no longer in use
 		virtual void PurgeUnusedResources() = 0;
 	};
 }

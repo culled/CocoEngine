@@ -24,5 +24,15 @@ namespace Coco::Rendering
 		/// @param pixelData The pixel data
 		/// @param pixelDataSize The size of the pixel data
 		virtual void SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize) = 0;
+
+		/// @brief Sets the pixels of this image
+		/// @tparam DataType The type of pixel data
+		/// @param offset The offset in the image buffer 
+		/// @param data The pixel data
+		template<typename DataType>
+		void SetPixels(uint64 offset, std::span<const DataType> data)
+		{
+			SetPixels(offset, data.data(), data.size() * sizeof(DataType));
+		}
 	};
 }

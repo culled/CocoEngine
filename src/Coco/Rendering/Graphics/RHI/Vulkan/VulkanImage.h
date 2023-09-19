@@ -54,6 +54,9 @@ namespace Coco::Rendering::Vulkan
         /// @brief Creates the native image view
         void CreateNativeImageView();
 
+        /// @brief Copies pixel data into this image from a buffer
+        /// @param commandBuffer The command buffer
+        /// @param source The source buffer
         void CopyFromBuffer(VulkanCommandBuffer& commandBuffer, VulkanBuffer& source);
     };
 }

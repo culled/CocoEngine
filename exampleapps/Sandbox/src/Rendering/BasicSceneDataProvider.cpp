@@ -23,6 +23,7 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 
 	_shader->AddRenderPassShader(
 		RenderPassShader(
+			0,
 			"basic",
 			{
 				ShaderStage("main", ShaderStageType::Vertex, "assets/shaders/built-in/Unlit.vert.spv"),

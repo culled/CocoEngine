@@ -37,8 +37,8 @@ namespace Coco::Rendering
 		const Ref<Buffer>& vertexBuffer, 
 		uint64 vertexCount, 
 		const Ref<Buffer>& indexBuffer, 
-		uint32 firstIndexOffset, 
-		uint32 indexCount) :
+		uint64 firstIndexOffset, 
+		uint64 indexCount) :
 		ID(id),
 		Version(version),
 		VertexBuffer(vertexBuffer),
@@ -54,8 +54,9 @@ namespace Coco::Rendering
 		ShaderData(shaderData)
 	{}
 
-	ShaderData::ShaderData(uint64 id, const string& groupTag, const std::unordered_map<string, uint64>& passShaders) :
+	ShaderData::ShaderData(uint64 id, uint64 version, const string& groupTag, const std::unordered_map<string, uint64>& passShaders) :
 		ID(id),
+		Version(version),
 		GroupTag(groupTag),
 		RenderPassShaders(passShaders)
 	{}
@@ -89,15 +90,21 @@ namespace Coco::Rendering
 
 	uint64 RenderView::AddMesh(const Mesh& mesh, uint32 submeshID)
 	{
-		std::hash<const Mesh*> hasher;
-		uint64 meshID = hasher(&mesh);
+		uint64 meshID = mesh.GetID();
 
 		if (!_meshDatas.contains(meshID))
 		{
 			SubMesh submesh{};
 			Assert(mesh.TryGetSubmesh(submeshID, submesh))
 
-			_meshDatas.try_emplace(meshID, meshID, 0, mesh.GetVertexBuffer(), mesh.GetVertexCount(), mesh.GetIndexBuffer(), submesh.Offset, submesh.Count);
+			_meshDatas.try_emplace(meshID, 
+				meshID, 
+				mesh.GetVersion(), 
+				mesh.GetVertexBuffer(), 
+				mesh.GetVertexCount(), 
+				mesh.GetIndexBuffer(), 
+				submesh.Offset, 
+				submesh.Count);
 		}
 
 		return meshID;
@@ -112,8 +119,7 @@ namespace Coco::Rendering
 
 	uint64 RenderView::AddShader(const Shader& shader)
 	{
-		std::hash<const Shader*> hasher;
-		uint64 shaderID = hasher(&shader);
+		uint64 shaderID = shader.GetID();
 
 		if (!_shaderDatas.contains(shaderID))
 		{
@@ -121,13 +127,13 @@ namespace Coco::Rendering
 
 			for (const RenderPassShader& passShader : shader.GetRenderPassShaders())
 			{
-				uint64 passShaderID = _renderPassShaderDatas.size();
-				_renderPassShaderDatas.try_emplace(passShaderID, passShaderID, 0, passShader);
+				uint64 passShaderID = passShader.ID;
+				_renderPassShaderDatas.try_emplace(passShaderID, passShaderID, passShader.Version, passShader);
 
 				passShaders.try_emplace(passShader.PassName, passShaderID);
 			}
 
-			_shaderDatas.try_emplace(shaderID, shaderID, shader.GetGroupTag(), passShaders);
+			_shaderDatas.try_emplace(shaderID, shaderID, shader.GetVersion(), shader.GetGroupTag(), passShaders);
 		}
 
 		return shaderID;

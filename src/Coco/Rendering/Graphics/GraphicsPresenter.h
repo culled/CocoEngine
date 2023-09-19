@@ -16,7 +16,7 @@ namespace Coco::Rendering
 
 		/// @brief Initializes the surface that this presenter will use for presentation
 		/// @param surface The surface
-		virtual void InitializeSurface(const SharedRef<GraphicsPresenterSurface>& surface) = 0;
+		virtual void InitializeSurface(const GraphicsPresenterSurface& surface) = 0;
 
 		/// @brief Determines if this presenter's surface is already initialized
 		/// @return True if this presenter has a valid surface
@@ -26,7 +26,7 @@ namespace Coco::Rendering
 		/// @param outContext The RenderContext to use for rendering
 		/// @param outBackbuffer The image that can be used for rendering to
 		/// @return True if preparations were successful
-		virtual bool PrepareForRender(RenderContext*& outContext, Ref<Image>& outBackbuffer) = 0;
+		virtual bool PrepareForRender(Ref<RenderContext>& outContext, Ref<Image>& outBackbuffer) = 0;
 
 		/// @brief Queues a RenderContext's output to be presented
 		/// @param context The context to present

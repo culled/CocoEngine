@@ -31,16 +31,25 @@ namespace Coco::Rendering::Vulkan
 		VulkanGraphicsDeviceCache();
 		~VulkanGraphicsDeviceCache();
 
-		/// @brief Gets/creates a render pass
+		/// @brief Gets/creates a VulkanRenderPass
 		/// @param pipeline The pipeline to use
 		/// @return A render pass
 		VulkanRenderPass& GetOrCreateRenderPass(CompiledRenderPipeline& pipeline);
 
+		/// @brief Gets/creates a VulkanRenderPassShader 
+		/// @param shaderInfo The shader info
+		/// @return The shader
 		VulkanRenderPassShader& GetOrCreateShader(const RenderPassShader& shaderInfo);
+
+		/// @brief Gets/creates a VulkanPipeline
+		/// @param renderPass The render pass
+		/// @param subpassIndex The index of the render pass within the pipeline
+		/// @param shader The shader
+		/// @return The pipeline
 		VulkanPipeline& GetOrPipeline(
 			const VulkanRenderPass& renderPass,
-			const VulkanRenderPassShader& shader,
-			uint32 subpassIndex);
+			uint32 subpassIndex,
+			const VulkanRenderPassShader& shader);
 
 		/// @brief Purges all stale resources
 		void PurgeStaleResources();

@@ -126,7 +126,7 @@ namespace Coco::Rendering::Vulkan
 		if(!buffer.MappedMemory)
 			buffer.MappedMemory = reinterpret_cast<char*>(buffer.Buffer->Lock(0, _sBufferSize));
 
-		std::vector<char> bufferData = GetBufferData(scope, uniformData, shaderInfo);
+		std::vector<uint8> bufferData = GetBufferData(scope, uniformData, shaderInfo);
 
 		char* dst = buffer.MappedMemory + data.AllocatedBlock.Offset;
 		Assert(memcpy_s(dst, data.AllocatedBlock.Size, bufferData.data(), bufferData.size()) == 0)
@@ -153,7 +153,7 @@ namespace Coco::Rendering::Vulkan
 		const VulkanRenderPassShader& shader)
 	{
 		const RenderPassShader& shaderInfo = shader.GetInfo();
-		std::vector<char> pushConstantData = GetBufferData(UniformScope::Draw, uniformData, shaderInfo);
+		std::vector<uint8> pushConstantData = GetBufferData(UniformScope::Draw, uniformData, shaderInfo);
 		VkShaderStageFlags stageFlags = VK_SHADER_STAGE_ALL;
 
 		std::vector<ShaderDataUniform> uniforms = shaderInfo.GetScopedDataUniforms(UniformScope::Draw);
@@ -179,9 +179,9 @@ namespace Coco::Rendering::Vulkan
 		return currentTime - _lastUsedTime > VulkanRenderContextCache::sPurgeThreshold;
 	}
 
-	std::vector<char> VulkanUniformData::GetBufferData(UniformScope scope, const ShaderUniformData& data, const RenderPassShader& shader) const
+	std::vector<uint8> VulkanUniformData::GetBufferData(UniformScope scope, const ShaderUniformData& data, const RenderPassShader& shader) const
 	{
-		std::vector<char> bufferData;
+		std::vector<uint8> bufferData;
 		uint64 offset = 0;
 		std::vector<ShaderDataUniform> dataUniforms = shader.GetScopedDataUniforms(scope);
 
@@ -192,7 +192,7 @@ namespace Coco::Rendering::Vulkan
 			_device->AlignOffset(uniform.Type, offset);
 
 			bufferData.resize(offset + dataSize);
-			char* dst = bufferData.data() + offset;
+			uint8* dst = bufferData.data() + offset;
 
 			switch (uniform.Type)
 			{

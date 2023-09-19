@@ -53,9 +53,9 @@ namespace Coco::Rendering::Vulkan
 		CocoTrace("Destroyed VulkanGraphicsPresenter")
 	}
 
-	void VulkanGraphicsPresenter::InitializeSurface(const SharedRef<GraphicsPresenterSurface>& surface)
+	void VulkanGraphicsPresenter::InitializeSurface(const GraphicsPresenterSurface& surface)
 	{
-		if (VulkanGraphicsPresenterSurface* vulkanSurface = dynamic_cast<VulkanGraphicsPresenterSurface*>(surface.get()))
+		if (const VulkanGraphicsPresenterSurface* vulkanSurface = dynamic_cast<const VulkanGraphicsPresenterSurface*>(&surface))
 		{
 			if (SurfaceInitialized())
 			{
@@ -72,7 +72,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	bool VulkanGraphicsPresenter::PrepareForRender(RenderContext*& outContext, Ref<Image>& outBackbuffer)
+	bool VulkanGraphicsPresenter::PrepareForRender(Ref<RenderContext>& outContext, Ref<Image>& outBackbuffer)
 	{
 		if (!EnsureSwapchain())
 		{
@@ -81,7 +81,7 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		_currentContextIndex = (_currentContextIndex + 1) % static_cast<uint8>(_backbuffers.size());
-		VulkanRenderContext* context = _renderContexts.at(_currentContextIndex).get();
+		Ref<VulkanRenderContext> context = _renderContexts.at(_currentContextIndex);
 
 		// Wait until the context is finished rendering
 		context->WaitForRenderingToComplete();
@@ -440,7 +440,7 @@ namespace Coco::Rendering::Vulkan
 		{
 			for (size_t i = 0; i < _backbuffers.size(); i++)
 			{
-				_renderContexts.emplace_back(CreateUniqueRef<VulkanRenderContext>(ID));
+				_renderContexts.emplace_back(CreateManagedRef<VulkanRenderContext>(ID));
 			}
 		}
 		catch (const std::exception& ex)

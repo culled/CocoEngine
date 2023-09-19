@@ -7,8 +7,13 @@ using namespace Coco::Rendering;
 
 class BasicRenderPass : public RenderPass
 {
+private:
+	std::vector<AttachmentFormat> _attachments;
+
 public:
-	std::vector<AttachmentFormat> GetInputAttachments() const;
+	BasicRenderPass();
+
+	std::span<const AttachmentFormat> GetInputAttachments() const { return _attachments; }
 	string GetName() const { return "basic"; }
 	void Execute(RenderContext& context, const RenderView& renderView);
 };

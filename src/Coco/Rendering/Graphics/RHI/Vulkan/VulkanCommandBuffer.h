@@ -8,7 +8,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	/// @brief A buffer than rendering commands can be written to
+	/// @brief A buffer that rendering commands can be written to
 	class VulkanCommandBuffer
 	{
 		friend class VulkanCommandBufferPool;

@@ -8,6 +8,7 @@ namespace Coco::Rendering::Vulkan
 {
     class VulkanGraphicsDevice;
 
+    /// @brief Vulkan-implementation of an ImageSampler
     class VulkanImageSampler :
         public ImageSampler,
         public GraphicsDeviceResource<VulkanGraphicsDevice>
@@ -22,6 +23,8 @@ namespace Coco::Rendering::Vulkan
 
         ImageSamplerDescription GetDescription() const final { return _description; }
 
+        /// @brief Gets the Vulkan sampler
+        /// @return The Vulkan sampler
         VkSampler GetSampler() const { return _sampler; }
     };
 }

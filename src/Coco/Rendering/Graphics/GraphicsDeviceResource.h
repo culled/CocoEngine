@@ -8,6 +8,7 @@ namespace Coco::Rendering
 {
 	using GraphicsDeviceResourceID = uint64;
 
+	/// @brief A generator for GraphicsDeviceResourceIDs
 	struct GraphicsDeviceResourceIDGenerator
 	{
 		std::atomic<GraphicsDeviceResourceID> CurrentID;
@@ -19,6 +20,7 @@ namespace Coco::Rendering
 	class GraphicsDeviceResourceBase
 	{
 	public:
+		/// @brief The ID of this resource
 		const GraphicsDeviceResourceID ID;
 
 	public:

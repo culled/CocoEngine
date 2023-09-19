@@ -16,6 +16,14 @@ namespace Coco::Rendering
 		Shader(const string& groupTag);
 		~Shader();
 
+		/// @brief Gets the ID of this shader
+		/// @return This shader's ID
+		uint64 GetID() const;
+
+		/// @brief Gets this shader's version
+		/// @return This shader's version
+		uint64 GetVersion() const { return 0; } // TODO: shader versioning
+
 		/// @brief Sets this shader's group tag
 		/// @param groupTag The group tag
 		void SetGroupTag(const char* groupTag);

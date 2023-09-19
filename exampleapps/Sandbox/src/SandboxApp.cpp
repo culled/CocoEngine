@@ -44,7 +44,9 @@ SandboxApp::SandboxApp() :
 	}
 
 	_pipeline = CreateSharedRef<Rendering::RenderPipeline>();
-	_pipeline->AddRenderPass(CreateSharedRef<BasicRenderPass>(), { 0 });
+
+	std::array<uint8, 1> bindings = { 0 };
+	_pipeline->AddRenderPass(CreateSharedRef<BasicRenderPass>(), bindings);
 
 	LogTrace(_log, "Sandbox app initialized")
 }
@@ -77,6 +79,6 @@ void SandboxApp::Tick(const TickInfo & tickInfo)
 	for (const Ref<Windowing::Window>& window : visibleWindows)
 	{
 		Ref<Rendering::GraphicsPresenter> presenter = window->GetPresenter();
-		rendering->Render(presenter, *_pipeline, *_renderViewProvider, dataProviders);
+		rendering->Render(*presenter, *_pipeline, *_renderViewProvider, dataProviders);
 	}
 }

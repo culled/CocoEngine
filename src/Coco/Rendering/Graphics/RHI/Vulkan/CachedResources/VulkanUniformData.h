@@ -45,25 +45,35 @@ namespace Coco::Rendering::Vulkan
 		AllocatedUniformData(uint64 id, bool preserve);
 	};
 
+	/// @brief Holds information to construct a Vulkan descriptor pool
 	struct VulkanDescriptorPoolCreateInfo
 	{
+		/// @brief The pool sizes
 		std::vector<VkDescriptorPoolSize> PoolSizes;
+
+		/// @brief The create info
 		VkDescriptorPoolCreateInfo CreateInfo;
 
 		VulkanDescriptorPoolCreateInfo();
 	};
 
+	/// @brief A pool that can allocate descriptor sets
 	struct VulkanDescriptorPool
 	{
+		/// @brief The pool
 		VkDescriptorPool Pool;
+
+		/// @brief The time that this pool was last allocated from
 		double LastAllocateTime;
 
 		VulkanDescriptorPool();
 	};
 
+	/// @brief Manages uniform data for a VulkanRenderContext
 	class VulkanUniformData : public GraphicsDeviceResource<VulkanGraphicsDevice>
 	{
 	public:
+		/// @brief The ID of the global instance
 		static const uint64 sGlobalInstanceID;
 
 	private:
@@ -84,11 +94,27 @@ namespace Coco::Rendering::Vulkan
 		VulkanUniformData(const VulkanRenderPassShader& passShader);
 		~VulkanUniformData();
 
+		/// @brief Creates a key for a VulkanUniformData object
+		/// @param passShader The shader
+		/// @return The key
 		static GraphicsDeviceResourceID MakeKey(const VulkanRenderPassShader& passShader);
 
+		/// @brief Prepares uniform data for a given instance
+		/// @param instanceID The id of the instance
+		/// @param uniformData The uniform data
+		/// @param shader The shader
+		/// @param preserve If true, the uniform data will be preserved between renders
+		/// @return A descriptor set that can be used to bind the uniform data, or nullptr if no descriptors are needed
 		VkDescriptorSet PrepareData(uint64 instanceID, const ShaderUniformData& uniformData, const VulkanRenderPassShader& shader, bool preserve);
+
+		/// @brief Prepares push constant uniform data
+		/// @param commandBuffer The command buffer
+		/// @param pipelineLayout The pipeline layout
+		/// @param uniformData The uniform data
+		/// @param shader The shader
 		void PreparePushConstants(VulkanCommandBuffer& commandBuffer, VkPipelineLayout pipelineLayout, const ShaderUniformData& uniformData, const VulkanRenderPassShader& shader);
 
+		/// @brief Resets this object for a new render
 		void ResetForNextRender();
 
 		/// @brief Marks this framebuffer as used
@@ -99,10 +125,25 @@ namespace Coco::Rendering::Vulkan
 		bool IsStale() const;
 
 	private:
+		/// @brief Gets the scope of an instance. Will only be global for the global instance ID
+		/// @param instanceID The instance ID
+		/// @return The scope
 		constexpr static UniformScope GetInstanceScope(uint64 instanceID) { return instanceID == sGlobalInstanceID ? UniformScope::Global : UniformScope::Instance; }
-		std::vector<char> GetBufferData(UniformScope scope, const ShaderUniformData& data, const RenderPassShader& shader) const;
 
+		/// @brief Gets buffer-friendly uniform data
+		/// @param scope The scope of the data
+		/// @param data The uniform data
+		/// @param shader The shader
+		/// @return Buffer-friendly uniform data
+		std::vector<uint8> GetBufferData(UniformScope scope, const ShaderUniformData& data, const RenderPassShader& shader) const;
+
+		/// @brief Allocates a region in the uniform buffers
+		/// @param requiredSize The required size of the region, in bytes
+		/// @param data The data that will be changed
 		void AllocateBufferRegion(uint64 requiredSize, AllocatedUniformData& data);
+
+		/// @brief Frees the data of a uniform block
+		/// @param data The data to free
 		void FreeBufferRegion(AllocatedUniformData& data);
 
 		VulkanDescriptorPool& CreateDescriptorPool();

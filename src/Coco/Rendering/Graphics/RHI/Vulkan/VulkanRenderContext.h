@@ -20,6 +20,7 @@ namespace Coco::Rendering::Vulkan
     /// @brief Holds Vulkan data that a VulkanRenderContext uses during actual rendering
     struct VulkanContextRenderOperation
     {
+        /// @brief Types of state changes
         enum class StateChangeType
         {
             None,
@@ -45,9 +46,16 @@ namespace Coco::Rendering::Vulkan
         /// @brief Semaphores to signal once rendering completes
         std::vector<Ref<VulkanGraphicsSemaphore>> RenderCompletedSignalSemaphores;
 
+        /// @brief Unique state changes since the last draw call
         std::set<StateChangeType> StateChanges;
+
+        /// @brief The currently-bound shader ID
         std::optional<uint64> CurrentShaderID;
+
+        /// @brief The currently bound VulkanPipeline
         std::optional<VulkanPipeline*> BoundPipeline;
+
+        /// @brief The currently bound VkDescriptorSet
         std::optional<VkDescriptorSet> BoundInstanceDescriptors;
 
         VulkanContextRenderOperation(VulkanFramebuffer& framebuffer, VulkanRenderPass& renderPass);
@@ -57,7 +65,10 @@ namespace Coco::Rendering::Vulkan
     class VulkanRenderContext : public RenderContext, public GraphicsDeviceResource<VulkanGraphicsDevice>
     {
     public:
+        /// @brief The index of the global descriptor set
         static const uint32 sGlobalDescriptorSetIndex;
+
+        /// @brief The index of the instance descriptor set
         static const uint32 sInstanceDescriptorSetIndex;
 
     private:
