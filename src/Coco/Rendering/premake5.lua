@@ -24,6 +24,7 @@ project "Coco.Rendering"
     includedirs
     {
         "%{IncludeDir.Coco}",
+        "%{IncludeDir.stb}"
     }
 
     links

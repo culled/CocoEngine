@@ -6,11 +6,14 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 	_position(Vector3::Zero),
 	_rotation(Quaternion::Identity),
 	_scale(Vector3::One),
-	_mesh(CreateUniqueRef<Mesh>()),
-	_shader(CreateUniqueRef<Shader>(""))
+	_mesh(CreateManagedRef<Mesh>()),
+	_shader(CreateManagedRef<Shader>("")),
+	_texture(CreateManagedRef<Texture>("assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, ImageSamplerDescription())),
+	_material(CreateManagedRef<Material>())
 {
-	// TODO: create mesh data
 	VertexDataFormat format{};
+	format.HasUV0 = true;
+
 	std::vector<VertexData> vertices;
 	std::vector<uint32> indices;
 	MeshUtilities::CreateXYGrid(Vector2::One, Vector3::Zero, format, vertices, indices);
@@ -34,7 +37,8 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 				BlendState()
 			},
 			{
-				ShaderVertexAttribute("Position", BufferDataType::Float3)
+				ShaderVertexAttribute("Position", BufferDataType::Float3),
+				ShaderVertexAttribute("UV", BufferDataType::Float2)
 			},
 			{
 				ShaderDataUniform("projectionMatrix", UniformScope::Global, ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
@@ -42,9 +46,15 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 				ShaderDataUniform("baseColor", UniformScope::Instance, ShaderStageFlags::Fragment, BufferDataType::Float4),
 				ShaderDataUniform("modelMatrix", UniformScope::Draw, ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
 			},
-			{}
+			{
+				ShaderTextureUniform("baseTexSampler", UniformScope::Instance, ShaderStageFlags::Fragment)
+			}
 		)
 	);
+
+	_material->SetShader(_shader);
+	_material->SetFloat4("baseColor", Color::White);
+	_material->SetTexture("baseTexSampler", _texture);
 }
 
 void BasicSceneDataProvider::GatherSceneData(RenderView& renderView)
@@ -63,5 +73,5 @@ void BasicSceneDataProvider::GatherSceneData(RenderView& renderView)
 	//_scale.X = Math::Cos(MainLoop::cGet()->GetCurrentTick().Time) * 0.5 + 0.5;
 	//_scale.Y = Math::Sin(MainLoop::cGet()->GetCurrentTick().Time) * 0.5 + 0.5;
 
-	renderView.AddRenderObject(*_mesh, 0, *_shader, Matrix4x4::CreateTransform(_position, _rotation, _scale));
+	renderView.AddRenderObject(*_mesh, 0, *_material, Matrix4x4::CreateTransform(_position, _rotation, _scale));
 }

@@ -4,11 +4,12 @@
 namespace Coco::Rendering
 {
     AttachmentFormat::AttachmentFormat() : 
-        AttachmentFormat(ImagePixelFormat::Unknown, false)
+        AttachmentFormat(ImagePixelFormat::Unknown, ImageColorSpace::Unknown, false)
     {}
 
-    AttachmentFormat::AttachmentFormat(ImagePixelFormat pixelFormat, bool shouldPreserve, MSAASamples msaaSamples) :
+    AttachmentFormat::AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, bool shouldPreserve, MSAASamples msaaSamples) :
         PixelFormat(pixelFormat),
+        ColorSpace(colorSpace),
         ShouldPreserve(shouldPreserve),
         SampleCount(msaaSamples)
     {}

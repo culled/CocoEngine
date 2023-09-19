@@ -13,9 +13,7 @@ MainApplication(SandboxApp)
 
 SandboxApp::SandboxApp() : 
 	Application(ApplicationCreateParameters("Sandbox", Version(0, 0, 1))),
-	_tickListener(this, &SandboxApp::Tick, 0),
-	_renderViewProvider(CreateUniqueRef<BasicRenderViewProvider>()),
-	_sceneDataProvider(CreateUniqueRef<BasicSceneDataProvider>())
+	_tickListener(this, &SandboxApp::Tick, 0)
 {
 	MainLoop::Get()->AddListener(_tickListener);
 
@@ -47,6 +45,10 @@ SandboxApp::SandboxApp() :
 
 	std::array<uint8, 1> bindings = { 0 };
 	_pipeline->AddRenderPass(CreateSharedRef<BasicRenderPass>(), bindings);
+
+
+	_renderViewProvider = CreateUniqueRef<BasicRenderViewProvider>();
+	_sceneDataProvider = CreateUniqueRef<BasicSceneDataProvider>();
 
 	LogTrace(_log, "Sandbox app initialized")
 }

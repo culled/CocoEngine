@@ -14,7 +14,9 @@ namespace Coco::Rendering
 		DrawUniforms{},
 		VerticesDrawn(0),
 		TrianglesDrawn(0)
-	{}
+	{
+		CurrentPassName = Pipeline.RenderPasses.at(CurrentPassIndex).Pass->GetName();
+	}
 
 	const RenderPassBinding& ContextRenderOperation::GetCurrentPass() const
 	{
@@ -24,6 +26,7 @@ namespace Coco::Rendering
 	void ContextRenderOperation::NextPass()
 	{
 		CurrentPassIndex = Math::Min(CurrentPassIndex + 1, static_cast<uint32>(Pipeline.RenderPasses.size() - 1));
+		CurrentPassName = Pipeline.RenderPasses.at(CurrentPassIndex).Pass->GetName();
 	}
 
 	RenderContext::RenderContext() :
@@ -127,13 +130,7 @@ namespace Coco::Rendering
 
 	void RenderContext::SetFloat4(UniformScope scope, ShaderUniformData::UniformKey key, const Color& value, bool asLinear)
 	{
-		Color v;
-
-		if (asLinear)
-			v = value.AsLinear();
-		else
-			v = value.AsGamma();
-
+		Color v = asLinear ? value.AsLinear() : v = value.AsGamma();
 		SetFloat4(scope, key, Vector4(v.R, v.G, v.B, v.A));
 	}
 

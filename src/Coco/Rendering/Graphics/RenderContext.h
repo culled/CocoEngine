@@ -22,8 +22,11 @@ namespace Coco::Rendering
 		/// @brief The pipeline being rendered with
 		CompiledRenderPipeline& Pipeline;
 
-		/// @brief The index of the RenderPass in the pipeline
+		/// @brief The index of the current RenderPass in the pipeline
 		uint32 CurrentPassIndex;
+
+		/// @brief The name of the current RenderPass in the pipeline
+		string CurrentPassName;
 
 		/// @brief The global uniform data
 		ShaderUniformData GlobalUniforms;
@@ -107,6 +110,10 @@ namespace Coco::Rendering
 		/// @brief Sets the shader that should be used for subsequent draw calls
 		/// @param shader The shader
 		virtual void SetShader(const RenderPassShaderData& shader) = 0;
+
+		/// @brief Sets the material that should be used for subsequent draw calls
+		/// @param material The material
+		virtual void SetMaterial(const MaterialData& material) = 0;
 
 		/// @brief Draws a mesh using the currently bound shader and uniforms
 		/// @param mesh The mesh

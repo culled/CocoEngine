@@ -88,7 +88,7 @@ namespace Coco::Rendering::Vulkan
 
 			VkAttachmentDescription description{};
 			description.samples = ToVkSampleCountFlagBits(attachment.SampleCount);
-			description.format = ToVkFormat(attachment.PixelFormat, ImageColorSpace::Linear);
+			description.format = ToVkFormat(attachment.PixelFormat, attachment.ColorSpace);
 
 			description.loadOp = attachment.ShouldPreserve ?
 				VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;

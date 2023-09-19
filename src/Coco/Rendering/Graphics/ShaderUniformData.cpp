@@ -6,7 +6,11 @@ namespace Coco::Rendering
 	const ShaderUniformData ShaderUniformData::Empty = ShaderUniformData();
 
 	ShaderUniformData::ShaderUniformData() :
-		Version(TemporaryVersion),
+		ShaderUniformData(TemporaryVersion)
+	{}
+
+	ShaderUniformData::ShaderUniformData(uint64 version) :
+		Version(version),
 		Floats{},
 		Float2s{},
 		Float3s{},

@@ -13,6 +13,7 @@ namespace Coco::Rendering
 {
 	class Mesh;
 	class Shader;
+	class MaterialDataProvider;
 
 	/// @brief An image that can be rendered to
 	struct RenderTarget
@@ -97,6 +98,20 @@ namespace Coco::Rendering
 		ShaderData(uint64 id, uint64 version, const string& groupTag, const std::unordered_map<string, uint64>& passShaders);
 	};
 
+	struct MaterialData
+	{
+		/// @brief The id of this material
+		uint64 ID;
+
+		/// @brief The id of the shader that this material uses
+		uint64 ShaderID;
+
+		/// @brief The uniform data for this material
+		ShaderUniformData UniformData;
+
+		MaterialData(uint64 id, uint64 shaderID, const ShaderUniformData& uniformData);
+	};
+
 	/// @brief Data for an object to render
 	struct ObjectData
 	{
@@ -109,15 +124,18 @@ namespace Coco::Rendering
 		/// @brief The ID of the mesh to render with
 		uint64 MeshID;
 
-		// HACK: temporary
-		uint64 ShaderID;
+		/// @brief The ID of the material to render with
+		uint64 MaterialID;
 
-		ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint64 shaderID);
+		ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint64 materialID);
 	};
 
 	/// @brief Holds information needed to render a scene
 	class RenderView
 	{
+	public:
+		static constexpr uint64 InvalidID = Math::MaxValue<uint64>();
+
 	private:
 		RectInt _viewportRect;
 		RectInt _scissorRect;
@@ -127,6 +145,7 @@ namespace Coco::Rendering
 		std::unordered_map<uint64, MeshData> _meshDatas;
 		std::unordered_map<uint64, RenderPassShaderData> _renderPassShaderDatas;
 		std::unordered_map<uint64, ShaderData> _shaderDatas;
+		std::unordered_map<uint64, MaterialData> _materialDatas;
 		std::vector<ObjectData> _objectDatas;
 
 	public:
@@ -192,12 +211,22 @@ namespace Coco::Rendering
 		/// @return The render pass shader data
 		const RenderPassShaderData& GetRenderPassShaderData(uint64 key) const;
 
+		/// @brief Adds material data to this view
+		/// @param materialData The material data
+		/// @return The key to the material data
+		uint64 AddMaterial(const MaterialDataProvider& materialData);
+
+		/// @brief Gets stored material data
+		/// @param key The data's key
+		/// @return The material data
+		const MaterialData& GetMaterialData(uint64 key) const;
+
 		/// @brief Adds an object to be rendered
 		/// @param mesh The mesh
 		/// @param submeshID The ID of the submesh
-		/// @param shader The shader
+		/// @param material The material
 		/// @param modelMatrix The model matrix
-		void AddRenderObject(const Mesh& mesh, uint32 submeshID, const Shader& shader, const Matrix4x4& modelMatrix);
+		void AddRenderObject(const Mesh& mesh, uint32 submeshID, const MaterialDataProvider& material, const Matrix4x4& modelMatrix);
 
 		/// @brief Gets all objects to be rendered
 		/// @return The renderable objects

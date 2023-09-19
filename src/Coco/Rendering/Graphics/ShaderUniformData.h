@@ -96,6 +96,7 @@ namespace Coco::Rendering
 		std::unordered_map<UniformKey, TextureSampler> Textures;
 
 		ShaderUniformData();
+		ShaderUniformData(uint64 version);
 
 		/// @brief Makes a uniform key from a name
 		/// @param name The uniform name

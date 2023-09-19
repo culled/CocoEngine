@@ -2,7 +2,7 @@
 
 BasicRenderPass::BasicRenderPass() :
     _attachments({
-        AttachmentFormat(ImagePixelFormat::RGBA8, false)
+        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, false)
         })
 {}
 
@@ -13,15 +13,16 @@ void BasicRenderPass::Execute(RenderContext& context, const RenderView& renderVi
 
     for (const ObjectData& obj : renderView.GetRenderObjects())
     {
-        const ShaderData& shader = renderView.GetShaderData(obj.ShaderID);
+        const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
+        const ShaderData& shader = renderView.GetShaderData(material.ShaderID);
 
         auto it = shader.RenderPassShaders.find(GetName());
         if (it == shader.RenderPassShaders.end())
             continue;
 
         context.SetShader(renderView.GetRenderPassShaderData(it->second));
+        context.SetMaterial(material);
 
-        context.SetFloat4(UniformScope::Instance, ShaderUniformData::MakeKey("baseColor"), Color::Green);
         context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("modelMatrix"), obj.ModelMatrix);
         context.Draw(renderView.GetMeshData(obj.MeshID));
     }

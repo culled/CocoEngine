@@ -2,6 +2,7 @@
 #include "RenderView.h"
 #include "../Mesh.h"
 #include "../Shader.h"
+#include "../Material.h"
 
 #include <Coco/Core/Engine.h>
 
@@ -19,7 +20,7 @@ namespace Coco::Rendering
 	RenderTarget::RenderTarget(const Ref<Rendering::Image>& image, Color clearColor) :
 		Image(image)
 	{
-		Color gammaColor = clearColor.AsGamma();
+		Color gammaColor = clearColor.AsLinear();
 		ClearValue = Vector4(gammaColor.R, gammaColor.G, gammaColor.B, gammaColor.A);
 	}
 
@@ -61,11 +62,17 @@ namespace Coco::Rendering
 		RenderPassShaders(passShaders)
 	{}
 
-	ObjectData::ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint64 shaderID) :
+	MaterialData::MaterialData(uint64 id, uint64 shaderID, const ShaderUniformData& uniformData) :
+		ID(id),
+		ShaderID(shaderID),
+		UniformData(uniformData)
+	{}
+
+	ObjectData::ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint64 materialID) :
 		ID(id),
 		ModelMatrix(modelMatrix),
 		MeshID(meshID),
-		ShaderID(shaderID)
+		MaterialID(materialID)
 	{}
 
 	RenderView::RenderView(
@@ -153,12 +160,39 @@ namespace Coco::Rendering
 		return _renderPassShaderDatas.at(key);
 	}
 
-	void RenderView::AddRenderObject(const Mesh& mesh, uint32 submeshID, const Shader& shader, const Matrix4x4& modelMatrix)
+	uint64 RenderView::AddMaterial(const MaterialDataProvider& materialData)
+	{
+		uint64 id = materialData.GetID();
+
+		if (!_materialDatas.contains(id))
+		{
+			Ref<Shader> shader = materialData.GetShader();
+			uint64 shaderID = InvalidID;
+
+			if (shader.IsValid())
+			{
+				shaderID = AddShader(*shader);
+			}
+
+			_materialDatas.try_emplace(id, id, shaderID, materialData.GetUniformData());
+		}
+
+		return id;
+	}
+
+	const MaterialData& RenderView::GetMaterialData(uint64 key) const
+	{
+		Assert(_materialDatas.contains(key))
+
+		return _materialDatas.at(key);
+	}
+
+	void RenderView::AddRenderObject(const Mesh& mesh, uint32 submeshID, const MaterialDataProvider& material, const Matrix4x4& modelMatrix)
 	{
 		uint64 meshID = AddMesh(mesh, submeshID);
-		uint64 shaderID = AddShader(shader);
+		uint64 materialID = AddMaterial(material);
 
 		uint64 objectID = _objectDatas.size();
-		_objectDatas.emplace_back(objectID, modelMatrix, meshID, shaderID);
+		_objectDatas.emplace_back(objectID, modelMatrix, meshID, materialID);
 	}
 }

@@ -2,6 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec2 inUV;
 
 layout(set = 0, binding = 0) uniform globalUniformObject {
     mat4 projection;
@@ -13,6 +14,13 @@ layout(push_constant) uniform pushConstants {
     mat4 model; // 64 bytes
 } constants;
 
+layout(location = 0) out struct varyings
+{
+    vec2 uv;
+} outVaryings;
+
 void main() {
+    outVaryings.uv = inUV;
+    
     gl_Position = globalUBO.projection * globalUBO.view * constants.model * vec4(inPosition, 1.0);
 }

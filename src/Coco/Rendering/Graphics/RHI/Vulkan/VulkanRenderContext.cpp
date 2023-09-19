@@ -7,6 +7,7 @@
 #include "CachedResources/VulkanRenderPass.h"
 #include "VulkanBuffer.h"
 
+#include <Coco/Core/Math/Random.h>
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
@@ -20,6 +21,7 @@ namespace Coco::Rendering::Vulkan
 		ScissorRect{},
 		StateChanges{},
 		CurrentShaderID{},
+		CurrentInstanceID{},
 		BoundPipeline{}
 	{}
 
@@ -122,6 +124,25 @@ namespace Coco::Rendering::Vulkan
 
 		Ref<VulkanGraphicsSemaphore> vulkanSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(semaphore);
 		_vulkanRenderOperation->RenderCompletedSignalSemaphores.push_back(vulkanSemaphore);
+	}
+
+	void VulkanRenderContext::SetMaterial(const MaterialData& material)
+	{
+		Assert(_vulkanRenderOperation.has_value())
+
+		if (_vulkanRenderOperation->CurrentInstanceID.has_value() && _vulkanRenderOperation->CurrentInstanceID.value() == material.ID)
+			return;
+
+		const ShaderData& shader = _renderOperation->RenderView.GetShaderData(material.ShaderID);
+		uint64 passKey = shader.RenderPassShaders.at(_renderOperation->CurrentPassName);
+		const RenderPassShaderData& passShader = _renderOperation->RenderView.GetRenderPassShaderData(passKey);
+
+		SetShader(passShader);
+
+		_vulkanRenderOperation->CurrentInstanceID = material.ID;
+		_renderOperation->InstanceUniforms = material.UniformData;
+
+		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Instance);
 	}
 
 	void VulkanRenderContext::SetShader(const RenderPassShaderData& shader)
@@ -351,9 +372,9 @@ namespace Coco::Rendering::Vulkan
 	{
 		Assert(_vulkanRenderOperation.has_value())
 
-		// Early out if no state changes since last draw
-		if (_vulkanRenderOperation->StateChanges.size() == 0)
-			return true;
+			// Early out if no state changes since last draw
+			if (_vulkanRenderOperation->StateChanges.size() == 0)
+				return true;
 
 		bool stateBound = true;
 
@@ -361,6 +382,9 @@ namespace Coco::Rendering::Vulkan
 		{
 			if (!_vulkanRenderOperation->CurrentShaderID.has_value())
 				throw std::exception("No shader was bound");
+
+			if (_vulkanRenderOperation->CurrentShaderID.value() == RenderView::InvalidID)
+				throw std::exception("Invalid shader");
 
 			const RenderPassShaderData& boundShaderData = _renderOperation->RenderView.GetRenderPassShaderData(_vulkanRenderOperation->CurrentShaderID.value());
 			VulkanRenderPassShader& shader = _device->GetCache()->GetOrCreateShader(boundShaderData.ShaderData);
@@ -397,10 +421,20 @@ namespace Coco::Rendering::Vulkan
 			pipeline = _vulkanRenderOperation->BoundPipeline.value();
 
 			if (_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Uniform) ||
+				_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Instance) ||
 				!_vulkanRenderOperation->BoundInstanceDescriptors.has_value())
 			{
-				// HACK: temporary
-				uint64 instanceID = shader.GetInfo().Hash + shader.ID;
+				uint64 instanceID;
+
+				if (_vulkanRenderOperation->CurrentInstanceID.has_value())
+				{
+					instanceID = _vulkanRenderOperation->CurrentInstanceID.value();
+				}
+				else
+				{
+					instanceID = Random::Global.RandomRange(0, Math::MaxValue<int>());
+				}
+
 				VkDescriptorSet set = uniformData.PrepareData(instanceID, _renderOperation->InstanceUniforms, shader, true);
 
 				if (set)

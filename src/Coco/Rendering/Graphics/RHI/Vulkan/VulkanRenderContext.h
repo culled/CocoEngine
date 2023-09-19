@@ -25,7 +25,8 @@ namespace Coco::Rendering::Vulkan
         {
             None,
             Shader,
-            Uniform
+            Uniform,
+            Instance
         };
 
         /// @brief The framebuffer being rendered to
@@ -51,6 +52,9 @@ namespace Coco::Rendering::Vulkan
 
         /// @brief The currently-bound shader ID
         std::optional<uint64> CurrentShaderID;
+
+        /// @brief The currently set instance ID
+        std::optional<uint64> CurrentInstanceID;
 
         /// @brief The currently bound VulkanPipeline
         std::optional<VulkanPipeline*> BoundPipeline;
@@ -95,6 +99,7 @@ namespace Coco::Rendering::Vulkan
         void SetScissorRect(const RectInt& scissorRect) final;
         void AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore) final;
         void AddRenderCompletedSignalSemaphore(Ref<GraphicsSemaphore> semaphore) final;
+        void SetMaterial(const MaterialData& material) final;
         void SetShader(const RenderPassShaderData& shader) final;
         void Draw(const MeshData& mesh) final;
 

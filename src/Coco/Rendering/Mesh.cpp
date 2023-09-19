@@ -47,7 +47,9 @@ namespace Coco::Rendering
 	{
 		_vertices.resize(vertices.size());
 		Assert(memcpy_s(_vertices.data(), _vertices.size() * sizeof(VertexData), vertices.data(), vertices.size() * sizeof(VertexData)) == 0)
+
 		_vertexCount = _vertices.size();
+		_vertexFormat = format;
 
 		MarkDirty();
 	}
