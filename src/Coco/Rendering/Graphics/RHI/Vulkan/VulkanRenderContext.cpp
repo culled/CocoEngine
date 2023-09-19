@@ -30,7 +30,7 @@ namespace Coco::Rendering::Vulkan
 		GraphicsDeviceResource<VulkanGraphicsDevice>(id),
 		_backbufferIndex(-1),
 		_vulkanRenderOperation{},
-		_imageAvailableSemaphore(CreateManagedRef<VulkanGraphicsSemaphore>(id)),
+		_renderStartSemaphore(CreateManagedRef<VulkanGraphicsSemaphore>(id)),
 		_renderCompletedSemaphore(CreateManagedRef<VulkanGraphicsSemaphore>(id)),
 		_renderCompletedFence(CreateManagedRef<VulkanGraphicsFence>(id, true)),
 		_cache(CreateUniqueRef<VulkanRenderContextCache>())
@@ -46,7 +46,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanRenderContext::~VulkanRenderContext()
 	{
-		_imageAvailableSemaphore.Invalidate();
+		_renderStartSemaphore.Invalidate();
 		_renderCompletedSemaphore.Invalidate();
 		_renderCompletedFence.Invalidate();
 
@@ -212,7 +212,7 @@ namespace Coco::Rendering::Vulkan
 
 			// Setup the Vulkan-specific render operation
 			_vulkanRenderOperation.emplace(VulkanContextRenderOperation(framebuffer, renderPass));
-			_vulkanRenderOperation->WaitOnSemaphores.push_back(_imageAvailableSemaphore);
+			_vulkanRenderOperation->WaitOnSemaphores.push_back(_renderStartSemaphore);
 			_vulkanRenderOperation->RenderCompletedSignalSemaphores.push_back(_renderCompletedSemaphore);
 
 			const RectInt& viewportRect = _renderOperation->RenderView.GetViewportRect();

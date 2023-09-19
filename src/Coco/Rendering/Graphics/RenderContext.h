@@ -76,9 +76,9 @@ namespace Coco::Rendering
 		/// @brief Blocks until this context is idle and ready to be rendered to
 		virtual void WaitForRenderingToComplete() = 0;
 
-		/// @brief Gets the semaphore used to wait until an image becomes available for rendering
+		/// @brief Gets the semaphore used by this context to wait before starting the render
 		/// @return The semaphore
-		virtual Ref<GraphicsSemaphore> GetImageAvailableSemaphore() = 0;
+		virtual Ref<GraphicsSemaphore> GetRenderStartSemaphore() = 0;
 
 		/// @brief Gets the semaphore used to wait until rendering with this context has completed
 		/// @return The semaphore

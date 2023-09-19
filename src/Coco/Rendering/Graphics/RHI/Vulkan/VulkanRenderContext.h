@@ -72,7 +72,7 @@ namespace Coco::Rendering::Vulkan
         static const uint32 sInstanceDescriptorSetIndex;
 
     private:
-        ManagedRef<VulkanGraphicsSemaphore> _imageAvailableSemaphore;
+        ManagedRef<VulkanGraphicsSemaphore> _renderStartSemaphore;
         ManagedRef<VulkanGraphicsSemaphore> _renderCompletedSemaphore;
         ManagedRef<VulkanGraphicsFence> _renderCompletedFence;
         UniqueRef<VulkanRenderContextCache> _cache;
@@ -87,7 +87,7 @@ namespace Coco::Rendering::Vulkan
 
         void WaitForRenderingToComplete() final;
 
-        Ref<GraphicsSemaphore> GetImageAvailableSemaphore() final { return _imageAvailableSemaphore; }
+        Ref<GraphicsSemaphore> GetRenderStartSemaphore() final { return _renderStartSemaphore; }
         Ref<GraphicsSemaphore> GetRenderCompletedSemaphore() final { return _renderCompletedSemaphore; }
         Ref<GraphicsFence> GetRenderCompletedFence() final { return _renderCompletedFence; }
 

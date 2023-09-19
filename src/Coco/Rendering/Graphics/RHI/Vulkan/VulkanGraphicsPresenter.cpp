@@ -92,7 +92,7 @@ namespace Coco::Rendering::Vulkan
 			return false;
 		}
 
-		VkSemaphore imageAvailableSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(context->GetImageAvailableSemaphore())->GetSemaphore();
+		VkSemaphore imageAvailableSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(context->GetRenderStartSemaphore())->GetSemaphore();
 
 		uint32 imageIndex;
 		VkResult result = vkAcquireNextImageKHR(
