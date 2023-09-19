@@ -144,6 +144,9 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanRenderPassShader::DestroyShaderObjects()
 	{
+		if (_layouts.size() == 0 && _stages.size() == 0)
+			return;
+
 		for (const auto& kvp : _layouts)
 			DestroyLayout(kvp.first);
 
