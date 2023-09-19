@@ -29,10 +29,10 @@ namespace Coco::Rendering
 			rendering->GetDevice()->PurgeUnusedResources();
 	}
 
-	void Texture::SetPixels(uint64 offset, const void* pixelData, uint64 size)
+	void Texture::SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize)
 	{
 		Assert(_image.IsValid())
 
-		_image->SetPixels(offset, pixelData, size);
+		_image->SetPixels(offset, pixelData, pixelDataSize);
 	}
 }

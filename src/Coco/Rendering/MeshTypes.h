@@ -28,8 +28,13 @@ namespace Coco::Rendering
 		/// @brief The maximum size of a single vertex's data, in bytes
 		static const uint16 MaxVertexSize;
 
+		/// @brief The vertex position
 		Vector3 Position;
+
+		/// @brief The vertex normal
 		Vector3 Normal;
+
+		/// @brief The first texture coordinate
 		Vector2 UV0;
 
 		VertexData();

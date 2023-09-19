@@ -184,7 +184,7 @@ namespace Coco::Rendering::Vulkan
 
 	GraphicsDeviceResourceID VulkanRenderPass::MakeKey(CompiledRenderPipeline& pipeline)
 	{
-		return Math::CombineHashes(pipeline.Version, pipeline.PipelineHash);
+		return Math::CombineHashes(pipeline.Version, pipeline.PipelineID);
 	}
 
 	const VulkanSubpassInfo& VulkanRenderPass::GetSubpassInfo(uint64 index) const

@@ -12,6 +12,7 @@ namespace Coco::Rendering
 		GlobalUniforms{},
 		InstanceUniforms{},
 		DrawUniforms{},
+		VerticesDrawn(0),
 		TrianglesDrawn(0)
 	{}
 

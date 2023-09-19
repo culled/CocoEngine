@@ -30,27 +30,37 @@ namespace Coco::Rendering::Vulkan
 	}
 
 	void VulkanCommandBuffer::Submit(
-		std::vector<VulkanGraphicsSemaphore*>* waitSemaphores,
-		std::vector<VulkanGraphicsSemaphore*>* signalSemaphores,
-		VulkanGraphicsFence* signalFence)
+		std::vector<Ref<VulkanGraphicsSemaphore>>* waitSemaphores,
+		std::vector<Ref<VulkanGraphicsSemaphore>>* signalSemaphores,
+		Ref<VulkanGraphicsFence> signalFence)
 	{
 		std::vector<VkSemaphore> vulkanWaitSemaphores;
 
 		if (waitSemaphores)
 		{
-			std::transform(waitSemaphores->begin(), waitSemaphores->end(),
-				std::back_inserter(vulkanWaitSemaphores), [](VulkanGraphicsSemaphore*& s) { return s->GetSemaphore(); });
+			for (Ref<VulkanGraphicsSemaphore>& s : *waitSemaphores)
+			{
+				if (!s.IsValid())
+					continue;
+
+				vulkanWaitSemaphores.push_back(s->GetSemaphore());
+			}
 		}
 
 		std::vector<VkSemaphore> vulkanSignalSemaphores;
 
 		if (signalSemaphores)
 		{
-			std::transform(signalSemaphores->begin(), signalSemaphores->end(),
-				std::back_inserter(vulkanSignalSemaphores), [](VulkanGraphicsSemaphore*& s) { return s->GetSemaphore(); });
+			for (Ref<VulkanGraphicsSemaphore>& s : *signalSemaphores)
+			{
+				if (!s.IsValid())
+					continue;
+
+				vulkanSignalSemaphores.push_back(s->GetSemaphore());
+			}
 		}
 
-		VkFence fence = signalFence ? signalFence->GetFence() : VK_NULL_HANDLE;
+		VkFence fence = signalFence.IsValid() ? signalFence->GetFence() : VK_NULL_HANDLE;
 
 		// TODO: configurable wait stages?
 		const VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -69,9 +79,9 @@ namespace Coco::Rendering::Vulkan
 	}
 
 	void VulkanCommandBuffer::EndAndSubmit(
-		std::vector<VulkanGraphicsSemaphore*>* waitSemaphores,
-		std::vector<VulkanGraphicsSemaphore*>* signalSemaphores,
-		VulkanGraphicsFence* signalFence)
+		std::vector<Ref<VulkanGraphicsSemaphore>>* waitSemaphores,
+		std::vector<Ref<VulkanGraphicsSemaphore>>* signalSemaphores,
+		Ref<VulkanGraphicsFence> signalFence)
 	{
 		End();
 		Submit(waitSemaphores, signalSemaphores, signalFence);

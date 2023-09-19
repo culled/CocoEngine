@@ -40,10 +40,10 @@ namespace Coco::Rendering::Vulkan
         RectInt ScissorRect;
 
         /// @brief Semaphores to wait on before rendering
-        std::vector<VulkanGraphicsSemaphore*> WaitOnSemaphores;
+        std::vector<Ref<VulkanGraphicsSemaphore>> WaitOnSemaphores;
 
         /// @brief Semaphores to signal once rendering completes
-        std::vector<VulkanGraphicsSemaphore*> RenderCompletedSignalSemaphores;
+        std::vector<Ref<VulkanGraphicsSemaphore>> RenderCompletedSignalSemaphores;
 
         std::set<StateChangeType> StateChanges;
         std::optional<uint64> CurrentShaderID;
@@ -61,9 +61,9 @@ namespace Coco::Rendering::Vulkan
         static const uint32 sInstanceDescriptorSetIndex;
 
     private:
-        UniqueRef<VulkanGraphicsSemaphore> _imageAvailableSemaphore;
-        UniqueRef<VulkanGraphicsSemaphore> _renderCompletedSemaphore;
-        UniqueRef<VulkanGraphicsFence> _renderCompletedFence;
+        ManagedRef<VulkanGraphicsSemaphore> _imageAvailableSemaphore;
+        ManagedRef<VulkanGraphicsSemaphore> _renderCompletedSemaphore;
+        ManagedRef<VulkanGraphicsFence> _renderCompletedFence;
         UniqueRef<VulkanRenderContextCache> _cache;
         UniqueRef<VulkanCommandBuffer> _commandBuffer;
 
@@ -76,13 +76,14 @@ namespace Coco::Rendering::Vulkan
 
         void WaitForRenderingToComplete() final;
 
-        GraphicsSemaphore* GetImageAvailableSemaphore() final { return _imageAvailableSemaphore.get(); }
-        GraphicsSemaphore* GetRenderCompletedSemaphore() final { return _renderCompletedSemaphore.get(); }
+        Ref<GraphicsSemaphore> GetImageAvailableSemaphore() final { return _imageAvailableSemaphore; }
+        Ref<GraphicsSemaphore> GetRenderCompletedSemaphore() final { return _renderCompletedSemaphore; }
+        Ref<GraphicsFence> GetRenderCompletedFence() final { return _renderCompletedFence; }
 
         void SetViewportRect(const RectInt& viewportRect) final;
         void SetScissorRect(const RectInt& scissorRect) final;
-        void AddWaitOnSemaphore(GraphicsSemaphore& semaphore) final;
-        void AddRenderCompletedSignalSemaphore(GraphicsSemaphore& semaphore) final;
+        void AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore) final;
+        void AddRenderCompletedSignalSemaphore(Ref<GraphicsSemaphore> semaphore) final;
         void SetShader(const RenderPassShaderData& shader) final;
         void Draw(const MeshData& mesh) final;
 

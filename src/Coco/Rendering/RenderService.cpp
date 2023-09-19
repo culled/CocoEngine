@@ -29,26 +29,27 @@ namespace Coco::Rendering
 		CocoTrace("RenderService shutdown")
 	}
 
-	void RenderService::Render(
-		Ref<GraphicsPresenter> presenter, 
+	RenderTask RenderService::Render(
+		GraphicsPresenter& presenter, 
 		RenderPipeline& pipeline, 
 		RenderViewProvider& renderViewProvider, 
-		std::span<SceneDataProvider*> sceneDataProviders)
+		std::span<SceneDataProvider*> sceneDataProviders,
+		std::optional<RenderTask> dependsOn)
 	{
-		Assert(presenter.IsValid())
-
-		RenderContext* context;
+		// Get the context used for rendering from the presenter
+		Ref<RenderContext> context;
 		Ref<Image> backbuffer;
-
-		if (!presenter->PrepareForRender(context, backbuffer))
+		if (!presenter.PrepareForRender(context, backbuffer))
 		{
 			CocoError("Failed to prepare presenter for rendering")
-			return;
+			return RenderTask();
 		}
 
+		// Create the RenderView using the acquired backbuffers
 		std::array<Ref<Image>, 1> backbuffers{ backbuffer };
-		UniqueRef<RenderView> view = renderViewProvider.CreateRenderView(pipeline, presenter->GetFramebufferSize(), backbuffers);
+		UniqueRef<RenderView> view = renderViewProvider.CreateRenderView(pipeline, presenter.GetFramebufferSize(), backbuffers);
 
+		// Get the scene data
 		for (SceneDataProvider* provider : sceneDataProviders)
 		{
 			if (!provider)
@@ -57,12 +58,20 @@ namespace Coco::Rendering
 			provider->GatherSceneData(*view);
 		}
 
+		// Add syncronization to the previous task if it was given
+		if (dependsOn.has_value())
+		{
+			context->AddWaitOnSemaphore(dependsOn->RenderCompletedSemaphore);
+		}
+
 		ExecuteRender(*context, pipeline, *view);
 
-		if (!presenter->Present(*context))
+		if (!presenter.Present(*context))
 		{
 			CocoError("Failed to present rendered image")
 		}
+
+		return RenderTask(context->GetRenderCompletedSemaphore(), context->GetRenderCompletedFence());
 	}
 
 	void RenderService::ExecuteRender(RenderContext& context, RenderPipeline& pipeline, RenderView& renderView)
@@ -74,6 +83,7 @@ namespace Coco::Rendering
 
 		try
 		{
+			// Go through each pass and execute it
 			for (auto it = compiledPipeline.RenderPasses.begin(); it != compiledPipeline.RenderPasses.end(); it++)
 			{
 				if (it == compiledPipeline.RenderPasses.begin())

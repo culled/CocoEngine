@@ -17,9 +17,9 @@ namespace Coco::Rendering
 		_renderPasses.clear();
 	}
 
-	bool RenderPipeline::AddRenderPass(SharedRef<RenderPass> renderPass, const std::vector<uint8>& bindingIndices)
+	bool RenderPipeline::AddRenderPass(SharedRef<RenderPass> renderPass, std::span<uint8> bindingIndices)
 	{
-		std::vector<AttachmentFormat> passInputAttachments = renderPass->GetInputAttachments();
+		std::span<const AttachmentFormat> passInputAttachments = renderPass->GetInputAttachments();
 
 		if (bindingIndices.size() != passInputAttachments.size())
 		{
@@ -67,7 +67,7 @@ namespace Coco::Rendering
 
 			for (const RenderPassBinding& binding : _renderPasses)
 			{
-				std::vector<AttachmentFormat> passAttachments = binding.Pass->GetInputAttachments();
+				std::span<const AttachmentFormat> passAttachments = binding.Pass->GetInputAttachments();
 
 				for (const auto& kvp : binding.PipelineToPassIndexMapping)
 				{
@@ -78,7 +78,7 @@ namespace Coco::Rendering
 					{
 						const std::optional<AttachmentFormat>& pipelineAttachment = inputAttachments.at(pipelineAttachmentIndex);
 
-						if (pipelineAttachment.has_value() && !pipelineAttachment->IsCompatible(passAttachments.at(passAttachmentIndex)))
+						if (pipelineAttachment.has_value() && !pipelineAttachment->IsCompatible(passAttachments[passAttachmentIndex]))
 						{
 							string err = FormatString(
 								"Error compiling RenderPipeline: Attachment {} on RenderPass is incompatible with previously defined RenderPipeline attachment {}",
@@ -97,7 +97,7 @@ namespace Coco::Rendering
 
 					if (!pipelineAttachment.has_value())
 					{
-						pipelineAttachment = passAttachments.at(passAttachmentIndex);
+						pipelineAttachment = passAttachments[passAttachmentIndex];
 					}
 
 					bindings.push_back(binding);

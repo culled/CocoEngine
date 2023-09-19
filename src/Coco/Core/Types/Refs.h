@@ -175,21 +175,24 @@ namespace Coco
 		ValueType* _ptr;
 		SharedRef<bool> _state;
 
+	private:
+		Ref(ValueType* ptr, SharedRef<bool> state) :
+			_ptr(ptr),
+			_state(state)
+		{}
+
 	public:
-		Ref() :
-			_ptr(nullptr),
-			_state(nullptr)
+		Ref() : 
+			Ref(nullptr, nullptr)
 		{}
 
 		Ref(ValueType* ptr) :
-			_ptr(ptr),
-			_state(CreateSharedRef<bool>(true))
+			Ref(ptr, CreateSharedRef<bool>(ptr != nullptr))
 		{}
 
 		template<typename RefType>
 		Ref(const ManagedRef<RefType>& ref) :
-			_ptr(static_cast<ValueType*>(ref.Get())),
-			_state(ref._state)
+			Ref(static_cast<ValueType*>(ref.Get()), ref._state)
 		{
 			static_assert(std::is_same<RefType, ValueType>::value ||
 				std::is_base_of<ValueType, RefType>::value ||
@@ -199,8 +202,7 @@ namespace Coco
 
 		template<typename RefType>
 		Ref(Ref<RefType>&& ref) :
-			_ptr(static_cast<ValueType*>(ref._ptr)),
-			_state(ref._state)
+			Ref(static_cast<ValueType*>(ref._ptr), ref._state)
 		{
 			static_assert(std::is_same<RefType, ValueType>::value ||
 				std::is_base_of<ValueType, RefType>::value ||
@@ -232,6 +234,18 @@ namespace Coco
 
 		ValueType& operator*() { return *_ptr; }
 		const ValueType& operator*() const { return *_ptr; }
+
+
+		template<typename RefType>
+		operator Ref<RefType>() const
+		{
+			static_assert(std::is_same<RefType, ValueType>::value ||
+				std::is_base_of<ValueType, RefType>::value ||
+				std::is_base_of<RefType, ValueType>::value,
+				"Cannot convert reference types");
+
+			return Ref<RefType>(static_cast<RefType*>(_ptr), _state);
+		}
 
 		/// @brief Invalidates this reference
 		void Invalidate()

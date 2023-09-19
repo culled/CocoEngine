@@ -59,7 +59,7 @@ namespace Coco::Rendering::Vulkan
 		return _description.Width * _description.Height * _description.Depth * GetPixelFormatSize(_description.PixelFormat);
 	}
 
-	void VulkanImage::SetPixels(uint64 offset, const void* pixelData, uint64 size)
+	void VulkanImage::SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize)
 	{
 		DeviceQueue* queue = _device->GetQueue(DeviceQueue::Type::Graphics);
 		if (!queue)
@@ -67,10 +67,10 @@ namespace Coco::Rendering::Vulkan
 
 		uint64 imageSize = GetSize();
 
-		if (offset + size > imageSize)
+		if (offset + pixelDataSize > imageSize)
 		{
 			string err = FormatString("The combination of offset and size must fall within the image memory. 0 < {} <= {}",
-				offset + size,
+				offset + pixelDataSize,
 				imageSize
 			);
 
@@ -78,11 +78,11 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		Ref<VulkanBuffer> staging = _device->CreateBuffer(
-			size,
+			pixelDataSize,
 			BufferUsageFlags::HostVisible | BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination,
 			true);
 
-		staging->LoadData(0, pixelData, size);
+		staging->LoadData(0, pixelData, pixelDataSize);
 
 		UniqueRef<VulkanCommandBuffer> buffer = queue->Pool.Allocate(true);
 		buffer->Begin(true, false);

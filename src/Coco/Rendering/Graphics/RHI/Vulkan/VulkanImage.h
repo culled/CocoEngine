@@ -32,7 +32,7 @@ namespace Coco::Rendering::Vulkan
 
         ImageDescription GetDescription() const final { return _description; }
         uint64 GetSize() const final;
-        void SetPixels(uint64 offset, const void* pixelData, uint64 size) final;
+        void SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize) final;
 
         /// @brief Gets the Vulkan image
         /// @return The Vulkan image

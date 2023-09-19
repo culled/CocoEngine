@@ -22,7 +22,7 @@ namespace Coco::Rendering
 		/// @param renderPass The pass
 		/// @param bindingIndices Indices that correspond to this pipeline's list of attachments
 		/// @return True if the pass was added
-		bool AddRenderPass(SharedRef<RenderPass> renderPass, const std::vector<uint8>& bindingIndices);
+		bool AddRenderPass(SharedRef<RenderPass> renderPass, std::span<uint8> bindingIndices);
 
 		/// @brief Removes a RenderPass from this pipeline
 		/// @param renderPass The pass

@@ -11,6 +11,7 @@
 #include "Providers/RenderViewProvider.h"
 #include "Providers/SceneDataProvider.h"
 #include "Texture.h"
+#include "RenderTask.h"
 
 namespace Coco::Rendering
 {
@@ -44,11 +45,31 @@ namespace Coco::Rendering
 		/// @return The graphics device
 		const GraphicsDevice* GetDevice() const { return _device.get(); }
 
+		/// @brief Gets the default diffuse texture (white)
+		/// @return The default diffuse texture
 		Ref<Texture> GetDefaultDiffuseTexture() const { return _defaultDiffuseTexture; }
+
+		/// @brief Gets the default normal-map texture
+		/// @return The default normal-map texture
 		Ref<Texture> GetDefaultNormalTexture() const { return _defaultNormalTexture; }
+
+		/// @brief Gets the default checker texture. Useful if a texture should definitely not be missing
+		/// @return The default checker texture
 		Ref<Texture> GetDefaultCheckerTexture() const { return _defaultCheckerTexture; }
 
-		void Render(Ref<GraphicsPresenter> presenter, RenderPipeline& pipeline, RenderViewProvider& renderViewProvider, std::span<SceneDataProvider*> sceneDataProviders);
+		/// @brief Performs a render
+		/// @param presenter The presenter to render with
+		/// @param pipeline The pipeline to render with
+		/// @param renderViewProvider The provider for the RenderView
+		/// @param sceneDataProviders The providers for the scene data
+		/// @param dependsOn If given, this render will occur after the render associated with the given task
+		/// @return A task that can be used for render synchronization
+		RenderTask Render(
+			GraphicsPresenter& presenter, 
+			RenderPipeline& pipeline, 
+			RenderViewProvider& renderViewProvider, 
+			std::span<SceneDataProvider*> sceneDataProviders,
+			std::optional<RenderTask> dependsOn = std::optional<RenderTask>());
 
 	private:
 		/// @brief Performs rendering

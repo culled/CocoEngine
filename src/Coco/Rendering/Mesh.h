@@ -6,15 +6,20 @@
 
 namespace Coco::Rendering
 {
+	/// @brief A region in a mesh's index buffer
 	struct SubMesh
 	{
+		/// @brief The offset of the first index in the buffer
 		uint32 Offset;
+
+		/// @brief The number of indices in the buffer
 		uint32 Count;
 
 		SubMesh();
 		SubMesh(uint32 offset, uint32 count);
 	};
 
+	/// @brief Defines geometry data used for rendering
 	class Mesh
 	{
 	private:
@@ -32,21 +37,50 @@ namespace Coco::Rendering
 		Mesh();
 		~Mesh();
 
+		/// @brief Sets the vertices of this mesh
+		/// @param format The format of the vertex data
+		/// @param vertices The vertices
 		void SetVertices(const VertexDataFormat& format, std::span<VertexData> vertices);
-		void SetIndices(std::span<uint32> indices, uint32 submeshIndex);
 
+		/// @brief Sets the indices of this mesh
+		/// @param indices The indices
+		/// @param submeshID The id of the submesh that these indices reference
+		void SetIndices(std::span<uint32> indices, uint32 submeshID);
+
+		/// @brief Uploads any pending changes to the GPU
+		/// @param deleteLocalData If true, vertex and index data will be deleted locally and will be soley stored on the GPU
+		/// @return True if the apply was successful
 		bool Apply(bool deleteLocalData = true);
 
+		/// @brief Gets the format of this mesh's vertex data
+		/// @return The format of the vertex data
 		const VertexDataFormat& GetVertexFormat() const { return _vertexFormat; }
+
+		/// @brief Gets the number of vertices this mesh has
+		/// @return The number of vertices
 		uint64 GetVertexCount() const { return _vertexCount; }
+
+		/// @brief Gets the number of indices this mesh has
+		/// @return The number of indices
 		uint64 GetIndexCount() const { return _indexCount; }
 
+		/// @brief Gets this mesh's vertex buffer
+		/// @return The vertex buffer
 		Ref<Buffer> GetVertexBuffer() const { return _vertexBuffer; }
+
+		/// @brief Gets this mesh's index buffer
+		/// @return The index buffer
 		Ref<Buffer> GetIndexBuffer() const { return _indexBuffer; }
 
+		/// @brief Gets data for a given submesh.
+		/// NOTE: this is only valid after this mesh has been applied
+		/// @param submeshID The ID of the submesh
+		/// @param outSubmesh Will be set the the submesh data if found
+		/// @return True if a submesh with the given ID was found
 		bool TryGetSubmesh(uint32 submeshID, SubMesh& outSubmesh) const;
 
 	private:
+		/// @brief Marks this mesh as needing updates
 		void MarkDirty();
 	};
 }

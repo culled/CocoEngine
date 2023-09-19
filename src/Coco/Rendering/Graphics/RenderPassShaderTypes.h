@@ -6,7 +6,7 @@
 
 namespace Coco::Rendering
 {
-	/// @brief Types of shader stages
+	/// @brief Shader stage flags
 	enum class ShaderStageFlags
 	{
 		None = 0,

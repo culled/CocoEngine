@@ -13,6 +13,11 @@ namespace Coco::Rendering
 		_passShaders.clear();
 	}
 
+	void Shader::SetGroupTag(const char* groupTag)
+	{
+		_groupTag = groupTag;
+	}
+
 	void Shader::AddRenderPassShader(RenderPassShader&& passShader)
 	{
 		_passShaders.emplace_back(std::forward<RenderPassShader>(passShader));

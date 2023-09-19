@@ -18,7 +18,6 @@ SandboxApp::SandboxApp() :
 	_sceneDataProvider(CreateUniqueRef<BasicSceneDataProvider>())
 {
 	MainLoop::Get()->AddListener(_tickListener);
-	MainLoop::Get()->SetTargetTicksPerSecond(60);
 
 	ServiceManager* services = ServiceManager::Get();
 	{

@@ -9,6 +9,9 @@ std::vector<AttachmentFormat> BasicRenderPass::GetInputAttachments() const
 
 void BasicRenderPass::Execute(RenderContext& context, const RenderView& renderView)
 {
+    context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("projectionMatrix"), renderView.GetProjectionMatrix());
+    context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("viewMatrix"), renderView.GetViewMatrix());
+
     for (const ObjectData& obj : renderView.GetRenderObjects())
     {
         const ShaderData& shader = renderView.GetShaderData(obj.ShaderID);
@@ -19,8 +22,6 @@ void BasicRenderPass::Execute(RenderContext& context, const RenderView& renderVi
 
         context.SetShader(renderView.GetRenderPassShaderData(it->second));
 
-        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("projectionMatrix"), renderView.GetProjectionMatrix());
-        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("viewMatrix"), renderView.GetViewMatrix());
         context.SetFloat4(UniformScope::Instance, ShaderUniformData::MakeKey("baseColor"), Color::Green);
         context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("modelMatrix"), obj.ModelMatrix);
         context.Draw(renderView.GetMeshData(obj.MeshID));

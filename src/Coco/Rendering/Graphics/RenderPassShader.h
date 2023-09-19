@@ -10,7 +10,7 @@ namespace Coco::Rendering
 	/// @brief A shader for a single RenderPass
 	struct RenderPassShader
 	{
-		/// @brief The hash of this shader
+		/// @brief The hash of this shader (auto-calculated after calling CalculateHash())
 		uint64 Hash;
 
 		/// @brief The version of this shader
@@ -73,7 +73,7 @@ namespace Coco::Rendering
 		/// @brief Calculates the offsets for each vertex attribute and the total vertex data size
 		void CalculateAttributeOffsets();
 
-	private:
+		/// @brief Calculates this shader's hash from its currently set values
 		void CalculateHash();
 	};
 }

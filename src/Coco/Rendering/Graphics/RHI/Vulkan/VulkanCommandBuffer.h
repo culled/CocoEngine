@@ -45,18 +45,18 @@ namespace Coco::Rendering::Vulkan
 		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
 		/// @param signalFence A fence to signal once this buffer's work has been completed
 		void Submit(
-			std::vector<VulkanGraphicsSemaphore*>* waitSemaphores = nullptr,
-			std::vector<VulkanGraphicsSemaphore*>* signalSemaphores = nullptr,
-			VulkanGraphicsFence* signalFence = nullptr);
+			std::vector<Ref<VulkanGraphicsSemaphore>>* waitSemaphores = nullptr,
+			std::vector<Ref<VulkanGraphicsSemaphore>>* signalSemaphores = nullptr,
+			Ref<VulkanGraphicsFence> signalFence = nullptr);
 
 		/// @brief Ends and submits this buffer
 		/// @param waitSemaphores Semaphores to wait on before performing this buffer's work
 		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
 		/// @param signalFence A fence to signal once this buffer's work has been completed
 		void EndAndSubmit(
-			std::vector<VulkanGraphicsSemaphore*>* waitSemaphores = nullptr,
-			std::vector<VulkanGraphicsSemaphore*>* signalSemaphores = nullptr,
-			VulkanGraphicsFence* signalFence = nullptr);
+			std::vector<Ref<VulkanGraphicsSemaphore>>* waitSemaphores = nullptr,
+			std::vector<Ref<VulkanGraphicsSemaphore>>* signalSemaphores = nullptr,
+			Ref<VulkanGraphicsFence> signalFence = nullptr);
 
 		/// @brief Resets this command buffer
 		void Reset();

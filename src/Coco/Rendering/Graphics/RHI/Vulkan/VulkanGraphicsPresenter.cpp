@@ -92,7 +92,7 @@ namespace Coco::Rendering::Vulkan
 			return false;
 		}
 
-		VkSemaphore imageAvailableSemaphore = static_cast<VulkanGraphicsSemaphore*>(context->GetImageAvailableSemaphore())->GetSemaphore();
+		VkSemaphore imageAvailableSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(context->GetImageAvailableSemaphore())->GetSemaphore();
 
 		uint32 imageIndex;
 		VkResult result = vkAcquireNextImageKHR(
@@ -160,7 +160,7 @@ namespace Coco::Rendering::Vulkan
 
 		_acquiredBackbufferIndices.erase(it);
 
-		VkSemaphore waitSemaphore = static_cast<VulkanGraphicsSemaphore*>(vulkanContext->GetRenderCompletedSemaphore())->GetSemaphore();
+		VkSemaphore waitSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(vulkanContext->GetRenderCompletedSemaphore())->GetSemaphore();
 
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

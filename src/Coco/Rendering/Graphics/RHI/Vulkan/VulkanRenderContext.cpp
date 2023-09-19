@@ -30,9 +30,9 @@ namespace Coco::Rendering::Vulkan
 		GraphicsDeviceResource<VulkanGraphicsDevice>(id),
 		_backbufferIndex(-1),
 		_vulkanRenderOperation{},
-		_imageAvailableSemaphore(CreateUniqueRef<VulkanGraphicsSemaphore>(id)),
-		_renderCompletedSemaphore(CreateUniqueRef<VulkanGraphicsSemaphore>(id)),
-		_renderCompletedFence(CreateUniqueRef<VulkanGraphicsFence>(id, true)),
+		_imageAvailableSemaphore(CreateManagedRef<VulkanGraphicsSemaphore>(id)),
+		_renderCompletedSemaphore(CreateManagedRef<VulkanGraphicsSemaphore>(id)),
+		_renderCompletedFence(CreateManagedRef<VulkanGraphicsFence>(id, true)),
 		_cache(CreateUniqueRef<VulkanRenderContextCache>())
 	{
 		DeviceQueue* graphicsQueue = _device->GetQueue(DeviceQueue::Type::Graphics);
@@ -46,9 +46,9 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanRenderContext::~VulkanRenderContext()
 	{
-		_imageAvailableSemaphore.reset();
-		_renderCompletedSemaphore.reset();
-		_renderCompletedFence.reset();
+		_imageAvailableSemaphore.Invalidate();
+		_renderCompletedSemaphore.Invalidate();
+		_renderCompletedFence.Invalidate();
 
 		_cache.reset();
 
@@ -96,19 +96,33 @@ namespace Coco::Rendering::Vulkan
 		vkCmdSetScissor(_commandBuffer->GetCmdBuffer(), 0, 1, &scissor);
 	}
 
-	void VulkanRenderContext::AddWaitOnSemaphore(GraphicsSemaphore& semaphore)
+	void VulkanRenderContext::AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore)
 	{
+		if (!semaphore.IsValid())
+		{
+			CocoError("Wait on semaphore was invalid")
+			Assert(false)
+			return;
+		}
+
 		Assert(_vulkanRenderOperation.has_value())
 
-		VulkanGraphicsSemaphore* vulkanSemaphore = static_cast<VulkanGraphicsSemaphore*>(&semaphore);
+		Ref<VulkanGraphicsSemaphore> vulkanSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(semaphore);
 		_vulkanRenderOperation->WaitOnSemaphores.push_back(vulkanSemaphore);
 	}
 
-	void VulkanRenderContext::AddRenderCompletedSignalSemaphore(GraphicsSemaphore& semaphore)
+	void VulkanRenderContext::AddRenderCompletedSignalSemaphore(Ref<GraphicsSemaphore> semaphore)
 	{
+		if (!semaphore.IsValid())
+		{
+			CocoError("Signal semaphore was invalid")
+			Assert(false)
+			return;
+		}
+
 		Assert(_vulkanRenderOperation.has_value())
 
-		VulkanGraphicsSemaphore* vulkanSemaphore = static_cast<VulkanGraphicsSemaphore*>(&semaphore);
+		Ref<VulkanGraphicsSemaphore> vulkanSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(semaphore);
 		_vulkanRenderOperation->RenderCompletedSignalSemaphores.push_back(vulkanSemaphore);
 	}
 
@@ -122,7 +136,6 @@ namespace Coco::Rendering::Vulkan
 		// TODO: maybe get the VulkanRenderPassShader here
 		_vulkanRenderOperation->CurrentShaderID = shader.ID;
 
-		_renderOperation->GlobalUniforms.Clear();
 		_renderOperation->InstanceUniforms.Clear();
 		_renderOperation->DrawUniforms.Clear();
 
@@ -174,7 +187,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		try
 		{
-			std::span<RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
+			std::span<const RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
 			std::vector<VulkanImage*> vulkanImages(rts.size());
 
 			for (size_t i = 0; i < rts.size(); i++)
@@ -188,8 +201,8 @@ namespace Coco::Rendering::Vulkan
 
 			// Setup the Vulkan-specific render operation
 			_vulkanRenderOperation.emplace(VulkanContextRenderOperation(framebuffer, renderPass));
-			_vulkanRenderOperation->WaitOnSemaphores.push_back(_imageAvailableSemaphore.get());
-			_vulkanRenderOperation->RenderCompletedSignalSemaphores.push_back(_renderCompletedSemaphore.get());
+			_vulkanRenderOperation->WaitOnSemaphores.push_back(_imageAvailableSemaphore);
+			_vulkanRenderOperation->RenderCompletedSignalSemaphores.push_back(_renderCompletedSemaphore);
 
 			const RectInt& viewportRect = _renderOperation->RenderView.GetViewportRect();
 			_vulkanRenderOperation->ViewportRect = viewportRect;
@@ -272,7 +285,7 @@ namespace Coco::Rendering::Vulkan
 		_commandBuffer->EndAndSubmit(
 			&_vulkanRenderOperation->WaitOnSemaphores,
 			&_vulkanRenderOperation->RenderCompletedSignalSemaphores,
-			_renderCompletedFence.get());
+			_renderCompletedFence);
 
 		_cache->ResetForNextRender();
 	}

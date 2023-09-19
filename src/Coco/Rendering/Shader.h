@@ -16,6 +16,10 @@ namespace Coco::Rendering
 		Shader(const string& groupTag);
 		~Shader();
 
+		/// @brief Sets this shader's group tag
+		/// @param groupTag The group tag
+		void SetGroupTag(const char* groupTag);
+
 		/// @brief Gets this shader's group tag
 		/// @return The group tag
 		const string& GetGroupTag() const { return _groupTag; }
@@ -26,7 +30,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets this shader's render pass shaders
 		/// @return A list of render pass shaders
-		const std::vector<RenderPassShader>& GetRenderPassShaders() const { return _passShaders; }
+		std::span<const RenderPassShader> GetRenderPassShaders() const { return _passShaders; }
 
 		/// @brief Gets a render pass shader if this shader has one for the given pass
 		/// @param renderPassName The name of the render pass

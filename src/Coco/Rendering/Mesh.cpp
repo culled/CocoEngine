@@ -45,11 +45,17 @@ namespace Coco::Rendering
 		MarkDirty();
 	}
 
-	void Mesh::SetIndices(std::span<uint32> indices, uint32 submeshIndex)
+	void Mesh::SetIndices(std::span<uint32> indices, uint32 submeshID)
 	{
-		std::vector<uint32>& submeshIndices = _indices[submeshIndex];
+		std::vector<uint32>& submeshIndices = _indices[submeshID];
 		submeshIndices.resize(indices.size());
 		Assert(memcpy_s(submeshIndices.data(), submeshIndices.size() * sizeof(uint32), indices.data(), indices.size() * sizeof(uint32)) == 0)
+
+		_indexCount = 0;
+		for (const auto& kvp : _indices)
+		{
+			_indexCount += kvp.second.size();
+		}
 
 		MarkDirty();
 	}
@@ -77,6 +83,7 @@ namespace Coco::Rendering
 				if (kvp.second.size() == 0)
 					throw std::exception("Submesh index list was empty");
 
+			// Gather vertex data
 			std::vector<uint8> vertexBufferData = GetVertexData(_vertexFormat, _vertices);
 
 			if (!_vertexBuffer.IsValid())
@@ -100,21 +107,20 @@ namespace Coco::Rendering
 			stagingBuffer->LoadData<uint8>(0, vertexBufferData);
 			stagingBuffer->CopyTo(0, *_vertexBuffer, 0, vertexBufferData.size());
 
-			_indexCount = 0;
 			_submeshes.clear();
 
-			std::vector<uint8> indexBufferData;
+			// Gather index data
+			uint64 offset = 0;
+			std::vector<uint8> indexBufferData(_indexCount * sizeof(uint32));
 			for (const auto& kvp : _indices)
 			{
 				const std::vector<uint32>& submeshIndices = kvp.second;
 
 				uint32 indexOffset = static_cast<uint32>(_indexCount);
-				_submeshes.try_emplace(kvp.first, indexOffset, static_cast<uint32>(submeshIndices.size()));
-				_indexCount += submeshIndices.size();
+				_submeshes.try_emplace(kvp.first, offset, static_cast<uint32>(submeshIndices.size()));
+				offset += submeshIndices.size();
 
-				indexBufferData.resize(_indexCount * sizeof(uint32));
-
-				Assert(memcpy_s(indexBufferData.data() + indexOffset * sizeof(uint32), sizeof(uint32) * _indexCount, submeshIndices.data(), sizeof(uint32) * submeshIndices.size()) == 0)
+				Assert(memcpy_s(indexBufferData.data() + indexOffset * sizeof(uint32), indexBufferData.size(), submeshIndices.data(), sizeof(uint32) * submeshIndices.size()) == 0)
 			}
 
 			if (!_indexBuffer.IsValid())

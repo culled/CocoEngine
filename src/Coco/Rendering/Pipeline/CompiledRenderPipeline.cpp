@@ -5,8 +5,8 @@
 
 namespace Coco::Rendering
 {
-	CompiledRenderPipeline::CompiledRenderPipeline(uint64 pipelineHash) :
-		PipelineHash(pipelineHash),
+	CompiledRenderPipeline::CompiledRenderPipeline(uint64 pipelineID) :
+		PipelineID(pipelineID),
 		Version(0),
 		RenderPasses{},
 		InputAttachments{}

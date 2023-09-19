@@ -20,7 +20,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets the attachment formats that this pass uses
 		/// @return This pass's attachments
-		virtual std::vector<AttachmentFormat> GetInputAttachments() const = 0;
+		virtual std::span<const AttachmentFormat> GetInputAttachments() const = 0;
 
 		/// @brief Executes this render pass
 		/// @param context The context to use for rendering

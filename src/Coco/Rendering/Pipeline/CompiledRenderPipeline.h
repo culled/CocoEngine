@@ -8,10 +8,10 @@ namespace Coco::Rendering
 	/// @brief A compiled RenderPipeline
 	struct CompiledRenderPipeline
 	{
-		/// @brief The hash of the pipeline that compiled this
-		uint64 PipelineHash;
+		/// @brief The id of the pipeline that compiled this
+		uint64 PipelineID;
 
-		/// @brief The version
+		/// @brief The version of the pipeline
 		uint64 Version;
 
 		/// @brief RenderPasses in this pipeline
@@ -20,6 +20,6 @@ namespace Coco::Rendering
 		/// @brief The attachments in this pipeline
 		std::vector<AttachmentFormat> InputAttachments;
 
-		CompiledRenderPipeline(uint64 pipelineHash);
+		CompiledRenderPipeline(uint64 pipelineID);
 	};
 }
