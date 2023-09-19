@@ -36,6 +36,10 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		VulkanRenderPass& resource = it->second;
+
+		if (resource.NeedsUpdate(pipeline))
+			resource.Update(pipeline);
+
 		resource.Use();
 
 		return resource;
@@ -53,6 +57,10 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		VulkanRenderPassShader& resource = it->second;
+
+		if (resource.NeedsUpdate(shaderInfo))
+			resource.Update(shaderInfo);
+
 		resource.Use();
 
 		return resource;
@@ -73,6 +81,10 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		VulkanPipeline& resource = it->second;
+
+		if (resource.NeedsUpdate(renderPass, shader))
+			resource.Update(renderPass, shader, subpassIndex);
+
 		resource.Use();
 
 		return resource;
@@ -118,9 +130,28 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		if (renderPassesPurged > 0 || shadersPurged > 0)
+		uint64 pipelinesPurged = 0;
+
 		{
-			CocoTrace("Purged {} VulkanRenderPasses and {} VulkanRenderPassShaders", renderPassesPurged, shadersPurged)
+			auto it = _pipelines.begin();
+
+			while (it != _pipelines.end())
+			{
+				if (it->second.IsStale())
+				{
+					it = _pipelines.erase(it);
+					pipelinesPurged++;
+				}
+				else
+				{
+					it++;
+				}
+			}
+		}
+
+		if (renderPassesPurged > 0 || shadersPurged > 0 || pipelinesPurged > 0)
+		{
+			CocoTrace("Purged {} VulkanRenderPasses, {} VulkanRenderPassShaders, and {} VulkanPipelines", renderPassesPurged, shadersPurged, pipelinesPurged)
 		}
 	}
 

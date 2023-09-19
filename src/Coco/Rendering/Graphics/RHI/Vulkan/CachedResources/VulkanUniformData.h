@@ -82,12 +82,12 @@ namespace Coco::Rendering::Vulkan
 		static constexpr uint64 _sBufferSize = 1024 * 10; // 10 KiB
 		static constexpr uint64 _sMaxSets = 500;
 
+		uint64 _version;
 		UniformDataBufferList _uniformBuffers;
 		VulkanDescriptorPoolCreateInfo _poolCreateInfo;
 		DescriptorPoolList _pools;
 		std::unordered_map<uint64, AllocatedUniformData> _uniformData;
 		std::unordered_map<uint64, VkDescriptorSet> _allocatedSets;
-		std::vector<VulkanDescriptorSetLayout> _descriptorSetLayouts;
 		double _lastUsedTime;
 
 	public:
@@ -98,6 +98,10 @@ namespace Coco::Rendering::Vulkan
 		/// @param passShader The shader
 		/// @return The key
 		static GraphicsDeviceResourceID MakeKey(const VulkanRenderPassShader& passShader);
+
+		/// @brief Gets this resource's version
+		/// @return The version
+		uint64 GetVersion() const { return _version; }
 
 		/// @brief Prepares uniform data for a given instance
 		/// @param instanceID The id of the instance
@@ -116,6 +120,15 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Resets this object for a new render
 		void ResetForNextRender();
+
+		/// @brief Determines if this uniform data needs to be updated
+		/// @param passShader The shader
+		/// @return True if this resource should be updated
+		bool NeedsUpdate(const VulkanRenderPassShader& passShader) const;
+
+		/// @brief Updates this uniform data to be compatible with the given shader
+		/// @param passShader The shader
+		void Update(const VulkanRenderPassShader& passShader);
 
 		/// @brief Marks this framebuffer as used
 		void Use();
@@ -145,9 +158,11 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Frees the data of a uniform block
 		/// @param data The data to free
 		void FreeBufferRegion(AllocatedUniformData& data);
+		void FreeAllBufferRegions();
 
 		VulkanDescriptorPool& CreateDescriptorPool();
 		void DestroyDescriptorPool(const VulkanDescriptorPool& pool);
+		void DestroyDescriptorPools();
 
 		VkDescriptorSet AllocateDescriptorSet(uint64 instanceID, const VulkanDescriptorSetLayout& layout);
 

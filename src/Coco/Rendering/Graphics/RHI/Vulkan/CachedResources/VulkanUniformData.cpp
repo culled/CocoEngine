@@ -37,39 +37,18 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanUniformData::VulkanUniformData(const VulkanRenderPassShader& passShader) :
 		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(passShader)),
+		_version(0),
 		_uniformBuffers{},
 		_pools{},
 		_poolCreateInfo{},
 		_uniformData{},
 		_allocatedSets{},
-		_descriptorSetLayouts{}
-	{
-		for (const VulkanDescriptorSetLayout& layout : passShader.GetDescriptorSetLayouts())
-		{
-			for (const VkDescriptorSetLayoutBinding& binding : layout.LayoutBindings)
-			{
-				VkDescriptorPoolSize poolSize{};
-				poolSize.type = binding.descriptorType;
-				poolSize.descriptorCount = layout.GetTypeCount(binding.descriptorType) * _sMaxSets;
-
-				_poolCreateInfo.PoolSizes.push_back(poolSize);
-			}
-		}
-
-		_poolCreateInfo.CreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		_poolCreateInfo.CreateInfo.poolSizeCount = static_cast<uint32_t>(_poolCreateInfo.PoolSizes.size());
-		_poolCreateInfo.CreateInfo.pPoolSizes = _poolCreateInfo.PoolSizes.data();
-		_poolCreateInfo.CreateInfo.maxSets = _sMaxSets;
-
-		CreateDescriptorPool();
-	}
+		_lastUsedTime(0.0)
+	{}
 
 	VulkanUniformData::~VulkanUniformData()
 	{
-		for (auto it = _pools.begin(); it != _pools.end(); it++)
-			DestroyDescriptorPool(*it);
-
-		_pools.clear();
+		DestroyDescriptorPools();
 		_uniformBuffers.clear();
 	}
 
@@ -166,6 +145,38 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		vkCmdPushConstants(commandBuffer.GetCmdBuffer(), pipelineLayout, stageFlags, 0, static_cast<uint32_t>(pushConstantData.size()), pushConstantData.data());
+	}
+
+	bool VulkanUniformData::NeedsUpdate(const VulkanRenderPassShader& passShader) const
+	{
+		return _version != passShader.GetVersion() || _pools.size() == 0;
+	}
+
+	void VulkanUniformData::Update(const VulkanRenderPassShader& passShader)
+	{
+		DestroyDescriptorPools();
+		FreeAllBufferRegions();
+
+		for (const VulkanDescriptorSetLayout& layout : passShader.GetDescriptorSetLayouts())
+		{
+			for (const VkDescriptorSetLayoutBinding& binding : layout.LayoutBindings)
+			{
+				VkDescriptorPoolSize poolSize{};
+				poolSize.type = binding.descriptorType;
+				poolSize.descriptorCount = layout.GetTypeCount(binding.descriptorType) * _sMaxSets;
+
+				_poolCreateInfo.PoolSizes.push_back(poolSize);
+			}
+		}
+
+		_poolCreateInfo.CreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		_poolCreateInfo.CreateInfo.poolSizeCount = static_cast<uint32_t>(_poolCreateInfo.PoolSizes.size());
+		_poolCreateInfo.CreateInfo.pPoolSizes = _poolCreateInfo.PoolSizes.data();
+		_poolCreateInfo.CreateInfo.maxSets = _sMaxSets;
+
+		CreateDescriptorPool();
+
+		_version = passShader.GetVersion();
 	}
 
 	void VulkanUniformData::Use()
@@ -345,6 +356,17 @@ namespace Coco::Rendering::Vulkan
 		data.Buffer = _uniformBuffers.end();
 	}
 
+	void VulkanUniformData::FreeAllBufferRegions()
+	{
+		for (UniformDataBuffer& buffer : _uniformBuffers)
+		{
+			buffer.Buffer->FreeAllAllocations();
+		}
+
+		_uniformData.clear();
+		_allocatedSets.clear();
+	}
+
 	VulkanDescriptorPool& VulkanUniformData::CreateDescriptorPool()
 	{
 		VulkanDescriptorPool& pool = _pools.emplace_back();
@@ -361,6 +383,14 @@ namespace Coco::Rendering::Vulkan
 		vkDestroyDescriptorPool(_device->GetDevice(), pool.Pool, _device->GetAllocationCallbacks());
 
 		CocoTrace("Destroyed VulkanDescriptorPool")
+	}
+
+	void VulkanUniformData::DestroyDescriptorPools()
+	{
+		for (auto it = _pools.begin(); it != _pools.end(); it++)
+			DestroyDescriptorPool(*it);
+
+		_pools.clear();
 	}
 
 	VkDescriptorSet VulkanUniformData::AllocateDescriptorSet(uint64 instanceID, const VulkanDescriptorSetLayout& layout)

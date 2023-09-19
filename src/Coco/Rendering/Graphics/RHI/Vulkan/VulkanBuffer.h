@@ -34,6 +34,7 @@ namespace Coco::Rendering::Vulkan
         void CopyTo(uint64 sourceOffset, Buffer& destination, uint64 destinationOffset, uint64 size) final;
         bool Allocate(uint64 requiredSize, FreelistNode& outBlock) final { return _freelist.Allocate(requiredSize, outBlock); }
         void Free(const FreelistNode& block) final { _freelist.Free(block); }
+        void FreeAllAllocations() final { _freelist.Clear(); }
         void* Lock(uint64 offset, uint64 size) final;
         void Unlock() final;
 

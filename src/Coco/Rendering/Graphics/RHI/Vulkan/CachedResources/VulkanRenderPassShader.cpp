@@ -17,38 +17,21 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanRenderPassShader::VulkanRenderPassShader(const RenderPassShader& shaderInfo) :
 		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(shaderInfo)),
+		_version(0),
 		_shaderInfo(shaderInfo),
 		_stages{},
-		_layouts{}
-	{
-		for (const ShaderStage& stage : _shaderInfo.Stages)
-		{
-			CreateStage(stage);
-		}
-
-		if (shaderInfo.HasScope(UniformScope::Global))
-			CreateLayout(UniformScope::Global);
-
-		if (shaderInfo.HasScope(UniformScope::Instance))
-			CreateLayout(UniformScope::Instance);
-	}
+		_layouts{},
+		_lastUsedTime(0.0)
+	{}
 
 	VulkanRenderPassShader::~VulkanRenderPassShader()
 	{
-		for (const auto& kvp : _layouts)
-			DestroyLayout(kvp.first);
-
-		_layouts.clear();
-
-		for (const VulkanShaderStage& stage : _stages)
-			DestroyShaderStage(stage);
-
-		_stages.clear();
+		DestroyShaderObjects();
 	}
 
 	GraphicsDeviceResourceID VulkanRenderPassShader::MakeKey(const RenderPassShader& shaderInfo)
 	{
-		return shaderInfo.Hash;
+		return shaderInfo.ID;
 	}
 
 	std::vector<VulkanDescriptorSetLayout> VulkanRenderPassShader::GetDescriptorSetLayouts() const
@@ -61,7 +44,7 @@ namespace Coco::Rendering::Vulkan
 		return layouts;
 	}
 
-	const VulkanDescriptorSetLayout VulkanRenderPassShader::GetDescriptorSetLayout(UniformScope scope) const
+	const VulkanDescriptorSetLayout& VulkanRenderPassShader::GetDescriptorSetLayout(UniformScope scope) const
 	{
 		Assert(_layouts.contains(scope))
 
@@ -119,6 +102,19 @@ namespace Coco::Rendering::Vulkan
 		return ranges;
 	}
 
+	bool VulkanRenderPassShader::NeedsUpdate(const RenderPassShader& shaderInfo) const
+	{
+		return shaderInfo.Version != _version || _stages.size() == 0;
+	}
+
+	void VulkanRenderPassShader::Update(const RenderPassShader& shaderInfo)
+	{
+		DestroyShaderObjects();
+		CreateShaderObjects(shaderInfo);
+
+		_version = shaderInfo.Version;
+	}
+
 	void VulkanRenderPassShader::Use()
 	{
 		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
@@ -128,6 +124,37 @@ namespace Coco::Rendering::Vulkan
 	{
 		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
 		return currentTime - _lastUsedTime > VulkanGraphicsDeviceCache::sPurgeThreshold;
+	}
+
+	void VulkanRenderPassShader::CreateShaderObjects(const RenderPassShader& shaderInfo)
+	{
+		for (const ShaderStage& stage : _shaderInfo.Stages)
+		{
+			CreateStage(stage);
+		}
+
+		if (shaderInfo.HasScope(UniformScope::Global))
+			CreateLayout(UniformScope::Global);
+
+		if (shaderInfo.HasScope(UniformScope::Instance))
+			CreateLayout(UniformScope::Instance);
+
+		CocoTrace("Created VulkanRenderPassShader")
+	}
+
+	void VulkanRenderPassShader::DestroyShaderObjects()
+	{
+		for (const auto& kvp : _layouts)
+			DestroyLayout(kvp.first);
+
+		_layouts.clear();
+
+		for (const VulkanShaderStage& stage : _stages)
+			DestroyShaderStage(stage);
+
+		_stages.clear();
+
+		CocoTrace("Destroyed VulkanRenderPassShader")
 	}
 
 	void VulkanRenderPassShader::CreateStage(const ShaderStage& stage)

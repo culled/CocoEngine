@@ -11,9 +11,56 @@ namespace Coco::Rendering::Vulkan
 		const VulkanRenderPassShader& shader,
 		uint32 subpassIndex) :
 		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(renderPass, shader, subpassIndex)),
+		_version(0),
 		_subpassIndex(subpassIndex),
 		_pipelineLayout(nullptr),
-		_pipeline(nullptr)
+		_pipeline(nullptr),
+		_lastUsedTime(0.0)
+	{}
+
+	VulkanPipeline::~VulkanPipeline()
+	{
+		DestroyPipeline();
+	}
+
+	GraphicsDeviceResourceID VulkanPipeline::MakeKey(
+		const VulkanRenderPass& renderPass, 
+		const VulkanRenderPassShader& shader, 
+		uint32 subpassIndex)
+	{
+		return Math::CombineHashes(renderPass.ID, shader.ID, subpassIndex);
+	}
+
+	bool VulkanPipeline::NeedsUpdate(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader)
+	{
+		return _pipeline == nullptr || MakeVersion(renderPass, shader) != _version;
+	}
+
+	void VulkanPipeline::Update(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader, uint32 subpassIndex)
+	{
+		DestroyPipeline();
+		CreatePipeline(renderPass, shader, subpassIndex);
+
+		_version = MakeVersion(renderPass, shader);
+	}
+
+	void VulkanPipeline::Use()
+	{
+		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
+	}
+
+	bool VulkanPipeline::IsStale() const
+	{
+		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
+		return currentTime - _lastUsedTime > VulkanGraphicsDeviceCache::sPurgeThreshold;
+	}
+
+	uint64 VulkanPipeline::MakeVersion(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader)
+	{
+		return Math::CombineHashes(renderPass.GetVersion(), shader.GetVersion());
+	}
+
+	void VulkanPipeline::CreatePipeline(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader, uint32 subpassIndex)
 	{
 		std::vector<VulkanDescriptorSetLayout> shaderLayouts = shader.GetDescriptorSetLayouts();
 		std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
@@ -185,9 +232,11 @@ namespace Coco::Rendering::Vulkan
 			_device->GetAllocationCallbacks(),
 			&_pipeline
 		));
+
+		CocoTrace("Created VulkanPipeline")
 	}
 
-	VulkanPipeline::~VulkanPipeline()
+	void VulkanPipeline::DestroyPipeline()
 	{
 		if (_pipeline || _pipelineLayout)
 		{
@@ -204,25 +253,8 @@ namespace Coco::Rendering::Vulkan
 				vkDestroyPipelineLayout(_device->GetDevice(), _pipelineLayout, _device->GetAllocationCallbacks());
 				_pipelineLayout = nullptr;
 			}
+
+			CocoTrace("Destroyed VulkanPipeline")
 		}
-	}
-
-	GraphicsDeviceResourceID VulkanPipeline::MakeKey(
-		const VulkanRenderPass& renderPass, 
-		const VulkanRenderPassShader& shader, 
-		uint32 subpassIndex)
-	{
-		return Math::CombineHashes(renderPass.ID, shader.ID, subpassIndex);
-	}
-
-	void VulkanPipeline::Use()
-	{
-		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-	}
-
-	bool VulkanPipeline::IsStale() const
-	{
-		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-		return currentTime - _lastUsedTime > VulkanGraphicsDeviceCache::sPurgeThreshold;
 	}
 }

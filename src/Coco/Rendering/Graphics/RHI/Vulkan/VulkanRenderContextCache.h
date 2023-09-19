@@ -34,7 +34,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param renderPass The render pass being used
 		/// @param attachmentImages Images being used as attachments
 		/// @return A framebuffer
-		VulkanFramebuffer& GetOrCreateFramebuffer(const SizeInt& size, VulkanRenderPass& renderPass, const std::vector<VulkanImage*>& attachmentImages);
+		VulkanFramebuffer& GetOrCreateFramebuffer(const SizeInt& size, VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages);
 
 		/// @brief Gets/creates a uniform data container for a shader
 		/// @param shader The shader

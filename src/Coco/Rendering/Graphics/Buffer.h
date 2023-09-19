@@ -47,6 +47,9 @@ namespace Coco::Rendering
 		/// @param block The block to free
 		virtual void Free(const FreelistNode& block) = 0;
 
+		/// @brief Frees all allocated regions in this buffer
+		virtual void FreeAllAllocations() = 0;
+
 		/// @brief Makes this buffer accessible for copying to/from the host.
 		/// NOTE: This buffer must have been created with the BufferUsageFlags::HostVisible flag for this to work
 		/// @param offset The offset of the first byte in the buffer to lock

@@ -199,12 +199,12 @@ namespace Coco::Rendering::Vulkan
 		{
 			// Get the images from the render targets
 			std::span<const RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
-			std::vector<VulkanImage*> vulkanImages(rts.size());
+			std::vector<const VulkanImage*> vulkanImages(rts.size());
 
 			for (size_t i = 0; i < rts.size(); i++)
 			{
 				Assert(rts[i].Image.IsValid())
-				vulkanImages.at(i) = static_cast<VulkanImage*>(rts[i].Image.Get());
+				vulkanImages.at(i) = static_cast<const VulkanImage*>(rts[i].Image.Get());
 			}
 
 			VulkanRenderPass& renderPass = _device->GetCache()->GetOrCreateRenderPass(_renderOperation->Pipeline);

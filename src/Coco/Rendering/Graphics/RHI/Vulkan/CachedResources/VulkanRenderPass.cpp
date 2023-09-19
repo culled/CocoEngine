@@ -17,16 +17,66 @@ namespace Coco::Rendering::Vulkan
 		SubpassDescription{}
 	{}
 
-	VulkanRenderPass::VulkanRenderPass(CompiledRenderPipeline& pipeline) : 
+	VulkanRenderPass::VulkanRenderPass(const CompiledRenderPipeline& pipeline) :
 		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(pipeline)),
+		_version(0),
 		_renderPass(nullptr),
-		_subpassInfos(pipeline.RenderPasses.size()),
-		_attachments(pipeline.InputAttachments),
-		_multisamplingMode(MSAASamples::One)
+		_subpassInfos{},
+		_attachments{},
+		_multisamplingMode(MSAASamples::One),
+		_lastUsedTime(0.0)
+	{}
+
+	VulkanRenderPass::~VulkanRenderPass()
 	{
+		DestroyRenderPass();
+	}
+
+	GraphicsDeviceResourceID VulkanRenderPass::MakeKey(const CompiledRenderPipeline& pipeline)
+	{
+		return pipeline.PipelineID;
+	}
+
+	const VulkanSubpassInfo& VulkanRenderPass::GetSubpassInfo(uint64 index) const
+	{
+		Assert(index < _subpassInfos.size())
+
+		return _subpassInfos.at(index);
+	}
+
+	bool VulkanRenderPass::NeedsUpdate(const CompiledRenderPipeline& pipeline) const
+	{
+		return pipeline.Version != _version || _renderPass == nullptr;
+	}
+
+	void VulkanRenderPass::Update(const CompiledRenderPipeline& pipeline)
+	{
+		DestroyRenderPass();
+		CreateRenderPass(pipeline);
+
+		_version = pipeline.Version;
+	}
+
+	void VulkanRenderPass::Use()
+	{
+		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
+	}
+
+	bool VulkanRenderPass::IsStale() const
+	{
+		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
+		return currentTime - _lastUsedTime > VulkanGraphicsDeviceCache::sPurgeThreshold;
+	}
+
+	void VulkanRenderPass::CreateRenderPass(const CompiledRenderPipeline& pipeline)
+	{
+		_subpassInfos.resize(pipeline.RenderPasses.size());
+		_attachments = pipeline.InputAttachments;
+		_multisamplingMode = MSAASamples::One;
+
 		Assert(pipeline.RenderPasses.size() != 0)
 
-		std::vector<VkAttachmentDescription> attachments;
+			std::vector<VkAttachmentDescription> attachments;
 
 		// Create attachment descriptions for all attachments
 		for (const AttachmentFormat& attachment : pipeline.InputAttachments)
@@ -170,38 +220,16 @@ namespace Coco::Rendering::Vulkan
 		CocoTrace("Created VulkanRenderPass")
 	}
 
-	VulkanRenderPass::~VulkanRenderPass()
+	void VulkanRenderPass::DestroyRenderPass()
 	{
-		if (_renderPass)
-		{
-			_device->WaitForIdle();
-			vkDestroyRenderPass(_device->GetDevice(), _renderPass, _device->GetAllocationCallbacks());
-			_renderPass = nullptr;
-		}
+		if (!_renderPass)
+			return;
+
+		_device->WaitForIdle();
+
+		vkDestroyRenderPass(_device->GetDevice(), _renderPass, _device->GetAllocationCallbacks());
+		_renderPass = nullptr;
 
 		CocoTrace("Destroyed VulkanRenderPass")
-	}
-
-	GraphicsDeviceResourceID VulkanRenderPass::MakeKey(CompiledRenderPipeline& pipeline)
-	{
-		return Math::CombineHashes(pipeline.Version, pipeline.PipelineID);
-	}
-
-	const VulkanSubpassInfo& VulkanRenderPass::GetSubpassInfo(uint64 index) const
-	{
-		Assert(index < _subpassInfos.size())
-
-		return _subpassInfos.at(index);
-	}
-
-	void VulkanRenderPass::Use()
-	{
-		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-	}
-
-	bool VulkanRenderPass::IsStale() const
-	{
-		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-		return currentTime - _lastUsedTime > VulkanGraphicsDeviceCache::sPurgeThreshold;
 	}
 }
