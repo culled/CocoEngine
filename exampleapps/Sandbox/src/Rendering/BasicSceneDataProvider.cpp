@@ -17,7 +17,7 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 	MeshUtilities::CreateXYGrid(Vector2::One, Vector3(0.0, 0.0, -0.5), format, vertices, indices);
 	MeshUtilities::CreateXZGrid(Vector2::One, Vector3(0.0, -0.5, 0.0), format, vertices, indices);
 	MeshUtilities::CreateZYGrid(Vector2::One, Vector3(-0.5, 0.0, 0.0), format, vertices, indices);
-	//MeshUtilities::CreateBox(Vector3(1.0, 2.0, 3.0), Vector3::Zero, format, vertices, indices);
+	MeshUtilities::CreateBox(Vector3(1.0, 2.0, 3.0), Vector3(0.0, 0.0, 5.0), format, vertices, indices);
 
 	_mesh->SetVertices(format, vertices);
 	_mesh->SetIndices(indices, 0);

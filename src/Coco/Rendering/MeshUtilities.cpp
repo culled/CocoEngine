@@ -184,9 +184,9 @@ namespace Coco::Rendering
 		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Down * sizeOffset.Y + offset, format, vertices, indices, subdivisions, !flipDirection);
 
 		// Z face
-		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Forward * sizeOffset.Z + offset, format, vertices, indices, subdivisions, flipDirection);
+		CreateXYGrid(Vector2(size.X, size.Y), Vector3::Backward * sizeOffset.Z + offset, format, vertices, indices, subdivisions, flipDirection);
 
 		// -Z face
-		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Backward * sizeOffset.Z + offset, format, vertices, indices, subdivisions, !flipDirection);
+		CreateXYGrid(Vector2(size.X, size.Y), Vector3::Forward * sizeOffset.Z + offset, format, vertices, indices, subdivisions, !flipDirection);
 	}
 }
