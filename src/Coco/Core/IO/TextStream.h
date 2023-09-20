@@ -6,7 +6,7 @@
 namespace Coco
 {
 	/// @brief An input stream that can read text
-	struct InputTextStream : public InputStream
+	struct InputTextStream : virtual public Stream
 	{
 		virtual ~InputTextStream() = default;
 
@@ -32,7 +32,7 @@ namespace Coco
 	};
 
 	/// @brief An output stream that can write text
-	struct OutputTextStream : public OutputStream
+	struct OutputTextStream : virtual public OutputStream
 	{
 		virtual ~OutputTextStream() = default;
 

@@ -104,13 +104,13 @@ namespace Coco
 		return _fileStream.gcount();
 	}
 
-	void File::PeekLine(string& text, char lineTerminator)
+	void File::PeekLine(string& outText, char lineTerminator)
 	{
 		CheckFlags(FileOpenFlags::Read | FileOpenFlags::Text);
 
 		uint64 p = GetPosition();
 
-		ReadLine(text, lineTerminator);
+		ReadLine(outText, lineTerminator);
 
 		_fileStream.clear();
 		Seek(p, false);
@@ -134,12 +134,12 @@ namespace Coco
 		return text;
 	}
 
-	bool File::ReadLine(string& text, char lineTerminator)
+	bool File::ReadLine(string& outText, char lineTerminator)
 	{
 		CheckFlags(FileOpenFlags::Read | FileOpenFlags::Text);
 
 		uint64 p = GetPosition();
-		std::getline(_fileStream, text, lineTerminator);
+		std::getline(_fileStream, outText, lineTerminator);
 		SyncState();
 
 		return GetPosition() - p != 0;

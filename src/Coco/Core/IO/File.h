@@ -1,13 +1,14 @@
 #pragma once
 
 #include "Stream.h"
+#include "BinaryStream.h"
 #include "TextStream.h"
 #include "FileTypes.h"
 
 namespace Coco
 {
 	/// @brief A file that can read and write data
-	class File : public InputTextStream, public OutputTextStream
+	class File : public InputTextStream, public OutputTextStream, public InputBinaryStream, public OutputBinaryStream
 	{
 	private:
 		FilePath _filePath;
@@ -42,7 +43,6 @@ namespace Coco
 		/// @return The file as binary data
 		static std::vector<uint8> ReadAllBytes(const FilePath& filePath);
 
-		// Inherited via InputTextStream
 		uint64 GetPosition() const final { return _position; }
 		void Seek(uint64 position, bool relative) final;
 		uint8 Peek() final;
@@ -51,8 +51,6 @@ namespace Coco
 		void PeekLine(string& outText, char lineTerminator) final;
 		string ReadText(uint64 maxLength) final;
 		bool ReadLine(string& outText, char lineTerminator) final;
-
-		// Inherited via OutputTextStream
 		void Write(std::span<const uint8> data) final;
 		void Flush() final;
 		void Write(const string& text) final;
