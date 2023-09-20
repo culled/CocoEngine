@@ -421,4 +421,115 @@ namespace Coco::Rendering
 
 		CreateXZTriangleFan(radius, baseVertexCount, offset, format, vertices, indices, !flipDirection);
 	}
+
+	void MeshUtilities::CreateUVSphere(
+		uint32 slices, uint32 stacks, 
+		double radius, 
+		const Vector3& offset, 
+		const VertexDataFormat& format, 
+		std::vector<VertexData>& vertices, 
+		std::vector<uint32>& indices, 
+		bool flipDirection)
+	{
+		const uint32 vertexOffset = static_cast<uint32>(vertices.size());
+
+		// Based on https://danielsieger.com/blog/2021/03/27/generating-spheres.html
+
+		const double uOffset = 1.0 / (slices * 2);
+
+		// Add the top vertices
+		for (uint32 j = 0; j < slices; j++)
+		{
+			double u = (static_cast<double>(j) / slices) + uOffset;
+
+			VertexData& v = vertices.emplace_back(Vector3(0.0, radius, 0.0) + offset);
+
+			if (format.HasNormals)
+				v.Normal = flipDirection ? Vector3::Down : Vector3::Up;
+
+			if (format.HasUV0)
+				v.UV0 = Vector2(u, 1.0);
+		}
+
+		const double twoPI = 2.0 * Math::PI;
+
+		for (uint32 i = 0; i < stacks - 1; i++)
+		{
+			double v = 1.0 - (static_cast<double>(i + 1) / stacks);
+			double phi = Math::PI * static_cast<double>(i + 1) / stacks;
+
+			for (uint32 j = 0; j <= slices; j++)
+			{
+				double u = static_cast<double>(j) / slices;
+				double theta = twoPI * u;
+
+				Vector3 pos = Vector3(Math::Sin(phi) * Math::Cos(theta), Math::Cos(phi), -Math::Sin(phi) * Math::Sin(theta));
+				VertexData& vert = vertices.emplace_back(pos * radius + offset);
+
+				if (format.HasNormals)
+					vert.Normal = pos.Normalized() * (flipDirection ? -1.0 : 1.0);
+
+				if (format.HasUV0)
+					vert.UV0 = Vector2(u, v);
+			}
+		}
+
+		// Add the bottom vertices
+		for (uint32 j = 0; j < slices; j++)
+		{
+			double u = (static_cast<double>(j) / slices) + uOffset;
+
+			VertexData& v = vertices.emplace_back(Vector3(0.0, -radius, 0.0) + offset);
+
+			if (format.HasNormals)
+				v.Normal = flipDirection ? Vector3::Up : Vector3::Down;
+
+			if (format.HasUV0)
+				v.UV0 = Vector2(u, 0.0);
+		}
+
+		const uint32 topRingOffset = slices;
+		const uint32 bottomRingOffset = topRingOffset + (slices + 1) * (stacks - 2);
+
+		// Add the top and bottom triangles
+		for (uint32 i = 0; i < slices; i++)
+		{
+			uint32 i0 = topRingOffset + i;
+			uint32 i1 = topRingOffset + i + 1;
+
+			indices.push_back(vertexOffset + i);
+			indices.push_back(vertexOffset + (flipDirection ? i0 : i1));
+			indices.push_back(vertexOffset + (flipDirection ? i1 : i0));
+
+			i0 = bottomRingOffset + i;
+			i1 = bottomRingOffset + i + 1;
+
+			indices.push_back(vertexOffset + bottomRingOffset + i + slices + 1);
+			indices.push_back(vertexOffset + (flipDirection ? i1 : i0));
+			indices.push_back(vertexOffset + (flipDirection ? i0 : i1));
+		}
+
+		// Add the middle triangles
+		for (uint32 j = 0; j < stacks - 2; j++)
+		{
+			uint32 j0 = topRingOffset + j * (slices + 1);
+			uint32 j1 = topRingOffset + (j + 1) * (slices + 1);
+
+			for (uint32 i = 0; i <= slices; i++)
+			{
+				uint32 i0 = j0 + i;
+				uint32 i1 = j0 + i + 1;
+				uint32 i2 = j1 + i + 1;
+				uint32 i3 = j1 + i;
+
+				indices.push_back(vertexOffset + i0);
+				indices.push_back(vertexOffset + (flipDirection ? i3 : i1));
+				indices.push_back(vertexOffset + (flipDirection ? i1 : i3));
+
+				indices.push_back(vertexOffset + i2);
+				indices.push_back(vertexOffset + (flipDirection ? i1 : i3));
+				indices.push_back(vertexOffset + (flipDirection ? i3 : i1));
+			}
+		}
+	}
 }
