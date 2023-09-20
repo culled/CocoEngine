@@ -17,7 +17,7 @@ UniqueRef<RenderView> BasicRenderViewProvider::CreateRenderView(const RenderPipe
 
     double aspectRatio = static_cast<double>(backbufferSize.Width) / backbufferSize.Height;
     RectInt viewport(Vector2Int::Zero, backbufferSize);
-    Matrix4x4 view = Matrix4x4::CreateLookAtMatrix(Vector3::Forward, Vector3::Backward, Vector3::Up);
+    Matrix4x4 view = Matrix4x4::CreateLookAtMatrix(Vector3::One, Vector3::Zero, Vector3::Up);
     //Matrix4x4 view = Matrix4x4::CreateLookAtMatrix(Vector3::Backward, Vector3::Forward, Vector3::Up);
     //Matrix4x4 projection = RenderService::Get()->GetPlatform()->CreateOrthographicProjection(2.0, aspectRatio, 0.1, 100);
     Matrix4x4 projection = RenderService::Get()->GetPlatform()->CreatePerspectiveProjection(Math::DegToRad(90.0), aspectRatio, 0.1, 100);

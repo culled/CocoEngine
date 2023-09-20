@@ -6,7 +6,7 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 	_transform(),
 	_mesh(CreateManagedRef<Mesh>()),
 	_shader(CreateManagedRef<Shader>("")),
-	_texture(CreateManagedRef<Texture>("assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, ImageSamplerDescription())),
+	_texture(CreateManagedRef<Texture>("assets/textures/UV_Gradient.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, ImageSamplerDescription())),
 	_material(CreateManagedRef<Material>())
 {
 	VertexDataFormat format{};
@@ -14,13 +14,15 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 
 	std::vector<VertexData> vertices;
 	std::vector<uint32> indices;
-	MeshUtilities::CreateXYGrid(Vector2::One, Vector3::Zero, format, vertices, indices);
+	MeshUtilities::CreateXYGrid(Vector2::One, Vector3(0.0, 0.0, -0.5), format, vertices, indices);
+	MeshUtilities::CreateXZGrid(Vector2::One, Vector3(0.0, -0.5, 0.0), format, vertices, indices);
+	MeshUtilities::CreateZYGrid(Vector2::One, Vector3(-0.5, 0.0, 0.0), format, vertices, indices);
 
 	_mesh->SetVertices(format, vertices);
 	_mesh->SetIndices(indices, 0);
 	
 	GraphicsPipelineState pipelineState{};
-	pipelineState.CullingMode = CullMode::None;
+	//pipelineState.CullingMode = CullMode::None;
 
 	_shader->AddRenderPassShader(
 		RenderPassShader(
@@ -60,8 +62,8 @@ void BasicSceneDataProvider::GatherSceneData(RenderView& renderView)
 	if (!_mesh->Apply())
 		return;
 
-	_transform.RotateGlobal(Vector3::Up, MainLoop::cGet()->GetCurrentTick().DeltaTime);
-	_transform.Recalculate();
+	//_transform.RotateGlobal(Vector3::Up, MainLoop::cGet()->GetCurrentTick().DeltaTime);
+	//_transform.Recalculate();
 
 	renderView.AddRenderObject(*_mesh, 0, *_material, _transform.GlobalTransform);
 }
