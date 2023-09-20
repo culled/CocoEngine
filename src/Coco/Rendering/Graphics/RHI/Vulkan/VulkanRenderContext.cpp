@@ -194,8 +194,9 @@ namespace Coco::Rendering::Vulkan
 			static_cast<uint32>(mesh.FirstIndexOffset), 
 			0, 0);
 
-		_renderOperation->VerticesDrawn += mesh.VertexCount;
-		_renderOperation->TrianglesDrawn += mesh.IndexCount / 3;
+		RenderContextRenderStats& stats = _renderOperation->Stats;
+		stats.VertexCount += mesh.VertexCount;
+		stats.TrianglesDrawn += mesh.IndexCount / 3;
 		_renderOperation->DrawUniforms.Clear();
 	}
 

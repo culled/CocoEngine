@@ -12,18 +12,26 @@
 #include "Providers/SceneDataProvider.h"
 #include "Texture.h"
 #include "RenderTask.h"
+#include "RenderStats.h"
+#include <Coco/Core/MainLoop/TickListener.h>
 
 namespace Coco::Rendering
 {
 	/// @brief An EngineService that adds rendering functionality
 	class RenderService : public EngineService, public Singleton<RenderService>
 	{
+	public:
+		/// @brief The tick priority for the RenderService's late tick
+		static constexpr int sLateTickPriority = 10000;
+
 	private:
 		UniqueRef<GraphicsPlatform> _platform;
 		UniqueRef<GraphicsDevice> _device;
 		ManagedRef<Texture> _defaultDiffuseTexture;
 		ManagedRef<Texture> _defaultNormalTexture;
 		ManagedRef<Texture> _defaultCheckerTexture;
+		RenderStats _stats;
+		UniqueRef<TickListener> _lateTickListener;
 
 	public:
 		RenderService(const GraphicsPlatformFactory& platformFactory);
@@ -57,6 +65,10 @@ namespace Coco::Rendering
 		/// @return The default checker texture
 		Ref<Texture> GetDefaultCheckerTexture() const { return _defaultCheckerTexture; }
 
+		/// @brief Gets the current tick's render stats
+		/// @return The render stats for the current tick
+		const RenderStats& GetRenderStats() const { return _stats; }
+
 		/// @brief Performs a render
 		/// @param presenter The presenter to render with
 		/// @param pipeline The pipeline to render with
@@ -86,5 +98,9 @@ namespace Coco::Rendering
 
 		/// @brief Creates the default checker texture
 		void CreateDefaultCheckerTexture();
+
+		/// @brief Handles the late tick
+		/// @param tickInfo The current tick info
+		void HandleLateTick(const TickInfo& tickInfo);
 	};
 }

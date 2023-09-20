@@ -5,7 +5,8 @@
 
 namespace Coco::Rendering
 {
-	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory)
+	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory) :
+		_lateTickListener(CreateUniqueRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority))
 	{
 		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
@@ -14,11 +15,15 @@ namespace Coco::Rendering
 		CreateDefaultNormalTexture();
 		CreateDefaultCheckerTexture();
 
+		MainLoop::Get()->AddListener(*_lateTickListener);
+
 		CocoTrace("RenderService initialized")
 	}
 
 	RenderService::~RenderService()
 	{
+		MainLoop::Get()->RemoveListener(*_lateTickListener);
+
 		_defaultDiffuseTexture.Invalidate();
 		_defaultNormalTexture.Invalidate();
 		_defaultCheckerTexture.Invalidate();
@@ -81,11 +86,17 @@ namespace Coco::Rendering
 
 		CompiledRenderPipeline compiledPipeline = pipeline.GetCompiledPipeline();
 
+		const EnginePlatform* platform = Engine::cGet()->GetPlatform();
+		double pipelineStartTime = platform->GetSeconds();
+		std::unordered_map<string, TimeSpan> passExecutionTimes;
+
 		try
 		{
 			// Go through each pass and execute it
 			for (auto it = compiledPipeline.RenderPasses.begin(); it != compiledPipeline.RenderPasses.end(); it++)
 			{
+				double passStartTime = platform->GetSeconds();
+
 				if (it == compiledPipeline.RenderPasses.begin())
 				{
 					if (!context.Begin(renderView, compiledPipeline))
@@ -98,6 +109,8 @@ namespace Coco::Rendering
 				}
 
 				it->Pass->Execute(context, renderView);
+
+				_stats.PassExecutionTime[it->Pass->GetName()] += TimeSpan::FromSeconds(platform->GetSeconds() - passStartTime);
 			}
 		}
 		catch (const std::exception& ex)
@@ -106,6 +119,9 @@ namespace Coco::Rendering
 		}
 
 		context.End();
+
+		_stats.PipelineExecutionTime += TimeSpan::FromSeconds(platform->GetSeconds() - pipelineStartTime);
+		_stats += *context.GetRenderStats();
 	}
 
 	void RenderService::CreateDefaultDiffuseTexture()
@@ -188,5 +204,10 @@ namespace Coco::Rendering
 		_defaultCheckerTexture->SetPixels(0, pixelData.data(), pixelData.size());
 
 		CocoTrace("Created default checker texture");
+	}
+
+	void RenderService::HandleLateTick(const TickInfo& tickInfo)
+	{
+		_stats.Reset();
 	}
 }

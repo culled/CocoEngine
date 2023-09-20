@@ -13,6 +13,18 @@ namespace Coco::Rendering
 	struct CompiledRenderPipeline;
 	struct RenderPassBinding;
 
+	/// @brief Render stats for a RenderContext
+	struct RenderContextRenderStats
+	{
+		/// @brief The number of triangles drawn
+		uint64 TrianglesDrawn;
+
+		/// @brief The number of vertices in the scene
+		uint64 VertexCount;
+
+		RenderContextRenderStats();
+	};
+
 	/// @brief Holds data that a RenderContext uses during actual rendering
 	struct ContextRenderOperation
 	{
@@ -37,11 +49,8 @@ namespace Coco::Rendering
 		/// @brief The current draw uniform data
 		ShaderUniformData DrawUniforms;
 
-		/// @brief The number of vertices that have been drawn
-		uint64 VerticesDrawn;
-
-		/// @brief The number of triangles that have been drawn
-		uint64 TrianglesDrawn;
+		/// @brief The stats for this render
+		RenderContextRenderStats Stats;
 
 		ContextRenderOperation(Rendering::RenderView& renderView, CompiledRenderPipeline& pipeline);
 
@@ -90,6 +99,10 @@ namespace Coco::Rendering
 		/// @brief Gets the fence that can be used to wait until rendering with this context has completed
 		/// @return The fence
 		virtual Ref<GraphicsFence> GetRenderCompletedFence() = 0;
+
+		/// @brief Gets the current render stats. Only value during rendering
+		/// @return The render stats
+		const RenderContextRenderStats* GetRenderStats() const;
 
 		/// @brief Sets the viewport rectangle. Only valid during rendering
 		/// @param viewportRect The viewport rectangle

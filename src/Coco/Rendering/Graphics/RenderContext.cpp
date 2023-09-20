@@ -5,6 +5,11 @@
 
 namespace Coco::Rendering
 {
+	RenderContextRenderStats::RenderContextRenderStats() :
+		TrianglesDrawn(0),
+		VertexCount(0)
+	{}
+
 	ContextRenderOperation::ContextRenderOperation(Rendering::RenderView& renderView, CompiledRenderPipeline& pipeline) :
 		RenderView(renderView),
 		Pipeline(pipeline),
@@ -12,8 +17,7 @@ namespace Coco::Rendering
 		GlobalUniforms{},
 		InstanceUniforms{},
 		DrawUniforms{},
-		VerticesDrawn(0),
-		TrianglesDrawn(0)
+		Stats{}
 	{
 		CurrentPassName = Pipeline.RenderPasses.at(CurrentPassIndex).Pass->GetName();
 	}
@@ -33,6 +37,11 @@ namespace Coco::Rendering
 		_currentState(State::NeedsReset),
 		_renderOperation{}
 	{}
+
+	const RenderContextRenderStats* RenderContext::GetRenderStats() const
+	{
+		return _renderOperation.has_value() ? &_renderOperation->Stats : nullptr;
+	}
 
 	void RenderContext::SetFloat(UniformScope scope, ShaderUniformData::UniformKey key, float value)
 	{
