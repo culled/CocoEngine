@@ -3,9 +3,7 @@
 #include <Coco/Core/MainLoop/MainLoop.h>
 
 BasicSceneDataProvider::BasicSceneDataProvider() :
-	_position(Vector3::Zero),
-	_rotation(Quaternion::Identity),
-	_scale(Vector3::One),
+	_transform(),
 	_mesh(CreateManagedRef<Mesh>()),
 	_shader(CreateManagedRef<Shader>("")),
 	_texture(CreateManagedRef<Texture>("assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, ImageSamplerDescription())),
@@ -62,16 +60,8 @@ void BasicSceneDataProvider::GatherSceneData(RenderView& renderView)
 	if (!_mesh->Apply())
 		return;
 
-	//_position.X = 1.0;
-	//_position.Y = 1.0;
-	//_position.X = Math::Cos(MainLoop::cGet()->GetCurrentTick().Time);
-	//_position.Y = Math::Sin(MainLoop::cGet()->GetCurrentTick().Time);
-	//_position.Z = Math::Sin(MainLoop::cGet()->GetCurrentTick().Time) * 0.5 + 0.5;
-	//_rotation = Quaternion(Vector3::Forward, MainLoop::cGet()->GetCurrentTick().Time * 0.5);
-	_rotation = Quaternion(Vector3::Up, MainLoop::cGet()->GetCurrentTick().Time * 0.5);
-	//_rotation = Quaternion(Vector3::Right, MainLoop::cGet()->GetCurrentTick().Time * 0.5);
-	//_scale.X = Math::Cos(MainLoop::cGet()->GetCurrentTick().Time) * 0.5 + 0.5;
-	//_scale.Y = Math::Sin(MainLoop::cGet()->GetCurrentTick().Time) * 0.5 + 0.5;
+	_transform.RotateGlobal(Vector3::Up, MainLoop::cGet()->GetCurrentTick().DeltaTime);
+	_transform.Recalculate();
 
-	renderView.AddRenderObject(*_mesh, 0, *_material, Matrix4x4::CreateTransform(_position, _rotation, _scale));
+	renderView.AddRenderObject(*_mesh, 0, *_material, _transform.GlobalTransform);
 }

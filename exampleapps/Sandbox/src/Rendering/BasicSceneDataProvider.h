@@ -4,6 +4,7 @@
 #include <Coco/Rendering/Shader.h>
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Rendering/Material.h>
+#include <Coco/Core/Types/Transform.h>
 
 using namespace Coco;
 using namespace Coco::Rendering;
@@ -12,9 +13,7 @@ class BasicSceneDataProvider :
     public SceneDataProvider
 {
 private:
-    Vector3 _position;
-    Quaternion _rotation;
-    Vector3 _scale;
+    Transform3D _transform;
 
     ManagedRef<Mesh> _mesh;
     ManagedRef<Shader> _shader;

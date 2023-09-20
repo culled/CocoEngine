@@ -87,6 +87,12 @@ namespace Coco
 			vector.X * Data[m41] + vector.Y * Data[m42] + vector.Z * Data[m43] + vector.W * Data[m44]);
 	}
 
+	Quaternion Matrix4x4::operator*(const Quaternion& rotation) const
+	{
+		Matrix4x4 rotMatrix = CreateWithRotation(rotation);
+		return (*this * rotMatrix).GetRotation();
+	}
+
 	Matrix4x4 Matrix4x4::CreateLookAtMatrix(const Vector3& eyePosition, const Vector3& targetPosition, const Vector3& up)
 	{
 		Matrix4x4 lookAt;

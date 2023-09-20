@@ -81,6 +81,7 @@ namespace Coco
 
 		Matrix4x4 operator*(const Matrix4x4& other) const;
 		Vector4 operator*(const Vector4& vector) const;
+		Quaternion operator*(const Quaternion& rotation) const;
 
 		/// @brief Creates a view matrix that looks from an eye position at a target position
 		/// @param eyePosition The eye position
