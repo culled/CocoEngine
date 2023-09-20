@@ -59,5 +59,14 @@ namespace Coco::Rendering
 			std::vector<uint32>& indices,
 			uint32 subdivisions = 0,
 			bool flipDirection = false);
+
+		static void CreateBox(
+			const Vector3& size,
+			const Vector3& offset,
+			const VertexDataFormat& format,
+			std::vector<VertexData>& vertices,
+			std::vector<uint32>& indices,
+			uint32 subdivisions = 0,
+			bool flipDirection = false);
 	};
 }

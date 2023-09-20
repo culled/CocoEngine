@@ -160,4 +160,33 @@ namespace Coco::Rendering
 			}
 		}
 	}
+	void MeshUtilities::CreateBox(
+		const Vector3& size, 
+		const Vector3& offset,
+		const VertexDataFormat& format,
+		std::vector<VertexData>& vertices, 
+		std::vector<uint32>& indices, 
+		uint32 subdivisions, 
+		bool flipDirection)
+	{
+		Vector3 sizeOffset = size * 0.5;
+
+		// X face
+		CreateZYGrid(Vector2(size.Z, size.Y), Vector3::Right * sizeOffset.X + offset, format, vertices, indices, subdivisions, flipDirection);
+
+		// -X face
+		CreateZYGrid(Vector2(size.Z, size.Y), Vector3::Left * sizeOffset.X + offset, format, vertices, indices, subdivisions, !flipDirection);
+
+		// Y face
+		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Up * sizeOffset.Y + offset, format, vertices, indices, subdivisions, flipDirection);
+
+		// -Y face
+		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Down * sizeOffset.Y + offset, format, vertices, indices, subdivisions, !flipDirection);
+
+		// Z face
+		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Forward * sizeOffset.Z + offset, format, vertices, indices, subdivisions, flipDirection);
+
+		// -Z face
+		CreateXYGrid(Vector2(size.X, size.Z), Vector3::Backward * sizeOffset.Z + offset, format, vertices, indices, subdivisions, !flipDirection);
+	}
 }

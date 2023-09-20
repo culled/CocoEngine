@@ -54,19 +54,22 @@ namespace Coco::Rendering::Vulkan
 
 		const double w = 2.0 / (right - left);
 		const double h = 2.0 / (top - bottom);
-		const double a = 1.0 / (nearClip - farClip);
-		const double b = a * nearClip;
+		const double a = 1.0 / (farClip - nearClip);
 
-		// This creates an orthographic matrix to transform Coco view coordinates to Vulkan/DirectX with the directions: right = X, up = -Y, forward = Z
-		ortho.Data[Matrix4x4::m11] = -w;
+		// This creates an orthographic matrix to transform Coco view coordinates to Vulkan with the directions: right = X, up = -Y, forward = Z
+		ortho.Data[Matrix4x4::m11] = w;
 		ortho.Data[Matrix4x4::m22] = -h;
-		ortho.Data[Matrix4x4::m33] = a;
+		ortho.Data[Matrix4x4::m33] = -2.0 * a;
 
-		ortho.Data[Matrix4x4::m14] = (right + left) / (left - right);
-		ortho.Data[Matrix4x4::m24] = (bottom + top) / (top - bottom);
-		ortho.Data[Matrix4x4::m34] = b;
+		ortho.Data[Matrix4x4::m14] = -(right + left) / (right - left);
+		ortho.Data[Matrix4x4::m24] = -(top + bottom) / (top - bottom);
+		ortho.Data[Matrix4x4::m34] = -(farClip + nearClip) * a;
 
 		ortho.Data[Matrix4x4::m44] = 1.0;
+
+		//Matrix4x4 adjust = Matrix4x4::Identity;
+		//adjust.Data[Matrix4x4::m22] = -1.0;
+		//return adjust * ortho;
 
 		return ortho;
 	}
@@ -85,16 +88,21 @@ namespace Coco::Rendering::Vulkan
 		const double h = 1.0 / Math::Tan(verticalFOVRadians * 0.5);
 		const double w = h / aspectRatio;
 		const double a = farClip / (farClip - nearClip);
-		const double b = (-nearClip * farClip) / (farClip - nearClip);
+		const double b = -nearClip * a;
 
-		// This creates a projection matrix to transform Coco view coordinates to Vulkan/DirectX with the directions: right = X, up = -Y, forward = Z
-		perspective.Data[Matrix4x4::m11] = -w;
+		// This creates a projection matrix to transform Coco view coordinates to Vulkan with the directions: right = X, up = -Y, forward = Z
+		perspective.Data[Matrix4x4::m11] = w;
 		perspective.Data[Matrix4x4::m22] = -h;
-		perspective.Data[Matrix4x4::m33] = a;
+		perspective.Data[Matrix4x4::m33] = -a;
 		perspective.Data[Matrix4x4::m44] = 0.0;
 
 		perspective.Data[Matrix4x4::m34] = b;
-		perspective.Data[Matrix4x4::m43] = 1.0;
+		perspective.Data[Matrix4x4::m43] = -1.0;
+
+		//Matrix4x4 adjust = Matrix4x4::Identity;
+		//adjust.Data[Matrix4x4::m22] = -1.0;
+		//adjust.Data[Matrix4x4::m33] = -1.0;
+		//return adjust * perspective;
 
 		return perspective;
 	}

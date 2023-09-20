@@ -33,18 +33,19 @@ namespace Coco
 	{
 		const Vector3 halfAngles = eulerAngles * 0.5;
 
+		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm
 		// Pitch (X), Roll (Z), Yaw (Y) - YXZ order
-		const double cx = Math::Cos(halfAngles.X);
-		const double sx = Math::Sin(halfAngles.X);
-		const double cy = Math::Cos(halfAngles.Y);
-		const double sy = Math::Sin(halfAngles.Y);
-		const double cz = Math::Cos(halfAngles.Z);
-		const double sz = Math::Sin(halfAngles.Z);
+		const double c1 = Math::Cos(halfAngles.Y);
+		const double s1 = Math::Sin(halfAngles.Y);
+		const double c2 = Math::Cos(halfAngles.X);
+		const double s2 = Math::Sin(halfAngles.X);
+		const double c3 = Math::Cos(halfAngles.Z);
+		const double s3 = Math::Sin(halfAngles.Z);
 
-		W = (cy * cx * cz) - (-(sy * sx) * sz);
-		X = (cy * sx * cz) + (sy * cx * sz);
-		Y = (sy * cx * cz) + (-(cy * sx) * sz);
-		Z = (cy * cx * sz) + (-(sy * sx) * cz);
+		W = c1 * c2 * c3 - -(s1 * s2) * s3;
+		X = c1 * s2 * c3 + s1 * c2 * s3;
+		Y = -(c1 * s2) * s3 + s1 * c2 * c3;
+		Z = -(s1 * s2) * c3 + c1 * c2 * s3;
 	}
 
 	Quaternion Quaternion::operator*(const Quaternion& other) const
@@ -154,24 +155,39 @@ namespace Coco
 
 	Vector3 Quaternion::ToEulerAngles() const
 	{
+		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
+
+		double ww = W * W;
+		double xx = X * X;
+		double yy = Y * Y;
+		double zz = Z * Z;
+		double unit = xx + yy + zz + ww; // If normalised is one, otherwise is correction factor
+		double test = X * Y + Z * W;
+
 		Vector3 eulerAngles;
 
-		// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-
-		// Roll (Z-axis rotation)
-		double sinr_cosp = 2 * (W * Z + X * Y);
-		double cosr_cosp = 1 - 2 * (Z * Z + X * X);
-		eulerAngles.Z = std::atan2(sinr_cosp, cosr_cosp);
-
-		// Pitch (X-axis rotation)
-		double sinp = std::sqrt(1 + 2 * (W * X - Z * Y));
-		double cosp = std::sqrt(1 - 2 * (W * X - Z * Y));
-		eulerAngles.X = 2 * std::atan2(sinp, cosp) - Math::HalfPI;
-
-		// Yaw (Y-axis rotation)
-		double siny_cosp = 2 * (W * Y + Z * X);
-		double cosy_cosp = 1 - 2 * (X * X + Y * Y);
-		eulerAngles.Y = std::atan2(siny_cosp, cosy_cosp);
+		const double unitTest = 0.5 - Math::Epsilon;
+		if (test > unit * unitTest)
+		{
+			// Singularity at north pole
+			eulerAngles.Y = 2.0 * Math::Atan2(X, W);
+			eulerAngles.X = Math::HalfPI;
+			eulerAngles.Z = 0.0;
+		}
+		else if (test < -unit * unitTest)
+		{
+			// Singularity at south pole
+			eulerAngles.Y = -2.0 * Math::Atan2(X, W);
+			eulerAngles.X = -Math::HalfPI;
+			eulerAngles.Z = 0.0;
+		}
+		else
+		{
+			// No singularity
+			eulerAngles.Y = Math::Atan2(2.0 * Y * W - 2.0 * X * Z, xx - yy - zz + ww);
+			eulerAngles.X = Math::Atan2(2.0 * X * W - 2.0 * Y * Z, -xx + yy - zz + ww);
+			eulerAngles.Z = Math::Asin(2.0 * test / unit);
+		}
 
 		return eulerAngles;
 	}
