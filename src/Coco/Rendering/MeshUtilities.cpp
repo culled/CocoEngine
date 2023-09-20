@@ -189,4 +189,157 @@ namespace Coco::Rendering
 		// -Z face
 		CreateXYGrid(Vector2(size.X, size.Y), Vector3::Forward * sizeOffset.Z + offset, format, vertices, indices, subdivisions, !flipDirection);
 	}
+
+	void MeshUtilities::CreateXYTriangleFan(
+		double radius, 
+		uint32 vertexCount, 
+		const Vector3& offset, 
+		const VertexDataFormat& format, 
+		std::vector<VertexData>& vertices, 
+		std::vector<uint32>& indices, 
+		bool flipDirection)
+	{
+		const uint32 vertexOffset = static_cast<uint32>(vertices.size());
+
+		Vector3 normalDir = flipDirection ? Vector3::Forward : Vector3::Backward;
+
+		// Add the middle vertex
+		VertexData& v = vertices.emplace_back(offset);
+
+		if (format.HasNormals)
+			v.Normal = normalDir;
+
+		if (format.HasUV0)
+			v.UV0 = Vector2(0.5, 0.5);
+
+		// Create bottom circle
+		for (uint32 i = 0; i < vertexCount; i++)
+		{
+			const double angle = (static_cast<double>(i) / vertexCount) * Math::PI * 2.0;
+			const double c = Math::Cos(angle);
+			const double s = Math::Sin(angle);
+
+			VertexData& v = vertices.emplace_back(Vector3(c * radius, s * radius, 0.0) + offset);
+
+			if (format.HasNormals)
+				v.Normal = normalDir;
+
+			if (format.HasUV0)
+				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
+		}
+
+		for (uint32 i = vertexOffset + 1; i < static_cast<uint32>(vertices.size()) - 1; i++)
+		{
+			indices.push_back(flipDirection ? i + 1 : i);
+			indices.push_back(vertexOffset);
+			indices.push_back(flipDirection ? i : i + 1);
+		}
+
+		// Connect the last base vertex to the first
+		indices.push_back(flipDirection ? vertexOffset + 1 : static_cast<uint32>(vertices.size()) - 1);
+		indices.push_back(vertexOffset);
+		indices.push_back(flipDirection ? static_cast<uint32>(vertices.size()) - 1 : vertexOffset + 1);
+	}
+
+	void MeshUtilities::CreateXZTriangleFan(
+		double radius,
+		uint32 vertexCount,
+		const Vector3& offset,
+		const VertexDataFormat& format,
+		std::vector<VertexData>& vertices,
+		std::vector<uint32>& indices,
+		bool flipDirection)
+	{
+		const uint32 vertexOffset = static_cast<uint32>(vertices.size());
+
+		Vector3 normalDir = flipDirection ? Vector3::Down : Vector3::Up;
+
+		// Add the middle vertex
+		VertexData& v = vertices.emplace_back(offset);
+
+		if (format.HasNormals)
+			v.Normal = normalDir;
+
+		if (format.HasUV0)
+			v.UV0 = Vector2(0.5, 0.5);
+
+		// Create bottom circle
+		for (uint32 i = 0; i < vertexCount; i++)
+		{
+			const double angle = (static_cast<double>(i) / vertexCount) * Math::PI * 2.0;
+			const double c = Math::Cos(angle);
+			const double s = Math::Sin(angle);
+
+			VertexData& v = vertices.emplace_back(Vector3(c * radius, 0.0, -s * radius) + offset);
+
+			if (format.HasNormals)
+				v.Normal = normalDir;
+
+			if (format.HasUV0)
+				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
+		}
+
+		for (uint32 i = vertexOffset + 1; i < static_cast<uint32>(vertices.size()) - 1; i++)
+		{
+			indices.push_back(flipDirection ? i + 1 : i);
+			indices.push_back(vertexOffset);
+			indices.push_back(flipDirection ? i : i + 1);
+		}
+
+		// Connect the last base vertex to the first
+		indices.push_back(flipDirection ? vertexOffset + 1 : static_cast<uint32>(vertices.size()) - 1);
+		indices.push_back(vertexOffset);
+		indices.push_back(flipDirection ? static_cast<uint32>(vertices.size()) - 1 : vertexOffset + 1);
+	}
+
+	void MeshUtilities::CreateZYTriangleFan(
+		double radius,
+		uint32 vertexCount,
+		const Vector3& offset,
+		const VertexDataFormat& format,
+		std::vector<VertexData>& vertices,
+		std::vector<uint32>& indices,
+		bool flipDirection)
+	{
+		const uint32 vertexOffset = static_cast<uint32>(vertices.size());
+
+		Vector3 normalDir = flipDirection ? Vector3::Left : Vector3::Right;
+
+		// Add the middle vertex
+		VertexData& v = vertices.emplace_back(offset);
+
+		if (format.HasNormals)
+			v.Normal = normalDir;
+
+		if (format.HasUV0)
+			v.UV0 = Vector2(0.5, 0.5);
+
+		// Create bottom circle
+		for (uint32 i = 0; i < vertexCount; i++)
+		{
+			const double angle = (static_cast<double>(i) / vertexCount) * Math::PI * 2.0;
+			const double c = Math::Cos(angle);
+			const double s = Math::Sin(angle);
+
+			VertexData& v = vertices.emplace_back(Vector3(0.0, s * radius, -c * radius) + offset);
+
+			if (format.HasNormals)
+				v.Normal = normalDir;
+
+			if (format.HasUV0)
+				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
+		}
+
+		for (uint32 i = vertexOffset + 1; i < static_cast<uint32>(vertices.size()) - 1; i++)
+		{
+			indices.push_back(flipDirection ? i + 1 : i);
+			indices.push_back(vertexOffset);
+			indices.push_back(flipDirection ? i : i + 1);
+		}
+
+		// Connect the last base vertex to the first
+		indices.push_back(flipDirection ? vertexOffset + 1 : static_cast<uint32>(vertices.size()) - 1);
+		indices.push_back(vertexOffset);
+		indices.push_back(flipDirection ? static_cast<uint32>(vertices.size()) - 1 : vertexOffset + 1);
+	}
 }
