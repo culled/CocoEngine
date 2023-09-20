@@ -100,6 +100,25 @@ namespace Coco::Platforms::Win32
 		return it != _processArguments.cend();
 	}
 
+	string Win32::Win32EnginePlatform::GetProcessArgument(const char* arg) const
+	{
+		auto it = std::find_if(_processArguments.cbegin(), _processArguments.cend(), [arg](const string& s)
+			{
+				return strcmp(arg, s.c_str()) == 0;
+			});
+
+		if (it == _processArguments.cend())
+			return string();
+
+		const string& wholeArg = *it;
+		size_t deliminator = wholeArg.find_first_of('=');
+
+		if (deliminator == string::npos)
+			return wholeArg;
+
+		return wholeArg.substr(deliminator + 1);
+	}
+
 	void Win32EnginePlatform::ShowConsoleWindow(bool show)
 	{
 		if (show == _consoleOpen)

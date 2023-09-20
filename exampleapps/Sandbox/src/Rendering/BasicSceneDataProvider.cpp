@@ -29,8 +29,8 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 			0,
 			"basic",
 			{
-				ShaderStage("main", ShaderStageType::Vertex, "assets/shaders/built-in/Unlit.vert.spv"),
-				ShaderStage("main", ShaderStageType::Fragment, "assets/shaders/built-in/Unlit.frag.spv")
+				ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Unlit.vert.spv"),
+				ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Unlit.frag.spv")
 			},
 			pipelineState,
 			{

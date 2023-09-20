@@ -64,6 +64,11 @@ namespace Coco
 		/// @return True if the given argument exists in the process arguments
 		virtual bool HasProcessArgument(const char* arg) const = 0;
 
+		/// @brief Gets the value of a given process argument
+		/// @param arg The argument name
+		/// @return The argument value
+		virtual string GetProcessArgument(const char* arg) const = 0;
+
 		/// @brief Shows or hides the console window (if the platform supports it)
 		/// @param show If true, the console window will be shown
 		virtual void ShowConsoleWindow(bool show) = 0;

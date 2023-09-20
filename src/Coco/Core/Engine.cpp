@@ -2,10 +2,13 @@
 #include "Engine.h"
 
 #include "Logging/LogSinks/ConsoleLogSink.h"
+#include "IO/FileSystems/UnpackedEngineFileSystem.h"
 
 namespace Coco
 {
 	const char* Engine::sShowConsoleArgument = "--show-console";
+	const char* Engine::sContentPathArgument = "--content-path";
+	const char* Engine::sDefaultContentPath = "assets";
 
 	Engine::Engine(const EnginePlatformFactory& platformFactory) :
 		_exitCode(0)
@@ -38,6 +41,7 @@ namespace Coco
 		_app.reset();
 		_serviceManager.reset();
 		_mainLoop.reset();
+		_fileSystem.reset();
 
 		LogTrace(_log, "Engine shutdown. Bye!")
 		_log.reset();
@@ -94,5 +98,18 @@ namespace Coco
 
 			_log->AddSink(CreateSharedRef<ConsoleLogSink>());
 		}
+
+		FilePath contentPath;
+
+		if (_platform->HasProcessArgument(sContentPathArgument))
+		{
+			contentPath = FilePath(_platform->GetProcessArgument(sContentPathArgument));
+		}
+		else
+		{
+			contentPath = FilePath::CombineToPath(FilePath::GetCurrentWorkingDirectoryPath(), sDefaultContentPath);
+		}
+
+		_fileSystem = CreateUniqueRef<UnpackedEngineFileSystem>(contentPath);
 	}
 }

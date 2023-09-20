@@ -5,6 +5,7 @@
 #include "Platform/EnginePlatformFactory.h"
 #include "MainLoop/MainLoop.h"
 #include "Services/ServiceManager.h"
+#include "IO/EngineFileSystem.h"
 
 namespace Coco
 {
@@ -13,12 +14,15 @@ namespace Coco
 	{
 	public:
 		static const char* sShowConsoleArgument;
+		static const char* sContentPathArgument;
+		static const char* sDefaultContentPath;
 
 	private:
 		UniqueRef<Log> _log;
 		UniqueRef<EnginePlatform> _platform;
 		UniqueRef<MainLoop> _mainLoop;
 		UniqueRef<ServiceManager> _serviceManager;
+		UniqueRef<EngineFileSystem> _fileSystem;
 		UniqueRef<Application> _app;
 		int _exitCode;
 
@@ -77,6 +81,14 @@ namespace Coco
 		/// @brief Gets the engine's service manager
 		/// @return The service manager
 		const ServiceManager* GetServiceManager() const { return _serviceManager.get(); }
+
+		/// @brief Gets the engine's file system
+		/// @return The file system
+		EngineFileSystem* GetFileSystem() { return _fileSystem.get(); }
+
+		/// @brief Gets the engine's file system
+		/// @return The file system
+		const EngineFileSystem* GetFileSystem() const { return _fileSystem.get(); }
 
 		/// @brief Causes a crash and rethrows the captured exception.
 		/// NOTE: only works in the catch clause of a try-catch block

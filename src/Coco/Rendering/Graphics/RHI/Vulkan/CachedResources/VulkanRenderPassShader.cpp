@@ -5,8 +5,6 @@
 #include "../VulkanUtils.h"
 #include <Coco/Core/Engine.h>
 
-#include <fstream>
-
 namespace Coco::Rendering::Vulkan
 {
 	VulkanShaderStage::VulkanShaderStage(const ShaderStage& stage) :
@@ -166,20 +164,9 @@ namespace Coco::Rendering::Vulkan
 		VkShaderModuleCreateInfo& createInfo = vulkanStage.ShaderModuleCreateInfo;
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 
-		// HACK: temporary
-		std::ifstream file(stage.FilePath, std::ios::in | std::ios::binary | std::ios::ate);
-		if (!file.is_open())
-		{
-			string err = FormatString("Unable to open shader file: {}", stage.FilePath);
-			throw std::exception(err.c_str());
-		}
-
-		size_t size = file.tellg();
-		file.seekg(0, std::ios::beg);
-
-		std::vector<char> byteCode(size);
-		file.read(byteCode.data(), size);
-		file.close();
+		File shaderFile = Engine::Get()->GetFileSystem()->OpenFile(stage.FilePath, FileOpenFlags::Read);
+		std::vector<uint8> byteCode = shaderFile.ReadToEnd();
+		shaderFile.Close();
 
 		createInfo.codeSize = byteCode.size();
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(byteCode.data());
