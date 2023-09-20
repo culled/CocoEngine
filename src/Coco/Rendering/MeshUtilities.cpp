@@ -160,6 +160,7 @@ namespace Coco::Rendering
 			}
 		}
 	}
+
 	void MeshUtilities::CreateBox(
 		const Vector3& size, 
 		const Vector3& offset,
@@ -203,14 +204,16 @@ namespace Coco::Rendering
 
 		Vector3 normalDir = flipDirection ? Vector3::Forward : Vector3::Backward;
 
-		// Add the middle vertex
-		VertexData& v = vertices.emplace_back(offset);
+		{
+			// Add the middle vertex
+			VertexData& v = vertices.emplace_back(offset);
 
-		if (format.HasNormals)
-			v.Normal = normalDir;
+			if (format.HasNormals)
+				v.Normal = normalDir;
 
-		if (format.HasUV0)
-			v.UV0 = Vector2(0.5, 0.5);
+			if (format.HasUV0)
+				v.UV0 = Vector2(0.5, 0.5);
+		}
 
 		// Create bottom circle
 		for (uint32 i = 0; i < vertexCount; i++)
@@ -228,7 +231,10 @@ namespace Coco::Rendering
 				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
 		}
 
-		for (uint32 i = vertexOffset + 1; i < static_cast<uint32>(vertices.size()) - 1; i++)
+		uint32 firstVert = vertexOffset + 1;
+		uint32 lastVert = static_cast<uint32>(vertices.size()) - 1;
+
+		for (uint32 i = firstVert; i < static_cast<uint32>(vertices.size()) - 1; i++)
 		{
 			indices.push_back(flipDirection ? i + 1 : i);
 			indices.push_back(vertexOffset);
@@ -236,9 +242,9 @@ namespace Coco::Rendering
 		}
 
 		// Connect the last base vertex to the first
-		indices.push_back(flipDirection ? vertexOffset + 1 : static_cast<uint32>(vertices.size()) - 1);
+		indices.push_back(flipDirection ? firstVert : lastVert);
 		indices.push_back(vertexOffset);
-		indices.push_back(flipDirection ? static_cast<uint32>(vertices.size()) - 1 : vertexOffset + 1);
+		indices.push_back(flipDirection ? lastVert : firstVert);
 	}
 
 	void MeshUtilities::CreateXZTriangleFan(
@@ -254,14 +260,16 @@ namespace Coco::Rendering
 
 		Vector3 normalDir = flipDirection ? Vector3::Down : Vector3::Up;
 
-		// Add the middle vertex
-		VertexData& v = vertices.emplace_back(offset);
+		{
+			// Add the middle vertex
+			VertexData& v = vertices.emplace_back(offset);
 
-		if (format.HasNormals)
-			v.Normal = normalDir;
+			if (format.HasNormals)
+				v.Normal = normalDir;
 
-		if (format.HasUV0)
-			v.UV0 = Vector2(0.5, 0.5);
+			if (format.HasUV0)
+				v.UV0 = Vector2(0.5, 0.5);
+		}
 
 		// Create bottom circle
 		for (uint32 i = 0; i < vertexCount; i++)
@@ -279,7 +287,10 @@ namespace Coco::Rendering
 				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
 		}
 
-		for (uint32 i = vertexOffset + 1; i < static_cast<uint32>(vertices.size()) - 1; i++)
+		uint32 firstVert = vertexOffset + 1;
+		uint32 lastVert = static_cast<uint32>(vertices.size()) - 1;
+
+		for (uint32 i = firstVert; i < lastVert; i++)
 		{
 			indices.push_back(flipDirection ? i + 1 : i);
 			indices.push_back(vertexOffset);
@@ -287,9 +298,9 @@ namespace Coco::Rendering
 		}
 
 		// Connect the last base vertex to the first
-		indices.push_back(flipDirection ? vertexOffset + 1 : static_cast<uint32>(vertices.size()) - 1);
+		indices.push_back(flipDirection ? firstVert : lastVert);
 		indices.push_back(vertexOffset);
-		indices.push_back(flipDirection ? static_cast<uint32>(vertices.size()) - 1 : vertexOffset + 1);
+		indices.push_back(flipDirection ? lastVert : firstVert);
 	}
 
 	void MeshUtilities::CreateZYTriangleFan(
@@ -305,14 +316,16 @@ namespace Coco::Rendering
 
 		Vector3 normalDir = flipDirection ? Vector3::Left : Vector3::Right;
 
-		// Add the middle vertex
-		VertexData& v = vertices.emplace_back(offset);
+		{
+			// Add the middle vertex
+			VertexData& v = vertices.emplace_back(offset);
 
-		if (format.HasNormals)
-			v.Normal = normalDir;
+			if (format.HasNormals)
+				v.Normal = normalDir;
 
-		if (format.HasUV0)
-			v.UV0 = Vector2(0.5, 0.5);
+			if (format.HasUV0)
+				v.UV0 = Vector2(0.5, 0.5);
+		}
 
 		// Create bottom circle
 		for (uint32 i = 0; i < vertexCount; i++)
@@ -330,7 +343,10 @@ namespace Coco::Rendering
 				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
 		}
 
-		for (uint32 i = vertexOffset + 1; i < static_cast<uint32>(vertices.size()) - 1; i++)
+		uint32 firstVert = vertexOffset + 1;
+		uint32 lastVert = static_cast<uint32>(vertices.size()) - 1;
+
+		for (uint32 i = firstVert; i < lastVert; i++)
 		{
 			indices.push_back(flipDirection ? i + 1 : i);
 			indices.push_back(vertexOffset);
@@ -338,8 +354,71 @@ namespace Coco::Rendering
 		}
 
 		// Connect the last base vertex to the first
-		indices.push_back(flipDirection ? vertexOffset + 1 : static_cast<uint32>(vertices.size()) - 1);
+		indices.push_back(flipDirection ? firstVert : lastVert);
 		indices.push_back(vertexOffset);
-		indices.push_back(flipDirection ? static_cast<uint32>(vertices.size()) - 1 : vertexOffset + 1);
+		indices.push_back(flipDirection ? lastVert : firstVert);
+	}
+
+	void MeshUtilities::CreateCone(
+		double height, 
+		double radius, 
+		uint32 baseVertexCount, 
+		const Vector3& offset, 
+		const VertexDataFormat& format, 
+		std::vector<VertexData>& vertices, 
+		std::vector<uint32>& indices, 
+		bool flipDirection)
+	{
+		const uint32 vertexOffset = static_cast<uint32>(vertices.size());
+
+		Vector3 topPosition = Vector3::Up * height + offset;
+		Vector3 topNormal = flipDirection ? Vector3::Down : Vector3::Up;
+
+		{
+			// Add the top vertex
+			VertexData& v = vertices.emplace_back(topPosition);
+
+			if (format.HasNormals)
+				v.Normal = topNormal;
+
+			if (format.HasUV0)
+				v.UV0 = Vector2(0.25, 0.25);
+		}
+
+		for (uint32 i = 0; i < baseVertexCount; i++)
+		{
+			const double angle = (static_cast<double>(i) / baseVertexCount) * Math::PI * 2.0;
+			const double c = Math::Cos(angle);
+			const double s = Math::Sin(angle);
+
+			VertexData& v = vertices.emplace_back(Vector3(c * radius, 0.0, -s * radius) + offset);
+
+			if (format.HasNormals)
+			{
+				Vector3 toTop = (topPosition - v.Position).Normalized();
+				Vector3 right = toTop.Cross(Vector3::Up);
+				v.Normal = right.Cross(toTop).Normalized();
+			}
+
+			if (format.HasUV0)
+				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
+		}
+
+		uint32 firstVert = vertexOffset + 1;
+		uint32 lastVert = static_cast<uint32>(vertices.size()) - 1;
+
+		for (uint32 i = firstVert; i < lastVert; i++)
+		{
+			indices.push_back(flipDirection ? i + 1 : i);
+			indices.push_back(vertexOffset);
+			indices.push_back(flipDirection ? i : i + 1);
+		}
+
+		// Connect the last base vertex to the first
+		indices.push_back(flipDirection ? firstVert : lastVert);
+		indices.push_back(vertexOffset);
+		indices.push_back(flipDirection ? lastVert : firstVert);
+
+		CreateXZTriangleFan(radius, baseVertexCount, offset, format, vertices, indices, !flipDirection);
 	}
 }

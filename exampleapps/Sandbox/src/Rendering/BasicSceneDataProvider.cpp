@@ -24,6 +24,8 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 	MeshUtilities::CreateXZTriangleFan(1.0, 16, Vector3(-5.0, -1.0, 0.0), format, vertices, indices);
 	MeshUtilities::CreateZYTriangleFan(1.0, 16, Vector3(-6.0, 0.0, 0.0), format, vertices, indices);
 
+	MeshUtilities::CreateCone(1.0, 0.5, 16, Vector3(5.0, 0.0, 0.0), format, vertices, indices);
+
 	_mesh->SetVertices(format, vertices);
 	_mesh->SetIndices(indices, 0);
 	

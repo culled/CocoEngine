@@ -127,5 +127,24 @@ namespace Coco::Rendering
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			bool flipDirection = false);
+
+		/// @brief Creates a cone, with default faces facing outward
+		/// @param height The height of the cone
+		/// @param radius The radius of the cone's base
+		/// @param baseVertexCount The number of vertices in the base
+		/// @param offset The position of the center of the base of the cone
+		/// @param format The format of the vertices to add  
+		/// @param vertices The vertices to add to
+		/// @param indices The indices to add to
+		/// @param flipDirection If true, the faces & normals will point towards the -X direction
+		static void CreateCone(
+			double height,
+			double radius,
+			uint32 baseVertexCount,
+			const Vector3& offset,
+			const VertexDataFormat& format,
+			std::vector<VertexData>& vertices,
+			std::vector<uint32>& indices,
+			bool flipDirection = false);
 	};
 }
