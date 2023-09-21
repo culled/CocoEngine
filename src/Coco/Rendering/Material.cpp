@@ -3,21 +3,15 @@
 
 namespace Coco::Rendering
 {
-	Material::Material() :
-		Material(Ref<Shader>())
+	Material::Material(const ResourceID& id, const string& name) :
+		Material(id, name, Ref<Shader>())
 	{}
 
-	Material::Material(Ref<Shader> shader) :
+	Material::Material(const ResourceID& id, const string& name, Ref<Shader> shader) :
+		RendererResource(id, name),
 		_shader(shader),
 		_uniformData(0)
 	{}
-
-	uint64 Material::GetID() const
-	{
-		// HACK: temporary
-		std::hash<const Material*> hasher;
-		return hasher(this);
-	}
 
 	void Material::SetShader(Ref<Shader> shader)
 	{
@@ -239,5 +233,6 @@ namespace Coco::Rendering
 	void Material::IncrementVersion()
 	{
 		_uniformData.Version++;
+		SetVersion(_uniformData.Version);
 	}
 }

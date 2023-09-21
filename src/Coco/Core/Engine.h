@@ -6,6 +6,7 @@
 #include "MainLoop/MainLoop.h"
 #include "Services/ServiceManager.h"
 #include "IO/EngineFileSystem.h"
+#include "Resources/ResourceLibrary.h"
 
 namespace Coco
 {
@@ -23,6 +24,7 @@ namespace Coco
 		UniqueRef<MainLoop> _mainLoop;
 		UniqueRef<ServiceManager> _serviceManager;
 		UniqueRef<EngineFileSystem> _fileSystem;
+		UniqueRef<ResourceLibrary> _resourceLibrary;
 		UniqueRef<Application> _app;
 		int _exitCode;
 
@@ -89,6 +91,14 @@ namespace Coco
 		/// @brief Gets the engine's file system
 		/// @return The file system
 		const EngineFileSystem* GetFileSystem() const { return _fileSystem.get(); }
+
+		/// @brief Gets the engine's resource library
+		/// @return The resource library
+		ResourceLibrary* GetResourceLibrary() { return _resourceLibrary.get(); }
+
+		/// @brief Gets the engine's resource library
+		/// @return The resource library
+		const ResourceLibrary* GetResourceLibrary() const { return _resourceLibrary.get(); }
 
 		/// @brief Causes a crash and rethrows the captured exception.
 		/// NOTE: only works in the catch clause of a try-catch block

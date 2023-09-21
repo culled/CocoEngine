@@ -2,27 +2,22 @@
 
 #include <Coco/Core/Types/String.h>
 #include "Graphics/RenderPassShader.h"
+#include "RendererResource.h"
 
 namespace Coco::Rendering
 {
 	/// @brief Defines how geometry gets rendered
-	class Shader
+	class Shader : public RendererResource
 	{
 	private:
 		string _groupTag;
 		std::vector<RenderPassShader> _passShaders;
 
 	public:
-		Shader(const string& groupTag);
+		Shader(const ResourceID& id, const string& name, const string& groupTag);
 		~Shader();
 
-		/// @brief Gets the ID of this shader
-		/// @return This shader's ID
-		uint64 GetID() const;
-
-		/// @brief Gets this shader's version
-		/// @return This shader's version
-		uint64 GetVersion() const { return 0; } // TODO: shader versioning
+		std::type_index GetType() const final { return typeid(Shader); }
 
 		/// @brief Sets this shader's group tag
 		/// @param groupTag The group tag

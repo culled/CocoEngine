@@ -3,7 +3,8 @@
 
 namespace Coco::Rendering
 {
-	Shader::Shader(const string& groupTag) :
+	Shader::Shader(const ResourceID& id, const string& name, const string& groupTag) :
+		RendererResource(id, name),
 		_groupTag(groupTag),
 		_passShaders{}
 	{}
@@ -11,13 +12,6 @@ namespace Coco::Rendering
 	Shader::~Shader()
 	{
 		_passShaders.clear();
-	}
-
-	uint64 Shader::GetID() const
-	{
-		// HACK: temporary
-		std::hash<const Shader*> hasher;
-		return hasher(this);
 	}
 
 	void Shader::SetGroupTag(const char* groupTag)

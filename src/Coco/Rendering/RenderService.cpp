@@ -129,7 +129,8 @@ namespace Coco::Rendering
 		constexpr uint32 size = 32;
 		constexpr uint8 channels = 4;
 
-		_defaultDiffuseTexture = CreateManagedRef<Texture>(
+		_defaultDiffuseTexture = Engine::Get()->GetResourceLibrary()->Create<Texture>(
+			"Default Diffuse Texture",
 			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
 			ImageSamplerDescription()
 		);
@@ -151,7 +152,8 @@ namespace Coco::Rendering
 		constexpr uint32 size = 32;
 		constexpr uint8 channels = 4;
 
-		_defaultNormalTexture = CreateManagedRef<Texture>(
+		_defaultNormalTexture = Engine::Get()->GetResourceLibrary()->Create<Texture>(
+			"Default Normal Texture",
 			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::Linear, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
 			ImageSamplerDescription()
 		);
@@ -176,7 +178,8 @@ namespace Coco::Rendering
 		constexpr uint32 size = 32;
 		constexpr uint8 channels = 4;
 
-		_defaultCheckerTexture = CreateManagedRef<Texture>(
+		_defaultCheckerTexture = Engine::Get()->GetResourceLibrary()->Create<Texture>(
+			"Default Checker Texture",
 			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
 			ImageSamplerDescription(ImageFilterMode::Nearest, ImageRepeatMode::Repeat, MipMapFilterMode::Nearest, 1)
 		);

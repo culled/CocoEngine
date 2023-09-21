@@ -7,7 +7,12 @@
 
 namespace Coco::Rendering
 {
-	Texture::Texture(const ImageDescription& imageDescription, const ImageSamplerDescription& samplerDescription) :
+	Texture::Texture(
+		const ResourceID& id,
+		const string& name, 
+		const ImageDescription& imageDescription, 
+		const ImageSamplerDescription& samplerDescription) :
+		RendererResource(id, name),
 		_version(0),
 		_image(),
 		_sampler(),
@@ -19,7 +24,14 @@ namespace Coco::Rendering
 		_sampler = rendering->GetDevice()->CreateImageSampler(samplerDescription);
 	}
 
-	Texture::Texture(const string& imageFilePath, ImageColorSpace colorSpace, ImageUsageFlags usageFlags, const ImageSamplerDescription& samplerDescription) : 
+	Texture::Texture(
+		const ResourceID& id,
+		const string& name, 
+		const string& imageFilePath, 
+		ImageColorSpace colorSpace,
+		ImageUsageFlags usageFlags, 
+		const ImageSamplerDescription& samplerDescription) :
+		RendererResource(id, name),
 		_version(0),
 		_image(),
 		_sampler(),
@@ -58,15 +70,6 @@ namespace Coco::Rendering
 
 		ImageDescription desc = _image->GetDescription();
 		ReloadImage(desc.ColorSpace, desc.UsageFlags);
-	}
-
-	RenderService* Texture::EnsureRenderService() const
-	{
-		RenderService* rendering = RenderService::Get();
-		if (!rendering)
-			throw std::exception("No active RenderService was found");
-
-		return rendering;
 	}
 
 	void Texture::ReloadImage(ImageColorSpace colorSpace, ImageUsageFlags usageFlags)

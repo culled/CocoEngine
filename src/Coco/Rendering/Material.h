@@ -2,6 +2,7 @@
 
 #include "Graphics/ShaderUniformData.h"
 #include <Coco/Core/Types/Color.h>
+#include "RendererResource.h"
 #include "Shader.h"
 #include "Texture.h"
 
@@ -15,7 +16,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets the ID of this material instance
 		/// @return The instance ID
-		virtual uint64 GetID() const = 0;
+		virtual uint64 GetMaterialID() const = 0;
 
 		/// @brief Gets the uniform data of this material instance
 		/// @return The uniform data
@@ -27,7 +28,7 @@ namespace Coco::Rendering
 	};
 
 	/// @brief Describes how to render a surface
-	class Material : public MaterialDataProvider
+	class Material : public RendererResource, public MaterialDataProvider
 	{
 	private:
 		Ref<Shader> _shader;
@@ -35,10 +36,12 @@ namespace Coco::Rendering
 		std::unordered_map<ShaderUniformData::UniformKey, Ref<Texture>> _textures;
 
 	public:
-		Material();
-		Material(Ref<Shader> shader);
+		Material(const ResourceID& id, const string& name);
+		Material(const ResourceID& id, const string& name, Ref<Shader> shader);
 
-		uint64 GetID() const final;
+		std::type_index GetType() const final { return typeid(Material); }
+
+		uint64 GetMaterialID() const final { return GetID(); }
 		ShaderUniformData GetUniformData() const final { return _uniformData; }
 		Ref<Shader> GetShader() const final { return _shader; }
 

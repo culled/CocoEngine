@@ -27,9 +27,9 @@ namespace Coco::Rendering
 	private:
 		UniqueRef<GraphicsPlatform> _platform;
 		UniqueRef<GraphicsDevice> _device;
-		ManagedRef<Texture> _defaultDiffuseTexture;
-		ManagedRef<Texture> _defaultNormalTexture;
-		ManagedRef<Texture> _defaultCheckerTexture;
+		Ref<Texture> _defaultDiffuseTexture;
+		Ref<Texture> _defaultNormalTexture;
+		Ref<Texture> _defaultCheckerTexture;
 		RenderStats _stats;
 		UniqueRef<TickListener> _lateTickListener;
 

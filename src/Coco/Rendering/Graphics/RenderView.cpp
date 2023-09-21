@@ -162,7 +162,7 @@ namespace Coco::Rendering
 
 	uint64 RenderView::AddMaterial(const MaterialDataProvider& materialData)
 	{
-		uint64 id = materialData.GetID();
+		uint64 id = materialData.GetMaterialID();
 
 		if (!_materialDatas.contains(id))
 		{

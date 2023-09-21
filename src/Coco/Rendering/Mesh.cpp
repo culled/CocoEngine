@@ -15,7 +15,8 @@ namespace Coco::Rendering
 		Count(count)
 	{}
 
-	Mesh::Mesh() :
+	Mesh::Mesh(const ResourceID& id, const string& name) :
+		RendererResource(id, name),
 		_vertexBuffer(),
 		_indexBuffer(),
 		_vertexFormat(),
@@ -32,15 +33,9 @@ namespace Coco::Rendering
 		_vertexBuffer.Invalidate();
 		_indexBuffer.Invalidate();
 
-		if(RenderService::Get())
-			RenderService::Get()->GetDevice()->PurgeUnusedResources();
-	}
-
-	uint64 Mesh::GetID() const
-	{
-		// HACK: temporary
-		std::hash<const Mesh*> hasher;
-		return hasher(this);
+		RenderService* rendering = RenderService::Get();
+		if(rendering)
+			rendering->GetDevice()->PurgeUnusedResources();
 	}
 
 	void Mesh::SetVertices(const VertexDataFormat& format, std::span<VertexData> vertices)

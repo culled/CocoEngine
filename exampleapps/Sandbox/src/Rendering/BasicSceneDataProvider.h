@@ -15,10 +15,10 @@ class BasicSceneDataProvider :
 private:
     Transform3D _transform;
 
-    ManagedRef<Mesh> _mesh;
-    ManagedRef<Shader> _shader;
-    ManagedRef<Texture> _texture;
-    ManagedRef<Material> _material;
+    Ref<Mesh> _mesh;
+    Ref<Shader> _shader;
+    Ref<Texture> _texture;
+    Ref<Material> _material;
 
 public:
     BasicSceneDataProvider();

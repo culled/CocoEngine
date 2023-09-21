@@ -4,13 +4,12 @@
 #include <Coco/Core/Types/String.h>
 #include "Graphics/Image.h"
 #include "Graphics/ImageSampler.h"
+#include "RendererResource.h"
 
 namespace Coco::Rendering
 {
-	class RenderService;
-
 	/// @brief Holds an image and an image sampler
-	class Texture
+	class Texture : public RendererResource
 	{
 	private:
 		uint64 _version;
@@ -20,11 +19,15 @@ namespace Coco::Rendering
 
 	public:
 		Texture(
+			const ResourceID& id,
+			const string& name,
 			const ImageDescription& imageDescription,
 			const ImageSamplerDescription& samplerDescription
 		);
 
 		Texture(
+			const ResourceID& id,
+			const string& name,
 			const string& imageFilePath,
 			ImageColorSpace colorSpace,
 			ImageUsageFlags usageFlags,
@@ -32,6 +35,8 @@ namespace Coco::Rendering
 		);
 
 		~Texture();
+
+		std::type_index GetType() const final { return typeid(Texture); }
 
 		/// @brief Gets the image
 		/// @return The image
@@ -51,10 +56,6 @@ namespace Coco::Rendering
 		void ReloadImage();
 
 	private:
-		/// @brief Gets the active RenderService. Throws if one isn't found
-		/// @return The active render service
-		RenderService* EnsureRenderService() const;
-
 		/// @brief Reloads this texture's image from the image file
 		/// @param colorSpace The color space to load the image as
 		/// @param usageFlags The usage flags for the image

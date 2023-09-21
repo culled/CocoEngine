@@ -3,6 +3,7 @@
 #include "Graphics/Buffer.h"
 #include "Graphics/GraphicsDevice.h"
 #include "MeshTypes.h"
+#include "RendererResource.h"
 
 namespace Coco::Rendering
 {
@@ -20,7 +21,7 @@ namespace Coco::Rendering
 	};
 
 	/// @brief Defines geometry data used for rendering
-	class Mesh
+	class Mesh : public RendererResource
 	{
 	private:
 		Ref<Buffer> _vertexBuffer;
@@ -34,16 +35,10 @@ namespace Coco::Rendering
 		bool _isDirty;
 
 	public:
-		Mesh();
+		Mesh(const ResourceID& id, const string& name);
 		~Mesh();
 
-		/// @brief Gets this mesh's ID
-		/// @return This mesh's ID
-		uint64 GetID() const;
-
-		/// @brief Gets this mesh's version
-		/// @return This mesh's version
-		uint64 GetVersion() const { return 0; } // TODO: mesh versioning
+		std::type_index GetType() const final { return typeid(Mesh); }
 
 		/// @brief Sets the vertices of this mesh
 		/// @param format The format of the vertex data
