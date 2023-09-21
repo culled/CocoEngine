@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Graphics/RenderView.h"
-#include "../Pipeline/RenderPipeline.h"
+#include "../Pipeline/CompiledRenderPipeline.h"
 
 namespace Coco::Rendering
 {
@@ -15,7 +15,7 @@ namespace Coco::Rendering
 		/// @param backbuffers The backbuffers being rendered to, if any
 		/// @return A render view
 		virtual UniqueRef<RenderView> CreateRenderView(
-			const RenderPipeline& pipeline, 
+			const CompiledRenderPipeline& pipeline, 
 			const SizeInt& backbufferSize,
 			std::span<Ref<Image>> backbuffers) = 0;
 	};

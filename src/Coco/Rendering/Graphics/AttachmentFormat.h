@@ -27,5 +27,10 @@ namespace Coco::Rendering
 		/// @param other The other format
 		/// @return True if the two formats are compatible
 		bool IsCompatible(const AttachmentFormat& other) const;
+
+		/// @brief Determines if this AttachmentFormat is compatible with an image description
+		/// @param description The image description
+		/// @return True if the image description is compatible with this attachment format
+		bool IsCompatible(const ImageDescription& description) const;
 	};
 }

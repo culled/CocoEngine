@@ -18,4 +18,10 @@ namespace Coco::Rendering
     {
         return AreCompatible(PixelFormat, other.PixelFormat);
     }
+
+    bool AttachmentFormat::IsCompatible(const ImageDescription& description) const
+    {
+        return PixelFormat == description.PixelFormat &&
+            ColorSpace == description.ColorSpace;
+    }
 }

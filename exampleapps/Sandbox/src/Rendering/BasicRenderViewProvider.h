@@ -1,6 +1,7 @@
 #pragma once
 #include <Coco/Rendering/Providers/RenderViewProvider.h>
 #include <Coco/Core/Types/Transform.h>
+#include <Coco/Rendering/Graphics/AttachmentCache.h>
 #include <Coco/Core/MainLoop/TickListener.h>
 
 using namespace Coco;
@@ -14,13 +15,14 @@ private:
 	Transform3D _cameraTransform;
 	double _mouseSensitivity = 0.01;
 	TickListener _tickListener;
+	AttachmentCache _attachmentCache;
 
 public:
 	BasicRenderViewProvider();
 	~BasicRenderViewProvider();
 
 	UniqueRef<RenderView> CreateRenderView(
-		const RenderPipeline& pipeline,
+		const CompiledRenderPipeline& pipeline,
 		const SizeInt& backbufferSize,
 		std::span<Ref<Image>> backbuffers) final;
 

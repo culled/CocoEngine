@@ -2,7 +2,8 @@
 
 BasicRenderPass::BasicRenderPass() :
     _attachments({
-        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, false)
+        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, false),
+        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, false),
         })
 {}
 

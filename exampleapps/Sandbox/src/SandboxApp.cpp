@@ -43,9 +43,8 @@ SandboxApp::SandboxApp() :
 
 	_pipeline = CreateSharedRef<Rendering::RenderPipeline>();
 
-	std::array<uint8, 1> bindings = { 0 };
+	std::array<uint8, 2> bindings = { 0, 1 };
 	_pipeline->AddRenderPass(CreateSharedRef<BasicRenderPass>(), bindings);
-
 
 	_renderViewProvider = CreateUniqueRef<BasicRenderViewProvider>();
 	_sceneDataProvider = CreateUniqueRef<BasicSceneDataProvider>();

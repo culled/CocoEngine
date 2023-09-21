@@ -86,9 +86,9 @@ namespace Coco::Rendering
 	private:
 		/// @brief Performs rendering
 		/// @param context The context to render with
-		/// @param pipeline The pipeline to render with
+		/// @param compiledPipeline The compiled pipeline to render with
 		/// @param renderView The view to render with
-		void ExecuteRender(RenderContext& context, RenderPipeline& pipeline, RenderView& renderView);
+		void ExecuteRender(RenderContext& context, CompiledRenderPipeline& compiledPipeline, RenderView& renderView);
 
 		/// @brief Creates the default diffuse texture
 		void CreateDefaultDiffuseTexture();

@@ -41,6 +41,11 @@ namespace Coco::Rendering
 		std::span<SceneDataProvider*> sceneDataProviders,
 		std::optional<RenderTask> dependsOn)
 	{
+		if (!pipeline.Compile())
+			return RenderTask();
+
+		CompiledRenderPipeline compiledPipeline = pipeline.GetCompiledPipeline();
+
 		// Get the context used for rendering from the presenter
 		Ref<RenderContext> context;
 		Ref<Image> backbuffer;
@@ -52,7 +57,7 @@ namespace Coco::Rendering
 
 		// Create the RenderView using the acquired backbuffers
 		std::array<Ref<Image>, 1> backbuffers{ backbuffer };
-		UniqueRef<RenderView> view = renderViewProvider.CreateRenderView(pipeline, presenter.GetFramebufferSize(), backbuffers);
+		UniqueRef<RenderView> view = renderViewProvider.CreateRenderView(compiledPipeline, presenter.GetFramebufferSize(), backbuffers);
 
 		// Get the scene data
 		for (SceneDataProvider* provider : sceneDataProviders)
@@ -69,7 +74,7 @@ namespace Coco::Rendering
 			context->AddWaitOnSemaphore(dependsOn->RenderCompletedSemaphore);
 		}
 
-		ExecuteRender(*context, pipeline, *view);
+		ExecuteRender(*context, compiledPipeline, *view);
 
 		if (!presenter.Present(*context))
 		{
@@ -79,13 +84,8 @@ namespace Coco::Rendering
 		return RenderTask(context->GetRenderCompletedSemaphore(), context->GetRenderCompletedFence());
 	}
 
-	void RenderService::ExecuteRender(RenderContext& context, RenderPipeline& pipeline, RenderView& renderView)
+	void RenderService::ExecuteRender(RenderContext& context, CompiledRenderPipeline& compiledPipeline, RenderView& renderView)
 	{
-		if (!pipeline.Compile())
-			return;
-
-		CompiledRenderPipeline compiledPipeline = pipeline.GetCompiledPipeline();
-
 		const EnginePlatform* platform = Engine::cGet()->GetPlatform();
 		double pipelineStartTime = platform->GetSeconds();
 		std::unordered_map<string, TimeSpan> passExecutionTimes;

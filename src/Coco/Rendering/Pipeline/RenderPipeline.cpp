@@ -100,8 +100,9 @@ namespace Coco::Rendering
 						pipelineAttachment = passAttachments[passAttachmentIndex];
 					}
 
-					bindings.push_back(binding);
 				}
+
+				bindings.push_back(binding);
 			}
 
 			bool missingAttachments = std::any_of(inputAttachments.begin(), inputAttachments.end(), [](const std::optional<AttachmentFormat>& attachment)

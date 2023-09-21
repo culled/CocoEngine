@@ -7,7 +7,8 @@
 BasicRenderViewProvider::BasicRenderViewProvider() :
     _clearColor(Color(0.1, 0.2, 0.3, 1.0)),
     _cameraTransform(),
-    _tickListener(this, &BasicRenderViewProvider::Tick, 0)
+    _tickListener(this, &BasicRenderViewProvider::Tick, 0),
+    _attachmentCache()
 {
     MainLoop::Get()->AddListener(_tickListener);
 }
@@ -17,13 +18,23 @@ BasicRenderViewProvider::~BasicRenderViewProvider()
     MainLoop::Get()->RemoveListener(_tickListener);
 }
 
-UniqueRef<RenderView> BasicRenderViewProvider::CreateRenderView(const RenderPipeline& pipeline, const SizeInt& backbufferSize, std::span<Ref<Image>> backbuffers)
+UniqueRef<RenderView> BasicRenderViewProvider::CreateRenderView(const CompiledRenderPipeline& pipeline, const SizeInt& backbufferSize, std::span<Ref<Image>> backbuffers)
 {
+    std::vector<Ref<Image>> images = _attachmentCache.GetImages(pipeline, backbufferSize, backbuffers);
     std::vector<RenderTarget> rts;
 
-    for (size_t i = 0; i < backbuffers.size(); i++)
+    for (size_t i = 0; i < images.size(); i++)
     {
-        rts.emplace_back(backbuffers[i], _clearColor);
+        ImagePixelFormat pixelFormat = pipeline.InputAttachments.at(i).PixelFormat;
+
+        if (IsDepthFormat(pixelFormat) || IsStencilFormat(pixelFormat))
+        {
+            rts.emplace_back(images.at(i), Vector2(1.0, 0.0));
+        }
+        else
+        {
+            rts.emplace_back(images.at(i), _clearColor);
+        }
     }
 
     double aspectRatio = static_cast<double>(backbufferSize.Width) / backbufferSize.Height;

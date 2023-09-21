@@ -76,7 +76,7 @@ namespace Coco::Rendering::Vulkan
 
 		Assert(pipeline.RenderPasses.size() != 0)
 
-			std::vector<VkAttachmentDescription> attachments;
+		std::vector<VkAttachmentDescription> attachments;
 
 		// Create attachment descriptions for all attachments
 		for (const AttachmentFormat& attachment : pipeline.InputAttachments)
@@ -183,7 +183,7 @@ namespace Coco::Rendering::Vulkan
 		initialDependency.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		initialDependency.dependencyFlags = 0;
 
-		for (uint32_t i = 0; i < static_cast<uint32_t>(pipeline.RenderPasses.size() - 1); i++)
+		for (uint32_t i = 0; i < static_cast<uint32_t>(subpasses.size() - 1); i++)
 		{
 			// Wait until the previous subpass has written to the color attachments before performing the vertex stage on the next pass
 			VkSubpassDependency& dependency = subpassDependencies.at(i);
@@ -198,7 +198,7 @@ namespace Coco::Rendering::Vulkan
 
 		// Wait until the last subpass finishes writing color attachments before ending the pipeline operation
 		VkSubpassDependency& finalDependency = subpassDependencies.back();
-		finalDependency.srcSubpass = static_cast<uint32_t>(pipeline.RenderPasses.size() - 1);
+		finalDependency.srcSubpass = static_cast<uint32_t>(subpasses.size() - 1);
 		finalDependency.dstSubpass = VK_SUBPASS_EXTERNAL;
 		finalDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		finalDependency.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
