@@ -31,6 +31,21 @@ namespace Coco::Rendering
 		RenderTarget(const Ref<Rendering::Image>& image, Vector2 depthStencilClearValue);
 	};
 
+	/// @brief Data for a submesh
+	struct SubmeshData
+	{
+		/// @brief The ID of this data
+		uint64 ID;
+
+		/// @brief The offset in the index buffer of the first index to draw
+		uint64 FirstIndexOffset;
+
+		/// @brief The number of indices to draw
+		uint64 IndexCount;
+
+		SubmeshData(uint64 id, uint64 firstIndexOffset, uint64 indexCount);
+	};
+
 	/// @brief Data for a single mesh
 	struct MeshData
 	{
@@ -48,12 +63,9 @@ namespace Coco::Rendering
 
 		/// @brief The buffer holding the index data
 		Ref<Buffer> IndexBuffer;
-		
-		/// @brief The offset in the index buffer of the first index to draw
-		uint64 FirstIndexOffset;
 
-		/// @brief The number of indices to draw
-		uint64 IndexCount;
+		/// @brief The submeshes within this mesh
+		std::unordered_map<uint32, SubmeshData> Submeshes;
 
 		MeshData(
 			uint64 id,
@@ -61,8 +73,7 @@ namespace Coco::Rendering
 			const Ref<Buffer>& vertexBuffer,
 			uint64 vertexCount,
 			const Ref<Buffer>& indexBuffer,
-			uint64 firstIndexOffset,
-			uint64 indexCount);
+			const std::unordered_map<uint32, SubmeshData>& submeshes);
 	};
 
 	/// @brief Data for a single RenderPassShader
@@ -124,10 +135,13 @@ namespace Coco::Rendering
 		/// @brief The ID of the mesh to render with
 		uint64 MeshID;
 
+		/// @brief The ID of the submesh to render with
+		uint32 SubmeshID;
+
 		/// @brief The ID of the material to render with
 		uint64 MaterialID;
 
-		ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint64 materialID);
+		ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint32 submeshID, uint64 materialID);
 	};
 
 	/// @brief Holds information needed to render a scene
@@ -187,9 +201,8 @@ namespace Coco::Rendering
 
 		/// @brief Adds a mesh to this view
 		/// @param mesh The mesh
-		/// @param submeshID The id of the submesh
 		/// @return The id of the stored mesh
-		uint64 AddMesh(const Mesh& mesh, uint32 submeshID);
+		uint64 AddMesh(const Mesh& mesh);
 
 		/// @brief Gets a stored mesh's data
 		/// @param key The mesh's key
@@ -224,9 +237,10 @@ namespace Coco::Rendering
 		/// @brief Adds an object to be rendered
 		/// @param mesh The mesh
 		/// @param submeshID The ID of the submesh
-		/// @param material The material
 		/// @param modelMatrix The model matrix
-		void AddRenderObject(const Mesh& mesh, uint32 submeshID, const MaterialDataProvider& material, const Matrix4x4& modelMatrix);
+		/// @param material The material, or nullptr to not store a material for this object
+		/// @return The key to the object
+		uint64 AddRenderObject(const Mesh& mesh, uint32 submeshID, const Matrix4x4& modelMatrix, const MaterialDataProvider* material);
 
 		/// @brief Gets all objects to be rendered
 		/// @return The renderable objects

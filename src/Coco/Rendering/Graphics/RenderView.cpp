@@ -32,21 +32,25 @@ namespace Coco::Rendering
 		RenderTarget(image, Vector4(depthStencilClearValue.X, depthStencilClearValue.Y, 0, 0))
 	{}
 
+	SubmeshData::SubmeshData(uint64 id, uint64 firstIndexOffset, uint64 indexCount) :
+		ID(id),
+		FirstIndexOffset(firstIndexOffset),
+		IndexCount(indexCount)
+	{}
+
 	MeshData::MeshData(
 		uint64 id, 
 		uint64 version, 
 		const Ref<Buffer>& vertexBuffer, 
 		uint64 vertexCount, 
-		const Ref<Buffer>& indexBuffer, 
-		uint64 firstIndexOffset, 
-		uint64 indexCount) :
+		const Ref<Buffer>& indexBuffer,
+		const std::unordered_map<uint32, SubmeshData>& submeshes) :
 		ID(id),
 		Version(version),
 		VertexBuffer(vertexBuffer),
 		VertexCount(vertexCount),
 		IndexBuffer(indexBuffer),
-		FirstIndexOffset(firstIndexOffset),
-		IndexCount(indexCount)
+		Submeshes(submeshes)
 	{}
 
 	RenderPassShaderData::RenderPassShaderData(uint64 id, uint64 version, const RenderPassShader& shaderData) :
@@ -68,10 +72,11 @@ namespace Coco::Rendering
 		UniformData(uniformData)
 	{}
 
-	ObjectData::ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint64 materialID) :
+	ObjectData::ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint32 submeshID, uint64 materialID) :
 		ID(id),
 		ModelMatrix(modelMatrix),
 		MeshID(meshID),
+		SubmeshID(submeshID),
 		MaterialID(materialID)
 	{}
 
@@ -95,14 +100,16 @@ namespace Coco::Rendering
 		return _renderTargets.at(index);
 	}
 
-	uint64 RenderView::AddMesh(const Mesh& mesh, uint32 submeshID)
+	uint64 RenderView::AddMesh(const Mesh& mesh)
 	{
 		uint64 meshID = mesh.GetID();
 
 		if (!_meshDatas.contains(meshID))
 		{
-			SubMesh submesh{};
-			Assert(mesh.TryGetSubmesh(submeshID, submesh))
+			std::unordered_map<uint32, SubmeshData> submeshDatas{};
+			
+			for (const auto& kvp : mesh.GetSubmeshes())
+				submeshDatas.try_emplace(kvp.first, SubmeshData(kvp.first, kvp.second.Offset, kvp.second.Count));
 
 			_meshDatas.try_emplace(meshID, 
 				meshID, 
@@ -110,8 +117,7 @@ namespace Coco::Rendering
 				mesh.GetVertexBuffer(), 
 				mesh.GetVertexCount(), 
 				mesh.GetIndexBuffer(), 
-				submesh.Offset, 
-				submesh.Count);
+				submeshDatas);
 		}
 
 		return meshID;
@@ -187,12 +193,14 @@ namespace Coco::Rendering
 		return _materialDatas.at(key);
 	}
 
-	void RenderView::AddRenderObject(const Mesh& mesh, uint32 submeshID, const MaterialDataProvider& material, const Matrix4x4& modelMatrix)
+	uint64 RenderView::AddRenderObject(const Mesh& mesh, uint32 submeshID, const Matrix4x4& modelMatrix, const MaterialDataProvider* material)
 	{
-		uint64 meshID = AddMesh(mesh, submeshID);
-		uint64 materialID = AddMaterial(material);
+		uint64 meshID = AddMesh(mesh);
+		uint64 materialID = material ? AddMaterial(*material) : InvalidID;
 
 		uint64 objectID = _objectDatas.size();
-		_objectDatas.emplace_back(objectID, modelMatrix, meshID, materialID);
+		_objectDatas.emplace_back(objectID, modelMatrix, meshID, submeshID, materialID);
+
+		return objectID;
 	}
 }

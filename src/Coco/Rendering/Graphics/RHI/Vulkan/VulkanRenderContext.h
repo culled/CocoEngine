@@ -10,12 +10,13 @@
 #include "CachedResources/VulkanFramebuffer.h"
 #include "CachedResources/VulkanRenderPass.h"
 #include "CachedResources/VulkanPipeline.h"
-#include "VulkanRenderContextCache.h"
+#include "CachedResources/VulkanRenderContextCache.h"
 #include "../../RenderPassShaderTypes.h"
 
 namespace Coco::Rendering::Vulkan
 {
     class VulkanGraphicsDevice;
+    class VulkanGraphicsDeviceCache;
 
     /// @brief Holds Vulkan data that a VulkanRenderContext uses during actual rendering
     struct VulkanContextRenderOperation
@@ -41,12 +42,6 @@ namespace Coco::Rendering::Vulkan
         /// @brief The current scissor rectangle
         RectInt ScissorRect;
 
-        /// @brief Semaphores to wait on before rendering
-        std::vector<Ref<VulkanGraphicsSemaphore>> WaitOnSemaphores;
-
-        /// @brief Semaphores to signal once rendering completes
-        std::vector<Ref<VulkanGraphicsSemaphore>> RenderCompletedSignalSemaphores;
-
         /// @brief Unique state changes since the last draw call
         std::set<StateChangeType> StateChanges;
 
@@ -59,7 +54,10 @@ namespace Coco::Rendering::Vulkan
         /// @brief The currently bound VulkanPipeline
         std::optional<VulkanPipeline*> BoundPipeline;
 
-        /// @brief The currently bound VkDescriptorSet
+        /// @brief The currently bound global VkDescriptorSet
+        std::optional<VkDescriptorSet> BoundGlobalDescriptors;
+
+        /// @brief The currently bound instance VkDescriptorSet
         std::optional<VkDescriptorSet> BoundInstanceDescriptors;
 
         VulkanContextRenderOperation(VulkanFramebuffer& framebuffer, VulkanRenderPass& renderPass);
@@ -68,22 +66,16 @@ namespace Coco::Rendering::Vulkan
     /// @brief Vulkan implementation of a RenderContext
     class VulkanRenderContext : public RenderContext, public GraphicsDeviceResource<VulkanGraphicsDevice>
     {
-    public:
-        /// @brief The index of the global descriptor set
-        static const uint32 sGlobalDescriptorSetIndex;
-
-        /// @brief The index of the instance descriptor set
-        static const uint32 sInstanceDescriptorSetIndex;
-
     private:
         ManagedRef<VulkanGraphicsSemaphore> _renderStartSemaphore;
         ManagedRef<VulkanGraphicsSemaphore> _renderCompletedSemaphore;
         ManagedRef<VulkanGraphicsFence> _renderCompletedFence;
-        UniqueRef<VulkanRenderContextCache> _cache;
         UniqueRef<VulkanCommandBuffer> _commandBuffer;
+        VulkanGraphicsDeviceCache* _deviceCache;
 
+        std::vector<Ref<VulkanGraphicsSemaphore>> _waitOnSemaphores;
+        std::vector<Ref<VulkanGraphicsSemaphore>> _renderCompletedSignalSemaphores;
         std::optional<VulkanContextRenderOperation> _vulkanRenderOperation;
-        int _backbufferIndex;
 
     public:
         VulkanRenderContext(const GraphicsDeviceResourceID& id);
@@ -91,28 +83,22 @@ namespace Coco::Rendering::Vulkan
 
         void WaitForRenderingToComplete() final;
 
-        Ref<GraphicsSemaphore> GetRenderStartSemaphore() final { return _renderStartSemaphore; }
+        Ref<GraphicsSemaphore> GetOrCreateRenderStartSemaphore() final;
         Ref<GraphicsSemaphore> GetRenderCompletedSemaphore() final { return _renderCompletedSemaphore; }
         Ref<GraphicsFence> GetRenderCompletedFence() final { return _renderCompletedFence; }
 
-        void SetViewportRect(const RectInt& viewportRect) final;
-        void SetScissorRect(const RectInt& scissorRect) final;
         void AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore) final;
         void AddRenderCompletedSignalSemaphore(Ref<GraphicsSemaphore> semaphore) final;
+
+        void SetViewportRect(const RectInt& viewportRect) final;
+        void SetScissorRect(const RectInt& scissorRect) final;
         void SetMaterial(const MaterialData& material) final;
         void SetShader(const RenderPassShaderData& shader) final;
-        void Draw(const MeshData& mesh) final;
 
-        /// @brief Sets the index of the backbuffer this context is rendering to when obtained via a VulkanGraphicsPresenter
-        /// @param index The backbuffer index
-        void SetBackbufferIndex(uint32 index);
-
-        /// @brief Gets the index of the backbuffer this context is rendering to
-        /// @return The backbuffer index, or -1 if this context was not obtained via a VulkanGraphicsPresenter
-        int GetBackbufferIndex() const { return _backbufferIndex; }
+        void Draw(const MeshData& mesh, uint32 submeshID) final;
+        void DrawIndexed(const MeshData& mesh, uint32 firstIndexOffset, uint32 indexCount) final;
 
     protected:
-        bool ResetImpl() final;
         bool BeginImpl() final;
         bool BeginNextPassImpl() final;
         void EndImpl() final;

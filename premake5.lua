@@ -18,7 +18,6 @@ workspace "CocoEngine"
     -- Include directories relative to the workspace
     IncludeDir = {}
     IncludeDir["Coco"] = "%{wks.location}\\src\\"
-    IncludeDir["stb"] = "%{wks.location}\\src\\Vendor\\stb"
     IncludeDir["uuid_v4"] = "%{wks.location}\\src\\Vendor\\uuid_v4"
 
     -- Assets directory
@@ -69,6 +68,7 @@ workspace "CocoEngine"
     if (_OPTIONS["service-rendering"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
         print("Including rendering service") 
         Services["Rendering"] = true
+        IncludeDir["stb"] = "%{wks.location}\\src\\Vendor\\stb"
     end
 
     if (_OPTIONS["service-windowing"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
@@ -78,6 +78,12 @@ workspace "CocoEngine"
 
         print("Including windowing service") 
         Services["Windowing"] = true
+    end
+
+    if (_OPTIONS["service-imgui"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
+        print("Including ImGUI service") 
+        Services["ImGui"] = true
+        IncludeDir["ImGui"] = "%{wks.location}\\src\\Vendor\\imgui"
     end
 
     -- Rendering RHI options
@@ -188,6 +194,10 @@ workspace "CocoEngine"
 
             if(Services["Windowing"] == true) then         
                 include "src\\Coco\\Windowing"
+            end
+
+            if(Services["ImGui"] == true) then         
+                include "src\\Coco\\ImGUI"
             end
 
         group "Engine/Platforms"

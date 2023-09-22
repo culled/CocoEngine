@@ -6,6 +6,7 @@ namespace Coco::Rendering
 {
 	VertexDataFormat::VertexDataFormat() :
 		HasNormals(false),
+		HasColor(false),
 		HasUV0(false)
 	{}
 
@@ -16,6 +17,9 @@ namespace Coco::Rendering
 		if (HasNormals)
 			size += GetDataTypeSize(BufferDataType::Float3);
 
+		if (HasColor)
+			size += GetDataTypeSize(BufferDataType::Float4);
+
 		if (HasUV0)
 			size += GetDataTypeSize(BufferDataType::Float2);
 
@@ -25,15 +29,17 @@ namespace Coco::Rendering
 	const uint16 VertexData::MaxVertexSize = 
 		GetDataTypeSize(BufferDataType::Float3) + // Position
 		GetDataTypeSize(BufferDataType::Float3) + // Normal
+		GetDataTypeSize(BufferDataType::Float4) + // Color
 		GetDataTypeSize(BufferDataType::Float2); // UV0
 
 	VertexData::VertexData() :
 		VertexData(Vector3::Zero)
 	{}
 
-	VertexData::VertexData(const Vector3 & position) :
+	VertexData::VertexData(const Vector3& position) :
 		Position(position),
 		Normal(Vector3::Zero),
+		Color(Vector3::Zero),
 		UV0(Vector2::Zero)
 	{}
 
@@ -58,6 +64,14 @@ namespace Coco::Rendering
 				temp[p++] = static_cast<float>(vertex.Normal.X);
 				temp[p++] = static_cast<float>(vertex.Normal.Y);
 				temp[p++] = static_cast<float>(vertex.Normal.Z);
+			}
+
+			if (format.HasColor)
+			{
+				temp[p++] = static_cast<float>(vertex.Color.X);
+				temp[p++] = static_cast<float>(vertex.Color.Y);
+				temp[p++] = static_cast<float>(vertex.Color.Z);
+				temp[p++] = static_cast<float>(vertex.Color.W);
 			}
 
 			if (format.HasUV0)

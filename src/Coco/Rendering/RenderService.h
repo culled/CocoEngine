@@ -17,6 +17,14 @@
 
 namespace Coco::Rendering
 {
+	struct RenderServiceRenderTask
+	{
+		ManagedRef<RenderContext> Context;
+		Ref<GraphicsPresenter> Presenter;
+
+		RenderServiceRenderTask(ManagedRef<RenderContext>&& context, Ref<GraphicsPresenter> presenter);
+	};
+
 	/// @brief An EngineService that adds rendering functionality
 	class RenderService : public EngineService, public Singleton<RenderService>
 	{
@@ -32,6 +40,7 @@ namespace Coco::Rendering
 		Ref<Texture> _defaultCheckerTexture;
 		RenderStats _stats;
 		UniqueRef<TickListener> _lateTickListener;
+		std::vector<RenderServiceRenderTask> _currentRenderTasks;
 
 	public:
 		RenderService(const GraphicsPlatformFactory& platformFactory);
@@ -77,7 +86,7 @@ namespace Coco::Rendering
 		/// @param dependsOn If given, this render will occur after the render associated with the given task
 		/// @return A task that can be used for render synchronization
 		RenderTask Render(
-			GraphicsPresenter& presenter, 
+			Ref<GraphicsPresenter> presenter, 
 			RenderPipeline& pipeline, 
 			RenderViewProvider& renderViewProvider, 
 			std::span<SceneDataProvider*> sceneDataProviders,
@@ -88,7 +97,8 @@ namespace Coco::Rendering
 		/// @param context The context to render with
 		/// @param compiledPipeline The compiled pipeline to render with
 		/// @param renderView The view to render with
-		void ExecuteRender(RenderContext& context, CompiledRenderPipeline& compiledPipeline, RenderView& renderView);
+		/// @param waitOn If given, the render will not start until this semaphore is signaled
+		void ExecuteRender(RenderContext& context, CompiledRenderPipeline& compiledPipeline, RenderView& renderView, Ref<GraphicsSemaphore> waitOn);
 
 		/// @brief Creates the default diffuse texture
 		void CreateDefaultDiffuseTexture();

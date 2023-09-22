@@ -109,6 +109,7 @@ namespace Coco::Rendering::Vulkan
 		Ref<Image> CreateImage(const ImageDescription& description) final;
 		Ref<ImageSampler> CreateImageSampler(const ImageSamplerDescription& description) final;
 		void PurgeUnusedResources() final;
+		void ResetForNewFrame() final;
 
 		/// @brief Gets the Vulkan instance that this device was created with
 		/// @return The Vulkan instance

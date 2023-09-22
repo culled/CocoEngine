@@ -35,6 +35,7 @@ namespace Coco::Rendering::Vulkan
 		Ref<VulkanGraphicsFence> signalFence)
 	{
 		std::vector<VkSemaphore> vulkanWaitSemaphores;
+		std::vector<VkPipelineStageFlags> waitStages;
 
 		if (waitSemaphores)
 		{
@@ -44,6 +45,9 @@ namespace Coco::Rendering::Vulkan
 					continue;
 
 				vulkanWaitSemaphores.push_back(s->GetSemaphore());
+
+				// TODO: configurable wait stages?
+				waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 			}
 		}
 
@@ -62,14 +66,11 @@ namespace Coco::Rendering::Vulkan
 
 		VkFence fence = signalFence.IsValid() ? signalFence->GetFence() : VK_NULL_HANDLE;
 
-		// TODO: configurable wait stages?
-		const VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pWaitDstStageMask = &waitStages[0];
 		submitInfo.pCommandBuffers = &_commandBuffer;
+		submitInfo.pWaitDstStageMask = waitStages.data();
 		submitInfo.waitSemaphoreCount = static_cast<uint32_t>(vulkanWaitSemaphores.size());
 		submitInfo.pWaitSemaphores = vulkanWaitSemaphores.data();
 		submitInfo.signalSemaphoreCount = static_cast<uint32_t>(vulkanSignalSemaphores.size());

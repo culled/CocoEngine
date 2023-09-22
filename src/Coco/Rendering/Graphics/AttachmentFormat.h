@@ -14,14 +14,14 @@ namespace Coco::Rendering
 		/// @brief The color space for this attachment
 		ImageColorSpace ColorSpace;
 		
-		/// @brief If true, this attachment will be preserved between frames
-		bool ShouldPreserve;
+		/// @brief If true, this attachment will be cleared before rendering
+		bool ShouldClear;
 
 		/// @brief The number of MSAA samples
 		MSAASamples SampleCount;
 
 		AttachmentFormat();
-		AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, bool shouldPreserve, MSAASamples msaaSamples = MSAASamples::One);
+		AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, bool shouldClear, MSAASamples msaaSamples = MSAASamples::One);
 
 		/// @brief Determines if this AttachmentFormat is compatible with another
 		/// @param other The other format

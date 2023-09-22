@@ -66,7 +66,7 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
-	VulkanPipeline& VulkanGraphicsDeviceCache::GetOrPipeline(
+	VulkanPipeline& VulkanGraphicsDeviceCache::GetOrCreatePipeline(
 		const VulkanRenderPass& renderPass, 
 		uint32 subpassIndex, 
 		const VulkanRenderPassShader& shader)
@@ -88,6 +88,28 @@ namespace Coco::Rendering::Vulkan
 		resource.Use();
 
 		return resource;
+	}
+
+	VulkanRenderContextCache& VulkanGraphicsDeviceCache::GetOrCreateContextCache(const GraphicsDeviceResourceID& id)
+	{
+		auto it = _contextCaches.find(id);
+
+		if (it == _contextCaches.end())
+		{
+			it = _contextCaches.try_emplace(id).first;
+		}
+
+		VulkanRenderContextCache& resource = it->second;
+
+		resource.Use();
+
+		return resource;
+	}
+
+	void VulkanGraphicsDeviceCache::ResetForNextFrame()
+	{
+		for (auto it = _contextCaches.begin(); it != _contextCaches.end(); it++)
+			it->second.ResetForNextFrame();
 	}
 
 	void VulkanGraphicsDeviceCache::PurgeStaleResources()
@@ -149,9 +171,29 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		if (renderPassesPurged > 0 || shadersPurged > 0 || pipelinesPurged > 0)
+		uint64 cachesPurged = 0;
 		{
-			CocoTrace("Purged {} VulkanRenderPasses, {} VulkanRenderPassShaders, and {} VulkanPipelines", renderPassesPurged, shadersPurged, pipelinesPurged)
+			auto it = _contextCaches.begin();
+
+			while (it != _contextCaches.end())
+			{
+				if (it->second.IsStale())
+				{
+					it = _contextCaches.erase(it);
+					pipelinesPurged++;
+				}
+				else
+				{
+					it->second.PurgeStaleResources();
+					it++;
+				}
+			}
+		}
+
+		if (renderPassesPurged > 0 || shadersPurged > 0 || pipelinesPurged > 0 || cachesPurged > 0)
+		{
+			CocoTrace("Purged {} VulkanRenderPasses, {} VulkanRenderPassShaders, {} VulkanPipelines, and {} VulkanRenderContextCaches", 
+				renderPassesPurged, shadersPurged, pipelinesPurged, cachesPurged)
 		}
 	}
 

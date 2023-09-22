@@ -22,9 +22,8 @@ namespace Coco::Rendering::Vulkan
 		_vSyncMode(VSyncMode::EveryVBlank),
 		_currentContextIndex(0),
 		_backbufferDescription{},
-		_renderContexts{},
 		_backbuffers{},
-		_acquiredBackbufferIndices{},
+		_currentBackbufferIndex{},
 		_swapchain(nullptr),
 		_surface(nullptr)
 	{
@@ -35,7 +34,6 @@ namespace Coco::Rendering::Vulkan
 	{
 		_device->WaitForIdle();
 
-		DestroyRenderContexts();
 		DestroySwapchainObjects();
 
 		if (_swapchain)
@@ -72,7 +70,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	bool VulkanGraphicsPresenter::PrepareForRender(Ref<RenderContext>& outContext, Ref<Image>& outBackbuffer)
+	bool VulkanGraphicsPresenter::PrepareForRender(ManagedRef<RenderContext>& outContext, Ref<Image>& outBackbuffer)
 	{
 		if (!EnsureSwapchain())
 		{
@@ -80,56 +78,47 @@ namespace Coco::Rendering::Vulkan
 			return false;
 		}
 
-		_currentContextIndex = (_currentContextIndex + 1) % static_cast<uint8>(_backbuffers.size());
-		Ref<VulkanRenderContext> context = _renderContexts.at(_currentContextIndex);
+		ManagedRef<RenderContext> context = CreateManagedRef<VulkanRenderContext>(ID);
 
-		// Wait until the context is finished rendering
-		context->WaitForRenderingToComplete();
-
-		if (_acquiredBackbufferIndices.size() == _backbuffers.size())
+		if (!_currentBackbufferIndex.has_value())
 		{
-			CocoError("All backbuffers have been acquired. At least one must be released (i.e. presented) before rendering can begin")
-			return false;
+			VkSemaphore imageAvailableSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(context->GetOrCreateRenderStartSemaphore())->GetSemaphore();
+
+			uint32 imageIndex;
+			VkResult result = vkAcquireNextImageKHR(
+				_device->GetDevice(),
+				_swapchain,
+				Math::MaxValue<uint64_t>(),
+				imageAvailableSemaphore,
+				VK_NULL_HANDLE,
+				&imageIndex);
+
+			if (result == VK_ERROR_OUT_OF_DATE_KHR)
+			{
+				CocoTrace("Swapchain is out of date. Marking as dirty...")
+					MarkDirty();
+				return false;
+			}
+			else if (result == VK_SUBOPTIMAL_KHR)
+			{
+				CocoWarn("Swapchain is suboptimal")
+			}
+			else if (result != VK_SUCCESS)
+			{
+				CocoError("Failed to acquire backbuffer: {}", string_VkResult(result))
+					return false;
+			}
+
+			_currentBackbufferIndex = imageIndex;
 		}
 
-		VkSemaphore imageAvailableSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(context->GetRenderStartSemaphore())->GetSemaphore();
-
-		uint32 imageIndex;
-		VkResult result = vkAcquireNextImageKHR(
-			_device->GetDevice(),
-			_swapchain,
-			Math::MaxValue<uint64_t>(),
-			imageAvailableSemaphore,
-			VK_NULL_HANDLE,
-			&imageIndex);
-
-		if (result == VK_ERROR_OUT_OF_DATE_KHR)
-		{
-			CocoTrace("Swapchain is out of date. Marking as dirty...")
-			MarkDirty();
-			return false;
-		}
-		else if (result == VK_SUBOPTIMAL_KHR)
-		{
-			CocoWarn("Swapchain is suboptimal")
-		}
-		else if (result != VK_SUCCESS)
-		{
-			CocoError("Failed to acquire backbuffer: {}", string_VkResult(result))
-			return false;
-		}
-
-		context->Reset();
-
-		context->SetBackbufferIndex(imageIndex);
-		outContext = context;
-		outBackbuffer = _backbuffers.at(imageIndex);
-		_acquiredBackbufferIndices.emplace_back(imageIndex);
+		outContext = std::move(context);
+		outBackbuffer = _backbuffers.at(_currentBackbufferIndex.value());
 
 		return true;
 	}
 
-	bool VulkanGraphicsPresenter::Present(RenderContext& context)
+	bool VulkanGraphicsPresenter::Present(Ref<GraphicsSemaphore> frameCompletedSemaphore)
 	{
 		DeviceQueue* presentQueue = _device->GetOrCreatePresentQueue(_surface);
 		if (!presentQueue)
@@ -138,29 +127,16 @@ namespace Coco::Rendering::Vulkan
 			return false;
 		}
 
-		VulkanRenderContext* vulkanContext = static_cast<VulkanRenderContext*>(&context);
-
-		int backbufferIndex = vulkanContext->GetBackbufferIndex();
-
-		if (backbufferIndex == -1)
+		if (!_currentBackbufferIndex.has_value())
 		{
-			CocoError("The given RenderContext was not acquired from a GraphicsPresenter");
+			CocoError("This presenter was not prepared for rendering. Make sure to call PrepareForRender() before calling this")
 			return false;
 		}
 
-		uint32 imageIndex = static_cast<uint32>(backbufferIndex);
+		uint32 backbufferIndex = _currentBackbufferIndex.value();
+		_currentBackbufferIndex.reset();
 
-		const auto it = std::find(_acquiredBackbufferIndices.cbegin(), _acquiredBackbufferIndices.cend(), imageIndex);
-
-		if (it == _acquiredBackbufferIndices.cend())
-		{
-			CocoError("The given RenderContext was not acquired from this GraphicsPresenter");
-			return false;
-		}
-
-		_acquiredBackbufferIndices.erase(it);
-
-		VkSemaphore waitSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(vulkanContext->GetRenderCompletedSemaphore())->GetSemaphore();
+		VkSemaphore waitSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(frameCompletedSemaphore)->GetSemaphore();
 
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -168,7 +144,7 @@ namespace Coco::Rendering::Vulkan
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pSwapchains = &_swapchain;
 		presentInfo.swapchainCount = 1;
-		presentInfo.pImageIndices = &imageIndex;
+		presentInfo.pImageIndices = &backbufferIndex;
 
 		VkResult result = vkQueuePresentKHR(presentQueue->Queue, &presentInfo);
 
@@ -374,8 +350,6 @@ namespace Coco::Rendering::Vulkan
 			CocoError("Failed to create swapchain: {}", string_VkResult(result))
 			_swapchain = nullptr;
 
-			DestroyRenderContexts();
-
 			return false;
 		}
 
@@ -409,21 +383,8 @@ namespace Coco::Rendering::Vulkan
 			CocoError("Failed to obtain swapchain images: {}", ex.what())
 
 			DestroySwapchainObjects();
-			DestroyRenderContexts();
 
 			return false;
-		}
-
-		if (_renderContexts.size() != _backbuffers.size())
-		{
-			DestroyRenderContexts();
-
-			if (!CreateRenderContexts())
-			{
-				DestroySwapchainObjects();
-				_isSwapchainDirty = true;
-				return false;
-			}
 		}
 
 		_isSwapchainDirty = false;
@@ -438,42 +399,9 @@ namespace Coco::Rendering::Vulkan
 		_isSwapchainDirty = true;
 	}
 
-	bool VulkanGraphicsPresenter::CreateRenderContexts()
-	{
-		try
-		{
-			for (size_t i = 0; i < _backbuffers.size(); i++)
-			{
-				_renderContexts.emplace_back(CreateManagedRef<VulkanRenderContext>(ID));
-			}
-		}
-		catch (const std::exception& ex)
-		{
-			CocoError("Error creating VulkanRenderContext: {}", ex.what())
-
-			return false;
-		}
-
-		_currentContextIndex = 0;
-		CocoTrace("Created {} VulkanRenderContexts", _renderContexts.size())
-
-		return true;
-	}
-
-	void VulkanGraphicsPresenter::DestroyRenderContexts()
-	{
-		if (_renderContexts.size() == 0)
-			return;
-
-		CocoTrace("Releasing {} VulkanRenderContexts", _renderContexts.size())
-		
-		_renderContexts.clear();
-	}
-
 	void VulkanGraphicsPresenter::DestroySwapchainObjects()
 	{
 		_backbuffers.clear();
-		_acquiredBackbufferIndices.clear();
 
 		_isSwapchainDirty = true;
 	}

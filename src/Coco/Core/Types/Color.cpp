@@ -29,18 +29,38 @@ namespace Coco
 
 	Color Color::AsLinear(double gamma) const
 	{
-		if (IsLinear)
-			return *this;
-
-		return Color(Math::Pow(R, gamma), Math::Pow(G, gamma), Math::Pow(B, gamma), A, true);
+		Color c(*this);
+		c.ConvertToLinear();
+		return c;
 	}
 
 	Color Color::AsGamma(double gamma) const
 	{
-		if (!IsLinear)
-			return *this;
+		Color c(*this);
+		c.ConvertToGamma();
+		return c;
+	}
 
-		return Color(Math::Pow(R, 1.0 / gamma), Math::Pow(G, 1.0 / gamma), Math::Pow(B, 1.0 / gamma), A, false);
+	void Color::ConvertToLinear(double gamma)
+	{
+		if (IsLinear)
+			return;
+
+		R = Math::Pow(R, gamma);
+		G = Math::Pow(G, gamma);
+		B = Math::Pow(B, gamma);
+		IsLinear = true;
+	}
+
+	void Color::ConvertToGamma(double gamma)
+	{
+		if (!IsLinear)
+			return;
+
+		R = Math::Pow(R, 1.0 / gamma);
+		G = Math::Pow(G, 1.0 / gamma);
+		B = Math::Pow(B, 1.0 / gamma);
+		IsLinear = false;
 	}
 
 	string Color::ToString() const

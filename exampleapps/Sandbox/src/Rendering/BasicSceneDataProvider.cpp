@@ -78,5 +78,5 @@ void BasicSceneDataProvider::GatherSceneData(RenderView& renderView)
 	//_transform.RotateGlobal(Vector3::Up, MainLoop::cGet()->GetCurrentTick().DeltaTime);
 	//_transform.Recalculate();
 
-	renderView.AddRenderObject(*_mesh, 0, *_material, _transform.GlobalTransform);
+	renderView.AddRenderObject(*_mesh, 0, _transform.GlobalTransform, _material.Get());
 }

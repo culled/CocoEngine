@@ -4,6 +4,7 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
+#include <Coco/ImGui/ImGuiService.h>
 
 #include "Rendering/BasicRenderPass.h"
 
@@ -49,6 +50,11 @@ SandboxApp::SandboxApp() :
 	_renderViewProvider = CreateUniqueRef<BasicRenderViewProvider>();
 	_sceneDataProvider = CreateUniqueRef<BasicSceneDataProvider>();
 
+	{
+		using namespace Coco::ImGui;
+		services->CreateService<ImGuiService>();
+	}
+
 	LogTrace(_log, "Sandbox app initialized")
 }
 
@@ -79,7 +85,6 @@ void SandboxApp::Tick(const TickInfo & tickInfo)
 
 	for (const Ref<Windowing::Window>& window : visibleWindows)
 	{
-		Ref<Rendering::GraphicsPresenter> presenter = window->GetPresenter();
-		rendering->Render(*presenter, *_pipeline, *_renderViewProvider, dataProviders);
+		rendering->Render(window->GetPresenter(), *_pipeline, *_renderViewProvider, dataProviders);
 	}
 }

@@ -5,7 +5,7 @@
 #include "../VulkanImageSampler.h"
 #include "../../../../RenderService.h"
 #include "../VulkanUtils.h"
-#include "../VulkanRenderContextCache.h"
+#include "VulkanRenderContextCache.h"
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
@@ -82,7 +82,7 @@ namespace Coco::Rendering::Vulkan
 		AllocatedUniformData& data = uniformIt->second;
 		uint32 dataSize = shader.GetUniformDataSize(scope);
 
-		if (dataSize != data.AllocatedBlock.Size)
+		if (dataSize > 0 && dataSize != data.AllocatedBlock.Size)
 		{
 			if (data.AllocatedBlock.Size != 0)
 				FreeBufferRegion(data);
@@ -100,22 +100,25 @@ namespace Coco::Rendering::Vulkan
 			return nullptr;
 		}
 
-		UniformDataBuffer& buffer = *data.Buffer;
+		if (dataSize > 0)
+		{
+			UniformDataBuffer& buffer = *data.Buffer;
 
-		if(!buffer.MappedMemory)
-			buffer.MappedMemory = reinterpret_cast<char*>(buffer.Buffer->Lock(0, _sBufferSize));
+			if (!buffer.MappedMemory)
+				buffer.MappedMemory = reinterpret_cast<char*>(buffer.Buffer->Lock(0, _sBufferSize));
 
-		std::vector<uint8> bufferData = GetBufferData(scope, uniformData, shaderInfo);
+			std::vector<uint8> bufferData = GetBufferData(scope, uniformData, shaderInfo);
 
-		char* dst = buffer.MappedMemory + data.AllocatedBlock.Offset;
-		Assert(memcpy_s(dst, data.AllocatedBlock.Size, bufferData.data(), bufferData.size()) == 0)
+			char* dst = buffer.MappedMemory + data.AllocatedBlock.Offset;
+			Assert(memcpy_s(dst, data.AllocatedBlock.Size, bufferData.data(), bufferData.size()) == 0)
+		}
 
 		data.Version = uniformData.Version;
 
 		return set;
 	}
 
-	void VulkanUniformData::ResetForNextRender()
+	void VulkanUniformData::ResetForNextFrame()
 	{
 		_allocatedSets.clear();
 
@@ -132,6 +135,9 @@ namespace Coco::Rendering::Vulkan
 		const VulkanRenderPassShader& shader)
 	{
 		const RenderPassShader& shaderInfo = shader.GetInfo();
+		if (!shaderInfo.HasScope(UniformScope::Draw))
+			return;
+
 		std::vector<uint8> pushConstantData = GetBufferData(UniformScope::Draw, uniformData, shaderInfo);
 		VkShaderStageFlags stageFlags = VK_SHADER_STAGE_ALL;
 

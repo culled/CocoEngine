@@ -166,6 +166,15 @@ namespace Coco::Rendering
 		return success;
 	}
 
+	void Mesh::ClearSubmeshes()
+	{
+		_indexCount = 0;
+		_indices.clear();
+		_submeshes.clear();
+
+		MarkDirty();
+	}
+
 	bool Mesh::TryGetSubmesh(uint32 submeshID, SubMesh& outSubmesh) const
 	{
 		if (!_submeshes.contains(submeshID))

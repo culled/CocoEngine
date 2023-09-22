@@ -77,7 +77,7 @@ namespace Coco::Rendering::Vulkan
 		layoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
 		layoutInfo.pSetLayouts = descriptorSetLayouts.data();
 		layoutInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.size());
-		layoutInfo.pPushConstantRanges = pushConstantRanges.data();
+		layoutInfo.pPushConstantRanges = pushConstantRanges.size() > 0 ? pushConstantRanges.data() : nullptr;
 
 		AssertVkSuccess(vkCreatePipelineLayout(_device->GetDevice(), &layoutInfo, _device->GetAllocationCallbacks(), &_pipelineLayout));
 

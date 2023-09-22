@@ -34,7 +34,7 @@ namespace Coco::Rendering
 	}
 
 	RenderContext::RenderContext() :
-		_currentState(State::NeedsReset),
+		_currentState(State::ReadyForRender),
 		_renderOperation{}
 	{}
 
@@ -305,16 +305,6 @@ namespace Coco::Rendering
 		}
 
 		UniformChanged(scope, key);
-	}
-
-	void RenderContext::Reset()
-	{
-		_renderOperation.reset();
-
-		if (ResetImpl())
-		{
-			_currentState = State::ReadyForRender;
-		}
 	}
 
 	bool RenderContext::Begin(RenderView& renderView, CompiledRenderPipeline& pipeline)

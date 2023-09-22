@@ -68,6 +68,14 @@ namespace Coco
 		/// @return This color in gamma color space
 		Color AsGamma(double gamma = DefaultGamma) const;
 
+		/// @brief Converts this color to linear color space
+		/// @param gamma The gamma value
+		void ConvertToLinear(double gamma = DefaultGamma);
+
+		/// @brief Converts this color to gamma color space
+		/// @param gamma The gamma value
+		void ConvertToGamma(double gamma = DefaultGamma);
+
 		/// @brief Converts this color to a string
 		/// @return This color as a string
 		string ToString() const;

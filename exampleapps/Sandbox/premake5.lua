@@ -51,6 +51,10 @@ project "Sandbox"
         links { "Coco.Windowing" }
     end
 
+    if (Services["ImGui"] == true) then
+        links { "Coco.ImGui" }
+    end
+
     if (Platforms["Win32"] == true) then
         links { "Coco.Platforms.Win32" }
     end

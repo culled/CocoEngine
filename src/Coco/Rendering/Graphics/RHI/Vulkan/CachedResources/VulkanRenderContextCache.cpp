@@ -66,10 +66,10 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
-	void VulkanRenderContextCache::ResetForNextRender()
+	void VulkanRenderContextCache::ResetForNextFrame()
 	{
 		for (auto it = _uniformDatas.begin(); it != _uniformDatas.end(); it++)
-			it->second.ResetForNextRender();
+			it->second.ResetForNextFrame();
 	}
 
 	void VulkanRenderContextCache::PurgeStaleResources()
@@ -116,6 +116,17 @@ namespace Coco::Rendering::Vulkan
 		{
 			CocoTrace("Purged {} VulkanFramebuffers and {} VulkanUniformDatas", framebuffersPurged, uniformDatasPurged)
 		}
+	}
+
+	void VulkanRenderContextCache::Use()
+	{
+		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
+	}
+
+	bool VulkanRenderContextCache::IsStale() const
+	{
+		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
+		return currentTime - _lastUsedTime > VulkanRenderContextCache::sPurgeThreshold;
 	}
 
 	void VulkanRenderContextCache::TickCallback(const TickInfo& currentTick)

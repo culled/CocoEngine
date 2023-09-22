@@ -69,7 +69,6 @@ namespace Coco::Rendering
 		/// @brief States for a RenderContext
 		enum class State
 		{
-			NeedsReset,
 			ReadyForRender,
 			InRender,
 			EndedRender
@@ -85,12 +84,12 @@ namespace Coco::Rendering
 	public:
 		virtual ~RenderContext() = default;
 
-		/// @brief Blocks until this context is idle and ready to be rendered to
+		/// @brief Blocks until this context's rendering operations have finished
 		virtual void WaitForRenderingToComplete() = 0;
 
-		/// @brief Gets the semaphore used by this context to wait before starting the render
+		/// @brief Gets/creates the semaphore used by this context to wait before starting the render
 		/// @return The semaphore
-		virtual Ref<GraphicsSemaphore> GetRenderStartSemaphore() = 0;
+		virtual Ref<GraphicsSemaphore> GetOrCreateRenderStartSemaphore() = 0;
 
 		/// @brief Gets the semaphore used to wait until rendering with this context has completed
 		/// @return The semaphore
@@ -104,6 +103,14 @@ namespace Coco::Rendering
 		/// @return The render stats
 		const RenderContextRenderStats* GetRenderStats() const;
 
+		/// @brief Adds a semaphore that this context will wait on before executing
+		/// @param semaphore The semaphore
+		virtual void AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore) = 0;
+
+		/// @brief Adds a semaphore that this context will signal once rendering is completed
+		/// @param semaphore The semaphore
+		virtual void AddRenderCompletedSignalSemaphore(Ref<GraphicsSemaphore> semaphore) = 0;
+
 		/// @brief Sets the viewport rectangle. Only valid during rendering
 		/// @param viewportRect The viewport rectangle
 		virtual void SetViewportRect(const RectInt& viewportRect) = 0;
@@ -111,15 +118,6 @@ namespace Coco::Rendering
 		/// @brief Sets the part of the viewport that will be rendered to. Only valid during rendering
 		/// @param scissorRect The scissor rectangle
 		virtual void SetScissorRect(const RectInt& scissorRect) = 0;
-
-		/// @brief Adds a semaphore that this context will wait on before executing. Only valid during rendering
-		/// @param semaphore The semaphore
-		virtual void AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore) = 0;
-
-		/// @brief Adds a semaphore that this context will signal once rendering is completed. Only valid during rendering
-		/// @param semaphore The semaphore
-		virtual void AddRenderCompletedSignalSemaphore(Ref<GraphicsSemaphore> semaphore) = 0;
-
 		/// @brief Sets the shader that should be used for subsequent draw calls
 		/// @param shader The shader
 		virtual void SetShader(const RenderPassShaderData& shader) = 0;
@@ -130,7 +128,14 @@ namespace Coco::Rendering
 
 		/// @brief Draws a mesh using the currently bound shader and uniforms
 		/// @param mesh The mesh
-		virtual void Draw(const MeshData& mesh) = 0;
+		/// @param submeshID The ID of the submesh to draw
+		virtual void Draw(const MeshData& mesh, uint32 submeshID) = 0;
+
+		/// @brief Draws a number of indices of a mesh
+		/// @param mesh The mesh
+		/// @param firstIndexOffset The offset of the first index in the mesh's index buffer
+		/// @param indexCount The number of indices to draw
+		virtual void DrawIndexed(const MeshData& mesh, uint32 firstIndexOffset, uint32 indexCount) = 0;
 
 		/// @brief Sets a float uniform.
 		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
@@ -218,9 +223,6 @@ namespace Coco::Rendering
 		/// @param sampler The image sampler
 		void SetTextureSampler(UniformScope scope, ShaderUniformData::UniformKey key, const Ref<Image>& image, const Ref<ImageSampler>& sampler);
 
-		/// @brief Resets this context
-		void Reset();
-
 		/// @brief Begins rendering
 		/// @param renderView The view to render with
 		/// @param pipeline The pipeline to render with
@@ -235,10 +237,6 @@ namespace Coco::Rendering
 		void End();
 
 	protected:
-		/// @brief Called when this context is reset
-		/// @return True if the reset was successful
-		virtual bool ResetImpl() = 0;
-
 		/// @brief Called when this context is starting the first render pass
 		/// @return True if this context is ready for rendering
 		virtual bool BeginImpl() = 0;

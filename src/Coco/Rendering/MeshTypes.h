@@ -12,6 +12,9 @@ namespace Coco::Rendering
 		/// @brief If true, the vertex data includes normal data
 		bool HasNormals;
 
+		/// @brief If true, the vertex data includes color data
+		bool HasColor;
+
 		/// @brief If true, the vertex data includes uv0 data
 		bool HasUV0;
 
@@ -33,6 +36,9 @@ namespace Coco::Rendering
 
 		/// @brief The vertex normal
 		Vector3 Normal;
+
+		/// @brief The vertex color
+		Vector4 Color;
 
 		/// @brief The first texture coordinate
 		Vector2 UV0;

@@ -5,8 +5,14 @@
 
 namespace Coco::Rendering
 {
+	RenderServiceRenderTask::RenderServiceRenderTask(ManagedRef<RenderContext>&& context, Ref<GraphicsPresenter> presenter) :
+		Context(std::move(context)),
+		Presenter(presenter)
+	{}
+
 	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory) :
-		_lateTickListener(CreateUniqueRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority))
+		_lateTickListener(CreateUniqueRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
+		_currentRenderTasks{}
 	{
 		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
@@ -35,21 +41,27 @@ namespace Coco::Rendering
 	}
 
 	RenderTask RenderService::Render(
-		GraphicsPresenter& presenter, 
+		Ref<GraphicsPresenter> presenter,
 		RenderPipeline& pipeline, 
 		RenderViewProvider& renderViewProvider, 
 		std::span<SceneDataProvider*> sceneDataProviders,
 		std::optional<RenderTask> dependsOn)
 	{
+		if (!presenter.IsValid())
+		{
+			CocoError("Presenter was invalid")
+			return RenderTask();
+		}
+
 		if (!pipeline.Compile())
 			return RenderTask();
 
 		CompiledRenderPipeline compiledPipeline = pipeline.GetCompiledPipeline();
 
 		// Get the context used for rendering from the presenter
-		Ref<RenderContext> context;
+		ManagedRef<RenderContext> context;
 		Ref<Image> backbuffer;
-		if (!presenter.PrepareForRender(context, backbuffer))
+		if (!presenter->PrepareForRender(context, backbuffer))
 		{
 			CocoError("Failed to prepare presenter for rendering")
 			return RenderTask();
@@ -57,7 +69,7 @@ namespace Coco::Rendering
 
 		// Create the RenderView using the acquired backbuffers
 		std::array<Ref<Image>, 1> backbuffers{ backbuffer };
-		UniqueRef<RenderView> view = renderViewProvider.CreateRenderView(compiledPipeline, presenter.GetFramebufferSize(), backbuffers);
+		UniqueRef<RenderView> view = renderViewProvider.CreateRenderView(compiledPipeline, presenter->GetFramebufferSize(), backbuffers);
 
 		// Get the scene data
 		for (SceneDataProvider* provider : sceneDataProviders)
@@ -68,23 +80,27 @@ namespace Coco::Rendering
 			provider->GatherSceneData(*view);
 		}
 
+		Ref<GraphicsSemaphore> waitOn;
+
 		// Add syncronization to the previous task if it was given
 		if (dependsOn.has_value())
 		{
-			context->AddWaitOnSemaphore(dependsOn->RenderCompletedSemaphore);
+			waitOn = dependsOn->RenderCompletedSemaphore;
 		}
-
-		ExecuteRender(*context, compiledPipeline, *view);
-
-		if (!presenter.Present(*context))
+		else if(_currentRenderTasks.size() > 0)
 		{
-			CocoError("Failed to present rendered image")
+			RenderServiceRenderTask& t = _currentRenderTasks.back();
+			waitOn = t.Context->GetRenderCompletedSemaphore();
 		}
 
-		return RenderTask(context->GetRenderCompletedSemaphore(), context->GetRenderCompletedFence());
+		ExecuteRender(*context, compiledPipeline, *view, waitOn);
+
+		RenderTask task(context->GetRenderCompletedSemaphore(), context->GetRenderCompletedFence());
+		_currentRenderTasks.emplace_back(std::move(context), presenter);
+		return task;
 	}
 
-	void RenderService::ExecuteRender(RenderContext& context, CompiledRenderPipeline& compiledPipeline, RenderView& renderView)
+	void RenderService::ExecuteRender(RenderContext& context, CompiledRenderPipeline& compiledPipeline, RenderView& renderView, Ref<GraphicsSemaphore> waitOn)
 	{
 		const EnginePlatform* platform = Engine::cGet()->GetPlatform();
 		double pipelineStartTime = platform->GetSeconds();
@@ -101,6 +117,11 @@ namespace Coco::Rendering
 				{
 					if (!context.Begin(renderView, compiledPipeline))
 						return;
+
+					if (waitOn.IsValid())
+					{
+						context.AddWaitOnSemaphore(waitOn);
+					}
 				}
 				else
 				{
@@ -211,6 +232,33 @@ namespace Coco::Rendering
 
 	void RenderService::HandleLateTick(const TickInfo& tickInfo)
 	{
+		std::vector<GraphicsPresenter*> presented;
+
+		// Queue presentation for each rendered presenter and wait for all rendering to complete
+		for (auto it = _currentRenderTasks.rbegin(); it != _currentRenderTasks.rend(); it++)
+		{
+			RenderServiceRenderTask& task = *it;
+
+			if (task.Presenter.IsValid())
+			{
+				auto it = std::find(presented.begin(), presented.end(), task.Presenter.Get());
+				if (it == presented.end())
+				{
+					if (!task.Presenter->Present(task.Context->GetRenderCompletedSemaphore()))
+					{
+						CocoError("Failed to present image")
+					}
+
+					presented.push_back(task.Presenter.Get());
+				}
+			}
+
+			task.Context->WaitForRenderingToComplete();
+		}
+
+		_currentRenderTasks.clear();
+
+		_device->ResetForNewFrame();
 		_stats.Reset();
 	}
 }

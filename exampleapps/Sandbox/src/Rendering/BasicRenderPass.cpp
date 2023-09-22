@@ -2,8 +2,8 @@
 
 BasicRenderPass::BasicRenderPass() :
     _attachments({
-        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, false),
-        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, false),
+        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, true),
+        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, true),
         })
 {}
 
@@ -25,6 +25,6 @@ void BasicRenderPass::Execute(RenderContext& context, const RenderView& renderVi
         context.SetMaterial(material);
 
         context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("modelMatrix"), obj.ModelMatrix);
-        context.Draw(renderView.GetMeshData(obj.MeshID));
+        context.Draw(renderView.GetMeshData(obj.MeshID), obj.SubmeshID);
     }
 }

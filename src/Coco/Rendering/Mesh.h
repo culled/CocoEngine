@@ -75,12 +75,20 @@ namespace Coco::Rendering
 		/// @return The index buffer
 		Ref<Buffer> GetIndexBuffer() const { return _indexBuffer; }
 
+		/// @brief Clears all submeshes and their index data from this mesh
+		void ClearSubmeshes();
+
 		/// @brief Gets data for a given submesh.
 		/// NOTE: this is only valid after this mesh has been applied
 		/// @param submeshID The ID of the submesh
 		/// @param outSubmesh Will be set the the submesh data if found
 		/// @return True if a submesh with the given ID was found
 		bool TryGetSubmesh(uint32 submeshID, SubMesh& outSubmesh) const;
+
+		/// @brief Gets all submeshes.
+		/// NOTE: this is only valid after this mesh has been applied
+		/// @return All submeshes and their ids
+		const std::unordered_map<uint32, SubMesh>& GetSubmeshes() const { return _submeshes; }
 
 	private:
 		/// @brief Marks this mesh as needing updates

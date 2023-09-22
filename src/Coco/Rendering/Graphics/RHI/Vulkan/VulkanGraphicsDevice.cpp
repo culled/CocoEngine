@@ -146,14 +146,21 @@ namespace Coco::Rendering::Vulkan
 		return _resources.Create<VulkanImageSampler>(description);
 	}
 
+	void VulkanGraphicsDevice::ResetForNewFrame()
+	{
+		_cache->ResetForNextFrame();
+	}
+
 	void VulkanGraphicsDevice::PurgeUnusedResources()
 	{
-		uint64 purgeCount = _resources.PurgeUnused();
+		_resources.PurgeUnused();
 
-		if (purgeCount)
-		{
-			CocoTrace("Purged {} graphics resources", purgeCount)
-		}
+		//uint64 purgeCount = _resources.PurgeUnused();
+
+		//if (purgeCount)
+		//{
+		//	CocoTrace("Purged {} graphics resources", purgeCount)
+		//}
 	}
 
 	DeviceQueue* VulkanGraphicsDevice::GetQueue(DeviceQueue::Type queueType)

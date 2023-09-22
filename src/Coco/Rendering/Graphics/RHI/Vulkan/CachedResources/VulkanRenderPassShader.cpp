@@ -69,6 +69,9 @@ namespace Coco::Rendering::Vulkan
 	{
 		const uint32 dataSize = GetUniformDataSize(UniformScope::Draw);
 
+		if (dataSize == 0)
+			return std::vector<VkPushConstantRange>();
+
 		// TODO: check maximum push constant range size
 		if (dataSize > 128)
 		{
@@ -77,7 +80,10 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		std::vector<ShaderDataUniform> drawUniforms = _shaderInfo.GetScopedDataUniforms(UniformScope::Draw);
-		std::vector<VkPushConstantRange> ranges(drawUniforms.size());
+
+		VkPushConstantRange range{};
+		range.offset = 0;
+		range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // TODO: configurable push constant stages
 
 		uint64 offset = 0;
 
@@ -88,16 +94,12 @@ namespace Coco::Rendering::Vulkan
 
 			_device->AlignOffset(uniform.Type, offset);
 
-			VkPushConstantRange& range = ranges.at(i);
-
-			range.offset = static_cast<uint32_t>(offset);
-			range.size = size;
-			range.stageFlags = ToVkShaderStageFlags(uniform.BindingPoints);
+			range.size += size;
 
 			offset += size;
 		}
 
-		return ranges;
+		return std::vector<VkPushConstantRange>({ range });
 	}
 
 	bool VulkanRenderPassShader::NeedsUpdate(const RenderPassShader& shaderInfo) const

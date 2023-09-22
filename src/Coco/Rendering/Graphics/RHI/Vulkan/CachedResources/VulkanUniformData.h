@@ -118,8 +118,8 @@ namespace Coco::Rendering::Vulkan
 		/// @param shader The shader
 		void PreparePushConstants(VulkanCommandBuffer& commandBuffer, VkPipelineLayout pipelineLayout, const ShaderUniformData& uniformData, const VulkanRenderPassShader& shader);
 
-		/// @brief Resets this object for a new render
-		void ResetForNextRender();
+		/// @brief Resets this object for a new frame
+		void ResetForNextFrame();
 
 		/// @brief Determines if this uniform data needs to be updated
 		/// @param passShader The shader

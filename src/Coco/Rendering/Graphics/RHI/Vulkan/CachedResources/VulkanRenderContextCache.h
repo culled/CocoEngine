@@ -1,7 +1,7 @@
 #pragma once
-#include "../../../Renderpch.h"
-#include "CachedResources/VulkanFramebuffer.h"
-#include "CachedResources/VulkanUniformData.h"
+#include "../../../../Renderpch.h"
+#include "VulkanFramebuffer.h"
+#include "VulkanUniformData.h"
 
 #include <Coco/Core/MainLoop/TickListener.h>
 
@@ -24,6 +24,7 @@ namespace Coco::Rendering::Vulkan
 		std::unordered_map<GraphicsDeviceResourceID, VulkanFramebuffer> _framebuffers;
 		std::unordered_map<GraphicsDeviceResourceID, VulkanUniformData> _uniformDatas;
 		TickListener _tickListener;
+		double _lastUsedTime;
 
 	public:
 		VulkanRenderContextCache();
@@ -41,11 +42,18 @@ namespace Coco::Rendering::Vulkan
 		/// @return The uniform data container
 		VulkanUniformData& GetOrCreateUniformData(const VulkanRenderPassShader& shader);
 
-		/// @brief Resets this cache for a new render
-		void ResetForNextRender();
+		/// @brief Resets this cache for a new frame
+		void ResetForNextFrame();
 
 		/// @brief Purges all stale resources
 		void PurgeStaleResources();
+
+		/// @brief Marks this framebuffer as used
+		void Use();
+
+		/// @brief Determines if this framebuffer is stale and can be purged
+		/// @return True if this framebuffer can be purged
+		bool IsStale() const;
 
 	private:
 		/// @brief The tick callback

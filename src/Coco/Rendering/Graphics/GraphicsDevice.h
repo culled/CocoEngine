@@ -104,5 +104,8 @@ namespace Coco::Rendering
 
 		/// @brief Purges any resources that are no longer in use
 		virtual void PurgeUnusedResources() = 0;
+
+		/// @brief Performs any tasks that need to occur before a new frame is drawn
+		virtual void ResetForNewFrame() = 0;
 	};
 }
