@@ -85,9 +85,6 @@ namespace Coco
 
 		while (_isRunning)
 		{
-			if (_targetTicksPerSecond > 0)
-				WaitForTargetTickTime(lastTickPlatformTime);
-
 			// Save the pre-process time only if we performed a full tick so we can calculate an adjusted delta time
 			if (didPerformFullTick)
 				preProcessPlatformTime = platform->GetRunningTime();
@@ -136,6 +133,9 @@ namespace Coco
 			_lastTick = _currentTick;
 			_currentTick.TickNumber++;
 			didPerformFullTick = true;
+
+			if (_targetTicksPerSecond > 0)
+				WaitForTargetTickTime(lastTickPlatformTime);
 		}
 	}
 
