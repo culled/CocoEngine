@@ -4,3 +4,6 @@
 [submodule "src/Vendor/uuid_v4"]
 	path = src/Vendor/uuid_v4
 	url = https://github.com/crashoz/uuid_v4.git
+[submodule "src/Vendor/imgui"]
+	path = src/Vendor/imgui
+	url = https://github.com/ocornut/imgui.git
