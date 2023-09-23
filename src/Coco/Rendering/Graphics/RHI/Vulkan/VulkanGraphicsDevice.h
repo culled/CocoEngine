@@ -144,7 +144,7 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets this device's cache
 		/// @return The device cache
-		VulkanGraphicsDeviceCache* GetCache() { return _cache.get(); }
+		VulkanGraphicsDeviceCache& GetCache() { return *_cache; }
 
 		/// @brief Finds the heap index for a type of memory
 		/// @param type The memory types

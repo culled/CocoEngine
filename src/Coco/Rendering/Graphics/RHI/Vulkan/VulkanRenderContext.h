@@ -89,7 +89,7 @@ namespace Coco::Rendering::Vulkan
         ManagedRef<VulkanGraphicsSemaphore> _renderCompletedSemaphore;
         ManagedRef<VulkanGraphicsFence> _renderCompletedFence;
         UniqueRef<VulkanCommandBuffer> _commandBuffer;
-        VulkanGraphicsDeviceCache* _deviceCache;
+        VulkanGraphicsDeviceCache& _deviceCache;
 
         std::vector<Ref<VulkanGraphicsSemaphore>> _waitOnSemaphores;
         std::vector<Ref<VulkanGraphicsSemaphore>> _renderCompletedSignalSemaphores;
@@ -101,7 +101,7 @@ namespace Coco::Rendering::Vulkan
 
         void WaitForRenderingToComplete() final;
 
-        Ref<GraphicsSemaphore> GetOrCreateRenderStartSemaphore() final;
+        Ref<GraphicsSemaphore> GetRenderStartSemaphore() final { return _renderStartSemaphore; }
         Ref<GraphicsSemaphore> GetRenderCompletedSemaphore() final { return _renderCompletedSemaphore; }
         Ref<GraphicsFence> GetRenderCompletedFence() final { return _renderCompletedFence; }
 
@@ -120,6 +120,7 @@ namespace Coco::Rendering::Vulkan
         bool BeginImpl() final;
         bool BeginNextPassImpl() final;
         void EndImpl() final;
+        void ResetImpl() final;
         void UniformChanged(UniformScope scope, ShaderUniformData::UniformKey key) final;
 
     private:

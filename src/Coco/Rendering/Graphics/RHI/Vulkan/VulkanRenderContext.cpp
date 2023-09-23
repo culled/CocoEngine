@@ -38,7 +38,7 @@ namespace Coco::Rendering::Vulkan
 	VulkanRenderContext::VulkanRenderContext(const GraphicsDeviceResourceID& id) :
 		GraphicsDeviceResource<VulkanGraphicsDevice>(id),
 		_vulkanRenderOperation{},
-		_renderStartSemaphore(),
+		_renderStartSemaphore(CreateManagedRef<VulkanGraphicsSemaphore>(id)),
 		_renderCompletedSemaphore(CreateManagedRef<VulkanGraphicsSemaphore>(id)),
 		_renderCompletedFence(CreateManagedRef<VulkanGraphicsFence>(id, false)),
 		_waitOnSemaphores{},
@@ -53,7 +53,6 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		_commandBuffer = graphicsQueue->Pool.Allocate(true);
-		_renderCompletedSignalSemaphores.push_back(_renderCompletedSemaphore);
 	}
 
 	VulkanRenderContext::~VulkanRenderContext()
@@ -75,18 +74,11 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanRenderContext::WaitForRenderingToComplete()
 	{
+		if (_currentState == State::RenderCompleted)
+			return;
+
 		_renderCompletedFence->Wait(Math::MaxValue<uint64>());
-	}
-
-	Ref<GraphicsSemaphore> VulkanRenderContext::GetOrCreateRenderStartSemaphore()
-	{
-		if (!_renderStartSemaphore.IsValid())
-		{
-			_renderStartSemaphore = CreateManagedRef<VulkanGraphicsSemaphore>(ID);
-			_waitOnSemaphores.push_back(_renderStartSemaphore);
-		}
-
-		return _renderStartSemaphore;
+		_currentState = State::RenderCompleted;
 	}
 
 	void VulkanRenderContext::AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore)
@@ -230,6 +222,8 @@ namespace Coco::Rendering::Vulkan
 	{
 		try
 		{
+			_renderCompletedSignalSemaphores.push_back(_renderCompletedSemaphore);
+
 			// Get the images from the render targets
 			std::span<const RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
 			std::vector<const VulkanImage*> vulkanImages(rts.size());
@@ -240,8 +234,8 @@ namespace Coco::Rendering::Vulkan
 				vulkanImages.at(i) = static_cast<const VulkanImage*>(rts[i].Image.Get());
 			}
 
-			VulkanRenderPass& renderPass = _deviceCache->GetOrCreateRenderPass(_renderOperation->Pipeline);
-			VulkanRenderContextCache& cache = _deviceCache->GetOrCreateContextCache(ID);
+			VulkanRenderPass& renderPass = _deviceCache.GetOrCreateRenderPass(_renderOperation->Pipeline);
+			VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
 			VulkanFramebuffer& framebuffer = cache.GetOrCreateFramebuffer(_renderOperation->RenderView.GetViewportRect().Size, renderPass, vulkanImages);
 
 			// Setup the Vulkan-specific render operation
@@ -336,6 +330,17 @@ namespace Coco::Rendering::Vulkan
 			_renderCompletedFence);
 	}
 
+	void VulkanRenderContext::ResetImpl()
+	{
+		WaitForRenderingToComplete();
+
+		_vulkanRenderOperation.reset();
+
+		_waitOnSemaphores.clear();
+		_renderCompletedSignalSemaphores.clear();
+		_renderCompletedFence->Reset();
+	}
+
 	void VulkanRenderContext::UniformChanged(UniformScope scope, ShaderUniformData::UniformKey key)
 	{
 		Assert(_vulkanRenderOperation.has_value())
@@ -408,9 +413,9 @@ namespace Coco::Rendering::Vulkan
 				throw std::exception("Invalid shader");
 
 			const RenderPassShaderData& boundShaderData = _renderOperation->RenderView.GetRenderPassShaderData(globalState.ShaderID);
-			VulkanRenderPassShader& shader = _deviceCache->GetOrCreateShader(boundShaderData.ShaderData);
+			VulkanRenderPassShader& shader = _deviceCache.GetOrCreateShader(boundShaderData.ShaderData);
 
-			VulkanRenderContextCache& cache = _deviceCache->GetOrCreateContextCache(ID);
+			VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
 
 			VulkanUniformData& uniformData = cache.GetOrCreateUniformData(shader);
 			VkCommandBuffer cmdBuffer = _commandBuffer->GetCmdBuffer();
@@ -418,7 +423,7 @@ namespace Coco::Rendering::Vulkan
 			// Bind the new shader if it changed
 			if (_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Shader))
 			{
-				globalState.Pipeline = &_device.GetCache()->GetOrCreatePipeline(
+				globalState.Pipeline = &_deviceCache.GetOrCreatePipeline(
 					_vulkanRenderOperation->RenderPass,
 					_renderOperation->CurrentPassIndex,
 					shader

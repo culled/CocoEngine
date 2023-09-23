@@ -19,10 +19,10 @@ namespace Coco::Rendering
 {
 	struct RenderServiceRenderTask
 	{
-		ManagedRef<RenderContext> Context;
+		Ref<RenderContext> Context;
 		Ref<GraphicsPresenter> Presenter;
 
-		RenderServiceRenderTask(ManagedRef<RenderContext>&& context, Ref<GraphicsPresenter> presenter);
+		RenderServiceRenderTask(Ref<RenderContext> context, Ref<GraphicsPresenter> presenter);
 	};
 
 	/// @brief An EngineService that adds rendering functionality

@@ -33,10 +33,10 @@ namespace Coco::Rendering::Vulkan
         bool _isSwapchainDirty;
         SizeInt _framebufferSize;
         VSyncMode _vSyncMode;
-        uint8 _currentContextIndex;
         ImageDescription _backbufferDescription;
 
         std::vector<ManagedRef<VulkanImage>> _backbuffers;
+        std::vector<ManagedRef<VulkanRenderContext>> _renderContexts;
         std::optional<uint32> _currentBackbufferIndex;
 
         VkSwapchainKHR _swapchain;
@@ -49,7 +49,7 @@ namespace Coco::Rendering::Vulkan
         void InitializeSurface(const GraphicsPresenterSurface& surface) final;
         bool SurfaceInitialized() const final { return _surface != nullptr; }
 
-        bool PrepareForRender(ManagedRef<RenderContext>& outContext, Ref<Image>& outBackbuffer) final;
+        bool PrepareForRender(Ref<RenderContext>& outContext, Ref<Image>& outBackbuffer) final;
         bool Present(Ref<GraphicsSemaphore> frameCompletedSemaphore) final;
 
         void SetVSync(VSyncMode mode) final;
@@ -72,5 +72,7 @@ namespace Coco::Rendering::Vulkan
 
         /// @brief Destroys all objects created alongside a swapchain
         void DestroySwapchainObjects();
+
+        Ref<VulkanRenderContext> GetReadyRenderContext();
     };
 }

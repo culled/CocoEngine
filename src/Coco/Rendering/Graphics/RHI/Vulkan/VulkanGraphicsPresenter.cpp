@@ -20,9 +20,9 @@ namespace Coco::Rendering::Vulkan
 		_isSwapchainDirty(true),
 		_framebufferSize(SizeInt::Zero),
 		_vSyncMode(VSyncMode::EveryVBlank),
-		_currentContextIndex(0),
 		_backbufferDescription{},
 		_backbuffers{},
+		_renderContexts{},
 		_currentBackbufferIndex{},
 		_swapchain(nullptr),
 		_surface(nullptr)
@@ -33,6 +33,10 @@ namespace Coco::Rendering::Vulkan
 	VulkanGraphicsPresenter::~VulkanGraphicsPresenter()
 	{
 		_device.WaitForIdle();
+
+		CocoTrace("Destroying {} VulkanRenderContext(s)", _renderContexts.size())
+
+		_renderContexts.clear();
 
 		DestroySwapchainObjects();
 
@@ -70,7 +74,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	bool VulkanGraphicsPresenter::PrepareForRender(ManagedRef<RenderContext>& outContext, Ref<Image>& outBackbuffer)
+	bool VulkanGraphicsPresenter::PrepareForRender(Ref<RenderContext>& outContext, Ref<Image>& outBackbuffer)
 	{
 		if (!EnsureSwapchain())
 		{
@@ -78,18 +82,19 @@ namespace Coco::Rendering::Vulkan
 			return false;
 		}
 
-		ManagedRef<RenderContext> context = CreateManagedRef<VulkanRenderContext>(ID);
+		Ref<VulkanRenderContext> context = GetReadyRenderContext();
 
 		if (!_currentBackbufferIndex.has_value())
 		{
-			VkSemaphore imageAvailableSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(context->GetOrCreateRenderStartSemaphore())->GetSemaphore();
+			Ref<VulkanGraphicsSemaphore> renderStartSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(context->GetRenderStartSemaphore());
+			context->AddWaitOnSemaphore(renderStartSemaphore);
 
 			uint32 imageIndex;
 			VkResult result = vkAcquireNextImageKHR(
 				_device.GetDevice(),
 				_swapchain,
 				Math::MaxValue<uint64_t>(),
-				imageAvailableSemaphore,
+				renderStartSemaphore->GetSemaphore(),
 				VK_NULL_HANDLE,
 				&imageIndex);
 
@@ -112,7 +117,7 @@ namespace Coco::Rendering::Vulkan
 			_currentBackbufferIndex = imageIndex;
 		}
 
-		outContext = std::move(context);
+		outContext = context;
 		outBackbuffer = _backbuffers.at(_currentBackbufferIndex.value());
 
 		return true;
@@ -404,5 +409,23 @@ namespace Coco::Rendering::Vulkan
 		_backbuffers.clear();
 
 		_isSwapchainDirty = true;
+	}
+
+	Ref<VulkanRenderContext> VulkanGraphicsPresenter::GetReadyRenderContext()
+	{
+		for (ManagedRef<VulkanRenderContext>& context : _renderContexts)
+		{
+			if (context->GetState() == RenderContext::State::RenderCompleted)
+			{
+				context->Reset();
+				return context;
+			}
+		}
+
+		ManagedRef<VulkanRenderContext>& context = _renderContexts.emplace_back(CreateManagedRef<VulkanRenderContext>(ID));
+
+		CocoTrace("Created VulkanRenderContext for VulkanGraphicsPresenter")
+
+		return context;
 	}
 }

@@ -337,4 +337,12 @@ namespace Coco::Rendering
 		EndImpl();
 		_currentState = State::EndedRender;
 	}
+
+	void RenderContext::Reset()
+	{
+		ResetImpl();
+
+		_renderOperation.reset();
+		_currentState = State::ReadyForRender;
+	}
 }

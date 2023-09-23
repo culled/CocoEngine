@@ -64,7 +64,7 @@ namespace Coco::Rendering::Vulkan
 		_computeQueue.reset();
 		_presentQueue = nullptr;
 
-		CocoTrace("Destroying {} resources", _resources.GetCount())
+		CocoTrace("Destroying {} graphics resources", _resources.GetCount())
 		_resources.Clear();
 
 		if (_device)

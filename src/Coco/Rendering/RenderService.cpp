@@ -5,7 +5,7 @@
 
 namespace Coco::Rendering
 {
-	RenderServiceRenderTask::RenderServiceRenderTask(ManagedRef<RenderContext>&& context, Ref<GraphicsPresenter> presenter) :
+	RenderServiceRenderTask::RenderServiceRenderTask(Ref<RenderContext> context, Ref<GraphicsPresenter> presenter) :
 		Context(std::move(context)),
 		Presenter(presenter)
 	{}
@@ -59,7 +59,7 @@ namespace Coco::Rendering
 		CompiledRenderPipeline compiledPipeline = pipeline.GetCompiledPipeline();
 
 		// Get the context used for rendering from the presenter
-		ManagedRef<RenderContext> context;
+		Ref<RenderContext> context;
 		Ref<Image> backbuffer;
 		if (!presenter->PrepareForRender(context, backbuffer))
 		{
@@ -239,6 +239,12 @@ namespace Coco::Rendering
 		{
 			RenderServiceRenderTask& task = *it;
 
+			if (!task.Context.IsValid())
+			{
+				CocoError("RenderContext became invalid by the RenderService::LateTick")
+				continue;
+			}
+
 			if (task.Presenter.IsValid())
 			{
 				auto it = std::find(presented.begin(), presented.end(), task.Presenter.Get());
@@ -251,6 +257,10 @@ namespace Coco::Rendering
 
 					presented.push_back(task.Presenter.Get());
 				}
+			}
+			else
+			{
+				CocoError("GraphicsPresenter became invalid by the RenderService::LateTick")
 			}
 
 			task.Context->WaitForRenderingToComplete();

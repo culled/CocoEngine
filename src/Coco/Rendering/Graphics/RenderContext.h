@@ -71,7 +71,8 @@ namespace Coco::Rendering
 		{
 			ReadyForRender,
 			InRender,
-			EndedRender
+			EndedRender,
+			RenderCompleted
 		};
 
 	protected:
@@ -87,9 +88,9 @@ namespace Coco::Rendering
 		/// @brief Blocks until this context's rendering operations have finished
 		virtual void WaitForRenderingToComplete() = 0;
 
-		/// @brief Gets/creates the semaphore used by this context to wait before starting the render
+		/// @brief Gets the semaphore used by this context that can be used to wait before it starts the render
 		/// @return The semaphore
-		virtual Ref<GraphicsSemaphore> GetOrCreateRenderStartSemaphore() = 0;
+		virtual Ref<GraphicsSemaphore> GetRenderStartSemaphore() = 0;
 
 		/// @brief Gets the semaphore used to wait until rendering with this context has completed
 		/// @return The semaphore
@@ -98,10 +99,6 @@ namespace Coco::Rendering
 		/// @brief Gets the fence that can be used to wait until rendering with this context has completed
 		/// @return The fence
 		virtual Ref<GraphicsFence> GetRenderCompletedFence() = 0;
-
-		/// @brief Gets the current render stats. Only value during rendering
-		/// @return The render stats
-		const RenderContextRenderStats* GetRenderStats() const;
 
 		/// @brief Adds a semaphore that this context will wait on before executing
 		/// @param semaphore The semaphore
@@ -136,6 +133,14 @@ namespace Coco::Rendering
 		/// @param firstIndexOffset The offset of the first index in the mesh's index buffer
 		/// @param indexCount The number of indices to draw
 		virtual void DrawIndexed(const MeshData& mesh, uint32 firstIndexOffset, uint32 indexCount) = 0;
+
+		/// @brief Gets the current render stats. Only value during rendering
+		/// @return The render stats
+		const RenderContextRenderStats* GetRenderStats() const;
+
+		/// @brief Gets this RenderContext's state
+		/// @return The state
+		State GetState() const { return _currentState; }
 
 		/// @brief Sets a float uniform.
 		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
@@ -236,6 +241,9 @@ namespace Coco::Rendering
 		/// @brief Ends rendering with this context
 		void End();
 
+		/// @brief Resets this context for beginning a new render after the previous has finished
+		void Reset();
+
 	protected:
 		/// @brief Called when this context is starting the first render pass
 		/// @return True if this context is ready for rendering
@@ -247,6 +255,9 @@ namespace Coco::Rendering
 
 		/// @brief Called when this context has finished rendering
 		virtual void EndImpl() = 0;
+
+		/// @brief Called when this context is reset
+		virtual void ResetImpl() = 0;
 
 		/// @brief Called when a uniform changes
 		/// @param scope The scope of the uniform
