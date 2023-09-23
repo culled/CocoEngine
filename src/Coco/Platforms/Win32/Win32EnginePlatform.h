@@ -107,7 +107,8 @@ namespace Coco::Platforms::Win32
 		/// @param message The message
 		/// @param wParam The wParam
 		/// @param lParam The lParam
-		static void DispatchWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
+		/// @return True if the message was handled
+		static bool DispatchWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
 
 		/// @brief Registers the window class with Windows
 		/// @return True if the class was registered
@@ -120,7 +121,8 @@ namespace Coco::Platforms::Win32
 		/// @param message The message
 		/// @param wParam The wParam
 		/// @param lParam The lParam
-		static void HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam);
+		/// @return True if the message was handled
+		static bool HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam);
 #endif
     };
 }

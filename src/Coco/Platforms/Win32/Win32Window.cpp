@@ -66,7 +66,7 @@ namespace Coco::Platforms::Win32
 			{
 				const DisplayInfo& display = displays.at(createParams.DisplayIndex.value());
 
-				if (pos.X == CW_USEDEFAULT || pos.X == CW_USEDEFAULT)
+				if (pos.X == CW_USEDEFAULT || pos.Y == CW_USEDEFAULT)
 				{
 					pos = display.Offset + Vector2Int((display.Resolution.Width - size.Width) / 2, (display.Resolution.Height - size.Height) / 2);
 				}
@@ -344,7 +344,7 @@ namespace Coco::Platforms::Win32
 		return Vector2Int(p.x, p.y);
 	}
 
-	void Win32Window::ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam)
+	bool Win32Window::ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		try
 		{
@@ -352,7 +352,7 @@ namespace Coco::Platforms::Win32
 			{
 			case WM_CLOSE:
 				Close();
-				break;
+				return true;
 			case WM_SIZE:
 			{
 				LPRECT rect = reinterpret_cast<LPRECT>(lParam);
@@ -366,7 +366,7 @@ namespace Coco::Platforms::Win32
 					UpdateFullscreenState(IsFullscreen());
 
 				HandleResized();
-				break;
+				return true;
 			}
 #ifdef COCO_HIGHDPI_SUPPORT
 			case WM_DPICHANGED:
@@ -388,7 +388,7 @@ namespace Coco::Platforms::Win32
 				{
 					CocoError("Error invoking Win32Window::OnDPIChanged: {}", ex.what())
 				}
-				break;
+				return true;
 			}
 #endif
 			case WM_MOVE:
@@ -404,7 +404,7 @@ namespace Coco::Platforms::Win32
 				{
 					CocoError("Error invoking Win32Window::OnPositionChanged: {}", ex.what())
 				}
-				break;
+				return true;
 			}
 			//case WM_STYLECHANGED:
 			//{
@@ -422,7 +422,7 @@ namespace Coco::Platforms::Win32
 				{
 					CocoError("Error invoking Win32Window::OnFocusChanged: {}", ex.what())
 				}
-				break;
+				return true;
 			}
 			default:
 				break;
@@ -432,6 +432,8 @@ namespace Coco::Platforms::Win32
 		{
 			Engine::Get()->CrashWithException();
 		}
+
+		return false;
 	}
 
 	void Win32Window::UpdateState(WindowState state)

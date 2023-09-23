@@ -78,7 +78,8 @@ namespace Coco::Platforms::Win32
         /// @param message The message
         /// @param wParam The wParam
         /// @param lParam The lParam
-        void ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam);
+        /// @return True if the message was handled
+        bool ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam);
 
         /// @brief Updates the state of this window
         /// @param state The state for this window to be in

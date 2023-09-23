@@ -132,7 +132,7 @@ namespace Coco::Platforms::Win32
 			}
 			else
 			{
-				//CocoError("Failed to open console window")
+				CocoError("Failed to open console window")
 			}
 		}
 		else
@@ -237,8 +237,12 @@ namespace Coco::Platforms::Win32
 		case WM_DPICHANGED: // A window's dpi changed
 		case WM_SETFOCUS: // A window got focus
 		case WM_KILLFOCUS: // A window lost focus
-			DispatchWindowMessage(windowHandle, message, wParam, lParam);
+		{
+			bool handled = DispatchWindowMessage(windowHandle, message, wParam, lParam);
+			if (handled)
+				return 0;
 			break;
+		}
 #endif
 		case WM_ERASEBKGND:
 			// Erasing will be handled by us to prevent flicker
@@ -263,8 +267,14 @@ namespace Coco::Platforms::Win32
 		case WM_XBUTTONDOWN:
 		case WM_XBUTTONDBLCLK:
 		case WM_XBUTTONUP:
-			HandleInputMessage(message, wParam, lParam);
+		{
+			bool handled = HandleInputMessage(message, wParam, lParam);
+			if (handled)
+				return 0;
+
 			break;
+		}
+			
 #endif
 		default: break;
 		}
@@ -413,7 +423,7 @@ namespace Coco::Platforms::Win32
 		return RegisterClass(&windowClass);
 	}
 
-	void Win32EnginePlatform::DispatchWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
+	bool Win32EnginePlatform::DispatchWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		LONG_PTR userPtr = GetWindowLongPtr(windowHandle, GWLP_USERDATA);
 		Win32Window* window = reinterpret_cast<Win32Window*>(userPtr);
@@ -421,21 +431,21 @@ namespace Coco::Platforms::Win32
 		if (!window)
 		{
 			CocoError("Target window of message was null")
-			return;
+			return false;
 		}
 
-		window->ProcessMessage(message, wParam, lParam);
+		return window->ProcessMessage(message, wParam, lParam);
 	}
 #endif
 
 #ifdef COCO_SERVICES_INPUT
-	void Win32EnginePlatform::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
+	bool Win32EnginePlatform::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		ServiceManager* services = ServiceManager::Get();
 
 		using namespace Coco::Input;
 		if (!services->HasService<InputService>())
-			return;
+			return false;
 
 		InputService& input = services->GetService<InputService>();
 
@@ -443,19 +453,20 @@ namespace Coco::Platforms::Win32
 		{
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
-			input.GetKeyboard().UpdateKeyState(static_cast<KeyboardKey>(wParam), true);
-			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			input.GetKeyboard().UpdateKeyState(static_cast<KeyboardKey>(wParam), false);
-			break;
+		{
+			bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
+			input.GetKeyboard().UpdateKeyState(static_cast<KeyboardKey>(wParam), pressed);
+			return true;
+		}
 		case WM_MOUSEMOVE:
 		{
 			const int x = GET_X_LPARAM(lParam);
 			const int y = GET_Y_LPARAM(lParam);
 
 			input.GetMouse().UpdatePositionState(Vector2Int(x, y));
-			break;
+			return true;
 		}
 		case WM_MOUSEWHEEL:
 		{
@@ -469,19 +480,20 @@ namespace Coco::Platforms::Win32
 				input.GetMouse().UpdateScrollState(Vector2Int(0, yDelta));
 			}
 
-			break;
+			return true;
 		}
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONDBLCLK:
 		case WM_LBUTTONUP:
 		{
+
 			if (message == WM_LBUTTONDBLCLK)
 			{
 				//input->GetMouse()->DoubleClicked(MouseButton::Left);
 			}
 
 			input.GetMouse().UpdateButtonState(MouseButton::Left, message != WM_LBUTTONUP);
-			break;
+			return true;
 		}
 		case WM_MBUTTONDOWN:
 		case WM_MBUTTONDBLCLK:
@@ -493,7 +505,7 @@ namespace Coco::Platforms::Win32
 			}
 
 			input.GetMouse().UpdateButtonState(MouseButton::Middle, message != WM_MBUTTONUP);
-			break;
+			return true;
 		}
 		case WM_RBUTTONDOWN:
 		case WM_RBUTTONDBLCLK:
@@ -505,7 +517,7 @@ namespace Coco::Platforms::Win32
 			}
 
 			input.GetMouse().UpdateButtonState(MouseButton::Right, message != WM_RBUTTONUP);
-			break;
+			return true;
 		}
 		case WM_XBUTTONDOWN:
 		case WM_XBUTTONDBLCLK:
@@ -519,7 +531,7 @@ namespace Coco::Platforms::Win32
 			}
 
 			input.GetMouse().UpdateButtonState(button, message != WM_XBUTTONUP);
-			break;
+			return true;
 		}
 		case WM_ACTIVATEAPP:
 		{
@@ -529,10 +541,10 @@ namespace Coco::Platforms::Win32
 				input.GetKeyboard().ClearAllKeyStates();
 				input.GetMouse().ClearAllButtonStates();
 			}
-			break;
+			return false;
 		}
 		default:
-			break;
+			return false;
 		}
 	}
 #endif

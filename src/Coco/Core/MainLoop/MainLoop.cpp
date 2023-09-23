@@ -86,53 +86,50 @@ namespace Coco
 
 		while (_isRunning)
 		{
-			if (_listenersNeedSorting)
-				SortTickHandlers();
+			if (_targetTicksPerSecond > 0)
+				WaitForTargetTickTime(lastTickPlatformTime);
 
 			// Save the pre-process time only if we performed a full tick so we can calculate an adjusted delta time
 			if (didPerformFullTick)
 				preProcessPlatformTime = platform.GetSeconds();
 
+			didPerformFullTick = false;
+
 			platform.ProcessMessages();
 
-			if (_isSuspended)
-			{
-				didPerformFullTick = false;
-				continue;
-			}
-
 			double currentPlatformTime = platform.GetSeconds();
-			double timeDelta = (_useAbsoluteTiming ? currentPlatformTime : preProcessPlatformTime) - lastTickPlatformTime;
-			lastTickPlatformTime = currentPlatformTime;
 
-			_currentTick.UnscaledDeltaTime = timeDelta;
-			_currentTick.UnscaledTime += _currentTick.UnscaledDeltaTime;
-			_currentTick.DeltaTime = _currentTick.UnscaledDeltaTime * _timeScale;
-			_currentTick.Time += _currentTick.DeltaTime;
-
-			PreTick();
-
-			std::vector<TickListener*> tempListeners(_tickListeners);
-			for (auto it = tempListeners.begin(); it != tempListeners.end(); it++)
+			if (!_isSuspended)
 			{
-				try
+				double timeDelta = (_useAbsoluteTiming ? currentPlatformTime : preProcessPlatformTime) - lastTickPlatformTime;
+				lastTickPlatformTime = currentPlatformTime;
+
+				_currentTick.UnscaledDeltaTime = timeDelta;
+				_currentTick.UnscaledTime += _currentTick.UnscaledDeltaTime;
+				_currentTick.DeltaTime = _currentTick.UnscaledDeltaTime * _timeScale;
+				_currentTick.Time += _currentTick.DeltaTime;
+
+				PreTick();
+
+				std::vector<TickListener*> tempListeners(_tickListeners);
+				for (auto it = tempListeners.begin(); it != tempListeners.end(); it++)
 				{
-					(*it)->Invoke(_currentTick);
+					try
+					{
+						(*it)->Invoke(_currentTick);
+					}
+					catch (const std::exception& ex)
+					{
+						CocoError("Error ticking: {}", ex.what());
+					}
 				}
-				catch (const std::exception& ex)
-				{
-					CocoError("Error ticking: {}", ex.what());
-				}
+
+				PostTick();
+
+				_lastTick = _currentTick;
+				_currentTick.TickNumber++;
+				didPerformFullTick = true;
 			}
-
-			PostTick();
-
-			_lastTick = _currentTick;
-			_currentTick.TickNumber++;
-			didPerformFullTick = true;
-
-			if (_targetTicksPerSecond > 0)
-				WaitForTargetTickTime(currentPlatformTime);
 		}
 	}
 
@@ -154,6 +151,8 @@ namespace Coco
 
 	void MainLoop::PreTick()
 	{
+		if (_listenersNeedSorting)
+			SortTickHandlers();
 	}
 
 	void MainLoop::PostTick()
@@ -162,9 +161,9 @@ namespace Coco
 
 	void MainLoop::WaitForTargetTickTime(double lastTickTime)
 	{
-		const double nextTickTime = lastTickTime + (1.0 / _targetTicksPerSecond);
-
 		EnginePlatform& platform = Engine::Get()->GetPlatform();
+
+		const double nextTickTime = lastTickTime + (1.0 / _targetTicksPerSecond);
 
 		double timeRemaining = nextTickTime - platform.GetSeconds();
 
