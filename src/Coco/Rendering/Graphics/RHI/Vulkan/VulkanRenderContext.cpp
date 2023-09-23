@@ -36,9 +36,9 @@ namespace Coco::Rendering::Vulkan
 		_waitOnSemaphores{},
 		_renderCompletedSignalSemaphores{},
 		_commandBuffer{},
-		_deviceCache(_device->GetCache())
+		_deviceCache(_device.GetCache())
 	{
-		DeviceQueue* graphicsQueue = _device->GetQueue(DeviceQueue::Type::Graphics);
+		DeviceQueue* graphicsQueue = _device.GetQueue(DeviceQueue::Type::Graphics);
 		if (!graphicsQueue)
 		{
 			throw std::exception("A graphics queue is required for rendering operations");
@@ -54,7 +54,7 @@ namespace Coco::Rendering::Vulkan
 		_renderCompletedSemaphore.Invalidate();
 		_renderCompletedFence.Invalidate();
 
-		DeviceQueue* graphicsQueue = _device->GetQueue(DeviceQueue::Type::Graphics);
+		DeviceQueue* graphicsQueue = _device.GetQueue(DeviceQueue::Type::Graphics);
 		if (graphicsQueue)
 		{
 			graphicsQueue->Pool.Free(*_commandBuffer);
@@ -62,7 +62,7 @@ namespace Coco::Rendering::Vulkan
 
 		_commandBuffer.reset();
 
-		_device->PurgeUnusedResources();
+		_device.PurgeUnusedResources();
 	}
 
 	void VulkanRenderContext::WaitForRenderingToComplete()
@@ -408,7 +408,7 @@ namespace Coco::Rendering::Vulkan
 			if (_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Shader) ||
 				!_vulkanRenderOperation->BoundGlobalDescriptors.has_value())
 			{
-				pipeline = &_device->GetCache()->GetOrCreatePipeline(
+				pipeline = &_device.GetCache()->GetOrCreatePipeline(
 					_vulkanRenderOperation->RenderPass,
 					_renderOperation->CurrentPassIndex,
 					shader

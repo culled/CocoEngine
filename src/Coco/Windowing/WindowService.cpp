@@ -9,7 +9,7 @@ namespace Coco::Windowing
 	WindowService::WindowService(bool dpiAware) :
 		_windows{}
 	{
-		if (WindowingPlatform* windowPlatform = dynamic_cast<WindowingPlatform*>(Engine::Get()->GetPlatform()))
+		if (WindowingPlatform* windowPlatform = dynamic_cast<WindowingPlatform*>(&Engine::Get()->GetPlatform()))
 		{
 #ifdef COCO_HIGHDPI_SUPPORT
 			windowPlatform->SetDPIAwareMode(dpiAware);
@@ -34,7 +34,7 @@ namespace Coco::Windowing
 
 	Ref<Window> WindowService::CreateWindow(const WindowCreateParams& createParams)
 	{
-		if (WindowingPlatform* windowPlatform = dynamic_cast<WindowingPlatform*>(Engine::Get()->GetPlatform()))
+		if (WindowingPlatform* windowPlatform = dynamic_cast<WindowingPlatform*>(&Engine::Get()->GetPlatform()))
 		{
 			if (_windows.size() > 0 && !windowPlatform->SupportsMultipleWindows())
 			{
@@ -74,7 +74,7 @@ namespace Coco::Windowing
 
 	std::vector<DisplayInfo> WindowService::GetDisplays() const
 	{
-		if (const WindowingPlatform* windowPlatform = dynamic_cast<const WindowingPlatform*>(Engine::cGet()->GetPlatform()))
+		if (const WindowingPlatform* windowPlatform = dynamic_cast<const WindowingPlatform*>(&Engine::cGet()->GetPlatform()))
 		{
 			return windowPlatform->GetDisplays();
 		}
@@ -103,7 +103,7 @@ namespace Coco::Windowing
 		// Stop the program if the main window was closed
 		if (isMainWindow)
 		{
-			Engine::Get()->GetMainLoop()->Stop();
+			MainLoop::Get()->Stop();
 		}
 		else
 		{

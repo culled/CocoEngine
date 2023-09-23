@@ -31,19 +31,19 @@ namespace Coco::Input
 
 		/// @brief Gets the current keyboard
 		/// @return The current keyboard
-		Keyboard* GetKeyboard() { return _keyboard.get(); }
+		Keyboard& GetKeyboard() { return *_keyboard; }
 
 		/// @brief Gets the current keyboard
 		/// @return The current keyboard
-		const Keyboard* GetKeyboard() const { return _keyboard.get(); }
+		const Keyboard& GetKeyboard() const { return *_keyboard; }
 
 		/// @brief Gets the current mouse
 		/// @return The current mouse
-		Mouse* GetMouse() { return _mouse.get(); }
+		Mouse& GetMouse() { return *_mouse; }
 
 		/// @brief Gets the current mouse
 		/// @return The current mouse
-		const Mouse* GetMouse() const { return _mouse.get(); }
+		const Mouse& GetMouse() const { return *_mouse; }
 
 	private:
 		/// @brief Tick for updating the current state of the peripherals

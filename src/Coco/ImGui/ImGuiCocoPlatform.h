@@ -8,7 +8,7 @@
 #include <Coco/Rendering/Providers/RenderViewProvider.h>
 #include <Coco/Rendering/Providers/SceneDataProvider.h>
 
-namespace Coco::ImGui
+namespace Coco::ImGuiCoco
 {
 	using namespace Coco::Rendering;
 

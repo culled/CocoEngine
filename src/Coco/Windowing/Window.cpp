@@ -28,7 +28,7 @@ namespace Coco::Windowing
 		if (!Rendering::RenderService::Get())
 			throw std::exception("No RenderService is active");
 
-		_presenter = Rendering::RenderService::Get()->GetDevice()->CreatePresenter();
+		_presenter = Rendering::RenderService::Get()->GetDevice().CreatePresenter();
 	}
 
 	Window::~Window()
@@ -43,7 +43,7 @@ namespace Coco::Windowing
 		if (_presenter.IsValid())
 		{
 			_presenter.Invalidate();
-			Rendering::RenderService::Get()->GetDevice()->PurgeUnusedResources();
+			Rendering::RenderService::Get()->GetDevice().PurgeUnusedResources();
 		}
 	}
 

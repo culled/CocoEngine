@@ -36,18 +36,18 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanImage::~VulkanImage()
 	{
-		_device->WaitForIdle();
+		_device.WaitForIdle();
 
 		if (_nativeView)
 		{
-			vkDestroyImageView(_device->GetDevice(), _nativeView, _device->GetAllocationCallbacks());
+			vkDestroyImageView(_device.GetDevice(), _nativeView, _device.GetAllocationCallbacks());
 			_nativeView = nullptr;
 		}
 
 		if (_image && !_isManagedExternally)
 		{
-			vkFreeMemory(_device->GetDevice(), _imageMemory, _device->GetAllocationCallbacks());
-			vkDestroyImage(_device->GetDevice(), _image, _device->GetAllocationCallbacks());
+			vkFreeMemory(_device.GetDevice(), _imageMemory, _device.GetAllocationCallbacks());
+			vkDestroyImage(_device.GetDevice(), _image, _device.GetAllocationCallbacks());
 
 			_imageMemory = nullptr;
 			_image = nullptr;
@@ -61,7 +61,7 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanImage::SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize)
 	{
-		DeviceQueue* queue = _device->GetQueue(DeviceQueue::Type::Graphics);
+		DeviceQueue* queue = _device.GetQueue(DeviceQueue::Type::Graphics);
 		if (!queue)
 			throw std::exception("A graphics queue is required to transfer pixel data");
 
@@ -77,7 +77,7 @@ namespace Coco::Rendering::Vulkan
 			throw std::exception(err.c_str());
 		}
 
-		Ref<VulkanBuffer> staging = _device->CreateBuffer(
+		Ref<VulkanBuffer> staging = _device.CreateBuffer(
 			pixelDataSize,
 			BufferUsageFlags::HostVisible | BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination,
 			true);
@@ -92,11 +92,11 @@ namespace Coco::Rendering::Vulkan
 		TransitionLayout(*buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		buffer->EndAndSubmit();
-		_device->WaitForQueueIdle(DeviceQueue::Type::Graphics);
+		_device.WaitForQueueIdle(DeviceQueue::Type::Graphics);
 		queue->Pool.Free(*buffer);
 
 		staging.Invalidate();
-		_device->PurgeUnusedResources();
+		_device.PurgeUnusedResources();
 	}
 
 	void VulkanImage::TransitionLayout(VulkanCommandBuffer& commandBuffer, VkImageLayout to)
@@ -104,7 +104,7 @@ namespace Coco::Rendering::Vulkan
 		if (_currentLayout == to || to == VK_IMAGE_LAYOUT_UNDEFINED)
 			return;
 
-		DeviceQueue* graphicsQueue = _device->GetQueue(DeviceQueue::Type::Graphics);
+		DeviceQueue* graphicsQueue = _device.GetQueue(DeviceQueue::Type::Graphics);
 		if (!graphicsQueue)
 			throw std::exception("Device needs a graphics queue to transition image layouts");
 
@@ -229,13 +229,13 @@ namespace Coco::Rendering::Vulkan
 		create.samples = VK_SAMPLE_COUNT_1_BIT; // TODO: multiple samples
 		create.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // TODO: configurable sharing mode
 
-		AssertVkSuccess(vkCreateImage(_device->GetDevice(), &create, _device->GetAllocationCallbacks(), &_image));
+		AssertVkSuccess(vkCreateImage(_device.GetDevice(), &create, _device.GetAllocationCallbacks(), &_image));
 
 		// Query memory requirements
 		VkMemoryRequirements memoryRequirements;
-		vkGetImageMemoryRequirements(_device->GetDevice(), _image, &memoryRequirements);
+		vkGetImageMemoryRequirements(_device.GetDevice(), _image, &memoryRequirements);
 
-		if (!_device->FindMemoryIndex(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _memoryIndex))
+		if (!_device.FindMemoryIndex(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _memoryIndex))
 			throw std::exception("Unable to find memory for image");
 
 		// Allocate memory
@@ -244,10 +244,10 @@ namespace Coco::Rendering::Vulkan
 		allocateInfo.allocationSize = memoryRequirements.size;
 		allocateInfo.memoryTypeIndex = _memoryIndex;
 
-		AssertVkSuccess(vkAllocateMemory(_device->GetDevice(), &allocateInfo, _device->GetAllocationCallbacks(), &_imageMemory));
+		AssertVkSuccess(vkAllocateMemory(_device.GetDevice(), &allocateInfo, _device.GetAllocationCallbacks(), &_imageMemory));
 
 		// Bind image memory
-		AssertVkSuccess(vkBindImageMemory(_device->GetDevice(), _image, _imageMemory, 0));
+		AssertVkSuccess(vkBindImageMemory(_device.GetDevice(), _image, _imageMemory, 0));
 	}
 
 	void VulkanImage::CreateNativeImageView()
@@ -291,7 +291,7 @@ namespace Coco::Rendering::Vulkan
 		createInfo.subresourceRange.layerCount = static_cast<uint32_t>(_description.Layers);
 		createInfo.image = _image;
 
-		AssertVkSuccess(vkCreateImageView(_device->GetDevice(), &createInfo, _device->GetAllocationCallbacks(), &_nativeView));
+		AssertVkSuccess(vkCreateImageView(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_nativeView));
 	}
 
 	void VulkanImage::CopyFromBuffer(VulkanCommandBuffer& commandBuffer, VulkanBuffer& source)

@@ -70,19 +70,19 @@ namespace Coco
 	{
 		_isRunning = true;
 
-		EnginePlatform* platform = Engine::Get()->GetPlatform();
+		EnginePlatform& platform = Engine::Get()->GetPlatform();
 
 		// Initialize the current tick
 		_currentTick.TickNumber = 0;
-		_currentTick.UnscaledTime = platform->GetRunningTime();
+		_currentTick.UnscaledTime = platform.GetRunningTime();
 		_currentTick.UnscaledDeltaTime = 0.0;
 		_currentTick.Time = _currentTick.UnscaledTime;
 		_currentTick.DeltaTime = 0.0;
 		_lastTick = _currentTick;
 
 		bool didPerformFullTick = true;
-		double preProcessPlatformTime = 0.0;
-		double lastTickPlatformTime = 0.0;
+		double preProcessPlatformTime = platform.GetSeconds();
+		double lastTickPlatformTime = preProcessPlatformTime;
 
 		while (_isRunning)
 		{
@@ -91,9 +91,9 @@ namespace Coco
 
 			// Save the pre-process time only if we performed a full tick so we can calculate an adjusted delta time
 			if (didPerformFullTick)
-				preProcessPlatformTime = platform->GetRunningTime();
+				preProcessPlatformTime = platform.GetSeconds();
 
-			platform->ProcessMessages();
+			platform.ProcessMessages();
 
 			if (_isSuspended)
 			{
@@ -101,7 +101,7 @@ namespace Coco
 				continue;
 			}
 
-			double currentPlatformTime = platform->GetRunningTime();
+			double currentPlatformTime = platform.GetSeconds();
 			double timeDelta = (_useAbsoluteTiming ? currentPlatformTime : preProcessPlatformTime) - lastTickPlatformTime;
 			lastTickPlatformTime = currentPlatformTime;
 
@@ -164,9 +164,9 @@ namespace Coco
 	{
 		const double nextTickTime = lastTickTime + (1.0 / _targetTicksPerSecond);
 
-		EnginePlatform* platform = Engine::Get()->GetPlatform();
+		EnginePlatform& platform = Engine::Get()->GetPlatform();
 
-		double timeRemaining = nextTickTime - platform->GetRunningTime();
+		double timeRemaining = nextTickTime - platform.GetSeconds();
 
 		if (timeRemaining < 0.0)
 			return;
@@ -177,9 +177,9 @@ namespace Coco
 		// Sleep until we feel like sleeping would overshoot our target time
 		while (timeRemaining > estimatedWait)
 		{
-			const double waitStartTime = platform->GetSeconds();
-			platform->Sleep(1);
-			const double waitTime = platform->GetSeconds() - waitStartTime;
+			const double waitStartTime = platform.GetSeconds();
+			platform.Sleep(1);
+			const double waitTime = platform.GetSeconds() - waitStartTime;
 		
 			timeRemaining -= waitTime;
 		
@@ -191,7 +191,7 @@ namespace Coco
 		_lastAverageSleepTime = estimatedWait * 0.99;
 
 		// Actively wait until our next tick time
-		while (platform->GetRunningTime() < nextTickTime)
+		while (platform.GetSeconds() < nextTickTime)
 		{}
 	}
 }

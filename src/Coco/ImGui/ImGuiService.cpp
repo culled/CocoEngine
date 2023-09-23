@@ -9,7 +9,7 @@
 
 #include <imgui.h>
 
-namespace Coco::ImGui
+namespace Coco::ImGuiCoco
 {
 	const int ImGuiService::sImGuiNewFramePriority = -100;
 	const int ImGuiService::sImGuiDrawPriority = 100;
@@ -56,9 +56,6 @@ namespace Coco::ImGui
 			return;
 
 		::ImGui::NewFrame();
-
-		// HACK: temporary
-		::ImGui::ShowDemoWindow();
 	}
 
 	void ImGuiService::HandleDrawTick(const TickInfo& tickInfo)

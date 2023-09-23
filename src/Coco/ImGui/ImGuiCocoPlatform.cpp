@@ -7,7 +7,7 @@
 #include <imgui.h>
 #include "ImGuiRenderPass.h"
 
-namespace Coco::ImGui
+namespace Coco::ImGuiCoco
 {
 	ImGuiKey ToImGuiKey(Input::KeyboardKey key)
 	{
@@ -271,8 +271,8 @@ namespace Coco::ImGui
         blendState.AlphaDestinationBlendFactor = BlendFactorMode::OneMinusSourceAlpha;
         blendState.AlphaBlendOperation = BlendOperation::Add;
 
-        ResourceLibrary* resources = Engine::Get()->GetResourceLibrary();
-        _shader = resources->Create<Shader>("ImGui", ImGuiRenderPass::sPassName);
+        ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
+        _shader = resources.Create<Shader>("ImGui", ImGuiRenderPass::sPassName);
         _shader->AddRenderPassShader(RenderPassShader(
             0,
             ImGuiRenderPass::sPassName,
@@ -298,14 +298,14 @@ namespace Coco::ImGui
             ));
 
         // Setup ImGui mesh
-        _mesh = resources->Create<Mesh>("ImGui", true);
+        _mesh = resources.Create<Mesh>("ImGui", true);
 
         // Setup the font texture
         int width, height;
         unsigned char* pixels = nullptr;
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-        _texture = resources->Create<Texture>(
+        _texture = resources.Create<Texture>(
             "ImGui",
             ImageDescription(
                 static_cast<uint32>(width), static_cast<uint32>(height), 1,
@@ -319,7 +319,7 @@ namespace Coco::ImGui
         io.Fonts->SetTexID(static_cast<void*>(_texture.Get()));
 
         // Setup ImGui material
-        _material = resources->Create<Material>("ImGui", _shader);
+        _material = resources.Create<Material>("ImGui", _shader);
         _material->SetTexture("sTexture", _texture);
     }
 
@@ -349,7 +349,7 @@ namespace Coco::ImGui
             SizeInt(static_cast<uint32>(drawData->DisplaySize.x), static_cast<uint32>(drawData->DisplaySize.y))
         );
 
-        Matrix4x4 projection = RenderService::Get()->GetPlatform()->CreateOrthographicProjection(
+        Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(
             viewport.GetLeft(),
             viewport.GetRight(),
             viewport.GetTop(),
@@ -447,28 +447,28 @@ namespace Coco::ImGui
 		io.DisplaySize = ImVec2(static_cast<float>(displaySize.Width), static_cast<float>(displaySize.Height));
 
 		// Add mouse events
-		Mouse* mouse = input->GetMouse();
+		Mouse& mouse = input->GetMouse();
 		if (!io.WantSetMousePos)
 		{
-			Vector2Int mousePos = mouse->GetPosition();
+			Vector2Int mousePos = mouse.GetPosition();
 			io.AddMousePosEvent(static_cast<float>(mousePos.X), static_cast<float>(mousePos.Y));
 		}
 
-		io.AddMouseButtonEvent(0, mouse->IsButtonPressed(MouseButton::Left));
-		io.AddMouseButtonEvent(1, mouse->IsButtonPressed(MouseButton::Right));
-		io.AddMouseButtonEvent(2, mouse->IsButtonPressed(MouseButton::Middle));
-		io.AddMouseButtonEvent(3, mouse->IsButtonPressed(MouseButton::Button3));
-		io.AddMouseButtonEvent(4, mouse->IsButtonPressed(MouseButton::Button4));
+		io.AddMouseButtonEvent(0, mouse.IsButtonPressed(MouseButton::Left));
+		io.AddMouseButtonEvent(1, mouse.IsButtonPressed(MouseButton::Right));
+		io.AddMouseButtonEvent(2, mouse.IsButtonPressed(MouseButton::Middle));
+		io.AddMouseButtonEvent(3, mouse.IsButtonPressed(MouseButton::Button3));
+		io.AddMouseButtonEvent(4, mouse.IsButtonPressed(MouseButton::Button4));
 
-		Vector2Int scrollDelta = mouse->GetScrollWheelDelta();
+		Vector2Int scrollDelta = mouse.GetScrollWheelDelta();
 		if (scrollDelta != Vector2Int::Zero)
 			io.AddMouseWheelEvent(static_cast<float>(scrollDelta.X), static_cast<float>(scrollDelta.Y));
 
-		Keyboard* keyboard = input->GetKeyboard();
-        io.AddKeyEvent(ImGuiMod_Ctrl, keyboard->IsKeyPressed(KeyboardKey::LeftControl) || keyboard->IsKeyPressed(KeyboardKey::RightControl));
-        io.AddKeyEvent(ImGuiMod_Shift, keyboard->IsKeyPressed(KeyboardKey::LeftShift) || keyboard->IsKeyPressed(KeyboardKey::RightShift));
-        io.AddKeyEvent(ImGuiMod_Alt, keyboard->IsKeyPressed(KeyboardKey::LeftAlt) || keyboard->IsKeyPressed(KeyboardKey::RightAlt));
-        io.AddKeyEvent(ImGuiMod_Super, keyboard->IsKeyPressed(KeyboardKey::LeftMeta) || keyboard->IsKeyPressed(KeyboardKey::RightMeta));
+		Keyboard& keyboard = input->GetKeyboard();
+        io.AddKeyEvent(ImGuiMod_Ctrl, keyboard.IsKeyPressed(KeyboardKey::LeftControl) || keyboard.IsKeyPressed(KeyboardKey::RightControl));
+        io.AddKeyEvent(ImGuiMod_Shift, keyboard.IsKeyPressed(KeyboardKey::LeftShift) || keyboard.IsKeyPressed(KeyboardKey::RightShift));
+        io.AddKeyEvent(ImGuiMod_Alt, keyboard.IsKeyPressed(KeyboardKey::LeftAlt) || keyboard.IsKeyPressed(KeyboardKey::RightAlt));
+        io.AddKeyEvent(ImGuiMod_Super, keyboard.IsKeyPressed(KeyboardKey::LeftMeta) || keyboard.IsKeyPressed(KeyboardKey::RightMeta));
 
 		for (int i = 0; i < KeyboardState::KeyCount; i++)
 		{
@@ -478,9 +478,9 @@ namespace Coco::ImGui
             if (imGuiKey == ImGuiKey_None)
                 continue;
 
-            if (keyboard->WasKeyJustPressed(key))
+            if (keyboard.WasKeyJustPressed(key))
                 io.AddKeyEvent(imGuiKey, true);
-            else if (keyboard->WasKeyJustReleased(key))
+            else if (keyboard.WasKeyJustReleased(key))
                 io.AddKeyEvent(imGuiKey, false);
 		}
         

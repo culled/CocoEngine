@@ -6,7 +6,7 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanCommandBufferPool::VulkanCommandBufferPool(VulkanGraphicsDevice* device, VkQueue queue, uint32 queueFamilyIndex) :
+	VulkanCommandBufferPool::VulkanCommandBufferPool(VulkanGraphicsDevice& device, VkQueue queue, uint32 queueFamilyIndex) :
 		_device(device),
 		_queue(queue),
 		_queueFamilyIndex(queueFamilyIndex),
@@ -18,23 +18,23 @@ namespace Coco::Rendering::Vulkan
 		createInfo.queueFamilyIndex = _queueFamilyIndex;
 		createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-		AssertVkSuccess(vkCreateCommandPool(_device->GetDevice(), &createInfo, _device->GetAllocationCallbacks(), &_pool));
+		AssertVkSuccess(vkCreateCommandPool(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_pool));
 	}
 
 	VulkanCommandBufferPool::~VulkanCommandBufferPool()
 	{
-		_device->WaitForIdle();
+		_device.WaitForIdle();
 
 		if (_allocatedBuffers.size() > 0)
 		{
-			vkFreeCommandBuffers(_device->GetDevice(), _pool, static_cast<uint32_t>(_allocatedBuffers.size()), _allocatedBuffers.data());
+			vkFreeCommandBuffers(_device.GetDevice(), _pool, static_cast<uint32_t>(_allocatedBuffers.size()), _allocatedBuffers.data());
 		}
 
 		_allocatedBuffers.clear();
 
 		if (_pool)
 		{
-			vkDestroyCommandPool(_device->GetDevice(), _pool, _device->GetAllocationCallbacks());
+			vkDestroyCommandPool(_device.GetDevice(), _pool, _device.GetAllocationCallbacks());
 			_pool = nullptr;
 		}
 	}
@@ -48,7 +48,7 @@ namespace Coco::Rendering::Vulkan
 		allocateInfo.level = topLevel ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 		allocateInfo.commandBufferCount = 1;
 
-		AssertVkSuccess(vkAllocateCommandBuffers(_device->GetDevice(), &allocateInfo, &buffer));
+		AssertVkSuccess(vkAllocateCommandBuffers(_device.GetDevice(), &allocateInfo, &buffer));
 
 		_allocatedBuffers.push_back(buffer);
 		return CreateUniqueRef<VulkanCommandBuffer>(buffer, _queue);
@@ -66,6 +66,6 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		_allocatedBuffers.erase(it);
-		vkFreeCommandBuffers(_device->GetDevice(), _pool, 1, &cmdBuffer);
+		vkFreeCommandBuffers(_device.GetDevice(), _pool, 1, &cmdBuffer);
 	}
 }

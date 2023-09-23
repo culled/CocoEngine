@@ -30,9 +30,9 @@ namespace Coco
 			return true;
 		}
 
-		EngineFileSystem* efs = Engine::Get()->GetFileSystem();
+		EngineFileSystem& efs = Engine::Get()->GetFileSystem();
 
-		if (!efs->FileExists(contentPath))
+		if (!efs.FileExists(contentPath))
 		{
 			CocoError("File at \"{}\" does not exist", contentPath)
 			return false;
@@ -46,7 +46,7 @@ namespace Coco
 				return false;
 		}
 
-		File f = efs->OpenFile(contentPath, FileOpenFlags::Read);
+		File f = efs.OpenFile(contentPath, FileOpenFlags::Read);
 		std::vector<uint8> data = f.ReadToEnd();
 		f.Close();
 
@@ -62,9 +62,9 @@ namespace Coco
 
 	bool ResourceLibrary::Save(const string& contentPath, Ref<Resource> resource, bool overwrite)
 	{
-		EngineFileSystem* efs = Engine::Get()->GetFileSystem();
+		EngineFileSystem& efs = Engine::Get()->GetFileSystem();
 
-		if (!overwrite && efs->FileExists(contentPath))
+		if (!overwrite && efs.FileExists(contentPath))
 		{
 			CocoError("Cannot overwrite existing file at \"{}\"", contentPath)
 			return false;
@@ -82,7 +82,7 @@ namespace Coco
 		{
 			std::vector<uint8> data = serializer->Serialize(resource);
 
-			File f = efs->OpenFile(contentPath, FileOpenFlags::Write);
+			File f = efs.OpenFile(contentPath, FileOpenFlags::Write);
 			f.Write(data);
 			f.Close();
 

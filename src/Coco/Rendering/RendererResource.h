@@ -16,6 +16,6 @@ namespace Coco::Rendering
     protected:
         /// @brief Gets the active RenderService. Throws if no RenderService is active
         /// @return The active render service
-        RenderService* EnsureRenderService();
+        RenderService& EnsureRenderService();
     };
 }

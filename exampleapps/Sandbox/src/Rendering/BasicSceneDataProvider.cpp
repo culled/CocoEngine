@@ -24,16 +24,16 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 
 	MeshUtilities::CreateUVSphere(16, 8, 1.0, Vector3(5.0, 0.0, 3.0), format, vertices, indices);
 
-	ResourceLibrary* resourceLibrary = Engine::Get()->GetResourceLibrary();
+	ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
-	_mesh = resourceLibrary->Create<Mesh>("Mesh");
+	_mesh = resourceLibrary.Create<Mesh>("Mesh");
 	_mesh->SetVertices(format, vertices);
 	_mesh->SetIndices(indices, 0);
 	
 	GraphicsPipelineState pipelineState{};
 	//pipelineState.CullingMode = CullMode::None;
 
-	_shader = resourceLibrary->Create<Shader>("Shader", "");
+	_shader = resourceLibrary.Create<Shader>("Shader", "");
 	_shader->AddRenderPassShader(
 		RenderPassShader(
 			0,
@@ -62,9 +62,9 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 		)
 	);
 
-	_texture = resourceLibrary->Create<Texture>("Texture", "assets/textures/UV_Gradient.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, ImageSamplerDescription());
+	_texture = resourceLibrary.Create<Texture>("Texture", "assets/textures/UV_Gradient.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, ImageSamplerDescription());
 
-	_material = resourceLibrary->Create<Material>("Material", _shader);
+	_material = resourceLibrary.Create<Material>("Material", _shader);
 	_material->SetShader(_shader);
 	_material->SetFloat4("baseColor", Color::White);
 	_material->SetTexture("baseTexSampler", _texture);

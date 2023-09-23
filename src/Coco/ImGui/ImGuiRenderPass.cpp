@@ -4,7 +4,7 @@
 #include <Coco/Core/Engine.h>
 #include <imgui.h>
 
-namespace Coco::ImGui
+namespace Coco::ImGuiCoco
 {
     const string ImGuiRenderPass::sPassName = "imgui";
 

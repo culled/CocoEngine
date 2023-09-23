@@ -3,7 +3,7 @@
 
 #include <vector>
 
-namespace Coco::ImGui
+namespace Coco::ImGuiCoco
 {
     using namespace Coco::Rendering;
 

@@ -79,7 +79,7 @@ namespace Coco::Rendering::Vulkan
 		layoutInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.size());
 		layoutInfo.pPushConstantRanges = pushConstantRanges.size() > 0 ? pushConstantRanges.data() : nullptr;
 
-		AssertVkSuccess(vkCreatePipelineLayout(_device->GetDevice(), &layoutInfo, _device->GetAllocationCallbacks(), &_pipelineLayout));
+		AssertVkSuccess(vkCreatePipelineLayout(_device.GetDevice(), &layoutInfo, _device.GetAllocationCallbacks(), &_pipelineLayout));
 
 		// Setup dynamic state
 		std::array<VkDynamicState, 3> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH };
@@ -225,11 +225,11 @@ namespace Coco::Rendering::Vulkan
 		createInfo.basePipelineIndex = -1;
 
 		AssertVkSuccess(vkCreateGraphicsPipelines(
-			_device->GetDevice(),
+			_device.GetDevice(),
 			VK_NULL_HANDLE,
 			1,
 			&createInfo,
-			_device->GetAllocationCallbacks(),
+			_device.GetAllocationCallbacks(),
 			&_pipeline
 		));
 
@@ -240,17 +240,17 @@ namespace Coco::Rendering::Vulkan
 	{
 		if (_pipeline || _pipelineLayout)
 		{
-			_device->WaitForIdle();
+			_device.WaitForIdle();
 
 			if (_pipeline)
 			{
-				vkDestroyPipeline(_device->GetDevice(), _pipeline, _device->GetAllocationCallbacks());
+				vkDestroyPipeline(_device.GetDevice(), _pipeline, _device.GetAllocationCallbacks());
 				_pipeline = nullptr;
 			}
 
 			if (_pipelineLayout)
 			{
-				vkDestroyPipelineLayout(_device->GetDevice(), _pipelineLayout, _device->GetAllocationCallbacks());
+				vkDestroyPipelineLayout(_device.GetDevice(), _pipelineLayout, _device.GetAllocationCallbacks());
 				_pipelineLayout = nullptr;
 			}
 

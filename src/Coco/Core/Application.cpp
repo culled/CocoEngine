@@ -13,7 +13,7 @@ namespace Coco
 		_createParams(createParams),
 		_log(CreateUniqueRef<Log>(createParams.Name, LogMessageSeverity::Trace))
 	{
-		Engine::cGet()->GetLog()->CopySinksTo(*_log);
+		Engine::cGet()->GetLog().CopySinksTo(*_log);
 	}
 
 	Application::~Application()
@@ -23,6 +23,6 @@ namespace Coco
 
 	void Application::Quit(int exitCode)
 	{
-		Engine::Get()->GetMainLoop()->Stop();
+		MainLoop::Get()->Stop();
 	}
 }

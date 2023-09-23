@@ -11,7 +11,7 @@ namespace Coco::Input
 		_preTickHandler(this, &InputService::HandlePreTick, PreProcessTickPriority),
 		_postTickHandler(this, &InputService::HandlePostTick, PostProcessTickPriority)
 	{
-		MainLoop* loop = Engine::Get()->GetMainLoop();
+		MainLoop* loop = MainLoop::Get();
 		loop->AddListener(_preTickHandler);
 		loop->AddListener(_postTickHandler);
 
@@ -20,7 +20,7 @@ namespace Coco::Input
 
 	InputService::~InputService()
 	{
-		MainLoop* loop = Engine::Get()->GetMainLoop();
+		MainLoop* loop = MainLoop::Get();
 		loop->RemoveListener(_preTickHandler);
 		loop->RemoveListener(_postTickHandler);
 

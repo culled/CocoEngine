@@ -5,7 +5,7 @@
 #include "ImGuiRenderPass.h"
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 
-namespace Coco::ImGui
+namespace Coco::ImGuiCoco
 {
     /// @brief An EngineService that provides ImGui functionality
     class ImGuiService :

@@ -52,6 +52,7 @@ project "Sandbox"
     end
 
     if (Services["ImGui"] == true) then
+        includedirs { "%{IncludeDir.ImGui}" }
         links { "Coco.ImGui" }
     end
 

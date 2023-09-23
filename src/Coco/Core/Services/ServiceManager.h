@@ -23,7 +23,7 @@ namespace Coco
 		/// @param ...args The arguments to pass to the service's constructor
 		/// @return The created service
 		template<typename ServiceType, typename ... Args>
-		ServiceType* CreateService(Args&& ... args)
+		ServiceType& CreateService(Args&& ... args)
 		{
 			auto result = _services.try_emplace(typeid(ServiceType), CreateUniqueRef<ServiceType>(std::forward<Args>(args)...));
 
@@ -33,7 +33,7 @@ namespace Coco
 			}
 
 			UniqueRef<EngineService>& service = result.first->second;
-			return static_cast<ServiceType*>(service.get());
+			return static_cast<ServiceType&>(*service);
 		}
 
 		/// @brief Checks if a service of the given type exists
@@ -54,16 +54,16 @@ namespace Coco
 		/// NOTE: if you're unsure if the service exists, call Has() to check if the service exists
 		/// @param type The type of service to get
 		/// @return The service
-		EngineService* GetService(const std::type_info& type);
+		EngineService& GetService(const std::type_info& type);
 
 		/// @brief Gets a service of the given type.
 		/// NOTE: if you're unsure if the service exists, call Has() to check if the service exists 
 		/// @tparam ServiceType The type of service
 		/// @return The service
 		template<typename ServiceType>
-		ServiceType* GetService()
+		ServiceType& GetService()
 		{
-			return static_cast<ServiceType*>(GetService(typeid(ServiceType)));
+			return static_cast<ServiceType&>(GetService(typeid(ServiceType)));
 		}
 	};
 }

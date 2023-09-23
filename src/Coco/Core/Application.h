@@ -41,11 +41,11 @@ namespace Coco
 
 		/// @brief Gets the application's log
 		/// @return The application's log
-		Log* GetLog() { return _log.get(); }
+		Log& GetLog() { return *_log; }
 
 		/// @brief Gets the application's log
 		/// @return The application's log
-		const Log* GetLog() const { return _log.get(); }
+		const Log& GetLog() const { return *_log; }
 
 		/// @brief Calls to quit the application
 		/// @param exitCode The code to quit with

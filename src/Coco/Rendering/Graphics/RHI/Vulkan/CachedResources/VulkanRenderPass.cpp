@@ -215,7 +215,7 @@ namespace Coco::Rendering::Vulkan
 		createInfo.dependencyCount = static_cast<uint32_t>(subpassDependencies.size());
 		createInfo.pDependencies = subpassDependencies.data();
 
-		AssertVkSuccess(vkCreateRenderPass(_device->GetDevice(), &createInfo, _device->GetAllocationCallbacks(), &_renderPass));
+		AssertVkSuccess(vkCreateRenderPass(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_renderPass));
 
 		CocoTrace("Created VulkanRenderPass")
 	}
@@ -225,9 +225,9 @@ namespace Coco::Rendering::Vulkan
 		if (!_renderPass)
 			return;
 
-		_device->WaitForIdle();
+		_device.WaitForIdle();
 
-		vkDestroyRenderPass(_device->GetDevice(), _renderPass, _device->GetAllocationCallbacks());
+		vkDestroyRenderPass(_device.GetDevice(), _renderPass, _device.GetAllocationCallbacks());
 		_renderPass = nullptr;
 
 		CocoTrace("Destroyed VulkanRenderPass")

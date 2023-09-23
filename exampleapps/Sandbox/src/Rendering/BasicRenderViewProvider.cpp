@@ -43,7 +43,7 @@ UniqueRef<RenderView> BasicRenderViewProvider::CreateRenderView(const CompiledRe
     //Matrix4x4 view = Matrix4x4::CreateLookAtMatrix(Vector3::One * 3.0, Vector3::Zero, Vector3::Up);
     //Matrix4x4 view = Matrix4x4::CreateLookAtMatrix(Vector3::Zero, Vector3::Forward, Vector3::Up);
     //Matrix4x4 projection = RenderService::Get()->GetPlatform()->CreateOrthographicProjection(2.0, aspectRatio, 0.1, 100);
-    Matrix4x4 projection = RenderService::Get()->GetPlatform()->CreatePerspectiveProjection(Math::DegToRad(90.0), aspectRatio, 0.1, 100);
+    Matrix4x4 projection = RenderService::Get()->GetPlatform().CreatePerspectiveProjection(Math::DegToRad(90.0), aspectRatio, 0.1, 100);
 
     return CreateUniqueRef<RenderView>(viewport, viewport, view, projection, rts);
 }
@@ -55,33 +55,33 @@ void BasicRenderViewProvider::Tick(const TickInfo& tickInfo)
     Vector3 velocity = Vector3::Zero;
 
     InputService* input = InputService::Get();
-    Mouse* mouse = input->GetMouse();
+    Mouse& mouse = input->GetMouse();
 
-    Vector2Int mouseDelta = mouse->GetDelta();
+    Vector2Int mouseDelta = mouse.GetDelta();
     Vector3 eulerAngles = _cameraTransform.LocalRotation.ToEulerAngles();
     eulerAngles.X = Math::Clamp(eulerAngles.X - mouseDelta.Y * _mouseSensitivity, Math::DegToRad(-90.0), Math::DegToRad(90.0));
     eulerAngles.Y -= mouseDelta.X * _mouseSensitivity;
 
     _cameraTransform.LocalRotation = Quaternion(eulerAngles);
 
-    Keyboard* keyboard = input->GetKeyboard();
+    Keyboard& keyboard = input->GetKeyboard();
 
-    if (keyboard->IsKeyPressed(KeyboardKey::W))
+    if (keyboard.IsKeyPressed(KeyboardKey::W))
         velocity += Vector3::Forward;
 
-    if (keyboard->IsKeyPressed(KeyboardKey::S))
+    if (keyboard.IsKeyPressed(KeyboardKey::S))
         velocity += Vector3::Backward;
 
-    if (keyboard->IsKeyPressed(KeyboardKey::D))
+    if (keyboard.IsKeyPressed(KeyboardKey::D))
         velocity += Vector3::Right;
 
-    if (keyboard->IsKeyPressed(KeyboardKey::A))
+    if (keyboard.IsKeyPressed(KeyboardKey::A))
         velocity += Vector3::Left;
 
-    if (keyboard->IsKeyPressed(KeyboardKey::E))
+    if (keyboard.IsKeyPressed(KeyboardKey::E))
         velocity += Vector3::Up;
 
-    if (keyboard->IsKeyPressed(KeyboardKey::Q))
+    if (keyboard.IsKeyPressed(KeyboardKey::Q))
         velocity += Vector3::Down;
 
     velocity = _cameraTransform.LocalRotation * velocity;

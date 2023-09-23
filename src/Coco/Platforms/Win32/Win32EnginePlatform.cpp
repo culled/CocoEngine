@@ -436,24 +436,24 @@ namespace Coco::Platforms::Win32
 		if (!services->HasService<InputService>())
 			return;
 
-		InputService* input = services->GetService<InputService>();
+		InputService& input = services->GetService<InputService>();
 
 		switch (message)
 		{
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
-			input->GetKeyboard()->UpdateKeyState(static_cast<KeyboardKey>(wParam), true);
+			input.GetKeyboard().UpdateKeyState(static_cast<KeyboardKey>(wParam), true);
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			input->GetKeyboard()->UpdateKeyState(static_cast<KeyboardKey>(wParam), false);
+			input.GetKeyboard().UpdateKeyState(static_cast<KeyboardKey>(wParam), false);
 			break;
 		case WM_MOUSEMOVE:
 		{
 			const int x = GET_X_LPARAM(lParam);
 			const int y = GET_Y_LPARAM(lParam);
 
-			input->GetMouse()->UpdatePositionState(Vector2Int(x, y));
+			input.GetMouse().UpdatePositionState(Vector2Int(x, y));
 			break;
 		}
 		case WM_MOUSEWHEEL:
@@ -465,7 +465,7 @@ namespace Coco::Platforms::Win32
 				// Flatten the z delta to be platform-independent
 				yDelta = (yDelta >= 0) ? 1 : -1;
 
-				input->GetMouse()->UpdateScrollState(Vector2Int(0, yDelta));
+				input.GetMouse().UpdateScrollState(Vector2Int(0, yDelta));
 			}
 
 			break;
@@ -479,7 +479,7 @@ namespace Coco::Platforms::Win32
 				//input->GetMouse()->DoubleClicked(MouseButton::Left);
 			}
 
-			input->GetMouse()->UpdateButtonState(MouseButton::Left, message != WM_LBUTTONUP);
+			input.GetMouse().UpdateButtonState(MouseButton::Left, message != WM_LBUTTONUP);
 			break;
 		}
 		case WM_MBUTTONDOWN:
@@ -491,7 +491,7 @@ namespace Coco::Platforms::Win32
 				//input->GetMouse()->DoubleClicked(MouseButton::Middle);
 			}
 
-			input->GetMouse()->UpdateButtonState(MouseButton::Middle, message != WM_MBUTTONUP);
+			input.GetMouse().UpdateButtonState(MouseButton::Middle, message != WM_MBUTTONUP);
 			break;
 		}
 		case WM_RBUTTONDOWN:
@@ -503,7 +503,7 @@ namespace Coco::Platforms::Win32
 				//input->GetMouse()->DoubleClicked(MouseButton::Right);
 			}
 
-			input->GetMouse()->UpdateButtonState(MouseButton::Right, message != WM_RBUTTONUP);
+			input.GetMouse().UpdateButtonState(MouseButton::Right, message != WM_RBUTTONUP);
 			break;
 		}
 		case WM_XBUTTONDOWN:
@@ -517,7 +517,7 @@ namespace Coco::Platforms::Win32
 				//input->GetMouse()->DoubleClicked(button);
 			}
 
-			input->GetMouse()->UpdateButtonState(button, message != WM_XBUTTONUP);
+			input.GetMouse().UpdateButtonState(button, message != WM_XBUTTONUP);
 			break;
 		}
 		default:

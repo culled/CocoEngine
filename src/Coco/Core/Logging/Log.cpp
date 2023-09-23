@@ -47,7 +47,7 @@ namespace Coco
 		if (severity < _minSeverity)
 			return;
 
-		DateTime time = Engine::cGet()->GetPlatform()->GetLocalTime();
+		DateTime time = Engine::cGet()->GetPlatform().GetLocalTime();
 		string formattedMessage = FormatString(
 			"[{:0>2}:{:0>2}:{:0>2}:{:0>3}] {} ({}): {}",
 			time.GetHour(),

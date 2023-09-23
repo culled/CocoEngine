@@ -38,17 +38,17 @@ namespace Coco::Platforms::Win32
 		if (!RenderService::Get())
 			throw std::exception("No RenderService has been created");
 
-		Win32EnginePlatform* platform = static_cast<Win32EnginePlatform*>(Engine::Get()->GetPlatform());
+		Win32EnginePlatform& platform = static_cast<Win32EnginePlatform&>(Engine::Get()->GetPlatform());
 
 		VkWin32SurfaceCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		createInfo.hwnd = window.GetHandle();
-		createInfo.hinstance = platform->GetHInstance();
+		createInfo.hinstance = platform.GetHInstance();
 
 		SharedRef<VulkanGraphicsPresenterSurface> surface = CreateSharedRef<VulkanGraphicsPresenterSurface>();
 
-		VulkanGraphicsPlatform* graphicsPlatform = static_cast<VulkanGraphicsPlatform*>(RenderService::Get()->GetPlatform());
-		AssertVkSuccess(vkCreateWin32SurfaceKHR(graphicsPlatform->GetVulkanInstance(), &createInfo, graphicsPlatform->GetAllocationCallbacks(), &(surface->Surface)))
+		VulkanGraphicsPlatform& graphicsPlatform = static_cast<VulkanGraphicsPlatform&>(RenderService::Get()->GetPlatform());
+		AssertVkSuccess(vkCreateWin32SurfaceKHR(graphicsPlatform.GetVulkanInstance(), &createInfo, graphicsPlatform.GetAllocationCallbacks(), &(surface->Surface)))
 
 		return surface;
 	}

@@ -215,7 +215,7 @@ namespace Coco::Rendering::Vulkan
 		if (createParams.PresentationSupport)
 			extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
-		if (const RenderingPlatform* platform = dynamic_cast<const RenderingPlatform*>(engine->GetPlatform()))
+		if (const RenderingPlatform* platform = dynamic_cast<const RenderingPlatform*>(&engine->GetPlatform()))
 		{
 			platform->GetPlatformRenderingExtensions(sVulkanRHIName, createParams.PresentationSupport, extensions);
 		}

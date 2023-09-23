@@ -122,10 +122,10 @@ namespace Coco::Rendering::Vulkan
 	{
 		_allocatedSets.clear();
 
-		_device->WaitForIdle();
+		_device.WaitForIdle();
 
 		for(auto it = _pools.begin(); it != _pools.end(); it++)
-			AssertVkSuccess(vkResetDescriptorPool(_device->GetDevice(), it->Pool, 0))
+			AssertVkSuccess(vkResetDescriptorPool(_device.GetDevice(), it->Pool, 0))
 	}
 
 	void VulkanUniformData::PreparePushConstants(
@@ -206,7 +206,7 @@ namespace Coco::Rendering::Vulkan
 		{
 			const uint8 dataSize = GetDataTypeSize(uniform.Type);
 			uint64 preAlignOffset = offset;
-			_device->AlignOffset(uniform.Type, offset);
+			_device.AlignOffset(uniform.Type, offset);
 
 			bufferData.resize(offset + dataSize);
 			uint8* dst = bufferData.data() + offset;
@@ -319,7 +319,7 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		// Pad the buffer to fit in the minimum buffer alignment
-		bufferData.resize(GraphicsDevice::GetOffsetForAlignment(bufferData.size(), _device->GetMinimumBufferAlignment()));
+		bufferData.resize(GraphicsDevice::GetOffsetForAlignment(bufferData.size(), _device.GetMinimumBufferAlignment()));
 
 		return bufferData;
 	}
@@ -338,7 +338,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (freeBuffer == _uniformBuffers.end())
 		{
-			Ref<VulkanBuffer> buffer = _device->CreateBuffer(
+			Ref<VulkanBuffer> buffer = _device.CreateBuffer(
 				_sBufferSize,
 				BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
 				true);
@@ -376,7 +376,7 @@ namespace Coco::Rendering::Vulkan
 	VulkanDescriptorPool& VulkanUniformData::CreateDescriptorPool()
 	{
 		VulkanDescriptorPool& pool = _pools.emplace_back();
-		AssertVkSuccess(vkCreateDescriptorPool(_device->GetDevice(), &_poolCreateInfo.CreateInfo, _device->GetAllocationCallbacks(), &pool.Pool));
+		AssertVkSuccess(vkCreateDescriptorPool(_device.GetDevice(), &_poolCreateInfo.CreateInfo, _device.GetAllocationCallbacks(), &pool.Pool));
 
 		CocoTrace("Created VulkanDescriptorPool")
 		return pool;
@@ -384,9 +384,9 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanUniformData::DestroyDescriptorPool(const VulkanDescriptorPool& pool)
 	{
-		_device->WaitForIdle();
+		_device.WaitForIdle();
 
-		vkDestroyDescriptorPool(_device->GetDevice(), pool.Pool, _device->GetAllocationCallbacks());
+		vkDestroyDescriptorPool(_device.GetDevice(), pool.Pool, _device.GetAllocationCallbacks());
 
 		CocoTrace("Destroyed VulkanDescriptorPool")
 	}
@@ -412,7 +412,7 @@ namespace Coco::Rendering::Vulkan
 			setAllocate.descriptorSetCount = 1;
 			setAllocate.pSetLayouts = &layout.Layout;
 
-			VkResult poolResult = vkAllocateDescriptorSets(_device->GetDevice(), &setAllocate, &set);
+			VkResult poolResult = vkAllocateDescriptorSets(_device.GetDevice(), &setAllocate, &set);
 
 			if (poolResult == VK_SUCCESS)
 			{
@@ -546,7 +546,7 @@ namespace Coco::Rendering::Vulkan
 			bindingIndex++;
 		}
 
-		vkUpdateDescriptorSets(_device->GetDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(_device.GetDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		return true;
 	}
 }

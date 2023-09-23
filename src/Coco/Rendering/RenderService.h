@@ -48,19 +48,19 @@ namespace Coco::Rendering
 
 		/// @brief Gets the graphics platform
 		/// @return The graphics platform
-		GraphicsPlatform* GetPlatform() { return _platform.get(); }
+		GraphicsPlatform& GetPlatform() { return *_platform; }
 
 		/// @brief Gets the graphics platform
 		/// @return The graphics platform
-		const GraphicsPlatform* GetPlatform() const { return _platform.get(); }
+		const GraphicsPlatform& GetPlatform() const { return *_platform; }
 
 		/// @brief Gets the graphics device
 		/// @return The graphics device
-		GraphicsDevice* GetDevice() { return _device.get(); }
+		GraphicsDevice& GetDevice() { return *_device; }
 
 		/// @brief Gets the graphics device
 		/// @return The graphics device
-		const GraphicsDevice* GetDevice() const { return _device.get(); }
+		const GraphicsDevice& GetDevice() const { return *_device; }
 
 		/// @brief Gets the default diffuse texture (white)
 		/// @return The default diffuse texture

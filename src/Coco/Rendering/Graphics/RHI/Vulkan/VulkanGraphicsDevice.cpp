@@ -22,7 +22,7 @@ namespace Coco::Rendering::Vulkan
 		ComputeQueueFamily{}
 	{}
 
-	DeviceQueue::DeviceQueue(VulkanGraphicsDevice* device, Type type, uint8 familyIndex, VkQueue queue) :
+	DeviceQueue::DeviceQueue(VulkanGraphicsDevice& device, Type type, uint8 familyIndex, VkQueue queue) :
 		QueueType(type),
 		FamilyIndex(familyIndex),
 		Queue(queue),
@@ -468,17 +468,17 @@ namespace Coco::Rendering::Vulkan
 
 			if (queueFamilies.GraphicsQueueFamily.has_value() && queueFamilies.GraphicsQueueFamily.value() == queueFamily)
 			{
-				_graphicsQueue = CreateUniqueRef<DeviceQueue>(this, DeviceQueue::Type::Graphics, familyIndex, queue);
+				_graphicsQueue = CreateUniqueRef<DeviceQueue>(*this, DeviceQueue::Type::Graphics, familyIndex, queue);
 			}
 
 			if (queueFamilies.TransferQueueFamily.has_value() && queueFamilies.TransferQueueFamily.value() == queueFamily)
 			{
-				_transferQueue = CreateUniqueRef<DeviceQueue>(this, DeviceQueue::Type::Transfer, familyIndex, queue);
+				_transferQueue = CreateUniqueRef<DeviceQueue>(*this, DeviceQueue::Type::Transfer, familyIndex, queue);
 			}
 
 			if (queueFamilies.ComputeQueueFamily.has_value() && queueFamilies.ComputeQueueFamily.value() == queueFamily)
 			{
-				_computeQueue = CreateUniqueRef<DeviceQueue>(this, DeviceQueue::Type::Compute, familyIndex, queue);
+				_computeQueue = CreateUniqueRef<DeviceQueue>(*this, DeviceQueue::Type::Compute, familyIndex, queue);
 			}
 		}
 	}

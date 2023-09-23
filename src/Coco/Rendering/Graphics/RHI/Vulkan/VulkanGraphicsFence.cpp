@@ -14,32 +14,32 @@ namespace Coco::Rendering::Vulkan
 		if (startSignaled)
 			createInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
 
-		AssertVkSuccess(vkCreateFence(_device->GetDevice(), &createInfo, _device->GetAllocationCallbacks(), &_fence));
+		AssertVkSuccess(vkCreateFence(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_fence));
 	}
 
 	VulkanGraphicsFence::~VulkanGraphicsFence()
 	{
-		_device->WaitForIdle();
+		_device.WaitForIdle();
 
 		if (_fence)
 		{
-			vkDestroyFence(_device->GetDevice(), _fence, _device->GetAllocationCallbacks());
+			vkDestroyFence(_device.GetDevice(), _fence, _device.GetAllocationCallbacks());
 			_fence = nullptr;
 		}
 	}
 
 	bool VulkanGraphicsFence::IsSignaled() const
 	{
-		return vkGetFenceStatus(_device->GetDevice(), _fence) == VK_SUCCESS;
+		return vkGetFenceStatus(_device.GetDevice(), _fence) == VK_SUCCESS;
 	}
 
 	void VulkanGraphicsFence::Reset()
 	{
-		AssertVkSuccess(vkResetFences(_device->GetDevice(), 1, &_fence));
+		AssertVkSuccess(vkResetFences(_device.GetDevice(), 1, &_fence));
 	}
 
 	void VulkanGraphicsFence::Wait(uint64 timeoutNs)
 	{
-		vkWaitForFences(_device->GetDevice(), 1, &_fence, VK_TRUE, timeoutNs);
+		vkWaitForFences(_device.GetDevice(), 1, &_fence, VK_TRUE, timeoutNs);
 	}
 }

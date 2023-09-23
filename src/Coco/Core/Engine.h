@@ -46,59 +46,59 @@ namespace Coco
 
 		/// @brief Gets the platform that the engine is running on
 		/// @return The platform
-		EnginePlatform* GetPlatform() { return _platform.get(); }
+		EnginePlatform& GetPlatform() { return *_platform; }
 
 		/// @brief Gets the platform that the engine is running on
 		/// @return The platform
-		const EnginePlatform* GetPlatform() const { return _platform.get(); }
+		const EnginePlatform& GetPlatform() const { return *_platform; }
 
 		/// @brief Gets the application that the engine is running
 		/// @return The application
-		Application* GetApp() { return _app.get(); }
+		Application& GetApp() { return *_app; }
 
 		/// @brief Gets the application that the engine is running
 		/// @return The application
-		const Application* GetApp() const { return _app.get(); }
+		const Application& GetApp() const { return *_app; }
 
 		/// @brief Gets the engine's log
 		/// @return The engine's log
-		Log* GetLog() { return _log.get(); }
+		Log& GetLog() { return *_log; }
 
 		/// @brief Gets the engine's log
 		/// @return The engine's log
-		const Log* GetLog() const { return _log.get(); }
+		const Log& GetLog() const { return *_log; }
 
 		/// @brief Gets the engine's main loop
 		/// @return The main loop
-		MainLoop* GetMainLoop() { return _mainLoop.get(); }
+		MainLoop& GetMainLoop() { return *_mainLoop; }
 
 		/// @brief Gets the engine's main loop
 		/// @return The main loop
-		const MainLoop* GetMainLoop() const { return _mainLoop.get(); }
+		const MainLoop& GetMainLoop() const { return *_mainLoop; }
 
 		/// @brief Gets the engine's service manager
 		/// @return The service manager
-		ServiceManager* GetServiceManager() { return _serviceManager.get(); }
+		ServiceManager& GetServiceManager() { return *_serviceManager; }
 
 		/// @brief Gets the engine's service manager
 		/// @return The service manager
-		const ServiceManager* GetServiceManager() const { return _serviceManager.get(); }
+		const ServiceManager& GetServiceManager() const { return *_serviceManager; }
 
 		/// @brief Gets the engine's file system
 		/// @return The file system
-		EngineFileSystem* GetFileSystem() { return _fileSystem.get(); }
+		EngineFileSystem& GetFileSystem() { return *_fileSystem; }
 
 		/// @brief Gets the engine's file system
 		/// @return The file system
-		const EngineFileSystem* GetFileSystem() const { return _fileSystem.get(); }
+		const EngineFileSystem& GetFileSystem() const { return *_fileSystem; }
 
 		/// @brief Gets the engine's resource library
 		/// @return The resource library
-		ResourceLibrary* GetResourceLibrary() { return _resourceLibrary.get(); }
+		ResourceLibrary& GetResourceLibrary() { return *_resourceLibrary; }
 
 		/// @brief Gets the engine's resource library
 		/// @return The resource library
-		const ResourceLibrary* GetResourceLibrary() const { return _resourceLibrary.get(); }
+		const ResourceLibrary& GetResourceLibrary() const { return *_resourceLibrary; }
 
 		/// @brief Causes a crash and rethrows the captured exception.
 		/// NOTE: only works in the catch clause of a try-catch block
@@ -111,22 +111,22 @@ namespace Coco
 }
 
 #ifdef COCO_LOG_TRACE
-#define CocoTrace(Message, ...) ::Coco::Engine::Get()->GetLog()->FormatWrite(Coco::LogMessageSeverity::Trace, Message, __VA_ARGS__);
+#define CocoTrace(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Trace, Message, __VA_ARGS__);
 #else
 #define CocoTrace(Message, ...)
 #endif
 
 #ifdef COCO_LOG_INFO
-#define CocoInfo(Message, ...) ::Coco::Engine::Get()->GetLog()->FormatWrite(Coco::LogMessageSeverity::Info, Message, __VA_ARGS__);
+#define CocoInfo(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Info, Message, __VA_ARGS__);
 #else
 #define CocoInfo(Message, ...)
 #endif
 
 #ifdef COCO_LOG_WARNING
-#define CocoWarn(Message, ...) ::Coco::Engine::Get()->GetLog()->FormatWrite(Coco::LogMessageSeverity::Warning, Message, __VA_ARGS__);
+#define CocoWarn(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Warning, Message, __VA_ARGS__);
 #else
 #define CocoWarn(Message, ...)
 #endif
 
-#define CocoError(Message, ...) ::Coco::Engine::Get()->GetLog()->FormatWrite(Coco::LogMessageSeverity::Error, Message, __VA_ARGS__);
-#define CocoCritical(Message, ...) ::Coco::Engine::Get()->GetLog()->FormatWrite(Coco::LogMessageSeverity::Critical, Message, __VA_ARGS__);
+#define CocoError(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Error, Message, __VA_ARGS__);
+#define CocoCritical(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Critical, Message, __VA_ARGS__);

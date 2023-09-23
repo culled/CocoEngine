@@ -18,10 +18,10 @@ namespace Coco::Rendering
 		_sampler(),
 		_imageFilePath()
 	{
-		RenderService* rendering = EnsureRenderService();
+		RenderService& rendering = EnsureRenderService();
 
-		_image = rendering->GetDevice()->CreateImage(imageDescription);
-		_sampler = rendering->GetDevice()->CreateImageSampler(samplerDescription);
+		_image = rendering.GetDevice().CreateImage(imageDescription);
+		_sampler = rendering.GetDevice().CreateImageSampler(samplerDescription);
 	}
 
 	Texture::Texture(
@@ -37,9 +37,9 @@ namespace Coco::Rendering
 		_sampler(),
 		_imageFilePath(imageFilePath)
 	{
-		RenderService* rendering = EnsureRenderService();
+		RenderService& rendering = EnsureRenderService();
 
-		_sampler = rendering->GetDevice()->CreateImageSampler(samplerDescription);
+		_sampler = rendering.GetDevice().CreateImageSampler(samplerDescription);
 
 		ReloadImage(colorSpace, usageFlags);
 	}
@@ -54,7 +54,7 @@ namespace Coco::Rendering
 
 		RenderService* rendering = RenderService::Get();
 		if (rendering)
-			rendering->GetDevice()->PurgeUnusedResources();
+			rendering->GetDevice().PurgeUnusedResources();
 	}
 
 	void Texture::SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize)
@@ -143,13 +143,13 @@ namespace Coco::Rendering
 		// Hold onto the old image data just in-case the transfer fails
 		Ref<Image> newImage = _image;
 
-		RenderService* rendering = EnsureRenderService();
-		GraphicsDevice* device = rendering->GetDevice();
+		RenderService& rendering = EnsureRenderService();
+		GraphicsDevice& device = rendering.GetDevice();
 
 		try
 		{
 			// Load the image data into this texture
-			newImage = device->CreateImage(description);
+			newImage = device.CreateImage(description);
 			newImage->SetPixels(0, rawImageData, byteSize);
 		}
 		catch (const std::exception& ex)
@@ -158,13 +158,13 @@ namespace Coco::Rendering
 
 			// Revert to the previous image data
 			newImage.Invalidate();
-			device->PurgeUnusedResources();
+			device.PurgeUnusedResources();
 
 			return;
 		}
 
 		_image = newImage;
-		device->PurgeUnusedResources();
+		device.PurgeUnusedResources();
 		_version++;
 
 		stbi_image_free(rawImageData);

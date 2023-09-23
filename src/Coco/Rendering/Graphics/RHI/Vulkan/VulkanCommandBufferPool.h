@@ -15,14 +15,14 @@ namespace Coco::Rendering::Vulkan
 	class VulkanCommandBufferPool
 	{
 	private:
-		VulkanGraphicsDevice* _device;
+		VulkanGraphicsDevice& _device;
 		VkQueue _queue;
 		uint32 _queueFamilyIndex;
 		VkCommandPool _pool;
 		std::vector<VkCommandBuffer> _allocatedBuffers;
 
 	public:
-		VulkanCommandBufferPool(VulkanGraphicsDevice* device, VkQueue queue, uint32 queueFamilyIndex);
+		VulkanCommandBufferPool(VulkanGraphicsDevice& device, VkQueue queue, uint32 queueFamilyIndex);
 		~VulkanCommandBufferPool();
 
 		/// @brief Allocates a command buffer

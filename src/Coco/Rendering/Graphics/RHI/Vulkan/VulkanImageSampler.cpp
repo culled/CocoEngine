@@ -32,15 +32,15 @@ namespace Coco::Rendering::Vulkan
 		createInfo.minLod = 0.0f;
 		createInfo.maxLod = 0.0f;
 
-		AssertVkSuccess(vkCreateSampler(_device->GetDevice(), &createInfo, _device->GetAllocationCallbacks(), &_sampler));
+		AssertVkSuccess(vkCreateSampler(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_sampler));
 	}
 
 	VulkanImageSampler::~VulkanImageSampler()
 	{
 		if (_sampler)
 		{
-			_device->WaitForIdle();
-			vkDestroySampler(_device->GetDevice(), _sampler, _device->GetAllocationCallbacks());
+			_device.WaitForIdle();
+			vkDestroySampler(_device.GetDevice(), _sampler, _device.GetAllocationCallbacks());
 			_sampler = nullptr;
 		}
 	}

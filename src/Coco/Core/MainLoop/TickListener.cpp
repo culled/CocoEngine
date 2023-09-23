@@ -17,7 +17,7 @@ namespace Coco
 	TickListener::~TickListener()
 	{
 		if (_isRegistered)
-			Engine::Get()->GetMainLoop()->RemoveListener(*this);
+			MainLoop::Get()->RemoveListener(*this);
 	}
 
 	void TickListener::SetEnabled(bool enabled)

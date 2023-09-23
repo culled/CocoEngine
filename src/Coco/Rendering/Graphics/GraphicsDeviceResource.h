@@ -35,16 +35,11 @@ namespace Coco::Rendering
 	class GraphicsDeviceResource : public GraphicsDeviceResourceBase
 	{
 	protected:
-		DeviceType* _device;
+		DeviceType& _device;
 
 		GraphicsDeviceResource(const GraphicsDeviceResourceID& id) :
-			GraphicsDeviceResourceBase(id)
-		{
-			RenderService* service = RenderService::Get();
-			Assert(service != nullptr)
-			Assert(service->GetDevice() != nullptr)
-
-			_device = static_cast<DeviceType*>(RenderService::Get()->GetDevice());
-		}
+			GraphicsDeviceResourceBase(id),
+			_device(static_cast<DeviceType&>(RenderService::Get()->GetDevice()))
+		{}
 	};
 }

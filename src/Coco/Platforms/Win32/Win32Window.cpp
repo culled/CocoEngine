@@ -104,7 +104,7 @@ namespace Coco::Platforms::Win32
 #endif
 
 		HINSTANCE hInstance = NULL;
-		if (Win32EnginePlatform* win32Platform = dynamic_cast<Win32EnginePlatform*>(Engine::Get()->GetPlatform()))
+		if (Win32EnginePlatform* win32Platform = dynamic_cast<Win32EnginePlatform*>(&Engine::Get()->GetPlatform()))
 		{
 			hInstance = win32Platform->GetHInstance();
 		}
@@ -309,9 +309,9 @@ namespace Coco::Platforms::Win32
 		if (!Rendering::RenderService::Get())
 			throw std::exception("No RenderService is active");
 
-		Win32EnginePlatform* platform = static_cast<Win32EnginePlatform*>(Engine::Get()->GetPlatform());
+		Win32EnginePlatform& platform = static_cast<Win32EnginePlatform&>(Engine::Get()->GetPlatform());
 
-		return platform->CreateSurfaceForWindow(Rendering::RenderService::cGet()->GetPlatform()->GetName(), *this);
+		return platform.CreateSurfaceForWindow(Rendering::RenderService::cGet()->GetPlatform().GetName(), *this);
 	}
 
 	DWORD Win32Window::GetWindowFlags(bool canResize, bool isFullscreen)

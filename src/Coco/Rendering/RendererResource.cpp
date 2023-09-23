@@ -9,12 +9,12 @@ namespace Coco::Rendering
 		Resource(id, name)
 	{}
 
-	RenderService* RendererResource::EnsureRenderService()
+	RenderService& RendererResource::EnsureRenderService()
 	{
 		RenderService* rendering = RenderService::Get();
 		if (!rendering)
 			throw std::exception("No active RenderService was found");
 
-		return rendering;
+		return *rendering;
 	}
 }

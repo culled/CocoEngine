@@ -32,19 +32,19 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanGraphicsPresenter::~VulkanGraphicsPresenter()
 	{
-		_device->WaitForIdle();
+		_device.WaitForIdle();
 
 		DestroySwapchainObjects();
 
 		if (_swapchain)
 		{
-			vkDestroySwapchainKHR(_device->GetDevice(), _swapchain, _device->GetAllocationCallbacks());
+			vkDestroySwapchainKHR(_device.GetDevice(), _swapchain, _device.GetAllocationCallbacks());
 			_swapchain = nullptr;
 		}
 
 		if (_surface)
 		{
-			vkDestroySurfaceKHR(_device->GetInstance(), _surface, _device->GetAllocationCallbacks());
+			vkDestroySurfaceKHR(_device.GetInstance(), _surface, _device.GetAllocationCallbacks());
 			_surface = nullptr;
 		}
 
@@ -58,7 +58,7 @@ namespace Coco::Rendering::Vulkan
 			if (SurfaceInitialized())
 			{
 				CocoError("Surface is already initialized")
-				vkDestroySurfaceKHR(_device->GetInstance(), vulkanSurface->Surface, _device->GetAllocationCallbacks());
+				vkDestroySurfaceKHR(_device.GetInstance(), vulkanSurface->Surface, _device.GetAllocationCallbacks());
 				return;
 			}
 
@@ -86,7 +86,7 @@ namespace Coco::Rendering::Vulkan
 
 			uint32 imageIndex;
 			VkResult result = vkAcquireNextImageKHR(
-				_device->GetDevice(),
+				_device.GetDevice(),
 				_swapchain,
 				Math::MaxValue<uint64_t>(),
 				imageAvailableSemaphore,
@@ -120,7 +120,7 @@ namespace Coco::Rendering::Vulkan
 
 	bool VulkanGraphicsPresenter::Present(Ref<GraphicsSemaphore> frameCompletedSemaphore)
 	{
-		DeviceQueue* presentQueue = _device->GetOrCreatePresentQueue(_surface);
+		DeviceQueue* presentQueue = _device.GetOrCreatePresentQueue(_surface);
 		if (!presentQueue)
 		{
 			CocoError("Device does not support presenting")
@@ -271,21 +271,21 @@ namespace Coco::Rendering::Vulkan
 			return false;
 		}
 
-		DeviceQueue* presentQueue = _device->GetOrCreatePresentQueue(_surface);
+		DeviceQueue* presentQueue = _device.GetOrCreatePresentQueue(_surface);
 
 		if (!presentQueue)
 		{
 			throw std::exception("Device does not support presentation");
 		}
 
-		DeviceQueue* graphicsQueue = _device->GetQueue(DeviceQueue::Type::Graphics);
+		DeviceQueue* graphicsQueue = _device.GetQueue(DeviceQueue::Type::Graphics);
 
 		if (!graphicsQueue)
 		{
 			throw std::exception("Device does not support graphics operations");
 		}
 
-		SwapchainSupportDetails swapchainSupport = GetSwapchainSupportDetails(_device->GetPhysicalDevice(), _surface);
+		SwapchainSupportDetails swapchainSupport = GetSwapchainSupportDetails(_device.GetPhysicalDevice(), _surface);
 
 		if (swapchainSupport.PresentModes.size() == 0 || swapchainSupport.SurfaceFormats.size() == 0)
 		{
@@ -293,7 +293,7 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		// Wait until all graphics operations have finished
-		_device->WaitForIdle();
+		_device.WaitForIdle();
 
 		DestroySwapchainObjects();
 
@@ -340,10 +340,10 @@ namespace Coco::Rendering::Vulkan
 		createInfo.queueFamilyIndexCount = static_cast<uint32_t>(queueFamilyIndices.size());
 		createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
 
-		VkResult result = vkCreateSwapchainKHR(_device->GetDevice(), &createInfo, _device->GetAllocationCallbacks(), &_swapchain);
+		VkResult result = vkCreateSwapchainKHR(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_swapchain);
 
 		if (oldSwapchain)
-			vkDestroySwapchainKHR(_device->GetDevice(), oldSwapchain, _device->GetAllocationCallbacks());
+			vkDestroySwapchainKHR(_device.GetDevice(), oldSwapchain, _device.GetAllocationCallbacks());
 
 		if (result != VK_SUCCESS)
 		{
@@ -368,10 +368,10 @@ namespace Coco::Rendering::Vulkan
 		{
 			// Get backbuffer images
 			uint32_t backbufferImageCount;
-			AssertVkSuccess(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &backbufferImageCount, nullptr));
+			AssertVkSuccess(vkGetSwapchainImagesKHR(_device.GetDevice(), _swapchain, &backbufferImageCount, nullptr));
 
 			std::vector<VkImage> images(backbufferImageCount);
-			AssertVkSuccess(vkGetSwapchainImagesKHR(_device->GetDevice(), _swapchain, &backbufferImageCount, images.data()));
+			AssertVkSuccess(vkGetSwapchainImagesKHR(_device.GetDevice(), _swapchain, &backbufferImageCount, images.data()));
 
 			for (size_t i = 0; i < images.size(); i++)
 			{

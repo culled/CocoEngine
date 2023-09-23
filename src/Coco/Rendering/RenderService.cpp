@@ -102,8 +102,8 @@ namespace Coco::Rendering
 
 	void RenderService::ExecuteRender(RenderContext& context, CompiledRenderPipeline& compiledPipeline, RenderView& renderView, Ref<GraphicsSemaphore> waitOn)
 	{
-		const EnginePlatform* platform = Engine::cGet()->GetPlatform();
-		double pipelineStartTime = platform->GetSeconds();
+		const EnginePlatform& platform = Engine::cGet()->GetPlatform();
+		double pipelineStartTime = platform.GetSeconds();
 		std::unordered_map<string, TimeSpan> passExecutionTimes;
 
 		try
@@ -111,7 +111,7 @@ namespace Coco::Rendering
 			// Go through each pass and execute it
 			for (auto it = compiledPipeline.RenderPasses.begin(); it != compiledPipeline.RenderPasses.end(); it++)
 			{
-				double passStartTime = platform->GetSeconds();
+				double passStartTime = platform.GetSeconds();
 
 				if (it == compiledPipeline.RenderPasses.begin())
 				{
@@ -131,7 +131,7 @@ namespace Coco::Rendering
 
 				it->Pass->Execute(context, renderView);
 
-				_stats.PassExecutionTime[it->Pass->GetName()] += TimeSpan::FromSeconds(platform->GetSeconds() - passStartTime);
+				_stats.PassExecutionTime[it->Pass->GetName()] += TimeSpan::FromSeconds(platform.GetSeconds() - passStartTime);
 			}
 		}
 		catch (const std::exception& ex)
@@ -141,7 +141,7 @@ namespace Coco::Rendering
 
 		context.End();
 
-		_stats.PipelineExecutionTime += TimeSpan::FromSeconds(platform->GetSeconds() - pipelineStartTime);
+		_stats.PipelineExecutionTime += TimeSpan::FromSeconds(platform.GetSeconds() - pipelineStartTime);
 		_stats += *context.GetRenderStats();
 	}
 
@@ -150,7 +150,7 @@ namespace Coco::Rendering
 		constexpr uint32 size = 32;
 		constexpr uint8 channels = 4;
 
-		_defaultDiffuseTexture = Engine::Get()->GetResourceLibrary()->Create<Texture>(
+		_defaultDiffuseTexture = Engine::Get()->GetResourceLibrary().Create<Texture>(
 			"Default Diffuse Texture",
 			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
 			ImageSamplerDescription()
@@ -173,7 +173,7 @@ namespace Coco::Rendering
 		constexpr uint32 size = 32;
 		constexpr uint8 channels = 4;
 
-		_defaultNormalTexture = Engine::Get()->GetResourceLibrary()->Create<Texture>(
+		_defaultNormalTexture = Engine::Get()->GetResourceLibrary().Create<Texture>(
 			"Default Normal Texture",
 			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::Linear, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
 			ImageSamplerDescription()
@@ -199,7 +199,7 @@ namespace Coco::Rendering
 		constexpr uint32 size = 32;
 		constexpr uint8 channels = 4;
 
-		_defaultCheckerTexture = Engine::Get()->GetResourceLibrary()->Create<Texture>(
+		_defaultCheckerTexture = Engine::Get()->GetResourceLibrary().Create<Texture>(
 			"Default Checker Texture",
 			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
 			ImageSamplerDescription(ImageFilterMode::Nearest, ImageRepeatMode::Repeat, MipMapFilterMode::Nearest, 1)

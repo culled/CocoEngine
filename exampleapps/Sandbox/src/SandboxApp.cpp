@@ -4,7 +4,9 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
+
 #include <Coco/ImGui/ImGuiService.h>
+#include <imgui.h>
 
 #include "Rendering/BasicRenderPass.h"
 
@@ -38,9 +40,9 @@ SandboxApp::SandboxApp() :
 
 	{
 		using namespace Coco::Windowing;
-		WindowService* windowing = services->CreateService<WindowService>(true);
+		WindowService& windowing = services->CreateService<WindowService>(true);
 		WindowCreateParams windowCreateParams("Sandbox", SizeInt(1280, 720));
-		Ref<Window> win = windowing->CreateWindow(windowCreateParams);
+		Ref<Window> win = windowing.CreateWindow(windowCreateParams);
 		//win->GetPresenter()->SetVSync(Rendering::VSyncMode::Immediate);
 		win->Show();
 	}
@@ -54,7 +56,7 @@ SandboxApp::SandboxApp() :
 	_sceneDataProvider = CreateUniqueRef<BasicSceneDataProvider>();
 
 	{
-		using namespace Coco::ImGui;
+		using namespace Coco::ImGuiCoco;
 		services->CreateService<ImGuiService>();
 	}
 
@@ -72,22 +74,24 @@ void SandboxApp::Start()
 void SandboxApp::Tick(const TickInfo & tickInfo)
 {
 	ServiceManager* services = ServiceManager::Get();
-	Input::InputService* input = services->GetService<Input::InputService>();
+	Input::InputService& input = services->GetService<Input::InputService>();
 
-	if (input->GetKeyboard()->WasKeyJustPressed(Input::KeyboardKey::Escape))
+	if (input.GetKeyboard().WasKeyJustPressed(Input::KeyboardKey::Escape))
 	{
 		Quit();
 		return;
 	}
 
-	Windowing::WindowService* windowing = services->GetService<Windowing::WindowService>();
-	Rendering::RenderService* rendering = services->GetService<Rendering::RenderService>();
+	::ImGui::ShowDemoWindow();
+
+	Windowing::WindowService& windowing = services->GetService<Windowing::WindowService>();
+	Rendering::RenderService& rendering = services->GetService<Rendering::RenderService>();
 	
-	std::vector<Ref<Windowing::Window>> visibleWindows = windowing->GetVisibleWindows();
+	std::vector<Ref<Windowing::Window>> visibleWindows = windowing.GetVisibleWindows();
 	std::array<SceneDataProvider*, 1> dataProviders = { _sceneDataProvider.get()};
 
 	for (const Ref<Windowing::Window>& window : visibleWindows)
 	{
-		rendering->Render(window->GetPresenter(), *_pipeline, *_renderViewProvider, dataProviders);
+		rendering.Render(window->GetPresenter(), *_pipeline, *_renderViewProvider, dataProviders);
 	}
 }

@@ -11,16 +11,16 @@ namespace Coco::Rendering::Vulkan
 		VkSemaphoreCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-		AssertVkSuccess(vkCreateSemaphore(_device->GetDevice(), &createInfo, _device->GetAllocationCallbacks(), &_semaphore));
+		AssertVkSuccess(vkCreateSemaphore(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_semaphore));
 	}
 
 	VulkanGraphicsSemaphore::~VulkanGraphicsSemaphore()
 	{
-		_device->WaitForIdle();
+		_device.WaitForIdle();
 
 		if (_semaphore)
 		{
-			vkDestroySemaphore(_device->GetDevice(), _semaphore, _device->GetAllocationCallbacks());
+			vkDestroySemaphore(_device.GetDevice(), _semaphore, _device.GetAllocationCallbacks());
 			_semaphore = nullptr;
 		}
 	}

@@ -55,12 +55,12 @@ namespace Coco::Rendering::Vulkan
 
 		for (const auto& u : _shaderInfo.GetScopedDataUniforms(scope))
 		{
-			_device->AlignOffset(u.Type, offset);
+			_device.AlignOffset(u.Type, offset);
 			offset += GetDataTypeSize(u.Type);
 		}
 
 		// Pad out the data size so they fill a block accessible by the minimum buffer alignment
-		offset = GraphicsDevice::GetOffsetForAlignment(offset, _device->GetMinimumBufferAlignment());
+		offset = GraphicsDevice::GetOffsetForAlignment(offset, _device.GetMinimumBufferAlignment());
 
 		return static_cast<uint32>(offset);
 	}
@@ -92,7 +92,7 @@ namespace Coco::Rendering::Vulkan
 			const ShaderDataUniform& uniform = drawUniforms.at(i);
 			const uint32 size = GetDataTypeSize(uniform.Type);
 
-			_device->AlignOffset(uniform.Type, offset);
+			_device.AlignOffset(uniform.Type, offset);
 
 			range.size += size;
 
@@ -166,14 +166,14 @@ namespace Coco::Rendering::Vulkan
 		VkShaderModuleCreateInfo& createInfo = vulkanStage.ShaderModuleCreateInfo;
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 
-		File shaderFile = Engine::Get()->GetFileSystem()->OpenFile(stage.FilePath, FileOpenFlags::Read);
+		File shaderFile = Engine::Get()->GetFileSystem().OpenFile(stage.FilePath, FileOpenFlags::Read);
 		std::vector<uint8> byteCode = shaderFile.ReadToEnd();
 		shaderFile.Close();
 
 		createInfo.codeSize = byteCode.size();
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(byteCode.data());
 
-		AssertVkSuccess(vkCreateShaderModule(_device->GetDevice(), &createInfo, _device->GetAllocationCallbacks(), &vulkanStage.ShaderModule))
+		AssertVkSuccess(vkCreateShaderModule(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &vulkanStage.ShaderModule))
 
 		_stages.push_back(vulkanStage);
 		CocoTrace("Created VulkanShaderStage for file {}", stage.FilePath)
@@ -184,8 +184,8 @@ namespace Coco::Rendering::Vulkan
 		if (!stage.ShaderModule)
 			return;
 
-		_device->WaitForIdle();
-		vkDestroyShaderModule(_device->GetDevice(), stage.ShaderModule, _device->GetAllocationCallbacks());
+		_device.WaitForIdle();
+		vkDestroyShaderModule(_device.GetDevice(), stage.ShaderModule, _device.GetAllocationCallbacks());
 
 		CocoTrace("Destroyed VulkanShaderStage")
 	}
@@ -231,7 +231,7 @@ namespace Coco::Rendering::Vulkan
 		createInfo.bindingCount = static_cast<uint32_t>(layout.LayoutBindings.size());
 		createInfo.pBindings = layout.LayoutBindings.data();
 
-		AssertVkSuccess(vkCreateDescriptorSetLayout(_device->GetDevice(), &createInfo, _device->GetAllocationCallbacks(), &layout.Layout));
+		AssertVkSuccess(vkCreateDescriptorSetLayout(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &layout.Layout));
 
 		_layouts.try_emplace(scope, layout);
 
@@ -245,8 +245,8 @@ namespace Coco::Rendering::Vulkan
 		if (it == _layouts.end() || !it->second.Layout)
 			return;
 
-		_device->WaitForIdle();
-		vkDestroyDescriptorSetLayout(_device->GetDevice(), it->second.Layout, _device->GetAllocationCallbacks());
+		_device.WaitForIdle();
+		vkDestroyDescriptorSetLayout(_device.GetDevice(), it->second.Layout, _device.GetAllocationCallbacks());
 
 		CocoTrace("Destroyed VulkanDescriptorSetLayout for scope {}", static_cast<int>(it->first))
 	}

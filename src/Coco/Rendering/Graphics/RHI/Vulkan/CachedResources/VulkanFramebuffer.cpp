@@ -74,7 +74,7 @@ namespace Coco::Rendering::Vulkan
 		framebufferInfo.attachmentCount = static_cast<uint32_t>(imageViews.size());
 		framebufferInfo.pAttachments = imageViews.data();
 
-		AssertVkSuccess(vkCreateFramebuffer(_device->GetDevice(), &framebufferInfo, _device->GetAllocationCallbacks(), &_framebuffer));
+		AssertVkSuccess(vkCreateFramebuffer(_device.GetDevice(), &framebufferInfo, _device.GetAllocationCallbacks(), &_framebuffer));
 
 		CocoTrace("Created VulkanFramebuffer")
 	}
@@ -84,8 +84,8 @@ namespace Coco::Rendering::Vulkan
 		if (!_framebuffer)
 			return;
 
-		_device->WaitForIdle();
-		vkDestroyFramebuffer(_device->GetDevice(), _framebuffer, _device->GetAllocationCallbacks());
+		_device.WaitForIdle();
+		vkDestroyFramebuffer(_device.GetDevice(), _framebuffer, _device.GetAllocationCallbacks());
 		_framebuffer = nullptr;
 
 		CocoTrace("Destroyed VulkanFramebuffer")

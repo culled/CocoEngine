@@ -64,7 +64,7 @@ namespace Coco
 
         if (Engine::cGet())
         {
-            double time = Math::Max(Engine::cGet()->GetPlatform()->GetRunningTime(), 0.0);
+            double time = Math::Max(Engine::cGet()->GetPlatform().GetSeconds(), 0.0);
             seed = static_cast<uint32>(Math::Round(time));
         }
         

@@ -7,7 +7,7 @@ namespace Coco
 {
 	void ConsoleLogSink::Write(LogMessageSeverity severity, const char* message)
 	{
-		EnginePlatform* platform = Engine::Get()->GetPlatform();
+		EnginePlatform& platform = Engine::Get()->GetPlatform();
 		EnginePlatform::ConsoleColor color;
 
 		switch (severity)
@@ -35,6 +35,6 @@ namespace Coco
 		string line(message);
 		line += "\n";
 		
-		platform->WriteToConsole(line.c_str(), color);
+		platform.WriteToConsole(line.c_str(), color);
 	}
 }

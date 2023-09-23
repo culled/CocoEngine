@@ -36,7 +36,7 @@ namespace Coco::Rendering
 
 		RenderService* rendering = RenderService::Get();
 		if(rendering)
-			rendering->GetDevice()->PurgeUnusedResources();
+			rendering->GetDevice().PurgeUnusedResources();
 	}
 
 	void Mesh::SetVertices(const VertexDataFormat& format, std::span<VertexData> vertices)
@@ -70,14 +70,16 @@ namespace Coco::Rendering
 		if (!_isDirty)
 			return true;
 
+		if (!RenderService::Get())
+			throw std::exception("No active RenderService found");
+
+		RenderService& rendering = *RenderService::Get();
+
 		Ref<Buffer> stagingBuffer;
 		bool success = false;
 
 		try
 		{
-			if(!RenderService::Get())
-				throw std::exception("No active RenderService found");
-
 			if (_vertexCount == 0)
 				throw std::exception("No vertex data has been set");
 
@@ -98,7 +100,7 @@ namespace Coco::Rendering
 				if (_isDynamic)
 					vertexFlags |= BufferUsageFlags::HostVisible;
 
-				_vertexBuffer = RenderService::Get()->GetDevice()->CreateBuffer(
+				_vertexBuffer = rendering.GetDevice().CreateBuffer(
 					vertexBufferData.size(), 
 					vertexFlags,
 					true);
@@ -131,7 +133,7 @@ namespace Coco::Rendering
 				if (_isDynamic)
 					indexFlags |= BufferUsageFlags::HostVisible;
 
-				_indexBuffer = RenderService::Get()->GetDevice()->CreateBuffer(
+				_indexBuffer = rendering.GetDevice().CreateBuffer(
 					indexBufferData.size(),
 					indexFlags,
 					true);
@@ -148,7 +150,7 @@ namespace Coco::Rendering
 			}
 			else
 			{
-				stagingBuffer = RenderService::Get()->GetDevice()->CreateBuffer(
+				stagingBuffer = rendering.GetDevice().CreateBuffer(
 					vertexBufferData.size(),
 					BufferUsageFlags::HostVisible | BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource,
 					true);
@@ -179,7 +181,7 @@ namespace Coco::Rendering
 		if (stagingBuffer.IsValid())
 		{
 			stagingBuffer.Invalidate();
-			RenderService::Get()->GetDevice()->PurgeUnusedResources();
+			rendering.GetDevice().PurgeUnusedResources();
 		}
 
 		return success;

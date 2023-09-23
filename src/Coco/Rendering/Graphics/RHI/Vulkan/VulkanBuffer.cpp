@@ -15,7 +15,7 @@ namespace Coco::Rendering::Vulkan
 		_freelist(size),
 		_isLocked(false)
 	{
-		VkMemoryPropertyFlags localHostMemory = _device->GetMemoryFeatures().SupportsHostVisibleLocalMemory ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0;
+		VkMemoryPropertyFlags localHostMemory = _device.GetMemoryFeatures().SupportsHostVisibleLocalMemory ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0;
 
 		if ((usageFlags & BufferUsageFlags::HostVisible) == BufferUsageFlags::HostVisible)
 			_memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | localHostMemory;
@@ -70,14 +70,14 @@ namespace Coco::Rendering::Vulkan
 	void* VulkanBuffer::Lock(uint64 offset, uint64 size)
 	{
 		void* data;
-		AssertVkSuccess(vkMapMemory(_device->GetDevice(), _bufferMemory, offset, size, 0, &data));
+		AssertVkSuccess(vkMapMemory(_device.GetDevice(), _bufferMemory, offset, size, 0, &data));
 		_isLocked = true;
 		return data;
 	}
 
 	void VulkanBuffer::Unlock()
 	{
-		vkUnmapMemory(_device->GetDevice(), _bufferMemory);
+		vkUnmapMemory(_device.GetDevice(), _bufferMemory);
 		_isLocked = false;
 	}
 
@@ -89,13 +89,13 @@ namespace Coco::Rendering::Vulkan
 		createInfo.usage = ToVkBufferUsageFlags(_usageFlags);
 		createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		AssertVkSuccess(vkCreateBuffer(_device->GetDevice(), &createInfo, _device->GetAllocationCallbacks(), &outBuffer));
+		AssertVkSuccess(vkCreateBuffer(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &outBuffer));
 
 		// Get the memory requirements for the buffer
 		VkMemoryRequirements memoryRequirements{};
-		vkGetBufferMemoryRequirements(_device->GetDevice(), outBuffer, &memoryRequirements);
+		vkGetBufferMemoryRequirements(_device.GetDevice(), outBuffer, &memoryRequirements);
 
-		if (!_device->FindMemoryIndex(memoryRequirements.memoryTypeBits, _memoryProperties, outBufferMemoryIndex))
+		if (!_device.FindMemoryIndex(memoryRequirements.memoryTypeBits, _memoryProperties, outBufferMemoryIndex))
 			throw std::exception("Unable to create VulkanBuffer because the required memory type could not be found");
 
 		// Allocate memory for the buffer
@@ -104,27 +104,27 @@ namespace Coco::Rendering::Vulkan
 		allocateInfo.allocationSize = memoryRequirements.size;
 		allocateInfo.memoryTypeIndex = outBufferMemoryIndex;
 
-		AssertVkSuccess(vkAllocateMemory(_device->GetDevice(), &allocateInfo, _device->GetAllocationCallbacks(), &outBufferMemory));
+		AssertVkSuccess(vkAllocateMemory(_device.GetDevice(), &allocateInfo, _device.GetAllocationCallbacks(), &outBufferMemory));
 	}
 
 	void VulkanBuffer::DestroyBuffer(const VkBuffer& buffer, const VkDeviceMemory& bufferMemory)
 	{
-		_device->WaitForIdle();
+		_device.WaitForIdle();
 
 		if (bufferMemory)
 		{
-			vkFreeMemory(_device->GetDevice(), bufferMemory, _device->GetAllocationCallbacks());
+			vkFreeMemory(_device.GetDevice(), bufferMemory, _device.GetAllocationCallbacks());
 		}
 
 		if (buffer)
 		{
-			vkDestroyBuffer(_device->GetDevice(), buffer, _device->GetAllocationCallbacks());
+			vkDestroyBuffer(_device.GetDevice(), buffer, _device.GetAllocationCallbacks());
 		}
 	}
 
 	void VulkanBuffer::CopyBuffer(const VkBuffer& source, uint64 sourceOffset, VkBuffer& destination, uint64 destinationOffset, uint64 size)
 	{
-		DeviceQueue* transferQueue = _device->GetQueue(DeviceQueue::Type::Transfer);
+		DeviceQueue* transferQueue = _device.GetQueue(DeviceQueue::Type::Transfer);
 		if (!transferQueue)
 			throw std::exception("Device does not support transfer operations");
 
@@ -142,12 +142,12 @@ namespace Coco::Rendering::Vulkan
 		cmdBuffer->EndAndSubmit();
 
 		// Wait for the operation to complete before freeing the command buffer
-		_device->WaitForQueueIdle(transferQueue->QueueType);
+		_device.WaitForQueueIdle(transferQueue->QueueType);
 		transferQueue->Pool.Free(*cmdBuffer);
 	}
 
 	void VulkanBuffer::BindBuffer(VkBuffer buffer, VkDeviceMemory bufferMemory)
 	{
-		AssertVkSuccess(vkBindBufferMemory(_device->GetDevice(), buffer, bufferMemory, 0))
+		AssertVkSuccess(vkBindBufferMemory(_device.GetDevice(), buffer, bufferMemory, 0))
 	}
 }

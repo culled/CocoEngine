@@ -100,7 +100,7 @@ namespace Coco::Rendering
 				ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination | ImageUsageFlags::TransferDestination
 			);
 
-			Ref<Image> createdImage = rendering->GetDevice()->CreateImage(attachmentImageDescription);
+			Ref<Image> createdImage = rendering->GetDevice().CreateImage(attachmentImageDescription);
 			images.at(i) = createdImage;
 			cache.Images.try_emplace(i, createdImage);
 		}

@@ -62,7 +62,7 @@ namespace Coco::Rendering::Vulkan
 		/// @brief The command buffer pool
 		VulkanCommandBufferPool Pool;
 
-		DeviceQueue(VulkanGraphicsDevice* device, Type type, uint8 familyIndex, VkQueue queue);
+		DeviceQueue(VulkanGraphicsDevice& device, Type type, uint8 familyIndex, VkQueue queue);
 	};
 
 	/// @brief Vulkan implementation of a GraphicsDevice
