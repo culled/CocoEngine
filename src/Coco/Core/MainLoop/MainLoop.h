@@ -20,6 +20,7 @@ namespace Coco
 		TickInfo _lastTick;
 		double _timeScale;
 		bool _useAbsoluteTiming;
+		double _lastAverageSleepTime;
 
 	public:
 		MainLoop();

@@ -14,7 +14,8 @@ namespace Coco
 		_currentTick{},
 		_lastTick{},
 		_timeScale(1.0),
-		_useAbsoluteTiming(false)
+		_useAbsoluteTiming(false),
+		_lastAverageSleepTime(0.0)
 	{}
 
 	MainLoop::~MainLoop()
@@ -85,6 +86,9 @@ namespace Coco
 
 		while (_isRunning)
 		{
+			if (_listenersNeedSorting)
+				SortTickHandlers();
+
 			// Save the pre-process time only if we performed a full tick so we can calculate an adjusted delta time
 			if (didPerformFullTick)
 				preProcessPlatformTime = platform->GetRunningTime();
@@ -97,16 +101,9 @@ namespace Coco
 				continue;
 			}
 
-			if (_listenersNeedSorting)
-				SortTickHandlers();
-
-			double currentPlatformTime = Engine::Get()->GetPlatform()->GetRunningTime();
-			double timeDelta = currentPlatformTime - lastTickPlatformTime;
+			double currentPlatformTime = platform->GetRunningTime();
+			double timeDelta = (_useAbsoluteTiming ? currentPlatformTime : preProcessPlatformTime) - lastTickPlatformTime;
 			lastTickPlatformTime = currentPlatformTime;
-
-			// Adjust the delta time to be consistent if needed
-			if (!_useAbsoluteTiming)
-				timeDelta -= currentPlatformTime - preProcessPlatformTime;
 
 			_currentTick.UnscaledDeltaTime = timeDelta;
 			_currentTick.UnscaledTime += _currentTick.UnscaledDeltaTime;
@@ -135,7 +132,7 @@ namespace Coco
 			didPerformFullTick = true;
 
 			if (_targetTicksPerSecond > 0)
-				WaitForTargetTickTime(lastTickPlatformTime);
+				WaitForTargetTickTime(currentPlatformTime);
 		}
 	}
 
@@ -170,7 +167,11 @@ namespace Coco
 		EnginePlatform* platform = Engine::Get()->GetPlatform();
 
 		double timeRemaining = nextTickTime - platform->GetRunningTime();
-		double estimatedWait = 0.0;
+
+		if (timeRemaining < 0.0)
+			return;
+
+		double estimatedWait = _lastAverageSleepTime;
 		uint64 waitCount = 1;
 
 		// Sleep until we feel like sleeping would overshoot our target time
@@ -179,12 +180,15 @@ namespace Coco
 			const double waitStartTime = platform->GetSeconds();
 			platform->Sleep(1);
 			const double waitTime = platform->GetSeconds() - waitStartTime;
-
+		
 			timeRemaining -= waitTime;
-
+		
 			estimatedWait += (waitTime - estimatedWait) / waitCount;
 			waitCount++;
 		}
+
+		// Make the average wait slowly decrease to prevent spikes from disabling it completely
+		_lastAverageSleepTime = estimatedWait * 0.99;
 
 		// Actively wait until our next tick time
 		while (platform->GetRunningTime() < nextTickTime)

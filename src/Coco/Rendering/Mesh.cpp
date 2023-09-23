@@ -15,7 +15,7 @@ namespace Coco::Rendering
 		Count(count)
 	{}
 
-	Mesh::Mesh(const ResourceID& id, const string& name) :
+	Mesh::Mesh(const ResourceID& id, const string& name, bool isDynamic) :
 		RendererResource(id, name),
 		_vertexBuffer(),
 		_indexBuffer(),
@@ -25,6 +25,7 @@ namespace Coco::Rendering
 		_submeshes{},
 		_vertexCount(0),
 		_indexCount(0),
+		_isDynamic(isDynamic),
 		_isDirty(true)
 	{}
 
@@ -92,24 +93,20 @@ namespace Coco::Rendering
 
 			if (!_vertexBuffer.IsValid())
 			{
+				BufferUsageFlags vertexFlags = BufferUsageFlags::Vertex | BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource;
+
+				if (_isDynamic)
+					vertexFlags |= BufferUsageFlags::HostVisible;
+
 				_vertexBuffer = RenderService::Get()->GetDevice()->CreateBuffer(
 					vertexBufferData.size(), 
-					BufferUsageFlags::Vertex | BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource,
+					vertexFlags,
 					true);
 			}
 			else
 			{
 				_vertexBuffer->Resize(vertexBufferData.size(), false);
 			}
-
-			stagingBuffer = RenderService::Get()->GetDevice()->CreateBuffer(
-				vertexBufferData.size(),
-				BufferUsageFlags::HostVisible | BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource,
-				true);
-
-			// Upload vertex data
-			stagingBuffer->LoadData<uint8>(0, vertexBufferData);
-			stagingBuffer->CopyTo(0, *_vertexBuffer, 0, vertexBufferData.size());
 
 			_submeshes.clear();
 
@@ -129,9 +126,14 @@ namespace Coco::Rendering
 
 			if (!_indexBuffer.IsValid())
 			{
+				BufferUsageFlags indexFlags = BufferUsageFlags::Index | BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource;
+
+				if (_isDynamic)
+					indexFlags |= BufferUsageFlags::HostVisible;
+
 				_indexBuffer = RenderService::Get()->GetDevice()->CreateBuffer(
 					indexBufferData.size(),
-					BufferUsageFlags::Index | BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource,
+					indexFlags,
 					true);
 			}
 			else
@@ -139,9 +141,26 @@ namespace Coco::Rendering
 				_indexBuffer->Resize(indexBufferData.size(), false);
 			}
 
-			// Upload index data
-			stagingBuffer->LoadData<uint8>(0, indexBufferData);
-			stagingBuffer->CopyTo(0, *_indexBuffer, 0, indexBufferData.size());
+			if (_isDynamic)
+			{
+				_vertexBuffer->LoadData<uint8>(0, vertexBufferData);
+				_indexBuffer->LoadData<uint8>(0, indexBufferData);
+			}
+			else
+			{
+				stagingBuffer = RenderService::Get()->GetDevice()->CreateBuffer(
+					vertexBufferData.size(),
+					BufferUsageFlags::HostVisible | BufferUsageFlags::TransferDestination | BufferUsageFlags::TransferSource,
+					true);
+
+				// Upload vertex data
+				stagingBuffer->LoadData<uint8>(0, vertexBufferData);
+				stagingBuffer->CopyTo(0, *_vertexBuffer, 0, vertexBufferData.size());
+
+				// Upload index data
+				stagingBuffer->LoadData<uint8>(0, indexBufferData);
+				stagingBuffer->CopyTo(0, *_indexBuffer, 0, indexBufferData.size());
+			}
 
 			if (deleteLocalData)
 			{

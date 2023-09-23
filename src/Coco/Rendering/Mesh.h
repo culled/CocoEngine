@@ -32,10 +32,11 @@ namespace Coco::Rendering
 		std::unordered_map<uint32, SubMesh> _submeshes;
 		uint64 _vertexCount;
 		uint64 _indexCount;
+		bool _isDynamic;
 		bool _isDirty;
 
 	public:
-		Mesh(const ResourceID& id, const string& name);
+		Mesh(const ResourceID& id, const string& name, bool isDynamic = false);
 		~Mesh();
 
 		std::type_index GetType() const final { return typeid(Mesh); }

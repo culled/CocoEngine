@@ -298,7 +298,7 @@ namespace Coco::ImGui
             ));
 
         // Setup ImGui mesh
-        _mesh = resources->Create<Mesh>("ImGui");
+        _mesh = resources->Create<Mesh>("ImGui", true);
 
         // Setup the font texture
         int width, height;
