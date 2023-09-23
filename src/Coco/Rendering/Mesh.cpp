@@ -26,7 +26,9 @@ namespace Coco::Rendering
 		_vertexCount(0),
 		_indexCount(0),
 		_isDynamic(isDynamic),
-		_isDirty(true)
+		_isDirty(true),
+		_lockedVertexMemory(nullptr),
+		_lockedIndexMemory(nullptr)
 	{}
 
 	Mesh::~Mesh()
@@ -104,10 +106,13 @@ namespace Coco::Rendering
 					vertexBufferData.size(), 
 					vertexFlags,
 					true);
+
+				_lockedVertexMemory = nullptr;
 			}
 			else
 			{
 				_vertexBuffer->Resize(vertexBufferData.size(), false);
+				_lockedVertexMemory = nullptr;
 			}
 
 			_submeshes.clear();
@@ -137,16 +142,25 @@ namespace Coco::Rendering
 					indexBufferData.size(),
 					indexFlags,
 					true);
+
+				_lockedIndexMemory = nullptr;
 			}
 			else
 			{
 				_indexBuffer->Resize(indexBufferData.size(), false);
+				_lockedIndexMemory = nullptr;
 			}
 
 			if (_isDynamic)
 			{
-				_vertexBuffer->LoadData<uint8>(0, vertexBufferData);
-				_indexBuffer->LoadData<uint8>(0, indexBufferData);
+				if (!_lockedVertexMemory)
+					_lockedVertexMemory = _vertexBuffer->Lock(0, vertexBufferData.size());
+
+				if (!_lockedIndexMemory)
+					_lockedIndexMemory = _indexBuffer->Lock(0, indexBufferData.size());
+
+				Assert(memcpy_s(_lockedVertexMemory, _vertexBuffer->GetSize(), vertexBufferData.data(), vertexBufferData.size()) == 0)
+				Assert(memcpy_s(_lockedIndexMemory, _indexBuffer->GetSize(), indexBufferData.data(), indexBufferData.size()) == 0)
 			}
 			else
 			{

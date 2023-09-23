@@ -13,7 +13,7 @@ namespace Coco::Rendering::Vulkan
 		_buffer(nullptr),
 		_usageFlags(usageFlags),
 		_freelist(size),
-		_isLocked(false)
+		_lockedMemory(nullptr)
 	{
 		VkMemoryPropertyFlags localHostMemory = _device.GetMemoryFeatures().SupportsHostVisibleLocalMemory ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0;
 
@@ -38,6 +38,9 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanBuffer::Resize(uint64 newSize, bool copyOldData)
 	{
+		if (_lockedMemory)
+			Unlock();
+
 		_freelist.Resize(newSize);
 
 		// Create a new buffer at the requested size
@@ -69,16 +72,15 @@ namespace Coco::Rendering::Vulkan
 
 	void* VulkanBuffer::Lock(uint64 offset, uint64 size)
 	{
-		void* data;
-		AssertVkSuccess(vkMapMemory(_device.GetDevice(), _bufferMemory, offset, size, 0, &data));
-		_isLocked = true;
-		return data;
+		if(!_lockedMemory)
+			AssertVkSuccess(vkMapMemory(_device.GetDevice(), _bufferMemory, offset, size, 0, &_lockedMemory));
+		return _lockedMemory;
 	}
 
 	void VulkanBuffer::Unlock()
 	{
 		vkUnmapMemory(_device.GetDevice(), _bufferMemory);
-		_isLocked = false;
+		_lockedMemory = nullptr;
 	}
 
 	void VulkanBuffer::CreateBuffer(uint64 size, VkBuffer& outBuffer, VkDeviceMemory& outBufferMemory, uint32& outBufferMemoryIndex)

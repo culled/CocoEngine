@@ -34,6 +34,8 @@ namespace Coco::Rendering
 		uint64 _indexCount;
 		bool _isDynamic;
 		bool _isDirty;
+		void* _lockedVertexMemory;
+		void* _lockedIndexMemory;
 
 	public:
 		Mesh(const ResourceID& id, const string& name, bool isDynamic = false);

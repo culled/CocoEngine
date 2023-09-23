@@ -20,7 +20,7 @@ namespace Coco::Rendering::Vulkan
         VkDeviceMemory _bufferMemory;
         uint32 _bufferMemoryIndex;
         VkMemoryPropertyFlags _memoryProperties;
-        bool _isLocked;
+        void* _lockedMemory;
 
     public:
         VulkanBuffer(const GraphicsDeviceResourceID& id, uint64 size, BufferUsageFlags usageFlags, bool bind);
