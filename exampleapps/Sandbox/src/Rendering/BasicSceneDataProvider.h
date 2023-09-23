@@ -4,6 +4,7 @@
 #include <Coco/Rendering/Shader.h>
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Rendering/Material.h>
+#include <Coco/Rendering/MaterialInstance.h>
 #include <Coco/Core/Types/Transform.h>
 
 using namespace Coco;

@@ -20,7 +20,8 @@ namespace Coco::Rendering
 		Int2s{},
 		Int3s{},
 		Int4s{},
-		Bools{}
+		Bools{},
+		Textures{}
 	{}
 
 	std::hash<std::string_view> stringHash;
@@ -46,5 +47,42 @@ namespace Coco::Rendering
 		Int3s.clear();
 		Int4s.clear();
 		Bools.clear();
+		Textures.clear();
+	}
+
+	void ShaderUniformData::MergeWith(const ShaderUniformData& other)
+	{
+		for (const auto& kvp : other.Floats)
+			Floats[kvp.first] = kvp.second;
+
+		for (const auto& kvp : other.Float2s)
+			Float2s[kvp.first] = kvp.second;
+
+		for (const auto& kvp : other.Float3s)
+			Float3s[kvp.first] = kvp.second;
+
+		for (const auto& kvp : other.Float4s)
+			Float4s[kvp.first] = kvp.second;
+
+		for (const auto& kvp : other.Mat4x4s)
+			Mat4x4s[kvp.first] = kvp.second;
+
+		for (const auto& kvp : other.Ints)
+			Ints[kvp.first] = kvp.second;
+
+		for (const auto& kvp : other.Int2s)
+			Int2s[kvp.first] = kvp.second;
+
+		for (const auto& kvp : other.Int3s)
+			Int3s[kvp.first] = kvp.second;
+
+		for (const auto& kvp : other.Int4s)
+			Int4s[kvp.first] = kvp.second;
+
+		for (const auto& kvp : other.Bools)
+			Bools[kvp.first] = kvp.second;
+
+		for (const auto& kvp : other.Textures)
+			Textures[kvp.first] = kvp.second;
 	}
 }

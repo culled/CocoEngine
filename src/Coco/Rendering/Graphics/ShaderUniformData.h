@@ -146,5 +146,9 @@ namespace Coco::Rendering
 
 		/// @brief Clears all uniform data
 		void Clear();
+
+		/// @brief Overwrites uniform data with uniforms from another object
+		/// @param other The other uniform data
+		void MergeWith(const ShaderUniformData& other);
 	};
 }

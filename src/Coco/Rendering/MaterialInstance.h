@@ -1,55 +1,28 @@
 #pragma once
 
-#include "Graphics/ShaderUniformData.h"
-#include <Coco/Core/Types/Color.h>
-#include "RendererResource.h"
-#include "Shader.h"
-#include "Texture.h"
+#include "Material.h"
 
 namespace Coco::Rendering
 {
-	/// @brief Base class for all providers of material data
-	class MaterialDataProvider
-	{
-	public:
-		virtual ~MaterialDataProvider() = default;
-
-		/// @brief Gets the ID of this material instance
-		/// @return The instance ID
-		virtual uint64 GetMaterialID() const = 0;
-
-		/// @brief Gets the uniform data of this material instance
-		/// @return The uniform data
-		virtual ShaderUniformData GetUniformData() const = 0;
-
-		/// @brief Gets the shader used by this material instance
-		/// @return The shader
-		virtual Ref<Shader> GetShader() const = 0;
-	};
-
-	/// @brief Describes how to render a surface
-	class Material : 
-		public RendererResource, 
+	/// @brief An instanced material with uniform overrides
+	class MaterialInstance : 
+		public RendererResource,
 		public MaterialDataProvider
 	{
 	private:
-		Ref<Shader> _shader;
+		Ref<Material> _baseMaterial;
 		ShaderUniformData _uniformData;
 		std::unordered_map<ShaderUniformData::UniformKey, Ref<Texture>> _textures;
 
 	public:
-		Material(const ResourceID& id, const string& name);
-		Material(const ResourceID& id, const string& name, Ref<Shader> shader);
+		MaterialInstance(const ResourceID& id, const string& name, Ref<Material> baseMaterial);
+		~MaterialInstance();
 
-		std::type_index GetType() const final { return typeid(Material); }
+		std::type_index GetType() const final { return typeid(MaterialInstance); }
 
 		uint64 GetMaterialID() const final { return GetID(); }
-		ShaderUniformData GetUniformData() const final { return _uniformData; }
-		Ref<Shader> GetShader() const final { return _shader; }
-
-		/// @brief Sets the shader of this material
-		/// @param shader The shader
-		void SetShader(Ref<Shader> shader);
+		ShaderUniformData GetUniformData() const final;
+		Ref<Shader> GetShader() const final;
 
 		/// @brief Sets a float uniform
 		/// @param name The name of the uniform
