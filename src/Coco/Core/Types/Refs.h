@@ -250,7 +250,8 @@ namespace Coco
 		/// @brief Invalidates this reference
 		void Invalidate()
 		{
-			_state.reset();
+			if(_state)
+				_state.reset();
 			_ptr = nullptr;
 		}
 
