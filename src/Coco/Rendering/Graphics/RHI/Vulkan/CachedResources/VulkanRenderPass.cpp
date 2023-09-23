@@ -186,7 +186,7 @@ namespace Coco::Rendering::Vulkan
 		for (uint32_t i = 0; i < static_cast<uint32_t>(subpasses.size() - 1); i++)
 		{
 			// Wait until the previous subpass has written to the color attachments before performing the vertex stage on the next pass
-			VkSubpassDependency& dependency = subpassDependencies.at(i);
+			VkSubpassDependency& dependency = subpassDependencies.at(i + 1);
 			dependency.srcSubpass = i;
 			dependency.dstSubpass = i + 1;
 			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;

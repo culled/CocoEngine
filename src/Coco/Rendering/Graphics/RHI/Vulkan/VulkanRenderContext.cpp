@@ -12,6 +12,17 @@
 
 namespace Coco::Rendering::Vulkan
 {
+	BoundGlobalState::BoundGlobalState(uint64 shaderID) :
+		ShaderID(shaderID),
+		Pipeline(nullptr),
+		DescriptorSet(nullptr)
+	{}
+
+	BoundInstanceState::BoundInstanceState(uint64 instanceID) :
+		InstanceID(instanceID),
+		DescriptorSet(nullptr)
+	{}
+
 	VulkanContextRenderOperation::VulkanContextRenderOperation(
 		VulkanFramebuffer& framebuffer, 
 		VulkanRenderPass& renderPass) :
@@ -20,11 +31,8 @@ namespace Coco::Rendering::Vulkan
 		ViewportRect{},
 		ScissorRect{},
 		StateChanges{},
-		CurrentShaderID{},
-		CurrentInstanceID{},
-		BoundPipeline{},
-		BoundGlobalDescriptors{},
-		BoundInstanceDescriptors{}
+		GlobalState{},
+		InstanceState{}
 	{}
 
 	VulkanRenderContext::VulkanRenderContext(const GraphicsDeviceResourceID& id) :
@@ -139,7 +147,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		Assert(_vulkanRenderOperation.has_value())
 
-		if (_vulkanRenderOperation->CurrentInstanceID.has_value() && _vulkanRenderOperation->CurrentInstanceID.value() == material.ID)
+		if (_vulkanRenderOperation->InstanceState.has_value() && _vulkanRenderOperation->InstanceState->InstanceID == material.ID)
 			return;
 
 		const ShaderData& shader = _renderOperation->RenderView.GetShaderData(material.ShaderID);
@@ -149,8 +157,8 @@ namespace Coco::Rendering::Vulkan
 		SetShader(passShader);
 
 		_renderOperation->InstanceUniforms = material.UniformData;
-		_vulkanRenderOperation->CurrentInstanceID = material.ID;
 
+		_vulkanRenderOperation->InstanceState.emplace(material.ID);
 		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Instance);
 	}
 
@@ -158,19 +166,17 @@ namespace Coco::Rendering::Vulkan
 	{
 		Assert(_vulkanRenderOperation.has_value())
 
-		if (_vulkanRenderOperation->CurrentShaderID.has_value() && _vulkanRenderOperation->CurrentShaderID.value() == shader.ID)
+		if (_vulkanRenderOperation->GlobalState.has_value() && _vulkanRenderOperation->GlobalState->ShaderID == shader.ID)
 			return;
 
-		_vulkanRenderOperation->CurrentShaderID = shader.ID;
+		_vulkanRenderOperation->GlobalState.emplace(shader.ID);
 
 		// Clear shader-specific uniforms
 		_renderOperation->InstanceUniforms.Clear();
 		_renderOperation->DrawUniforms.Clear();
 
 		// Reset shader-specific bindings
-		_vulkanRenderOperation->BoundPipeline.reset();
-		_vulkanRenderOperation->BoundGlobalDescriptors.reset();
-		_vulkanRenderOperation->BoundInstanceDescriptors.reset();
+		_vulkanRenderOperation->InstanceState.reset();
 
 		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Shader);
 	}
@@ -307,6 +313,10 @@ namespace Coco::Rendering::Vulkan
 	bool VulkanRenderContext::BeginNextPassImpl()
 	{
 		Assert(_vulkanRenderOperation.has_value())
+
+		_vulkanRenderOperation->GlobalState.reset();
+		_vulkanRenderOperation->InstanceState.reset();
+
 		vkCmdNextSubpass(_commandBuffer->GetCmdBuffer(), VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
 		return true;
 	}
@@ -381,105 +391,83 @@ namespace Coco::Rendering::Vulkan
 	{
 		Assert(_vulkanRenderOperation.has_value())
 
-			// Early out if no state changes since last draw
-			if (_vulkanRenderOperation->StateChanges.size() == 0)
-				return true;
+		// Early out if no state changes since last draw
+		if (_vulkanRenderOperation->StateChanges.size() == 0)
+			return true;
 
 		bool stateBound = true;
 
 		try
 		{
-			if (!_vulkanRenderOperation->CurrentShaderID.has_value())
+			if (!_vulkanRenderOperation->GlobalState.has_value())
 				throw std::exception("No shader was bound");
 
-			if (_vulkanRenderOperation->CurrentShaderID.value() == RenderView::InvalidID)
+			BoundGlobalState& globalState = _vulkanRenderOperation->GlobalState.value();
+
+			if (globalState.ShaderID == RenderView::InvalidID)
 				throw std::exception("Invalid shader");
 
-			const RenderPassShaderData& boundShaderData = _renderOperation->RenderView.GetRenderPassShaderData(_vulkanRenderOperation->CurrentShaderID.value());
+			const RenderPassShaderData& boundShaderData = _renderOperation->RenderView.GetRenderPassShaderData(globalState.ShaderID);
 			VulkanRenderPassShader& shader = _deviceCache->GetOrCreateShader(boundShaderData.ShaderData);
 
 			VulkanRenderContextCache& cache = _deviceCache->GetOrCreateContextCache(ID);
 
 			VulkanUniformData& uniformData = cache.GetOrCreateUniformData(shader);
-			VulkanPipeline* pipeline = nullptr;
 			VkCommandBuffer cmdBuffer = _commandBuffer->GetCmdBuffer();
 
 			// Bind the new shader if it changed
-			if (_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Shader) ||
-				!_vulkanRenderOperation->BoundGlobalDescriptors.has_value())
+			if (_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Shader))
 			{
-				pipeline = &_device.GetCache()->GetOrCreatePipeline(
+				globalState.Pipeline = &_device.GetCache()->GetOrCreatePipeline(
 					_vulkanRenderOperation->RenderPass,
 					_renderOperation->CurrentPassIndex,
 					shader
 				);
 
-				_vulkanRenderOperation->BoundPipeline = pipeline;
+				vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, globalState.Pipeline->GetPipeline());
 
-				vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetPipeline());
-
-				VkDescriptorSet set = uniformData.PrepareData(VulkanUniformData::sGlobalInstanceID, _renderOperation->GlobalUniforms, shader, true);
-				if (set)
+				globalState.DescriptorSet = uniformData.PrepareData(VulkanUniformData::sGlobalInstanceID, _renderOperation->GlobalUniforms, shader, true);
+				if (globalState.DescriptorSet)
 				{
 					// Bind the global descriptor set
 					vkCmdBindDescriptorSets(
 						cmdBuffer,
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
-						pipeline->GetPipelineLayout(),
-						0, 1, &set,
+						globalState.Pipeline->GetPipelineLayout(),
+						0, 1, &globalState.DescriptorSet,
 						0, 0);
-
-					_vulkanRenderOperation->BoundGlobalDescriptors = set;
-				}
-				else
-				{
-					_vulkanRenderOperation->BoundGlobalDescriptors.reset();
 				}
 			}
 
-			Assert(_vulkanRenderOperation->BoundPipeline.has_value())
-			pipeline = _vulkanRenderOperation->BoundPipeline.value();
+			Assert(globalState.Pipeline != nullptr)
 
 			if (_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Uniform) ||
-				_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Instance) ||
-				!_vulkanRenderOperation->BoundInstanceDescriptors.has_value())
+				_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Instance))
 			{
-				uint64 instanceID;
-
-				if (_vulkanRenderOperation->CurrentInstanceID.has_value())
+				if (!_vulkanRenderOperation->InstanceState.has_value())
 				{
-					instanceID = _vulkanRenderOperation->CurrentInstanceID.value();
-				}
-				else
-				{
-					instanceID = Random::Global.RandomRange(0, Math::MaxValue<int>());
+					_vulkanRenderOperation->InstanceState.emplace(static_cast<uint64>(Random::Global.RandomRange(0, Math::MaxValue<int>())));
 				}
 
-				VkDescriptorSet set = uniformData.PrepareData(instanceID, _renderOperation->InstanceUniforms, shader, true);
+				BoundInstanceState& instanceState = _vulkanRenderOperation->InstanceState.value();
 
-				if (set)
+				instanceState.DescriptorSet = uniformData.PrepareData(instanceState.InstanceID, _renderOperation->InstanceUniforms, shader, true);
+
+				if (instanceState.DescriptorSet)
 				{
-					VulkanPipeline* pipeline = _vulkanRenderOperation->BoundPipeline.value();
-
-					uint32 offset = _vulkanRenderOperation->BoundGlobalDescriptors.has_value() ? 1 : 0;
+					uint32 offset = globalState.DescriptorSet ? 1 : 0;
 
 					// Bind the instance descriptor set
 					vkCmdBindDescriptorSets(
 						cmdBuffer,
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
-						pipeline->GetPipelineLayout(),
-						offset, 1, &set,
+						globalState.Pipeline->GetPipelineLayout(),
+						offset, 1, &instanceState.DescriptorSet,
 						0, 0);
-
-					_vulkanRenderOperation->BoundInstanceDescriptors = set;
-				}
-				else
-				{
-					_vulkanRenderOperation->BoundInstanceDescriptors.reset();
 				}
 			}
 
-			uniformData.PreparePushConstants(*_commandBuffer, pipeline->GetPipelineLayout(), _renderOperation->DrawUniforms, shader);
+			uniformData.PreparePushConstants(*_commandBuffer, globalState.Pipeline->GetPipelineLayout(), _renderOperation->DrawUniforms, shader);
 		}
 		catch (const std::exception& ex)
 		{

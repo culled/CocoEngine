@@ -18,6 +18,33 @@ namespace Coco::Rendering::Vulkan
     class VulkanGraphicsDevice;
     class VulkanGraphicsDeviceCache;
 
+    /// @brief The bound global state
+    struct BoundGlobalState
+    {
+        /// @brief The ID of the shader bound
+        uint64 ShaderID;
+
+        /// @brief The bound pipeline, if any
+        VulkanPipeline* Pipeline;
+
+        /// @brief The bound descriptor set, if any
+        VkDescriptorSet DescriptorSet;
+
+        BoundGlobalState(uint64 shaderID);
+    };
+
+    /// @brief The bound instance state
+    struct BoundInstanceState
+    {
+        /// @brief The ID of the instance bound
+        uint64 InstanceID;
+
+        /// @brief The bound descriptor set, if any
+        VkDescriptorSet DescriptorSet;
+
+        BoundInstanceState(uint64 instanceID);
+    };
+
     /// @brief Holds Vulkan data that a VulkanRenderContext uses during actual rendering
     struct VulkanContextRenderOperation
     {
@@ -45,20 +72,11 @@ namespace Coco::Rendering::Vulkan
         /// @brief Unique state changes since the last draw call
         std::set<StateChangeType> StateChanges;
 
-        /// @brief The currently-bound shader ID
-        std::optional<uint64> CurrentShaderID;
+        /// @brief The currently bound global state
+        std::optional<BoundGlobalState> GlobalState;
 
-        /// @brief The currently set instance ID
-        std::optional<uint64> CurrentInstanceID;
-
-        /// @brief The currently bound VulkanPipeline
-        std::optional<VulkanPipeline*> BoundPipeline;
-
-        /// @brief The currently bound global VkDescriptorSet
-        std::optional<VkDescriptorSet> BoundGlobalDescriptors;
-
-        /// @brief The currently bound instance VkDescriptorSet
-        std::optional<VkDescriptorSet> BoundInstanceDescriptors;
+        /// @brief The currently bound instance state
+        std::optional<BoundInstanceState> InstanceState;
 
         VulkanContextRenderOperation(VulkanFramebuffer& framebuffer, VulkanRenderPass& renderPass);
     };
