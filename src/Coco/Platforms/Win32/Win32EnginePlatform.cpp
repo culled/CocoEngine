@@ -244,6 +244,7 @@ namespace Coco::Platforms::Win32
 			// Erasing will be handled by us to prevent flicker
 			return 1;
 #ifdef COCO_SERVICES_INPUT
+		case WM_ACTIVATEAPP:
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 		case WM_KEYUP:
@@ -518,6 +519,16 @@ namespace Coco::Platforms::Win32
 			}
 
 			input.GetMouse().UpdateButtonState(button, message != WM_XBUTTONUP);
+			break;
+		}
+		case WM_ACTIVATEAPP:
+		{
+			if (wParam == FALSE)
+			{			
+				// The app is unfocusing, so clear all states
+				input.GetKeyboard().ClearAllKeyStates();
+				input.GetMouse().ClearAllButtonStates();
+			}
 			break;
 		}
 		default:

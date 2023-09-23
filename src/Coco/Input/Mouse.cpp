@@ -80,6 +80,15 @@ namespace Coco::Input
 		currentDelta = scrollDelta;
 	}
 
+	void Mouse::ClearAllButtonStates()
+	{
+		for (uint8 i = 0; i < MouseState::ButtonCount; i++)
+		{
+			if (_currentState.ButtonStates.at(i))
+				UpdateButtonState(static_cast<MouseButton>(i), false);
+		}
+	}
+
 	bool Mouse::IsButtonPressed(MouseButton button) const
 	{
 		return _currentState.ButtonStates.at(static_cast<size_t>(button));

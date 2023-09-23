@@ -28,6 +28,15 @@ namespace Coco::Input
 		currentState = isPressed;
 	}
 
+	void Keyboard::ClearAllKeyStates()
+	{
+		for (uint32 i = 0; i < KeyboardState::KeyCount; i++)
+		{
+			if (_currentState.KeyStates.at(i))
+				UpdateKeyState(static_cast<KeyboardKey>(i), false);
+		}
+	}
+
 	bool Keyboard::IsKeyPressed(KeyboardKey key) const
 	{
 		return _currentState.KeyStates.at(static_cast<size_t>(key));

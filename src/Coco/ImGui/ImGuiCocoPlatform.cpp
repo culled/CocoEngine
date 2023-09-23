@@ -478,10 +478,7 @@ namespace Coco::ImGuiCoco
             if (imGuiKey == ImGuiKey_None)
                 continue;
 
-            if (keyboard.WasKeyJustPressed(key))
-                io.AddKeyEvent(imGuiKey, true);
-            else if (keyboard.WasKeyJustReleased(key))
-                io.AddKeyEvent(imGuiKey, false);
+            io.AddKeyEvent(imGuiKey, keyboard.IsKeyPressed(key));
 		}
         
         return true;

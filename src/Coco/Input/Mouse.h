@@ -107,9 +107,12 @@ namespace Coco::Input
 		/// @param scrollDelta The scroll delta
 		void UpdateScrollState(const Vector2Int& scrollDelta);
 
+		/// @brief Clears the states of all buttons
+		void ClearAllButtonStates();
+
 		/// @brief Called when a mouse button has been double-clicked
 		/// @param button The mouse button
-		//COCOINPUTAPI void DoubleClicked(MouseButton button);
+		//void DoubleClicked(MouseButton button);
 
 		/// @brief Determines if the given mouse button is currently pressed
 		/// @param button The mouse button

@@ -56,6 +56,9 @@ namespace Coco::Input
 		/// @param isPressed True if the key is pressed
 		void UpdateKeyState(KeyboardKey key, bool isPressed);
 
+		/// @brief Clears all current key states
+		void ClearAllKeyStates();
+
 		/// @brief Determines if the given key is currently pressed
 		/// @param key The key
 		/// @return True if the key is currently pressed
