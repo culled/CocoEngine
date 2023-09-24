@@ -12,6 +12,10 @@
 
 namespace Coco::Rendering::Vulkan
 {
+	VulkanGraphicsDeviceFeatures::VulkanGraphicsDeviceFeatures() :
+		MaxPushConstantSize(0)
+	{}
+
 	PhysicalDeviceRanking::PhysicalDeviceRanking(VkPhysicalDevice device, int score) :
 		Device(device), Score(score)
 	{}
@@ -34,6 +38,7 @@ namespace Coco::Rendering::Vulkan
 		_physicalDevice(physicalDevice),
 		_device(nullptr),
 		_features{},
+		_vulkanFeatures{},
 		_graphicsQueue(nullptr),
 		_transferQueue(nullptr),
 		_computeQueue(nullptr),
@@ -502,6 +507,7 @@ namespace Coco::Rendering::Vulkan
 		_features.MaxImageDepth = deviceProperties.limits.maxImageDimension3D;
 		_features.MinimumBufferAlignment = static_cast<uint32>(deviceProperties.limits.minUniformBufferOffsetAlignment);
 		_features.MaxAnisotropicLevel = static_cast<uint8>(deviceProperties.limits.maxSamplerAnisotropy);
+		_vulkanFeatures.MaxPushConstantSize = deviceProperties.limits.maxPushConstantsSize;
 
 		// Get the memory features of the physical device
 		VkPhysicalDeviceMemoryProperties memoryProperties{};

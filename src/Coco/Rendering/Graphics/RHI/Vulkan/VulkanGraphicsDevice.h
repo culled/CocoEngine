@@ -12,6 +12,15 @@ namespace Coco::Rendering::Vulkan
 {
 	class VulkanGraphicsDevice;
 
+	/// @brief Vulkan-specific device features
+	struct VulkanGraphicsDeviceFeatures
+	{
+		/// @brief The maximum size of the push constants buffer
+		uint32 MaxPushConstantSize;
+
+		VulkanGraphicsDeviceFeatures();
+	};
+
 	/// @brief A ranking for a VkPhysicalDevice
 	struct PhysicalDeviceRanking
 	{
@@ -77,6 +86,7 @@ namespace Coco::Rendering::Vulkan
 		Version _driverVersion;
 		Version _apiVersion;
 		GraphicsDeviceFeatures _features;
+		VulkanGraphicsDeviceFeatures _vulkanFeatures;
 		UniqueRef<DeviceQueue> _graphicsQueue;
 		UniqueRef<DeviceQueue> _transferQueue;
 		UniqueRef<DeviceQueue> _computeQueue;
@@ -143,6 +153,10 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Gets this device's cache
 		/// @return The device cache
 		VulkanGraphicsDeviceCache& GetCache() { return *_cache; }
+
+		/// @brief Gets the Vulkan-specific features of this device
+		/// @return The Vulkan features
+		const VulkanGraphicsDeviceFeatures& GetVulkanFeatures() const { return _vulkanFeatures; }
 
 		/// @brief Finds the heap index for a type of memory
 		/// @param type The memory types

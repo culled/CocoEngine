@@ -71,10 +71,11 @@ namespace Coco::Rendering::Vulkan
 		if (dataSize == 0)
 			return std::vector<VkPushConstantRange>();
 
-		// TODO: check maximum push constant range size
-		if (dataSize > 128)
+		const VulkanGraphicsDeviceFeatures& features = _device.GetVulkanFeatures();
+
+		if (dataSize > features.MaxPushConstantSize)
 		{
-			CocoError("Cannot have a push constant buffer greater than 128 bytes. Requested: {} bytes", dataSize)
+			CocoError("Cannot have a push constant buffer greater than the maximum supported {} bytes. Requested: {} bytes", features.MaxPushConstantSize, dataSize)
 			return std::vector<VkPushConstantRange>();
 		}
 
