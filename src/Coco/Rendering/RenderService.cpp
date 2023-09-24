@@ -152,7 +152,7 @@ namespace Coco::Rendering
 
 		_defaultDiffuseTexture = Engine::Get()->GetResourceLibrary().Create<Texture>(
 			"Default Diffuse Texture",
-			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
+			ImageDescription(size, size, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled, false),
 			ImageSamplerDescription()
 		);
 
@@ -175,7 +175,7 @@ namespace Coco::Rendering
 
 		_defaultNormalTexture = Engine::Get()->GetResourceLibrary().Create<Texture>(
 			"Default Normal Texture",
-			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::Linear, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
+			ImageDescription(size, size, ImagePixelFormat::RGBA8, ImageColorSpace::Linear, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled, false),
 			ImageSamplerDescription()
 		);
 
@@ -201,7 +201,7 @@ namespace Coco::Rendering
 
 		_defaultCheckerTexture = Engine::Get()->GetResourceLibrary().Create<Texture>(
 			"Default Checker Texture",
-			ImageDescription(size, size, 1, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled),
+			ImageDescription(size, size, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled, false),
 			ImageSamplerDescription(ImageFilterMode::Nearest, ImageRepeatMode::Repeat, MipMapFilterMode::Nearest, 1)
 		);
 

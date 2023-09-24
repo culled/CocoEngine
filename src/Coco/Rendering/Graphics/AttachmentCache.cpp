@@ -121,10 +121,10 @@ namespace Coco::Rendering
 		// We need to create an image
 		ImageDescription attachmentImageDescription(
 			size.Width, size.Height,
-			1,
 			attachmentFormat.PixelFormat,
 			attachmentFormat.ColorSpace,
 			ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination | ImageUsageFlags::TransferDestination,
+			false,
 			msaaSamples
 		);
 

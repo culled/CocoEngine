@@ -51,6 +51,15 @@ namespace Coco::Rendering
 		/// @brief The maximum anisotropy to use for filtering
 		uint8 MaxAnisotropy;
 
+		/// @brief The minimum mip map level to use
+		uint32 MinLOD;
+
+		/// @brief The maximum mip map level to use
+		uint32 MaxLOD;
+
+		/// @brief The bias for the mip map lod
+		double LODBias;
+
 		ImageSamplerDescription();
 		ImageSamplerDescription(ImageFilterMode filterMode, ImageRepeatMode repeatMode, MipMapFilterMode mipMapFilterMode, uint8 maxAnisotropy);
 	};

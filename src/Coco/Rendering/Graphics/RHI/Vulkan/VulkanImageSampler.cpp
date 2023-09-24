@@ -11,6 +11,9 @@ namespace Coco::Rendering::Vulkan
 		_description(description),
 		_sampler(nullptr)
 	{
+		const GraphicsDeviceFeatures& features = _device.GetFeatures();
+		_description.MaxAnisotropy = Math::Min(_description.MaxAnisotropy, features.MaxAnisotropicLevel);
+
 		VkSamplerCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		createInfo.magFilter = ToVkFilter(_description.MagnifyFilter);
@@ -28,9 +31,9 @@ namespace Coco::Rendering::Vulkan
 		createInfo.compareEnable = VK_TRUE;
 		createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 		createInfo.mipmapMode = ToVkSamplerMipmapMode(_description.MipMapFilter);
-		createInfo.mipLodBias = 0.0f;
-		createInfo.minLod = 0.0f;
-		createInfo.maxLod = 0.0f;
+		createInfo.mipLodBias = static_cast<float>(_description.LODBias);
+		createInfo.minLod = static_cast<float>(_description.MinLOD);
+		createInfo.maxLod = static_cast<float>(_description.MaxLOD);
 
 		AssertVkSuccess(vkCreateSampler(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_sampler));
 	}

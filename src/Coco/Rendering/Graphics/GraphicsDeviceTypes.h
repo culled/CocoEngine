@@ -34,6 +34,9 @@ namespace Coco::Rendering
 		/// @brief The minimum alignment for a buffer
 		uint32 MinimumBufferAlignment;
 
+		/// @brief The maximum anisotropic filtering level
+		uint8 MaxAnisotropicLevel;
+
 		GraphicsDeviceFeatures();
 	};
 }

@@ -61,7 +61,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	uint64 VulkanImage::GetSize() const
+	uint64 VulkanImage::GetDataSize() const
 	{
 		return _description.Width * _description.Height * _description.Depth * GetPixelFormatSize(_description.PixelFormat);
 	}
@@ -72,7 +72,7 @@ namespace Coco::Rendering::Vulkan
 		if (!queue)
 			throw std::exception("A graphics queue is required to transfer pixel data");
 
-		uint64 imageSize = GetSize();
+		uint64 imageSize = GetDataSize();
 
 		if (offset + pixelDataSize > imageSize)
 		{
@@ -96,6 +96,12 @@ namespace Coco::Rendering::Vulkan
 
 		TransitionLayout(*buffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		CopyFromBuffer(*buffer, *staging);
+
+		if (_description.MipCount > 1)
+		{
+			GenerateMipMaps(*buffer);
+		}
+
 		TransitionLayout(*buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		buffer->EndAndSubmit();
@@ -125,9 +131,9 @@ namespace Coco::Rendering::Vulkan
 
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.levelCount = _description.MipCount;
 		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.layerCount = _description.Layers;
 
 		VkPipelineStageFlags sourceStage;
 		VkPipelineStageFlags destinationStage;
@@ -318,5 +324,95 @@ namespace Coco::Rendering::Vulkan
 		region.imageExtent.depth = _description.Depth;
 
 		vkCmdCopyBufferToImage(commandBuffer.GetCmdBuffer(), source.GetBuffer(), _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	}
+	
+	void VulkanImage::GenerateMipMaps(VulkanCommandBuffer& commandBuffer)
+	{
+		if (_currentLayout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+			TransitionLayout(commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.image = _image;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.levelCount = 1;
+
+		int32 mipWidth = static_cast<int32>(_description.Width);
+		int32 mipHeight = static_cast<int32>(_description.Height);
+
+		for (uint32 m = 1; m < _description.MipCount; m++)
+		{
+			barrier.subresourceRange.baseMipLevel = m - 1;
+			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+			vkCmdPipelineBarrier(commandBuffer.GetCmdBuffer(),
+				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+				0, nullptr,
+				0, nullptr,
+				1, &barrier
+			);
+
+			VkImageBlit blit{};
+			blit.srcOffsets[0] = { 0, 0, 0 };
+			blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
+
+			blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			blit.srcSubresource.mipLevel = m - 1;
+			blit.srcSubresource.baseArrayLayer = 0;
+			blit.srcSubresource.layerCount = 1;
+
+			int32 dstMipWidth = mipWidth > 1 ? mipWidth / 2 : mipWidth;
+			int32 dstMipHeight = mipHeight > 1 ? mipHeight / 2 : mipHeight;
+			blit.dstOffsets[0] = { 0, 0, 0 };
+			blit.dstOffsets[1] = { dstMipWidth, dstMipHeight, 1 };
+			blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			blit.dstSubresource.mipLevel = m;
+			blit.dstSubresource.baseArrayLayer = 0;
+			blit.dstSubresource.layerCount = 1;
+
+			vkCmdBlitImage(commandBuffer.GetCmdBuffer(),
+				_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				1, &blit,
+				VK_FILTER_LINEAR
+			);
+
+			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			vkCmdPipelineBarrier(commandBuffer.GetCmdBuffer(),
+				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+				0, nullptr,
+				0, nullptr,
+				1, &barrier);
+
+			mipWidth = dstMipWidth;
+			mipHeight = dstMipHeight;
+		}
+
+		// Transition the last mip level
+		barrier.subresourceRange.baseMipLevel = _description.MipCount - 1;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		vkCmdPipelineBarrier(commandBuffer.GetCmdBuffer(),
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier);
+
+		_currentLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	}
 }

@@ -82,6 +82,41 @@ namespace Coco::Math
 	template<typename ValueType>
 	double Sqrt(const ValueType& v) { return std::sqrt(v); }
 
+	/// @brief Gets the floor of a value (truncated to the nearest whole number)
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The floored value 
+	template<typename ValueType>
+	double Floor(const ValueType& v) { return std::floor(v); }
+
+	/// @brief Gets the ceiling of a value (Floor(v) + 1)
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The raised value
+	template<typename ValueType>
+	double Ceiling(const ValueType& v) { return std::ceil(v); }
+
+	/// @brief Gets the base-e logarithm for a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The logarithm
+	template<typename ValueType>
+	double Log(const ValueType& v) { return std::log(v); }
+
+	/// @brief Gets the base-10 logarithm for a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The logarithm
+	template<typename ValueType>
+	double Log10(const ValueType& v) { return std::log10(v); }
+
+	/// @brief Gets the base-2 logarithm for a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The logarithm
+	template<typename ValueType>
+	double Log2(const ValueType& v) { return std::log2(v); }
+
 	/// @brief Tests if two decimal values are within range of each other
 	/// @tparam ValueType The type of value
 	/// @param a The first number
@@ -127,42 +162,42 @@ namespace Coco::Math
 	/// @param v The value
 	/// @return The cosine of the value
 	template<typename ValueType>
-	ValueType Cos(const ValueType& v) { return std::cos(v); }
+	double Cos(const ValueType& v) { return std::cos(v); }
 
 	/// @brief Calculates the arc-cosine of a value
 	/// @tparam ValueType The type of value
 	/// @param v The value
 	/// @return The arc-cosine of the value
 	template<typename ValueType>
-	ValueType Acos(const ValueType& v) { return std::acos(v); }
+	double Acos(const ValueType& v) { return std::acos(v); }
 
 	/// @brief Calculates the sine of a value
 	/// @tparam ValueType The type of value
 	/// @param v The value
 	/// @return The sine of the value
 	template<typename ValueType>
-	ValueType Sin(const ValueType& v) { return std::sin(v); }
+	double Sin(const ValueType& v) { return std::sin(v); }
 
 	/// @brief Calculates the arc-sine of a value
 	/// @tparam ValueType The type of value
 	/// @param v The value
 	/// @return The arc-sine of the value
 	template<typename ValueType>
-	ValueType Asin(const ValueType& v) { return std::asin(v); }
+	double Asin(const ValueType& v) { return std::asin(v); }
 
 	/// @brief Calculates the tangent of a value
 	/// @tparam ValueType The type of value
 	/// @param v The value
 	/// @return The tangent of the value
 	template<typename ValueType>
-	ValueType Tan(const ValueType& v) { return std::tan(v); }
+	double Tan(const ValueType& v) { return std::tan(v); }
 
 	/// @brief Calculates the arc-tangent of a value
 	/// @tparam ValueType The type of value
 	/// @param v The value
 	/// @return The arc-tangent of the value
 	template<typename ValueType>
-	ValueType Atan(const ValueType& v) { return std::atan(v); }
+	double Atan(const ValueType& v) { return std::atan(v); }
 
 	/// @brief Calcualates the atan2 value of an (x, y) coordinate
 	/// @tparam ValueType The type of value
@@ -170,19 +205,19 @@ namespace Coco::Math
 	/// @param x The X value
 	/// @return The angle
 	template<typename ValueType>
-	ValueType Atan2(const ValueType& y, const ValueType& x) { return std::atan2(y, x); }
+	double Atan2(const ValueType& y, const ValueType& x) { return std::atan2(y, x); }
 
 	/// @brief Converts degrees to radians
 	/// @tparam ValueType The value type
 	/// @param deg The degrees
 	/// @return The converted radians
 	template<typename ValueType>
-	constexpr ValueType DegToRad(const ValueType& deg) { return deg * static_cast<ValueType>(Deg2RadMultiplier); }
+	constexpr double DegToRad(const ValueType& deg) { return deg * Deg2RadMultiplier; }
 
 	/// @brief Converts radians to degrees
 	/// @tparam ValueType The value type
 	/// @param rad The radians
 	/// @return The converted degrees
 	template<typename ValueType>
-	constexpr ValueType RadToDeg(const ValueType& rad) { return rad * static_cast<ValueType>(Rad2DegMultiplier); }
+	constexpr double RadToDeg(const ValueType& rad) { return rad * Rad2DegMultiplier; }
 }

@@ -17,7 +17,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets the size of this image's data, in bytes
 		/// @return The size of this image's data
-		virtual uint64 GetSize() const = 0;
+		virtual uint64 GetDataSize() const = 0;
 
 		/// @brief Sets the pixels of this image
 		/// @param offset The offset in the image buffer

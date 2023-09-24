@@ -82,6 +82,12 @@ namespace Coco::Rendering
 	constexpr void operator|=(ImageUsageFlags& a, ImageUsageFlags b) { a = a | b; }
 	constexpr void operator&=(ImageUsageFlags& a, ImageUsageFlags b) { a = a & b; }
 
+	/// @brief Calculates the number of mip maps for an image with the given dimensions
+	/// @param width The image width
+	/// @param height The image height
+	/// @return The number of mip map levels, including the original image
+	uint32 CalculateMipMapCount(uint32 width, uint32 height);
+
 	/// @brief A description of an Image
 	struct ImageDescription
 	{
@@ -122,18 +128,19 @@ namespace Coco::Rendering
 
 		ImageDescription(
 			uint32 width, uint32 height,
-			uint32 mipCount,
 			ImagePixelFormat pixelFormat,
 			ImageColorSpace colorSpace,
 			ImageUsageFlags usageFlags,
+			bool withMipMaps,
 			MSAASamples sampleCount = MSAASamples::One);
 
 		ImageDescription(
 			uint32 width, uint32 height, uint32 depth,
-			uint32 layers, uint32 mipCount,
+			uint32 layers,
 			ImagePixelFormat pixelFormat,
 			ImageColorSpace colorSpace,
 			ImageUsageFlags usageFlags,
+			bool withMipMaps,
 			MSAASamples sampleCount = MSAASamples::One);
 
 		bool operator==(const ImageDescription& other) const;

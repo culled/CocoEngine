@@ -310,9 +310,10 @@ namespace Coco::ImGuiCoco
         _texture = resources.Create<Texture>(
             "ImGui",
             ImageDescription(
-                static_cast<uint32>(width), static_cast<uint32>(height), 1,
+                static_cast<uint32>(width), static_cast<uint32>(height),
                 ImagePixelFormat::RGBA8, ImageColorSpace::sRGB,
-                ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination
+                ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination,
+                false
             ),
             ImageSamplerDescription());
 

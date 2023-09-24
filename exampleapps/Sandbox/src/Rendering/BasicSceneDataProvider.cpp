@@ -62,7 +62,10 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 		)
 	);
 
-	_texture = resourceLibrary.Create<Texture>("Texture", "assets/textures/UV_Gradient.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, ImageSamplerDescription());
+	ImageSamplerDescription sampler{};
+	sampler.LODBias = -1.0;
+	sampler.MaxAnisotropy = 16;
+	_texture = resourceLibrary.Create<Texture>("Texture", "assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
 
 	_material = resourceLibrary.Create<Material>("Material", _shader);
 	_material->SetShader(_shader);

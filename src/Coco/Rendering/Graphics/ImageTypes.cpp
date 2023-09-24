@@ -58,45 +58,53 @@ namespace Coco::Rendering
 		}
 	}
 
+	uint32 CalculateMipMapCount(uint32 width, uint32 height)
+	{
+		return static_cast<uint32>(Math::Floor(Math::Log2(Math::Max(width, height)))) + 1;
+	}
+
 	const ImageDescription ImageDescription::Empty = ImageDescription();
 
 	ImageDescription::ImageDescription() : 
 		ImageDescription(
-			0, 0, 0, 
-			0, 0,
+			1, 1, 1, 
+			0,
 			ImagePixelFormat::Unknown,
 			ImageColorSpace::Unknown,
-			ImageUsageFlags::None)
+			ImageUsageFlags::None,
+			false)
 	{}
 
 	ImageDescription::ImageDescription(
 		uint32 width, uint32 height,
-		uint32 mipCount,
 		ImagePixelFormat pixelFormat,
 		ImageColorSpace colorSpace,
 		ImageUsageFlags usageFlags,
+		bool withMipMaps,
 		MSAASamples sampleCount) :
 		ImageDescription(
 			width, height, 1,
-			1, mipCount,
+			1,
 			pixelFormat,
 			colorSpace,
 			usageFlags,
+			withMipMaps,
 			sampleCount)
 	{}
 
 	ImageDescription::ImageDescription(
 		uint32 width, uint32 height, uint32 depth,
-		uint32 layers, uint32 mipCount,
+		uint32 layers,
 		ImagePixelFormat pixelFormat,
 		ImageColorSpace colorSpace,
 		ImageUsageFlags usageFlags,
+		bool withMipMaps,
 		MSAASamples sampleCount) :
 		Width(Math::Max(static_cast<uint32>(1), width)),
 		Height(Math::Max(static_cast<uint32>(1), height)),
 		Depth(Math::Max(static_cast<uint32>(1), depth)),
 		Layers(Math::Max(static_cast<uint32>(1), layers)),
-		MipCount(Math::Max(static_cast<uint32>(1), mipCount)),
+		MipCount(1),
 		PixelFormat(pixelFormat),
 		ColorSpace(colorSpace),
 		UsageFlags(usageFlags),
@@ -116,6 +124,11 @@ namespace Coco::Rendering
 		else
 		{
 			DimensionType = Layers == 1 ? ImageDimensionType::ThreeDimensional : ImageDimensionType::ThreeDimensionalArray;
+		}
+
+		if (withMipMaps)
+		{
+			MipCount = CalculateMipMapCount(Width, Height);
 		}
 	}
 }

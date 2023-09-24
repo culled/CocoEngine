@@ -31,7 +31,7 @@ namespace Coco::Rendering::Vulkan
         ~VulkanImage();
 
         ImageDescription GetDescription() const final { return _description; }
-        uint64 GetSize() const final;
+        uint64 GetDataSize() const final;
         void SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize) final;
 
         /// @brief Gets the Vulkan image
@@ -58,5 +58,9 @@ namespace Coco::Rendering::Vulkan
         /// @param commandBuffer The command buffer
         /// @param source The source buffer
         void CopyFromBuffer(VulkanCommandBuffer& commandBuffer, VulkanBuffer& source);
+
+        /// @brief Generates mip maps from the base image
+        /// @param commandBuffer The command buffer
+        void GenerateMipMaps(VulkanCommandBuffer& commandBuffer);
     };
 }

@@ -21,7 +21,7 @@ namespace Coco::Rendering
 		RenderService& rendering = EnsureRenderService();
 
 		_image = rendering.GetDevice().CreateImage(imageDescription);
-		_sampler = rendering.GetDevice().CreateImageSampler(samplerDescription);
+		CreateSampler(samplerDescription);
 	}
 
 	Texture::Texture(
@@ -39,9 +39,8 @@ namespace Coco::Rendering
 	{
 		RenderService& rendering = EnsureRenderService();
 
-		_sampler = rendering.GetDevice().CreateImageSampler(samplerDescription);
-
 		ReloadImage(colorSpace, usageFlags);
+		CreateSampler(samplerDescription);
 	}
 
 	Texture::~Texture()
@@ -138,7 +137,7 @@ namespace Coco::Rendering
 		usageFlags |= ImageUsageFlags::TransferSource;
 
 		// Create a new image description with the given usage flags
-		ImageDescription description(static_cast<uint32>(width), static_cast<uint32>(height), 1, pixelFormat, colorSpace, usageFlags);
+		ImageDescription description(static_cast<uint32>(width), static_cast<uint32>(height), pixelFormat, colorSpace, usageFlags, true);
 
 		// Hold onto the old image data just in-case the transfer fails
 		Ref<Image> newImage = _image;
@@ -170,5 +169,16 @@ namespace Coco::Rendering
 		stbi_image_free(rawImageData);
 
 		CocoTrace("Loaded image \"{}\"", _imageFilePath)
+	}
+
+	void Texture::CreateSampler(const ImageSamplerDescription& samplerDescription)
+	{
+		RenderService& rendering = EnsureRenderService();
+
+		ImageSamplerDescription newSamplerDescription = samplerDescription;
+		if(samplerDescription.MaxLOD == 0)
+			newSamplerDescription.MaxLOD = _image->GetDescription().MipCount;
+
+		_sampler = rendering.GetDevice().CreateImageSampler(newSamplerDescription);
 	}
 }

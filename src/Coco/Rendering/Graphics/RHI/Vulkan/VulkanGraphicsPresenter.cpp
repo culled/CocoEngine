@@ -363,10 +363,10 @@ namespace Coco::Rendering::Vulkan
 
 		_backbufferDescription = ImageDescription(
 			_framebufferSize.Width, _framebufferSize.Height,
-			1,
 			GetPixelFormat(surfaceFormat.format),
 			GetColorSpace(surfaceFormat.format),
-			_sBackbufferUsageFlags
+			_sBackbufferUsageFlags,
+			false
 		);
 
 		try

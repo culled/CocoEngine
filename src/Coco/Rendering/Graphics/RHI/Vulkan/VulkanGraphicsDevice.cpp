@@ -501,6 +501,7 @@ namespace Coco::Rendering::Vulkan
 		_features.MaxImageHeight = deviceProperties.limits.maxImageDimension2D;
 		_features.MaxImageDepth = deviceProperties.limits.maxImageDimension3D;
 		_features.MinimumBufferAlignment = static_cast<uint32>(deviceProperties.limits.minUniformBufferOffsetAlignment);
+		_features.MaxAnisotropicLevel = static_cast<uint8>(deviceProperties.limits.maxSamplerAnisotropy);
 
 		// Get the memory features of the physical device
 		VkPhysicalDeviceMemoryProperties memoryProperties{};

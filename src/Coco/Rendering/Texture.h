@@ -60,5 +60,9 @@ namespace Coco::Rendering
 		/// @param colorSpace The color space to load the image as
 		/// @param usageFlags The usage flags for the image
 		void ReloadImage(ImageColorSpace colorSpace, ImageUsageFlags usageFlags);
+
+		/// @brief Creates this texture's sampler
+		/// @param samplerDescription The description for the sampler
+		void CreateSampler(const ImageSamplerDescription& samplerDescription);
 	};
 }

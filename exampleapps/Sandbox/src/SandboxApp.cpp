@@ -82,7 +82,7 @@ void SandboxApp::Tick(const TickInfo & tickInfo)
 		return;
 	}
 
-	::ImGui::ShowDemoWindow();
+	//::ImGui::ShowDemoWindow();
 
 	Windowing::WindowService& windowing = services->GetService<Windowing::WindowService>();
 	Rendering::RenderService& rendering = services->GetService<Rendering::RenderService>();
