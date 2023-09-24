@@ -447,9 +447,9 @@ namespace Coco::Rendering::Vulkan
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
 
-		// TODO: configurable features
-		deviceFeatures.samplerAnisotropy = VK_TRUE;
-		deviceFeatures.depthClamp = VK_TRUE;
+		// TODO: more configurable features
+		deviceFeatures.samplerAnisotropy = createParams.EnableAnisotropicSampling;
+		deviceFeatures.depthClamp = createParams.EnableDepthClamping;
 
 		// Create the logical device
 		VkDeviceCreateInfo createInfo{};

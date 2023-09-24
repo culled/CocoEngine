@@ -8,6 +8,8 @@ namespace Coco::Rendering
 		SupportsPresentation(true),
 		RequireGraphicsCapability(true),
 		RequireTransferCapability(true),
-		RequireComputeCapability(true)
+		RequireComputeCapability(true),
+		EnableAnisotropicSampling(true),
+		EnableDepthClamping(false)
 	{}
 }

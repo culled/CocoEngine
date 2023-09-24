@@ -26,6 +26,12 @@ namespace Coco::Rendering
 		/// @brief If true, the device will be required to support memory transfer operations
 		bool RequireTransferCapability;
 
+		/// @brief If true, the anisotropic sampling will be enabled on the device if it supports it
+		bool EnableAnisotropicSampling;
+
+		/// @brief If true, depth clamping will be enabled on the device if it supports it
+		bool EnableDepthClamping;
+
 		GraphicsDeviceCreateParams();
 	};
 
