@@ -87,6 +87,7 @@ namespace Coco::Rendering
 		Sixteen
 	};
 
+	/// @brief A blend state for a single attachment
 	struct BlendState
 	{
 		/// @brief The blend factor for the color source

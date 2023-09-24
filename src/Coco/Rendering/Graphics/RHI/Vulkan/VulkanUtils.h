@@ -39,7 +39,7 @@ namespace Coco::Rendering::Vulkan
 	ImagePixelFormat GetPixelFormat(VkFormat format);
 
 	/// @brief Gets the color space of a VkFormat
-	/// @param colorSpace The color space 
+	/// @param format The format
 	/// @return The color space
 	ImageColorSpace GetColorSpace(VkFormat format);
 

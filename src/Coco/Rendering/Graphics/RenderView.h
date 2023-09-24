@@ -59,7 +59,7 @@ namespace Coco::Rendering
 		SubmeshData(uint64 id, uint64 firstIndexOffset, uint64 indexCount);
 	};
 
-	/// @brief Data for a single mesh
+	/// @brief Data for a Mesh
 	struct MeshData
 	{
 		/// @brief The ID of this data
@@ -104,7 +104,7 @@ namespace Coco::Rendering
 		RenderPassShaderData(uint64 id, uint64 version, const RenderPassShader& shaderData);
 	};
 
-	/// @brief Data for a shader
+	/// @brief Data for a Shader
 	struct ShaderData
 	{
 		/// @brief The id of this shader
@@ -122,6 +122,7 @@ namespace Coco::Rendering
 		ShaderData(uint64 id, uint64 version, const string& groupTag, const std::unordered_map<string, uint64>& passShaders);
 	};
 
+	/// @brief Data for a Material
 	struct MaterialData
 	{
 		/// @brief The id of this material

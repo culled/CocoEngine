@@ -63,6 +63,7 @@ namespace Coco::Input
 		static MouseStateChange ButtonStateChange(MouseButton button, bool isPressed);
 	};
 
+	/// @brief A mouse input device
 	class Mouse
 	{
 		friend class InputService;

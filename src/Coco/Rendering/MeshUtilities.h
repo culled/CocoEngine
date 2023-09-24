@@ -6,6 +6,7 @@
 
 namespace Coco::Rendering
 {
+	/// @brief Static class for various mesh utilities
 	class MeshUtilities
 	{
 	public:

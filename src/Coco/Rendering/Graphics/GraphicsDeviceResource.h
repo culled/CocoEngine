@@ -17,6 +17,7 @@ namespace Coco::Rendering
 		GraphicsDeviceResourceID operator()();
 	};
 
+	/// @brief Base class for all resources owned by a GraphicsDevice
 	class GraphicsDeviceResourceBase
 	{
 	public:
@@ -29,7 +30,7 @@ namespace Coco::Rendering
 		virtual ~GraphicsDeviceResourceBase() = default;
 	};
 
-	/// @brief A resource that requires a GraphicsDevice
+	/// @brief A resource that is owned by a GraphicsDevice
 	/// @tparam DeviceType The type of device
 	template<class DeviceType>
 	class GraphicsDeviceResource : public GraphicsDeviceResourceBase

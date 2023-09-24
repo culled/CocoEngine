@@ -64,6 +64,7 @@ namespace Coco
 
 		/// @brief Determines if this vector equals another
 		/// @param other The other vector
+		/// @param threshold The difference tolerance
 		/// @return True if the two vectors are equal
 		constexpr bool Equals(const Vector2& other, double threshold = Math::Epsilon) const
 		{

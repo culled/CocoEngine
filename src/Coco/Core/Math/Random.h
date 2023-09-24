@@ -5,6 +5,7 @@
 
 namespace Coco
 {
+	/// @brief Provides random number generation capabilities
 	class Random
 	{
 	public:

@@ -17,6 +17,7 @@
 
 namespace Coco::Rendering
 {
+	/// @brief A render task for a RenderService
 	struct RenderServiceRenderTask
 	{
 		Ref<RenderContext> Context;

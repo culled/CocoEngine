@@ -7,6 +7,7 @@
 
 namespace Coco::Rendering
 {
+	/// @brief A generic buffer that can store data on the GPU
 	class Buffer
 	{
 	public:

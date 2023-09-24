@@ -8,6 +8,7 @@ namespace Coco::Platforms::Win32
 {
     using namespace Coco::Windowing;
 
+    /// @brief Win-32 implementation of a Window
     class Win32Window : public Window
     {
         friend class Win32EnginePlatform;
