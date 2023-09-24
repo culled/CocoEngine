@@ -14,7 +14,7 @@ namespace Coco
 		_currentTick{},
 		_lastTick{},
 		_timeScale(1.0),
-		_useAbsoluteTiming(false),
+		_useAbsoluteTiming(true),
 		_lastAverageSleepTime(0.0)
 	{}
 
@@ -93,16 +93,14 @@ namespace Coco
 			if (didPerformFullTick)
 				preProcessPlatformTime = platform.GetSeconds();
 
-			didPerformFullTick = false;
-
 			platform.ProcessMessages();
 
 			double currentPlatformTime = platform.GetSeconds();
 
 			if (!_isSuspended)
 			{
+				// TODO: fix non-absolute timing with long message loops
 				double timeDelta = (_useAbsoluteTiming ? currentPlatformTime : preProcessPlatformTime) - lastTickPlatformTime;
-				lastTickPlatformTime = currentPlatformTime;
 
 				_currentTick.UnscaledDeltaTime = timeDelta;
 				_currentTick.UnscaledTime += _currentTick.UnscaledDeltaTime;
@@ -130,6 +128,12 @@ namespace Coco
 				_currentTick.TickNumber++;
 				didPerformFullTick = true;
 			}
+			else
+			{
+				didPerformFullTick = false;
+			}
+
+			lastTickPlatformTime = currentPlatformTime;
 		}
 	}
 
