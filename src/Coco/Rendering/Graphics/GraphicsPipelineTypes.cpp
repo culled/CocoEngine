@@ -39,7 +39,7 @@ namespace Coco::Rendering
 		CullingMode(CullMode::Back),
 		WindingMode(TriangleWindingMode::Clockwise),
 		PolygonFillMode(PolygonFillMode::Fill),
-		EnableDepthClamping(true),
+		EnableDepthClamping(false),
 		DepthTestingMode(DepthTestingMode::LessThan),
 		EnableDepthWrite(true)
 	{}
