@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../GraphicsDeviceResource.h"
+#include "CachedVulkanResource.h"
 #include "../../../RenderPassShaderTypes.h"
 #include "../VulkanDescriptorSetLayout.h"
 #include "../VulkanIncludes.h"
@@ -21,14 +21,14 @@ namespace Coco::Rendering::Vulkan
 	};
 
 	/// @brief A Vulkan shader for a specific render pass
-	class VulkanRenderPassShader : public GraphicsDeviceResource<VulkanGraphicsDevice>
+	class VulkanRenderPassShader : 
+		public CachedVulkanResource
 	{
 	private:
 		uint64 _version;
 		std::vector<VulkanShaderStage> _stages;
 		RenderPassShader _shaderInfo;
 		std::unordered_map<UniformScope, VulkanDescriptorSetLayout> _layouts;
-		double _lastUsedTime;
 
 	public:
 		VulkanRenderPassShader(const RenderPassShader& shaderInfo);
@@ -77,13 +77,6 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Updates this shader from the given shader info
 		/// @param shaderInfo The shader info
 		void Update(const RenderPassShader& shaderInfo);
-
-		/// @brief Marks this shader as used in the current tick
-		void Use();
-
-		/// @brief Determines if this shader is stale and should be removed
-		/// @return True if this shader should be removed from the cache
-		bool IsStale() const;
 
 	private:
 		/// @brief Creates all shader objects

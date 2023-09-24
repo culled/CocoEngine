@@ -19,16 +19,29 @@ namespace Coco::Rendering
 	struct RenderTarget
 	{
 		/// @brief The actual image that will be rendered to
-		Ref<Image> Image;
+		Ref<Image> MainImage;
 
-		/// @brief Clear values for clearing the image the first time it is used (if it needs to be cleared)
+		/// @brief If using MSAA, this is the image that will be resolved to from the main image
+		Ref<Image> ResolveImage;
+
+		/// @brief Clear values for clearing the image (if it needs to be cleared)
 		Vector4 ClearValue;
 
-		RenderTarget(const Ref<Rendering::Image>& image);
-		RenderTarget(const Ref<Rendering::Image>& image, Vector4 clearValue);
-		RenderTarget(const Ref<Rendering::Image>& image, Color clearColor);
-		RenderTarget(const Ref<Rendering::Image>& image, double depthClearValue);
-		RenderTarget(const Ref<Rendering::Image>& image, Vector2 depthStencilClearValue);
+		RenderTarget();
+		RenderTarget(Ref<Image> mainImage, const Vector4& clearValue);
+
+		/// @brief Sets the clear value from a color
+		/// @param clearColor The clear color
+		void SetColorClearValue(const Color& clearColor);
+
+		/// @brief Sets the clear value for a depth image
+		/// @param depthClearValue The depth to clear to
+		void SetDepthClearValue(double depthClearValue);
+
+		/// @brief Sets the clear values for a depth/stencil image
+		/// @param depthClearValue The depth to clear to
+		/// @param stencilClearValue The value to clear the stencil to
+		void SetDepthStencilClearValue(double depthClearValue, uint8 stencilClearValue);
 	};
 
 	/// @brief Data for a submesh
@@ -155,6 +168,7 @@ namespace Coco::Rendering
 		RectInt _scissorRect;
 		Matrix4x4 _viewMat;
 		Matrix4x4 _projectionMat;
+		MSAASamples _samples;
 		std::vector<RenderTarget> _renderTargets;
 		std::unordered_map<uint64, MeshData> _meshDatas;
 		std::unordered_map<uint64, RenderPassShaderData> _renderPassShaderDatas;
@@ -168,6 +182,7 @@ namespace Coco::Rendering
 			const RectInt& scissorRect, 
 			const Matrix4x4& viewMatrix,
 			const Matrix4x4& projectionMatrix,
+			MSAASamples samples,
 			const std::vector<RenderTarget>& renderTargets);
 
 		/// @brief Gets the viewport rectangle
@@ -185,6 +200,10 @@ namespace Coco::Rendering
 		/// @brief Gets the projection matrix
 		/// @return The projection matrix
 		const Matrix4x4& GetProjectionMatrix() const { return _projectionMat; }
+
+		/// @brief Gets the number of MSAA samples that should be used for rendering
+		/// @return The MSAA samples
+		MSAASamples GetMSAASamples() const { return _samples; }
 
 		/// @brief Gets the render targets
 		/// @return The render targets

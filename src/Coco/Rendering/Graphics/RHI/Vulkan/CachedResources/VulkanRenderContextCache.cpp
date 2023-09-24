@@ -9,18 +9,12 @@ namespace Coco::Rendering::Vulkan
 	const double VulkanRenderContextCache::sPurgePeriod = 5.0;
 	const double VulkanRenderContextCache::sPurgeThreshold = 4.0;
 
-	VulkanRenderContextCache::VulkanRenderContextCache() :
-		_tickListener(this, &VulkanRenderContextCache::TickCallback, sPurgePriority)
-	{
-		_tickListener.SetTickPeriod(sPurgePeriod);
-
-		MainLoop::Get()->AddListener(_tickListener);
-	}
+	VulkanRenderContextCache::VulkanRenderContextCache(const GraphicsDeviceResourceID& id) :
+		CachedVulkanResource(id)
+	{}
 
 	VulkanRenderContextCache::~VulkanRenderContextCache()
 	{
-		MainLoop::Get()->RemoveListener(_tickListener);
-
 		_framebuffers.clear();
 	}
 
@@ -81,7 +75,7 @@ namespace Coco::Rendering::Vulkan
 
 			while (it != _framebuffers.end())
 			{
-				if (it->second.IsStale())
+				if (it->second.IsStale(sPurgeThreshold))
 				{
 					it = _framebuffers.erase(it);
 					framebuffersPurged++;
@@ -100,7 +94,7 @@ namespace Coco::Rendering::Vulkan
 
 			while (it != _uniformDatas.end())
 			{
-				if (it->second.IsStale())
+				if (it->second.IsStale(sPurgeThreshold))
 				{
 					it = _uniformDatas.erase(it);
 					uniformDatasPurged++;
@@ -116,21 +110,5 @@ namespace Coco::Rendering::Vulkan
 		{
 			CocoTrace("Purged {} VulkanFramebuffers and {} VulkanUniformDatas", framebuffersPurged, uniformDatasPurged)
 		}
-	}
-
-	void VulkanRenderContextCache::Use()
-	{
-		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-	}
-
-	bool VulkanRenderContextCache::IsStale() const
-	{
-		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-		return currentTime - _lastUsedTime > VulkanRenderContextCache::sPurgeThreshold;
-	}
-
-	void VulkanRenderContextCache::TickCallback(const TickInfo& currentTick)
-	{
-		PurgeStaleResources();
 	}
 }

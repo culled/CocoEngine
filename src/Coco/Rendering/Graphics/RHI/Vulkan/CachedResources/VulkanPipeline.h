@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../GraphicsDeviceResource.h"
+#include "CachedVulkanResource.h"
 #include "../VulkanIncludes.h"
 #include "VulkanRenderPass.h"
 #include "VulkanRenderPassShader.h"
@@ -9,14 +9,14 @@ namespace Coco::Rendering::Vulkan
 	class VulkanGraphicsDevice;
 
 	/// @brief A Vulkan framebuffer
-	class VulkanPipeline : public GraphicsDeviceResource<VulkanGraphicsDevice>
+	class VulkanPipeline : 
+		public CachedVulkanResource
 	{
 	private:
 		uint64 _version;
 		VkPipelineLayout _pipelineLayout;
 		VkPipeline _pipeline;
 		uint32 _subpassIndex;
-		double _lastUsedTime;
 
 	public:
 		VulkanPipeline(
@@ -40,30 +40,50 @@ namespace Coco::Rendering::Vulkan
 		/// @return The version
 		uint64 GetVersion() const { return _version; }
 
+		/// @brief Gets the Vulkan pipeline
+		/// @return The Vulkan pipeline
 		VkPipeline GetPipeline() const { return _pipeline; }
+
+		/// @brief Gets the Vulkan pipeline layout
+		/// @return The Vulkan pipeline layout
 		VkPipelineLayout GetPipelineLayout() const { return _pipelineLayout; }
 
-		bool NeedsUpdate(const VulkanRenderPass& renderPass,
+		/// @brief Determines if this pipeline needs to be updated
+		/// @param renderPass The render pass
+		/// @param shader The shader
+		/// @return True if this pipeline should be updated
+		bool NeedsUpdate(
+			const VulkanRenderPass& renderPass,
 			const VulkanRenderPassShader& shader);
 
-		void Update(const VulkanRenderPass& renderPass,
+		/// @brief Updates this pipeline
+		/// @param renderPass The render pass
+		/// @param shader The shader
+		/// @param subpassIndex The index of this pipeline within the RenderPipeline
+		void Update(
+			const VulkanRenderPass& renderPass,
 			const VulkanRenderPassShader& shader,
 			uint32 subpassIndex);
-
-		/// @brief Marks this framebuffer as used
-		void Use();
-
-		/// @brief Determines if this framebuffer is stale and can be purged
-		/// @return True if this framebuffer can be purged
-		bool IsStale() const;
 
 	private:
-		static uint64 MakeVersion(const VulkanRenderPass& renderPass,
+		/// @brief Creates a version from a render pass and shader
+		/// @param renderPass The render pass
+		/// @param shader The shader
+		/// @return A combined version
+		static uint64 MakeVersion(
+			const VulkanRenderPass& renderPass,
 			const VulkanRenderPassShader& shader);
 
-		void CreatePipeline(const VulkanRenderPass& renderPass,
+		/// @brief Creates the pipeline
+		/// @param renderPass The render pass
+		/// @param shader The shader
+		/// @param subpassIndex The index of this pipeline within the RenderPipeline
+		void CreatePipeline(
+			const VulkanRenderPass& renderPass,
 			const VulkanRenderPassShader& shader,
 			uint32 subpassIndex);
+
+		/// @brief Destroys the pipeline
 		void DestroyPipeline();
 	};
 }

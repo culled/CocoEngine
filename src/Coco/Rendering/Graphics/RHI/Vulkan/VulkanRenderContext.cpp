@@ -224,42 +224,25 @@ namespace Coco::Rendering::Vulkan
 		{
 			_renderCompletedSignalSemaphores.push_back(_renderCompletedSemaphore);
 
+			const RenderView& renderView = _renderOperation->RenderView;
+
 			// Get the images from the render targets
-			std::span<const RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
+			std::span<const RenderTarget> rts = renderView.GetRenderTargets();
 			std::vector<const VulkanImage*> vulkanImages(rts.size());
+			std::vector<uint8> resolveImageIndices;
 
-			for (size_t i = 0; i < rts.size(); i++)
+			// Add primary attachments
+			for (uint8 i = 0; i < rts.size(); i++)
 			{
-				Assert(rts[i].Image.IsValid())
-				vulkanImages.at(i) = static_cast<const VulkanImage*>(rts[i].Image.Get());
+				Assert(rts[i].MainImage.IsValid())
+				vulkanImages.at(i) = static_cast<const VulkanImage*>(rts[i].MainImage.Get());
+
+				if (rts[i].ResolveImage.IsValid())
+				{
+					resolveImageIndices.push_back(i);
+				}
 			}
-
-			VulkanRenderPass& renderPass = _deviceCache.GetOrCreateRenderPass(_renderOperation->Pipeline);
-			VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
-			VulkanFramebuffer& framebuffer = cache.GetOrCreateFramebuffer(_renderOperation->RenderView.GetViewportRect().Size, renderPass, vulkanImages);
-
-			// Setup the Vulkan-specific render operation
-			_vulkanRenderOperation.emplace(VulkanContextRenderOperation(framebuffer, renderPass));
-
-			const RectInt& viewportRect = _renderOperation->RenderView.GetViewportRect();
-			_vulkanRenderOperation->ViewportRect = viewportRect;
-			_vulkanRenderOperation->ScissorRect = _renderOperation->RenderView.GetScissorRect();
-
-			_commandBuffer->Begin(true, false);
-
-			AddPreRenderPassImageTransitions();
-
-			// Start the first render pass
-			VkRenderPassBeginInfo beginInfo{};
-			beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			beginInfo.renderPass = renderPass.GetRenderPass();
-			beginInfo.framebuffer = framebuffer.GetFramebuffer();
-
-			beginInfo.renderArea.offset.x = static_cast<uint32_t>(viewportRect.Offset.X);
-			beginInfo.renderArea.offset.y = static_cast<uint32_t>(viewportRect.Offset.Y);
-			beginInfo.renderArea.extent.width = static_cast<uint32_t>(viewportRect.Size.Width);
-			beginInfo.renderArea.extent.height = static_cast<uint32_t>(viewportRect.Size.Height);
-
+			
 			std::vector<VkClearValue> clearValues(rts.size());
 
 			// Set clear clear color for each render target
@@ -285,6 +268,40 @@ namespace Coco::Rendering::Vulkan
 					};
 				}
 			}
+
+			// Add any resolve attachments
+			for (const uint8& i : resolveImageIndices)
+			{
+				vulkanImages.push_back(static_cast<const VulkanImage*>(rts[i].ResolveImage.Get()));
+				clearValues.push_back(clearValues.at(i));
+			}
+
+ 			const RectInt& viewportRect = renderView.GetViewportRect();
+
+			VulkanRenderPass& renderPass = _deviceCache.GetOrCreateRenderPass(_renderOperation->Pipeline, renderView.GetMSAASamples(), resolveImageIndices);
+			VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
+			VulkanFramebuffer& framebuffer = cache.GetOrCreateFramebuffer(viewportRect.Size, renderPass, vulkanImages);
+
+			// Setup the Vulkan-specific render operation
+			_vulkanRenderOperation.emplace(VulkanContextRenderOperation(framebuffer, renderPass));
+
+			_vulkanRenderOperation->ViewportRect = viewportRect;
+			_vulkanRenderOperation->ScissorRect = renderView.GetScissorRect();
+
+			_commandBuffer->Begin(true, false);
+
+			AddPreRenderPassImageTransitions();
+
+			// Start the first render pass
+			VkRenderPassBeginInfo beginInfo{};
+			beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			beginInfo.renderPass = renderPass.GetRenderPass();
+			beginInfo.framebuffer = framebuffer.GetFramebuffer();
+
+			beginInfo.renderArea.offset.x = static_cast<uint32_t>(viewportRect.Offset.X);
+			beginInfo.renderArea.offset.y = static_cast<uint32_t>(viewportRect.Offset.Y);
+			beginInfo.renderArea.extent.width = static_cast<uint32_t>(viewportRect.Size.Width);
+			beginInfo.renderArea.extent.height = static_cast<uint32_t>(viewportRect.Size.Height);
 
 			beginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 			beginInfo.pClearValues = clearValues.data();
@@ -353,6 +370,7 @@ namespace Coco::Rendering::Vulkan
 		Assert(_vulkanRenderOperation.has_value())
 
 		const auto& attachmentFormats = _renderOperation->Pipeline.InputAttachments;
+		std::span<RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
 
 		for (size_t i = 0; i < attachmentFormats.size(); i++)
 		{
@@ -362,10 +380,17 @@ namespace Coco::Rendering::Vulkan
 			if (attachment.ShouldClear)
 				continue;
 
+			RenderTarget& rt = rts[i];
 			VkImageLayout layout = ToAttachmentLayout(attachment.PixelFormat);
-			VulkanImage* image = static_cast<VulkanImage*>(_renderOperation->RenderView.GetRenderTarget(i).Image.Get());
 
+			VulkanImage* image = static_cast<VulkanImage*>(rt.MainImage.Get());
 			image->TransitionLayout(*_commandBuffer, layout);
+
+			if (rt.ResolveImage.IsValid())
+			{
+				image = static_cast<VulkanImage*>(rt.ResolveImage.Get());
+				image->TransitionLayout(*_commandBuffer, layout);
+			}
 		}
 	}
 
@@ -374,12 +399,15 @@ namespace Coco::Rendering::Vulkan
 		Assert(_vulkanRenderOperation.has_value())
 
 		const auto& attachmentFormats = _renderOperation->Pipeline.InputAttachments;
+		std::span<RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
 
 		for (size_t i = 0; i < attachmentFormats.size(); i++)
 		{
 			const AttachmentFormat& attachment = attachmentFormats.at(i);
 			VkImageLayout layout = ToAttachmentLayout(attachment.PixelFormat);
-			VulkanImage* image = static_cast<VulkanImage*>(_renderOperation->RenderView.GetRenderTarget(i).Image.Get());
+			RenderTarget& rt = rts[i];
+
+			VulkanImage* image = static_cast<VulkanImage*>(rt.MainImage.Get());
 
 			// Since Vulkan automatically transitions layouts between passes, update the image's layout to match the layouts of the attachments
 			image->_currentLayout = layout;
@@ -388,6 +416,18 @@ namespace Coco::Rendering::Vulkan
 			if ((image->GetDescription().UsageFlags & ImageUsageFlags::Presented) == ImageUsageFlags::Presented)
 			{
 				image->TransitionLayout(*_commandBuffer, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+			}
+
+			// Do the same for the resolve image, if one exists
+			if (rt.ResolveImage.IsValid())
+			{
+				image = static_cast<VulkanImage*>(rt.ResolveImage.Get());
+				image->_currentLayout = layout;
+
+				if ((image->GetDescription().UsageFlags & ImageUsageFlags::Presented) == ImageUsageFlags::Presented)
+				{
+					image->TransitionLayout(*_commandBuffer, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+				}
 			}
 		}
 	}

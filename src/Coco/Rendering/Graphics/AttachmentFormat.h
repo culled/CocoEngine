@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ImageTypes.h"
-#include "GraphicsPipelineTypes.h"
 
 namespace Coco::Rendering
 {
@@ -17,11 +16,8 @@ namespace Coco::Rendering
 		/// @brief If true, this attachment will be cleared before rendering
 		bool ShouldClear;
 
-		/// @brief The number of MSAA samples
-		MSAASamples SampleCount;
-
 		AttachmentFormat();
-		AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, bool shouldClear, MSAASamples msaaSamples = MSAASamples::One);
+		AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, bool shouldClear);
 
 		/// @brief Determines if this AttachmentFormat is compatible with another
 		/// @param other The other format

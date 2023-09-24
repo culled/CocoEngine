@@ -14,7 +14,11 @@ namespace Coco::Rendering
 		_pipelineImageCaches{}
 	{}
 
-	std::vector<Ref<Image>> AttachmentCache::GetImages(const CompiledRenderPipeline& pipeline, const SizeInt& backbufferSize, std::span<Ref<Image>> backbuffers)
+	std::vector<RenderTarget> AttachmentCache::CreateRenderTargets(
+		const CompiledRenderPipeline& pipeline, 
+		const SizeInt& backbufferSize,
+		MSAASamples msaaSamples, 
+		std::span<Ref<Image>> backbuffers)
 	{
 		const std::vector<AttachmentFormat>& attachmentFormats = pipeline.InputAttachments;
 
@@ -39,13 +43,18 @@ namespace Coco::Rendering
 		if (!rendering)
 			throw std::exception("No active RenderService found");
 
-		std::vector<Ref<Image>> images(pipeline.InputAttachments.size());
+		std::vector<RenderTarget> rts(pipeline.InputAttachments.size());
 		std::vector<bool> backbuffersMatched(backbuffers.size());
 
-		for (uint8 i = 0; i < images.size(); i++)
+		if (pipeline.SupportsMSAA)
+			msaaSamples = static_cast<MSAASamples>(Math::Min(msaaSamples, rendering->GetDevice().GetFeatures().MaximumMSAASamples));
+		else
+			msaaSamples = MSAASamples::One;
+
+		for (uint8 i = 0; i < rts.size(); i++)
 		{
 			const AttachmentFormat& attachmentFormat = attachmentFormats.at(i);
-			bool foundMatch = false;
+			bool foundMainMatch = false;
 
 			// Look for an unmatched backbuffer that matches the attachment format
 			for (size_t b = 0; b < backbuffers.size(); b++)
@@ -55,56 +64,73 @@ namespace Coco::Rendering
 
 				if (attachmentFormat.IsCompatible(backbuffers[b]->GetDescription()))
 				{
-					images.at(i) = backbuffers[b];
+					if (msaaSamples == MSAASamples::One)
+					{
+						rts.at(i).MainImage = backbuffers[b];
+						foundMainMatch = true;
+					}
+					else
+					{
+						rts.at(i).ResolveImage = backbuffers[b];
+					}
+
 					backbuffersMatched[b] = true;
-					foundMatch = true;
 					break;
 				}
 			}
 
-			if (foundMatch)
-				continue;
-
-			// Look for a valid cached image
-			auto imageIt = cache.Images.find(i);
-			if (imageIt != cache.Images.end())
+			if (!foundMainMatch)
 			{
-				Ref<Image>& cachedImage = imageIt->second;
-
-				if (cachedImage.IsValid())
-				{
-					ImageDescription cachedDescription = cachedImage->GetDescription();
-					if (attachmentFormat.IsCompatible(cachedDescription) &&
-						cachedDescription.Width == backbufferSize.Width &&
-						cachedDescription.Height == backbufferSize.Height)
-					{
-						images.at(i) = cachedImage;
-						foundMatch = true;
-						continue;
-					}
-				}
-				
-				// The cached image can't work with the attachment anymore, so release it
-				cache.Images.erase(imageIt);
+				rts.at(i).MainImage = GetOrCreateImage(cache, backbufferSize, msaaSamples, attachmentFormat, i);
 			}
-
-			if (foundMatch)
-				continue;
-
-			// We need to create an image
-			ImageDescription attachmentImageDescription(
-				backbufferSize.Width, backbufferSize.Height,
-				1,
-				attachmentFormat.PixelFormat,
-				attachmentFormat.ColorSpace,
-				ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination | ImageUsageFlags::TransferDestination
-			);
-
-			Ref<Image> createdImage = rendering->GetDevice().CreateImage(attachmentImageDescription);
-			images.at(i) = createdImage;
-			cache.Images.try_emplace(i, createdImage);
 		}
 
-		return images;
+		return rts;
+	}
+
+	Ref<Image> AttachmentCache::GetOrCreateImage(
+		PipelineImageCache& imageCache, 
+		const SizeInt& size, 
+		MSAASamples msaaSamples,
+		const AttachmentFormat& attachmentFormat, 
+		uint8 attachmentIndex)
+	{
+		std::unordered_map<uint8, Ref<Image>>& map = imageCache.Images;
+
+		auto imageIt = map.find(attachmentIndex);
+		if (imageIt != map.end())
+		{
+			Ref<Image>& cachedImage = imageIt->second;
+
+			if (cachedImage.IsValid())
+			{
+				ImageDescription cachedDescription = cachedImage->GetDescription();
+				if (attachmentFormat.IsCompatible(cachedDescription) &&
+					cachedDescription.Width == size.Width &&
+					cachedDescription.Height == size.Height &&
+					cachedDescription.SampleCount == msaaSamples)
+				{
+					return cachedImage;
+				}
+			}
+
+			// The cached image can't work with the attachment anymore, so release it
+			map.erase(imageIt);
+		}
+
+		// We need to create an image
+		ImageDescription attachmentImageDescription(
+			size.Width, size.Height,
+			1,
+			attachmentFormat.PixelFormat,
+			attachmentFormat.ColorSpace,
+			ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination | ImageUsageFlags::TransferDestination,
+			msaaSamples
+		);
+
+		Ref<Image> createdImage = RenderService::Get()->GetDevice().CreateImage(attachmentImageDescription);
+		map.try_emplace(attachmentIndex, createdImage);
+
+		return createdImage;
 	}
 }

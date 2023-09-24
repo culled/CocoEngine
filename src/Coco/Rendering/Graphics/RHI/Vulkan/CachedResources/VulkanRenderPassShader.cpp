@@ -14,12 +14,11 @@ namespace Coco::Rendering::Vulkan
 	{}
 
 	VulkanRenderPassShader::VulkanRenderPassShader(const RenderPassShader& shaderInfo) :
-		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(shaderInfo)),
+		CachedVulkanResource(MakeKey(shaderInfo)),
 		_version(0),
 		_shaderInfo(shaderInfo),
 		_stages{},
-		_layouts{},
-		_lastUsedTime(0.0)
+		_layouts{}
 	{}
 
 	VulkanRenderPassShader::~VulkanRenderPassShader()
@@ -60,7 +59,7 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		// Pad out the data size so they fill a block accessible by the minimum buffer alignment
-		offset = GraphicsDevice::GetOffsetForAlignment(offset, _device.GetMinimumBufferAlignment());
+		offset = GraphicsDevice::GetOffsetForAlignment(offset, _device.GetFeatures().MinimumBufferAlignment);
 
 		return static_cast<uint32>(offset);
 	}
@@ -113,17 +112,6 @@ namespace Coco::Rendering::Vulkan
 		CreateShaderObjects(shaderInfo);
 
 		_version = shaderInfo.Version;
-	}
-
-	void VulkanRenderPassShader::Use()
-	{
-		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-	}
-
-	bool VulkanRenderPassShader::IsStale() const
-	{
-		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-		return currentTime - _lastUsedTime > VulkanGraphicsDeviceCache::sPurgeThreshold;
 	}
 
 	void VulkanRenderPassShader::CreateShaderObjects(const RenderPassShader& shaderInfo)

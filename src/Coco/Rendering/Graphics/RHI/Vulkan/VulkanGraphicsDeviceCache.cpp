@@ -24,21 +24,21 @@ namespace Coco::Rendering::Vulkan
 		_renderPasses.clear();
 	}
 
-	VulkanRenderPass& VulkanGraphicsDeviceCache::GetOrCreateRenderPass(CompiledRenderPipeline& pipeline)
+	VulkanRenderPass& VulkanGraphicsDeviceCache::GetOrCreateRenderPass(CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices)
 	{
-		GraphicsDeviceResourceID key = VulkanRenderPass::MakeKey(pipeline);
+		GraphicsDeviceResourceID key = VulkanRenderPass::MakeKey(pipeline, samples);
 
 		auto it = _renderPasses.find(key);
 
 		if (it == _renderPasses.end())
 		{
-			it = _renderPasses.try_emplace(key, pipeline).first;
+			it = _renderPasses.try_emplace(key, pipeline, samples).first;
 		}
 
 		VulkanRenderPass& resource = it->second;
 
-		if (resource.NeedsUpdate(pipeline))
-			resource.Update(pipeline);
+		if (resource.NeedsUpdate(pipeline, samples))
+			resource.Update(pipeline, samples, resolveAttachmentIndices);
 
 		resource.Use();
 
@@ -96,7 +96,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (it == _contextCaches.end())
 		{
-			it = _contextCaches.try_emplace(id).first;
+			it = _contextCaches.try_emplace(id, id).first;
 		}
 
 		VulkanRenderContextCache& resource = it->second;
@@ -121,7 +121,7 @@ namespace Coco::Rendering::Vulkan
 
 			while (it != _renderPasses.end())
 			{
-				if (it->second.IsStale())
+				if (it->second.IsStale(sPurgeThreshold))
 				{
 					it = _renderPasses.erase(it);
 					renderPassesPurged++;
@@ -140,7 +140,7 @@ namespace Coco::Rendering::Vulkan
 
 			while (it != _shaders.end())
 			{
-				if (it->second.IsStale())
+				if (it->second.IsStale(sPurgeThreshold))
 				{
 					it = _shaders.erase(it);
 					shadersPurged++;
@@ -159,7 +159,7 @@ namespace Coco::Rendering::Vulkan
 
 			while (it != _pipelines.end())
 			{
-				if (it->second.IsStale())
+				if (it->second.IsStale(sPurgeThreshold))
 				{
 					it = _pipelines.erase(it);
 					pipelinesPurged++;
@@ -177,7 +177,7 @@ namespace Coco::Rendering::Vulkan
 
 			while (it != _contextCaches.end())
 			{
-				if (it->second.IsStale())
+				if (it->second.IsStale(sPurgeThreshold))
 				{
 					it = _contextCaches.erase(it);
 					pipelinesPurged++;

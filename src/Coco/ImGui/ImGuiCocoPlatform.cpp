@@ -273,29 +273,31 @@ namespace Coco::ImGuiCoco
 
         ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
         _shader = resources.Create<Shader>("ImGui", ImGuiRenderPass::sPassName);
-        _shader->AddRenderPassShader(RenderPassShader(
-            0,
-            ImGuiRenderPass::sPassName,
-            {
-                ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/ImGui.vert.spv"),
-                ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/ImGui.frag.spv")
-            },
-            pipelineState,
-            {
-                blendState
-            },
-            {
-                ShaderVertexAttribute("Position", BufferDataType::Float3),
-                ShaderVertexAttribute("Color", BufferDataType::Float4),
-                ShaderVertexAttribute("UV", BufferDataType::Float2)
-            },
-            {
-                ShaderDataUniform("projection", UniformScope::Global, ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
-            },
-            {
-                ShaderTextureUniform("sTexture", UniformScope::Instance, ShaderStageFlags::Fragment)
-            }
-            ));
+        _shader->AddRenderPassShader(
+            RenderPassShader(
+                0,
+                ImGuiRenderPass::sPassName,
+                {
+                    ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/ImGui.vert.spv"),
+                    ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/ImGui.frag.spv")
+                },
+                pipelineState,
+                {
+                    blendState
+                },
+                {
+                    ShaderVertexAttribute("Position", BufferDataType::Float3),
+                    ShaderVertexAttribute("Color", BufferDataType::Float4),
+                    ShaderVertexAttribute("UV", BufferDataType::Float2)
+                },
+                {
+                    ShaderDataUniform("projection", UniformScope::Global, ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+                },
+                {
+                    ShaderTextureUniform("sTexture", UniformScope::Instance, ShaderStageFlags::Fragment)
+                }
+            )
+        );
 
         // Setup ImGui mesh
         _mesh = resources.Create<Mesh>("ImGui", true);
@@ -356,7 +358,7 @@ namespace Coco::ImGuiCoco
             viewport.GetBottom(),
             -1.0, 1.0);
 
-        return CreateUniqueRef<RenderView>(viewport, viewport, Matrix4x4::Identity, projection, rts);
+        return CreateUniqueRef<RenderView>(viewport, viewport, Matrix4x4::Identity, projection, MSAASamples::One, rts);
     }
 
     void ImGuiCocoPlatform::GatherSceneData(RenderView& renderView)

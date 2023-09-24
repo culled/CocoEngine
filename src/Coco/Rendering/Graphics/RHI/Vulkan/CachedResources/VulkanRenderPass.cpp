@@ -13,18 +13,17 @@ namespace Coco::Rendering::Vulkan
 		ColorAttachmentReferences{},
 		DepthStencilAttachment{},
 		DepthStencilAttachmentReference{},
+		ResolveAttachmentReferences{},
 		PreserveAttachments{},
 		SubpassDescription{}
 	{}
 
-	VulkanRenderPass::VulkanRenderPass(const CompiledRenderPipeline& pipeline) :
-		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(pipeline)),
+	VulkanRenderPass::VulkanRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples) :
+		CachedVulkanResource(MakeKey(pipeline, samples)),
 		_version(0),
 		_renderPass(nullptr),
 		_subpassInfos{},
-		_attachments{},
-		_multisamplingMode(MSAASamples::One),
-		_lastUsedTime(0.0)
+		_samples(GetAdjustedSamples(pipeline, samples))
 	{}
 
 	VulkanRenderPass::~VulkanRenderPass()
@@ -32,9 +31,9 @@ namespace Coco::Rendering::Vulkan
 		DestroyRenderPass();
 	}
 
-	GraphicsDeviceResourceID VulkanRenderPass::MakeKey(const CompiledRenderPipeline& pipeline)
+	GraphicsDeviceResourceID VulkanRenderPass::MakeKey(const CompiledRenderPipeline& pipeline, MSAASamples samples)
 	{
-		return pipeline.PipelineID;
+		return Math::CombineHashes(pipeline.PipelineID, static_cast<uint64>(samples));
 	}
 
 	const VulkanSubpassInfo& VulkanRenderPass::GetSubpassInfo(uint64 index) const
@@ -44,50 +43,41 @@ namespace Coco::Rendering::Vulkan
 		return _subpassInfos.at(index);
 	}
 
-	bool VulkanRenderPass::NeedsUpdate(const CompiledRenderPipeline& pipeline) const
+	bool VulkanRenderPass::NeedsUpdate(const CompiledRenderPipeline& pipeline, MSAASamples samples) const
 	{
-		return pipeline.Version != _version || _renderPass == nullptr;
+		return _renderPass == nullptr || pipeline.Version != _version || _samples != GetAdjustedSamples(pipeline, samples);
 	}
 
-	void VulkanRenderPass::Update(const CompiledRenderPipeline& pipeline)
+	void VulkanRenderPass::Update(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices)
 	{
 		DestroyRenderPass();
-		CreateRenderPass(pipeline);
+		CreateRenderPass(pipeline, samples, resolveAttachmentIndices);
 
 		_version = pipeline.Version;
 	}
 
-	void VulkanRenderPass::Use()
+	MSAASamples VulkanRenderPass::GetAdjustedSamples(const CompiledRenderPipeline& pipeline, MSAASamples samples) const
 	{
-		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
+		const GraphicsDeviceFeatures& features = _device.GetFeatures();
+		return pipeline.SupportsMSAA ? static_cast<MSAASamples>(Math::Min(samples, features.MaximumMSAASamples)) : MSAASamples::One;
 	}
 
-	bool VulkanRenderPass::IsStale() const
-	{
-		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-		return currentTime - _lastUsedTime > VulkanGraphicsDeviceCache::sPurgeThreshold;
-	}
-
-	void VulkanRenderPass::CreateRenderPass(const CompiledRenderPipeline& pipeline)
+	void VulkanRenderPass::CreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices)
 	{
 		_subpassInfos.resize(pipeline.RenderPasses.size());
-		_attachments = pipeline.InputAttachments;
-		_multisamplingMode = MSAASamples::One;
+		_samples = GetAdjustedSamples(pipeline, samples);
 
 		Assert(pipeline.RenderPasses.size() != 0)
 
 		std::vector<VkAttachmentDescription> attachments;
 
-		// Create attachment descriptions for all attachments
+		// Create attachment descriptions for all primary attachments
 		for (const AttachmentFormat& attachment : pipeline.InputAttachments)
 		{
 			VkImageLayout layout = ToAttachmentLayout(attachment.PixelFormat);
 
-			if (attachment.SampleCount > _multisamplingMode)
-				_multisamplingMode = attachment.SampleCount;
-
 			VkAttachmentDescription description{};
-			description.samples = ToVkSampleCountFlagBits(attachment.SampleCount);
+			description.samples = ToVkSampleCountFlagBits(_samples);
 			description.format = ToVkFormat(attachment.PixelFormat, attachment.ColorSpace);
 
 			description.loadOp = attachment.ShouldClear ?
@@ -107,7 +97,19 @@ namespace Coco::Rendering::Vulkan
 			attachments.push_back(description);
 		}
 
+		// Add attachment refs for any resolve attachments
+		for (const uint8 i : resolveAttachmentIndices)
+		{
+			const AttachmentFormat& attachment = pipeline.InputAttachments.at(i);
+
+			VkAttachmentDescription description = attachments.at(i);
+			description.samples = VK_SAMPLE_COUNT_1_BIT;
+
+			attachments.push_back(description);
+		}
+
 		std::vector<VkSubpassDescription> subpasses(pipeline.RenderPasses.size());
+		uint64 totalAttachmentCount = pipeline.InputAttachments.size() + resolveAttachmentIndices.size();
 
 		// Create subpasses for all pipeline renderpasses
 		for (size_t i = 0; i < pipeline.RenderPasses.size(); i++)
@@ -115,7 +117,7 @@ namespace Coco::Rendering::Vulkan
 			VulkanSubpassInfo& subpass = _subpassInfos.at(i);
 
 			// Start assuming no attachments are used
-			for (uint32 ii = 0; ii < pipeline.InputAttachments.size(); ii++)
+			for (uint32 ii = 0; ii < totalAttachmentCount; ii++)
 			{
 				subpass.PreserveAttachments.emplace_back(ii);
 			}
@@ -150,13 +152,35 @@ namespace Coco::Rendering::Vulkan
 				const auto it = std::find(subpass.PreserveAttachments.cbegin(), subpass.PreserveAttachments.cend(), pipelineAttachmentIndex);
 				if (it != subpass.PreserveAttachments.cend())
 					subpass.PreserveAttachments.erase(it);
+
+				// Create an unused resolve attachment reference
+				VkAttachmentReference resolveAttachmentRef{};
+				resolveAttachmentRef.attachment = VK_ATTACHMENT_UNUSED;
+				resolveAttachmentRef.layout = attachmentRef.layout;
+				subpass.ResolveAttachmentReferences.push_back(resolveAttachmentRef);
+
+				// Add a resolve attachment for this attachment if needed
+				for (uint8 rI = 0; rI < resolveAttachmentIndices.size(); rI++)
+				{
+					if (resolveAttachmentIndices[rI] != pipelineAttachmentIndex)
+						continue;
+
+					uint32 attachmentIndex = static_cast<uint32>(pipeline.InputAttachments.size()) + rI;
+					subpass.ResolveAttachmentReferences.at(i).attachment = attachmentIndex;
+
+					// Remove the attachment since it is used
+					const auto it = std::find(subpass.PreserveAttachments.cbegin(), subpass.PreserveAttachments.cend(), attachmentIndex);
+					if (it != subpass.PreserveAttachments.cend())
+						subpass.PreserveAttachments.erase(it);
+				}
 			}
 
 			VkSubpassDescription subpassDescription{};
 			subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
 			subpassDescription.colorAttachmentCount = static_cast<uint32_t>(subpass.ColorAttachmentReferences.size());
-			subpassDescription.pColorAttachments = subpass.ColorAttachmentReferences.data();
+			subpassDescription.pColorAttachments = subpass.ColorAttachmentReferences.size() > 0 ? 
+				subpass.ColorAttachmentReferences.data() : VK_NULL_HANDLE;
 
 			subpassDescription.pDepthStencilAttachment = subpass.DepthStencilAttachmentReference.has_value() ?
 				&subpass.DepthStencilAttachmentReference.value() : VK_NULL_HANDLE;
@@ -164,8 +188,9 @@ namespace Coco::Rendering::Vulkan
 			subpassDescription.preserveAttachmentCount = static_cast<uint32_t>(subpass.PreserveAttachments.size());
 			subpassDescription.pPreserveAttachments = subpass.PreserveAttachments.data();
 
+			subpassDescription.pResolveAttachments = subpass.ResolveAttachmentReferences.data();
+
 			subpassDescription.inputAttachmentCount = 0; // TODO: input attachments
-			subpassDescription.pResolveAttachments = nullptr; // TODO: MSAA resolve attachments
 
 			subpass.SubpassDescription = subpassDescription;
 			subpasses.at(i) = subpassDescription;
@@ -229,6 +254,8 @@ namespace Coco::Rendering::Vulkan
 
 		vkDestroyRenderPass(_device.GetDevice(), _renderPass, _device.GetAllocationCallbacks());
 		_renderPass = nullptr;
+
+		_subpassInfos.clear();
 
 		CocoTrace("Destroyed VulkanRenderPass")
 	}

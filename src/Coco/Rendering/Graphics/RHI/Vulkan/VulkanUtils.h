@@ -79,6 +79,11 @@ namespace Coco::Rendering::Vulkan
 	/// @return The VkSampleCountFlagBits
 	VkSampleCountFlagBits ToVkSampleCountFlagBits(MSAASamples samples);
 
+	/// @brief Converts VkSampleCountFlags to MSAASamples
+	/// @param samples The samples
+	/// @return The msaa samples
+	MSAASamples ToMSAASamples(VkSampleCountFlags samples);
+
 	/// @brief Converts BufferUsageFlags to VkBufferUsageFlags
 	/// @param usageFlags The usage flags
 	/// @return The VkBufferUsageFlags

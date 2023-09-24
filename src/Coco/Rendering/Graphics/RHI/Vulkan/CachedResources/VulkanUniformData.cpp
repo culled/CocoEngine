@@ -36,14 +36,13 @@ namespace Coco::Rendering::Vulkan
 	const uint64 VulkanUniformData::sGlobalInstanceID = 0;
 
 	VulkanUniformData::VulkanUniformData(const VulkanRenderPassShader& passShader) :
-		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(passShader)),
+		CachedVulkanResource(MakeKey(passShader)),
 		_version(0),
 		_uniformBuffers{},
 		_pools{},
 		_poolCreateInfo{},
 		_uniformData{},
-		_allocatedSets{},
-		_lastUsedTime(0.0)
+		_allocatedSets{}
 	{}
 
 	VulkanUniformData::~VulkanUniformData()
@@ -185,17 +184,6 @@ namespace Coco::Rendering::Vulkan
 		_version = passShader.GetVersion();
 	}
 
-	void VulkanUniformData::Use()
-	{
-		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-	}
-
-	bool VulkanUniformData::IsStale() const
-	{
-		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-		return currentTime - _lastUsedTime > VulkanRenderContextCache::sPurgeThreshold;
-	}
-
 	std::vector<uint8> VulkanUniformData::GetBufferData(UniformScope scope, const ShaderUniformData& data, const RenderPassShader& shader) const
 	{
 		std::vector<uint8> bufferData;
@@ -319,7 +307,7 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		// Pad the buffer to fit in the minimum buffer alignment
-		bufferData.resize(GraphicsDevice::GetOffsetForAlignment(bufferData.size(), _device.GetMinimumBufferAlignment()));
+		bufferData.resize(GraphicsDevice::GetOffsetForAlignment(bufferData.size(), _device.GetFeatures().MinimumBufferAlignment));
 
 		return bufferData;
 	}

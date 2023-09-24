@@ -190,6 +190,23 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
+	MSAASamples ToMSAASamples(VkSampleCountFlags samples)
+	{
+		if (samples & VK_SAMPLE_COUNT_16_BIT)
+			return MSAASamples::Sixteen;
+
+		if (samples & VK_SAMPLE_COUNT_8_BIT)
+			return MSAASamples::Eight;
+
+		if (samples & VK_SAMPLE_COUNT_4_BIT)
+			return MSAASamples::Four;
+
+		if (samples & VK_SAMPLE_COUNT_2_BIT)
+			return MSAASamples::Two;
+
+		return MSAASamples::One;
+	}
+
 	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags)
 	{
 		VkBufferUsageFlags flags = 0;

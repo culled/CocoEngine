@@ -18,6 +18,13 @@ namespace Coco::Rendering::Vulkan
 		_imageMemory(nullptr),
 		_currentLayout(VK_IMAGE_LAYOUT_UNDEFINED)
 	{
+		// Adjust the description to fit within the device's capabilities
+		const GraphicsDeviceFeatures& features = _device.GetFeatures();
+		_description.SampleCount = static_cast<MSAASamples>(Math::Min(features.MaximumMSAASamples, _description.SampleCount));
+		_description.Width = Math::Min(_description.Width, features.MaxImageWidth);
+		_description.Height = Math::Min(_description.Height, features.MaxImageHeight);
+		_description.Depth = Math::Min(_description.Depth, features.MaxImageDepth);
+
 		CreateImage();
 		CreateNativeImageView();
 	}
@@ -226,7 +233,7 @@ namespace Coco::Rendering::Vulkan
 		create.tiling = VK_IMAGE_TILING_OPTIMAL;
 		create.initialLayout = _currentLayout;
 		create.usage = ToVkImageUsageFlags(_description.UsageFlags, _description.PixelFormat);
-		create.samples = VK_SAMPLE_COUNT_1_BIT; // TODO: multiple samples
+		create.samples = ToVkSampleCountFlagBits(_description.SampleCount);
 		create.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // TODO: configurable sharing mode
 
 		AssertVkSuccess(vkCreateImage(_device.GetDevice(), &create, _device.GetAllocationCallbacks(), &_image));

@@ -25,11 +25,31 @@ namespace Coco::Rendering
 	public:
 		AttachmentCache();
 
-		/// @brief Gets/creates images required for the given pipeline
+		/// @brief Creates render targets required for the given pipeline
 		/// @param pipeline The pipeline being used to render
 		/// @param backbufferSize The size of the images
+		/// @param msaaSamples The number of MSAA samples for the attachments
 		/// @param backbuffers The provided backbuffers
-		/// @return Images for the pipeline's attachments
-		std::vector<Ref<Image>> GetImages(const CompiledRenderPipeline& pipeline, const SizeInt& backbufferSize, std::span<Ref<Image>> backbuffers);
+		/// @return RenderTargets with the neccessary images for the pipeline's attachments
+		std::vector<RenderTarget> CreateRenderTargets(
+			const CompiledRenderPipeline& pipeline, 
+			const SizeInt& backbufferSize, 
+			MSAASamples msaaSamples,
+			std::span<Ref<Image>> backbuffers);
+
+	private:
+		/// @brief Get/creates an image for an attachment 
+		/// @param imageCache The image cache to use
+		/// @param size The size of the image
+		/// @param msaaSamples The number of MSAA samples for the image
+		/// @param attachmentFormat The attachment format
+		/// @param attachmentIndex The index of the attachment
+		/// @return An image
+		Ref<Image> GetOrCreateImage(
+			PipelineImageCache& imageCache, 
+			const SizeInt& size,
+			MSAASamples msaaSamples,
+			const AttachmentFormat& attachmentFormat,
+			uint8 attachmentIndex);
 	};
 }

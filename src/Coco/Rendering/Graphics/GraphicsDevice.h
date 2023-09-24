@@ -60,16 +60,12 @@ namespace Coco::Rendering
 		/// @return This device's api version
 		virtual Version GetAPIVersion() const = 0;
 
-		/// @brief Gets this device's memory features
-		/// @return This device's memory features
-		virtual const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const = 0;
+		/// @brief Gets this device's features
+		/// @return This device's features
+		virtual const GraphicsDeviceFeatures& GetFeatures() const = 0;
 
 		/// @brief Waits until the device has finished all queued work
 		virtual void WaitForIdle() const = 0;
-
-		/// @brief Gets the minimum alignment for a buffer for this device
-		/// @return The minimum buffer alignment
-		virtual uint32 GetMinimumBufferAlignment() const = 0;
 
 		/// @brief Gets the alignment for the given type of data
 		/// @param type The type of data

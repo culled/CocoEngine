@@ -20,6 +20,9 @@ namespace Coco::Rendering
 		/// @brief The attachments in this pipeline
 		std::vector<AttachmentFormat> InputAttachments;
 
+		/// @brief True if this pipeline supports MSAA
+		bool SupportsMSAA;
+
 		CompiledRenderPipeline(uint64 pipelineID);
 	};
 }

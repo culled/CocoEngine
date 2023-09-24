@@ -7,11 +7,10 @@ namespace Coco::Rendering
         AttachmentFormat(ImagePixelFormat::Unknown, ImageColorSpace::Unknown, false)
     {}
 
-    AttachmentFormat::AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, bool shouldClear, MSAASamples msaaSamples) :
+    AttachmentFormat::AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, bool shouldClear) :
         PixelFormat(pixelFormat),
         ColorSpace(colorSpace),
-        ShouldClear(shouldClear),
-        SampleCount(msaaSamples)
+        ShouldClear(shouldClear)
     {}
 
     bool AttachmentFormat::IsCompatible(const AttachmentFormat& other) const

@@ -3,7 +3,12 @@
 
 namespace Coco::Rendering
 {
-	GraphicsDeviceMemoryFeatures::GraphicsDeviceMemoryFeatures() :
-		SupportsHostVisibleLocalMemory(false)
+	GraphicsDeviceFeatures::GraphicsDeviceFeatures() :
+		MaximumMSAASamples(MSAASamples::One),
+		SupportsHostVisibleLocalMemory(false),
+		MaxImageWidth(0),
+		MaxImageHeight(0),
+		MaxImageDepth(0),
+		MinimumBufferAlignment(0)
 	{}
 }

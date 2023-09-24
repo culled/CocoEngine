@@ -15,6 +15,7 @@ public:
 
 	std::span<const AttachmentFormat> GetInputAttachments() const { return _attachments; }
 	string GetName() const { return "basic"; }
+	bool SupportsMSAA() const final { return true; }
 	void Execute(RenderContext& context, const RenderView& renderView);
 };
 

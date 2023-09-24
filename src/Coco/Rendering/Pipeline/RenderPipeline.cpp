@@ -64,10 +64,14 @@ namespace Coco::Rendering
 		{
 			std::vector<RenderPassBinding> bindings;
 			std::vector<std::optional<AttachmentFormat>> inputAttachments;
+			bool supportsMSAA = true;
 
 			for (const RenderPassBinding& binding : _renderPasses)
 			{
 				std::span<const AttachmentFormat> passAttachments = binding.Pass->GetInputAttachments();
+
+				if (!binding.Pass->SupportsMSAA())
+					supportsMSAA = false;
 
 				for (const auto& kvp : binding.PipelineToPassIndexMapping)
 				{
@@ -117,6 +121,7 @@ namespace Coco::Rendering
 
 			_compiledPipeline.Version++;
 			_compiledPipeline.RenderPasses = std::move(bindings);
+			_compiledPipeline.SupportsMSAA = supportsMSAA;
 
 			_compiledPipeline.InputAttachments.clear();
 			std::transform(

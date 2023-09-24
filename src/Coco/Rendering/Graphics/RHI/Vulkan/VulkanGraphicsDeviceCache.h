@@ -35,8 +35,10 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets/creates a VulkanRenderPass
 		/// @param pipeline The pipeline to use
+		/// @param samples The number of MSAA samples
+		/// @param resolveAttachmentIndices Indices of attachments in the pipeline that need to be resolved
 		/// @return A render pass
-		VulkanRenderPass& GetOrCreateRenderPass(CompiledRenderPipeline& pipeline);
+		VulkanRenderPass& GetOrCreateRenderPass(CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices);
 
 		/// @brief Gets/creates a VulkanRenderPassShader 
 		/// @param shaderInfo The shader info

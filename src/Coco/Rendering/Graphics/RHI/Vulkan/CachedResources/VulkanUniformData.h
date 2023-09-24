@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../GraphicsDeviceResource.h"
+#include "CachedVulkanResource.h"
 #include "../VulkanBuffer.h"
 #include "../VulkanDescriptorSetLayout.h"
 #include "VulkanRenderPassShader.h"
@@ -8,8 +8,6 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	class VulkanGraphicsDevice;
-
 	/// @brief Holds shader uniform data
 	struct UniformDataBuffer
 	{
@@ -70,7 +68,8 @@ namespace Coco::Rendering::Vulkan
 	};
 
 	/// @brief Manages uniform data for a VulkanRenderContext
-	class VulkanUniformData : public GraphicsDeviceResource<VulkanGraphicsDevice>
+	class VulkanUniformData : 
+		public CachedVulkanResource
 	{
 	public:
 		/// @brief The ID of the global instance
@@ -88,7 +87,6 @@ namespace Coco::Rendering::Vulkan
 		DescriptorPoolList _pools;
 		std::unordered_map<uint64, AllocatedUniformData> _uniformData;
 		std::unordered_map<uint64, VkDescriptorSet> _allocatedSets;
-		double _lastUsedTime;
 
 	public:
 		VulkanUniformData(const VulkanRenderPassShader& passShader);
@@ -129,13 +127,6 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Updates this uniform data to be compatible with the given shader
 		/// @param passShader The shader
 		void Update(const VulkanRenderPassShader& passShader);
-
-		/// @brief Marks this framebuffer as used
-		void Use();
-
-		/// @brief Determines if this framebuffer is stale and can be purged
-		/// @return True if this framebuffer can be purged
-		bool IsStale() const;
 
 	private:
 		/// @brief Gets the scope of an instance. Will only be global for the global instance ID

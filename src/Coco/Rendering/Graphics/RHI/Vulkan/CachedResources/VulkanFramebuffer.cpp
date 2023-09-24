@@ -8,10 +8,9 @@
 namespace Coco::Rendering::Vulkan
 {
 	VulkanFramebuffer::VulkanFramebuffer(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages) :
-		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(size, renderPass, attachmentImages)),
+		CachedVulkanResource(MakeKey(size, renderPass, attachmentImages)),
 		_version(0),
-		_framebuffer(nullptr),
-		_lastUsedTime(0.0)
+		_framebuffer(nullptr)
 	{}
 
 	VulkanFramebuffer::~VulkanFramebuffer()
@@ -43,17 +42,6 @@ namespace Coco::Rendering::Vulkan
 		CreateFramebuffer(size, renderPass, attachmentImages);
 
 		_version = renderPass.GetVersion();
-	}
-
-	void VulkanFramebuffer::Use()
-	{
-		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-	}
-
-	bool VulkanFramebuffer::IsStale() const
-	{
-		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-		return currentTime - _lastUsedTime > VulkanRenderContextCache::sPurgeThreshold;
 	}
 
 	void VulkanFramebuffer::CreateFramebuffer(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)

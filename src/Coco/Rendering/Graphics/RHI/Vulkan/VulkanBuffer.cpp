@@ -15,7 +15,7 @@ namespace Coco::Rendering::Vulkan
 		_freelist(size),
 		_lockedMemory(nullptr)
 	{
-		VkMemoryPropertyFlags localHostMemory = _device.GetMemoryFeatures().SupportsHostVisibleLocalMemory ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0;
+		VkMemoryPropertyFlags localHostMemory = _device.GetFeatures().SupportsHostVisibleLocalMemory ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0;
 
 		if ((usageFlags & BufferUsageFlags::HostVisible) == BufferUsageFlags::HostVisible)
 			_memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | localHostMemory;

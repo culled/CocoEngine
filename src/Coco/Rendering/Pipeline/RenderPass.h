@@ -22,6 +22,10 @@ namespace Coco::Rendering
 		/// @return This pass's attachments
 		virtual std::span<const AttachmentFormat> GetInputAttachments() const = 0;
 
+		/// @brief Gets if this pass supports multisampled anti-aliasing
+		/// @return True if this pass supports MSAA
+		virtual bool SupportsMSAA() const = 0;
+
 		/// @brief Executes this render pass
 		/// @param context The context to use for rendering
 		/// @param renderView The view being rendered

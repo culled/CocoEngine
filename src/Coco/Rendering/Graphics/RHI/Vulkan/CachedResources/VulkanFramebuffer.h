@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../../../Renderpch.h"
-#include "../../../GraphicsDeviceResource.h"
+#include "CachedVulkanResource.h"
 #include "../VulkanIncludes.h"
 #include <Coco/Core/Types/Size.h>
 #include "../VulkanImage.h"
@@ -12,12 +12,12 @@ namespace Coco::Rendering::Vulkan
 	class VulkanGraphicsDevice;
 
 	/// @brief A Vulkan framebuffer
-	class VulkanFramebuffer : public GraphicsDeviceResource<VulkanGraphicsDevice>
+	class VulkanFramebuffer : 
+		public CachedVulkanResource
 	{
 	private:
 		uint64 _version;
 		VkFramebuffer _framebuffer;
-		double _lastUsedTime;
 
 	public:
 		VulkanFramebuffer(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages);
@@ -48,13 +48,6 @@ namespace Coco::Rendering::Vulkan
 		/// @param renderPass The render pass
 		/// @param attachmentImages The attachment images
 		void Update(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages);
-
-		/// @brief Marks this framebuffer as used
-		void Use();
-
-		/// @brief Determines if this framebuffer is stale and can be purged
-		/// @return True if this framebuffer can be purged
-		bool IsStale() const;
 
 	private:
 		/// @brief Creates the framebuffer

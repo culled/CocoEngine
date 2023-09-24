@@ -8,29 +8,32 @@
 
 namespace Coco::Rendering
 {
-	RenderTarget::RenderTarget(const Ref<Rendering::Image>& image) : 
-		RenderTarget(image, Color::ClearBlack)
+	RenderTarget::RenderTarget() : 
+		RenderTarget(Ref<Image>(), Vector4::Zero)
 	{}
 
-	RenderTarget::RenderTarget(const Ref<Rendering::Image>& image, Vector4 clearValue) :
-		Image(image),
+	RenderTarget::RenderTarget(Ref<Image> mainImage, const Vector4& clearValue) :
+		MainImage(mainImage),
+		ResolveImage(),
 		ClearValue(clearValue)
 	{}
 
-	RenderTarget::RenderTarget(const Ref<Rendering::Image>& image, Color clearColor) :
-		Image(image)
+	void RenderTarget::SetColorClearValue(const Color& clearColor)
 	{
 		Color gammaColor = clearColor.AsLinear();
 		ClearValue = Vector4(gammaColor.R, gammaColor.G, gammaColor.B, gammaColor.A);
 	}
 
-	RenderTarget::RenderTarget(const Ref<Rendering::Image>& image, double depthClearValue) :
-		RenderTarget(image, Vector4(depthClearValue, 0, 0, 0))
-	{}
+	void RenderTarget::SetDepthClearValue(double depthClearValue)
+	{
+		ClearValue.X = depthClearValue;
+	}
 
-	RenderTarget::RenderTarget(const Ref<Rendering::Image>& image, Vector2 depthStencilClearValue) :
-		RenderTarget(image, Vector4(depthStencilClearValue.X, depthStencilClearValue.Y, 0, 0))
-	{}
+	void RenderTarget::SetDepthStencilClearValue(double depthClearValue, uint8 stencilClearValue)
+	{
+		ClearValue.X = depthClearValue;
+		ClearValue.Y = stencilClearValue;
+	}
 
 	SubmeshData::SubmeshData(uint64 id, uint64 firstIndexOffset, uint64 indexCount) :
 		ID(id),
@@ -85,11 +88,13 @@ namespace Coco::Rendering
 		const RectInt& scissorRect,
 		const Matrix4x4& viewMatrix,
 		const Matrix4x4& projectionMatrix,
+		MSAASamples samples,
 		const std::vector<RenderTarget>& renderTargets) :
 		_viewportRect(viewportRect),
 		_scissorRect(scissorRect),
 		_viewMat(viewMatrix),
 		_projectionMat(projectionMatrix),
+		_samples(samples),
 		_renderTargets(renderTargets)
 	{}
 

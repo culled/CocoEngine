@@ -6,6 +6,7 @@
 
 BasicRenderViewProvider::BasicRenderViewProvider() :
     _clearColor(Color(0.1, 0.2, 0.3, 1.0)),
+    _msaaSamples(MSAASamples::Four),
     _cameraTransform(),
     _tickListener(this, &BasicRenderViewProvider::Tick, 0),
     _attachmentCache()
@@ -20,20 +21,19 @@ BasicRenderViewProvider::~BasicRenderViewProvider()
 
 UniqueRef<RenderView> BasicRenderViewProvider::CreateRenderView(const CompiledRenderPipeline& pipeline, const SizeInt& backbufferSize, std::span<Ref<Image>> backbuffers)
 {
-    std::vector<Ref<Image>> images = _attachmentCache.GetImages(pipeline, backbufferSize, backbuffers);
-    std::vector<RenderTarget> rts;
+    std::vector<RenderTarget> rts = _attachmentCache.CreateRenderTargets(pipeline, backbufferSize, _msaaSamples, backbuffers);
 
-    for (size_t i = 0; i < images.size(); i++)
+    for (size_t i = 0; i < rts.size(); i++)
     {
         ImagePixelFormat pixelFormat = pipeline.InputAttachments.at(i).PixelFormat;
 
         if (IsDepthFormat(pixelFormat) || IsStencilFormat(pixelFormat))
         {
-            rts.emplace_back(images.at(i), Vector2(1.0, 0.0));
+            rts.at(i).SetDepthClearValue(1.0);
         }
         else
         {
-            rts.emplace_back(images.at(i), _clearColor);
+            rts.at(i).SetColorClearValue(_clearColor);
         }
     }
 
@@ -45,7 +45,7 @@ UniqueRef<RenderView> BasicRenderViewProvider::CreateRenderView(const CompiledRe
     //Matrix4x4 projection = RenderService::Get()->GetPlatform()->CreateOrthographicProjection(2.0, aspectRatio, 0.1, 100);
     Matrix4x4 projection = RenderService::Get()->GetPlatform().CreatePerspectiveProjection(Math::DegToRad(90.0), aspectRatio, 0.1, 100);
 
-    return CreateUniqueRef<RenderView>(viewport, viewport, view, projection, rts);
+    return CreateUniqueRef<RenderView>(viewport, viewport, view, projection, pipeline.SupportsMSAA ? _msaaSamples : MSAASamples::One, rts);
 }
 
 void BasicRenderViewProvider::Tick(const TickInfo& tickInfo)

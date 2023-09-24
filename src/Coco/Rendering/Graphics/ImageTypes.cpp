@@ -74,13 +74,15 @@ namespace Coco::Rendering
 		uint32 mipCount,
 		ImagePixelFormat pixelFormat,
 		ImageColorSpace colorSpace,
-		ImageUsageFlags usageFlags) :
+		ImageUsageFlags usageFlags,
+		MSAASamples sampleCount) :
 		ImageDescription(
 			width, height, 1,
 			1, mipCount,
 			pixelFormat,
 			colorSpace,
-			usageFlags)
+			usageFlags,
+			sampleCount)
 	{}
 
 	ImageDescription::ImageDescription(
@@ -88,7 +90,8 @@ namespace Coco::Rendering
 		uint32 layers, uint32 mipCount,
 		ImagePixelFormat pixelFormat,
 		ImageColorSpace colorSpace,
-		ImageUsageFlags usageFlags) :
+		ImageUsageFlags usageFlags,
+		MSAASamples sampleCount) :
 		Width(Math::Max(static_cast<uint32>(1), width)),
 		Height(Math::Max(static_cast<uint32>(1), height)),
 		Depth(Math::Max(static_cast<uint32>(1), depth)),
@@ -96,7 +99,8 @@ namespace Coco::Rendering
 		MipCount(Math::Max(static_cast<uint32>(1), mipCount)),
 		PixelFormat(pixelFormat),
 		ColorSpace(colorSpace),
-		UsageFlags(usageFlags)
+		UsageFlags(usageFlags),
+		SampleCount(sampleCount)
 	{
 		if (Depth <= 1)
 		{

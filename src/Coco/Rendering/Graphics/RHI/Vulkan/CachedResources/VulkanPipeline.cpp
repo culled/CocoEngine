@@ -10,12 +10,11 @@ namespace Coco::Rendering::Vulkan
 		const VulkanRenderPass& renderPass,
 		const VulkanRenderPassShader& shader,
 		uint32 subpassIndex) :
-		GraphicsDeviceResource<VulkanGraphicsDevice>(MakeKey(renderPass, shader, subpassIndex)),
+		CachedVulkanResource(MakeKey(renderPass, shader, subpassIndex)),
 		_version(0),
 		_subpassIndex(subpassIndex),
 		_pipelineLayout(nullptr),
-		_pipeline(nullptr),
-		_lastUsedTime(0.0)
+		_pipeline(nullptr)
 	{}
 
 	VulkanPipeline::~VulkanPipeline()
@@ -42,17 +41,6 @@ namespace Coco::Rendering::Vulkan
 		CreatePipeline(renderPass, shader, subpassIndex);
 
 		_version = MakeVersion(renderPass, shader);
-	}
-
-	void VulkanPipeline::Use()
-	{
-		_lastUsedTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-	}
-
-	bool VulkanPipeline::IsStale() const
-	{
-		double currentTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-		return currentTime - _lastUsedTime > VulkanGraphicsDeviceCache::sPurgeThreshold;
 	}
 
 	uint64 VulkanPipeline::MakeVersion(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader)
@@ -117,7 +105,7 @@ namespace Coco::Rendering::Vulkan
 		VkPipelineMultisampleStateCreateInfo multisampleState{};
 		multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampleState.sampleShadingEnable = VK_FALSE;
-		multisampleState.rasterizationSamples = ToVkSampleCountFlagBits(renderPass.GetMultisamplingMode());
+		multisampleState.rasterizationSamples = ToVkSampleCountFlagBits(renderPass.GetMSAASamples());
 		multisampleState.minSampleShading = 1.0f;
 		multisampleState.pSampleMask = nullptr;
 		multisampleState.alphaToCoverageEnable = VK_FALSE;

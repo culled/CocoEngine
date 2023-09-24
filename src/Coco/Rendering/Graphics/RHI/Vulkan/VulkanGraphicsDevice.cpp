@@ -33,7 +33,7 @@ namespace Coco::Rendering::Vulkan
 		_instance(instance),
 		_physicalDevice(physicalDevice),
 		_device(nullptr),
-		_memoryFeatures{},
+		_features{},
 		_graphicsQueue(nullptr),
 		_transferQueue(nullptr),
 		_computeQueue(nullptr),
@@ -493,7 +493,14 @@ namespace Coco::Rendering::Vulkan
 		_deviceType = ToGraphicsDeviceType(deviceProperties.deviceType);
 		_driverVersion = ToVersion(deviceProperties.driverVersion);
 		_apiVersion = ToVersion(deviceProperties.apiVersion);
-		_minUniformBufferAlignment = static_cast<uint32>(deviceProperties.limits.minUniformBufferOffsetAlignment);
+
+		VkSampleCountFlags maxSamples = deviceProperties.limits.framebufferColorSampleCounts & deviceProperties.limits.framebufferDepthSampleCounts;
+		_features.MaximumMSAASamples = ToMSAASamples(maxSamples);
+
+		_features.MaxImageWidth = deviceProperties.limits.maxImageDimension1D;
+		_features.MaxImageHeight = deviceProperties.limits.maxImageDimension2D;
+		_features.MaxImageDepth = deviceProperties.limits.maxImageDimension3D;
+		_features.MinimumBufferAlignment = static_cast<uint32>(deviceProperties.limits.minUniformBufferOffsetAlignment);
 
 		// Get the memory features of the physical device
 		VkPhysicalDeviceMemoryProperties memoryProperties{};
@@ -504,7 +511,7 @@ namespace Coco::Rendering::Vulkan
 			if ((memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0 &&
 				(memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
 			{
-				_memoryFeatures.SupportsHostVisibleLocalMemory = true;
+				_features.SupportsHostVisibleLocalMemory = true;
 				break;
 			}
 		}

@@ -76,8 +76,7 @@ namespace Coco::Rendering::Vulkan
 		GraphicsDeviceType _deviceType;
 		Version _driverVersion;
 		Version _apiVersion;
-		uint32 _minUniformBufferAlignment;
-		GraphicsDeviceMemoryFeatures _memoryFeatures;
+		GraphicsDeviceFeatures _features;
 		UniqueRef<DeviceQueue> _graphicsQueue;
 		UniqueRef<DeviceQueue> _transferQueue;
 		UniqueRef<DeviceQueue> _computeQueue;
@@ -99,9 +98,8 @@ namespace Coco::Rendering::Vulkan
 		GraphicsDeviceType GetDeviceType() const final { return _deviceType; }
 		Version GetDriverVersion() const final { return _driverVersion; }
 		Version GetAPIVersion() const final { return _apiVersion; }
-		const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const final { return _memoryFeatures; }
+		const GraphicsDeviceFeatures& GetFeatures() const final { return _features; }
 		void WaitForIdle() const final;
-		constexpr uint32 GetMinimumBufferAlignment() const final { return _minUniformBufferAlignment; }
 		uint8 GetDataTypeAlignment(BufferDataType type) const final;
 		void AlignOffset(BufferDataType type, uint64& offset) const final;
 		Ref<GraphicsPresenter> CreatePresenter() final;

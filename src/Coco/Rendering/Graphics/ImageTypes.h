@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Defines.h>
+#include "GraphicsPipelineTypes.h"
 
 namespace Coco::Rendering
 {
@@ -114,6 +115,9 @@ namespace Coco::Rendering
 		/// @brief Usage flags for this image
 		ImageUsageFlags UsageFlags;
 
+		/// @brief The number of MSAA samples this image supports
+		MSAASamples SampleCount;
+
 		ImageDescription();
 
 		ImageDescription(
@@ -121,14 +125,16 @@ namespace Coco::Rendering
 			uint32 mipCount,
 			ImagePixelFormat pixelFormat,
 			ImageColorSpace colorSpace,
-			ImageUsageFlags usageFlags);
+			ImageUsageFlags usageFlags,
+			MSAASamples sampleCount = MSAASamples::One);
 
 		ImageDescription(
 			uint32 width, uint32 height, uint32 depth,
 			uint32 layers, uint32 mipCount,
 			ImagePixelFormat pixelFormat,
 			ImageColorSpace colorSpace,
-			ImageUsageFlags usageFlags);
+			ImageUsageFlags usageFlags,
+			MSAASamples sampleCount = MSAASamples::One);
 
 		bool operator==(const ImageDescription& other) const;
 	};
