@@ -20,7 +20,7 @@ namespace Coco::Rendering::Vulkan
 		bool _supportsPresentation;
 
 	public:
-		VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams);
+		VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams, uint32 apiVersion);
 		~VulkanGraphicsPlatform();
 
 		const char* GetName() const final { return sVulkanRHIName; }
@@ -55,7 +55,8 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Creates the Vulkan instance
 		/// @param createParams Platform creation parameters
-		void CreateVulkanInstance(const GraphicsPlatformCreateParams& createParams);
+		/// @param apiVersion The version of the Vulkan api to use
+		void CreateVulkanInstance(const GraphicsPlatformCreateParams& createParams, uint32 apiVersion);
 	};
 }
 

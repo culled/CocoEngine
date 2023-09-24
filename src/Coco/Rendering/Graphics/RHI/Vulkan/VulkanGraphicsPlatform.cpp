@@ -10,13 +10,13 @@ namespace Coco::Rendering::Vulkan
 	const char* VulkanGraphicsPlatform::sVulkanRHIName = "Vulkan";
 	const char* VulkanGraphicsPlatform::_sDebugValidationLayerName = "VK_LAYER_KHRONOS_validation";
 
-	VulkanGraphicsPlatform::VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams) :
+	VulkanGraphicsPlatform::VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams, uint32 apiVersion) :
 		_vulkanInstance(nullptr),
 		_debugMessenger(nullptr),
 		_usingValidationLayers(false),
 		_supportsPresentation(createParams.PresentationSupport)
 	{
-		CreateVulkanInstance(createParams);
+		CreateVulkanInstance(createParams, apiVersion);
 
 		CocoTrace("Created VulkanGraphicsPlatform")
 	}
@@ -197,7 +197,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	void VulkanGraphicsPlatform::CreateVulkanInstance(const GraphicsPlatformCreateParams& createParams)
+	void VulkanGraphicsPlatform::CreateVulkanInstance(const GraphicsPlatformCreateParams& createParams, uint32 apiVersion)
 	{
 		const Engine* engine = Engine::cGet();
 
@@ -207,7 +207,7 @@ namespace Coco::Rendering::Vulkan
 		appInfo.engineVersion = ToVkVersion(engine->GetVersion());
 		appInfo.pApplicationName = createParams.App.GetName();
 		appInfo.applicationVersion = ToVkVersion(createParams.App.GetVersion());
-		appInfo.apiVersion = VK_API_VERSION_1_2; // TODO: option to choose api version?
+		appInfo.apiVersion = apiVersion;
 
 		std::vector<const char*> extensions;
 		std::vector<const char*> layers;
