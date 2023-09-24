@@ -14,7 +14,6 @@ namespace Coco
 		_currentTick{},
 		_lastTick{},
 		_timeScale(1.0),
-		_useAbsoluteTiming(true),
 		_lastAverageSleepTime(0.0)
 	{}
 
@@ -61,16 +60,13 @@ namespace Coco
 		_timeScale = timeScale;
 	}
 
-	void MainLoop::SetUseAbsoluteTiming(bool useAbsoluteTiming)
-	{
-		_useAbsoluteTiming = useAbsoluteTiming;
-	}
-
 	void MainLoop::Run()
 	{
 		_isRunning = true;
 
 		EnginePlatform& platform = Engine::Get()->GetPlatform();
+		double currentPlatformTime = platform.GetSeconds();
+		double lastTickPlatformTime = currentPlatformTime;
 
 		// Initialize the current tick
 		_currentTick.TickNumber = 0;
@@ -81,17 +77,13 @@ namespace Coco
 		_lastTick = _currentTick;
 
 		bool didPerformFullTick = true;
-		double preProcessPlatformTime = platform.GetSeconds();
-		double lastTickPlatformTime = preProcessPlatformTime;
+		//double preProcessPlatformTime = platform.GetSeconds();
 
 		while (_isRunning)
 		{
-			if (_targetTicksPerSecond > 0)
-				WaitForTargetTickTime(lastTickPlatformTime);
-
 			// Save the pre-process time only if we performed a full tick so we can calculate an adjusted delta time
-			if (didPerformFullTick)
-				preProcessPlatformTime = platform.GetSeconds();
+			//if (didPerformFullTick)
+			//	preProcessPlatformTime = platform.GetSeconds();
 
 			platform.ProcessMessages();
 
@@ -99,8 +91,8 @@ namespace Coco
 
 			if (!_isSuspended)
 			{
-				// TODO: fix non-absolute timing with long message loops
-				double timeDelta = (_useAbsoluteTiming ? currentPlatformTime : preProcessPlatformTime) - lastTickPlatformTime;
+				// TODO: non-absolute timing with long message loops
+				double timeDelta = currentPlatformTime - lastTickPlatformTime;
 
 				_currentTick.UnscaledDeltaTime = timeDelta;
 				_currentTick.UnscaledTime += _currentTick.UnscaledDeltaTime;
@@ -134,6 +126,9 @@ namespace Coco
 			}
 
 			lastTickPlatformTime = currentPlatformTime;
+
+			if (_targetTicksPerSecond > 0)
+				WaitForTargetTickTime(lastTickPlatformTime);
 		}
 	}
 

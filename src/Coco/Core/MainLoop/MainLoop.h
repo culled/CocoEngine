@@ -19,7 +19,6 @@ namespace Coco
 		TickInfo _currentTick;
 		TickInfo _lastTick;
 		double _timeScale;
-		bool _useAbsoluteTiming;
 		double _lastAverageSleepTime;
 
 	public:
@@ -58,15 +57,6 @@ namespace Coco
 		/// @brief Gets the time scale
 		/// @return The time scale
 		double GetTimeScale() const { return _timeScale; }
-
-		/// @brief Sets this loop to use absolute timing.
-		/// NOTE: this may introduce huge delta times if the application spends lots of time in a platform message processing loop (e.x. dragging a window)
-		/// @param useAbsoluteTiming If true, this loop's timing will more closely match realtime
-		void SetUseAbsoluteTiming(bool useAbsoluteTiming);
-
-		/// @brief Gets if this loop is using absolute timing
-		/// @return If this loop is using absolute timing
-		bool GetUseAbsoluteTiming() const { return _useAbsoluteTiming; }
 
 		/// @brief Gets the current tick info
 		/// @return The current tick info

@@ -19,7 +19,6 @@ SandboxApp::SandboxApp() :
 	_tickListener(this, &SandboxApp::Tick, 0)
 {
 	MainLoop::Get()->AddListener(_tickListener);
-	//MainLoop::Get()->SetUseAbsoluteTiming(false);
 	//MainLoop::Get()->SetTargetTicksPerSecond(144);
 
 	ServiceManager* services = ServiceManager::Get();
