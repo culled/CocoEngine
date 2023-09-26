@@ -525,8 +525,7 @@ namespace Coco::ImGuiCoco
 
         WindowCreateParams createParams("ImGui Window", SizeInt(static_cast<uint32>(viewport->Size.x), static_cast<uint32>(viewport->Size.y)));
         createParams.InitialPosition = Vector2Int(static_cast<int32>(viewport->Pos.x), static_cast<int32>(viewport->Pos.y));
-        createParams.CanResize = false;
-        // TODO: undecorated windows
+        createParams.WithoutDecoration = true;
 
         Ref<Window> window = windowing->CreateWindow(createParams);
         CocoViewportData& viewportData = _sViewports.try_emplace(window->ID, window.Get()).first->second;

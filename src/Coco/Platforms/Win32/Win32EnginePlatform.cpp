@@ -7,10 +7,6 @@
 #include "Win32Window.h"
 #endif // COCO_SERVICES_WINDOWING
 
-#ifdef COCO_SERVICES_INPUT
-#include <Coco/Input/InputService.h>
-#endif
-
 namespace Coco::Platforms::Win32
 {
 	Win32EnginePlatform::Win32EnginePlatform(HINSTANCE hInstance) :
@@ -236,6 +232,22 @@ namespace Coco::Platforms::Win32
 		case WM_MOVE: // A window has finished moving
 		case WM_DPICHANGED: // A window's dpi changed
 		case WM_SETFOCUS: // A window got focus
+		case WM_ACTIVATEAPP: // The app got/lost focus
+		case WM_KEYDOWN: // A key was pressed
+		case WM_SYSKEYDOWN: // A key was pressed
+		case WM_KEYUP: // A key was released
+		case WM_SYSKEYUP: // A key was released
+		case WM_MOUSEMOVE: // The mouse moved in the client area
+		case WM_NCMOUSEMOVE: // The mouse moved in the non-client area
+		case WM_MOUSEWHEEL: // The mouse wheel moved
+		case WM_LBUTTONDOWN: // The left mouse button was pressed
+		case WM_MBUTTONDOWN: // The middle mouse button was pressed
+		case WM_RBUTTONDOWN: // The right mouse button was pressed
+		case WM_XBUTTONDOWN: // A mouse button was pressed
+		case WM_LBUTTONUP: // The left mouse button was released
+		case WM_MBUTTONUP: // The middle mouse button was released
+		case WM_RBUTTONUP: // The right mouse button was released
+		case WM_XBUTTONUP: // A mouse button was released
 		case WM_KILLFOCUS: // A window lost focus
 		{
 			bool handled = DispatchWindowMessage(windowHandle, message, wParam, lParam);
@@ -247,35 +259,6 @@ namespace Coco::Platforms::Win32
 		case WM_ERASEBKGND:
 			// Erasing will be handled by us to prevent flicker
 			return 1;
-#ifdef COCO_SERVICES_INPUT
-		case WM_ACTIVATEAPP:
-		case WM_KEYDOWN:
-		case WM_SYSKEYDOWN:
-		case WM_KEYUP:
-		case WM_SYSKEYUP:
-		case WM_MOUSEMOVE:
-		case WM_MOUSEWHEEL:
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
-		case WM_LBUTTONUP:
-		case WM_MBUTTONDOWN:
-		case WM_MBUTTONDBLCLK:
-		case WM_MBUTTONUP:
-		case WM_RBUTTONDOWN:
-		case WM_RBUTTONDBLCLK:
-		case WM_RBUTTONUP:
-		case WM_XBUTTONDOWN:
-		case WM_XBUTTONDBLCLK:
-		case WM_XBUTTONUP:
-		{
-			bool handled = HandleInputMessage(windowHandle, message, wParam, lParam);
-			if (handled)
-				return 0;
-
-			break;
-		}
-			
-#endif
 		default: break;
 		}
 		return DefWindowProc(windowHandle, message, wParam, lParam);
@@ -435,117 +418,6 @@ namespace Coco::Platforms::Win32
 		}
 
 		return window->ProcessMessage(message, wParam, lParam);
-	}
-#endif
-
-#ifdef COCO_SERVICES_INPUT
-	bool Win32EnginePlatform::HandleInputMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
-	{
-		ServiceManager* services = ServiceManager::Get();
-
-		using namespace Coco::Input;
-		if (!services->HasService<InputService>())
-			return false;
-
-		InputService& input = services->GetService<InputService>();
-
-		switch (message)
-		{
-		case WM_KEYDOWN:
-		case WM_SYSKEYDOWN:
-		case WM_KEYUP:
-		case WM_SYSKEYUP:
-		{
-			bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
-			input.GetKeyboard().UpdateKeyState(static_cast<KeyboardKey>(wParam), pressed);
-			return true;
-		}
-		case WM_MOUSEMOVE:
-		{
-			POINT p{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-
-			::MapWindowPoints(windowHandle, HWND_DESKTOP, &p, 1);
-			input.GetMouse().UpdatePositionState(Vector2Int(p.x, p.y));
-			return true;
-		}
-		case WM_MOUSEWHEEL:
-		{
-			int yDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-
-			if (yDelta != 0)
-			{
-				// Flatten the z delta to be platform-independent
-				yDelta = (yDelta >= 0) ? 1 : -1;
-
-				input.GetMouse().UpdateScrollState(Vector2Int(0, yDelta));
-			}
-
-			return true;
-		}
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONDBLCLK:
-		case WM_LBUTTONUP:
-		{
-
-			if (message == WM_LBUTTONDBLCLK)
-			{
-				//input->GetMouse()->DoubleClicked(MouseButton::Left);
-			}
-
-			input.GetMouse().UpdateButtonState(MouseButton::Left, message != WM_LBUTTONUP);
-			return true;
-		}
-		case WM_MBUTTONDOWN:
-		case WM_MBUTTONDBLCLK:
-		case WM_MBUTTONUP:
-		{
-			if (message == WM_MBUTTONDBLCLK)
-			{
-				//input->GetMouse()->DoubleClicked(MouseButton::Middle);
-			}
-
-			input.GetMouse().UpdateButtonState(MouseButton::Middle, message != WM_MBUTTONUP);
-			return true;
-		}
-		case WM_RBUTTONDOWN:
-		case WM_RBUTTONDBLCLK:
-		case WM_RBUTTONUP:
-		{
-			if (message == WM_RBUTTONDBLCLK)
-			{
-				//input->GetMouse()->DoubleClicked(MouseButton::Right);
-			}
-
-			input.GetMouse().UpdateButtonState(MouseButton::Right, message != WM_RBUTTONUP);
-			return true;
-		}
-		case WM_XBUTTONDOWN:
-		case WM_XBUTTONDBLCLK:
-		case WM_XBUTTONUP:
-		{
-			const Input::MouseButton button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? MouseButton::Button3 : MouseButton::Button4;
-
-			if (message == WM_XBUTTONDBLCLK)
-			{
-				//input->GetMouse()->DoubleClicked(button);
-			}
-
-			input.GetMouse().UpdateButtonState(button, message != WM_XBUTTONUP);
-			return true;
-		}
-		case WM_ACTIVATEAPP:
-		{
-			if (wParam == FALSE)
-			{			
-				// The app is unfocusing, so clear all states
-				input.GetKeyboard().ClearAllKeyStates();
-				input.GetMouse().ClearAllButtonStates();
-			}
-			return false;
-		}
-		default:
-			return false;
-		}
 	}
 #endif
 }

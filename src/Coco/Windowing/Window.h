@@ -56,6 +56,9 @@ namespace Coco::Windowing
 		/// @brief If given, sets the index of the display to show the window on
 		std::optional<uint8> DisplayIndex;
 
+		/// @brief If true, the window will not include any decorations (title bar, buttons, frame, etc.) 
+		bool WithoutDecoration;
+
 		WindowCreateParams(const char* title, const SizeInt& initialSize);
 	};
 

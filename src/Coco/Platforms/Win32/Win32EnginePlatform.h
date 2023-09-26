@@ -114,16 +114,5 @@ namespace Coco::Platforms::Win32
 		/// @return True if the class was registered
 		bool RegisterWindowClass();
 #endif
-
-#ifdef COCO_SERVICES_INPUT
-	private:
-		/// @brief Handles an input message
-		/// @param windowHandle The handler of the window the message is for
-		/// @param message The message
-		/// @param wParam The wParam
-		/// @param lParam The lParam
-		/// @return True if the message was handled
-		static bool HandleInputMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
-#endif
     };
 }

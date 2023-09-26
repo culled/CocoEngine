@@ -18,6 +18,7 @@ namespace Coco::Platforms::Win32
         string _title;
         bool _canResize;
         bool _isFullscreen;
+        bool _decorated;
         WINDOWPLACEMENT _restorePlacement;
 
     public:
@@ -61,8 +62,9 @@ namespace Coco::Platforms::Win32
         /// @brief Gets window flags for the given options
         /// @param canResize If true, will add window flags for resizing
         /// @param isFullscreen If true, will set flags for a fullscreen window
+        /// @param decorated If true, will remove flags for window decoration
         /// @return Window flags
-        static DWORD GetWindowFlags(bool canResize, bool isFullscreen);
+        static DWORD GetWindowFlags(bool canResize, bool isFullscreen, bool decorated);
 
         /// @brief Gets the outer window size for a given client area
         /// @param clientSize The desired client area
@@ -91,5 +93,15 @@ namespace Coco::Platforms::Win32
         /// @brief Updates this window to be fullscreen
         /// @param fullscreen If true, this window will become fullscreen
         void UpdateFullscreenState(bool fullscreen);
+
+#ifdef COCO_SERVICES_INPUT
+    private:
+        /// @brief Handles an input message
+        /// @param message The message
+        /// @param wParam The wParam
+        /// @param lParam The lParam
+        /// @return True if the message was handled
+        bool HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam);
+#endif
     };
 }

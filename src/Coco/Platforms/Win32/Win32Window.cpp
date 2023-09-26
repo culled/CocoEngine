@@ -14,6 +14,10 @@
 #include <Coco/Windowing/WindowService.h>
 #pragma pop_macro("CreateWindow")
 
+#ifdef COCO_SERVICES_INPUT
+#include <Coco/Input/InputService.h>
+#endif
+
 #ifdef _DEBUG
 #define CheckWindowHandle() if(!_handle) { throw std::exception("Win32 window handle is null!"); }
 #else
@@ -27,9 +31,10 @@ namespace Coco::Platforms::Win32
 		_title(createParams.Title),
 		_canResize(createParams.CanResize),
 		_isFullscreen(createParams.IsFullscreen),
+		_decorated(!createParams.WithoutDecoration),
 		_restorePlacement{sizeof(WINDOWPLACEMENT)}
 	{
-		DWORD windowFlags = GetWindowFlags(_canResize, _isFullscreen);
+		DWORD windowFlags = GetWindowFlags(_canResize, _isFullscreen, _decorated);
 		DWORD windowFlagsEx = WS_EX_APPWINDOW;
 
 		// Add flags based on initial state
@@ -357,14 +362,17 @@ namespace Coco::Platforms::Win32
 		return platform.CreateSurfaceForWindow(Rendering::RenderService::cGet()->GetPlatform().GetName(), *this);
 	}
 
-	DWORD Win32Window::GetWindowFlags(bool canResize, bool isFullscreen)
+	DWORD Win32Window::GetWindowFlags(bool canResize, bool isFullscreen, bool decorated)
 	{
+		if (isFullscreen)
+			return 0;
+
 		DWORD flags = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 
 		if (canResize)
 			flags |= WS_THICKFRAME | WS_MAXIMIZEBOX;
 
-		if (isFullscreen)
+		if (!decorated)
 			flags &= ~WS_OVERLAPPEDWINDOW;
 
 		return flags;
@@ -449,11 +457,6 @@ namespace Coco::Platforms::Win32
 				}
 				return true;
 			}
-			//case WM_STYLECHANGED:
-			//{
-			//	LPSTYLESTRUCT style = reinterpret_cast<LPSTYLESTRUCT>(lParam);
-			//	break;
-			//}
 			case WM_SETFOCUS:
 			case WM_KILLFOCUS:
 			{
@@ -467,6 +470,25 @@ namespace Coco::Platforms::Win32
 				}
 				return true;
 			}
+#ifdef COCO_SERVICES_INPUT
+			case WM_KEYDOWN:
+			case WM_SYSKEYDOWN:
+			case WM_KEYUP:
+			case WM_SYSKEYUP:
+			case WM_MOUSEMOVE:
+			case WM_NCMOUSEMOVE:
+			case WM_MOUSEWHEEL:
+			case WM_LBUTTONDOWN:
+			case WM_MBUTTONDOWN:
+			case WM_RBUTTONDOWN:
+			case WM_XBUTTONDOWN:
+			case WM_LBUTTONUP:
+			case WM_MBUTTONUP:
+			case WM_RBUTTONUP:
+			case WM_XBUTTONUP:
+			case WM_ACTIVATEAPP:
+				return HandleInputMessage(message, wParam, lParam);		
+#endif
 			default:
 				break;
 			}
@@ -513,7 +535,7 @@ namespace Coco::Platforms::Win32
 		if (!fullscreen && _isFullscreen)
 		{
 			DWORD windowStyle = ::GetWindowLong(_handle, GWL_STYLE);
-			::SetWindowLong(_handle, GWL_STYLE, windowStyle | GetWindowFlags(_canResize, false));
+			::SetWindowLong(_handle, GWL_STYLE, windowStyle | GetWindowFlags(_canResize, false, _decorated));
 			::SetWindowPlacement(_handle, &_restorePlacement);
 			::SetWindowPos(_handle,
 				NULL,
@@ -543,4 +565,134 @@ namespace Coco::Platforms::Win32
 			}
 		}
 	}
+
+#ifdef COCO_SERVICES_INPUT
+	bool Win32Window::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		ServiceManager* services = ServiceManager::Get();
+
+		using namespace Coco::Input;
+		if (!services->HasService<InputService>())
+			return false;
+
+		InputService& input = services->GetService<InputService>();
+		Mouse& mouse = input.GetMouse();
+		Keyboard& keyboard = input.GetKeyboard();
+
+		switch (message)
+		{
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+		{
+			bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
+			keyboard.UpdateKeyState(static_cast<KeyboardKey>(wParam), pressed);
+			return true;
+		}
+		case WM_MOUSEMOVE:
+		case WM_NCMOUSEMOVE:
+		{
+			POINT p{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+
+			// Mouse move is in client coordinates, so convert to screen coordinates
+			if(message == WM_MOUSEMOVE)
+				::MapWindowPoints(_handle, HWND_DESKTOP, &p, 1);
+
+			mouse.UpdatePositionState(Vector2Int(p.x, p.y));
+			return true;
+		}
+		case WM_MOUSEWHEEL:
+		{
+			int yDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+
+			if (yDelta != 0)
+			{
+				// Flatten the z delta to be platform-independent
+				yDelta = (yDelta >= 0) ? 1 : -1;
+
+				mouse.UpdateScrollState(Vector2Int(0, yDelta));
+			}
+
+			return true;
+		}
+		case WM_LBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+		case WM_XBUTTONDOWN:
+		{
+			MouseButton button = MouseButton::Left;
+
+			switch (message)
+			{
+			case WM_LBUTTONDOWN:
+				button = MouseButton::Left;
+				break;
+			case WM_MBUTTONDOWN:
+				button = MouseButton::Middle;
+				break;
+			case WM_RBUTTONDOWN:
+				button = MouseButton::Right;
+				break;
+			case WM_XBUTTONDOWN:
+				button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? MouseButton::Button3 : MouseButton::Button4;
+				break;
+			default:
+				break;
+			}
+
+			// Capture the mouse if we haven't already
+			if (::GetCapture() == nullptr)
+				::SetCapture(_handle);
+
+			mouse.UpdateButtonState(button, true);
+			return true;
+		}
+		case WM_LBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_RBUTTONUP:
+		case WM_XBUTTONUP:
+		{
+			MouseButton button = MouseButton::Left;
+
+			switch (message)
+			{
+			case WM_LBUTTONUP:
+				button = MouseButton::Left;
+				break;
+			case WM_MBUTTONUP:
+				button = MouseButton::Middle;
+				break;
+			case WM_RBUTTONUP:
+				button = MouseButton::Right;
+				break;
+			case WM_XBUTTONUP:
+				button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? MouseButton::Button3 : MouseButton::Button4;
+				break;
+			default:
+				break;
+			}
+
+			// Release the mouse if we captured it
+			if (::GetCapture() == _handle)
+				::ReleaseCapture();
+
+			mouse.UpdateButtonState(button, false);
+			return true;
+		}
+		case WM_ACTIVATEAPP:
+		{
+			if (wParam == FALSE)
+			{
+				// The app is unfocusing, so clear all states
+				keyboard.ClearAllKeyStates();
+				mouse.ClearAllButtonStates();
+			}
+			return false;
+		}
+		default:
+			return false;
+		}
+	}
+#endif
 }

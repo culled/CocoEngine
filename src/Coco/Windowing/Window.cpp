@@ -15,7 +15,8 @@ namespace Coco::Windowing
 		IsFullscreen(false),
 		InitialPosition(),
 		ParentWindow(Window::InvalidID),
-		DisplayIndex()
+		DisplayIndex(),
+		WithoutDecoration(false)
 	{}
 
 	std::atomic<WindowID> Window::_id;
