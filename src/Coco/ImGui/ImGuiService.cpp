@@ -14,7 +14,7 @@ namespace Coco::ImGuiCoco
 	const int ImGuiService::sImGuiNewFramePriority = -100;
 	const int ImGuiService::sImGuiDrawPriority = 100;
 
-	ImGuiService::ImGuiService() :
+	ImGuiService::ImGuiService(bool enableViewports) :
 		_newFrameTickListener(this, &ImGuiService::HandleNewFrameTick, sImGuiNewFramePriority),
 		_drawTickListener(this, &ImGuiService::HandleDrawTick, sImGuiDrawPriority)
 	{
@@ -25,7 +25,7 @@ namespace Coco::ImGuiCoco
 
 		// Create the ImGui context and run setup
 		::ImGui::CreateContext();
-		_platform = CreateUniqueRef<ImGuiCocoPlatform>();
+		_platform = CreateUniqueRef<ImGuiCocoPlatform>(enableViewports);
 
 		CocoTrace("Created ImGuiService")
 	}
@@ -69,7 +69,7 @@ namespace Coco::ImGuiCoco
 		const ImGuiIO& io = ::ImGui::GetIO();
 		if (io.ConfigFlags && ImGuiConfigFlags_ViewportsEnable)
 		{
-			ImGui::UpdatePlatformWindows();
+			ImGui::UpdatePlatformWindows();		
 		}
 
 		ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
@@ -80,7 +80,7 @@ namespace Coco::ImGuiCoco
 			if (viewport->Flags & ImGuiViewportFlags_IsMinimized)
 				continue;
 
-			if (platformIO.Platform_RenderWindow) platformIO.Platform_RenderWindow(viewport, nullptr);
+			_platform->RenderViewport(viewport);
 		}
 	}
 }

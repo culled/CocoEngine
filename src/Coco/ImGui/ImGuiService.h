@@ -23,7 +23,7 @@ namespace Coco::ImGuiCoco
         UniqueRef<ImGuiCocoPlatform> _platform;
 
     public:
-        ImGuiService();
+        ImGuiService(bool enableViewports);
         ~ImGuiService();
 
         /// @brief Gets the ImGui platform

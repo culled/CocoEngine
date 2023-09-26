@@ -280,36 +280,38 @@ namespace Coco::ImGuiCoco
 
     std::unordered_map<uint64, CocoViewportData> ImGuiCocoPlatform::_sViewports;
 
-    ImGuiCocoPlatform::ImGuiCocoPlatform() :
+    ImGuiCocoPlatform::ImGuiCocoPlatform(bool enableViewports) :
         _renderPass(CreateSharedRef<ImGuiRenderPass>()),
         _currentlyRenderingViewport(nullptr)
     {
         _sViewports = std::unordered_map<uint64, CocoViewportData>();
 
         ImGuiIO& io = ::ImGui::GetIO();
-        io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;
-        io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
-
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-        io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableSetMousePos; // TODO: set mouse cursor position
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable viewports
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable docking
+        
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable docking
+        io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableSetMousePos;   // TODO: set mouse cursor position
 
         io.BackendPlatformName = "Coco";
         io.BackendRendererName = "Coco";
 
         io.BackendPlatformUserData = this;
 
-        InitPlatformInterface();
+        if (enableViewports)
+        {
+            io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;
+            io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
+            io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable viewports
+
+            InitPlatformInterface();
+        }
+
         CreateObjects();
         UpdateDisplays();
     }
 
     ImGuiCocoPlatform::~ImGuiCocoPlatform()
     {
-        ::ImGui::DestroyPlatformWindows();
-        _sViewports.clear();
-
         _renderPipeline.reset();
         _renderPass.reset();
         _shader.Invalidate();
@@ -477,6 +479,12 @@ namespace Coco::ImGuiCoco
 		if (!io.WantSetMousePos)
 		{
 			Vector2Int mousePos = mouse.GetPosition();
+
+            if ((io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) == 0)
+            {
+                mousePos -= mainWindow->GetPosition(true, false);
+            }
+
 			io.AddMousePosEvent(static_cast<float>(mousePos.X), static_cast<float>(mousePos.Y));
 		}
 
@@ -509,6 +517,27 @@ namespace Coco::ImGuiCoco
         
         return true;
 	}
+
+    void ImGuiCocoPlatform::RenderViewport(ImGuiViewport* viewport)
+    {
+        Assert(viewport->PlatformHandle)
+
+            using namespace Coco::Rendering;
+        using namespace Coco::Windowing;
+
+        RenderService* rendering = RenderService::Get();
+        if (!rendering)
+            throw std::exception("No active RenderService found");
+
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+
+        _currentlyRenderingViewport = viewport;
+
+        std::array<SceneDataProvider*, 1> sceneProviders = { this };
+        rendering->Render(window->GetPresenter(), *_renderPipeline, *this, sceneProviders);
+
+        _currentlyRenderingViewport = nullptr;
+    }
 
     void ImGuiCocoPlatform::PlatformCreateWindow(ImGuiViewport* viewport)
     {
@@ -552,6 +581,8 @@ namespace Coco::ImGuiCoco
 
     void ImGuiCocoPlatform::PlatformShowWindow(ImGuiViewport* viewport)
     {
+        Assert(viewport->PlatformHandle)
+
         using namespace Coco::Windowing;
 
         Window* window = static_cast<Window*>(viewport->PlatformHandle);
@@ -560,6 +591,8 @@ namespace Coco::ImGuiCoco
 
     void ImGuiCocoPlatform::PlatformSetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
     {
+        Assert(viewport->PlatformHandle)
+
         using namespace Coco::Windowing;
 
         CocoViewportData* vd = static_cast<CocoViewportData*>(viewport->PlatformUserData);
@@ -569,6 +602,8 @@ namespace Coco::ImGuiCoco
 
     ImVec2 ImGuiCocoPlatform::PlatformGetWindowPos(ImGuiViewport* viewport)
     {
+        Assert(viewport->PlatformHandle)
+
         using namespace Coco::Windowing;
 
         Window* window = static_cast<Window*>(viewport->PlatformHandle);
@@ -578,6 +613,8 @@ namespace Coco::ImGuiCoco
 
     void ImGuiCocoPlatform::PlatformSetWindowSize(ImGuiViewport* viewport, ImVec2 size)
     {
+        Assert(viewport->PlatformHandle)
+
         using namespace Coco::Windowing;
 
         CocoViewportData* vd = static_cast<CocoViewportData*>(viewport->PlatformUserData);
@@ -587,6 +624,8 @@ namespace Coco::ImGuiCoco
 
     ImVec2 ImGuiCocoPlatform::PlatformGetWindowSize(ImGuiViewport* viewport)
     {
+        Assert(viewport->PlatformHandle)
+
         using namespace Coco::Windowing;
 
         Window* window = static_cast<Window*>(viewport->PlatformHandle);
@@ -596,6 +635,8 @@ namespace Coco::ImGuiCoco
 
     void ImGuiCocoPlatform::PlatformFocusWindow(ImGuiViewport* viewport)
     {
+        Assert(viewport->PlatformHandle)
+
         using namespace Coco::Windowing;
 
         Window* window = static_cast<Window*>(viewport->PlatformHandle);
@@ -604,6 +645,8 @@ namespace Coco::ImGuiCoco
 
     bool ImGuiCocoPlatform::PlatformWindowHasFocus(ImGuiViewport* viewport)
     {
+        Assert(viewport->PlatformHandle)
+
         using namespace Coco::Windowing;
 
         Window* window = static_cast<Window*>(viewport->PlatformHandle);
@@ -612,6 +655,8 @@ namespace Coco::ImGuiCoco
 
     bool ImGuiCocoPlatform::PlatformWindowMinimized(ImGuiViewport* viewport)
     {
+        Assert(viewport->PlatformHandle)
+
         using namespace Coco::Windowing;
 
         Window* window = static_cast<Window*>(viewport->PlatformHandle);
@@ -620,32 +665,12 @@ namespace Coco::ImGuiCoco
 
     void ImGuiCocoPlatform::PlatformSetWindowTitle(ImGuiViewport* viewport, const char* title)
     {
+        Assert(viewport->PlatformHandle)
+
         using namespace Coco::Windowing;
 
         Window* window = static_cast<Window*>(viewport->PlatformHandle);
         window->SetTitle(title);
-    }
-
-    void ImGuiCocoPlatform::PlatformRenderViewport(ImGuiViewport* viewport, void* renderArgs)
-    {
-        using namespace Coco::Rendering;
-        using namespace Coco::Windowing;
-
-        ImGuiIO& io = ::ImGui::GetIO();
-
-        RenderService* rendering = RenderService::Get();
-        if (!rendering)
-            throw std::exception("No active RenderService found");
-
-        ImGuiCocoPlatform* platform = static_cast<ImGuiCocoPlatform*>(io.BackendPlatformUserData);
-        Window* window = static_cast<Window*>(viewport->PlatformHandle);
-
-        platform->_currentlyRenderingViewport = viewport;
-
-        std::array<SceneDataProvider*, 1> sceneProviders = { platform };
-        rendering->Render(window->GetPresenter(), *platform->_renderPipeline, *platform, sceneProviders);
-
-        platform->_currentlyRenderingViewport = nullptr;
     }
 
     void ImGuiCocoPlatform::PlatformWindowPositionChangedCallback(Windowing::Window* window)
@@ -694,7 +719,7 @@ namespace Coco::ImGuiCoco
         platformIO.Platform_GetWindowFocus = &ImGuiCocoPlatform::PlatformWindowHasFocus;
         platformIO.Platform_GetWindowMinimized = &ImGuiCocoPlatform::PlatformWindowMinimized;
         platformIO.Platform_SetWindowTitle = &ImGuiCocoPlatform::PlatformSetWindowTitle;
-        platformIO.Platform_RenderWindow = &ImGuiCocoPlatform::PlatformRenderViewport;
+        platformIO.Platform_RenderWindow = nullptr;
         platformIO.Platform_SwapBuffers = nullptr;
     }
 

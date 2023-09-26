@@ -65,7 +65,7 @@ namespace Coco::ImGuiCoco
 		ImGuiViewport* _currentlyRenderingViewport;
 
 	public:
-		ImGuiCocoPlatform();
+		ImGuiCocoPlatform(bool enableViewports);
 		~ImGuiCocoPlatform();
 
 		UniqueRef<RenderView> CreateRenderView(
@@ -96,6 +96,10 @@ namespace Coco::ImGuiCoco
 		/// @brief Gets the ImGui shader
 		/// @return The ImGui shader
 		Ref<Shader> GetShader() const { return _shader; }
+
+		/// @brief Renders a viewport
+		/// @param viewport The viewport
+		void RenderViewport(ImGuiViewport* viewport);
 
 	private:
 		/// @brief ImGui callback for creating a window
@@ -148,11 +152,6 @@ namespace Coco::ImGuiCoco
 		/// @param viewport The viewport
 		/// @param title The window title
 		static void PlatformSetWindowTitle(ImGuiViewport* viewport, const char* title);
-
-		/// @brief ImGui callback for rendering for a winodw
-		/// @param viewport The viewport
-		/// @param renderArgs Arguments for a render
-		static void PlatformRenderViewport(ImGuiViewport* viewport, void* renderArgs);
 
 		/// @brief Called when a window is moved
 		/// @param window The window

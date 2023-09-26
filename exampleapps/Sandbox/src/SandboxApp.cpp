@@ -50,7 +50,7 @@ SandboxApp::SandboxApp() :
 
 	{
 		using namespace Coco::ImGuiCoco;
-		services->CreateService<ImGuiService>();
+		services->CreateService<ImGuiService>(true);
 	}
 
 	_pipeline3D = CreateSharedRef<Rendering::RenderPipeline>();
