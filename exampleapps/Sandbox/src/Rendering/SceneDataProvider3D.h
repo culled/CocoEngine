@@ -10,7 +10,7 @@
 using namespace Coco;
 using namespace Coco::Rendering;
 
-class BasicSceneDataProvider :
+class SceneDataProvider3D :
     public SceneDataProvider
 {
 private:
@@ -22,7 +22,7 @@ private:
     Ref<Material> _material;
 
 public:
-    BasicSceneDataProvider();
+    SceneDataProvider3D();
 
     void GatherSceneData(RenderView& renderView) final;
 };

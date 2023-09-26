@@ -1,8 +1,8 @@
-#include "BasicSceneDataProvider.h"
+#include "SceneDataProvider3D.h"
 #include <Coco/Rendering/MeshUtilities.h>
 #include <Coco/Core/Engine.h>
 
-BasicSceneDataProvider::BasicSceneDataProvider() :
+SceneDataProvider3D::SceneDataProvider3D() :
 	_transform()
 {
 	VertexDataFormat format{};
@@ -31,7 +31,6 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 	_mesh->SetIndices(indices, 0);
 	
 	GraphicsPipelineState pipelineState{};
-	//pipelineState.CullingMode = CullMode::None;
 
 	_shader = resourceLibrary.Create<Shader>("Shader", "");
 	_shader->AddRenderPassShader(
@@ -44,7 +43,7 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 			},
 			pipelineState,
 			{
-				BlendState()
+				BlendState::Opaque
 			},
 			{
 				ShaderVertexAttribute("Position", BufferDataType::Float3),
@@ -73,7 +72,7 @@ BasicSceneDataProvider::BasicSceneDataProvider() :
 	_material->SetTexture("baseTexSampler", _texture);
 }
 
-void BasicSceneDataProvider::GatherSceneData(RenderView& renderView)
+void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
 {
 	if (!_mesh->Apply())
 		return;

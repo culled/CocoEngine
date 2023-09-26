@@ -32,7 +32,7 @@ void ImGuiLayer::DrawPostRender()
 		ImGui::Text("%i draw call(s)", renderStats.DrawCalls);
 		ImGui::Text("Total render time: %.3fms", renderStats.TotalExecutionTime.GetMilliseconds());
 
-		int renderIndex = 0;
+		size_t renderIndex = 0;
 
 		for (const auto& stats : rs->GetIndividualRenderStats())
 		{

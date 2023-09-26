@@ -7,7 +7,7 @@
 using namespace Coco;
 using namespace Coco::Rendering;
 
-class BasicRenderViewProvider :
+class RenderViewProvider3D :
     public RenderViewProvider
 {
 private:
@@ -19,8 +19,8 @@ private:
 	AttachmentCache _attachmentCache;
 
 public:
-	BasicRenderViewProvider();
-	~BasicRenderViewProvider();
+	RenderViewProvider3D();
+	~RenderViewProvider3D();
 
 	UniqueRef<RenderView> CreateRenderView(
 		const CompiledRenderPipeline& pipeline,

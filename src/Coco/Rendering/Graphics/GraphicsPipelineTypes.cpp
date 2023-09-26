@@ -4,13 +4,35 @@
 
 namespace Coco::Rendering
 {
-	BlendState::BlendState() :
-		ColorSourceFactor(BlendFactorMode::One),
-		ColorDestinationFactor(BlendFactorMode::Zero),
-		ColorBlendOperation(BlendOperation::None),
-		AlphaSourceBlendFactor(BlendFactorMode::One),
-		AlphaDestinationBlendFactor(BlendFactorMode::One),
-		AlphaBlendOperation(BlendOperation::None)
+	const BlendState BlendState::Opaque = BlendState(
+		BlendFactorMode::One, 
+		BlendFactorMode::Zero, 
+		BlendOperation::None, 
+		BlendFactorMode::One, 
+		BlendFactorMode::One, 
+		BlendOperation::None);
+
+	const BlendState BlendState::AlphaBlending = BlendState(
+		BlendFactorMode::SourceAlpha,
+		BlendFactorMode::OneMinusSourceAlpha,
+		BlendOperation::Add,
+		BlendFactorMode::SourceAlpha,
+		BlendFactorMode::OneMinusSourceAlpha,
+		BlendOperation::Add);
+
+	BlendState::BlendState(
+		BlendFactorMode colorSrcFactor, 
+		BlendFactorMode colorDstFactor, 
+		BlendOperation colorOp, 
+		BlendFactorMode alphaSrcFactor, 
+		BlendFactorMode alphaDstFactor, 
+		BlendOperation alphaOp) :
+		ColorSourceFactor(colorSrcFactor),
+		ColorDestinationFactor(colorDstFactor),
+		ColorBlendOperation(colorOp),
+		AlphaSourceBlendFactor(alphaSrcFactor),
+		AlphaDestinationBlendFactor(alphaDstFactor),
+		AlphaBlendOperation(alphaOp)
 	{}
 
 	bool BlendState::operator==(const BlendState& other) const

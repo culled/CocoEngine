@@ -90,6 +90,12 @@ namespace Coco::Rendering
 	/// @brief A blend state for a single attachment
 	struct BlendState
 	{
+		/// @brief A blend state that can be used for opaque operations
+		static const BlendState Opaque;
+		
+		/// @brief A blend state that blends based on source alpha
+		static const BlendState AlphaBlending;
+
 		/// @brief The blend factor for the color source
 		BlendFactorMode ColorSourceFactor;
 
@@ -108,7 +114,13 @@ namespace Coco::Rendering
 		/// @brief The operation to use for combining the source and destination alphas
 		BlendOperation AlphaBlendOperation;
 
-		BlendState();
+		BlendState(
+			BlendFactorMode colorSrcFactor,
+			BlendFactorMode colorDstFactor,
+			BlendOperation colorOp,
+			BlendFactorMode alphaSrcFactor,
+			BlendFactorMode alphaDstFactor,
+			BlendOperation alphaOp);
 
 		bool operator==(const BlendState& other) const;
 

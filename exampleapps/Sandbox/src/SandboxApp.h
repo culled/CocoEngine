@@ -2,8 +2,10 @@
 #include <Coco/Core/Application.h>
 #include <Coco/Core/Core.h>
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
-#include "Rendering/BasicRenderViewProvider.h"
-#include "Rendering/BasicSceneDataProvider.h"
+#include "Rendering/RenderViewProvider3D.h"
+#include "Rendering/SceneDataProvider3D.h"
+#include "Rendering/RenderViewProvider2D.h"
+#include "Rendering/SceneDataProvider2D.h"
 #include "ImGui/ImGuiLayer.h"
 
 using namespace Coco;
@@ -12,9 +14,15 @@ class SandboxApp : public Application
 {
 private:
 	TickListener _tickListener;
-	SharedRef<Rendering::RenderPipeline> _pipeline;
-	UniqueRef<BasicRenderViewProvider> _renderViewProvider;
-	UniqueRef<BasicSceneDataProvider> _sceneDataProvider;
+
+	SharedRef<Rendering::RenderPipeline> _pipeline3D;
+	UniqueRef<RenderViewProvider3D> _renderViewProvider3D;
+	UniqueRef<SceneDataProvider3D> _sceneDataProvider3D;
+
+	SharedRef<Rendering::RenderPipeline> _pipeline2D;
+	UniqueRef<RenderViewProvider2D> _renderViewProvider2D;
+	UniqueRef<SceneDataProvider2D> _sceneDataProvider2D;
+
 	UniqueRef<ImGuiLayer> _imGuiLayer;
 
 public:

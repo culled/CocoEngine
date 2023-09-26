@@ -7,7 +7,8 @@
 
 #include <Coco/ImGui/ImGuiService.h>
 
-#include "Rendering/BasicRenderPass.h"
+#include "Rendering/RenderPass3D.h"
+#include "Rendering/RenderPass2D.h"
 
 using namespace Coco;
 
@@ -46,28 +47,46 @@ SandboxApp::SandboxApp() :
 		win->Show();
 	}
 
-	_pipeline = CreateSharedRef<Rendering::RenderPipeline>();
-
-	std::array<uint8, 2> bindings = { 0, 1 };
-	SharedRef<BasicRenderPass> pass = CreateSharedRef<BasicRenderPass>();
-	_pipeline->AddRenderPass(pass, bindings);
-
-	_renderViewProvider = CreateUniqueRef<BasicRenderViewProvider>();
-	_sceneDataProvider = CreateUniqueRef<BasicSceneDataProvider>();
-
 	{
 		using namespace Coco::ImGuiCoco;
 		services->CreateService<ImGuiService>();
 	}
+
+	_pipeline3D = CreateSharedRef<Rendering::RenderPipeline>();
+
+	{
+		std::array<uint8, 2> bindings = { 0, 1 };
+		SharedRef<RenderPass3D> pass = CreateSharedRef<RenderPass3D>();
+		_pipeline3D->AddRenderPass(pass, bindings);
+	}
+
+	_renderViewProvider3D = CreateUniqueRef<RenderViewProvider3D>();
+	_sceneDataProvider3D = CreateUniqueRef<SceneDataProvider3D>();
+
+	_pipeline2D = CreateSharedRef<Rendering::RenderPipeline>();
+
+	{
+		std::array<uint8, 1> bindings = { 0 };
+		SharedRef<RenderPass2D> pass = CreateSharedRef<RenderPass2D>();
+		_pipeline2D->AddRenderPass(pass, bindings);
+	}
+
+	_renderViewProvider2D = CreateUniqueRef<RenderViewProvider2D>();
+	_sceneDataProvider2D = CreateUniqueRef<SceneDataProvider2D>();
 
 	LogTrace(_log, "Sandbox app initialized")
 }
 
 SandboxApp::~SandboxApp()
 {
-	_pipeline.reset();
-	_renderViewProvider.reset();
-	_sceneDataProvider.reset();
+	_pipeline3D.reset();
+	_renderViewProvider3D.reset();
+	_sceneDataProvider3D.reset();
+
+	_pipeline2D.reset();
+	_renderViewProvider2D.reset();
+	_sceneDataProvider2D.reset();
+
 	_imGuiLayer.reset();
 
 	LogTrace(_log, "Sandbox app shutdown")
@@ -96,9 +115,12 @@ void SandboxApp::Tick(const TickInfo & tickInfo)
 
 	if(mainWindow->IsVisible())
 	{
-		std::array<SceneDataProvider*, 1> dataProviders = { _sceneDataProvider.get()};
+		std::array<SceneDataProvider*, 1> dataProviders = { _sceneDataProvider3D.get()};
 
-		rendering.Render(mainWindow->GetPresenter(), *_pipeline, *_renderViewProvider, dataProviders);
+		rendering.Render(mainWindow->GetPresenter(), *_pipeline3D, *_renderViewProvider3D, dataProviders);
+
+		dataProviders = { _sceneDataProvider2D.get() };
+		rendering.Render(mainWindow->GetPresenter(), *_pipeline2D, *_renderViewProvider2D, dataProviders);
 
 		_imGuiLayer->DrawPostRender();
 	}

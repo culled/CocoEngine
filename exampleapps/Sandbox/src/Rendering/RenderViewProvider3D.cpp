@@ -1,25 +1,25 @@
-#include "BasicRenderViewProvider.h"
+#include "RenderViewProvider3D.h"
 
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Input/InputService.h>
 #include <Coco/Core/MainLoop/MainLoop.h>
 
-BasicRenderViewProvider::BasicRenderViewProvider() :
+RenderViewProvider3D::RenderViewProvider3D() :
     _clearColor(Color(0.1, 0.2, 0.3, 1.0)),
     _msaaSamples(MSAASamples::Four),
     _cameraTransform(),
-    _tickListener(this, &BasicRenderViewProvider::Tick, 0),
+    _tickListener(this, &RenderViewProvider3D::Tick, 0),
     _attachmentCache()
 {
     MainLoop::Get()->AddListener(_tickListener);
 }
 
-BasicRenderViewProvider::~BasicRenderViewProvider()
+RenderViewProvider3D::~RenderViewProvider3D()
 {
     MainLoop::Get()->RemoveListener(_tickListener);
 }
 
-UniqueRef<RenderView> BasicRenderViewProvider::CreateRenderView(
+UniqueRef<RenderView> RenderViewProvider3D::CreateRenderView(
     const CompiledRenderPipeline& pipeline,
     uint64 rendererID, 
     const SizeInt& backbufferSize, 
@@ -52,7 +52,7 @@ UniqueRef<RenderView> BasicRenderViewProvider::CreateRenderView(
     return CreateUniqueRef<RenderView>(viewport, viewport, view, projection, pipeline.SupportsMSAA ? _msaaSamples : MSAASamples::One, rts);
 }
 
-void BasicRenderViewProvider::Tick(const TickInfo& tickInfo)
+void RenderViewProvider3D::Tick(const TickInfo& tickInfo)
 {
     using namespace Coco::Input;
 

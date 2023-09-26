@@ -712,15 +712,6 @@ namespace Coco::ImGuiCoco
         pipelineState.DepthTestingMode = DepthTestingMode::Never;
         pipelineState.EnableDepthWrite = false;
 
-        BlendState blendState{};
-        blendState.ColorSourceFactor = BlendFactorMode::SourceAlpha;
-        blendState.ColorDestinationFactor = BlendFactorMode::OneMinusSourceAlpha;
-        blendState.ColorBlendOperation = BlendOperation::Add;
-
-        blendState.AlphaSourceBlendFactor = BlendFactorMode::One;
-        blendState.AlphaDestinationBlendFactor = BlendFactorMode::OneMinusSourceAlpha;
-        blendState.AlphaBlendOperation = BlendOperation::Add;
-
         ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
         _shader = resources.Create<Shader>("ImGui", ImGuiRenderPass::sPassName);
         _shader->AddRenderPassShader(
@@ -733,7 +724,7 @@ namespace Coco::ImGuiCoco
                 },
                 pipelineState,
                 {
-                    blendState
+                    BlendState::AlphaBlending
                 },
                 {
                     ShaderVertexAttribute("Position", BufferDataType::Float3),

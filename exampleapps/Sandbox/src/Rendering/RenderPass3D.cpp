@@ -1,13 +1,13 @@
-#include "BasicRenderPass.h"
+#include "RenderPass3D.h"
 
-BasicRenderPass::BasicRenderPass() :
+RenderPass3D::RenderPass3D() :
     _attachments({
         AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, true),
         AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, true),
         })
 {}
 
-void BasicRenderPass::Execute(RenderContext& context, const RenderView& renderView)
+void RenderPass3D::Execute(RenderContext& context, const RenderView& renderView)
 {
     context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("projectionMatrix"), renderView.GetProjectionMatrix());
     context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("viewMatrix"), renderView.GetViewMatrix());

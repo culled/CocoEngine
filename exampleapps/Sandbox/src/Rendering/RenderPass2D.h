@@ -5,17 +5,18 @@
 using namespace Coco;
 using namespace Coco::Rendering;
 
-class BasicRenderPass : public RenderPass
+class RenderPass2D :
+	public RenderPass
 {
 private:
 	std::vector<AttachmentFormat> _attachments;
 
 public:
-	BasicRenderPass();
+	RenderPass2D();
 
 	std::span<const AttachmentFormat> GetInputAttachments() const { return _attachments; }
 	string GetName() const { return "basic"; }
-	bool SupportsMSAA() const final { return true; }
+	bool SupportsMSAA() const final { return false; }
 	void Execute(RenderContext& context, const RenderView& renderView);
 };
 
