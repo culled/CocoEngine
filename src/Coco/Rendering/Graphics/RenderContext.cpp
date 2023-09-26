@@ -50,7 +50,9 @@ namespace Coco::Rendering
 
 	RenderContext::RenderContext() :
 		_currentState(State::ReadyForRender),
-		_renderOperation{}
+		_renderOperation{},
+		_executionStopwatch(),
+		_currentPassStopwatch()
 	{}
 
 	void RenderContext::SetFloat(UniformScope scope, ShaderUniformData::UniformKey key, float value)
@@ -327,9 +329,8 @@ namespace Coco::Rendering
 		{
 			_currentState = State::InRender;
 
-			const EnginePlatform& platform = Engine::cGet()->GetPlatform();
-			_executeStartTime = platform.GetSeconds();
-			_passExecuteStartTime = _executeStartTime;
+			_executionStopwatch.Start();
+			_currentPassStopwatch.Start();
 			
 			_stats.FramebufferSize = renderView.GetViewportRect().Size;
 		}
@@ -343,9 +344,8 @@ namespace Coco::Rendering
 	{
 		Assert(_renderOperation.has_value())
 
-		double time = Engine::cGet()->GetPlatform().GetSeconds();
-		_stats.PassExecutionTime[_renderOperation->GetCurrentPass().Pass->GetName()] = TimeSpan::FromSeconds(time - _passExecuteStartTime);
-		_passExecuteStartTime = time;
+		_stats.PassExecutionTime[_renderOperation->GetCurrentPass().Pass->GetName()] = _currentPassStopwatch.Stop();
+		_currentPassStopwatch.Start();
 
 		_renderOperation->NextPass();
 
@@ -359,8 +359,8 @@ namespace Coco::Rendering
 		EndImpl();
 
 		double time = Engine::cGet()->GetPlatform().GetSeconds();
-		_stats.PassExecutionTime[_renderOperation->GetCurrentPass().Pass->GetName()] = TimeSpan::FromSeconds(time - _passExecuteStartTime);
-		_stats.TotalExecutionTime = TimeSpan::FromSeconds(time - _executeStartTime);
+		_stats.PassExecutionTime[_renderOperation->GetCurrentPass().Pass->GetName()] = _currentPassStopwatch.Stop();
+		_stats.TotalExecutionTime = _executionStopwatch.Stop();
 
 		_currentState = State::EndedRender;
 	}

@@ -3,7 +3,7 @@
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Types/Matrix.h>
-#include <Coco/Core/Types/TimeSpan.h>
+#include <Coco/Core/Types/Stopwatch.h>
 #include "GraphicsFence.h"
 #include "GraphicsSemaphore.h"
 #include "ShaderUniformData.h"
@@ -92,8 +92,8 @@ namespace Coco::Rendering
 		State _currentState;
 		std::optional<ContextRenderOperation> _renderOperation;
 		RenderContextRenderStats _stats;
-		double _executeStartTime;
-		double _passExecuteStartTime;
+		Stopwatch _executionStopwatch;
+		Stopwatch _currentPassStopwatch;
 
 	protected:
 		RenderContext();
@@ -156,7 +156,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets the platform seconds when this context last started a render
 		/// @return The platform seconds
-		double GetLastRenderStartTime() const { return _executeStartTime; }
+		double GetLastRenderStartTime() const { return _executionStopwatch.GetStartTimeSeconds(); }
 
 		/// @brief Gets this RenderContext's state
 		/// @return The state
