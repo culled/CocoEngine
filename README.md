@@ -7,6 +7,12 @@ A modular C++ realtime game engine.
   - Allows creating GUI windows on a platform and drawing rendered output
 * Input
   - Receives input from the platform and keeps track of mouse and keyboard states (more input types planned)
+* Rendering
+  - Allows rendering images
+  - Render RHIs supported:
+    + Vulkan
+* ImGui
+  - Allows using ImGui with the engine
 
 ## Supported Platforms
 * Windows x64 (Win32)
