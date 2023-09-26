@@ -114,8 +114,7 @@ namespace Coco::Rendering::Vulkan
         void SetMaterial(const MaterialData& material) final;
         void SetShader(const RenderPassShaderData& shader) final;
 
-        void Draw(const MeshData& mesh, uint32 submeshID) final;
-        void DrawIndexed(const MeshData& mesh, uint32 firstIndexOffset, uint32 indexCount) final;
+        void DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount) final;
 
     protected:
         bool BeginImpl() final;

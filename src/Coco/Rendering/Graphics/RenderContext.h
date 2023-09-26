@@ -127,16 +127,11 @@ namespace Coco::Rendering
 		/// @param material The material
 		virtual void SetMaterial(const MaterialData& material) = 0;
 
-		/// @brief Draws a mesh using the currently bound shader and uniforms
-		/// @param mesh The mesh
-		/// @param submeshID The ID of the submesh to draw
-		virtual void Draw(const MeshData& mesh, uint32 submeshID) = 0;
-
 		/// @brief Draws a number of indices of a mesh
 		/// @param mesh The mesh
 		/// @param firstIndexOffset The offset of the first index in the mesh's index buffer
 		/// @param indexCount The number of indices to draw
-		virtual void DrawIndexed(const MeshData& mesh, uint32 firstIndexOffset, uint32 indexCount) = 0;
+		virtual void DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount) = 0;
 
 		/// @brief Gets the current render stats. Only value during rendering
 		/// @return The render stats

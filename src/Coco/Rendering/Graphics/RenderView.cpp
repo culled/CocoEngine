@@ -35,25 +35,17 @@ namespace Coco::Rendering
 		ClearValue.Y = stencilClearValue;
 	}
 
-	SubmeshData::SubmeshData(uint64 id, uint64 firstIndexOffset, uint64 indexCount) :
-		ID(id),
-		FirstIndexOffset(firstIndexOffset),
-		IndexCount(indexCount)
-	{}
-
 	MeshData::MeshData(
 		uint64 id, 
 		uint64 version, 
 		const Ref<Buffer>& vertexBuffer, 
 		uint64 vertexCount, 
-		const Ref<Buffer>& indexBuffer,
-		const std::unordered_map<uint32, SubmeshData>& submeshes) :
+		const Ref<Buffer>& indexBuffer) :
 		ID(id),
 		Version(version),
 		VertexBuffer(vertexBuffer),
 		VertexCount(vertexCount),
-		IndexBuffer(indexBuffer),
-		Submeshes(submeshes)
+		IndexBuffer(indexBuffer)
 	{}
 
 	RenderPassShaderData::RenderPassShaderData(uint64 id, uint64 version, const RenderPassShader& shaderData) :
@@ -75,11 +67,19 @@ namespace Coco::Rendering
 		UniformData(uniformData)
 	{}
 
-	ObjectData::ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint32 submeshID, uint64 materialID, const RectInt& scissorRect) :
+	ObjectData::ObjectData(
+		uint64 id, 
+		const Matrix4x4& modelMatrix, 
+		uint64 meshID, 
+		uint64 indexOffset, 
+		uint64 indexCount,
+		uint64 materialID, 
+		const RectInt& scissorRect) :
 		ID(id),
 		ModelMatrix(modelMatrix),
 		MeshID(meshID),
-		SubmeshID(submeshID),
+		IndexOffset(indexOffset),
+		IndexCount(indexCount),
 		MaterialID(materialID),
 		ScissorRect(scissorRect)
 	{}
@@ -112,18 +112,12 @@ namespace Coco::Rendering
 
 		if (!_meshDatas.contains(meshID))
 		{
-			std::unordered_map<uint32, SubmeshData> submeshDatas{};
-			
-			for (const auto& kvp : mesh.GetSubmeshes())
-				submeshDatas.try_emplace(kvp.first, SubmeshData(kvp.first, kvp.second.Offset, kvp.second.Count));
-
 			_meshDatas.try_emplace(meshID, 
 				meshID, 
 				mesh.GetVersion(), 
 				mesh.GetVertexBuffer(), 
 				mesh.GetVertexCount(), 
-				mesh.GetIndexBuffer(), 
-				submeshDatas);
+				mesh.GetIndexBuffer());
 		}
 
 		return meshID;
@@ -203,15 +197,39 @@ namespace Coco::Rendering
 		const Mesh& mesh, 
 		uint32 submeshID, 
 		const Matrix4x4& modelMatrix, 
-		std::optional<const MaterialDataProvider&> material,
-		std::optional<const RectInt&> scissorRect)
+		const MaterialDataProvider* material,
+		const RectInt* scissorRect)
+	{
+		SubMesh submesh;
+		Assert(mesh.TryGetSubmesh(submeshID, submesh))
+		return AddRenderObject(
+			mesh,
+			submesh.Offset, submesh.Count,
+			modelMatrix,
+			material,
+			scissorRect);
+	}
+
+	uint64 RenderView::AddRenderObject(
+		const Mesh& mesh, 
+		uint64 indexOffset, 
+		uint64 indexCount, 
+		const Matrix4x4& modelMatrix, 
+		const MaterialDataProvider* material, 
+		const RectInt* scissorRect)
 	{
 		uint64 meshID = AddMesh(mesh);
-		uint64 materialID = material.has_value() ? AddMaterial(*material) : InvalidID;
-		RectInt scissorRect = scissorRect.has_value() ? *scissorRect : _scissorRect;
+		uint64 materialID = material ? AddMaterial(*material) : InvalidID;
 
 		uint64 objectID = _objectDatas.size();
-		_objectDatas.emplace_back(objectID, modelMatrix, meshID, submeshID, materialID, scissorRect);
+		_objectDatas.emplace_back(
+			objectID,
+			modelMatrix,
+			meshID,
+			indexOffset,
+			indexCount,
+			materialID,
+			scissorRect ? *scissorRect : _scissorRect);
 
 		return objectID;
 	}

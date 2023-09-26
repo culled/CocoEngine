@@ -140,6 +140,10 @@ namespace Coco::Windowing
 		/// @return The client-area size
 		virtual SizeInt GetClientAreaSize() const = 0;
 
+		/// @brief Sets the size of the entire window
+		/// @param windowSize The size of the window
+		virtual void SetSize(const SizeInt& windowSize) = 0;
+
 		/// @brief Gets the total size of this window
 		/// @return The total size
 		virtual SizeInt GetSize() const = 0;

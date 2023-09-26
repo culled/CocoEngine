@@ -184,15 +184,7 @@ namespace Coco::Rendering::Vulkan
 		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Shader);
 	}
 
-	void VulkanRenderContext::Draw(const MeshData& mesh, uint32 submeshID)
-	{
-		Assert(mesh.Submeshes.contains(submeshID))
-
-		const SubmeshData& submesh = mesh.Submeshes.at(submeshID);
-		DrawIndexed(mesh, static_cast<uint32>(submesh.FirstIndexOffset), static_cast<uint32>(submesh.IndexCount));
-	}
-
-	void VulkanRenderContext::DrawIndexed(const MeshData& mesh, uint32 firstIndexOffset, uint32 indexCount)
+	void VulkanRenderContext::DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount)
 	{
 		Assert(_vulkanRenderOperation.has_value())
 		Assert(mesh.IndexBuffer.IsValid())
@@ -218,9 +210,9 @@ namespace Coco::Rendering::Vulkan
 
 		// Draw the mesh
 		vkCmdDrawIndexed(cmdBuffer,
-			indexCount,
+			static_cast<uint32>(indexCount),
 			1,
-			firstIndexOffset,
+			static_cast<uint32>(firstIndexOffset),
 			0, 0);
 
 		RenderContextRenderStats& stats = _renderOperation->Stats;

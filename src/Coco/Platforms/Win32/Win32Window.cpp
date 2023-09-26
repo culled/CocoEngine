@@ -255,16 +255,7 @@ namespace Coco::Platforms::Win32
 
 		SizeInt adjustedSize = GetAdjustedWindowSize(size, windowFlags, windowFlagsEx);
 
-		if (!::SetWindowPos(
-			_handle,
-			NULL,
-			0, 0,
-			static_cast<int>(adjustedSize.Width), static_cast<int>(adjustedSize.Height),
-			SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER)
-			)
-		{
-			CocoError("Failed to set window size (code {})", ::GetLastError())
-		}
+		SetSize(adjustedSize);
 	}
 
 	SizeInt Win32Window::GetClientAreaSize() const
@@ -275,6 +266,20 @@ namespace Coco::Platforms::Win32
 		::GetClientRect(_handle, &rect);
 
 		return SizeInt(rect.right - rect.left, rect.bottom - rect.top);
+	}
+
+	void Win32Window::SetSize(const SizeInt& windowSize)
+	{
+		if (!::SetWindowPos(
+			_handle,
+			NULL,
+			0, 0,
+			static_cast<int>(windowSize.Width), static_cast<int>(windowSize.Height),
+			SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER)
+			)
+		{
+			CocoError("Failed to set window size (code {})", ::GetLastError())
+		}
 	}
 
 	SizeInt Win32Window::GetSize() const

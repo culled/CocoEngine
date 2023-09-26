@@ -37,6 +37,7 @@ namespace Coco::Platforms::Win32
 
         void SetClientAreaSize(const SizeInt& size) final;
         SizeInt GetClientAreaSize() const final;
+        void SetSize(const SizeInt& windowSize) final;
         SizeInt GetSize() const final;
 
         uint16 GetDPI() const final;

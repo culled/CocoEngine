@@ -25,6 +25,6 @@ void BasicRenderPass::Execute(RenderContext& context, const RenderView& renderVi
         context.SetMaterial(material);
 
         context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("modelMatrix"), obj.ModelMatrix);
-        context.Draw(renderView.GetMeshData(obj.MeshID), obj.SubmeshID);
+        context.DrawIndexed(renderView.GetMeshData(obj.MeshID), obj.IndexOffset, obj.IndexCount);
     }
 }

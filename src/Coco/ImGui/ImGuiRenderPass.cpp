@@ -23,7 +23,7 @@ namespace Coco::ImGuiCoco
 
             const MeshData& mesh = renderView.GetMeshData(obj.MeshID);
             context.SetScissorRect(obj.ScissorRect);
-            context.Draw(mesh, obj.SubmeshID);
+            context.DrawIndexed(mesh, obj.IndexOffset, obj.IndexCount);
         }
 
         /*ImDrawData* drawData = ::ImGui::GetDrawData();

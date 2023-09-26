@@ -374,7 +374,6 @@ namespace Coco::ImGuiCoco
             std::vector<VertexData> vertices(drawData->TotalVtxCount);
             std::vector<uint32> indices;
             uint64 vertexOffset = 0;
-            uint64 indexOffset = 0;
 
             Vector3 offset(drawData->DisplayPos.x, drawData->DisplayPos.y, 0.0);
 
@@ -411,22 +410,37 @@ namespace Coco::ImGuiCoco
             _mesh->Apply();
 
             renderView.AddMesh(*_mesh);
+
+            uint64 indexOffset = 0;
+
             for (int n = 0; n < drawData->CmdListsCount; n++)
             {
                 const ImDrawList* drawList = drawData->CmdLists[n];
-                const ImVec2 min = drawList->GetClipRectMin();
-                const ImVec2 max = drawList->GetClipRectMax();
 
-                renderView.AddRenderObject(
-                    *_mesh, 
-                    n, 
-                    Matrix4x4::Identity, 
-                    *_material, 
-                    RectInt(
-                        Vector2Int(static_cast<int>(min.x), static_cast<int>(min.y)),
-                        Vector2Int(static_cast<int>(max.x), static_cast<int>(max.y))
-                        )
+                for (int cmdI = 0; cmdI < drawList->CmdBuffer.Size; cmdI++)
+                {
+                    const ImDrawCmd& cmd = drawList->CmdBuffer[cmdI];
+
+                    RectInt scissorRect(
+                        Vector2Int(
+                            static_cast<int>(cmd.ClipRect.x - drawData->DisplayPos.x), 
+                            static_cast<int>(cmd.ClipRect.y - drawData->DisplayPos.y)),
+                        Vector2Int(
+                            static_cast<int>(cmd.ClipRect.z - drawData->DisplayPos.x), 
+                            static_cast<int>(cmd.ClipRect.w - drawData->DisplayPos.y))
                     );
+
+                    renderView.AddRenderObject(
+                        *_mesh,
+                        cmd.IdxOffset + indexOffset,
+                        cmd.ElemCount,
+                        Matrix4x4::Identity,
+                        _material.Get(),
+                        &scissorRect
+                    );
+                }
+
+                indexOffset += drawList->IdxBuffer.Size;
             }
         }
     }

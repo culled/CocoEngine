@@ -44,21 +44,6 @@ namespace Coco::Rendering
 		void SetDepthStencilClearValue(double depthClearValue, uint8 stencilClearValue);
 	};
 
-	/// @brief Data for a submesh
-	struct SubmeshData
-	{
-		/// @brief The ID of this data
-		uint64 ID;
-
-		/// @brief The offset in the index buffer of the first index to draw
-		uint64 FirstIndexOffset;
-
-		/// @brief The number of indices to draw
-		uint64 IndexCount;
-
-		SubmeshData(uint64 id, uint64 firstIndexOffset, uint64 indexCount);
-	};
-
 	/// @brief Data for a Mesh
 	struct MeshData
 	{
@@ -77,16 +62,12 @@ namespace Coco::Rendering
 		/// @brief The buffer holding the index data
 		Ref<Buffer> IndexBuffer;
 
-		/// @brief The submeshes within this mesh
-		std::unordered_map<uint32, SubmeshData> Submeshes;
-
 		MeshData(
 			uint64 id,
 			uint64 version,
 			const Ref<Buffer>& vertexBuffer,
 			uint64 vertexCount,
-			const Ref<Buffer>& indexBuffer,
-			const std::unordered_map<uint32, SubmeshData>& submeshes);
+			const Ref<Buffer>& indexBuffer);
 	};
 
 	/// @brief Data for a single RenderPassShader
@@ -149,8 +130,11 @@ namespace Coco::Rendering
 		/// @brief The ID of the mesh to render with
 		uint64 MeshID;
 
-		/// @brief The ID of the submesh to render with
-		uint32 SubmeshID;
+		/// @brief The offset of the first index to render
+		uint64 IndexOffset;
+
+		/// @brief The number of indices to render
+		uint64 IndexCount;
 
 		/// @brief The ID of the material to render with
 		uint64 MaterialID;
@@ -158,7 +142,14 @@ namespace Coco::Rendering
 		/// @brief The scissor rectangle to use for rendering this object
 		RectInt ScissorRect;
 
-		ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint32 submeshID, uint64 materialID, const RectInt& scissorRect);
+		ObjectData(
+			uint64 id, 
+			const Matrix4x4& modelMatrix, 
+			uint64 meshID, 
+			uint64 indexOffset,
+			uint64 indexCount,
+			uint64 materialID, 
+			const RectInt& scissorRect);
 	};
 
 	/// @brief Holds information needed to render a scene
@@ -257,19 +248,37 @@ namespace Coco::Rendering
 		/// @return The material data
 		const MaterialData& GetMaterialData(uint64 key) const;
 
-		/// @brief Adds an object to be rendered
+		/// @brief Adds an object to be rendered. 
+		/// NOTE: the mesh must have been applied for this to work
 		/// @param mesh The mesh
 		/// @param submeshID The ID of the submesh
 		/// @param modelMatrix The model matrix
-		/// @param material The material (optional)
-		/// @param scissorRect The scissor rect (optional)
+		/// @param material The material, or nullptr for no material
+		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
 		/// @return The key to the object
 		uint64 AddRenderObject(
 			const Mesh& mesh, 
 			uint32 submeshID, 
 			const Matrix4x4& modelMatrix, 
-			std::optional<const MaterialDataProvider&> material, 
-			std::optional<const RectInt&> scissorRect);
+			const MaterialDataProvider* material, 
+			const RectInt* scissorRect = nullptr);
+
+		/// @brief Adds an object to be rendered. 
+		/// NOTE: the mesh must have been applied for this to work
+		/// @param mesh The mesh
+		/// @param indexOffset The offset of the first index in the mesh's index buffer
+		/// @param indexCount The number of indices to render
+		/// @param modelMatrix The model matrix
+		/// @param material The material, or nullptr for no material
+		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
+		/// @return The key to the object
+		uint64 AddRenderObject(
+			const Mesh& mesh,
+			uint64 indexOffset,
+			uint64 indexCount,
+			const Matrix4x4& modelMatrix,
+			const MaterialDataProvider* material,
+			const RectInt* scissorRect = nullptr);
 
 		/// @brief Gets all objects to be rendered
 		/// @return The renderable objects
