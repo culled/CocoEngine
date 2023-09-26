@@ -45,6 +45,7 @@ namespace Coco::Rendering
 		RenderStats _stats;
 		UniqueRef<TickListener> _lateTickListener;
 		std::unordered_map<uint64, std::vector<RenderServiceRenderTask>> _renderTasks;
+		std::vector<RenderContextRenderStats> _individualRenderStats;
 
 	public:
 		RenderService(const GraphicsPlatformFactory& platformFactory);
@@ -78,9 +79,13 @@ namespace Coco::Rendering
 		/// @return The default checker texture
 		Ref<Texture> GetDefaultCheckerTexture() const { return _defaultCheckerTexture; }
 
-		/// @brief Gets the current tick's render stats
-		/// @return The render stats for the current tick
+		/// @brief Gets the general stats for all renders since the end of the last tick
+		/// @return The general render stats
 		const RenderStats& GetRenderStats() const { return _stats; }
+
+		/// @brief Gets the render stats for each render since the end of the last tick
+		/// @return The stats for each render
+		std::span<const RenderContextRenderStats> GetIndividualRenderStats() const { return _individualRenderStats; }
 
 		/// @brief Performs a render
 		/// @param presenter The presenter to render with
@@ -102,7 +107,11 @@ namespace Coco::Rendering
 		/// @param compiledPipeline The compiled pipeline to render with
 		/// @param renderView The view to render with
 		/// @param waitOn If given, the render will not start until this semaphore is signaled
-		void ExecuteRender(RenderContext& context, CompiledRenderPipeline& compiledPipeline, RenderView& renderView, Ref<GraphicsSemaphore> waitOn);
+		void ExecuteRender(
+			RenderContext& context, 
+			CompiledRenderPipeline& compiledPipeline, 
+			RenderView& renderView, 
+			Ref<GraphicsSemaphore> waitOn);
 
 		/// @brief Creates the default diffuse texture
 		void CreateDefaultDiffuseTexture();

@@ -13,14 +13,14 @@ namespace Coco::Rendering
 		/// @brief The number of triangles drawn
 		uint64 TrianglesDrawn;
 
-		/// @brief The number of vertices in the scene
+		/// @brief The number of vertices drawn
 		uint64 VertexCount;
 
-		/// @brief The amount of time executing the pipeline took
-		TimeSpan PipelineExecutionTime;
+		/// @brief The number of draw calls
+		uint64 DrawCalls;
 
-		/// @brief The amount of time each render pass took
-		std::unordered_map<string, TimeSpan> PassExecutionTime;
+		/// @brief The amount of time executing render pipelines
+		TimeSpan TotalExecutionTime;
 
 		RenderStats();
 

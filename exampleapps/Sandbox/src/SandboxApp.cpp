@@ -99,5 +99,7 @@ void SandboxApp::Tick(const TickInfo & tickInfo)
 		std::array<SceneDataProvider*, 1> dataProviders = { _sceneDataProvider.get()};
 
 		rendering.Render(mainWindow->GetPresenter(), *_pipeline, *_renderViewProvider, dataProviders);
+
+		_imGuiLayer->DrawPostRender();
 	}
 }

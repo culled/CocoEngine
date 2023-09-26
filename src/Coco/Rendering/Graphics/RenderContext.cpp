@@ -3,12 +3,28 @@
 #include "../Pipeline/RenderPass.h"
 #include "../Pipeline/CompiledRenderPipeline.h"
 
+#include <Coco/Core/Engine.h>
+
 namespace Coco::Rendering
 {
 	RenderContextRenderStats::RenderContextRenderStats() :
 		TrianglesDrawn(0),
-		VertexCount(0)
+		VertexCount(0),
+		DrawCalls(0),
+		FramebufferSize(SizeInt::Zero),
+		TotalExecutionTime(),
+		PassExecutionTime()
 	{}
+
+	void RenderContextRenderStats::Reset()
+	{
+		TrianglesDrawn = 0;
+		VertexCount = 0;
+		DrawCalls = 0;
+		FramebufferSize = SizeInt::Zero;
+		TotalExecutionTime = TimeSpan();
+		PassExecutionTime.clear();
+	}
 
 	ContextRenderOperation::ContextRenderOperation(Rendering::RenderView& renderView, CompiledRenderPipeline& pipeline) :
 		RenderView(renderView),
@@ -16,8 +32,7 @@ namespace Coco::Rendering
 		CurrentPassIndex(0),
 		GlobalUniforms{},
 		InstanceUniforms{},
-		DrawUniforms{},
-		Stats{}
+		DrawUniforms{}
 	{
 		CurrentPassName = Pipeline.RenderPasses.at(CurrentPassIndex).Pass->GetName();
 	}
@@ -37,11 +52,6 @@ namespace Coco::Rendering
 		_currentState(State::ReadyForRender),
 		_renderOperation{}
 	{}
-
-	const RenderContextRenderStats* RenderContext::GetRenderStats() const
-	{
-		return _renderOperation.has_value() ? &_renderOperation->Stats : nullptr;
-	}
 
 	void RenderContext::SetFloat(UniformScope scope, ShaderUniformData::UniformKey key, float value)
 	{
@@ -314,7 +324,15 @@ namespace Coco::Rendering
 		bool began = BeginImpl();
 
 		if (began)
+		{
 			_currentState = State::InRender;
+
+			const EnginePlatform& platform = Engine::cGet()->GetPlatform();
+			_executeStartTime = platform.GetSeconds();
+			_passExecuteStartTime = _executeStartTime;
+			
+			_stats.FramebufferSize = renderView.GetViewportRect().Size;
+		}
 		else
 			_renderOperation.reset();
 
@@ -324,6 +342,10 @@ namespace Coco::Rendering
 	bool RenderContext::BeginNextPass()
 	{
 		Assert(_renderOperation.has_value())
+
+		double time = Engine::cGet()->GetPlatform().GetSeconds();
+		_stats.PassExecutionTime[_renderOperation->GetCurrentPass().Pass->GetName()] = TimeSpan::FromSeconds(time - _passExecuteStartTime);
+		_passExecuteStartTime = time;
 
 		_renderOperation->NextPass();
 
@@ -335,6 +357,11 @@ namespace Coco::Rendering
 		Assert(_renderOperation.has_value())
 
 		EndImpl();
+
+		double time = Engine::cGet()->GetPlatform().GetSeconds();
+		_stats.PassExecutionTime[_renderOperation->GetCurrentPass().Pass->GetName()] = TimeSpan::FromSeconds(time - _passExecuteStartTime);
+		_stats.TotalExecutionTime = TimeSpan::FromSeconds(time - _executeStartTime);
+
 		_currentState = State::EndedRender;
 	}
 
@@ -343,6 +370,7 @@ namespace Coco::Rendering
 		ResetImpl();
 
 		_renderOperation.reset();
+		_stats.Reset();
 		_currentState = State::ReadyForRender;
 	}
 }

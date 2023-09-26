@@ -103,24 +103,25 @@ namespace Coco::Rendering
 
 		ExecuteRender(*context, compiledPipeline, *view, waitOn);
 
+		_stats += context->GetRenderStats();
+		_individualRenderStats.push_back(context->GetRenderStats());
+
 		RenderTask task(context->GetRenderCompletedSemaphore(), context->GetRenderCompletedFence());
 		_renderTasks[presenterID].emplace_back(context, presenter);
 		return task;
 	}
 
-	void RenderService::ExecuteRender(RenderContext& context, CompiledRenderPipeline& compiledPipeline, RenderView& renderView, Ref<GraphicsSemaphore> waitOn)
+	void RenderService::ExecuteRender(
+		RenderContext& context, 
+		CompiledRenderPipeline& compiledPipeline, 
+		RenderView& renderView,
+		Ref<GraphicsSemaphore> waitOn)
 	{
-		const EnginePlatform& platform = Engine::cGet()->GetPlatform();
-		double pipelineStartTime = platform.GetSeconds();
-		std::unordered_map<string, TimeSpan> passExecutionTimes;
-
 		try
 		{
 			// Go through each pass and execute it
 			for (auto it = compiledPipeline.RenderPasses.begin(); it != compiledPipeline.RenderPasses.end(); it++)
 			{
-				double passStartTime = platform.GetSeconds();
-
 				if (it == compiledPipeline.RenderPasses.begin())
 				{
 					if (!context.Begin(renderView, compiledPipeline))
@@ -138,8 +139,6 @@ namespace Coco::Rendering
 				}
 
 				it->Pass->Execute(context, renderView);
-
-				_stats.PassExecutionTime[it->Pass->GetName()] += TimeSpan::FromSeconds(platform.GetSeconds() - passStartTime);
 			}
 		}
 		catch (const std::exception& ex)
@@ -148,9 +147,6 @@ namespace Coco::Rendering
 		}
 
 		context.End();
-
-		_stats.PipelineExecutionTime += TimeSpan::FromSeconds(platform.GetSeconds() - pipelineStartTime);
-		_stats += *context.GetRenderStats();
 	}
 
 	void RenderService::CreateDefaultDiffuseTexture()
@@ -272,8 +268,9 @@ namespace Coco::Rendering
 		}
 
 		_renderTasks.clear();
+		_individualRenderStats.clear();
+		_stats.Reset();
 
 		_device->ResetForNewFrame();
-		_stats.Reset();
 	}
 }

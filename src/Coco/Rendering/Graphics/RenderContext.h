@@ -3,6 +3,7 @@
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Types/Matrix.h>
+#include <Coco/Core/Types/TimeSpan.h>
 #include "GraphicsFence.h"
 #include "GraphicsSemaphore.h"
 #include "ShaderUniformData.h"
@@ -22,7 +23,22 @@ namespace Coco::Rendering
 		/// @brief The number of vertices in the scene
 		uint64 VertexCount;
 
+		/// @brief The number of draw calls
+		uint64 DrawCalls;
+
+		/// @brief The size of the framebuffer
+		SizeInt FramebufferSize;
+
+		/// @brief The amount of time executing the render operation took
+		TimeSpan TotalExecutionTime;
+
+		/// @brief The amount of time each render pass took
+		std::unordered_map<string, TimeSpan> PassExecutionTime;
+
 		RenderContextRenderStats();
+
+		/// @brief Resets this stats object
+		void Reset();
 	};
 
 	/// @brief Holds data that a RenderContext uses during actual rendering
@@ -48,9 +64,6 @@ namespace Coco::Rendering
 
 		/// @brief The current draw uniform data
 		ShaderUniformData DrawUniforms;
-
-		/// @brief The stats for this render
-		RenderContextRenderStats Stats;
 
 		ContextRenderOperation(Rendering::RenderView& renderView, CompiledRenderPipeline& pipeline);
 
@@ -78,6 +91,9 @@ namespace Coco::Rendering
 	protected:
 		State _currentState;
 		std::optional<ContextRenderOperation> _renderOperation;
+		RenderContextRenderStats _stats;
+		double _executeStartTime;
+		double _passExecuteStartTime;
 
 	protected:
 		RenderContext();
@@ -133,9 +149,9 @@ namespace Coco::Rendering
 		/// @param indexCount The number of indices to draw
 		virtual void DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount) = 0;
 
-		/// @brief Gets the current render stats. Only value during rendering
+		/// @brief Gets the current render stats. Gets reset via Reset()
 		/// @return The render stats
-		const RenderContextRenderStats* GetRenderStats() const;
+		const RenderContextRenderStats& GetRenderStats() const { return _stats; }
 
 		/// @brief Gets this RenderContext's state
 		/// @return The state
