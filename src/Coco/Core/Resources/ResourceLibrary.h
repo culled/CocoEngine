@@ -30,10 +30,14 @@ namespace Coco
 		IDGeneratorType _idGenerator;
 		ResourceMap _resources;
 
+	private:
+		bool _isPurgingResources;
+
 	public:
 		TypedResourceLibrary() :
 			_idGenerator{},
-			_resources{}
+			_resources{},
+			_isPurgingResources(false)
 		{}
 
 		virtual ~TypedResourceLibrary()
@@ -112,18 +116,25 @@ namespace Coco
 		{
 			uint64 purgeCount = 0;
 
-			auto it = _resources.begin();
-			while (it != _resources.end())
+			if (!_isPurgingResources)
 			{
-				if (it->second.GetUseCount() == 1)
+				_isPurgingResources = true;
+
+				auto it = _resources.begin();
+				while (it != _resources.end())
 				{
-					it = _resources.erase(it);
-					purgeCount++;
+					if (it->second.GetUseCount() == 1)
+					{
+						it = _resources.erase(it);
+						purgeCount++;
+					}
+					else
+					{
+						it++;
+					}
 				}
-				else
-				{
-					it++;
-				}
+
+				_isPurgingResources = false;
 			}
 
 			return purgeCount;
