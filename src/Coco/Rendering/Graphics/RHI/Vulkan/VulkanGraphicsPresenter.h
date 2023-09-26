@@ -34,6 +34,7 @@ namespace Coco::Rendering::Vulkan
         SizeInt _framebufferSize;
         VSyncMode _vSyncMode;
         ImageDescription _backbufferDescription;
+        uint8 _maxFramesInFlight;
 
         std::vector<ManagedRef<VulkanImage>> _backbuffers;
         std::vector<ManagedRef<VulkanRenderContext>> _renderContexts;
@@ -60,6 +61,9 @@ namespace Coco::Rendering::Vulkan
         void SetFramebufferSize(const SizeInt& size) final;
         SizeInt GetFramebufferSize() const final { return _framebufferSize; }
 
+        void SetMaximumFramesInFlight(uint8 maxFramesInFlight);
+        uint8 GetMaximumFramesInFlight() const { return _maxFramesInFlight; }
+
     private:
         /// @brief Recreates the swapchain if neccessary
         /// @return True if the swapchain is ready for rendering
@@ -75,6 +79,7 @@ namespace Coco::Rendering::Vulkan
         /// @brief Destroys all objects created alongside a swapchain
         void DestroySwapchainObjects();
 
+        /// @brief Gets/creates a render context that is ready for rendering
         Ref<VulkanRenderContext> GetReadyRenderContext();
     };
 }

@@ -8,7 +8,10 @@
 using namespace Coco;
 
 ImGuiLayer::ImGuiLayer(RenderViewProvider3D& viewProvider3D) :
-	_viewProvider3D(viewProvider3D)
+	_viewProvider3D(viewProvider3D),
+	_movingAverageCount(30),
+	_averageFps(0),
+	_averageFrameTime(0)
 {}
 
 void ImGuiLayer::Draw()
@@ -42,7 +45,10 @@ void ImGuiLayer::DrawPostRender()
 
 	const TickInfo& currentTick = MainLoop::cGet()->GetCurrentTick();
 
-	ImGui::Text("Frame Time: %.3fms (%i fps)", currentTick.DeltaTime * 1000.0, static_cast<int>(1.0 / currentTick.DeltaTime));
+	_averageFps += static_cast<int>(Math::Round(((1.0 / currentTick.UnscaledDeltaTime) - _averageFps) / _movingAverageCount));
+	_averageFrameTime += (currentTick.UnscaledDeltaTime - _averageFrameTime) / _movingAverageCount;
+
+	ImGui::Text("Frame Time: %.3fms (%i fps)", _averageFrameTime * 1000.0, _averageFps);
 
 	ImGui::Separator();
 

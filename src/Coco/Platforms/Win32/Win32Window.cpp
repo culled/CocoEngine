@@ -569,15 +569,15 @@ namespace Coco::Platforms::Win32
 #ifdef COCO_SERVICES_INPUT
 	bool Win32Window::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
-		ServiceManager* services = ServiceManager::Get();
-
 		using namespace Coco::Input;
-		if (!services->HasService<InputService>())
+
+		InputService* input = InputService::Get();
+
+		if (!input)
 			return false;
 
-		InputService& input = services->GetService<InputService>();
-		Mouse& mouse = input.GetMouse();
-		Keyboard& keyboard = input.GetKeyboard();
+		Mouse& mouse = input->GetMouse();
+		Keyboard& keyboard = input->GetKeyboard();
 
 		switch (message)
 		{

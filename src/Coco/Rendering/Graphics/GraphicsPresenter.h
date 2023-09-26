@@ -52,5 +52,13 @@ namespace Coco::Rendering
 		/// @brief Gets this presenter's framebuffer size
 		/// @return The framebuffer size
 		virtual SizeInt GetFramebufferSize() const = 0;
+
+		/// @brief Sets the maximum number of frames that can be queued to present at once
+		/// @param maxFramesInFlight The maximum number of queued frames
+		virtual void SetMaximumFramesInFlight(uint8 maxFramesInFlight) = 0;
+
+		/// @brief Gets the maximum number of frames that can be queued to present at once
+		/// @return The maximum frames in flight
+		virtual uint8 GetMaximumFramesInFlight() const = 0;
 	};
 }

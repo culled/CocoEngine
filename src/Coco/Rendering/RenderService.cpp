@@ -253,20 +253,6 @@ namespace Coco::Rendering
 			}
 		}
 
-		// Wait for all renders to complete
-		for (auto it = _renderTasks.begin(); it != _renderTasks.end(); it++)
-		{
-			std::vector<RenderServiceRenderTask>& tasks = it->second;
-
-			if (tasks.size() == 0)
-				continue;
-
-			RenderServiceRenderTask& lastTask = tasks.back();
-			Assert(lastTask.Context.IsValid())
-
-			lastTask.Context->WaitForRenderingToComplete();
-		}
-
 		_renderTasks.clear();
 		_individualRenderStats.clear();
 		_stats.Reset();

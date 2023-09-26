@@ -135,6 +135,7 @@ namespace Coco::Rendering
 		/// @brief Sets the part of the viewport that will be rendered to. Only valid during rendering
 		/// @param scissorRect The scissor rectangle
 		virtual void SetScissorRect(const RectInt& scissorRect) = 0;
+
 		/// @brief Sets the shader that should be used for subsequent draw calls
 		/// @param shader The shader
 		virtual void SetShader(const RenderPassShaderData& shader) = 0;
@@ -152,6 +153,10 @@ namespace Coco::Rendering
 		/// @brief Gets the current render stats. Gets reset via Reset()
 		/// @return The render stats
 		const RenderContextRenderStats& GetRenderStats() const { return _stats; }
+
+		/// @brief Gets the platform seconds when this context last started a render
+		/// @return The platform seconds
+		double GetLastRenderStartTime() const { return _executeStartTime; }
 
 		/// @brief Gets this RenderContext's state
 		/// @return The state
