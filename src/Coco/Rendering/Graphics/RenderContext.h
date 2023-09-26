@@ -56,15 +56,6 @@ namespace Coco::Rendering
 		/// @brief The name of the current RenderPass in the pipeline
 		string CurrentPassName;
 
-		/// @brief The global uniform data
-		ShaderUniformData GlobalUniforms;
-
-		/// @brief The current instance uniform data
-		ShaderUniformData InstanceUniforms;
-
-		/// @brief The current draw uniform data
-		ShaderUniformData DrawUniforms;
-
 		ContextRenderOperation(Rendering::RenderView& renderView, CompiledRenderPipeline& pipeline);
 
 		/// @brief Gets the current pass
@@ -94,6 +85,10 @@ namespace Coco::Rendering
 		RenderContextRenderStats _stats;
 		Stopwatch _executionStopwatch;
 		Stopwatch _currentPassStopwatch;
+
+		ShaderUniformData _globalUniforms;
+		ShaderUniformData _instanceUniforms;
+		ShaderUniformData _drawUniforms;
 
 	protected:
 		RenderContext();

@@ -159,7 +159,7 @@ namespace Coco::Rendering::Vulkan
 
 		SetShader(passShader);
 
-		_renderOperation->InstanceUniforms = material.UniformData;
+		_instanceUniforms = material.UniformData;
 
 		_vulkanRenderOperation->InstanceState.emplace(material.ID);
 		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Instance);
@@ -175,8 +175,8 @@ namespace Coco::Rendering::Vulkan
 		_vulkanRenderOperation->GlobalState.emplace(shader.ID);
 
 		// Clear shader-specific uniforms
-		_renderOperation->InstanceUniforms.Clear();
-		_renderOperation->DrawUniforms.Clear();
+		_instanceUniforms.Clear();
+		_drawUniforms.Clear();
 
 		// Reset shader-specific bindings
 		_vulkanRenderOperation->InstanceState.reset();
@@ -219,7 +219,7 @@ namespace Coco::Rendering::Vulkan
 		_stats.TrianglesDrawn += indexCount / 3;
 		_stats.DrawCalls++;
 
-		_renderOperation->DrawUniforms.Clear();
+		_drawUniforms.Clear();
 	}
 
 	bool VulkanRenderContext::BeginImpl()
@@ -475,7 +475,7 @@ namespace Coco::Rendering::Vulkan
 
 				vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, globalState.Pipeline->GetPipeline());
 
-				globalState.DescriptorSet = uniformData.PrepareData(VulkanUniformData::sGlobalInstanceID, _renderOperation->GlobalUniforms, shader, true);
+				globalState.DescriptorSet = uniformData.PrepareData(VulkanUniformData::sGlobalInstanceID, _globalUniforms, shader, true);
 				if (globalState.DescriptorSet)
 				{
 					// Bind the global descriptor set
@@ -501,7 +501,7 @@ namespace Coco::Rendering::Vulkan
 
 				BoundInstanceState& instanceState = _vulkanRenderOperation->InstanceState.value();
 
-				instanceState.DescriptorSet = uniformData.PrepareData(instanceState.InstanceID, _renderOperation->InstanceUniforms, shader, true);
+				instanceState.DescriptorSet = uniformData.PrepareData(instanceState.InstanceID, _instanceUniforms, shader, true);
 
 				if (instanceState.DescriptorSet)
 				{
@@ -518,7 +518,7 @@ namespace Coco::Rendering::Vulkan
 				}
 			}
 
-			uniformData.PreparePushConstants(*_commandBuffer, globalState.Pipeline->GetPipelineLayout(), _renderOperation->DrawUniforms, shader);
+			uniformData.PreparePushConstants(*_commandBuffer, globalState.Pipeline->GetPipelineLayout(), _drawUniforms, shader);
 		}
 		catch (const std::exception& ex)
 		{

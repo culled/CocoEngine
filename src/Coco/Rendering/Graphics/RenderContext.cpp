@@ -29,10 +29,7 @@ namespace Coco::Rendering
 	ContextRenderOperation::ContextRenderOperation(Rendering::RenderView& renderView, CompiledRenderPipeline& pipeline) :
 		RenderView(renderView),
 		Pipeline(pipeline),
-		CurrentPassIndex(0),
-		GlobalUniforms{},
-		InstanceUniforms{},
-		DrawUniforms{}
+		CurrentPassIndex(0)
 	{
 		CurrentPassName = Pipeline.RenderPasses.at(CurrentPassIndex).Pass->GetName();
 	}
@@ -52,7 +49,10 @@ namespace Coco::Rendering
 		_currentState(State::ReadyForRender),
 		_renderOperation{},
 		_executionStopwatch(),
-		_currentPassStopwatch()
+		_currentPassStopwatch(),
+		_globalUniforms{},
+		_instanceUniforms{},
+		_drawUniforms{}
 	{}
 
 	void RenderContext::SetFloat(UniformScope scope, ShaderUniformData::UniformKey key, float value)
@@ -62,13 +62,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Floats[key] = value;
+			_globalUniforms.Floats[key] = value;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Floats[key] = value;
+			_instanceUniforms.Floats[key] = value;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Floats[key] = value;
+			_drawUniforms.Floats[key] = value;
 			break;
 		default:
 			return;
@@ -86,13 +86,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Float2s[key] = v;
+			_globalUniforms.Float2s[key] = v;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Float2s[key] = v;
+			_instanceUniforms.Float2s[key] = v;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Float2s[key] = v;
+			_drawUniforms.Float2s[key] = v;
 			break;
 		default:
 			return;
@@ -110,13 +110,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Float3s[key] = v;
+			_globalUniforms.Float3s[key] = v;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Float3s[key] = v;
+			_instanceUniforms.Float3s[key] = v;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Float3s[key] = v;
+			_drawUniforms.Float3s[key] = v;
 			break;
 		default:
 			return;
@@ -134,13 +134,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Float4s[key] = v;
+			_globalUniforms.Float4s[key] = v;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Float4s[key] = v;
+			_instanceUniforms.Float4s[key] = v;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Float4s[key] = v;
+			_drawUniforms.Float4s[key] = v;
 			break;
 		default:
 			return;
@@ -164,13 +164,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Mat4x4s[key] = v;
+			_globalUniforms.Mat4x4s[key] = v;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Mat4x4s[key] = v;
+			_instanceUniforms.Mat4x4s[key] = v;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Mat4x4s[key] = v;
+			_drawUniforms.Mat4x4s[key] = v;
 			break;
 		default:
 			return;
@@ -186,13 +186,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Ints[key] = value;
+			_globalUniforms.Ints[key] = value;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Ints[key] = value;
+			_instanceUniforms.Ints[key] = value;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Ints[key] = value;
+			_drawUniforms.Ints[key] = value;
 			break;
 		default:
 			return;
@@ -210,13 +210,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Int2s[key] = v;
+			_globalUniforms.Int2s[key] = v;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Int2s[key] = v;
+			_instanceUniforms.Int2s[key] = v;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Int2s[key] = v;
+			_drawUniforms.Int2s[key] = v;
 			break;
 		default:
 			return;
@@ -234,13 +234,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Int3s[key] = v;
+			_globalUniforms.Int3s[key] = v;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Int3s[key] = v;
+			_instanceUniforms.Int3s[key] = v;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Int3s[key] = v;
+			_drawUniforms.Int3s[key] = v;
 			break;
 		default:
 			return;
@@ -258,13 +258,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Int4s[key] = v;
+			_globalUniforms.Int4s[key] = v;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Int4s[key] = v;
+			_instanceUniforms.Int4s[key] = v;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Int4s[key] = v;
+			_drawUniforms.Int4s[key] = v;
 			break;
 		default:
 			return;
@@ -280,13 +280,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Bools[key] = value;
+			_globalUniforms.Bools[key] = value;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Bools[key] = value;
+			_instanceUniforms.Bools[key] = value;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Bools[key] = value;
+			_drawUniforms.Bools[key] = value;
 			break;
 		default:
 			return;
@@ -304,13 +304,13 @@ namespace Coco::Rendering
 		switch (scope)
 		{
 		case UniformScope::Global:
-			_renderOperation->GlobalUniforms.Textures[key] = v;
+			_globalUniforms.Textures[key] = v;
 			break;
 		case UniformScope::Instance:
-			_renderOperation->InstanceUniforms.Textures[key] = v;
+			_instanceUniforms.Textures[key] = v;
 			break;
 		case UniformScope::Draw:
-			_renderOperation->DrawUniforms.Textures[key] = v;
+			_drawUniforms.Textures[key] = v;
 			break;
 		default:
 			return;
@@ -372,5 +372,9 @@ namespace Coco::Rendering
 		_renderOperation.reset();
 		_stats.Reset();
 		_currentState = State::ReadyForRender;
+
+		_globalUniforms.Clear();
+		_instanceUniforms.Clear();
+		_drawUniforms.Clear();
 	}
 }
