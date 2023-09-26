@@ -11,15 +11,15 @@ class RenderViewProvider3D :
     public RenderViewProvider
 {
 private:
+	AttachmentCache& _attachmentCache;
 	Color _clearColor;
 	MSAASamples _msaaSamples;
 	Transform3D _cameraTransform;
 	double _mouseSensitivity = 0.01;
 	TickListener _tickListener;
-	AttachmentCache _attachmentCache;
 
 public:
-	RenderViewProvider3D();
+	RenderViewProvider3D(AttachmentCache& attachmentCache);
 	~RenderViewProvider3D();
 
 	UniqueRef<RenderView> CreateRenderView(

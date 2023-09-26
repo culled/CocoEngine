@@ -16,7 +16,8 @@ MainApplication(SandboxApp)
 
 SandboxApp::SandboxApp() : 
 	Application(ApplicationCreateParameters("Sandbox", Version(0, 0, 1))),
-	_tickListener(this, &SandboxApp::Tick, 0)
+	_tickListener(this, &SandboxApp::Tick, 0),
+	_attachmentCache(CreateUniqueRef<AttachmentCache>())
 {
 	MainLoop::Get()->AddListener(_tickListener);
 	//MainLoop::Get()->SetTargetTicksPerSecond(144);
@@ -59,7 +60,7 @@ SandboxApp::SandboxApp() :
 		_pipeline3D->AddRenderPass(pass, bindings);
 	}
 
-	_renderViewProvider3D = CreateUniqueRef<RenderViewProvider3D>();
+	_renderViewProvider3D = CreateUniqueRef<RenderViewProvider3D>(*_attachmentCache);
 	_sceneDataProvider3D = CreateUniqueRef<SceneDataProvider3D>();
 
 	_pipeline2D = CreateSharedRef<Rendering::RenderPipeline>();
@@ -70,7 +71,7 @@ SandboxApp::SandboxApp() :
 		_pipeline2D->AddRenderPass(pass, bindings);
 	}
 
-	_renderViewProvider2D = CreateUniqueRef<RenderViewProvider2D>();
+	_renderViewProvider2D = CreateUniqueRef<RenderViewProvider2D>(*_attachmentCache);
 	_sceneDataProvider2D = CreateUniqueRef<SceneDataProvider2D>();
 
 	_imGuiLayer = CreateUniqueRef<ImGuiLayer>(*_renderViewProvider3D);
@@ -88,6 +89,7 @@ SandboxApp::~SandboxApp()
 	_renderViewProvider2D.reset();
 	_sceneDataProvider2D.reset();
 
+	_attachmentCache.reset();
 	_imGuiLayer.reset();
 
 	LogTrace(_log, "Sandbox app shutdown")

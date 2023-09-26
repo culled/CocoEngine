@@ -2,6 +2,7 @@
 #include <Coco/Core/Application.h>
 #include <Coco/Core/Core.h>
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
+#include <Coco/Rendering/Graphics/AttachmentCache.h>
 #include "Rendering/RenderViewProvider3D.h"
 #include "Rendering/SceneDataProvider3D.h"
 #include "Rendering/RenderViewProvider2D.h"
@@ -14,6 +15,8 @@ class SandboxApp : public Application
 {
 private:
 	TickListener _tickListener;
+
+	UniqueRef<AttachmentCache> _attachmentCache;
 
 	SharedRef<Rendering::RenderPipeline> _pipeline3D;
 	UniqueRef<RenderViewProvider3D> _renderViewProvider3D;

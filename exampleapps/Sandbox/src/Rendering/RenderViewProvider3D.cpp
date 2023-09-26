@@ -4,12 +4,12 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Core/MainLoop/MainLoop.h>
 
-RenderViewProvider3D::RenderViewProvider3D() :
+RenderViewProvider3D::RenderViewProvider3D(AttachmentCache& attachmentCache) :
     _clearColor(Color(0.1, 0.2, 0.3, 1.0)),
     _msaaSamples(MSAASamples::Four),
     _cameraTransform(),
     _tickListener(this, &RenderViewProvider3D::Tick, 0),
-    _attachmentCache()
+    _attachmentCache(attachmentCache)
 {
     MainLoop::Get()->AddListener(_tickListener);
 }

@@ -2,8 +2,8 @@
 
 #include <Coco/Rendering/RenderService.h>
 
-RenderViewProvider2D::RenderViewProvider2D() :
-    _attachmentCache()
+RenderViewProvider2D::RenderViewProvider2D(AttachmentCache& attachmentCache) :
+    _attachmentCache(attachmentCache)
 {}
 
 UniqueRef<RenderView> RenderViewProvider2D::CreateRenderView(

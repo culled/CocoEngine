@@ -9,10 +9,10 @@ class RenderViewProvider2D :
     public RenderViewProvider
 {
 private:
-	AttachmentCache _attachmentCache;
+	AttachmentCache& _attachmentCache;
 
 public:
-	RenderViewProvider2D();
+	RenderViewProvider2D(AttachmentCache& attachmentCache);
 
 	UniqueRef<RenderView> CreateRenderView(
 		const CompiledRenderPipeline& pipeline,
