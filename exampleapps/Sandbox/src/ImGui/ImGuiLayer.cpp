@@ -36,7 +36,7 @@ void ImGuiLayer::DrawPostRender()
 
 		for (const auto& stats : rs->GetIndividualRenderStats())
 		{
-			if (ImGui::TreeNode(&renderIndex, "Render %i", renderIndex))
+			if (ImGui::TreeNode(reinterpret_cast<void*>(renderIndex), "Render %i", renderIndex))
 			{
 				ImGui::Text("%i vertices", stats.VertexCount);
 				ImGui::Text("%i triangles", stats.TrianglesDrawn);
