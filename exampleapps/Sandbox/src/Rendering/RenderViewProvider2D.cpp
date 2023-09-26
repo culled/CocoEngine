@@ -6,7 +6,8 @@ RenderViewProvider2D::RenderViewProvider2D(AttachmentCache& attachmentCache) :
     _attachmentCache(attachmentCache)
 {}
 
-UniqueRef<RenderView> RenderViewProvider2D::CreateRenderView(
+void RenderViewProvider2D::SetupRenderView(
+    RenderView& renderView,
     const CompiledRenderPipeline& pipeline, 
     uint64 rendererID, 
     const SizeInt& backbufferSize, 
@@ -19,5 +20,5 @@ UniqueRef<RenderView> RenderViewProvider2D::CreateRenderView(
     Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(0, viewport.Size.Width, 0, viewport.Size.Height, -100, 100);
     Matrix4x4 view = Matrix4x4::Identity;
 
-    return CreateUniqueRef<RenderView>(viewport, viewport, view, projection, MSAASamples::One, rts);
+    renderView.Setup(viewport, viewport, view, projection, MSAASamples::One, rts);
 }

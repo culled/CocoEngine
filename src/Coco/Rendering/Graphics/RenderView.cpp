@@ -84,20 +84,45 @@ namespace Coco::Rendering
 		ScissorRect(scissorRect)
 	{}
 
-	RenderView::RenderView(
-		const RectInt& viewportRect, 
-		const RectInt& scissorRect,
-		const Matrix4x4& viewMatrix,
-		const Matrix4x4& projectionMatrix,
-		MSAASamples samples,
-		const std::vector<RenderTarget>& renderTargets) :
-		_viewportRect(viewportRect),
-		_scissorRect(scissorRect),
-		_viewMat(viewMatrix),
-		_projectionMat(projectionMatrix),
-		_samples(samples),
-		_renderTargets(renderTargets)
+	RenderView::RenderView() :
+		_viewportRect(),
+		_scissorRect(),
+		_viewMat(),
+		_projectionMat(),
+		_samples(),
+		_renderTargets(),
+		_meshDatas(),
+		_renderPassShaderDatas(),
+		_shaderDatas(),
+		_materialDatas(),
+		_objectDatas()
 	{}
+
+	void RenderView::Setup(
+		const RectInt& viewportRect, 
+		const RectInt& scissorRect, 
+		const Matrix4x4& viewMatrix, 
+		const Matrix4x4& projectionMatrix, 
+		MSAASamples samples, 
+		const std::vector<RenderTarget>&renderTargets)
+	{
+		_viewportRect = viewportRect;
+		_scissorRect = scissorRect;
+		_viewMat = viewMatrix;
+		_projectionMat = projectionMatrix;
+		_samples = samples;
+		_renderTargets = renderTargets;
+	}
+
+	void RenderView::Reset()
+	{
+		_renderTargets.clear();
+		_meshDatas.clear();
+		_renderPassShaderDatas.clear();
+		_shaderDatas.clear();
+		_materialDatas.clear();
+		_objectDatas.clear();
+	}
 
 	RenderTarget& RenderView::GetRenderTarget(size_t index)
 	{

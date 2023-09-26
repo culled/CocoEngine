@@ -319,7 +319,8 @@ namespace Coco::ImGuiCoco
         _material.Invalidate();
     }
 
-    UniqueRef<Rendering::RenderView> ImGuiCocoPlatform::CreateRenderView(
+    void ImGuiCocoPlatform::SetupRenderView(
+        RenderView& renderView,
         const Rendering::CompiledRenderPipeline& pipeline,
         uint64 rendererID,
         const SizeInt& backbufferSize,
@@ -345,7 +346,7 @@ namespace Coco::ImGuiCoco
             viewport.GetBottom(),
             -1.0, 1.0);
 
-        return CreateUniqueRef<RenderView>(viewport, viewport, Matrix4x4::Identity, projection, MSAASamples::One, rts);
+        renderView.Setup(viewport, viewport, Matrix4x4::Identity, projection, MSAASamples::One, rts);
     }
 
     void ImGuiCocoPlatform::GatherSceneData(RenderView& renderView)

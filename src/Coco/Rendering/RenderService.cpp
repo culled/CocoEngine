@@ -12,7 +12,8 @@ namespace Coco::Rendering
 
 	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory) :
 		_lateTickListener(CreateUniqueRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
-		_renderTasks{}
+		_renderTasks{},
+		_renderView()
 	{
 		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
@@ -70,7 +71,8 @@ namespace Coco::Rendering
 
 		// Create the RenderView using the acquired backbuffers
 		std::array<Ref<Image>, 1> backbuffers{ backbuffer };
-		UniqueRef<RenderView> view = renderViewProvider.CreateRenderView(compiledPipeline, presenter->GetID(), presenter->GetFramebufferSize(), backbuffers);
+		_renderView.Reset();
+		renderViewProvider.SetupRenderView(_renderView, compiledPipeline, presenter->GetID(), presenter->GetFramebufferSize(), backbuffers);
 
 		// Get the scene data
 		for (SceneDataProvider* provider : sceneDataProviders)
@@ -78,7 +80,7 @@ namespace Coco::Rendering
 			if (!provider)
 				continue;
 
-			provider->GatherSceneData(*view);
+			provider->GatherSceneData(_renderView);
 		}
 
 		Ref<GraphicsSemaphore> waitOn;
@@ -101,7 +103,7 @@ namespace Coco::Rendering
 			}
 		}
 
-		ExecuteRender(*context, compiledPipeline, *view, waitOn);
+		ExecuteRender(*context, compiledPipeline, _renderView, waitOn);
 
 		_stats += context->GetRenderStats();
 		_individualRenderStats.push_back(context->GetRenderStats());

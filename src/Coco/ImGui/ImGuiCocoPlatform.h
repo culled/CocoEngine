@@ -68,7 +68,8 @@ namespace Coco::ImGuiCoco
 		ImGuiCocoPlatform(bool enableViewports);
 		~ImGuiCocoPlatform();
 
-		UniqueRef<RenderView> CreateRenderView(
+		void SetupRenderView(
+			RenderView& renderView,
 			const CompiledRenderPipeline& pipeline,
 			uint64 rendererID,
 			const SizeInt& backbufferSize,

@@ -14,7 +14,8 @@ private:
 public:
 	RenderViewProvider2D(AttachmentCache& attachmentCache);
 
-	UniqueRef<RenderView> CreateRenderView(
+	void SetupRenderView(
+		RenderView& renderView,
 		const CompiledRenderPipeline& pipeline,
 		uint64 rendererID,
 		const SizeInt& backbufferSize,

@@ -172,13 +172,24 @@ namespace Coco::Rendering
 		std::vector<ObjectData> _objectDatas;
 
 	public:
-		RenderView(
-			const RectInt& viewportRect, 
-			const RectInt& scissorRect, 
+		RenderView();
+
+		/// @brief Sets up this RenderView for a new render
+		/// @param viewportRect The viewport rectangle
+		/// @param scissorRect The scissor rectangle
+		/// @param viewMatrix The view matrix
+		/// @param projectionMatrix The projection matrix
+		/// @param samples The number of MSAA samples
+		/// @param renderTargets The render targets
+		void Setup(const RectInt& viewportRect,
+			const RectInt& scissorRect,
 			const Matrix4x4& viewMatrix,
 			const Matrix4x4& projectionMatrix,
 			MSAASamples samples,
 			const std::vector<RenderTarget>& renderTargets);
+
+		/// @brief Resets this RenderView
+		void Reset();
 
 		/// @brief Gets the viewport rectangle
 		/// @return The viewport rectangle

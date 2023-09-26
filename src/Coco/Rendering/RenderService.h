@@ -47,6 +47,9 @@ namespace Coco::Rendering
 		std::unordered_map<uint64, std::vector<RenderServiceRenderTask>> _renderTasks;
 		std::vector<RenderContextRenderStats> _individualRenderStats;
 
+		// TODO: when adding multithreaded rendering, support a RenderView pool
+		RenderView _renderView;
+
 	public:
 		RenderService(const GraphicsPlatformFactory& platformFactory);
 		~RenderService();

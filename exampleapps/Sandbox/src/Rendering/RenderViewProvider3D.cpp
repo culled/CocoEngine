@@ -19,7 +19,8 @@ RenderViewProvider3D::~RenderViewProvider3D()
     MainLoop::Get()->RemoveListener(_tickListener);
 }
 
-UniqueRef<RenderView> RenderViewProvider3D::CreateRenderView(
+void RenderViewProvider3D::SetupRenderView(
+    RenderView& renderView,
     const CompiledRenderPipeline& pipeline,
     uint64 rendererID, 
     const SizeInt& backbufferSize, 
@@ -49,7 +50,7 @@ UniqueRef<RenderView> RenderViewProvider3D::CreateRenderView(
     //Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(2.0, aspectRatio, 0.1, 100);
     Matrix4x4 projection = RenderService::Get()->GetPlatform().CreatePerspectiveProjection(Math::DegToRad(90.0), aspectRatio, 0.1, 100);
 
-    return CreateUniqueRef<RenderView>(viewport, viewport, view, projection, pipeline.SupportsMSAA ? _msaaSamples : MSAASamples::One, rts);
+    renderView.Setup(viewport, viewport, view, projection, pipeline.SupportsMSAA ? _msaaSamples : MSAASamples::One, rts);
 }
 
 void RenderViewProvider3D::SetMSAASamples(MSAASamples samples)
