@@ -10,10 +10,10 @@ namespace Coco::Rendering::Vulkan
 	const char* VulkanGraphicsPlatform::sVulkanRHIName = "Vulkan";
 	const char* VulkanGraphicsPlatform::_sDebugValidationLayerName = "VK_LAYER_KHRONOS_validation";
 
-	VulkanGraphicsPlatform::VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams, uint32 apiVersion) :
+	VulkanGraphicsPlatform::VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams, uint32 apiVersion, bool useValidationLayers) :
 		_vulkanInstance(nullptr),
 		_debugMessenger(nullptr),
-		_usingValidationLayers(false),
+		_usingValidationLayers(useValidationLayers),
 		_supportsPresentation(createParams.PresentationSupport)
 	{
 		CreateVulkanInstance(createParams, apiVersion);
@@ -232,7 +232,7 @@ namespace Coco::Rendering::Vulkan
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
 
 #if _DEBUG
-		if (CheckValidationLayerSupport())
+		if (_usingValidationLayers && CheckValidationLayerSupport())
 		{
 			_usingValidationLayers = true;
 

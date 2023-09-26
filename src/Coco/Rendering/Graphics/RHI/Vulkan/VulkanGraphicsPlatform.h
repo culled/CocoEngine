@@ -20,7 +20,7 @@ namespace Coco::Rendering::Vulkan
 		bool _supportsPresentation;
 
 	public:
-		VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams, uint32 apiVersion);
+		VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams, uint32 apiVersion, bool useValidationLayers);
 		~VulkanGraphicsPlatform();
 
 		const char* GetName() const final { return sVulkanRHIName; }

@@ -6,7 +6,6 @@
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
 
 #include <Coco/ImGui/ImGuiService.h>
-#include <imgui.h>
 
 #include "Rendering/BasicRenderPass.h"
 
@@ -16,7 +15,8 @@ MainApplication(SandboxApp)
 
 SandboxApp::SandboxApp() : 
 	Application(ApplicationCreateParameters("Sandbox", Version(0, 0, 1))),
-	_tickListener(this, &SandboxApp::Tick, 0)
+	_tickListener(this, &SandboxApp::Tick, 0),
+	_imGuiLayer(CreateUniqueRef<ImGuiLayer>())
 {
 	MainLoop::Get()->AddListener(_tickListener);
 	//MainLoop::Get()->SetTargetTicksPerSecond(144);
@@ -33,7 +33,7 @@ SandboxApp::SandboxApp() :
 		GraphicsPlatformCreateParams platformParams(*this, true);
 		platformParams.DeviceCreateParameters = deviceParams;
 
-		Vulkan::VulkanGraphicsPlatformFactory vulkanFactory(platformParams);
+		Vulkan::VulkanGraphicsPlatformFactory vulkanFactory(platformParams, Vulkan::VulkanGraphicsPlatformFactory::sDefaultAPIVersion, true);
 		services->CreateService<RenderService>(vulkanFactory);
 	}
 
@@ -42,7 +42,7 @@ SandboxApp::SandboxApp() :
 		WindowService& windowing = services->CreateService<WindowService>(true);
 		WindowCreateParams windowCreateParams("Sandbox", SizeInt(1280, 720));
 		Ref<Window> win = windowing.CreateWindow(windowCreateParams);
-		//win->GetPresenter()->SetVSync(Rendering::VSyncMode::Immediate);
+		win->GetPresenter()->SetVSync(Rendering::VSyncMode::Immediate);
 		win->Show();
 	}
 
@@ -65,6 +65,11 @@ SandboxApp::SandboxApp() :
 
 SandboxApp::~SandboxApp()
 {
+	_pipeline.reset();
+	_renderViewProvider.reset();
+	_sceneDataProvider.reset();
+	_imGuiLayer.reset();
+
 	LogTrace(_log, "Sandbox app shutdown")
 }
 
@@ -82,8 +87,7 @@ void SandboxApp::Tick(const TickInfo & tickInfo)
 		return;
 	}
 
-	static bool show = true;
-	::ImGui::ShowDemoWindow(&show);
+	_imGuiLayer->Draw();
 
 	Windowing::WindowService& windowing = services->GetService<Windowing::WindowService>();
 	Rendering::RenderService& rendering = services->GetService<Rendering::RenderService>();

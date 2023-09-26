@@ -334,11 +334,6 @@ namespace Coco::ImGuiCoco
 
         ImDrawData* drawData = _currentlyRenderingViewport->DrawData;
 
-        //RectInt viewport(
-        //    Vector2Int(static_cast<int>(drawData->DisplayPos.x), static_cast<int>(drawData->DisplayPos.y)),
-        //    SizeInt(static_cast<uint32>(drawData->DisplaySize.x), static_cast<uint32>(drawData->DisplaySize.y))
-        //);
-
         RectInt viewport(Vector2Int::Zero, SizeInt(static_cast<uint32>(drawData->DisplaySize.x), static_cast<uint32>(drawData->DisplaySize.y)));
 
         Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(

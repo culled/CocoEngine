@@ -13,9 +13,10 @@ namespace Coco::Rendering::Vulkan
 
 	private:
 		uint32 _apiVersion;
+		bool _useValidationLayers;
 
 	public:
-		VulkanGraphicsPlatformFactory(const GraphicsPlatformCreateParams& createParams, const Version& apiVersion = sDefaultAPIVersion);
+		VulkanGraphicsPlatformFactory(const GraphicsPlatformCreateParams& createParams, const Version& apiVersion = sDefaultAPIVersion, bool useValidationLayers = false);
 
 		UniqueRef<GraphicsPlatform> Create() const final;
 	};

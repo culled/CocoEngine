@@ -4,6 +4,7 @@
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
 #include "Rendering/BasicRenderViewProvider.h"
 #include "Rendering/BasicSceneDataProvider.h"
+#include "ImGui/ImGuiLayer.h"
 
 using namespace Coco;
 
@@ -14,6 +15,7 @@ private:
 	SharedRef<Rendering::RenderPipeline> _pipeline;
 	UniqueRef<BasicRenderViewProvider> _renderViewProvider;
 	UniqueRef<BasicSceneDataProvider> _sceneDataProvider;
+	UniqueRef<ImGuiLayer> _imGuiLayer;
 
 public:
 	SandboxApp();
