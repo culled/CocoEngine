@@ -7,8 +7,31 @@
 
 using namespace Coco;
 
+ImGuiLayer::ImGuiLayer(RenderViewProvider3D& viewProvider3D) :
+	_viewProvider3D(viewProvider3D)
+{}
+
 void ImGuiLayer::Draw()
 {
+	ImGui::Begin("Settings");
+
+	std::array<const char*, 4> msaaTexts = { "One", "Two", "Four", "Eight" };
+	MSAASamples currentMSAASamples = _viewProvider3D.GetMSAASamples();
+
+	if (ImGui::BeginCombo("MSAA samples", msaaTexts[static_cast<int>(currentMSAASamples)]))
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			MSAASamples s = static_cast<MSAASamples>(i);
+			if (ImGui::Selectable(msaaTexts[i], currentMSAASamples == s))
+				_viewProvider3D.SetMSAASamples(s);
+
+		}
+
+		ImGui::EndCombo();
+	}
+
+	ImGui::End();
 }
 
 void ImGuiLayer::DrawPostRender()

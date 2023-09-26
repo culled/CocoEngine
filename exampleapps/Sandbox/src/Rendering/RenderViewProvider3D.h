@@ -28,6 +28,9 @@ public:
 		const SizeInt& backbufferSize,
 		std::span<Ref<Image>> backbuffers) final;
 
+	void SetMSAASamples(MSAASamples samples);
+	MSAASamples GetMSAASamples() const { return _msaaSamples; }
+
 private:
 	void Tick(const TickInfo& tickInfo);
 };

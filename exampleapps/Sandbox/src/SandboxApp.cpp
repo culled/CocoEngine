@@ -16,8 +16,7 @@ MainApplication(SandboxApp)
 
 SandboxApp::SandboxApp() : 
 	Application(ApplicationCreateParameters("Sandbox", Version(0, 0, 1))),
-	_tickListener(this, &SandboxApp::Tick, 0),
-	_imGuiLayer(CreateUniqueRef<ImGuiLayer>())
+	_tickListener(this, &SandboxApp::Tick, 0)
 {
 	MainLoop::Get()->AddListener(_tickListener);
 	//MainLoop::Get()->SetTargetTicksPerSecond(144);
@@ -73,6 +72,8 @@ SandboxApp::SandboxApp() :
 
 	_renderViewProvider2D = CreateUniqueRef<RenderViewProvider2D>();
 	_sceneDataProvider2D = CreateUniqueRef<SceneDataProvider2D>();
+
+	_imGuiLayer = CreateUniqueRef<ImGuiLayer>(*_renderViewProvider3D);
 
 	LogTrace(_log, "Sandbox app initialized")
 }

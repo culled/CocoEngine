@@ -52,6 +52,11 @@ UniqueRef<RenderView> RenderViewProvider3D::CreateRenderView(
     return CreateUniqueRef<RenderView>(viewport, viewport, view, projection, pipeline.SupportsMSAA ? _msaaSamples : MSAASamples::One, rts);
 }
 
+void RenderViewProvider3D::SetMSAASamples(MSAASamples samples)
+{
+    _msaaSamples = samples;
+}
+
 void RenderViewProvider3D::Tick(const TickInfo& tickInfo)
 {
     using namespace Coco::Input;
