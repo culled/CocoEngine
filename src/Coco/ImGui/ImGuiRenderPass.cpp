@@ -14,7 +14,19 @@ namespace Coco::ImGuiCoco
 
     void ImGuiRenderPass::Execute(RenderContext& context, const RenderView& renderView)
     {
-        ImDrawData* drawData = ::ImGui::GetDrawData();
+        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("projection"), renderView.GetProjectionMatrix());
+
+        for (const ObjectData& obj : renderView.GetRenderObjects())
+        {
+            const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
+            context.SetMaterial(material);
+
+            const MeshData& mesh = renderView.GetMeshData(obj.MeshID);
+            context.SetScissorRect(obj.ScissorRect);
+            context.Draw(mesh, obj.SubmeshID);
+        }
+
+        /*ImDrawData* drawData = ::ImGui::GetDrawData();
 
         if (drawData->TotalVtxCount == 0)
             return;
@@ -51,6 +63,6 @@ namespace Coco::ImGuiCoco
             }
 
             indexOffset += drawList->IdxBuffer.Size;
-        }
+        }*/
     }
 }

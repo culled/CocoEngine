@@ -24,6 +24,7 @@ public:
 
 	UniqueRef<RenderView> CreateRenderView(
 		const CompiledRenderPipeline& pipeline,
+		uint64 rendererID,
 		const SizeInt& backbufferSize,
 		std::span<Ref<Image>> backbuffers) final;
 

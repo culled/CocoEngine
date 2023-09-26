@@ -268,7 +268,7 @@ namespace Coco::Platforms::Win32
 		case WM_XBUTTONDBLCLK:
 		case WM_XBUTTONUP:
 		{
-			bool handled = HandleInputMessage(message, wParam, lParam);
+			bool handled = HandleInputMessage(windowHandle, message, wParam, lParam);
 			if (handled)
 				return 0;
 
@@ -439,7 +439,7 @@ namespace Coco::Platforms::Win32
 #endif
 
 #ifdef COCO_SERVICES_INPUT
-	bool Win32EnginePlatform::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
+	bool Win32EnginePlatform::HandleInputMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		ServiceManager* services = ServiceManager::Get();
 
@@ -462,10 +462,10 @@ namespace Coco::Platforms::Win32
 		}
 		case WM_MOUSEMOVE:
 		{
-			const int x = GET_X_LPARAM(lParam);
-			const int y = GET_Y_LPARAM(lParam);
+			POINT p{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
-			input.GetMouse().UpdatePositionState(Vector2Int(x, y));
+			::MapWindowPoints(windowHandle, HWND_DESKTOP, &p, 1);
+			input.GetMouse().UpdatePositionState(Vector2Int(p.x, p.y));
 			return true;
 		}
 		case WM_MOUSEWHEEL:

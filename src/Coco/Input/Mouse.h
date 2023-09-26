@@ -130,7 +130,7 @@ namespace Coco::Input
 		/// @return True if the mouse button was released since the last tick
 		bool WasButtonJustReleased(MouseButton button) const;
 
-		/// @brief Gets the current position of the mouse
+		/// @brief Gets the current position of the mouse, in screen-coordinates
 		/// @return The mouse position
 		Vector2Int GetPosition() const { return _currentState.Position; }
 

@@ -14,6 +14,8 @@ namespace Coco::Rendering
 		std::unordered_map<uint8, Ref<Image>> Images;
 
 		PipelineImageCache();
+
+		static uint64 MakeKey(const CompiledRenderPipeline& pipeline, uint64 rendererID);
 	};
 
 	/// @brief Holds a cache of images used for rendering
@@ -27,12 +29,14 @@ namespace Coco::Rendering
 
 		/// @brief Creates render targets required for the given pipeline
 		/// @param pipeline The pipeline being used to render
+		/// @param rendererID The ID of the renderer
 		/// @param backbufferSize The size of the images
 		/// @param msaaSamples The number of MSAA samples for the attachments
 		/// @param backbuffers The provided backbuffers
 		/// @return RenderTargets with the neccessary images for the pipeline's attachments
 		std::vector<RenderTarget> CreateRenderTargets(
 			const CompiledRenderPipeline& pipeline, 
+			uint64 rendererID,
 			const SizeInt& backbufferSize, 
 			MSAASamples msaaSamples,
 			std::span<Ref<Image>> backbuffers);

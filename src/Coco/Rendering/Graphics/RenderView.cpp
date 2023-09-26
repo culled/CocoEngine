@@ -75,12 +75,13 @@ namespace Coco::Rendering
 		UniformData(uniformData)
 	{}
 
-	ObjectData::ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint32 submeshID, uint64 materialID) :
+	ObjectData::ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint32 submeshID, uint64 materialID, const RectInt& scissorRect) :
 		ID(id),
 		ModelMatrix(modelMatrix),
 		MeshID(meshID),
 		SubmeshID(submeshID),
-		MaterialID(materialID)
+		MaterialID(materialID),
+		ScissorRect(scissorRect)
 	{}
 
 	RenderView::RenderView(
@@ -198,13 +199,19 @@ namespace Coco::Rendering
 		return _materialDatas.at(key);
 	}
 
-	uint64 RenderView::AddRenderObject(const Mesh& mesh, uint32 submeshID, const Matrix4x4& modelMatrix, const MaterialDataProvider* material)
+	uint64 RenderView::AddRenderObject(
+		const Mesh& mesh, 
+		uint32 submeshID, 
+		const Matrix4x4& modelMatrix, 
+		std::optional<const MaterialDataProvider&> material,
+		std::optional<const RectInt&> scissorRect)
 	{
 		uint64 meshID = AddMesh(mesh);
-		uint64 materialID = material ? AddMaterial(*material) : InvalidID;
+		uint64 materialID = material.has_value() ? AddMaterial(*material) : InvalidID;
+		RectInt scissorRect = scissorRect.has_value() ? *scissorRect : _scissorRect;
 
 		uint64 objectID = _objectDatas.size();
-		_objectDatas.emplace_back(objectID, modelMatrix, meshID, submeshID, materialID);
+		_objectDatas.emplace_back(objectID, modelMatrix, meshID, submeshID, materialID, scissorRect);
 
 		return objectID;
 	}

@@ -88,6 +88,10 @@ namespace Coco::Rendering
 		/// @brief Blocks until this context's rendering operations have finished
 		virtual void WaitForRenderingToComplete() = 0;
 
+		/// @brief Checks and updates this RenderContext's state if it has completed the last render
+		/// @return True if this context has completed its last render
+		virtual bool CheckForRenderingComplete() = 0;
+
 		/// @brief Gets the semaphore used by this context that can be used to wait before it starts the render
 		/// @return The semaphore
 		virtual Ref<GraphicsSemaphore> GetRenderStartSemaphore() = 0;

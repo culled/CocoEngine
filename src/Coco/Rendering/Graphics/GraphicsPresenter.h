@@ -14,6 +14,10 @@ namespace Coco::Rendering
 	public:
 		virtual ~GraphicsPresenter() = default;
 
+		/// @brief Gets the ID of this presenter
+		/// @return This presenter's ID
+		virtual uint64 GetID() const = 0;
+
 		/// @brief Initializes the surface that this presenter will use for presentation
 		/// @param surface The surface
 		virtual void InitializeSurface(const GraphicsPresenterSurface& surface) = 0;

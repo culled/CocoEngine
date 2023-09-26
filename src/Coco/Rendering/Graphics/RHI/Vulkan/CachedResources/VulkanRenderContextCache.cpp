@@ -18,21 +18,24 @@ namespace Coco::Rendering::Vulkan
 		_framebuffers.clear();
 	}
 
-	VulkanFramebuffer& VulkanRenderContextCache::GetOrCreateFramebuffer(const SizeInt& size, VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
+	VulkanFramebuffer& VulkanRenderContextCache::GetOrCreateFramebuffer(
+		const SizeInt& size, 
+		VulkanRenderPass& renderPass,
+		std::span<const VulkanImage*> attachmentImages)
 	{
-		GraphicsDeviceResourceID key = VulkanFramebuffer::MakeKey(size, renderPass, attachmentImages);
+		GraphicsDeviceResourceID key = VulkanFramebuffer::MakeKey(renderPass, attachmentImages);
 
 		auto it = _framebuffers.find(key);
 
 		if (it == _framebuffers.end())
 		{
-			it = _framebuffers.try_emplace(key, size, renderPass, attachmentImages).first;
+			it = _framebuffers.try_emplace(key, renderPass, attachmentImages).first;
 		}
 
 		VulkanFramebuffer& resource = it->second;
 
-		if (resource.NeedsUpdate(renderPass))
-			resource.Update(size, renderPass, attachmentImages);
+		if (resource.NeedsUpdate(renderPass, size))
+			resource.Update(renderPass, size, attachmentImages);
 
 		resource.Use();
 

@@ -20,7 +20,10 @@ namespace Coco::Rendering
 	/// @brief A render task for a RenderService
 	struct RenderServiceRenderTask
 	{
+		/// @brief The context used for this task
 		Ref<RenderContext> Context;
+
+		/// @brief The presenter, if any, linked to this task
 		Ref<GraphicsPresenter> Presenter;
 
 		RenderServiceRenderTask(Ref<RenderContext> context, Ref<GraphicsPresenter> presenter);
@@ -41,7 +44,7 @@ namespace Coco::Rendering
 		Ref<Texture> _defaultCheckerTexture;
 		RenderStats _stats;
 		UniqueRef<TickListener> _lateTickListener;
-		std::vector<RenderServiceRenderTask> _currentRenderTasks;
+		std::unordered_map<uint64, std::vector<RenderServiceRenderTask>> _renderTasks;
 
 	public:
 		RenderService(const GraphicsPlatformFactory& platformFactory);

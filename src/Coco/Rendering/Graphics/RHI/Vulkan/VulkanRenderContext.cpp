@@ -81,6 +81,17 @@ namespace Coco::Rendering::Vulkan
 		_currentState = State::RenderCompleted;
 	}
 
+	bool VulkanRenderContext::CheckForRenderingComplete()
+	{
+		if (_currentState == State::EndedRender)
+		{
+			if (_renderCompletedFence->IsSignaled())
+				_currentState = State::RenderCompleted;
+		}
+
+		return _currentState == State::RenderCompleted;
+	}
+
 	void VulkanRenderContext::AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore)
 	{
 		if (!semaphore.IsValid())
@@ -479,7 +490,8 @@ namespace Coco::Rendering::Vulkan
 						cmdBuffer,
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
 						globalState.Pipeline->GetPipelineLayout(),
-						0, 1, &globalState.DescriptorSet,
+						0, 
+						1, &globalState.DescriptorSet,
 						0, 0);
 				}
 			}
@@ -507,7 +519,8 @@ namespace Coco::Rendering::Vulkan
 						cmdBuffer,
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
 						globalState.Pipeline->GetPipelineLayout(),
-						offset, 1, &instanceState.DescriptorSet,
+						offset, 
+						1, &instanceState.DescriptorSet,
 						0, 0);
 				}
 			}

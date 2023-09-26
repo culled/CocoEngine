@@ -2,8 +2,6 @@
 #include <Coco/Core/Services/EngineService.h>
 #include <Coco/Core/MainLoop/TickListener.h>
 #include "ImGuiCocoPlatform.h"
-#include "ImGuiRenderPass.h"
-#include <Coco/Rendering/Pipeline/RenderPipeline.h>
 
 namespace Coco::ImGuiCoco
 {
@@ -23,8 +21,6 @@ namespace Coco::ImGuiCoco
         TickListener _newFrameTickListener;
         TickListener _drawTickListener;
         UniqueRef<ImGuiCocoPlatform> _platform;
-        SharedRef<ImGuiRenderPass> _renderPass;
-        UniqueRef<Rendering::RenderPipeline> _renderPipeline;
 
     public:
         ImGuiService();

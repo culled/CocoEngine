@@ -16,18 +16,12 @@ namespace Coco::ImGuiCoco
 
 	ImGuiService::ImGuiService() :
 		_newFrameTickListener(this, &ImGuiService::HandleNewFrameTick, sImGuiNewFramePriority),
-		_drawTickListener(this, &ImGuiService::HandleDrawTick, sImGuiDrawPriority),
-		_renderPass(CreateSharedRef<ImGuiRenderPass>())
+		_drawTickListener(this, &ImGuiService::HandleDrawTick, sImGuiDrawPriority)
 	{
 		using namespace Coco::Rendering;
 
 		MainLoop::Get()->AddListener(_newFrameTickListener);
 		MainLoop::Get()->AddListener(_drawTickListener);
-
-		// Create the pipeline
-		_renderPipeline = CreateUniqueRef<Rendering::RenderPipeline>();
-		std::array<uint8, 1> bindings = { 0 };
-		_renderPipeline->AddRenderPass(_renderPass, bindings);
 
 		// Create the ImGui context and run setup
 		::ImGui::CreateContext();
@@ -38,8 +32,6 @@ namespace Coco::ImGuiCoco
 
 	ImGuiService::~ImGuiService()
 	{
-		_renderPipeline.reset();
-		_renderPass.reset();
 		_platform.reset();
 
 		MainLoop::Get()->RemoveListener(_newFrameTickListener);
@@ -74,11 +66,21 @@ namespace Coco::ImGuiCoco
 		::ImGui::EndFrame();
 		::ImGui::Render();
 
-		RenderService* rendering = RenderService::Get();
-		if (!rendering)
-			throw std::exception("No active RenderService found");
+		const ImGuiIO& io = ::ImGui::GetIO();
+		if (io.ConfigFlags && ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::UpdatePlatformWindows();
+		}
 
-		std::array<SceneDataProvider*, 1> sceneProviders = { _platform.get()};
-		rendering->Render(mainWindow->GetPresenter(), *_renderPipeline, *_platform, sceneProviders);
+		ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+
+		for (int i = 0; i < platformIO.Viewports.Size; i++)
+		{
+			ImGuiViewport* viewport = platformIO.Viewports[i];
+			if (viewport->Flags & ImGuiViewportFlags_IsMinimized)
+				continue;
+
+			if (platformIO.Platform_RenderWindow) platformIO.Platform_RenderWindow(viewport, nullptr);
+		}
 	}
 }

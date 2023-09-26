@@ -100,6 +100,7 @@ namespace Coco::Rendering::Vulkan
         ~VulkanRenderContext();
 
         void WaitForRenderingToComplete() final;
+        bool CheckForRenderingComplete() final;
 
         Ref<GraphicsSemaphore> GetRenderStartSemaphore() final { return _renderStartSemaphore; }
         Ref<GraphicsSemaphore> GetRenderCompletedSemaphore() final { return _renderCompletedSemaphore; }

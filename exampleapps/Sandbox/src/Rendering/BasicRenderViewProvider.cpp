@@ -19,9 +19,13 @@ BasicRenderViewProvider::~BasicRenderViewProvider()
     MainLoop::Get()->RemoveListener(_tickListener);
 }
 
-UniqueRef<RenderView> BasicRenderViewProvider::CreateRenderView(const CompiledRenderPipeline& pipeline, const SizeInt& backbufferSize, std::span<Ref<Image>> backbuffers)
+UniqueRef<RenderView> BasicRenderViewProvider::CreateRenderView(
+    const CompiledRenderPipeline& pipeline,
+    uint64 rendererID, 
+    const SizeInt& backbufferSize, 
+    std::span<Ref<Image>> backbuffers)
 {
-    std::vector<RenderTarget> rts = _attachmentCache.CreateRenderTargets(pipeline, backbufferSize, _msaaSamples, backbuffers);
+    std::vector<RenderTarget> rts = _attachmentCache.CreateRenderTargets(pipeline, rendererID, backbufferSize, _msaaSamples, backbuffers);
 
     for (size_t i = 0; i < rts.size(); i++)
     {

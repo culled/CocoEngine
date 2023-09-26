@@ -415,7 +415,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		for (ManagedRef<VulkanRenderContext>& context : _renderContexts)
 		{
-			if (context->GetState() == RenderContext::State::RenderCompleted)
+			if (context->CheckForRenderingComplete())
 			{
 				context->Reset();
 				return context;

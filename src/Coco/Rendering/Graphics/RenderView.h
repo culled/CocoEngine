@@ -155,7 +155,10 @@ namespace Coco::Rendering
 		/// @brief The ID of the material to render with
 		uint64 MaterialID;
 
-		ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint32 submeshID, uint64 materialID);
+		/// @brief The scissor rectangle to use for rendering this object
+		RectInt ScissorRect;
+
+		ObjectData(uint64 id, const Matrix4x4& modelMatrix, uint64 meshID, uint32 submeshID, uint64 materialID, const RectInt& scissorRect);
 	};
 
 	/// @brief Holds information needed to render a scene
@@ -258,9 +261,15 @@ namespace Coco::Rendering
 		/// @param mesh The mesh
 		/// @param submeshID The ID of the submesh
 		/// @param modelMatrix The model matrix
-		/// @param material The material, or nullptr to not store a material for this object
+		/// @param material The material (optional)
+		/// @param scissorRect The scissor rect (optional)
 		/// @return The key to the object
-		uint64 AddRenderObject(const Mesh& mesh, uint32 submeshID, const Matrix4x4& modelMatrix, const MaterialDataProvider* material);
+		uint64 AddRenderObject(
+			const Mesh& mesh, 
+			uint32 submeshID, 
+			const Matrix4x4& modelMatrix, 
+			std::optional<const MaterialDataProvider&> material, 
+			std::optional<const RectInt&> scissorRect);
 
 		/// @brief Gets all objects to be rendered
 		/// @return The renderable objects

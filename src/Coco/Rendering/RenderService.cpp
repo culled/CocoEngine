@@ -12,7 +12,7 @@ namespace Coco::Rendering
 
 	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory) :
 		_lateTickListener(CreateUniqueRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
-		_currentRenderTasks{}
+		_renderTasks{}
 	{
 		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
@@ -29,6 +29,7 @@ namespace Coco::Rendering
 	RenderService::~RenderService()
 	{
 		MainLoop::Get()->RemoveListener(*_lateTickListener);
+		_renderTasks.clear();
 
 		_defaultDiffuseTexture.Invalidate();
 		_defaultNormalTexture.Invalidate();
@@ -69,7 +70,7 @@ namespace Coco::Rendering
 
 		// Create the RenderView using the acquired backbuffers
 		std::array<Ref<Image>, 1> backbuffers{ backbuffer };
-		UniqueRef<RenderView> view = renderViewProvider.CreateRenderView(compiledPipeline, presenter->GetFramebufferSize(), backbuffers);
+		UniqueRef<RenderView> view = renderViewProvider.CreateRenderView(compiledPipeline, presenter->GetID(), presenter->GetFramebufferSize(), backbuffers);
 
 		// Get the scene data
 		for (SceneDataProvider* provider : sceneDataProviders)
@@ -81,22 +82,29 @@ namespace Coco::Rendering
 		}
 
 		Ref<GraphicsSemaphore> waitOn;
+		uint64 presenterID = presenter->GetID();
 
 		// Add syncronization to the previous task if it was given
 		if (dependsOn.has_value())
 		{
 			waitOn = dependsOn->RenderCompletedSemaphore;
 		}
-		else if(_currentRenderTasks.size() > 0)
+		else if(_renderTasks.contains(presenterID))
 		{
-			RenderServiceRenderTask& t = _currentRenderTasks.back();
-			waitOn = t.Context->GetRenderCompletedSemaphore();
+			std::vector<RenderServiceRenderTask>& tasks = _renderTasks.at(presenterID);
+
+			if (tasks.size() > 0)
+			{
+				RenderServiceRenderTask& task = tasks.back();
+				Assert(task.Context.IsValid())
+				waitOn = task.Context->GetRenderCompletedSemaphore();
+			}
 		}
 
 		ExecuteRender(*context, compiledPipeline, *view, waitOn);
 
 		RenderTask task(context->GetRenderCompletedSemaphore(), context->GetRenderCompletedFence());
-		_currentRenderTasks.emplace_back(std::move(context), presenter);
+		_renderTasks[presenterID].emplace_back(context, presenter);
 		return task;
 	}
 
@@ -232,41 +240,38 @@ namespace Coco::Rendering
 
 	void RenderService::HandleLateTick(const TickInfo& tickInfo)
 	{
-		std::vector<GraphicsPresenter*> presented;
-
-		// Queue presentation for each rendered presenter and wait for all rendering to complete
-		for (auto it = _currentRenderTasks.rbegin(); it != _currentRenderTasks.rend(); it++)
+		// Queue presentation for each rendered presenter
+		for (auto it = _renderTasks.begin(); it != _renderTasks.end(); it++)
 		{
-			RenderServiceRenderTask& task = *it;
+			std::vector<RenderServiceRenderTask>& tasks = it->second;
 
-			if (!task.Context.IsValid())
-			{
-				CocoError("RenderContext became invalid by the RenderService::LateTick")
+			if (tasks.size() == 0)
 				continue;
-			}
 
-			if (task.Presenter.IsValid())
+			RenderServiceRenderTask& lastTask = tasks.back();
+			Assert(lastTask.Context.IsValid())
+
+			if (lastTask.Presenter.IsValid())
 			{
-				auto it = std::find(presented.begin(), presented.end(), task.Presenter.Get());
-				if (it == presented.end())
-				{
-					if (!task.Presenter->Present(task.Context->GetRenderCompletedSemaphore()))
-					{
-						CocoError("Failed to present image")
-					}
-
-					presented.push_back(task.Presenter.Get());
-				}
+				lastTask.Presenter->Present(lastTask.Context->GetRenderCompletedSemaphore());
 			}
-			else
-			{
-				CocoError("GraphicsPresenter became invalid by the RenderService::LateTick")
-			}
-
-			task.Context->WaitForRenderingToComplete();
 		}
 
-		_currentRenderTasks.clear();
+		// Wait for all renders to complete
+		for (auto it = _renderTasks.begin(); it != _renderTasks.end(); it++)
+		{
+			std::vector<RenderServiceRenderTask>& tasks = it->second;
+
+			if (tasks.size() == 0)
+				continue;
+
+			RenderServiceRenderTask& lastTask = tasks.back();
+			Assert(lastTask.Context.IsValid())
+
+			lastTask.Context->WaitForRenderingToComplete();
+		}
+
+		_renderTasks.clear();
 
 		_device->ResetForNewFrame();
 		_stats.Reset();

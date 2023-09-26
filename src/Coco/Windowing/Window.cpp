@@ -66,9 +66,19 @@ namespace Coco::Windowing
 		}
 	}
 
+	bool Window::HasParent() const
+	{
+		return _parentID != InvalidID;
+	}
+
 	WindowID Window::GetParentID() const
 	{
 		return _parentID;
+	}
+
+	RectInt Window::GetRect(bool clientArea, bool relativeToParent) const
+	{
+		return RectInt(GetPosition(clientArea, relativeToParent), clientArea ? GetClientAreaSize() : GetSize());
 	}
 
 	Ref<Window> Window::GetParentWindow() const

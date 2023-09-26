@@ -246,14 +246,456 @@ namespace Coco::ImGuiCoco
 		}
 	}
 
-    ImGuiCocoPlatform::ImGuiCocoPlatform()
+    CocoViewportData::CocoViewportData(Windowing::Window* window) :
+        Window(window),
+        IgnorePositionChanged(false),
+        IgnoreSizeChanged(false)
     {
+        OnPositionChanged.SetCallback([&](const Vector2Int& pos) {
+            ImGuiCocoPlatform::PlatformWindowPositionChangedCallback(Window);
+            return false;
+            });
+        OnPositionChanged.Connect(window->OnPositionChanged);
+
+        OnSizeChanged.SetCallback([&](const SizeInt& size) {
+            ImGuiCocoPlatform::PlatformWindowSizeChangedCallback(Window);
+            return false;
+            });
+        OnSizeChanged.Connect(window->OnResized);
+
+        OnClosing.SetCallback([&](bool& cancel) {
+            ImGuiCocoPlatform::PlatformWindowCloseCallback(Window);
+            cancel = true;
+            return true;
+            });
+        OnClosing.Connect(window->OnClosing);
+    }
+
+    CocoViewportData::~CocoViewportData()
+    {
+        OnPositionChanged.Disconnect();
+        OnSizeChanged.Disconnect();
+        OnClosing.Disconnect();
+    }
+
+    std::unordered_map<uint64, CocoViewportData> ImGuiCocoPlatform::_sViewports;
+
+    ImGuiCocoPlatform::ImGuiCocoPlatform() :
+        _renderPass(CreateSharedRef<ImGuiRenderPass>()),
+        _currentlyRenderingViewport(nullptr)
+    {
+        _sViewports = std::unordered_map<uint64, CocoViewportData>();
+
         ImGuiIO& io = ::ImGui::GetIO();
+        io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;
+        io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
+
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableSetMousePos; // TODO: set mouse cursor position
-        io.BackendFlags = ImGuiBackendFlags_None;
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable viewports
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable docking
+
         io.BackendPlatformName = "Coco";
         io.BackendRendererName = "Coco";
+
+        io.BackendPlatformUserData = this;
+
+        InitPlatformInterface();
+        CreateObjects();
+        UpdateDisplays();
+    }
+
+    ImGuiCocoPlatform::~ImGuiCocoPlatform()
+    {
+        ::ImGui::DestroyPlatformWindows();
+        _sViewports.clear();
+
+        _renderPipeline.reset();
+        _renderPass.reset();
+        _shader.Invalidate();
+        _mesh.Invalidate();
+        _material.Invalidate();
+    }
+
+    UniqueRef<Rendering::RenderView> ImGuiCocoPlatform::CreateRenderView(
+        const Rendering::CompiledRenderPipeline& pipeline,
+        uint64 rendererID,
+        const SizeInt& backbufferSize,
+        std::span<Ref<Rendering::Image>> backbuffers)
+    {
+        using namespace Coco::Rendering;
+
+        Assert(_currentlyRenderingViewport != nullptr)
+
+        std::vector<RenderTarget> rts;
+
+        for (size_t i = 0; i < backbuffers.size(); i++)
+            rts.emplace_back(backbuffers[i], Vector4::Zero);
+
+        ImDrawData* drawData = _currentlyRenderingViewport->DrawData;
+
+        //RectInt viewport(
+        //    Vector2Int(static_cast<int>(drawData->DisplayPos.x), static_cast<int>(drawData->DisplayPos.y)),
+        //    SizeInt(static_cast<uint32>(drawData->DisplaySize.x), static_cast<uint32>(drawData->DisplaySize.y))
+        //);
+
+        RectInt viewport(Vector2Int::Zero, SizeInt(static_cast<uint32>(drawData->DisplaySize.x), static_cast<uint32>(drawData->DisplaySize.y)));
+
+        Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(
+            viewport.GetLeft(),
+            viewport.GetRight(),
+            viewport.GetTop(),
+            viewport.GetBottom(),
+            -1.0, 1.0);
+
+        return CreateUniqueRef<RenderView>(viewport, viewport, Matrix4x4::Identity, projection, MSAASamples::One, rts);
+    }
+
+    void ImGuiCocoPlatform::GatherSceneData(RenderView& renderView)
+    {
+        using namespace Coco::Rendering;
+
+        Assert(_currentlyRenderingViewport != nullptr)
+
+        ImDrawData* drawData = _currentlyRenderingViewport->DrawData;
+
+        VertexDataFormat format{};
+        format.HasColor = true;
+        format.HasUV0 = true;
+
+        if (drawData->TotalVtxCount > 0)
+        {
+            _mesh->ClearSubmeshes();
+
+            VertexDataFormat format{};
+            format.HasUV0 = true;
+            format.HasColor = true;
+
+            std::vector<VertexData> vertices(drawData->TotalVtxCount);
+            std::vector<uint32> indices;
+            uint64 vertexOffset = 0;
+            uint64 indexOffset = 0;
+
+            Vector3 offset(drawData->DisplayPos.x, drawData->DisplayPos.y, 0.0);
+
+            for (int n = 0; n < drawData->CmdListsCount; n++)
+            {
+                const ImDrawList* drawList = drawData->CmdLists[n];
+
+                for (int v = 0; v < drawList->VtxBuffer.Size; v++)
+                {
+                    ImDrawVert* imVert = drawList->VtxBuffer.Data + v;
+                    VertexData& vert = vertices.at(v + vertexOffset);
+
+                    vert.Position = Vector3(imVert->pos.x, imVert->pos.y, 0.0) - offset;
+
+                    ImVec4 imGuiColor = ::ImGui::ColorConvertU32ToFloat4(imVert->col);
+                    Color c(imGuiColor.x, imGuiColor.y, imGuiColor.z, imGuiColor.w);
+                    c.ConvertToLinear();
+                    vert.Color = Vector4(c.R, c.G, c.B, c.A);
+
+                    vert.UV0 = Vector2(imVert->uv.x, imVert->uv.y);
+                }
+
+                indices.resize(drawList->IdxBuffer.Size);
+                for (int i = 0; i < drawList->IdxBuffer.Size; i++)
+                {
+                    indices.at(i) = *(drawList->IdxBuffer.Data + i) + static_cast<uint32>(vertexOffset);
+                }
+
+                vertexOffset += drawList->VtxBuffer.Size;
+                _mesh->SetIndices(indices, n);
+            }
+
+            _mesh->SetVertices(format, vertices);
+            _mesh->Apply();
+
+            renderView.AddMesh(*_mesh);
+            for (int n = 0; n < drawData->CmdListsCount; n++)
+            {
+                const ImDrawList* drawList = drawData->CmdLists[n];
+                const ImVec2 min = drawList->GetClipRectMin();
+                const ImVec2 max = drawList->GetClipRectMax();
+
+                renderView.AddRenderObject(
+                    *_mesh, 
+                    n, 
+                    Matrix4x4::Identity, 
+                    *_material, 
+                    RectInt(
+                        Vector2Int(static_cast<int>(min.x), static_cast<int>(min.y)),
+                        Vector2Int(static_cast<int>(max.x), static_cast<int>(max.y))
+                        )
+                    );
+            }
+        }
+    }
+
+    bool ImGuiCocoPlatform::NewFrame(const TickInfo& tickInfo)
+	{
+		using namespace Coco::Windowing;
+		using namespace Coco::Input;
+
+		WindowService* windowing = WindowService::Get();
+		if (!windowing)
+			throw std::exception("No active WindowService found");
+
+		InputService* input = InputService::Get();
+		if (!input)
+			throw std::exception("No active InputService found");
+
+		Ref<Window> mainWindow = windowing->GetMainWindow();
+		if (!mainWindow.IsValid())
+			return false;
+
+		ImGuiIO& io = ::ImGui::GetIO();
+
+		// Add basic info
+		io.DeltaTime = static_cast<float>(tickInfo.UnscaledDeltaTime);
+
+		// Add window-specific info
+		SizeInt displaySize = mainWindow->GetClientAreaSize();
+		io.DisplaySize = ImVec2(static_cast<float>(displaySize.Width), static_cast<float>(displaySize.Height));
+
+        ImGuiViewport* mainViewport = ::ImGui::GetMainViewport();
+        if (!mainViewport->PlatformHandle)
+        {
+            mainViewport->PlatformHandle = static_cast<void*>(mainWindow.Get());
+        }
+
+		// Add mouse events
+		Mouse& mouse = input->GetMouse();
+		if (!io.WantSetMousePos)
+		{
+			Vector2Int mousePos = mouse.GetPosition();
+			io.AddMousePosEvent(static_cast<float>(mousePos.X), static_cast<float>(mousePos.Y));
+		}
+
+		io.AddMouseButtonEvent(0, mouse.IsButtonPressed(MouseButton::Left));
+		io.AddMouseButtonEvent(1, mouse.IsButtonPressed(MouseButton::Right));
+		io.AddMouseButtonEvent(2, mouse.IsButtonPressed(MouseButton::Middle));
+		io.AddMouseButtonEvent(3, mouse.IsButtonPressed(MouseButton::Button3));
+		io.AddMouseButtonEvent(4, mouse.IsButtonPressed(MouseButton::Button4));
+
+		Vector2Int scrollDelta = mouse.GetScrollWheelDelta();
+		if (scrollDelta != Vector2Int::Zero)
+			io.AddMouseWheelEvent(static_cast<float>(scrollDelta.X), static_cast<float>(scrollDelta.Y));
+
+		Keyboard& keyboard = input->GetKeyboard();
+        io.AddKeyEvent(ImGuiMod_Ctrl, keyboard.IsKeyPressed(KeyboardKey::LeftControl) || keyboard.IsKeyPressed(KeyboardKey::RightControl));
+        io.AddKeyEvent(ImGuiMod_Shift, keyboard.IsKeyPressed(KeyboardKey::LeftShift) || keyboard.IsKeyPressed(KeyboardKey::RightShift));
+        io.AddKeyEvent(ImGuiMod_Alt, keyboard.IsKeyPressed(KeyboardKey::LeftAlt) || keyboard.IsKeyPressed(KeyboardKey::RightAlt));
+        io.AddKeyEvent(ImGuiMod_Super, keyboard.IsKeyPressed(KeyboardKey::LeftMeta) || keyboard.IsKeyPressed(KeyboardKey::RightMeta));
+
+		for (int i = 0; i < KeyboardState::KeyCount; i++)
+		{
+			KeyboardKey key = static_cast<KeyboardKey>(i);
+            ImGuiKey imGuiKey = ToImGuiKey(key);
+
+            if (imGuiKey == ImGuiKey_None)
+                continue;
+
+            io.AddKeyEvent(imGuiKey, keyboard.IsKeyPressed(key));
+		}
+        
+        return true;
+	}
+
+    void ImGuiCocoPlatform::PlatformCreateWindow(ImGuiViewport* viewport)
+    {
+        using namespace Coco::Windowing;
+
+        WindowService* windowing = WindowService::Get();
+        if (!windowing)
+            throw std::exception("No active WindowService found");
+
+        WindowCreateParams createParams("ImGui Window", SizeInt(static_cast<uint32>(viewport->Size.x), static_cast<uint32>(viewport->Size.y)));
+        createParams.InitialPosition = Vector2Int(static_cast<int32>(viewport->Pos.x), static_cast<int32>(viewport->Pos.y));
+        createParams.CanResize = false;
+        // TODO: undecorated windows
+
+        Ref<Window> window = windowing->CreateWindow(createParams);
+        CocoViewportData& viewportData = _sViewports.try_emplace(window->ID, window.Get()).first->second;
+
+        viewport->PlatformHandle = static_cast<void*>(window.Get());
+        viewport->PlatformUserData = &viewportData;
+    }
+
+    void ImGuiCocoPlatform::PlatformDestroyWindow(ImGuiViewport* viewport)
+    {
+        if (!viewport->PlatformHandle)
+            return;
+
+        using namespace Coco::Windowing;
+
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+
+        auto it = _sViewports.find(window->ID);
+        if (it != _sViewports.end())
+        {
+            _sViewports.erase(it);
+
+            window->Close();
+
+            viewport->PlatformHandle = nullptr;
+            viewport->PlatformUserData = nullptr;
+        }
+    }
+
+    void ImGuiCocoPlatform::PlatformShowWindow(ImGuiViewport* viewport)
+    {
+        using namespace Coco::Windowing;
+
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+        window->Show();
+    }
+
+    void ImGuiCocoPlatform::PlatformSetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
+    {
+        using namespace Coco::Windowing;
+
+        CocoViewportData* vd = static_cast<CocoViewportData*>(viewport->PlatformUserData);
+        vd->IgnorePositionChanged = true;
+        vd->Window->SetPosition(Vector2Int(static_cast<int>(pos.x), static_cast<int>(pos.y)), true, false);
+    }
+
+    ImVec2 ImGuiCocoPlatform::PlatformGetWindowPos(ImGuiViewport* viewport)
+    {
+        using namespace Coco::Windowing;
+
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+        Vector2Int pos = window->GetPosition(true, false);
+        return ImVec2(static_cast<float>(pos.X), static_cast<float>(pos.Y));
+    }
+
+    void ImGuiCocoPlatform::PlatformSetWindowSize(ImGuiViewport* viewport, ImVec2 size)
+    {
+        using namespace Coco::Windowing;
+
+        CocoViewportData* vd = static_cast<CocoViewportData*>(viewport->PlatformUserData);
+        vd->IgnoreSizeChanged = true;
+        vd->Window->SetClientAreaSize(SizeInt(static_cast<uint32>(size.x), static_cast<uint32>(size.y)));
+    }
+
+    ImVec2 ImGuiCocoPlatform::PlatformGetWindowSize(ImGuiViewport* viewport)
+    {
+        using namespace Coco::Windowing;
+
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+        SizeInt size = window->GetClientAreaSize();
+        return ImVec2(static_cast<float>(size.Width), static_cast<float>(size.Height));
+    }
+
+    void ImGuiCocoPlatform::PlatformFocusWindow(ImGuiViewport* viewport)
+    {
+        using namespace Coco::Windowing;
+
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+        window->Focus();
+    }
+
+    bool ImGuiCocoPlatform::PlatformWindowHasFocus(ImGuiViewport* viewport)
+    {
+        using namespace Coco::Windowing;
+
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+        return window->HasFocus();
+    }
+
+    bool ImGuiCocoPlatform::PlatformWindowMinimized(ImGuiViewport* viewport)
+    {
+        using namespace Coco::Windowing;
+
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+        return window->GetState() == WindowState::Minimized;
+    }
+
+    void ImGuiCocoPlatform::PlatformSetWindowTitle(ImGuiViewport* viewport, const char* title)
+    {
+        using namespace Coco::Windowing;
+
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+        window->SetTitle(title);
+    }
+
+    void ImGuiCocoPlatform::PlatformRenderViewport(ImGuiViewport* viewport, void* renderArgs)
+    {
+        using namespace Coco::Rendering;
+        using namespace Coco::Windowing;
+
+        ImGuiIO& io = ::ImGui::GetIO();
+
+        RenderService* rendering = RenderService::Get();
+        if (!rendering)
+            throw std::exception("No active RenderService found");
+
+        ImGuiCocoPlatform* platform = static_cast<ImGuiCocoPlatform*>(io.BackendPlatformUserData);
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+
+        platform->_currentlyRenderingViewport = viewport;
+
+        std::array<SceneDataProvider*, 1> sceneProviders = { platform };
+        rendering->Render(window->GetPresenter(), *platform->_renderPipeline, *platform, sceneProviders);
+
+        platform->_currentlyRenderingViewport = nullptr;
+    }
+
+    void ImGuiCocoPlatform::PlatformWindowPositionChangedCallback(Windowing::Window* window)
+    {
+        if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(window))
+        {
+            CocoViewportData* vd = static_cast<CocoViewportData*>(viewport->PlatformUserData);
+            if(!vd->IgnorePositionChanged)
+                viewport->PlatformRequestMove = true;
+
+            vd->IgnorePositionChanged = false;
+        }
+    }
+
+    void ImGuiCocoPlatform::PlatformWindowSizeChangedCallback(Windowing::Window* window)
+    {
+        if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(window))
+        {
+            CocoViewportData* vd = static_cast<CocoViewportData*>(viewport->PlatformUserData);
+            if (!vd->IgnoreSizeChanged)
+                viewport->PlatformRequestResize = true;
+
+            vd->IgnoreSizeChanged = false;
+        }
+    }
+
+    void ImGuiCocoPlatform::PlatformWindowCloseCallback(Windowing::Window* window)
+    {
+        if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(window))
+        {
+            viewport->PlatformRequestClose = true;
+        }
+    }
+
+    void ImGuiCocoPlatform::InitPlatformInterface()
+    {
+        ImGuiPlatformIO& platformIO = ::ImGui::GetPlatformIO();
+        platformIO.Platform_CreateWindow = &ImGuiCocoPlatform::PlatformCreateWindow;
+        platformIO.Platform_DestroyWindow = &ImGuiCocoPlatform::PlatformDestroyWindow;
+        platformIO.Platform_ShowWindow = &ImGuiCocoPlatform::PlatformShowWindow;
+        platformIO.Platform_SetWindowPos = &ImGuiCocoPlatform::PlatformSetWindowPos;
+        platformIO.Platform_GetWindowPos = &ImGuiCocoPlatform::PlatformGetWindowPos;
+        platformIO.Platform_SetWindowSize = &ImGuiCocoPlatform::PlatformSetWindowSize;
+        platformIO.Platform_GetWindowSize = &ImGuiCocoPlatform::PlatformGetWindowSize;
+        platformIO.Platform_SetWindowFocus = &ImGuiCocoPlatform::PlatformFocusWindow;
+        platformIO.Platform_GetWindowFocus = &ImGuiCocoPlatform::PlatformWindowHasFocus;
+        platformIO.Platform_GetWindowMinimized = &ImGuiCocoPlatform::PlatformWindowMinimized;
+        platformIO.Platform_SetWindowTitle = &ImGuiCocoPlatform::PlatformSetWindowTitle;
+        platformIO.Platform_RenderWindow = &ImGuiCocoPlatform::PlatformRenderViewport;
+        platformIO.Platform_SwapBuffers = nullptr;
+    }
+
+    void ImGuiCocoPlatform::CreateObjects()
+    {
+        // Create the pipeline
+        _renderPipeline = CreateUniqueRef<Rendering::RenderPipeline>();
+        std::array<uint8, 1> bindings = { 0 };
+        _renderPipeline->AddRenderPass(_renderPass, bindings);
 
         // Setup ImGui shader
         GraphicsPipelineState pipelineState{};
@@ -305,6 +747,8 @@ namespace Coco::ImGuiCoco
         // Setup the font texture
         int width, height;
         unsigned char* pixels = nullptr;
+        ImGuiIO& io = ::ImGui::GetIO();
+
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
         _texture = resources.Create<Texture>(
@@ -326,164 +770,31 @@ namespace Coco::ImGuiCoco
         _material->SetTexture("sTexture", _texture);
     }
 
-    ImGuiCocoPlatform::~ImGuiCocoPlatform()
+    void ImGuiCocoPlatform::UpdateDisplays()
     {
-        _shader.Invalidate();
-        _mesh.Invalidate();
-        _material.Invalidate();
-    }
+        using namespace Coco::Windowing;
 
-    UniqueRef<Rendering::RenderView> ImGuiCocoPlatform::CreateRenderView(
-        const Rendering::CompiledRenderPipeline& pipeline,
-        const SizeInt& backbufferSize,
-        std::span<Ref<Rendering::Image>> backbuffers)
-    {
-        using namespace Coco::Rendering;
+        WindowService* windowing = WindowService::Get();
+        if (!windowing)
+            throw std::exception("No active WindowService found");
 
-        std::vector<RenderTarget> rts;
+        ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
 
-        for (size_t i = 0; i < backbuffers.size(); i++)
-            rts.emplace_back(backbuffers[i], Vector4::Zero);
+        _displays = windowing->GetDisplays();
 
-        ImDrawData* drawData = ::ImGui::GetDrawData();
-
-        RectInt viewport(
-            Vector2Int(static_cast<int>(drawData->DisplayPos.x), static_cast<int>(drawData->DisplayPos.y)),
-            SizeInt(static_cast<uint32>(drawData->DisplaySize.x), static_cast<uint32>(drawData->DisplaySize.y))
-        );
-
-        Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(
-            viewport.GetLeft(),
-            viewport.GetRight(),
-            viewport.GetTop(),
-            viewport.GetBottom(),
-            -1.0, 1.0);
-
-        return CreateUniqueRef<RenderView>(viewport, viewport, Matrix4x4::Identity, projection, MSAASamples::One, rts);
-    }
-
-    void ImGuiCocoPlatform::GatherSceneData(RenderView& renderView)
-    {
-        using namespace Coco::Rendering;
-
-        ImDrawData* drawData = ::ImGui::GetDrawData();
-
-        VertexDataFormat format{};
-        format.HasColor = true;
-        format.HasUV0 = true;
-
-        if (drawData->TotalVtxCount > 0)
+        platformIO.Monitors.resize(0);
+        for (int i = 0; i < _displays.size(); i++)
         {
-            renderView.AddMaterial(*_material);
+            DisplayInfo& display = _displays.at(i);
 
-            _mesh->ClearSubmeshes();
-
-            VertexDataFormat format{};
-            format.HasUV0 = true;
-            format.HasColor = true;
-
-            std::vector<VertexData> vertices(drawData->TotalVtxCount);
-            std::vector<uint32> indices(drawData->TotalIdxCount);
-            uint64 vertexOffset = 0;
-            uint64 indexOffset = 0;
-
-            for (int n = 0; n < drawData->CmdListsCount; n++)
-            {
-                const ImDrawList* drawList = drawData->CmdLists[n];
-
-                for (int v = 0; v < drawList->VtxBuffer.Size; v++)
-                {
-                    ImDrawVert* imVert = drawList->VtxBuffer.Data + v;
-                    VertexData& vert = vertices.at(v + vertexOffset);
-
-                    vert.Position = Vector3(imVert->pos.x, imVert->pos.y, 0.0);
-
-                    ImVec4 imGuiColor = ::ImGui::ColorConvertU32ToFloat4(imVert->col);
-                    Color c(imGuiColor.x, imGuiColor.y, imGuiColor.z, imGuiColor.w);
-                    c.ConvertToLinear();
-                    vert.Color = Vector4(c.R, c.G, c.B, c.A);
-
-                    vert.UV0 = Vector2(imVert->uv.x, imVert->uv.y);
-                }
-
-                for (int i = 0; i < drawList->IdxBuffer.Size; i++)
-                {
-                    indices.at(i + indexOffset) = *(drawList->IdxBuffer.Data + i) + static_cast<uint32>(vertexOffset);
-                }
-
-                vertexOffset += drawList->VtxBuffer.Size;
-                indexOffset += drawList->IdxBuffer.Size;
-            }
-
-            _mesh->SetVertices(format, vertices);
-            _mesh->SetIndices(indices, 0);
-            _mesh->Apply();
-
-            renderView.AddMesh(*_mesh);
+            ImGuiPlatformMonitor monitor{};
+            monitor.MainPos = ImVec2(static_cast<float>(display.Offset.X), static_cast<float>(display.Offset.Y));
+            monitor.WorkPos = monitor.MainPos;
+            monitor.MainSize = ImVec2(static_cast<float>(display.Resolution.Width), static_cast<float>(display.Resolution.Height));
+            monitor.WorkSize = monitor.MainSize;
+            monitor.DpiScale = static_cast<float>(display.DPI) / Window::DefaultDPI;
+            monitor.PlatformHandle = static_cast<void*>(&display);
+            platformIO.Monitors.push_back(monitor);
         }
     }
-
-    bool ImGuiCocoPlatform::NewFrame(const TickInfo& tickInfo)
-	{
-		using namespace Coco::Windowing;
-		using namespace Coco::Input;
-
-		WindowService* windowing = WindowService::Get();
-		if (!windowing)
-			throw std::exception("No active WindowService found");
-
-		InputService* input = InputService::Get();
-		if (!input)
-			throw std::exception("No active InputService found");
-
-		Ref<Window> mainWindow = windowing->GetMainWindow();
-		if (!mainWindow.IsValid())
-			return false;
-
-		ImGuiIO& io = ::ImGui::GetIO();
-
-		// Add basic info
-		io.DeltaTime = static_cast<float>(tickInfo.UnscaledDeltaTime);
-
-		// Add window-specific info
-		SizeInt displaySize = mainWindow->GetClientAreaSize();
-		io.DisplaySize = ImVec2(static_cast<float>(displaySize.Width), static_cast<float>(displaySize.Height));
-
-		// Add mouse events
-		Mouse& mouse = input->GetMouse();
-		if (!io.WantSetMousePos)
-		{
-			Vector2Int mousePos = mouse.GetPosition();
-			io.AddMousePosEvent(static_cast<float>(mousePos.X), static_cast<float>(mousePos.Y));
-		}
-
-		io.AddMouseButtonEvent(0, mouse.IsButtonPressed(MouseButton::Left));
-		io.AddMouseButtonEvent(1, mouse.IsButtonPressed(MouseButton::Right));
-		io.AddMouseButtonEvent(2, mouse.IsButtonPressed(MouseButton::Middle));
-		io.AddMouseButtonEvent(3, mouse.IsButtonPressed(MouseButton::Button3));
-		io.AddMouseButtonEvent(4, mouse.IsButtonPressed(MouseButton::Button4));
-
-		Vector2Int scrollDelta = mouse.GetScrollWheelDelta();
-		if (scrollDelta != Vector2Int::Zero)
-			io.AddMouseWheelEvent(static_cast<float>(scrollDelta.X), static_cast<float>(scrollDelta.Y));
-
-		Keyboard& keyboard = input->GetKeyboard();
-        io.AddKeyEvent(ImGuiMod_Ctrl, keyboard.IsKeyPressed(KeyboardKey::LeftControl) || keyboard.IsKeyPressed(KeyboardKey::RightControl));
-        io.AddKeyEvent(ImGuiMod_Shift, keyboard.IsKeyPressed(KeyboardKey::LeftShift) || keyboard.IsKeyPressed(KeyboardKey::RightShift));
-        io.AddKeyEvent(ImGuiMod_Alt, keyboard.IsKeyPressed(KeyboardKey::LeftAlt) || keyboard.IsKeyPressed(KeyboardKey::RightAlt));
-        io.AddKeyEvent(ImGuiMod_Super, keyboard.IsKeyPressed(KeyboardKey::LeftMeta) || keyboard.IsKeyPressed(KeyboardKey::RightMeta));
-
-		for (int i = 0; i < KeyboardState::KeyCount; i++)
-		{
-			KeyboardKey key = static_cast<KeyboardKey>(i);
-            ImGuiKey imGuiKey = ToImGuiKey(key);
-
-            if (imGuiKey == ImGuiKey_None)
-                continue;
-
-            io.AddKeyEvent(imGuiKey, keyboard.IsKeyPressed(key));
-		}
-        
-        return true;
-	}
 }

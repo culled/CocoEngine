@@ -34,6 +34,12 @@ namespace Coco::Windowing
 		/// @return A pointer to the window, or nullptr if it doesn't exist
 		Ref<Window> GetWindow(const WindowID& windowID) const;
 
+		/// @brief Tries to find the visible window that is underneath a given point
+		/// @param point The point, in screen coordinates
+		/// @param outWindow Will be set to the window if found
+		/// @return True if a window was found
+		bool GetWindowUnderPoint(const Vector2Int& point, Ref<Window>& outWindow) const;
+
 		/// @brief Gets information for all connected displays
 		/// @return Information for all connected displays
 		std::vector<DisplayInfo> GetDisplays() const;

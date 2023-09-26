@@ -1,6 +1,7 @@
 #include "Windowpch.h"
 #include "WindowService.h"
 #include "WindowingPlatform.h"
+#include <Coco/Core/Types/Rect.h>
 
 #include <Coco/Core/Engine.h>
 
@@ -70,6 +71,25 @@ namespace Coco::Windowing
 			return *it;
 
 		return Ref<Window>();
+	}
+
+	bool WindowService::GetWindowUnderPoint(const Vector2Int& point, Ref<Window>& outWindow) const
+	{
+		std::vector<Ref<Window>> visibleWindows = GetVisibleWindows();
+
+		for (Ref<Window>& window : visibleWindows)
+		{
+			RectInt windowRect = window->GetRect(false);
+
+			// TODO: only get top-most window
+			if (windowRect.Intersects(point))
+			{
+				outWindow = window;
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	std::vector<DisplayInfo> WindowService::GetDisplays() const

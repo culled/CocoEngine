@@ -10,19 +10,25 @@ namespace Coco::Rendering
 		Images{}
 	{}
 
+	uint64 PipelineImageCache::MakeKey(const CompiledRenderPipeline& pipeline, uint64 rendererID)
+	{
+		return Math::CombineHashes(rendererID, pipeline.PipelineID);
+	}
+
 	AttachmentCache::AttachmentCache() : 
 		_pipelineImageCaches{}
 	{}
 
 	std::vector<RenderTarget> AttachmentCache::CreateRenderTargets(
-		const CompiledRenderPipeline& pipeline, 
+		const CompiledRenderPipeline& pipeline,
+		uint64 rendererID,
 		const SizeInt& backbufferSize,
 		MSAASamples msaaSamples, 
 		std::span<Ref<Image>> backbuffers)
 	{
 		const std::vector<AttachmentFormat>& attachmentFormats = pipeline.InputAttachments;
 
-		uint64 pipelineID = pipeline.PipelineID;
+		uint64 pipelineID = PipelineImageCache::MakeKey(pipeline, rendererID);
 
 		auto it = _pipelineImageCaches.find(pipelineID);
 

@@ -46,6 +46,8 @@ namespace Coco::Rendering::Vulkan
         VulkanGraphicsPresenter(const GraphicsDeviceResourceID& id);
         ~VulkanGraphicsPresenter();
 
+        uint64 GetID() const final { return ID; }
+
         void InitializeSurface(const GraphicsPresenterSurface& surface) final;
         bool SurfaceInitialized() const final { return _surface != nullptr; }
 

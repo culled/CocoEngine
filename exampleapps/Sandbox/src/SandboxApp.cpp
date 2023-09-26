@@ -82,16 +82,18 @@ void SandboxApp::Tick(const TickInfo & tickInfo)
 		return;
 	}
 
-	//::ImGui::ShowDemoWindow();
+	static bool show = true;
+	::ImGui::ShowDemoWindow(&show);
 
 	Windowing::WindowService& windowing = services->GetService<Windowing::WindowService>();
 	Rendering::RenderService& rendering = services->GetService<Rendering::RenderService>();
 	
-	std::vector<Ref<Windowing::Window>> visibleWindows = windowing.GetVisibleWindows();
-	std::array<SceneDataProvider*, 1> dataProviders = { _sceneDataProvider.get()};
+	Ref<Windowing::Window> mainWindow = windowing.GetMainWindow();
 
-	for (const Ref<Windowing::Window>& window : visibleWindows)
+	if(mainWindow->IsVisible())
 	{
-		rendering.Render(window->GetPresenter(), *_pipeline, *_renderViewProvider, dataProviders);
+		std::array<SceneDataProvider*, 1> dataProviders = { _sceneDataProvider.get()};
+
+		rendering.Render(mainWindow->GetPresenter(), *_pipeline, *_renderViewProvider, dataProviders);
 	}
 }

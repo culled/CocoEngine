@@ -177,16 +177,30 @@ namespace Coco::Platforms::Win32
 		UpdateFullscreenState(fullscreen);
 	}
 
-	void Win32Window::SetPosition(const Vector2Int& position, bool relativeToParent)
+	void Win32Window::SetPosition(const Vector2Int& position, bool clientAreaPosition, bool relativeToParent)
 	{
 		CheckWindowHandle()
 
 		Vector2Int pos = position;
 
-		if (relativeToParent)
+		if (relativeToParent && HasParent())
 		{
 			const Win32Window* parent = static_cast<const Win32Window*>(GetParentWindow().Get());
 			pos = GetRelativePosition(position, parent->_handle);
+		}
+
+		if (clientAreaPosition)
+		{
+			DWORD windowFlags = ::GetWindowLong(_handle, GWL_STYLE);
+			DWORD windowFlagsEx = ::GetWindowLong(_handle, GWL_EXSTYLE);
+
+			// We want the position to be relative to the client space within the window (not the title-bar, etc.)
+			// So we need to calculate the border size and offset our position respectively
+			RECT borderRect = { 0, 0, 0, 0 };
+			AdjustWindowRectEx(&borderRect, windowFlags, FALSE, windowFlagsEx);
+
+			pos.X += borderRect.left;
+			pos.Y += borderRect.top;
 		}
 
 		if (!::SetWindowPos(
@@ -201,7 +215,7 @@ namespace Coco::Platforms::Win32
 		}
 	}
 
-	Vector2Int Win32Window::GetPosition(bool relativeToParent) const
+	Vector2Int Win32Window::GetPosition(bool clientAreaPosition, bool relativeToParent) const
 	{
 		CheckWindowHandle()
 
@@ -209,10 +223,24 @@ namespace Coco::Platforms::Win32
 		::GetWindowRect(_handle, &rect);
 		Vector2Int pos(rect.left, rect.top);
 
-		if (relativeToParent)
+		if (relativeToParent && HasParent())
 		{
 			const Win32Window* parent = static_cast<const Win32Window*>(GetParentWindow().Get());
 			pos = GetRelativePosition(pos, parent->_handle);
+		}
+
+		if (clientAreaPosition)
+		{
+			DWORD windowFlags = ::GetWindowLong(_handle, GWL_STYLE);
+			DWORD windowFlagsEx = ::GetWindowLong(_handle, GWL_EXSTYLE);
+
+			// We want the position to be relative to the client space within the window (not the title-bar, etc.)
+			// So we need to calculate the border size and offset our position respectively
+			RECT borderRect = { 0, 0, 0, 0 };
+			AdjustWindowRectEx(&borderRect, windowFlags, FALSE, windowFlagsEx);
+
+			pos.X -= borderRect.left;
+			pos.Y -= borderRect.top;
 		}
 
 		return pos;
@@ -231,7 +259,7 @@ namespace Coco::Platforms::Win32
 			_handle,
 			NULL,
 			0, 0,
-			static_cast<int>(size.Width), static_cast<int>(size.Height),
+			static_cast<int>(adjustedSize.Width), static_cast<int>(adjustedSize.Height),
 			SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER)
 			)
 		{
@@ -247,6 +275,16 @@ namespace Coco::Platforms::Win32
 		::GetClientRect(_handle, &rect);
 
 		return SizeInt(rect.right - rect.left, rect.bottom - rect.top);
+	}
+
+	SizeInt Win32Window::GetSize() const
+	{
+		SizeInt clientSize = GetClientAreaSize();
+
+		DWORD windowFlags = ::GetWindowLong(_handle, GWL_STYLE);
+		DWORD windowFlagsEx = ::GetWindowLong(_handle, GWL_EXSTYLE);
+
+		return GetAdjustedWindowSize(clientSize, windowFlags, windowFlagsEx);
 	}
 
 	uint16 Win32Window::GetDPI() const

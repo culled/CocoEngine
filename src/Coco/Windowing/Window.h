@@ -7,6 +7,7 @@
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Rect.h>
 
 namespace Coco::Rendering
 {
@@ -88,7 +89,8 @@ namespace Coco::Windowing
 
 		/// @brief Invoked when this window had become focused/unfocused
 		Event<bool> OnFocusChanged;
-	private:
+
+	protected:
 		static std::atomic<WindowID> _id;
 		WindowID _parentID;
 		Ref<Rendering::GraphicsPresenter> _presenter;
@@ -120,13 +122,15 @@ namespace Coco::Windowing
 
 		/// @brief Sets the top-left position of this window
 		/// @param position The position
+		/// @param clientAreaPosition If true, the top-left corner of the client area will be set to the position
 		/// @param relativeToParent If true, the position will be relative to this window's parent's top-left corner
-		virtual void SetPosition(const Vector2Int& position, bool relativeToParent = true) = 0;
+		virtual void SetPosition(const Vector2Int& position, bool clientAreaPosition = false, bool relativeToParent = true) = 0;
 
 		/// @brief Gets the top-left position of this window
+		/// @param clientAreaPosition If true, the top-left corner of the client area will be returned
 		/// @param relativeToParent If true, the position will be relative to this window's parent's top-left corner
 		/// @return The position
-		virtual Vector2Int GetPosition(bool relativeToParent = true) const = 0;
+		virtual Vector2Int GetPosition(bool clientAreaPosition = false, bool relativeToParent = true) const = 0;
 
 		/// @brief Sets the client-area size of this window
 		/// @param size The size of the client-area
@@ -135,6 +139,10 @@ namespace Coco::Windowing
 		/// @brief Gets the client-area size of this window
 		/// @return The client-area size
 		virtual SizeInt GetClientAreaSize() const = 0;
+
+		/// @brief Gets the total size of this window
+		/// @return The total size
+		virtual SizeInt GetSize() const = 0;
 
 		/// @brief Gets the DPI of the screen this window is currently on
 		/// @return The current DPI
@@ -166,9 +174,19 @@ namespace Coco::Windowing
 		/// @brief Closes this window
 		void Close();
 
+		/// @brief Determines if this window is parented
+		/// @return True if this window has a parent
+		bool HasParent() const;
+
 		/// @brief Gets the ID of this window's parent
 		/// @return The ID of the parent window, or Window::InvalidID if this window has no parent
 		WindowID GetParentID() const;
+
+		/// @brief Gets a rectangle that represents the position and size of this window
+		/// @param clientArea If true, the rectangle will only be for the client area
+		/// @param relativeToParent If true, the rectangle will be relative to this window's parent, if it has one
+		/// @return A rectangle that this window convers
+		RectInt GetRect(bool clientArea, bool relativeToParent = true) const;
 
 	protected:
 		/// @brief Creates a surface for this window to render to

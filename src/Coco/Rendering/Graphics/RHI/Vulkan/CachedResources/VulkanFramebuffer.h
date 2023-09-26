@@ -18,17 +18,18 @@ namespace Coco::Rendering::Vulkan
 	private:
 		uint64 _version;
 		VkFramebuffer _framebuffer;
+		SizeInt _size;
+		std::vector<const VulkanImage*> _attachmentImages;
 
 	public:
-		VulkanFramebuffer(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages);
+		VulkanFramebuffer(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages);
 		~VulkanFramebuffer();
 
 		/// @brief Creates a key unique to the provided values
-		/// @param size The size of the image being rendered
 		/// @param renderPass The render pass being used
-		/// @param attachmentImages Images being used as attachments
+		/// @param attachmentImages The attachment images
 		/// @return A unique key
-		static GraphicsDeviceResourceID MakeKey(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages);
+		static GraphicsDeviceResourceID MakeKey(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages);
 
 		/// @brief Gets this framebuffer's version
 		/// @return The version
@@ -40,14 +41,15 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Determines if this framebuffer needs to be updated
 		/// @param renderPass The render pass
+		/// @param size The size of the attachment images
 		/// @return True if this framebuffer should be updated
-		bool NeedsUpdate(const VulkanRenderPass& renderPass) const;
+		bool NeedsUpdate(const VulkanRenderPass& renderPass, const SizeInt& size) const;
 
 		/// @brief Updates this framebuffer
-		/// @param size The framebuffer size
 		/// @param renderPass The render pass
+		/// @param size The framebuffer size
 		/// @param attachmentImages The attachment images
-		void Update(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages);
+		void Update(const VulkanRenderPass& renderPass, const SizeInt& size, std::span<const VulkanImage*> attachmentImages);
 
 	private:
 		/// @brief Creates the framebuffer

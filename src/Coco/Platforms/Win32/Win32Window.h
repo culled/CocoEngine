@@ -32,11 +32,12 @@ namespace Coco::Platforms::Win32
         void SetIsFullscreen(bool fullscreen) final;
         bool IsFullscreen() const final { return _isFullscreen; }
 
-        void SetPosition(const Vector2Int& position, bool relativeToParent) final;
-        Vector2Int GetPosition(bool relativeToParent) const final;
+        void SetPosition(const Vector2Int& position, bool clientAreaPosition, bool relativeToParent) final;
+        Vector2Int GetPosition(bool clientAreaPosition, bool relativeToParent) const final;
 
         void SetClientAreaSize(const SizeInt& size) final;
         SizeInt GetClientAreaSize() const final;
+        SizeInt GetSize() const final;
 
         uint16 GetDPI() const final;
 

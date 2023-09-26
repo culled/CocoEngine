@@ -7,8 +7,10 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanFramebuffer::VulkanFramebuffer(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages) :
-		CachedVulkanResource(MakeKey(size, renderPass, attachmentImages)),
+	VulkanFramebuffer::VulkanFramebuffer(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages) :
+		CachedVulkanResource(MakeKey(renderPass, attachmentImages)),
+		_size(SizeInt::Zero),
+		_attachmentImages(),
 		_version(0),
 		_framebuffer(nullptr)
 	{}
@@ -18,25 +20,26 @@ namespace Coco::Rendering::Vulkan
 		DestroyFramebuffer();
 	}
 
-	GraphicsDeviceResourceID VulkanFramebuffer::MakeKey(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
+	GraphicsDeviceResourceID VulkanFramebuffer::MakeKey(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
 	{
-		std::hash<const VulkanImage*> imageHasher;
+		static const std::hash<const VulkanImage*> imageHasher;
+
 		uint64 imageHash = 0;
+		for (size_t i = 0; i < attachmentImages.size(); i++)
+			imageHash = Math::CombineHashes(imageHash, imageHasher(attachmentImages[i]));
 
-		for (const VulkanImage* image : attachmentImages)
-		{
-			imageHash = Math::CombineHashes(imageHash, imageHasher(image));
-		}
-
-		return Math::CombineHashes(size.Width, size.Height, renderPass.ID, imageHash);
+		return Math::CombineHashes(renderPass.ID, imageHash);
 	}
 
-	bool VulkanFramebuffer::NeedsUpdate(const VulkanRenderPass& renderPass) const
+	bool VulkanFramebuffer::NeedsUpdate(const VulkanRenderPass& renderPass, const SizeInt& size) const
 	{
-		return _version != renderPass.GetVersion() || _framebuffer == nullptr;
+		return _attachmentImages.size() == 0 ||
+			_framebuffer == nullptr ||
+			_version != renderPass.GetVersion() ||
+			size != _size;
 	}
 
-	void VulkanFramebuffer::Update(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
+	void VulkanFramebuffer::Update(const VulkanRenderPass& renderPass, const SizeInt& size, std::span<const VulkanImage*> attachmentImages)
 	{
 		DestroyFramebuffer();
 		CreateFramebuffer(size, renderPass, attachmentImages);
@@ -63,6 +66,9 @@ namespace Coco::Rendering::Vulkan
 		framebufferInfo.pAttachments = imageViews.data();
 
 		AssertVkSuccess(vkCreateFramebuffer(_device.GetDevice(), &framebufferInfo, _device.GetAllocationCallbacks(), &_framebuffer));
+
+		_size = size;
+		_attachmentImages = std::vector<const VulkanImage*>(attachmentImages.begin(), attachmentImages.end());
 
 		CocoTrace("Created VulkanFramebuffer")
 	}
