@@ -61,7 +61,7 @@ SceneDataProvider3D::SceneDataProvider3D() :
 		)
 	);
 
-	ImageSamplerDescription sampler{};
+	ImageSamplerDescription sampler = ImageSamplerDescription::LinearRepeat;
 	sampler.LODBias = -1.0;
 	sampler.MaxAnisotropy = 16;
 	_texture = resourceLibrary.Create<Texture>("Texture", "assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);

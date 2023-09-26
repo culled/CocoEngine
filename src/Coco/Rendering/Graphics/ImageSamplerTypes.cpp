@@ -3,9 +3,12 @@
 
 namespace Coco::Rendering
 {
-	ImageSamplerDescription::ImageSamplerDescription() :
-		ImageSamplerDescription(ImageFilterMode::Linear, ImageRepeatMode::Repeat, MipMapFilterMode::Linear, 0)
-	{}
+	const ImageSamplerDescription ImageSamplerDescription::LinearRepeat = ImageSamplerDescription(ImageFilterMode::Linear, ImageRepeatMode::Repeat, MipMapFilterMode::Linear, 0);
+	const ImageSamplerDescription ImageSamplerDescription::NearestRepeat = ImageSamplerDescription(ImageFilterMode::Nearest, ImageRepeatMode::Repeat, MipMapFilterMode::Linear, 0);
+	const ImageSamplerDescription ImageSamplerDescription::LinearClamp = ImageSamplerDescription(ImageFilterMode::Linear, ImageRepeatMode::Clamp, MipMapFilterMode::Linear, 0);
+	const ImageSamplerDescription ImageSamplerDescription::NearestClamp = ImageSamplerDescription(ImageFilterMode::Nearest, ImageRepeatMode::Clamp, MipMapFilterMode::Linear, 0);
+	const ImageSamplerDescription ImageSamplerDescription::LinearMirror = ImageSamplerDescription(ImageFilterMode::Linear, ImageRepeatMode::Mirror, MipMapFilterMode::Linear, 0);
+	const ImageSamplerDescription ImageSamplerDescription::NearestMirror = ImageSamplerDescription(ImageFilterMode::Nearest, ImageRepeatMode::Mirror, MipMapFilterMode::Linear, 0);
 
 	ImageSamplerDescription::ImageSamplerDescription(
 		ImageFilterMode filterMode, 

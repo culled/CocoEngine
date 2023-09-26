@@ -758,7 +758,7 @@ namespace Coco::ImGuiCoco
                 ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination,
                 false
             ),
-            ImageSamplerDescription());
+            ImageSamplerDescription::LinearClamp);
 
         _texture->SetPixels(0, pixels, static_cast<uint64>(width) * height * GetPixelFormatChannelCount(ImagePixelFormat::RGBA8));
 
