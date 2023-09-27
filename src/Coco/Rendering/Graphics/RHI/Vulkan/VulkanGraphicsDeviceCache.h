@@ -5,17 +5,12 @@
 #include "CachedResources/VulkanPipeline.h"
 #include "CachedResources/VulkanRenderContextCache.h"
 
-#include <Coco/Core/MainLoop/TickListener.h>
-
 namespace Coco::Rendering::Vulkan
 {
 	/// @brief A cache for a VulkanGraphicsDevice
 	class VulkanGraphicsDeviceCache
 	{
 	public:
-		/// @brief The priority of this cache's purge tick listener
-		static const int sPurgePriority;
-
 		/// @brief The period between purges in seconds
 		static const double sPurgePeriod;
 
@@ -23,11 +18,12 @@ namespace Coco::Rendering::Vulkan
 		static const double sPurgeThreshold;
 
 	private:
+		double _lastPurgeTime;
+
 		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderPass> _renderPasses;
 		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderPassShader> _shaders;
 		std::unordered_map<GraphicsDeviceResourceID, VulkanPipeline> _pipelines;
 		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderContextCache> _contextCaches;
-		TickListener _tickListener;
 
 	public:
 		VulkanGraphicsDeviceCache();

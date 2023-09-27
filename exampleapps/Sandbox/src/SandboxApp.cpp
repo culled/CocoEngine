@@ -43,7 +43,7 @@ SandboxApp::SandboxApp() :
 		WindowService& windowing = services->CreateService<WindowService>(true);
 		WindowCreateParams windowCreateParams("Sandbox", SizeInt(1280, 720));
 		Ref<Window> win = windowing.CreateWindow(windowCreateParams);
-		win->GetPresenter()->SetVSync(Rendering::VSyncMode::Immediate);
+		//win->GetPresenter()->SetVSync(Rendering::VSyncMode::Immediate);
 		//win->GetPresenter()->SetMaximumFramesInFlight(2);
 		win->Show();
 	}

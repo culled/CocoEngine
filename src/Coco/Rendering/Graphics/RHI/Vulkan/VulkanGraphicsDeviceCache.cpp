@@ -5,22 +5,15 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	const int VulkanGraphicsDeviceCache::sPurgePriority = 1000;
 	const double VulkanGraphicsDeviceCache::sPurgePeriod = 5.0;
 	const double VulkanGraphicsDeviceCache::sPurgeThreshold = 4.0;
 
 	VulkanGraphicsDeviceCache::VulkanGraphicsDeviceCache() :
-		_tickListener(this, &VulkanGraphicsDeviceCache::TickCallback, sPurgePriority)
-	{
-		_tickListener.SetTickPeriod(sPurgePeriod);
-
-		MainLoop::Get()->AddListener(_tickListener);
-	}
+		_lastPurgeTime(0.0)
+	{}
 
 	VulkanGraphicsDeviceCache::~VulkanGraphicsDeviceCache()
 	{
-		MainLoop::Get()->RemoveListener(_tickListener);
-
 		_renderPasses.clear();
 	}
 
@@ -108,6 +101,9 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanGraphicsDeviceCache::ResetForNextFrame()
 	{
+		if (MainLoop::cGet()->GetCurrentTick().UnscaledTime - _lastPurgeTime > sPurgePeriod)
+			PurgeStaleResources();
+
 		for (auto it = _contextCaches.begin(); it != _contextCaches.end(); it++)
 			it->second.ResetForNextFrame();
 	}
@@ -195,6 +191,8 @@ namespace Coco::Rendering::Vulkan
 			CocoTrace("Purged {} VulkanRenderPasses, {} VulkanRenderPassShaders, {} VulkanPipelines, and {} VulkanRenderContextCaches", 
 				renderPassesPurged, shadersPurged, pipelinesPurged, cachesPurged)
 		}
+
+		_lastPurgeTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
 	}
 
 	void VulkanGraphicsDeviceCache::TickCallback(const TickInfo& currentTick)

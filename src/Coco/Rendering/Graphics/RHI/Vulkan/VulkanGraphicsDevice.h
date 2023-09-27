@@ -78,6 +78,10 @@ namespace Coco::Rendering::Vulkan
 	class VulkanGraphicsDevice : 
 		public GraphicsDevice
 	{
+	public:
+		/// @brief The period between purges in seconds
+		static const double sPurgePeriod;
+
 	private:
 		VkInstance _instance;
 		VkPhysicalDevice _physicalDevice;
@@ -94,6 +98,7 @@ namespace Coco::Rendering::Vulkan
 		DeviceQueue* _presentQueue;
 		UniqueRef<VulkanGraphicsDeviceCache> _cache;
 		TypedResourceLibrary<GraphicsDeviceResourceID, GraphicsDeviceResourceBase, GraphicsDeviceResourceIDGenerator> _resources;
+		double _lastPurgeTime;
 
 	public:
 		VulkanGraphicsDevice(VkInstance instance, const GraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice);

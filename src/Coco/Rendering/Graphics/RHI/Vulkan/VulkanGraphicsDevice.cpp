@@ -33,6 +33,8 @@ namespace Coco::Rendering::Vulkan
 		Pool(device, queue, familyIndex)
 	{}
 
+	const double VulkanGraphicsDevice::sPurgePeriod = 5.0;
+
 	VulkanGraphicsDevice::VulkanGraphicsDevice(VkInstance instance, const GraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice) :
 		_instance(instance),
 		_physicalDevice(physicalDevice),
@@ -154,11 +156,15 @@ namespace Coco::Rendering::Vulkan
 	void VulkanGraphicsDevice::ResetForNewFrame()
 	{
 		_cache->ResetForNextFrame();
+
+		if (MainLoop::cGet()->GetCurrentTick().UnscaledTime - _lastPurgeTime > sPurgePeriod)
+			PurgeUnusedResources();
 	}
 
 	void VulkanGraphicsDevice::PurgeUnusedResources()
 	{
 		_resources.PurgeUnused();
+		_lastPurgeTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
 
 		//uint64 purgeCount = _resources.PurgeUnused();
 
