@@ -99,7 +99,6 @@ namespace Coco
 	{
 		Matrix4x4 lookAt;
 
-		//Vector3 zAxis = targetPosition - eyePosition;
 		Vector3 zAxis = eyePosition - targetPosition;
 		zAxis.Normalize();
 

@@ -20,18 +20,18 @@ namespace Coco
 		Normal = b.Cross(a).Normalized();
 	}
 
-	Vector3 Plane::GetClosestPoint(const Vector3& point)
+	Vector3 Plane::GetClosestPoint(const Vector3& point) const
 	{
 		Vector3 p = point.Project(Normal);
 		return point - p;
 	}
 
-	double Plane::GetDistance(const Vector3& point)
+	double Plane::GetDistance(const Vector3& point) const
 	{
 		return Vector3::DistanceBetween(GetClosestPoint(point), point);
 	}
 
-	bool Plane::IsOnNormalSide(const Vector3& point)
+	bool Plane::IsOnNormalSide(const Vector3& point) const
 	{
 		Vector3 p = point.Project(Normal);
 

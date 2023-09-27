@@ -20,16 +20,16 @@ namespace Coco
 		/// @brief Gets a point closest to the given point that lies on this plane
 		/// @param point The point
 		/// @return A point that lies on this plane that is closest to the given point
-		Vector3 GetClosestPoint(const Vector3& point);
+		Vector3 GetClosestPoint(const Vector3& point) const;
 
 		/// @brief Gets the distance the given point is from the closest point on this plane
 		/// @param point The point
 		/// @return The distance the point is from the closest point on this plane
-		double GetDistance(const Vector3& point);
+		double GetDistance(const Vector3& point) const;
 
 		/// @brief Determines if this plane faces the given point
 		/// @param point The point
 		/// @return True if this plane faces the given point
-		bool IsOnNormalSide(const Vector3& point);
+		bool IsOnNormalSide(const Vector3& point) const;
 	};
 }
