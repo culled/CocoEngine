@@ -9,7 +9,7 @@ namespace Coco::Core::Types
 {
 	TEST_CLASS(BoundingBoxTests)
 	{
-		TEST_METHOD(BoundingBoxCreate)
+		TEST_METHOD(Create)
 		{
 			Vector3 min(-1.0, -1.0, -1.0);
 			Vector3 max(1.0, 1.0, 1.0);
@@ -19,7 +19,7 @@ namespace Coco::Core::Types
 			Assert::IsTrue(b.Maximum.Equals(max));
 		}
 
-		TEST_METHOD(BoundingBoxCreateWithCenter)
+		TEST_METHOD(CreateWithCenter)
 		{
 			Vector3 center(2.2, -0.12, 1.1);
 			Vector3 size(2.0, 2.0, 2.0);
@@ -32,7 +32,7 @@ namespace Coco::Core::Types
 			Assert::IsTrue(size.Equals(s));
 		}
 
-		TEST_METHOD(BoundingBoxExpand)
+		TEST_METHOD(ExpandFromPoint)
 		{
 			BoundingBox b(Vector3(0.0, 0.0, 0.0), Vector3(1.0, 1.0, 1.0));
 
@@ -47,7 +47,7 @@ namespace Coco::Core::Types
 			Assert::IsTrue(b.Maximum.Equals(Vector3(2.0, 2.0, 2.0)));
 		}
 
-		TEST_METHOD(BoundingBoxIntersectWithPoint)
+		TEST_METHOD(IntersectWithPoint)
 		{
 			BoundingBox b(Vector3(-1.0, -1.0, -1.0), Vector3(1.0, 1.0, 1.0));
 
@@ -72,7 +72,7 @@ namespace Coco::Core::Types
 			}
 		}
 
-		TEST_METHOD(BoundingBoxIntersectWithBox)
+		TEST_METHOD(IntersectWithBoundingBox)
 		{
 			BoundingBox b(Vector3(-1.0, -1.0, -1.0), Vector3(1.0, 1.0, 1.0));
 
