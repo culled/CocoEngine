@@ -77,7 +77,19 @@ namespace Coco::Core::Types
 
 			Vector3 e2 = q.ToEulerAngles();
 
-			Assert::IsTrue(e.Equals(e2, 0.00001));
+			Assert::IsTrue(e.Equals(e2));
+
+			e = Vector3(Math::DegToRad(90.0), 0.0, Math::DegToRad(20.0));
+			q = Quaternion(e);
+
+			e2 = q.ToEulerAngles();
+			Assert::IsTrue(e2.Equals(Vector3(Math::DegToRad(90.0), Math::DegToRad(-20.0), 0.0)));
+
+			e = Vector3(Math::DegToRad(-90.0), 0.0, Math::DegToRad(20.0));
+			q = Quaternion(e);
+
+			e2 = q.ToEulerAngles();
+			Assert::IsTrue(e2.Equals(Vector3(Math::DegToRad(-90.0), Math::DegToRad(20.0), 0.0)));
 		}
 
 		TEST_METHOD(RotatingQuaternions)

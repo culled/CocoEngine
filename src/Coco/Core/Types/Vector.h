@@ -66,7 +66,7 @@ namespace Coco
 		/// @param other The other vector
 		/// @param threshold The difference tolerance
 		/// @return True if the two vectors are equal
-		constexpr bool Equals(const Vector2& other, double threshold = Math::Epsilon) const
+		constexpr bool Equals(const Vector2& other, double threshold = Math::LaxEpsilon) const
 		{
 			return Math::Approximately(X, other.X, threshold) &&
 				Math::Approximately(Y, other.Y, threshold);
@@ -264,7 +264,7 @@ namespace Coco
 		/// @param other The other vector
 		/// @param tolerance The difference tolerance
 		/// @return True if the two vectors are within the tolerance of each other
-		constexpr bool Equals(const Vector3& other, double tolerance = Math::Epsilon) const
+		constexpr bool Equals(const Vector3& other, double tolerance = Math::LaxEpsilon) const
 		{
 			return Math::Approximately(X, other.X, tolerance) &&
 				Math::Approximately(Y, other.Y, tolerance) &&
@@ -469,7 +469,7 @@ namespace Coco
 		/// @param other The other vector
 		/// @param tolerance The difference tolerance
 		/// @return True if the two vectors are within the tolerance of each other
-		constexpr bool Equals(const Vector4& other, double tolerance = Math::Epsilon) const
+		constexpr bool Equals(const Vector4& other, double tolerance = Math::LaxEpsilon) const
 		{
 			return Math::Approximately(X, other.X, tolerance) &&
 				Math::Approximately(Y, other.Y, tolerance) &&

@@ -157,13 +157,13 @@ namespace Coco
 	Vector3 Quaternion::ToEulerAngles() const
 	{
 		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
-
+	
 		double ww = W * W;
 		double xx = X * X;
 		double yy = Y * Y;
 		double zz = Z * Z;
 		double unit = xx + yy + zz + ww; // If normalised is one, otherwise is correction factor
-		double test = X * Y + Z * W;
+		double test = X * W - Y * Z;
 
 		Vector3 eulerAngles;
 
@@ -171,23 +171,24 @@ namespace Coco
 		if (test > unit * unitTest)
 		{
 			// Singularity at north pole
-			eulerAngles.Y = 2.0 * Math::Atan2(X, W);
+			//eulerAngles.Y = Math::Atan2(2.0 * (Y * W - X * Z), 1.0 - 2.0 * (yy + zz));
+			eulerAngles.Y = Math::Atan2(2.0 * (Y * W - X * Z), xx - yy - zz + ww);
 			eulerAngles.X = Math::HalfPI;
 			eulerAngles.Z = 0.0;
 		}
 		else if (test < -unit * unitTest)
 		{
 			// Singularity at south pole
-			eulerAngles.Y = -2.0 * Math::Atan2(X, W);
+			eulerAngles.Y = Math::Atan2(2.0 * (Y * W - X * Z), xx - yy - zz + ww);
 			eulerAngles.X = -Math::HalfPI;
 			eulerAngles.Z = 0.0;
 		}
 		else
 		{
 			// No singularity
-			eulerAngles.Y = Math::Atan2(2.0 * Y * W - 2.0 * X * Z, xx - yy - zz + ww);
-			eulerAngles.X = Math::Atan2(2.0 * X * W - 2.0 * Y * Z, -xx + yy - zz + ww);
-			eulerAngles.Z = Math::Asin(2.0 * test / unit);
+			eulerAngles.Y = Math::Atan2(2.0 * (X * Z + Y * W), ww - xx - yy + zz);
+			eulerAngles.X = Math::Asin(-2.0 * (Y * Z - W * X));
+			eulerAngles.Z = Math::Atan2(2.0 * (X * Y + W * Z), ww - xx + yy - zz);
 		}
 
 		return eulerAngles;

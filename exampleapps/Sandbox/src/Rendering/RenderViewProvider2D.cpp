@@ -17,7 +17,7 @@ void RenderViewProvider2D::SetupRenderView(
 
     RectInt viewport(Vector2Int::Zero, backbufferSize);
 
-    Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(0, viewport.Size.Width, 0, viewport.Size.Height, -100, 100);
+    Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(0, backbufferSize.Width, 0, backbufferSize.Height, -100, 100);
     Matrix4x4 view = Matrix4x4::Identity;
 
     renderView.Setup(viewport, viewport, view, projection, MSAASamples::One, rts);

@@ -314,7 +314,7 @@ namespace Coco::Rendering
 			_executionStopwatch.Start();
 			_currentPassStopwatch.Start();
 			
-			_stats.FramebufferSize = renderView.GetViewportRect().Size;
+			_stats.FramebufferSize = renderView.GetViewportRect().GetSize();
 		}
 		else
 			_renderOperation.reset();

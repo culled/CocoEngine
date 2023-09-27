@@ -32,8 +32,8 @@ namespace Coco
 		constexpr void operator*=(double scalar) { Width *= scalar; Height *= scalar; }
 		constexpr void operator/=(double divisor) { Width /= divisor; Height /= divisor; }
 
-		Size operator*(double scalar) { return Size(Width * scalar, Height * scalar); }
-		Size operator/(double divisor) { return Size(Width / divisor, Height / divisor); }
+		Size operator*(double scalar) const { return Size(Width * scalar, Height * scalar); }
+		Size operator/(double divisor) const { return Size(Width / divisor, Height / divisor); }
 
 		operator Vector2() const;
 
@@ -78,8 +78,8 @@ namespace Coco
 		constexpr void operator*=(int scalar) { Width *= scalar; Height *= scalar; }
 		constexpr void operator/=(int divisor) { Width /= divisor; Height /= divisor; }
 
-		SizeInt operator*(int scalar) { return SizeInt(Width * scalar, Height * scalar); }
-		SizeInt operator/(int divisor) { return SizeInt(Width / divisor, Height / divisor); }
+		SizeInt operator*(int scalar) const { return SizeInt(Width * scalar, Height * scalar); }
+		SizeInt operator/(int divisor) const { return SizeInt(Width / divisor, Height / divisor); }
 
 		operator Size() const { return Size(Width, Height); }
 

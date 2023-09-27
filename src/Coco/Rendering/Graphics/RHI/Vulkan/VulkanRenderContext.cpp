@@ -124,11 +124,13 @@ namespace Coco::Rendering::Vulkan
 		Assert(_vulkanRenderOperation.has_value())
 		_vulkanRenderOperation->ViewportRect = viewportRect;
 
+		SizeInt s = viewportRect.GetSize();
+
 		VkViewport viewport{};
-		viewport.x = static_cast<float>(viewportRect.Offset.X);
-		viewport.y = static_cast<float>(viewportRect.Offset.Y);
-		viewport.width = static_cast<float>(viewportRect.Size.Width);
-		viewport.height = static_cast<float>(viewportRect.Size.Height);
+		viewport.x = static_cast<float>(viewportRect.GetLeft());
+		viewport.y = static_cast<float>(viewportRect.GetBottom());
+		viewport.width = static_cast<float>(s.Width);
+		viewport.height = static_cast<float>(s.Height);
 		viewport.minDepth = 0.0f; // TODO: configurable min/max depth
 		viewport.maxDepth = 1.0f;
 
@@ -140,11 +142,13 @@ namespace Coco::Rendering::Vulkan
 		Assert(_vulkanRenderOperation.has_value())
 		_vulkanRenderOperation->ScissorRect = scissorRect;
 
+		SizeInt s = scissorRect.GetSize();
+
 		VkRect2D scissor{};
-		scissor.offset.x = static_cast<uint32_t>(scissorRect.Offset.X);
-		scissor.offset.y = static_cast<uint32_t>(scissorRect.Offset.Y);
-		scissor.extent.width = static_cast<uint32_t>(scissorRect.Size.Width);
-		scissor.extent.height = static_cast<uint32_t>(scissorRect.Size.Height);
+		scissor.offset.x = static_cast<uint32_t>(scissorRect.GetLeft());
+		scissor.offset.y = static_cast<uint32_t>(scissorRect.GetBottom());
+		scissor.extent.width = static_cast<uint32_t>(s.Width);
+		scissor.extent.height = static_cast<uint32_t>(s.Height);
 
 		vkCmdSetScissor(_commandBuffer->GetCmdBuffer(), 0, 1, &scissor);
 	}
@@ -284,10 +288,11 @@ namespace Coco::Rendering::Vulkan
 			}
 
  			const RectInt& viewportRect = renderView.GetViewportRect();
+			SizeInt viewportSize = viewportRect.GetSize();
 
 			VulkanRenderPass& renderPass = _deviceCache.GetOrCreateRenderPass(_renderOperation->Pipeline, renderView.GetMSAASamples(), resolveImageIndices);
 			VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
-			VulkanFramebuffer& framebuffer = cache.GetOrCreateFramebuffer(viewportRect.Size, renderPass, vulkanImages);
+			VulkanFramebuffer& framebuffer = cache.GetOrCreateFramebuffer(viewportSize, renderPass, vulkanImages);
 
 			// Setup the Vulkan-specific render operation
 			_vulkanRenderOperation.emplace(VulkanContextRenderOperation(framebuffer, renderPass));
@@ -305,10 +310,10 @@ namespace Coco::Rendering::Vulkan
 			beginInfo.renderPass = renderPass.GetRenderPass();
 			beginInfo.framebuffer = framebuffer.GetFramebuffer();
 
-			beginInfo.renderArea.offset.x = static_cast<uint32_t>(viewportRect.Offset.X);
-			beginInfo.renderArea.offset.y = static_cast<uint32_t>(viewportRect.Offset.Y);
-			beginInfo.renderArea.extent.width = static_cast<uint32_t>(viewportRect.Size.Width);
-			beginInfo.renderArea.extent.height = static_cast<uint32_t>(viewportRect.Size.Height);
+			beginInfo.renderArea.offset.x = static_cast<uint32_t>(viewportRect.GetLeft());
+			beginInfo.renderArea.offset.y = static_cast<uint32_t>(viewportRect.GetBottom());
+			beginInfo.renderArea.extent.width = static_cast<uint32_t>(viewportSize.Width);
+			beginInfo.renderArea.extent.height = static_cast<uint32_t>(viewportSize.Height);
 
 			beginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 			beginInfo.pClearValues = clearValues.data();

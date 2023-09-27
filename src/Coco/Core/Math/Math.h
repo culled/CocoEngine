@@ -57,8 +57,14 @@ namespace Coco::Math
 	/// @brief The smallest discernable value of a double 
 	constexpr double Epsilon = EpsilonValue<double>();
 
+	/// @brief A small double value
+	constexpr double LaxEpsilon = 0.000001;
+
 	/// @brief The smallest discernable value of a float 
 	constexpr float EpsilonF = EpsilonValue<float>();
+
+	/// @brief A small float value
+	constexpr float LaxEpsilonF = 0.000001f;
 
 	/// @brief Gets the absolute value of a value
 	/// @tparam ValueType The type of value
@@ -135,7 +141,7 @@ namespace Coco::Math
 	/// @param b The second number
 	/// @return True if the two are equal within an acceptable error of each other
 	template<typename ValueType>
-	constexpr bool Equal(const ValueType& a, const ValueType& b) { return Approximately(a, b, EpsilonValue<ValueType>()); }
+	constexpr bool Equal(const ValueType& a, const ValueType& b) { return Approximately(a, b, EpsilonValue<ValueType>() * 2.0); }
 
 	/// @brief Combines hashes using a seed
 	/// @param seed The seed to use when combining
