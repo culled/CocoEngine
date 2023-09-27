@@ -2,33 +2,12 @@
 
 #include "../Renderpch.h"
 #include <Coco/Core/Types/Refs.h>
-#include "GraphicsDevice.h"
-
-namespace Coco
-{
-	class Application;
-}
+#include <Coco/Core/Types/Matrix.h>
+#include "GraphicsDeviceTypes.h"
 
 namespace Coco::Rendering
 {
-	/// @brief Creation parameters for a GraphicsPlatform
-	struct GraphicsPlatformCreateParams
-	{
-		/// @brief The application instance.
-		/// This is here because if the app creates the RenderService in its constructor, the Engine's app instance is technically not set yet and not accessible
-		const Application& App;
-
-		/// @brief Set to true to enable the platform to present rendered images
-		bool PresentationSupport;
-
-		/// @brief Parameters for creating the GraphicsDevice
-		GraphicsDeviceCreateParams DeviceCreateParameters;
-
-		/// @brief Platform rendering extensions to enable
-		std::vector<const char*> RenderingExtensions;
-
-		GraphicsPlatformCreateParams(const Application& app, bool presentationSupport);
-	};
+	class GraphicsDevice;
 
 	/// @brief A graphics platform
 	class GraphicsPlatform

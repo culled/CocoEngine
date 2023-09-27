@@ -9,14 +9,20 @@
 
 #include "Math/Math.h"
 
+#include "Types/Color.h"
+#include "Types/DateTime.h"
+#include "Types/Matrix.h"
+#include "Types/Quaternion.h"
+#include "Types/Rect.h"
 #include "Types/Refs.h"
 #include "Types/Singleton.h"
+#include "Types/Size.h"
+#include "Types/Stopwatch.h"
 #include "Types/String.h"
 #include "Types/TimeSpan.h"
-#include "Types/DateTime.h"
-#include "Types/Version.h"
+#include "Types/Transform.h"
 #include "Types/Vector.h"
-#include "Types/Size.h"
+#include "Types/Version.h"
 
 #include "Events/Event.h"
 #include "Events/Query.h"

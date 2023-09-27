@@ -6,7 +6,8 @@
 namespace Coco::Rendering::Vulkan
 {
 	/// @brief A GraphicsPlatformFactory that creates a VulkanGraphicsPlatform
-	class VulkanGraphicsPlatformFactory : public GraphicsPlatformFactory
+	class VulkanGraphicsPlatformFactory : 
+		public GraphicsPlatformFactory
 	{
 	public:
 		static const Version sDefaultAPIVersion;

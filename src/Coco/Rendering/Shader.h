@@ -1,8 +1,8 @@
 #pragma once
 
+#include "RendererResource.h"
 #include <Coco/Core/Types/String.h>
 #include "Graphics/RenderPassShader.h"
-#include "RendererResource.h"
 
 namespace Coco::Rendering
 {

@@ -15,7 +15,7 @@ public:
 	RenderPass2D();
 
 	std::span<const AttachmentFormat> GetInputAttachments() const { return _attachments; }
-	string GetName() const { return "basic"; }
+	const char* GetName() const { return "basic"; }
 	bool SupportsMSAA() const final { return false; }
 	void Execute(RenderContext& context, const RenderView& renderView);
 };

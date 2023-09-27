@@ -1,9 +1,18 @@
 #pragma once
 
-#include "../Pipeline/CompiledRenderPipeline.h"
+#include "../Renderpch.h"
+#include "GraphicsPipelineTypes.h"
+#include <Coco/Core/Defines.h>
+#include <Coco/Core/Types/Refs.h>
+#include <Coco/Core/Types/Size.h>
 
 namespace Coco::Rendering
 {
+	struct CompiledRenderPipeline;
+	struct RenderTarget;
+	struct AttachmentFormat;
+	class Image;
+
 	/// @brief An image cache for a pipeline
 	struct PipelineImageCache
 	{

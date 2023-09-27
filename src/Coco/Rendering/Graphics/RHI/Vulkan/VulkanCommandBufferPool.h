@@ -3,7 +3,6 @@
 #include "../../../Renderpch.h"
 #include <Coco/Core/Defines.h>
 #include <Coco/Core/Types/Refs.h>
-#include "../../GraphicsDeviceResource.h"
 #include "VulkanCommandBuffer.h"
 #include "VulkanIncludes.h"
 

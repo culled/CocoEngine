@@ -7,17 +7,8 @@
 
 namespace Coco::Windowing
 {
-	WindowCreateParams::WindowCreateParams(const char* title, const SizeInt& initialSize) :
-		Title(title),
-		InitialSize(initialSize),
-		CanResize(true),
-		InitialState(WindowState::Default),
-		IsFullscreen(false),
-		InitialPosition(),
-		ParentWindow(Window::InvalidID),
-		DisplayIndex(),
-		WithoutDecoration(false)
-	{}
+	const WindowID Window::InvalidID = Math::MaxValue<WindowID>();
+	const uint16 Window::DefaultDPI = 96;
 
 	std::atomic<WindowID> Window::_id;
 

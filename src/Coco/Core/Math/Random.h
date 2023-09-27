@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Defines.h"
 #include "../Corepch.h"
+#include "../Defines.h"
 
 namespace Coco
 {

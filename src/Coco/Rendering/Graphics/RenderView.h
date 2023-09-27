@@ -5,8 +5,6 @@
 #include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Types/Matrix.h>
-#include "Image.h"
-#include "Buffer.h"
 #include "RenderPassShader.h"
 
 namespace Coco::Rendering
@@ -14,6 +12,8 @@ namespace Coco::Rendering
 	class Mesh;
 	class Shader;
 	class MaterialDataProvider;
+	class Image;
+	class Buffer;
 
 	/// @brief An image that can be rendered to
 	struct RenderTarget

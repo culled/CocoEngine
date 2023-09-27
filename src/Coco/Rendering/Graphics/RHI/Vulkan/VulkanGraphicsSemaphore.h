@@ -9,7 +9,9 @@ namespace Coco::Rendering::Vulkan
     class VulkanGraphicsDevice;
 
     /// @brief Vulkan implementation of a GraphicsSemaphore
-    class VulkanGraphicsSemaphore : public GraphicsSemaphore, public GraphicsDeviceResource<VulkanGraphicsDevice>
+    class VulkanGraphicsSemaphore : 
+        public GraphicsSemaphore, 
+        public GraphicsDeviceResource<VulkanGraphicsDevice>
     {
     private:
         VkSemaphore _semaphore;

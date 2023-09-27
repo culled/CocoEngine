@@ -1,6 +1,8 @@
 #include "Corepch.h"
 #include "Size.h"
 
+#include "Vector.h"
+
 namespace Coco
 {
 	const Size Size::Zero = Size(0, 0);
@@ -12,6 +14,8 @@ namespace Coco
 		Width(width),
 		Height(height)
 	{}
+
+	Size::operator Vector2() const { return Vector2(Width, Height); }
 
 	string Size::ToString() const
 	{
@@ -27,6 +31,8 @@ namespace Coco
 		Width(width),
 		Height(height)
 	{}
+
+	SizeInt::operator Vector2Int() const { return Vector2Int(Width, Height); }
 
 	string SizeInt::ToString() const
 	{

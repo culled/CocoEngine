@@ -2,44 +2,23 @@
 
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Rect.h>
+#include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/Stopwatch.h>
+#include "RenderContextTypes.h"
 #include "GraphicsFence.h"
 #include "GraphicsSemaphore.h"
 #include "ShaderUniformData.h"
-#include "RenderView.h"
 
 namespace Coco::Rendering
 {
 	struct CompiledRenderPipeline;
 	struct RenderPassBinding;
-
-	/// @brief Render stats for a RenderContext
-	struct RenderContextRenderStats
-	{
-		/// @brief The number of triangles drawn
-		uint64 TrianglesDrawn;
-
-		/// @brief The number of vertices in the scene
-		uint64 VertexCount;
-
-		/// @brief The number of draw calls
-		uint64 DrawCalls;
-
-		/// @brief The size of the framebuffer
-		SizeInt FramebufferSize;
-
-		/// @brief The amount of time executing the render operation took
-		TimeSpan TotalExecutionTime;
-
-		/// @brief The amount of time each render pass took
-		std::unordered_map<string, TimeSpan> PassExecutionTime;
-
-		RenderContextRenderStats();
-
-		/// @brief Resets this stats object
-		void Reset();
-	};
+	class RenderView;
+	struct RenderPassShaderData;
+	struct MaterialData;
+	struct MeshData;
 
 	/// @brief Holds data that a RenderContext uses during actual rendering
 	struct ContextRenderOperation
@@ -70,17 +49,9 @@ namespace Coco::Rendering
 	class RenderContext
 	{
 	public:
-		/// @brief States for a RenderContext
-		enum class State
-		{
-			ReadyForRender,
-			InRender,
-			EndedRender,
-			RenderCompleted
-		};
 
 	protected:
-		State _currentState;
+		RenderContextState _currentState;
 		std::optional<ContextRenderOperation> _renderOperation;
 		RenderContextRenderStats _stats;
 		Stopwatch _executionStopwatch;
@@ -155,7 +126,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets this RenderContext's state
 		/// @return The state
-		State GetState() const { return _currentState; }
+		RenderContextState GetState() const { return _currentState; }
 
 		/// @brief Sets a float uniform.
 		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly

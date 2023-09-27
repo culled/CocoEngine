@@ -1,8 +1,11 @@
 #include "Corepch.h"
 #include "Resource.h"
+#include "../Math/Math.h"
 
 namespace Coco
 {
+	const ResourceID Resource::InvalidID = Math::MaxValue<ResourceID>();
+
 	Resource::Resource(const ResourceID& id, const string& name) :
 		_id(id),
 		_name(name),

@@ -2,14 +2,14 @@
 
 #include "../../../../Renderpch.h"
 #include "CachedVulkanResource.h"
-#include "../VulkanIncludes.h"
 #include <Coco/Core/Types/Size.h>
-#include "../VulkanImage.h"
-#include "VulkanRenderPass.h"
+#include "../VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
 {
 	class VulkanGraphicsDevice;
+	class VulkanImage;
+	class VulkanRenderPass;
 
 	/// @brief A Vulkan framebuffer
 	class VulkanFramebuffer : 

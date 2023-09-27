@@ -1,15 +1,17 @@
 #pragma once
 
 #include "Windowpch.h"
-#include <Coco/Core/Core.h>
 #include <Coco/Core/Services/EngineService.h>
+#include <Coco/Core/Types/Singleton.h>
 #include "Window.h"
 #include "DisplayInfo.h"
 
 namespace Coco::Windowing
 {
 	/// @brief Provides windowing services
-	class WindowService : public EngineService, public Singleton<WindowService>
+	class WindowService : 
+		public EngineService, 
+		public Singleton<WindowService>
 	{
 		friend Window;
 

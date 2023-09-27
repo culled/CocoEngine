@@ -2,12 +2,14 @@
 
 #include <Coco/Core/Types/Size.h>
 #include <Coco/Core/Types/Refs.h>
-#include "Image.h"
-#include "RenderContext.h"
 #include "GraphicsPresenterTypes.h"
 
 namespace Coco::Rendering
 {
+	class Image;
+	class RenderContext;
+	class GraphicsSemaphore;
+
 	/// @brief Allows images to be presented onto GUI windows
 	class GraphicsPresenter
 	{

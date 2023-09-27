@@ -1,6 +1,8 @@
 #include "Corepch.h"
 #include "Matrix.h"
 
+#include "Vector.h"
+#include "Quaternion.h"
 #include "../Math/Math.h"
 
 namespace Coco
@@ -292,6 +294,20 @@ namespace Coco
 
 		return inverse;
 	}
+
+	Vector3 Matrix4x4::GetRightVector() const { return Vector3(Data[m11], Data[m21], Data[m31]).Normalized(); }
+
+	Vector3 Matrix4x4::GetLeftVector() const { return -GetRightVector(); }
+
+	Vector3 Matrix4x4::GetUpVector() const { return Vector3(Data[m12], Data[m22], Data[m32]).Normalized(); }
+
+	Vector3 Matrix4x4::GetDownVector() const { return -GetUpVector(); }
+
+	Vector3 Matrix4x4::GetForwardVector() const { return Vector3(Data[m13], Data[m23], Data[m33]).Normalized(); }
+
+	Vector3 Matrix4x4::GetBackwardVector() const { return -GetForwardVector(); }
+
+	Vector3 Matrix4x4::GetTranslation() const { return Vector3(Data[m14], Data[m24], Data[m34]); }
 
 	Quaternion Matrix4x4::GetRotation() const
 	{

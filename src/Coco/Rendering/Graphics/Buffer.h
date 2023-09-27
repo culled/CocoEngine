@@ -2,8 +2,8 @@
 
 #include "../Renderpch.h"
 #include <Coco/Core/Defines.h>
-#include "BufferTypes.h"
 #include <Coco/Core/Types/Freelist.h>
+#include "BufferTypes.h"
 
 namespace Coco::Rendering
 {

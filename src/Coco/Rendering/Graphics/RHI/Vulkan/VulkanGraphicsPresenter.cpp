@@ -1,6 +1,9 @@
 #include "Renderpch.h"
 #include "VulkanGraphicsPresenter.h"
-
+#include "VulkanGraphicsDevice.h"
+#include "VulkanGraphicsSemaphore.h"
+#include "VulkanRenderContext.h"
+#include "VulkanImage.h"
 #include "VulkanGraphicsPresenterSurface.h"
 #include "VulkanUtils.h"
 #include <Coco/Core/Engine.h>

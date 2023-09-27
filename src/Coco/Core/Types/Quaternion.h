@@ -1,9 +1,11 @@
 #pragma once
 
-#include "Vector.h"
+#include "../Math/Math.h"
 
 namespace Coco
 {
+	struct Vector3;
+
 	/// @brief Represents a 3D rotation
 	struct Quaternion
 	{

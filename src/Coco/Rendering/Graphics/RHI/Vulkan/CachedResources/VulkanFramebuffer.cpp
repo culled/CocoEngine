@@ -1,7 +1,8 @@
 #include "Renderpch.h"
 #include "VulkanFramebuffer.h"
+#include "VulkanRenderPass.h"
 #include "../VulkanGraphicsDevice.h"
-#include "VulkanRenderContextCache.h"
+#include "../VulkanImage.h"
 
 #include <Coco/Core/Engine.h>
 

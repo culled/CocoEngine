@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VulkanIncludes.h"
+#include <Coco/Core/Types/Version.h>
 #include "../../GraphicsDeviceTypes.h"
 #include "../../GraphicsPipelineTypes.h"
 #include "../../BufferTypes.h"
@@ -8,7 +8,7 @@
 #include "../../ImageSamplerTypes.h"
 #include "../../RenderPassShaderTypes.h"
 #include "../../GraphicsPresenterTypes.h"
-#include <Coco/Core/Types/Version.h>
+#include "VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
 {

@@ -1,5 +1,7 @@
 #include "Renderpch.h"
 #include "VulkanCommandBuffer.h"
+#include "VulkanGraphicsSemaphore.h"
+#include "VulkanGraphicsFence.h"
 
 namespace Coco::Rendering::Vulkan
 {

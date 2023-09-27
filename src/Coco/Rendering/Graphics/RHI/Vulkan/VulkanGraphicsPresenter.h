@@ -1,14 +1,15 @@
 #pragma once
 #include "../../GraphicsPresenter.h"
-#include "VulkanGraphicsDevice.h"
 #include "../../GraphicsDeviceResource.h"
-#include "VulkanRenderContext.h"
-#include "VulkanImage.h"
 
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
 {
+    class VulkanGraphicsDevice;
+    class VulkanRenderContext;
+    class VulkanImage;
+
     /// @brief Support details for a swapchain
     struct SwapchainSupportDetails
     {
@@ -25,7 +26,9 @@ namespace Coco::Rendering::Vulkan
     };
 
     /// @brief Vulkan implementation of a GraphicsPresenter
-    class VulkanGraphicsPresenter : public GraphicsPresenter, public GraphicsDeviceResource<VulkanGraphicsDevice>
+    class VulkanGraphicsPresenter : 
+        public GraphicsPresenter, 
+        public GraphicsDeviceResource<VulkanGraphicsDevice>
     {
     private:
         static const ImageUsageFlags _sBackbufferUsageFlags;

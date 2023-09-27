@@ -2,6 +2,7 @@
 
 #include "../Renderpch.h"
 #include "RenderPassBinding.h"
+#include "../Graphics/AttachmentFormat.h"
 
 namespace Coco::Rendering
 {

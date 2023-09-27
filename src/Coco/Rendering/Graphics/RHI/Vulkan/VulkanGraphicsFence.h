@@ -8,7 +8,9 @@ namespace Coco::Rendering::Vulkan
     class VulkanGraphicsDevice;
 
     /// @brief Vulkan implementation of a GraphicsFence
-    class VulkanGraphicsFence : public GraphicsFence, public GraphicsDeviceResource<VulkanGraphicsDevice>
+    class VulkanGraphicsFence : 
+        public GraphicsFence,
+        public GraphicsDeviceResource<VulkanGraphicsDevice>
     {
     private:
         VkFence _fence;

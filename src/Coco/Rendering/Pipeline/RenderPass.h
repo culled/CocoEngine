@@ -2,7 +2,7 @@
 
 #include <Coco/Core/Defines.h>
 #include <Coco/Core/Types/String.h>
-#include <Coco/Rendering/Graphics/AttachmentFormat.h>
+#include "../Graphics/AttachmentFormat.h"
 #include "../Graphics/RenderContext.h"
 #include "../Graphics/RenderView.h"
 
@@ -16,7 +16,7 @@ namespace Coco::Rendering
 
 		/// @brief Gets the name of this pass. Used to link to individual render pass shaders
 		/// @return This pass's name
-		virtual string GetName() const = 0;
+		virtual const char* GetName() const = 0;
 
 		/// @brief Gets the attachment formats that this pass uses
 		/// @return This pass's attachments

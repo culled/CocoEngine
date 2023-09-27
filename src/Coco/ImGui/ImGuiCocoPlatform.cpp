@@ -1,11 +1,20 @@
 #include "ImGuiCocoPlatform.h"
 
-#include <Coco/Input/InputService.h>
-#include <Coco/Windowing/WindowService.h>
+#include <Coco/Rendering/Shader.h>
+#include <Coco/Rendering/Mesh.h>
+#include <Coco/Rendering/Material.h>
+#include <Coco/Rendering/Texture.h>
+#include <Coco/Rendering/Pipeline/RenderPipeline.h>
 #include <Coco/Rendering/RenderService.h>
+
+#include <Coco/Input/InputService.h>
+
+#include <Coco/Windowing/WindowService.h>
+#include <Coco/Windowing/Window.h>
+
 #include <Coco/Core/Engine.h>
+
 #include <imgui.h>
-#include "ImGuiRenderPass.h"
 
 namespace Coco::ImGuiCoco
 {

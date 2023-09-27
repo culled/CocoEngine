@@ -1,10 +1,10 @@
 #pragma once
 
+#include "RendererResource.h"
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/String.h>
 #include "Graphics/Image.h"
 #include "Graphics/ImageSampler.h"
-#include "RendererResource.h"
 
 namespace Coco::Rendering
 {

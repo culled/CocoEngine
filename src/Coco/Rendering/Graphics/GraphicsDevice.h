@@ -1,39 +1,19 @@
 #pragma once
 
 #include "../Renderpch.h"
-#include "GraphicsDeviceTypes.h"
-#include "GraphicsPresenter.h"
+#include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Version.h>
-#include "Buffer.h"
+#include "GraphicsDeviceTypes.h"
+#include "BufferTypes.h"
 
 namespace Coco::Rendering
 {
-	/// @brief Creation parameters for a GraphicsDevice
-	struct GraphicsDeviceCreateParams
-	{
-		/// @brief The ideal type of rendering device to pick
-		GraphicsDeviceType PreferredDeviceType;
-
-		/// @brief If true, the device will be able to present images
-		bool SupportsPresentation;
-
-		/// @brief If true, the device will be required to support graphics operations
-		bool RequireGraphicsCapability;
-
-		/// @brief If true, the device will be required to support compute operations
-		bool RequireComputeCapability;
-
-		/// @brief If true, the device will be required to support memory transfer operations
-		bool RequireTransferCapability;
-
-		/// @brief If true, the anisotropic sampling will be enabled on the device if it supports it
-		bool EnableAnisotropicSampling;
-
-		/// @brief If true, depth clamping will be enabled on the device if it supports it
-		bool EnableDepthClamping;
-
-		GraphicsDeviceCreateParams();
-	};
+	class Buffer;
+	class Image;
+	struct ImageDescription;
+	class ImageSampler;
+	struct ImageSamplerDescription;
+	class GraphicsPresenter;
 
 	/// @brief A device that can perform graphics operations
 	class GraphicsDevice

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <Coco/Core/Types/Refs.h>
-#include "GraphicsPlatform.h"
+#include "GraphicsPlatformTypes.h"
 
 namespace Coco::Rendering
 {
+	class GraphicsPlatform;
+
 	/// @brief A factory that creates a GraphicsPlatform
 	class GraphicsPlatformFactory
 	{

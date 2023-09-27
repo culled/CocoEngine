@@ -1,22 +1,24 @@
 #pragma once
 
 #include <Coco/Core/Services/EngineService.h>
-#include <Coco/Core/Core.h>
+#include <Coco/Core/Types/Refs.h>
+#include <Coco/Core/MainLoop/TickListener.h>
 #include "Graphics/GraphicsPlatformFactory.h"
 #include "Graphics/GraphicsPlatform.h"
 #include "Graphics/GraphicsDevice.h"
 #include "Graphics/GraphicsPresenter.h"
 #include "Graphics/RenderView.h"
-#include "Pipeline/RenderPipeline.h"
 #include "Providers/RenderViewProvider.h"
 #include "Providers/SceneDataProvider.h"
-#include "Texture.h"
 #include "RenderTask.h"
 #include "RenderStats.h"
-#include <Coco/Core/MainLoop/TickListener.h>
 
 namespace Coco::Rendering
 {
+	class Texture;
+	class RenderPipeline;
+	struct CompiledRenderPipeline;
+
 	/// @brief A render task for a RenderService
 	struct RenderServiceRenderTask
 	{

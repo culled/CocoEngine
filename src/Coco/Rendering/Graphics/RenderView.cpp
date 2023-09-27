@@ -3,6 +3,8 @@
 #include "../Mesh.h"
 #include "../Shader.h"
 #include "../Material.h"
+#include "Image.h"
+#include "Buffer.h"
 
 #include <Coco/Core/Engine.h>
 

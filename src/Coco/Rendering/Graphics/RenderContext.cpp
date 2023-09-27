@@ -1,5 +1,6 @@
 #include "Renderpch.h"
 #include "RenderContext.h"
+#include "RenderView.h"
 #include "../Pipeline/RenderPass.h"
 #include "../Pipeline/CompiledRenderPipeline.h"
 
@@ -7,25 +8,6 @@
 
 namespace Coco::Rendering
 {
-	RenderContextRenderStats::RenderContextRenderStats() :
-		TrianglesDrawn(0),
-		VertexCount(0),
-		DrawCalls(0),
-		FramebufferSize(SizeInt::Zero),
-		TotalExecutionTime(),
-		PassExecutionTime()
-	{}
-
-	void RenderContextRenderStats::Reset()
-	{
-		TrianglesDrawn = 0;
-		VertexCount = 0;
-		DrawCalls = 0;
-		FramebufferSize = SizeInt::Zero;
-		TotalExecutionTime = TimeSpan();
-		PassExecutionTime.clear();
-	}
-
 	ContextRenderOperation::ContextRenderOperation(Rendering::RenderView& renderView, CompiledRenderPipeline& pipeline) :
 		RenderView(renderView),
 		Pipeline(pipeline),
@@ -46,7 +28,7 @@ namespace Coco::Rendering
 	}
 
 	RenderContext::RenderContext() :
-		_currentState(State::ReadyForRender),
+		_currentState(RenderContextState::ReadyForRender),
 		_renderOperation{},
 		_executionStopwatch(),
 		_currentPassStopwatch(),
@@ -327,7 +309,7 @@ namespace Coco::Rendering
 
 		if (began)
 		{
-			_currentState = State::InRender;
+			_currentState = RenderContextState::InRender;
 
 			_executionStopwatch.Start();
 			_currentPassStopwatch.Start();
@@ -362,7 +344,7 @@ namespace Coco::Rendering
 		_stats.PassExecutionTime[_renderOperation->GetCurrentPass().Pass->GetName()] = _currentPassStopwatch.Stop();
 		_stats.TotalExecutionTime = _executionStopwatch.Stop();
 
-		_currentState = State::EndedRender;
+		_currentState = RenderContextState::EndedRender;
 	}
 
 	void RenderContext::Reset()
@@ -371,7 +353,7 @@ namespace Coco::Rendering
 
 		_renderOperation.reset();
 		_stats.Reset();
-		_currentState = State::ReadyForRender;
+		_currentState = RenderContextState::ReadyForRender;
 
 		_globalUniforms.Clear();
 		_instanceUniforms.Clear();

@@ -2,7 +2,6 @@
 
 #include "../../Image.h"
 #include "../../GraphicsDeviceResource.h"
-#include "VulkanBuffer.h"
 
 #include "VulkanIncludes.h"
 
@@ -10,9 +9,12 @@ namespace Coco::Rendering::Vulkan
 {
     class VulkanGraphicsDevice;
     class VulkanCommandBuffer;
+    class VulkanBuffer;
 
     /// @brief Vulkan implementation of an Image
-    class VulkanImage : public Image, public GraphicsDeviceResource<VulkanGraphicsDevice>
+    class VulkanImage : 
+        public Image, 
+        public GraphicsDeviceResource<VulkanGraphicsDevice>
     {
         friend class VulkanRenderContext;
 

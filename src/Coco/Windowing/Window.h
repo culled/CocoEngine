@@ -5,9 +5,9 @@
 #include <Coco/Core/Math/Math.h>
 #include <Coco/Core/Events/Event.h>
 #include <Coco/Core/Types/Refs.h>
-#include <Coco/Core/Types/Size.h>
-#include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Types/Rect.h>
+
+#include "WindowTypes.h"
 
 namespace Coco::Rendering
 {
@@ -17,60 +17,15 @@ namespace Coco::Rendering
 
 namespace Coco::Windowing
 {
-	/// @brief States that a window can be in
-	enum class WindowState
-	{
-		Default,
-		Minimized,
-		Maximized
-	};
-
-	/// @brief A window ID
-	using WindowID = uint32;
-
-	/// @brief Parameters for creating a window
-	struct WindowCreateParams
-	{
-		/// @brief The initial title
-		const char* Title;
-
-		/// @brief The initial client area size
-		SizeInt InitialSize;
-
-		/// @brief If true, the window can be resized
-		bool CanResize;
-
-		/// @brief The initial state for the window to start in
-		WindowState InitialState;
-
-		/// @brief If true, the window will start in fullscreen
-		bool IsFullscreen;
-
-		/// @brief If given, the window's top-left corner will be at the given position relative to its parent (if it has one).
-		/// NOTE: this will be relative to the top-left corner of the screen if a DisplayIndex is given as well
-		std::optional<Vector2Int> InitialPosition;
-
-		/// @brief If given, will be the parent of the created window
-		WindowID ParentWindow;
-
-		/// @brief If given, sets the index of the display to show the window on
-		std::optional<uint8> DisplayIndex;
-
-		/// @brief If true, the window will not include any decorations (title bar, buttons, frame, etc.) 
-		bool WithoutDecoration;
-
-		WindowCreateParams(const char* title, const SizeInt& initialSize);
-	};
-
 	/// @brief A GUI window
 	class Window
 	{
 	public:
 		/// @brief An invalid window ID
-		static constexpr WindowID InvalidID = Math::MaxValue<WindowID>();
+		static const WindowID InvalidID;
 
 		/// @brief The default DPI
-		static constexpr uint16 DefaultDPI = 96;
+		static const uint16 DefaultDPI;
 
 		/// @brief The ID of this window
 		const WindowID ID;
@@ -94,9 +49,11 @@ namespace Coco::Windowing
 		Event<bool> OnFocusChanged;
 
 	protected:
-		static std::atomic<WindowID> _id;
 		WindowID _parentID;
 		Ref<Rendering::GraphicsPresenter> _presenter;
+
+	private:
+		static std::atomic<WindowID> _id;
 
 	protected:
 		Window(const WindowCreateParams& createParams);

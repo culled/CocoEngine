@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Coco/Rendering/Graphics/GraphicsDevice.h>
-#include <Coco/Core/Core.h>
-#include "VulkanIncludes.h"
+#include "../../GraphicsDevice.h"
+#include <Coco/Core/Resources/ResourceLibrary.h>
+#include <Coco/Core/Types/String.h>
 #include <Coco/Core/Types/Version.h>
 #include "VulkanCommandBufferPool.h"
 #include "VulkanGraphicsDeviceCache.h"
-#include <Coco/Core/Resources/ResourceLibrary.h>
+#include "VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
 {
@@ -75,7 +75,8 @@ namespace Coco::Rendering::Vulkan
 	};
 
 	/// @brief Vulkan implementation of a GraphicsDevice
-	class VulkanGraphicsDevice : public GraphicsDevice
+	class VulkanGraphicsDevice : 
+		public GraphicsDevice
 	{
 	private:
 		VkInstance _instance;

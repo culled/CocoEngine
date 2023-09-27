@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../Corepch.h"
-#include "../Math/Math.h"
 #include "../Defines.h"
+#include "../Math/Math.h"
 
 namespace Coco
 {

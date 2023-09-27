@@ -3,20 +3,20 @@
 #include <Coco/Core/Defines.h>
 #include "../../RenderContext.h"
 #include "../../GraphicsDeviceResource.h"
+#include "../../RenderPassShaderTypes.h"
 #include "VulkanGraphicsSemaphore.h"
 #include "VulkanGraphicsFence.h"
-#include "VulkanCommandBuffer.h"
-#include "../../../Pipeline/CompiledRenderPipeline.h"
-#include "CachedResources/VulkanFramebuffer.h"
-#include "CachedResources/VulkanRenderPass.h"
-#include "CachedResources/VulkanPipeline.h"
-#include "CachedResources/VulkanRenderContextCache.h"
-#include "../../RenderPassShaderTypes.h"
+#include "VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
 {
     class VulkanGraphicsDevice;
     class VulkanGraphicsDeviceCache;
+    class VulkanFramebuffer;
+    class VulkanRenderPass;
+    class VulkanPipeline;
+    class VulkanRenderContextCache;
+    class VulkanCommandBuffer;
 
     /// @brief The bound global state
     struct BoundGlobalState
@@ -82,7 +82,9 @@ namespace Coco::Rendering::Vulkan
     };
 
     /// @brief Vulkan implementation of a RenderContext
-    class VulkanRenderContext : public RenderContext, public GraphicsDeviceResource<VulkanGraphicsDevice>
+    class VulkanRenderContext : 
+        public RenderContext, 
+        public GraphicsDeviceResource<VulkanGraphicsDevice>
     {
     private:
         ManagedRef<VulkanGraphicsSemaphore> _renderStartSemaphore;

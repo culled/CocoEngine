@@ -1,12 +1,14 @@
 #pragma once
 
 #include "../../GraphicsPlatform.h"
+#include "../../GraphicsPlatformTypes.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
 {
 	/// @brief Vulkan implementation of a GraphicsPlatform
-	class VulkanGraphicsPlatform : public GraphicsPlatform
+	class VulkanGraphicsPlatform : 
+		public GraphicsPlatform
 	{
 	public:
 		static const char* sVulkanRHIName;

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Graphics/Buffer.h"
-#include "Graphics/GraphicsDevice.h"
-#include "MeshTypes.h"
 #include "RendererResource.h"
+#include <Coco/Core/Types/Refs.h>
+#include "MeshTypes.h"
+#include "Graphics/Buffer.h"
 
 namespace Coco::Rendering
 {

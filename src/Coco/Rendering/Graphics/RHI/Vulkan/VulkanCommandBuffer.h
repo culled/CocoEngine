@@ -1,13 +1,14 @@
 #pragma once
 
 #include "../../../Renderpch.h"
-#include "VulkanGraphicsSemaphore.h"
-#include "VulkanGraphicsFence.h"
-
+#include <Coco/Core/Types/Refs.h>
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
 {
+	class VulkanGraphicsSemaphore;
+	class VulkanGraphicsFence;
+
 	/// @brief A buffer that rendering commands can be written to
 	class VulkanCommandBuffer
 	{

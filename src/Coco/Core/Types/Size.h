@@ -1,10 +1,13 @@
 #pragma once
 
 #include "String.h"
-#include "Vector.h"
+#include "../Math/Math.h"
 
 namespace Coco
 {
+	struct Vector2;
+	struct Vector2Int;
+
 	/// @brief A size that is backed by double values
 	struct Size
 	{
@@ -32,7 +35,7 @@ namespace Coco
 		Size operator*(double scalar) { return Size(Width * scalar, Height * scalar); }
 		Size operator/(double divisor) { return Size(Width / divisor, Height / divisor); }
 
-		operator Vector2() const { return Vector2(Width, Height); }
+		operator Vector2() const;
 
 		/// @brief Determines if this size equals another
 		/// @param other The other size
@@ -80,7 +83,7 @@ namespace Coco
 
 		operator Size() const { return Size(Width, Height); }
 
-		operator Vector2Int() const { return Vector2Int(Width, Height); }
+		operator Vector2Int() const;
 
 		/// @brief Gets a string representation of this size
 		/// @return The string representation

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../Corepch.h"
+#include "../Types/Singleton.h"
 #include "TickInfo.h"
 #include "TickListener.h"
-#include "../Types/Singleton.h"
 
 namespace Coco
 {

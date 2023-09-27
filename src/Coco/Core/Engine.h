@@ -14,8 +14,13 @@ namespace Coco
 	class Engine : public Singleton<Engine>
 	{
 	public:
+		/// @brief The process argument for showing the console
 		static const char* sShowConsoleArgument;
+
+		/// @brief The argument for setting the content path
 		static const char* sContentPathArgument;
+
+		/// @brief The default content path
 		static const char* sDefaultContentPath;
 
 	private:

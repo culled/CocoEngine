@@ -1,7 +1,6 @@
 #include "Windowpch.h"
 #include "WindowService.h"
 #include "WindowingPlatform.h"
-#include <Coco/Core/Types/Rect.h>
 
 #include <Coco/Core/Engine.h>
 

@@ -1,13 +1,24 @@
 #pragma once
 
 #include "CachedVulkanResource.h"
-#include "../VulkanBuffer.h"
-#include "../VulkanDescriptorSetLayout.h"
-#include "VulkanRenderPassShader.h"
-#include "../VulkanCommandBuffer.h"
+#include <Coco/Core/Types/Freelist.h>
+
+#include "../VulkanIncludes.h"
+
+namespace Coco::Rendering
+{
+	struct RenderPassShader;
+	struct ShaderUniformData;
+}
 
 namespace Coco::Rendering::Vulkan
 {
+	class VulkanBuffer;
+	class VulkanRenderPassShader;
+	class VulkanCommandBuffer;
+	class VulkanCommandBuffer;
+	struct VulkanDescriptorSetLayout;
+
 	/// @brief Holds shader uniform data
 	struct UniformDataBuffer
 	{

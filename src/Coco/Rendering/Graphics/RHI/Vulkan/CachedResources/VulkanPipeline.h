@@ -1,12 +1,12 @@
 #pragma once
 #include "CachedVulkanResource.h"
 #include "../VulkanIncludes.h"
-#include "VulkanRenderPass.h"
-#include "VulkanRenderPassShader.h"
 
 namespace Coco::Rendering::Vulkan
 {
 	class VulkanGraphicsDevice;
+	class VulkanRenderPass;
+	class VulkanRenderPassShader;
 
 	/// @brief A Vulkan framebuffer
 	class VulkanPipeline : 

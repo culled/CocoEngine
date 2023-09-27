@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../Corepch.h"
+#include "../Types/Singleton.h"
 #include "../Types/Refs.h"
 #include "EngineService.h"
-#include "../Types/Singleton.h"
 
 namespace Coco
 {

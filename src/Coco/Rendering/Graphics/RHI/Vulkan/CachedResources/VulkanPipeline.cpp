@@ -1,5 +1,7 @@
 #include "Renderpch.h"
 #include "VulkanPipeline.h"
+#include "VulkanRenderPass.h"
+#include "VulkanRenderPassShader.h"
 #include "../VulkanGraphicsDevice.h"
 #include "../VulkanUtils.h"
 #include <Coco/Core/Engine.h>

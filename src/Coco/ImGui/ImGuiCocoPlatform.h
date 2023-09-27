@@ -1,20 +1,32 @@
 #pragma once
 
-#include <Coco/Rendering/Shader.h>
-#include <Coco/Rendering/Mesh.h>
-#include <Coco/Rendering/Material.h>
-#include <Coco/Rendering/Texture.h>
+#include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/MainLoop/TickInfo.h>
+#include <Coco/Core/Events/Event.h>
+
 #include <Coco/Rendering/Providers/RenderViewProvider.h>
 #include <Coco/Rendering/Providers/SceneDataProvider.h>
+
 #include <Coco/Windowing/DisplayInfo.h>
-#include <Coco/Windowing/Window.h>
-#include <Coco/Core/Events/Event.h>
+
 #include "ImGuiRenderPass.h"
-#include <Coco/Rendering/Pipeline/RenderPipeline.h>
 
 struct ImGuiViewport;
 struct ImVec2;
+
+namespace Coco::Rendering
+{
+	class Material;
+	class Shader;
+	class Texture;
+	class Mesh;
+	class RenderPipeline;
+}
+
+namespace Coco::Windowing
+{
+	class Window;
+}
 
 namespace Coco::ImGuiCoco
 {

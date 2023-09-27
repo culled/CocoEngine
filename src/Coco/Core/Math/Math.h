@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Coco/Core/Corepch.h>
+#include "../Corepch.h"
 #include "../Defines.h"
 
 namespace Coco::Math

@@ -3,8 +3,11 @@
 #include "VulkanGraphicsDevice.h"
 #include "VulkanImage.h"
 #include "VulkanUtils.h"
+#include "VulkanCommandBuffer.h"
 #include "CachedResources/VulkanFramebuffer.h"
 #include "CachedResources/VulkanRenderPass.h"
+#include "CachedResources/VulkanPipeline.h"
+#include "CachedResources/VulkanRenderContextCache.h"
 #include "VulkanBuffer.h"
 
 #include <Coco/Core/Math/Random.h>
@@ -74,22 +77,22 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanRenderContext::WaitForRenderingToComplete()
 	{
-		if (_currentState == State::RenderCompleted)
+		if (_currentState == RenderContextState::RenderCompleted)
 			return;
 
 		_renderCompletedFence->Wait(Math::MaxValue<uint64>());
-		_currentState = State::RenderCompleted;
+		_currentState = RenderContextState::RenderCompleted;
 	}
 
 	bool VulkanRenderContext::CheckForRenderingComplete()
 	{
-		if (_currentState == State::EndedRender)
+		if (_currentState == RenderContextState::EndedRender)
 		{
 			if (_renderCompletedFence->IsSignaled())
-				_currentState = State::RenderCompleted;
+				_currentState = RenderContextState::RenderCompleted;
 		}
 
-		return _currentState == State::RenderCompleted;
+		return _currentState == RenderContextState::RenderCompleted;
 	}
 
 	void VulkanRenderContext::AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore)
@@ -328,6 +331,7 @@ namespace Coco::Rendering::Vulkan
 	bool VulkanRenderContext::BeginNextPassImpl()
 	{
 		Assert(_vulkanRenderOperation.has_value())
+		Assert(_currentState == RenderContextState::InRender)
 
 		_vulkanRenderOperation->GlobalState.reset();
 		_vulkanRenderOperation->InstanceState.reset();
@@ -339,7 +343,7 @@ namespace Coco::Rendering::Vulkan
 	void VulkanRenderContext::EndImpl()
 	{
 		Assert(_vulkanRenderOperation.has_value())
-		Assert(_currentState == State::InRender)
+		Assert(_currentState == RenderContextState::InRender)
 
 		vkCmdEndRenderPass(_commandBuffer->GetCmdBuffer());
 

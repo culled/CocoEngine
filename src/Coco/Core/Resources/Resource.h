@@ -2,7 +2,6 @@
 
 #include "../Defines.h"
 #include "../Types/String.h"
-#include "../Math/Math.h"
 
 namespace Coco
 {
@@ -19,7 +18,7 @@ namespace Coco
 
 	public:
 		/// @brief An invalid resource ID
-		static constexpr ResourceID InvalidID = Math::MaxValue<ResourceID>();
+		static const ResourceID InvalidID;
 
 	private:
 		ResourceID _id;

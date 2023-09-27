@@ -39,4 +39,32 @@ namespace Coco::Rendering
 
 		GraphicsDeviceFeatures();
 	};
+	
+	/// @brief Creation parameters for a GraphicsDevice
+	struct GraphicsDeviceCreateParams
+	{
+		/// @brief The ideal type of rendering device to pick
+		GraphicsDeviceType PreferredDeviceType;
+
+		/// @brief If true, the device will be able to present images
+		bool SupportsPresentation;
+
+		/// @brief If true, the device will be required to support graphics operations
+		bool RequireGraphicsCapability;
+
+		/// @brief If true, the device will be required to support compute operations
+		bool RequireComputeCapability;
+
+		/// @brief If true, the device will be required to support memory transfer operations
+		bool RequireTransferCapability;
+
+		/// @brief If true, the anisotropic sampling will be enabled on the device if it supports it
+		bool EnableAnisotropicSampling;
+
+		/// @brief If true, depth clamping will be enabled on the device if it supports it
+		bool EnableDepthClamping;
+
+		GraphicsDeviceCreateParams();
+	};
+
 }

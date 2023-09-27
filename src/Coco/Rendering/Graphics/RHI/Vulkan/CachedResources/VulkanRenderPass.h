@@ -2,7 +2,11 @@
 
 #include "CachedVulkanResource.h"
 #include "../VulkanIncludes.h"
-#include "../../../../Pipeline/CompiledRenderPipeline.h"
+
+namespace Coco::Rendering
+{
+	struct CompiledRenderPipeline;
+}
 
 namespace Coco::Rendering::Vulkan
 {

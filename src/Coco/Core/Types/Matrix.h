@@ -2,11 +2,13 @@
 
 #include "../Corepch.h"
 #include "../Defines.h"
-#include "Vector.h"
-#include "Quaternion.h"
 
 namespace Coco
 {
+	struct Vector3;
+	struct Vector4;
+	struct Quaternion;
+
 	/// @brief A matrix with 4 rows and 4 columns, stored in column-major order
 	struct Matrix4x4
 	{
@@ -150,31 +152,31 @@ namespace Coco
 
 		/// @brief Gets a vector that points to the right
 		/// @return A vector that points to the right
-		Vector3 GetRightVector() const { return Vector3(Data[m11], Data[m21], Data[m31]).Normalized(); }
+		Vector3 GetRightVector() const;
 
 		/// @brief Gets a vector that points to the left
 		/// @return A vector that points to the left
-		Vector3 GetLeftVector() const { return -GetRightVector(); }
+		Vector3 GetLeftVector() const;
 
 		/// @brief Gets a vector that points upwards
 		/// @return A vector that points upwards
-		Vector3 GetUpVector() const { return Vector3(Data[m12], Data[m22], Data[m32]).Normalized(); }
+		Vector3 GetUpVector() const;
 
 		/// @brief Gets a vector that points downwards
 		/// @return A vector that points downwards
-		Vector3 GetDownVector() const { return -GetUpVector(); }
+		Vector3 GetDownVector() const;
 
 		/// @brief Gets a vector that points forwards
 		/// @return A vector that points forwards
-		Vector3 GetForwardVector() const { return Vector3(Data[m13], Data[m23], Data[m33]).Normalized(); }
+		Vector3 GetForwardVector() const;
 
 		/// @brief Gets a vector that points backwards
 		/// @return A vector that points backwards
-		Vector3 GetBackwardVector() const { return -GetForwardVector(); }
+		Vector3 GetBackwardVector() const;
 
 		/// @brief Gets the translation component of this matrix
 		/// @return The translation component
-		Vector3 GetTranslation() const { return Vector3(Data[m14], Data[m24], Data[m34]); }
+		Vector3 GetTranslation() const;
 
 		/// @brief Gets the rotation component of this matrix
 		/// @return The rotation component

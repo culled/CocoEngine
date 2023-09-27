@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RendererResource.h"
 #include "Material.h"
 
 namespace Coco::Rendering

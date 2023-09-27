@@ -1,5 +1,6 @@
 #include "Corepch.h"
 #include "Quaternion.h"
+#include "Vector.h"
 
 namespace Coco
 {

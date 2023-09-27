@@ -1,6 +1,6 @@
 #include "Renderpch.h"
 #include "AttachmentCache.h"
-
+#include "../Pipeline/CompiledRenderPipeline.h"
 #include "../RenderService.h"
 
 namespace Coco::Rendering

@@ -1,5 +1,7 @@
 #include "Renderpch.h"
 #include "RenderService.h"
+#include "Texture.h"
+#include "Pipeline/RenderPipeline.h"
 
 #include <Coco/Core/Engine.h>
 

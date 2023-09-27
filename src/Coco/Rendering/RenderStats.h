@@ -2,8 +2,7 @@
 
 #include <Coco/Core/Defines.h>
 #include <Coco/Core/Types/TimeSpan.h>
-#include <Coco/Core/Types/String.h>
-#include "Graphics/RenderContext.h"
+#include "Graphics/RenderContextTypes.h"
 
 namespace Coco::Rendering
 {
