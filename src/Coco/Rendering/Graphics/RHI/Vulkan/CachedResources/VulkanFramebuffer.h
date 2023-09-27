@@ -19,7 +19,6 @@ namespace Coco::Rendering::Vulkan
 		uint64 _version;
 		VkFramebuffer _framebuffer;
 		SizeInt _size;
-		std::vector<const VulkanImage*> _attachmentImages;
 
 	public:
 		VulkanFramebuffer(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages);

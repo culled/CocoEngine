@@ -11,7 +11,6 @@ namespace Coco::Rendering::Vulkan
 	VulkanFramebuffer::VulkanFramebuffer(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages) :
 		CachedVulkanResource(MakeKey(renderPass, attachmentImages)),
 		_size(SizeInt::Zero),
-		_attachmentImages(),
 		_version(0),
 		_framebuffer(nullptr)
 	{}
@@ -23,19 +22,16 @@ namespace Coco::Rendering::Vulkan
 
 	GraphicsDeviceResourceID VulkanFramebuffer::MakeKey(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
 	{
-		static const std::hash<const VulkanImage*> imageHasher;
-
 		uint64 imageHash = 0;
 		for (size_t i = 0; i < attachmentImages.size(); i++)
-			imageHash = Math::CombineHashes(imageHash, imageHasher(attachmentImages[i]));
+			imageHash = Math::CombineHashes(imageHash, attachmentImages[i]->ID);
 
 		return Math::CombineHashes(renderPass.ID, imageHash);
 	}
 
 	bool VulkanFramebuffer::NeedsUpdate(const VulkanRenderPass& renderPass, const SizeInt& size) const
 	{
-		return _attachmentImages.size() == 0 ||
-			_framebuffer == nullptr ||
+		return _framebuffer == nullptr ||
 			_version != renderPass.GetVersion() ||
 			size != _size;
 	}
@@ -69,7 +65,6 @@ namespace Coco::Rendering::Vulkan
 		AssertVkSuccess(vkCreateFramebuffer(_device.GetDevice(), &framebufferInfo, _device.GetAllocationCallbacks(), &_framebuffer));
 
 		_size = size;
-		_attachmentImages = std::vector<const VulkanImage*>(attachmentImages.begin(), attachmentImages.end());
 
 		CocoTrace("Created VulkanFramebuffer")
 	}

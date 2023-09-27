@@ -7,6 +7,7 @@
 #include "VulkanGraphicsPresenterSurface.h"
 #include "VulkanUtils.h"
 #include <Coco/Core/Engine.h>
+#include <Coco/Core/Math/Random.h>
 
 namespace Coco::Rendering::Vulkan
 {
@@ -391,9 +392,15 @@ namespace Coco::Rendering::Vulkan
 			std::vector<VkImage> images(backbufferImageCount);
 			AssertVkSuccess(vkGetSwapchainImagesKHR(_device.GetDevice(), _swapchain, &backbufferImageCount, images.data()));
 
+			// Use the current tick number to create unique IDs for each backbuffer
+			uint64 s = MainLoop::cGet()->GetCurrentTick().TickNumber;
+
 			for (size_t i = 0; i < images.size(); i++)
 			{
-				_backbuffers.emplace_back(CreateManagedRef<VulkanImage>(ID, _backbufferDescription, images[i]));
+				_backbuffers.emplace_back(CreateManagedRef<VulkanImage>(
+					Math::CombineHashes(i, s, ID), 
+					_backbufferDescription,
+					images[i]));
 			}
 		}
 		catch (const std::exception& ex)
