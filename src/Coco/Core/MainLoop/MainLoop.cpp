@@ -85,20 +85,19 @@ namespace Coco
 			//if (didPerformFullTick)
 			//	preProcessPlatformTime = platform.GetSeconds();
 
-			platform.ProcessMessages();
-
+			// TODO: non-absolute timing with long message loops
 			double currentPlatformTime = platform.GetSeconds();
+			double timeDelta = currentPlatformTime - lastTickPlatformTime;
+
+			_currentTick.UnscaledDeltaTime = timeDelta;
+			_currentTick.UnscaledTime += _currentTick.UnscaledDeltaTime;
+			_currentTick.DeltaTime = _currentTick.UnscaledDeltaTime * _timeScale;
+			_currentTick.Time += _currentTick.DeltaTime;
+
+			platform.ProcessMessages();
 
 			if (!_isSuspended)
 			{
-				// TODO: non-absolute timing with long message loops
-				double timeDelta = currentPlatformTime - lastTickPlatformTime;
-
-				_currentTick.UnscaledDeltaTime = timeDelta;
-				_currentTick.UnscaledTime += _currentTick.UnscaledDeltaTime;
-				_currentTick.DeltaTime = _currentTick.UnscaledDeltaTime * _timeScale;
-				_currentTick.Time += _currentTick.DeltaTime;
-
 				PreTick();
 
 				std::vector<TickListener*> tempListeners(_tickListeners);
@@ -116,8 +115,6 @@ namespace Coco
 
 				PostTick();
 
-				_lastTick = _currentTick;
-				_currentTick.TickNumber++;
 				didPerformFullTick = true;
 			}
 			else
@@ -125,10 +122,12 @@ namespace Coco
 				didPerformFullTick = false;
 			}
 
+			_lastTick = _currentTick;
+			_currentTick.TickNumber++;
 			lastTickPlatformTime = currentPlatformTime;
 
 			if (_targetTicksPerSecond > 0)
-				WaitForTargetTickTime(lastTickPlatformTime);
+				WaitForTargetTickTime(currentPlatformTime);
 		}
 	}
 
