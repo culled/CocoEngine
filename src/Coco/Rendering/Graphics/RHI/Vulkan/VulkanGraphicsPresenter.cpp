@@ -406,7 +406,7 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		_vSyncMode = ToVSyncMode(presentMode);
-		_maxFramesInFlight = static_cast<uint8>(_backbuffers.size()) + 1;
+		_maxFramesInFlight = static_cast<uint8>(_backbuffers.size()) - 1;
 		_isSwapchainDirty = false;
 
 		CocoTrace("Created Vulkan swapchain with {} backbuffers at {}", _backbuffers.size(), _framebufferSize.ToString())
