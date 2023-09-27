@@ -42,12 +42,14 @@ namespace Coco::Rendering
 		uint64 version, 
 		const Ref<Buffer>& vertexBuffer, 
 		uint64 vertexCount, 
-		const Ref<Buffer>& indexBuffer) :
+		const Ref<Buffer>& indexBuffer,
+		const BoundingBox& bounds) :
 		ID(id),
 		Version(version),
 		VertexBuffer(vertexBuffer),
 		VertexCount(vertexCount),
-		IndexBuffer(indexBuffer)
+		IndexBuffer(indexBuffer),
+		Bounds(bounds)
 	{}
 
 	RenderPassShaderData::RenderPassShaderData(uint64 id, uint64 version, const RenderPassShader& shaderData) :
@@ -76,14 +78,16 @@ namespace Coco::Rendering
 		uint64 indexOffset, 
 		uint64 indexCount,
 		uint64 materialID, 
-		const RectInt& scissorRect) :
+		const RectInt& scissorRect,
+		const BoundingBox& bounds) :
 		ID(id),
 		ModelMatrix(modelMatrix),
 		MeshID(meshID),
 		IndexOffset(indexOffset),
 		IndexCount(indexCount),
 		MaterialID(materialID),
-		ScissorRect(scissorRect)
+		ScissorRect(scissorRect),
+		Bounds(bounds)
 	{}
 
 	RenderView::RenderView() :
@@ -144,7 +148,8 @@ namespace Coco::Rendering
 				mesh.GetVersion(), 
 				mesh.GetVertexBuffer(), 
 				mesh.GetVertexCount(), 
-				mesh.GetIndexBuffer());
+				mesh.GetIndexBuffer(),
+				mesh.GetBounds());
 		}
 
 		return meshID;
@@ -233,6 +238,7 @@ namespace Coco::Rendering
 			mesh,
 			submesh.Offset, submesh.Count,
 			modelMatrix,
+			submesh.Bounds,
 			material,
 			scissorRect);
 	}
@@ -241,7 +247,8 @@ namespace Coco::Rendering
 		const Mesh& mesh, 
 		uint64 indexOffset, 
 		uint64 indexCount, 
-		const Matrix4x4& modelMatrix, 
+		const Matrix4x4& modelMatrix,
+		const BoundingBox& bounds,
 		const MaterialDataProvider* material, 
 		const RectInt* scissorRect)
 	{
@@ -256,7 +263,8 @@ namespace Coco::Rendering
 			indexOffset,
 			indexCount,
 			materialID,
-			scissorRect ? *scissorRect : _scissorRect);
+			scissorRect ? *scissorRect : _scissorRect,
+			bounds);
 
 		return objectID;
 	}

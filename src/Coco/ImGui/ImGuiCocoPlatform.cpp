@@ -442,6 +442,7 @@ namespace Coco::ImGuiCoco
                         cmd.IdxOffset + indexOffset,
                         cmd.ElemCount,
                         Matrix4x4::Identity,
+                        _mesh->GetBounds(),
                         _material.Get(),
                         &scissorRect
                     );

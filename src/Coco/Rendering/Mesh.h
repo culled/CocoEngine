@@ -4,6 +4,7 @@
 #include <Coco/Core/Types/Refs.h>
 #include "MeshTypes.h"
 #include "Graphics/Buffer.h"
+#include <Coco/Core/Types/BoundingBox.h>
 
 namespace Coco::Rendering
 {
@@ -16,8 +17,11 @@ namespace Coco::Rendering
 		/// @brief The number of indices in the buffer
 		uint64 Count;
 
+		/// @brief The bounds that this submesh fits into
+		BoundingBox Bounds;
+
 		SubMesh();
-		SubMesh(uint64 offset, uint64 count);
+		SubMesh(uint64 offset, uint64 count, const BoundingBox& bounds);
 	};
 
 	/// @brief Defines geometry data used for rendering
@@ -36,6 +40,7 @@ namespace Coco::Rendering
 		bool _isDirty;
 		void* _lockedVertexMemory;
 		void* _lockedIndexMemory;
+		BoundingBox _meshBounds;
 
 	public:
 		Mesh(const ResourceID& id, const string& name, bool isDynamic = false);
@@ -46,12 +51,12 @@ namespace Coco::Rendering
 		/// @brief Sets the vertices of this mesh
 		/// @param format The format of the vertex data
 		/// @param vertices The vertices
-		void SetVertices(const VertexDataFormat& format, std::span<VertexData> vertices);
+		void SetVertices(const VertexDataFormat& format, std::span<const VertexData> vertices);
 
 		/// @brief Sets the indices of this mesh
 		/// @param indices The indices
 		/// @param submeshID The id of the submesh that these indices reference
-		void SetIndices(std::span<uint32> indices, uint32 submeshID);
+		void SetIndices(std::span<const uint32> indices, uint32 submeshID);
 
 		/// @brief Uploads any pending changes to the GPU
 		/// @param deleteLocalData If true, vertex and index data will be deleted locally and will be soley stored on the GPU
@@ -78,6 +83,10 @@ namespace Coco::Rendering
 		/// @return The index buffer
 		Ref<Buffer> GetIndexBuffer() const { return _indexBuffer; }
 
+		/// @brief Gets the bounds that this entire mesh fits in
+		/// @return The bounds of this mesh
+		const BoundingBox& GetBounds() const { return _meshBounds; }
+
 		/// @brief Clears all submeshes and their index data from this mesh
 		void ClearSubmeshes();
 
@@ -93,7 +102,15 @@ namespace Coco::Rendering
 		/// @return All submeshes and their ids
 		const std::unordered_map<uint32, SubMesh>& GetSubmeshes() const { return _submeshes; }
 
+		/// @brief Calculates this mesh's submeshes
+		void CalculateSubmeshes();
+
 	private:
+		/// @brief Calculates the bounds of a submesh
+		/// @param submeshID The ID of the submesh
+		/// @return The bounds of the submesh
+		BoundingBox CalculateSubmeshBounds(uint32 submeshID);
+
 		/// @brief Marks this mesh as needing updates
 		void MarkDirty();
 	};

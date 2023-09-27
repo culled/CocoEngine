@@ -5,6 +5,7 @@
 #include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Types/Matrix.h>
+#include <Coco/Core/Types/BoundingBox.h>
 #include "RenderPassShader.h"
 
 namespace Coco::Rendering
@@ -62,12 +63,16 @@ namespace Coco::Rendering
 		/// @brief The buffer holding the index data
 		Ref<Buffer> IndexBuffer;
 
+		/// @brief The bounding box of this entire mesh
+		BoundingBox Bounds;
+
 		MeshData(
 			uint64 id,
 			uint64 version,
 			const Ref<Buffer>& vertexBuffer,
 			uint64 vertexCount,
-			const Ref<Buffer>& indexBuffer);
+			const Ref<Buffer>& indexBuffer,
+			const BoundingBox& bounds);
 	};
 
 	/// @brief Data for a single RenderPassShader
@@ -142,6 +147,9 @@ namespace Coco::Rendering
 		/// @brief The scissor rectangle to use for rendering this object
 		RectInt ScissorRect;
 
+		/// @brief The bounding box of this object
+		BoundingBox Bounds;
+
 		ObjectData(
 			uint64 id, 
 			const Matrix4x4& modelMatrix, 
@@ -149,7 +157,8 @@ namespace Coco::Rendering
 			uint64 indexOffset,
 			uint64 indexCount,
 			uint64 materialID, 
-			const RectInt& scissorRect);
+			const RectInt& scissorRect,
+			const BoundingBox& bounds);
 	};
 
 	/// @brief Holds information needed to render a scene
@@ -280,6 +289,7 @@ namespace Coco::Rendering
 		/// @param indexOffset The offset of the first index in the mesh's index buffer
 		/// @param indexCount The number of indices to render
 		/// @param modelMatrix The model matrix
+		/// @param bounds The bounds of the object
 		/// @param material The material, or nullptr for no material
 		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
 		/// @return The key to the object
@@ -288,6 +298,7 @@ namespace Coco::Rendering
 			uint64 indexOffset,
 			uint64 indexCount,
 			const Matrix4x4& modelMatrix,
+			const BoundingBox& bounds,
 			const MaterialDataProvider* material,
 			const RectInt* scissorRect = nullptr);
 

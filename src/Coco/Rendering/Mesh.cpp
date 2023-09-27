@@ -7,12 +7,13 @@
 namespace Coco::Rendering
 {
 	SubMesh::SubMesh() :
-		SubMesh(0, 0)
+		SubMesh(0, 0, BoundingBox::Zero)
 	{}
 
-	SubMesh::SubMesh(uint64 offset, uint64 count) :
+	SubMesh::SubMesh(uint64 offset, uint64 count, const BoundingBox& bounds) :
 		Offset(offset),
-		Count(count)
+		Count(count),
+		Bounds(bounds)
 	{}
 
 	Mesh::Mesh(const ResourceID& id, const string& name, bool isDynamic) :
@@ -28,7 +29,8 @@ namespace Coco::Rendering
 		_isDynamic(isDynamic),
 		_isDirty(true),
 		_lockedVertexMemory(nullptr),
-		_lockedIndexMemory(nullptr)
+		_lockedIndexMemory(nullptr),
+		_meshBounds()
 	{}
 
 	Mesh::~Mesh()
@@ -41,7 +43,7 @@ namespace Coco::Rendering
 			rendering->GetDevice().PurgeUnusedResources();
 	}
 
-	void Mesh::SetVertices(const VertexDataFormat& format, std::span<VertexData> vertices)
+	void Mesh::SetVertices(const VertexDataFormat& format, std::span<const VertexData> vertices)
 	{
 		_vertices.resize(vertices.size());
 		Assert(memcpy_s(_vertices.data(), _vertices.size() * sizeof(VertexData), vertices.data(), vertices.size() * sizeof(VertexData)) == 0)
@@ -49,10 +51,24 @@ namespace Coco::Rendering
 		_vertexCount = _vertices.size();
 		_vertexFormat = format;
 
+		bool first = true;
+		for (const VertexData& v : vertices)
+		{
+			if (first)
+			{
+				_meshBounds = BoundingBox(v.Position, v.Position);
+				first = false;
+			}
+			else
+			{
+				_meshBounds.Expand(v.Position);
+			}
+		}
+
 		MarkDirty();
 	}
 
-	void Mesh::SetIndices(std::span<uint32> indices, uint32 submeshID)
+	void Mesh::SetIndices(std::span<const uint32> indices, uint32 submeshID)
 	{
 		std::vector<uint32>& submeshIndices = _indices[submeshID];
 		submeshIndices.resize(indices.size());
@@ -115,16 +131,12 @@ namespace Coco::Rendering
 				_lockedVertexMemory = nullptr;
 			}
 
-			_submeshes.clear();
-
 			// Gather index data
 			uint64 offset = 0;
 			std::vector<uint8> indexBufferData(_indexCount * sizeof(uint32));
 			for (const auto& kvp : _indices)
 			{
 				const std::vector<uint32>& submeshIndices = kvp.second;
-
-				_submeshes.try_emplace(kvp.first, offset, submeshIndices.size());
 
 				Assert(memcpy_s(indexBufferData.data() + offset * sizeof(uint32), indexBufferData.size(), submeshIndices.data(), sizeof(uint32) * submeshIndices.size()) == 0)
 
@@ -178,6 +190,9 @@ namespace Coco::Rendering
 				stagingBuffer->CopyTo(0, *_indexBuffer, 0, indexBufferData.size());
 			}
 
+			if (_submeshes.size() != _indices.size())
+				CalculateSubmeshes();
+
 			if (deleteLocalData)
 			{
 				_vertices.clear();
@@ -217,6 +232,48 @@ namespace Coco::Rendering
 
 		outSubmesh = _submeshes.at(submeshID);
 		return true;
+	}
+
+	void Mesh::CalculateSubmeshes()
+	{
+		_submeshes.clear();
+
+		uint64 offset = 0;
+		for (const auto& kvp : _indices)
+		{
+			const std::vector<uint32>& submeshIndices = kvp.second;
+
+			BoundingBox b = CalculateSubmeshBounds(kvp.first);
+
+			_submeshes.try_emplace(kvp.first, offset, submeshIndices.size(), b);
+
+			offset += submeshIndices.size();
+		}
+	}
+
+	BoundingBox Mesh::CalculateSubmeshBounds(uint32 submeshID)
+	{
+		const std::vector<uint32>& submeshIndices = _indices.at(submeshID);
+
+		BoundingBox b;
+		bool first = true;
+
+		for (const uint32& vI : submeshIndices)
+		{
+			const VertexData& vertex = _vertices.at(vI);
+
+			if (first)
+			{
+				b = BoundingBox(vertex.Position, vertex.Position);
+				first = false;
+			}
+			else
+			{
+				b.Expand(vertex.Position);
+			}
+		}
+
+		return b;
 	}
 
 	void Mesh::MarkDirty()
