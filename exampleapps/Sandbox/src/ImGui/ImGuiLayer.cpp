@@ -4,8 +4,11 @@
 #include <Coco/Core/MainLoop/MainLoop.h>
 
 #include <Coco/Rendering/RenderService.h>
+#include <Coco/Windowing/WindowService.h>
 
 using namespace Coco;
+using namespace Coco::Rendering;
+using namespace Coco::Windowing;
 
 ImGuiLayer::ImGuiLayer(RenderViewProvider3D& viewProvider3D) :
 	_viewProvider3D(viewProvider3D),
@@ -32,6 +35,14 @@ void ImGuiLayer::Draw()
 		}
 
 		ImGui::EndCombo();
+	}
+
+	Ref<Window> mainWindow = WindowService::Get()->GetMainWindow();
+	Ref<GraphicsPresenter> windowPresenter = mainWindow->GetPresenter();
+	bool isVsync = windowPresenter->GetVSync() == VSyncMode::EveryVBlank;
+	if (ImGui::Checkbox("VSync", &isVsync))
+	{
+		windowPresenter->SetVSync(isVsync ? VSyncMode::EveryVBlank : VSyncMode::Immediate);
 	}
 
 	ImGui::End();
