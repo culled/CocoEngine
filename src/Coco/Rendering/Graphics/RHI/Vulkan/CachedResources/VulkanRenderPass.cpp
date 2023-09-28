@@ -166,7 +166,7 @@ namespace Coco::Rendering::Vulkan
 						continue;
 
 					uint32 attachmentIndex = static_cast<uint32>(pipeline.InputAttachments.size()) + rI;
-					subpass.ResolveAttachmentReferences.at(i).attachment = attachmentIndex;
+					subpass.ResolveAttachmentReferences.at(rI).attachment = attachmentIndex;
 
 					// Remove the attachment since it is used
 					const auto it = std::find(subpass.PreserveAttachments.cbegin(), subpass.PreserveAttachments.cend(), attachmentIndex);
