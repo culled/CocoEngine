@@ -10,6 +10,7 @@
 #include "GraphicsFence.h"
 #include "GraphicsSemaphore.h"
 #include "ShaderUniformData.h"
+#include "RenderPassShaderTypes.h"
 
 namespace Coco::Rendering
 {
