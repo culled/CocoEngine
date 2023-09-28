@@ -1,6 +1,6 @@
 #include "SceneDataProvider3D.h"
 #include <Coco/Rendering/MeshUtilities.h>
-#include <Coco/Rendering/Debug/DebugRender.h>
+#include <Coco/Rendering/RenderDebug/DebugRender.h>
 #include <Coco/Core/Engine.h>
 
 SceneDataProvider3D::SceneDataProvider3D() :

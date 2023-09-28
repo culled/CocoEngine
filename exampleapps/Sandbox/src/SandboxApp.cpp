@@ -4,7 +4,7 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
-#include <Coco/Rendering/Debug/DebugRenderPass.h>
+#include <Coco/Rendering/RenderDebug/DebugRenderPass.h>
 
 #include <Coco/ImGui/ImGuiService.h>
 

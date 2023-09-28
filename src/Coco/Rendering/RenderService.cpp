@@ -2,7 +2,7 @@
 #include "RenderService.h"
 #include "Texture.h"
 #include "Pipeline/RenderPipeline.h"
-#include "Debug/DebugRender.h"
+#include "RenderDebug/DebugRender.h"
 
 #include <Coco/Core/Engine.h>
 
