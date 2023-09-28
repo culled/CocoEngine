@@ -323,6 +323,9 @@ namespace Coco::Rendering::Vulkan
 			// Since viewport and scissors are dynamic, we must set them at least once
 			SetViewportRect(_vulkanRenderOperation->ViewportRect);
 			SetScissorRect(_vulkanRenderOperation->ScissorRect);
+
+			// TODO: dynamic line width?
+			vkCmdSetLineWidth(_commandBuffer->GetCmdBuffer(), 1.0f);
 		}
 		catch (const std::exception& ex)
 		{

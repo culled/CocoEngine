@@ -37,6 +37,9 @@ namespace Coco::Rendering
 		/// @brief The maximum anisotropic filtering level
 		uint8 MaxAnisotropicLevel;
 
+		/// @brief If true, this device supports drawing polygons in wireframe
+		bool SupportsWireframe;
+
 		GraphicsDeviceFeatures();
 	};
 	
@@ -63,6 +66,9 @@ namespace Coco::Rendering
 
 		/// @brief If true, depth clamping will be enabled on the device if it supports it
 		bool EnableDepthClamping;
+
+		/// @brief If true, wireframe drawing will be enabled
+		bool EnableWireframeDrawing;
 
 		GraphicsDeviceCreateParams();
 	};

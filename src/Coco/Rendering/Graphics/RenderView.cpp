@@ -79,7 +79,8 @@ namespace Coco::Rendering
 		uint64 indexCount,
 		uint64 materialID, 
 		const RectInt& scissorRect,
-		const BoundingBox& bounds) :
+		const BoundingBox& bounds,
+		SharedRef<ExtraObjectData> extraData) :
 		ID(id),
 		ModelMatrix(modelMatrix),
 		MeshID(meshID),
@@ -87,7 +88,8 @@ namespace Coco::Rendering
 		IndexCount(indexCount),
 		MaterialID(materialID),
 		ScissorRect(scissorRect),
-		Bounds(bounds)
+		Bounds(bounds),
+		ExtraData(extraData)
 	{}
 
 	RenderView::RenderView() :
@@ -230,7 +232,8 @@ namespace Coco::Rendering
 		uint32 submeshID, 
 		const Matrix4x4& modelMatrix, 
 		const MaterialDataProvider* material,
-		const RectInt* scissorRect)
+		const RectInt* scissorRect,
+		SharedRef<ExtraObjectData> extraData)
 	{
 		SubMesh submesh;
 		Assert(mesh.TryGetSubmesh(submeshID, submesh))
@@ -240,7 +243,8 @@ namespace Coco::Rendering
 			modelMatrix,
 			submesh.Bounds,
 			material,
-			scissorRect);
+			scissorRect,
+			extraData);
 	}
 
 	uint64 RenderView::AddRenderObject(
@@ -250,7 +254,8 @@ namespace Coco::Rendering
 		const Matrix4x4& modelMatrix,
 		const BoundingBox& bounds,
 		const MaterialDataProvider* material, 
-		const RectInt* scissorRect)
+		const RectInt* scissorRect,
+		SharedRef<ExtraObjectData> extraData)
 	{
 		uint64 meshID = AddMesh(mesh);
 		uint64 materialID = material ? AddMaterial(*material) : InvalidID;
@@ -264,7 +269,8 @@ namespace Coco::Rendering
 			indexCount,
 			materialID,
 			scissorRect ? *scissorRect : _scissorRect,
-			bounds);
+			bounds.Transformed(modelMatrix),
+			extraData);
 
 		return objectID;
 	}

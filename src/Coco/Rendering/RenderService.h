@@ -17,6 +17,7 @@ namespace Coco::Rendering
 {
 	class Texture;
 	class RenderPipeline;
+	class DebugRender;
 	struct CompiledRenderPipeline;
 
 	/// @brief A render task for a RenderService
@@ -41,6 +42,7 @@ namespace Coco::Rendering
 	private:
 		UniqueRef<GraphicsPlatform> _platform;
 		UniqueRef<GraphicsDevice> _device;
+		UniqueRef<DebugRender> _debugRender;
 		Ref<Texture> _defaultDiffuseTexture;
 		Ref<Texture> _defaultNormalTexture;
 		Ref<Texture> _defaultCheckerTexture;
@@ -53,7 +55,7 @@ namespace Coco::Rendering
 		RenderView _renderView;
 
 	public:
-		RenderService(const GraphicsPlatformFactory& platformFactory);
+		RenderService(const GraphicsPlatformFactory& platformFactory, bool includeDebugRendering);
 		~RenderService();
 
 		/// @brief Gets the graphics platform

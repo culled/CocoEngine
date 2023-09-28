@@ -123,6 +123,12 @@ namespace Coco::Rendering
 		MaterialData(uint64 id, uint64 shaderID, const ShaderUniformData& uniformData);
 	};
 
+	/// @brief Base struct for extra per-object data
+	struct ExtraObjectData
+	{
+		virtual ~ExtraObjectData() = default;
+	};
+
 	/// @brief Data for an object to render
 	struct ObjectData
 	{
@@ -150,6 +156,8 @@ namespace Coco::Rendering
 		/// @brief The bounding box of this object
 		BoundingBox Bounds;
 
+		SharedRef<ExtraObjectData> ExtraData;
+
 		ObjectData(
 			uint64 id, 
 			const Matrix4x4& modelMatrix, 
@@ -158,7 +166,8 @@ namespace Coco::Rendering
 			uint64 indexCount,
 			uint64 materialID, 
 			const RectInt& scissorRect,
-			const BoundingBox& bounds);
+			const BoundingBox& bounds,
+			SharedRef<ExtraObjectData> extraData);
 	};
 
 	/// @brief Holds information needed to render a scene
@@ -275,13 +284,15 @@ namespace Coco::Rendering
 		/// @param modelMatrix The model matrix
 		/// @param material The material, or nullptr for no material
 		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
+		/// @param extraData Extra data for the object
 		/// @return The key to the object
 		uint64 AddRenderObject(
 			const Mesh& mesh, 
 			uint32 submeshID, 
 			const Matrix4x4& modelMatrix, 
 			const MaterialDataProvider* material, 
-			const RectInt* scissorRect = nullptr);
+			const RectInt* scissorRect = nullptr,
+			SharedRef<ExtraObjectData> extraData = nullptr);
 
 		/// @brief Adds an object to be rendered. 
 		/// NOTE: the mesh must have been applied for this to work
@@ -292,6 +303,7 @@ namespace Coco::Rendering
 		/// @param bounds The bounds of the object
 		/// @param material The material, or nullptr for no material
 		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
+		/// @param extraData Extra data for the object
 		/// @return The key to the object
 		uint64 AddRenderObject(
 			const Mesh& mesh,
@@ -300,7 +312,8 @@ namespace Coco::Rendering
 			const Matrix4x4& modelMatrix,
 			const BoundingBox& bounds,
 			const MaterialDataProvider* material,
-			const RectInt* scissorRect = nullptr);
+			const RectInt* scissorRect = nullptr,
+			SharedRef<ExtraObjectData> extraData = nullptr);
 
 		/// @brief Gets all objects to be rendered
 		/// @return The renderable objects

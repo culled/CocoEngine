@@ -10,8 +10,9 @@ using namespace Coco;
 using namespace Coco::Rendering;
 using namespace Coco::Windowing;
 
-ImGuiLayer::ImGuiLayer(RenderViewProvider3D& viewProvider3D) :
+ImGuiLayer::ImGuiLayer(RenderViewProvider3D& viewProvider3D, SceneDataProvider3D& sceneProvider3D) :
 	_viewProvider3D(viewProvider3D),
+	_sceneProvider3D(sceneProvider3D),
 	_movingAverageCount(30),
 	_averageFps(0),
 	_averageFrameTime(0)
@@ -43,6 +44,12 @@ void ImGuiLayer::Draw()
 	if (ImGui::Checkbox("VSync", &isVsync))
 	{
 		windowPresenter->SetVSync(isVsync ? VSyncMode::EveryVBlank : VSyncMode::Immediate);
+	}
+
+	bool drawBounds = _sceneProvider3D.GetDrawBounds();
+	if (ImGui::Checkbox("Draw Bounds", &drawBounds))
+	{
+		_sceneProvider3D.SetDrawBounds(drawBounds);
 	}
 
 	ImGui::End();

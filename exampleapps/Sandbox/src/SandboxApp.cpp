@@ -4,6 +4,7 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
+#include <Coco/Rendering/Debug/DebugRenderPass.h>
 
 #include <Coco/ImGui/ImGuiService.h>
 
@@ -31,11 +32,12 @@ SandboxApp::SandboxApp() :
 	{
 		using namespace Coco::Rendering;
 		GraphicsDeviceCreateParams deviceParams{};
+
 		GraphicsPlatformCreateParams platformParams(*this, true);
 		platformParams.DeviceCreateParameters = deviceParams;
 
 		Vulkan::VulkanGraphicsPlatformFactory vulkanFactory(platformParams, Vulkan::VulkanGraphicsPlatformFactory::sDefaultAPIVersion, true);
-		services->CreateService<RenderService>(vulkanFactory);
+		services->CreateService<RenderService>(vulkanFactory, true);
 	}
 
 	{
@@ -59,6 +61,8 @@ SandboxApp::SandboxApp() :
 		std::array<uint8, 2> bindings = { 0, 1 };
 		SharedRef<RenderPass3D> pass = CreateSharedRef<RenderPass3D>();
 		_pipeline3D->AddRenderPass(pass, bindings);
+
+		_pipeline3D->AddRenderPass(CreateSharedRef<DebugRenderPass>(), bindings);
 	}
 
 	_renderViewProvider3D = CreateUniqueRef<RenderViewProvider3D>(*_attachmentCache);
@@ -75,7 +79,7 @@ SandboxApp::SandboxApp() :
 	_renderViewProvider2D = CreateUniqueRef<RenderViewProvider2D>(*_attachmentCache);
 	_sceneDataProvider2D = CreateUniqueRef<SceneDataProvider2D>();
 
-	_imGuiLayer = CreateUniqueRef<ImGuiLayer>(*_renderViewProvider3D);
+	_imGuiLayer = CreateUniqueRef<ImGuiLayer>(*_renderViewProvider3D, *_sceneDataProvider3D);
 
 	LogTrace(_log, "Sandbox app initialized")
 }

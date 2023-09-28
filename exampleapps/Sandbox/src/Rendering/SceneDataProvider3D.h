@@ -14,15 +14,21 @@ class SceneDataProvider3D :
     public SceneDataProvider
 {
 private:
-    Transform3D _transform;
+    Transform3D _boxTransform;
+    Ref<Mesh> _boxMesh;
 
     Ref<Mesh> _mesh;
     Ref<Shader> _shader;
     Ref<Texture> _texture;
     Ref<Material> _material;
 
+    bool _drawBounds;
+
 public:
     SceneDataProvider3D();
+
+    void SetDrawBounds(bool drawBounds);
+    bool GetDrawBounds() const { return _drawBounds; }
 
     void GatherSceneData(RenderView& renderView) final;
 };

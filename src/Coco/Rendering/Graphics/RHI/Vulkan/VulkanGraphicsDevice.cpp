@@ -457,6 +457,9 @@ namespace Coco::Rendering::Vulkan
 		deviceFeatures.samplerAnisotropy = createParams.EnableAnisotropicSampling;
 		deviceFeatures.depthClamp = createParams.EnableDepthClamping;
 
+		deviceFeatures.fillModeNonSolid = createParams.EnableWireframeDrawing;
+		_features.SupportsWireframe = createParams.EnableWireframeDrawing;
+
 		// Create the logical device
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -513,6 +516,7 @@ namespace Coco::Rendering::Vulkan
 		_features.MaxImageDepth = deviceProperties.limits.maxImageDimension3D;
 		_features.MinimumBufferAlignment = static_cast<uint32>(deviceProperties.limits.minUniformBufferOffsetAlignment);
 		_features.MaxAnisotropicLevel = static_cast<uint8>(deviceProperties.limits.maxSamplerAnisotropy);
+
 		_vulkanFeatures.MaxPushConstantSize = deviceProperties.limits.maxPushConstantsSize;
 
 		// Get the memory features of the physical device

@@ -2,6 +2,7 @@
 #include "RenderService.h"
 #include "Texture.h"
 #include "Pipeline/RenderPipeline.h"
+#include "Debug/DebugRender.h"
 
 #include <Coco/Core/Engine.h>
 
@@ -12,13 +13,17 @@ namespace Coco::Rendering
 		Presenter(presenter)
 	{}
 
-	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory) :
+	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory, bool includeDebugRendering) :
 		_lateTickListener(CreateUniqueRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
 		_renderTasks{},
+		_debugRender(nullptr),
 		_renderView()
 	{
 		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
+
+		if(includeDebugRendering)
+			_debugRender = CreateUniqueRef<DebugRender>();
 
 		CreateDefaultDiffuseTexture();
 		CreateDefaultNormalTexture();
@@ -38,6 +43,7 @@ namespace Coco::Rendering
 		_defaultNormalTexture.Invalidate();
 		_defaultCheckerTexture.Invalidate();
 
+		_debugRender.reset();
 		_device.reset();
 		_platform.reset();
 
@@ -84,6 +90,9 @@ namespace Coco::Rendering
 
 			provider->GatherSceneData(_renderView);
 		}
+
+		if (_debugRender)
+			_debugRender->GatherSceneData(_renderView);
 
 		Ref<GraphicsSemaphore> waitOn;
 		uint64 presenterID = presenter->GetID();
