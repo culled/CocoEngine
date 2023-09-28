@@ -14,6 +14,9 @@ void RenderPass3D::Execute(RenderContext& context, const RenderView& renderView)
 
     for (const ObjectData& obj : renderView.GetRenderObjects())
     {
+        if (!renderView.GetViewFrustum().IsInside(obj.Bounds))
+            continue;
+
         const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
         const ShaderData& shader = renderView.GetShaderData(material.ShaderID);
 

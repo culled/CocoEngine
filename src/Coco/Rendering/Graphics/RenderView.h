@@ -6,6 +6,7 @@
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/BoundingBox.h>
+#include <Coco/Core/Types/ViewFrustum.h>
 #include "RenderPassShader.h"
 
 namespace Coco::Rendering
@@ -181,6 +182,7 @@ namespace Coco::Rendering
 		RectInt _scissorRect;
 		Matrix4x4 _viewMat;
 		Matrix4x4 _projectionMat;
+		ViewFrustum _frustum;
 		MSAASamples _samples;
 		std::vector<RenderTarget> _renderTargets;
 		std::unordered_map<uint64, MeshData> _meshDatas;
@@ -197,12 +199,14 @@ namespace Coco::Rendering
 		/// @param scissorRect The scissor rectangle
 		/// @param viewMatrix The view matrix
 		/// @param projectionMatrix The projection matrix
+		/// @param frustum The view frustum
 		/// @param samples The number of MSAA samples
 		/// @param renderTargets The render targets
 		void Setup(const RectInt& viewportRect,
 			const RectInt& scissorRect,
 			const Matrix4x4& viewMatrix,
 			const Matrix4x4& projectionMatrix,
+			const ViewFrustum& frustum,
 			MSAASamples samples,
 			const std::vector<RenderTarget>& renderTargets);
 
@@ -224,6 +228,10 @@ namespace Coco::Rendering
 		/// @brief Gets the projection matrix
 		/// @return The projection matrix
 		const Matrix4x4& GetProjectionMatrix() const { return _projectionMat; }
+
+		/// @brief Gets the view frustum
+		/// @return The view frustum
+		const ViewFrustum& GetViewFrustum() const { return _frustum; }
 
 		/// @brief Gets the number of MSAA samples that should be used for rendering
 		/// @return The MSAA samples

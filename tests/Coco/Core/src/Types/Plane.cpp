@@ -11,12 +11,12 @@ namespace Coco::Core::Types
 	{
 		TEST_METHOD(CreateWithOriginAndNormal)
 		{
-			Vector3 o(0.2, 1.2, -0.2);
+			Vector3 o(1.0, 0.0, 0.0);
 			Vector3 n = Vector3::Right;
 
 			Plane p(o, n);
 
-			Assert::IsTrue(p.Origin.Equals(o));
+			Assert::IsTrue(Math::Equal(p.Distance, o.X));
 			Assert::IsTrue(p.Normal.Equals(n));
 		}
 
@@ -29,7 +29,7 @@ namespace Coco::Core::Types
 			Plane p(p0, p1, p2);
 
 			Vector3 a = (p0 + p1 + p2) / 3.0;
-			Assert::IsTrue(p.Origin.Equals(a));
+			Assert::IsTrue(Math::Equal(p.Distance, 0.0));
 			Assert::IsTrue(p.Normal.Equals(Vector3::Up));
 		}
 

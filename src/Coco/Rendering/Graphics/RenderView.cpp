@@ -97,6 +97,7 @@ namespace Coco::Rendering
 		_scissorRect(),
 		_viewMat(),
 		_projectionMat(),
+		_frustum(),
 		_samples(),
 		_renderTargets(),
 		_meshDatas(),
@@ -110,7 +111,8 @@ namespace Coco::Rendering
 		const RectInt& viewportRect, 
 		const RectInt& scissorRect, 
 		const Matrix4x4& viewMatrix, 
-		const Matrix4x4& projectionMatrix, 
+		const Matrix4x4& projectionMatrix,
+		const ViewFrustum& frustum,
 		MSAASamples samples, 
 		const std::vector<RenderTarget>&renderTargets)
 	{
@@ -118,6 +120,7 @@ namespace Coco::Rendering
 		_scissorRect = scissorRect;
 		_viewMat = viewMatrix;
 		_projectionMat = projectionMatrix;
+		_frustum = frustum;
 		_samples = samples;
 		_renderTargets = renderTargets;
 	}

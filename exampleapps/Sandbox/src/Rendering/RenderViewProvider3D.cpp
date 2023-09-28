@@ -3,6 +3,7 @@
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Input/InputService.h>
 #include <Coco/Core/MainLoop/MainLoop.h>
+#include <Coco/Core/Engine.h>
 
 RenderViewProvider3D::RenderViewProvider3D(AttachmentCache& attachmentCache) :
     _clearColor(Color(0.1, 0.2, 0.3, 1.0)),
@@ -49,8 +50,22 @@ void RenderViewProvider3D::SetupRenderView(
     //Matrix4x4 view = Matrix4x4::CreateLookAtMatrix(Vector3::Zero, Vector3::Forward, Vector3::Up);
     //Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(2.0, aspectRatio, 0.1, 100);
     Matrix4x4 projection = RenderService::Get()->GetPlatform().CreatePerspectiveProjection(Math::DegToRad(90.0), aspectRatio, 0.1, 100);
+    ViewFrustum frustum = ViewFrustum::CreatePerspective(
+        _cameraTransform.GetGlobalPosition(), 
+        _cameraTransform.GetGlobalBackward(),
+        _cameraTransform.GetGlobalUp(),
+        Math::DegToRad(90.0), 
+        aspectRatio, 
+        0.1, 100);
 
-    renderView.Setup(viewport, viewport, view, projection, pipeline.SupportsMSAA ? _msaaSamples : MSAASamples::One, rts);
+    renderView.Setup(
+        viewport, 
+        viewport, 
+        view, 
+        projection, 
+        frustum,
+        pipeline.SupportsMSAA ? _msaaSamples : MSAASamples::One, 
+        rts);
 }
 
 void RenderViewProvider3D::SetMSAASamples(MSAASamples samples)

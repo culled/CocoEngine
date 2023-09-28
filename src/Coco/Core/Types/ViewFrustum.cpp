@@ -1,8 +1,18 @@
 #include "Corepch.h"
 #include "ViewFrustum.h"
+#include "BoundingBox.h"
 
 namespace Coco
 {
+	ViewFrustum::ViewFrustum() :
+		Near(),
+		Far(),
+		Top(),
+		Bottom(),
+		Right(),
+		Left()
+	{}
+
 	ViewFrustum::ViewFrustum(
 		const Vector3& origin,
 		const Vector3& direction,
@@ -12,7 +22,7 @@ namespace Coco
 		const Vector3& farOffset,
 		const Size& farSize)
 	{
-		Vector3 right = up.Cross(direction);
+		Vector3 right = direction.Cross(up);
 
 		Vector3 nearCenter = origin + direction * nearOffset.Z + up * nearOffset.Y + right * nearOffset.X;
 		Vector3 nearBottom = nearCenter - up * nearSize.Height * 0.5;
@@ -29,11 +39,11 @@ namespace Coco
 		Near = Plane(nearCenter, direction);
 		Far = Plane(farCenter, -direction);
 
-		Top = Plane((nearTop + farTop) / 2.0, (nearTop - farTop).Cross(right).Normalized());
-		Bottom = Plane((nearBottom + farBottom) / 2.0, (farBottom - nearBottom).Cross(right).Normalized());
+		Top = Plane((nearTop + farTop) / 2.0, right.Cross(nearTop - farTop).Normalized());
+		Bottom = Plane((nearBottom + farBottom) / 2.0, right.Cross(farBottom - nearBottom).Normalized());
 
-		Right = Plane((nearRight + farRight) / 2.0, (farRight - nearRight).Cross(up).Normalized());
-		Left = Plane((nearLeft + farLeft) / 2.0, (nearLeft - farLeft).Cross(up).Normalized());
+		Right = Plane((nearRight + farRight) / 2.0, up.Cross(farRight - nearRight).Normalized());
+		Left = Plane((nearLeft + farLeft) / 2.0, up.Cross(nearLeft - farLeft).Normalized());
 	}
 
 	ViewFrustum ViewFrustum::CreatePerspective(
@@ -46,8 +56,8 @@ namespace Coco
 		double farClip)
 	{
 		double vT = Math::Tan(verticalFOVRadians * 0.5);
-		double nearHeight = vT * nearClip;
-		double farHeight = vT * farClip;
+		double nearHeight = vT * nearClip * 2.0;
+		double farHeight = vT * farClip * 2.0;
 
 		return ViewFrustum(
 			origin,
@@ -107,5 +117,15 @@ namespace Coco
 			Left.IsOnNormalSide(point) &&
 			Top.IsOnNormalSide(point) &&
 			Bottom.IsOnNormalSide(point);
+	}
+
+	bool ViewFrustum::IsInside(const BoundingBox& bounds) const
+	{
+		return Near.CheckIntersection(bounds) != PlaneVolumeIntersection::OnOppositeNormalSide &&
+			Far.CheckIntersection(bounds) != PlaneVolumeIntersection::OnOppositeNormalSide &&
+			Top.CheckIntersection(bounds) != PlaneVolumeIntersection::OnOppositeNormalSide &&
+			Bottom.CheckIntersection(bounds) != PlaneVolumeIntersection::OnOppositeNormalSide &&
+			Left.CheckIntersection(bounds) != PlaneVolumeIntersection::OnOppositeNormalSide &&
+			Right.CheckIntersection(bounds) != PlaneVolumeIntersection::OnOppositeNormalSide;
 	}
 }

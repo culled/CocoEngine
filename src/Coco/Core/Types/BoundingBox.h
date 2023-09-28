@@ -107,5 +107,9 @@ namespace Coco
 		/// @param trsMatrix The transformation matrix
 		/// @return The transformed bounding box
 		BoundingBox Transformed(const Matrix4x4& trsMatrix) const;
+
+		/// @brief Gets points that represent the 8 corners of this bounding box
+		/// @return The corner points
+		std::array<Vector3, 8> GetCorners() const;
 	};
 }

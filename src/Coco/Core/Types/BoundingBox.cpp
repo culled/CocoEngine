@@ -179,4 +179,18 @@ namespace Coco
 
 		return BoundingBox(min, max);
 	}
+
+	std::array<Vector3, 8> BoundingBox::GetCorners() const
+	{
+		return {
+			Vector3(Minimum),
+			Vector3(Maximum.X, Minimum.Y, Minimum.Z),
+			Vector3(Minimum.X, Maximum.Y, Minimum.Z),
+			Vector3(Minimum.X, Minimum.Y, Maximum.Z),
+			Vector3(Maximum.X, Maximum.Y, Minimum.Z),
+			Vector3(Maximum.X, Minimum.Y, Maximum.Z),
+			Vector3(Minimum.X, Maximum.Y, Maximum.Z),
+			Vector3(Maximum)
+		};
+	}
 }

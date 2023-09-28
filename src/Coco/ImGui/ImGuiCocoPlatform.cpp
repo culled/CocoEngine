@@ -355,7 +355,7 @@ namespace Coco::ImGuiCoco
             viewport.GetBottom(),
             -1.0, 1.0);
 
-        renderView.Setup(viewport, viewport, Matrix4x4::Identity, projection, MSAASamples::One, rts);
+        renderView.Setup(viewport, viewport, Matrix4x4::Identity, projection, ViewFrustum(), MSAASamples::One, rts);
     }
 
     void ImGuiCocoPlatform::GatherSceneData(RenderView& renderView)

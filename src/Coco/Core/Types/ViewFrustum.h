@@ -5,6 +5,8 @@
 
 namespace Coco
 {
+	struct BoundingBox;
+
 	/// @brief Defines a view frustrum clipped by 6 planes
 	struct ViewFrustum
 	{
@@ -26,6 +28,7 @@ namespace Coco
 		/// @brief The far plane
 		Plane Far;
 
+		ViewFrustum();
 		ViewFrustum(
 			const Vector3& origin, 
 			const Vector3& direction,
@@ -97,5 +100,10 @@ namespace Coco
 		/// @param point The point
 		/// @return True if the point is contained within this frustum
 		bool IsInside(const Vector3& point) const;
+
+		/// @brief Checks if a bounding box is inside this frustum
+		/// @param bounds The bounding box
+		/// @return True if any part of the bounding box is inside this frustum
+		bool IsInside(const BoundingBox& bounds) const;
 	};
 }
