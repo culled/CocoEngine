@@ -1,5 +1,6 @@
 #include "Corepch.h"
 #include "BoundingBox.h"
+#include "Matrix.h"
 
 #include "../Math/Math.h"
 
@@ -137,5 +138,45 @@ namespace Coco
 			Maximum.Y >= other.Minimum.Y - Math::LaxEpsilon &&
 			Minimum.Z <= other.Maximum.Z + Math::LaxEpsilon &&
 			Maximum.Z >= other.Minimum.Z - Math::LaxEpsilon;
+	}
+
+	BoundingBox BoundingBox::Transformed(const Matrix4x4& trsMatrix) const
+	{
+		std::array<Vector4, 8> points = {
+			trsMatrix * Vector4(Minimum, 1.0),
+			trsMatrix * Vector4(Maximum.X, Minimum.Y, Minimum.Z, 1.0),
+			trsMatrix * Vector4(Minimum.X, Maximum.Y, Minimum.Z, 1.0),
+			trsMatrix * Vector4(Minimum.X, Minimum.Y, Maximum.Z, 1.0),
+			trsMatrix * Vector4(Maximum.X, Maximum.Y, Minimum.Z, 1.0),
+			trsMatrix * Vector4(Maximum.X, Minimum.Y, Maximum.Z, 1.0),
+			trsMatrix * Vector4(Minimum.X, Maximum.Y, Maximum.Z, 1.0),
+			trsMatrix * Vector4(Maximum, 1.0)
+		};
+
+		Vector3 min;
+		Vector3 max;
+		bool first = true;
+
+		for (const Vector4& p : points)
+		{
+			if (first)
+			{
+				min = p.XYZ();
+				max = min;
+				first = false;
+			}
+			else
+			{
+				min.X = Math::Min(min.X, p.X);
+				min.Y = Math::Min(min.Y, p.Y);
+				min.Z = Math::Min(min.Z, p.Z);
+
+				max.X = Math::Max(max.X, p.X);
+				max.Y = Math::Max(max.Y, p.Y);
+				max.Z = Math::Max(max.Z, p.Z);
+			}
+		}
+
+		return BoundingBox(min, max);
 	}
 }

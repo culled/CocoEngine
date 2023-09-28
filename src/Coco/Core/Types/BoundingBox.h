@@ -5,6 +5,8 @@
 
 namespace Coco
 {
+	struct Matrix4x4;
+
 	/// @brief A 3D axis-aligned bounding box
 	struct BoundingBox
 	{
@@ -100,5 +102,10 @@ namespace Coco
 		/// @param other The other bounding box
 		/// @return 
 		bool Intersects(const BoundingBox& other);
+
+		/// @brief Computes a bounding box that fits around this box if it were transformed by the given matrix
+		/// @param trsMatrix The transformation matrix
+		/// @return The transformed bounding box
+		BoundingBox Transformed(const Matrix4x4& trsMatrix) const;
 	};
 }

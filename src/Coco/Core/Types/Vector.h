@@ -323,6 +323,10 @@ namespace Coco
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
 		string ToString() const;
+
+		/// @brief Converts this vector to a Vector2
+		/// @return A Vector2
+		Vector2 XY() const { return Vector2(X, Y); }
 	};
 
 	/// @brief Represents a 3D vector using integer coordinates
@@ -411,6 +415,10 @@ namespace Coco
 		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
 		string ToString() const;
+
+		/// @brief Converts this vector to a Vector2Int
+		/// @return A Vector2Int
+		Vector2Int XY() const { return Vector2Int(X, Y); }
 	};
 
 	/// @brief Represents a 4D vector using decimal coordinates
@@ -502,6 +510,14 @@ namespace Coco
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
 		string ToString() const;
+
+		/// @brief Converts this vector to a Vector2
+		/// @return A Vector2
+		Vector2 XY() const { return Vector2(X, Y); }
+
+		/// @brief Converts this vector to a Vector3
+		/// @return A Vector3
+		Vector3 XYZ() const { return Vector3(X, Y, Z); }
 	};
 
 	/// @brief Represents a 4D vector using integer coordinates
@@ -575,5 +591,13 @@ namespace Coco
 		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
 		string ToString() const;
+
+		/// @brief Converts this vector to a Vector2Int
+		/// @return A Vector2Int
+		Vector2Int XY() const { return Vector2Int(X, Y); }
+
+		/// @brief Converts this vector to a Vector3Int
+		/// @return A Vector3Int
+		Vector3Int XYZ() const { return Vector3Int(X, Y, Z); }
 	};
 }
