@@ -314,6 +314,10 @@ namespace Coco
 		/// @return The reflection vector
 		Vector3 Reflect(const Vector3& normal) const;
 
+		/// @brief Calculates a vector that is orthogonal to this vector
+		/// @return An orthogonal vector
+		Vector3 Orthogonal() const;
+
 		/// @brief Calculates this vector refracted through a plane with the given normal
 		/// @param normal The normal vector
 		/// @param ior The index of refraction

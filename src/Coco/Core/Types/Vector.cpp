@@ -167,6 +167,16 @@ namespace Coco
 	//	return *this * ior + normal * (ior * cosI - cosT);
 	//}
 
+	Vector3 Vector3::Orthogonal() const
+	{
+		double x = Math::Abs(X);
+		double y = Math::Abs(Y);
+		double z = Math::Abs(Z);
+
+		Vector3 other = x < y ? (x < z ? Vector3::Right : Vector3::Backward) : (y < z ? Vector3::Up : Vector3::Backward);
+		return Cross(other);
+	}
+
 	string Vector3::ToString() const
 	{
 		return FormatString("{}, {}, {}", X, Y, Z);

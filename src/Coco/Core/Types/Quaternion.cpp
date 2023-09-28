@@ -134,6 +134,27 @@ namespace Coco
 		return out.Normalized();
 	}
 
+	Quaternion Quaternion::FromToRotation(const Vector3& startDir, const Vector3& endDir)
+	{
+		// https://stackoverflow.com/questions/1171849/finding-quaternion-representing-the-rotation-from-one-vector-to-another
+		Vector3 start = startDir.Normalized();
+		Vector3 end = endDir.Normalized();
+
+		double d = start.Dot(end);
+		double k = Math::Sqrt(start.GetLengthSquared() * end.GetLengthSquared());
+
+		if (d / k <= -1.0 + Math::LaxEpsilon)
+		{
+			Vector3 o = start.Orthogonal();
+			return Quaternion(o.X, o.Y, o.Z, 0.0);
+		}
+
+		Vector3 c = start.Cross(end);
+		Quaternion q = Quaternion(c.X, c.Y, c.Z, d + k);
+		q.Normalize();
+		return q;
+	}
+
 	void Quaternion::Normalize(bool safe)
 	{
 		const double l = GetNormal();

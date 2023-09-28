@@ -41,6 +41,12 @@ namespace Coco
 		/// @return An interpolated rotation
 		static Quaternion Slerp(const Quaternion& from, const Quaternion& to, double alpha);
 
+		/// @brief Calculates a quaternion that specifies a rotation to rotate startDir to endDir
+		/// @param startDir The starting direction
+		/// @param endDir The end direction
+		/// @return A quaternion that rotates startDir to endDir
+		static Quaternion FromToRotation(const Vector3& startDir, const Vector3& endDir);
+
 		/// @brief Gets the normal of this quaternion
 		/// @return The normal
 		double GetNormal() const { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
