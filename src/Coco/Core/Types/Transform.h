@@ -185,5 +185,65 @@ namespace Coco
 		/// @param angleRadians The amount to rotate, in radians
 		/// @param parent The parent, or nullptr if no parent
 		void RotateGlobal(const Vector3& axis, double angleRadians, const Transform3D* parent = nullptr);
+
+		/// @brief Gets the global position of this transform
+		/// @return The global position
+		Vector3 GetGlobalPosition() const { return LocalToGlobalPosition(Vector3::Zero); }
+
+		/// @brief Gets the global rotation of this transform
+		/// @return The global rotation
+		Quaternion GetGlobalRotation() const { return GlobalToLocalRotation(Quaternion::Identity); }
+
+		/// @brief Gets the global scale of this transform
+		/// @return The global scale
+		Vector3 GetGlobalScale() const { return GlobalToLocalVector(Vector3::One); }
+
+		/// @brief Gets the global forward direction of this transform
+		/// @return The global forward direction
+		Vector3 GetGlobalForward() const { return GlobalTransform.GetForwardVector(); }
+
+		/// @brief Gets the global backward direction of this transform
+		/// @return The global backward direction
+		Vector3 GetGlobalBackward() const { return GlobalTransform.GetBackwardVector(); }
+
+		/// @brief Gets the global right direction of this transform
+		/// @return The global right direction
+		Vector3 GetGlobalRight() const { return GlobalTransform.GetRightVector(); }
+
+		/// @brief Gets the global left direction of this transform
+		/// @return The global left direction
+		Vector3 GetGlobalLeft() const { return GlobalTransform.GetLeftVector(); }
+
+		/// @brief Gets the global up direction of this transform
+		/// @return The global up direction
+		Vector3 GetGlobalUp() const { return GlobalTransform.GetUpVector(); }
+
+		/// @brief Gets the global down direction of this transform
+		/// @return The global down direction
+		Vector3 GetGlobalDown() const { return GlobalTransform.GetDownVector(); }
+
+		/// @brief Gets the local forward direction of this transform
+		/// @return The local forward direction
+		Vector3 GetLocalForward() const { return LocalTransform.GetForwardVector(); }
+
+		/// @brief Gets the local backward direction of this transform
+		/// @return The local backward direction
+		Vector3 GetLocalBackward() const { return LocalTransform.GetBackwardVector(); }
+
+		/// @brief Gets the local right direction of this transform
+		/// @return The local right direction
+		Vector3 GetLocalRight() const { return LocalTransform.GetRightVector(); }
+
+		/// @brief Gets the local left direction of this transform
+		/// @return The local left direction
+		Vector3 GetLocalLeft() const { return LocalTransform.GetLeftVector(); }
+
+		/// @brief Gets the local up direction of this transform
+		/// @return The local up direction
+		Vector3 GetLocalUp() const { return LocalTransform.GetUpVector(); }
+
+		/// @brief Gets the local down direction of this transform
+		/// @return The local down direction
+		Vector3 GetLocalDown() const { return LocalTransform.GetDownVector(); }
 	};
 }
