@@ -455,7 +455,7 @@ namespace Coco::Rendering
 
 		for (uint32 i = 0; i < stacks - 1; i++)
 		{
-			double v = 1.0 - (static_cast<double>(i + 1) / stacks);
+			double v = 1.0 - ((static_cast<double>(i) + 1.0) / stacks);
 			double phi = Math::PI * static_cast<double>(i + 1) / stacks;
 
 			for (uint32 j = 0; j <= slices; j++)

@@ -198,7 +198,7 @@ namespace Coco::Rendering
 
 		std::vector<uint8> pixelData(size * size * channels);
 
-		for (uint64_t i = 0; i < pixelData.size(); i++)
+		for (uint64 i = 0; i < pixelData.size(); i++)
 		{
 			pixelData[i] = 255;
 		}
@@ -221,7 +221,7 @@ namespace Coco::Rendering
 
 		std::vector<uint8> pixelData(size * size * channels);
 
-		for (uint64_t i = 0; i < pixelData.size(); i += channels)
+		for (uint64 i = 0; i < pixelData.size(); i += channels)
 		{
 			pixelData[i] = 127;
 			pixelData[i + 1] = 127;
@@ -247,11 +247,11 @@ namespace Coco::Rendering
 
 		std::vector<uint8> pixelData(size * size * channels);
 
-		for (uint32 x = 0; x < size; x++)
+		for (uint64 x = 0; x < size; x++)
 		{
-			for (uint32 y = 0; y < size; y++)
+			for (uint64 y = 0; y < size; y++)
 			{
-				const uint32 baseIndex = ((x * size) + y) * channels;
+				const uint64 baseIndex = ((x * size) + y) * channels;
 				pixelData[baseIndex + 0] = 255;
 				pixelData[baseIndex + 1] = 255;
 				pixelData[baseIndex + 2] = 255;

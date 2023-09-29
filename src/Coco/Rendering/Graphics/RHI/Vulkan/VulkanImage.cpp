@@ -63,7 +63,7 @@ namespace Coco::Rendering::Vulkan
 
 	uint64 VulkanImage::GetDataSize() const
 	{
-		return _description.Width * _description.Height * _description.Depth * GetPixelFormatSize(_description.PixelFormat);
+		return static_cast<uint64>(_description.Width) * _description.Height * _description.Depth * GetPixelFormatSize(_description.PixelFormat);
 	}
 
 	void VulkanImage::SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize)

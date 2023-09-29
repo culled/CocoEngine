@@ -7,7 +7,8 @@ namespace Coco::Rendering::Vulkan
 {
 	VulkanCommandBuffer::VulkanCommandBuffer(VkCommandBuffer buffer, VkQueue queue) :
 		_commandBuffer(buffer),
-		_queue(queue)
+		_queue(queue),
+		_currentState(State::Ready)
 	{}
 
 	void VulkanCommandBuffer::Begin(bool isSingleUse, bool isSimultaneousUse)

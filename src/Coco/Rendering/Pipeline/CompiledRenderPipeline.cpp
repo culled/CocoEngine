@@ -9,6 +9,7 @@ namespace Coco::Rendering
 		PipelineID(pipelineID),
 		Version(0),
 		RenderPasses{},
-		InputAttachments{}
+		InputAttachments{},
+		SupportsMSAA(false)
 	{}
 }

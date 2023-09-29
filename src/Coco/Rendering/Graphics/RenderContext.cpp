@@ -34,7 +34,8 @@ namespace Coco::Rendering
 		_globalUniforms{},
 		_globalShaderUniforms{},
 		_instanceUniforms{},
-		_drawUniforms{}
+		_drawUniforms{},
+		_renderView(nullptr)
 	{}
 
 	void RenderContext::SetCurrentRenderView(RenderView& renderView)

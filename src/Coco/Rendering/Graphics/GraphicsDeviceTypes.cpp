@@ -10,7 +10,8 @@ namespace Coco::Rendering
 		MaxImageHeight(0),
 		MaxImageDepth(0),
 		MinimumBufferAlignment(0),
-		SupportsWireframe(false)
+		SupportsWireframe(false),
+		MaxAnisotropicLevel(0)
 	{}
 
 	GraphicsDeviceCreateParams::GraphicsDeviceCreateParams() :

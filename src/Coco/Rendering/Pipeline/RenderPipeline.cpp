@@ -9,7 +9,8 @@ namespace Coco::Rendering
 
 	RenderPipeline::RenderPipeline() :
 		_renderPasses{},
-		_compiledPipeline(_pipelineHasher(this))
+		_compiledPipeline(_pipelineHasher(this)),
+		_isDirty(true)
 	{}
 
 	RenderPipeline::~RenderPipeline()
