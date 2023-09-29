@@ -167,7 +167,7 @@ namespace Coco::Rendering
 			mesh,
 			submesh.Offset, submesh.Count,
 			modelMatrix,
-			submesh.Bounds,
+			submesh.Bounds.Transformed(modelMatrix),
 			material,
 			scissorRect,
 			extraData);
@@ -195,7 +195,7 @@ namespace Coco::Rendering
 			indexCount,
 			materialID,
 			scissorRect ? *scissorRect : _scissorRect,
-			bounds.Transformed(modelMatrix),
+			bounds,
 			extraData);
 
 		return objectID;
