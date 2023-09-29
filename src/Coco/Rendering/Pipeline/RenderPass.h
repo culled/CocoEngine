@@ -26,6 +26,11 @@ namespace Coco::Rendering
 		/// @return True if this pass supports MSAA
 		virtual bool SupportsMSAA() const = 0;
 
+		/// @brief Allows preparations before rendering actually commences. Use this to set global values
+		/// @param context The context to use for rendering
+		/// @param renderView The view being rendered
+		virtual void Prepare(RenderContext& context, const RenderView& renderView) = 0;
+
 		/// @brief Executes this render pass
 		/// @param context The context to use for rendering
 		/// @param renderView The view being rendered

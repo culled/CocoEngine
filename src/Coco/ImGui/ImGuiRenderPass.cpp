@@ -12,10 +12,13 @@ namespace Coco::ImGuiCoco
         _attachments({ AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, false) })
     {}
 
+    void ImGuiRenderPass::Prepare(RenderContext& context, const RenderView& renderView)
+    {
+        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("Projection"), renderView.GetProjectionMatrix());
+    }
+
     void ImGuiRenderPass::Execute(RenderContext& context, const RenderView& renderView)
     {
-        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("projection"), renderView.GetProjectionMatrix());
-
         for (const ObjectData& obj : renderView.GetRenderObjects())
         {
             const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);

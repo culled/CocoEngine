@@ -13,10 +13,10 @@ namespace Coco::Rendering::Vulkan
 		ShaderModuleCreateInfo{}
 	{}
 
-	VulkanRenderPassShader::VulkanRenderPassShader(const RenderPassShader& shaderInfo) :
-		CachedVulkanResource(MakeKey(shaderInfo)),
+	VulkanRenderPassShader::VulkanRenderPassShader(const RenderPassShaderData& shader) :
+		CachedVulkanResource(MakeKey(shader)),
 		_version(0),
-		_shaderInfo(shaderInfo),
+		_shaderInfo(shader.ShaderData),
 		_stages{},
 		_layouts{}
 	{}
@@ -26,9 +26,9 @@ namespace Coco::Rendering::Vulkan
 		DestroyShaderObjects();
 	}
 
-	GraphicsDeviceResourceID VulkanRenderPassShader::MakeKey(const RenderPassShader& shaderInfo)
+	GraphicsDeviceResourceID VulkanRenderPassShader::MakeKey(const RenderPassShaderData& shader)
 	{
-		return shaderInfo.ID;
+		return shader.ID;
 	}
 
 	std::vector<VulkanDescriptorSetLayout> VulkanRenderPassShader::GetDescriptorSetLayouts() const
@@ -48,25 +48,9 @@ namespace Coco::Rendering::Vulkan
 		return _layouts.at(scope);
 	}
 
-	uint32 VulkanRenderPassShader::GetUniformDataSize(UniformScope scope) const
-	{
-		uint64 offset = 0;
-
-		for (const auto& u : _shaderInfo.GetScopedDataUniforms(scope))
-		{
-			_device.AlignOffset(u.Type, offset);
-			offset += GetDataTypeSize(u.Type);
-		}
-
-		// Pad out the data size so they fill a block accessible by the minimum buffer alignment
-		offset = GraphicsDevice::GetOffsetForAlignment(offset, _device.GetFeatures().MinimumBufferAlignment);
-
-		return static_cast<uint32>(offset);
-	}
-
 	std::vector<VkPushConstantRange> VulkanRenderPassShader::GetPushConstantRanges() const
 	{
-		const uint32 dataSize = GetUniformDataSize(UniformScope::Draw);
+		const uint64 dataSize = _shaderInfo.DrawUniforms.GetUniformDataSize(_device);
 
 		if (dataSize == 0)
 			return std::vector<VkPushConstantRange>();
@@ -79,7 +63,7 @@ namespace Coco::Rendering::Vulkan
 			return std::vector<VkPushConstantRange>();
 		}
 
-		std::vector<ShaderDataUniform> drawUniforms = _shaderInfo.GetScopedDataUniforms(UniformScope::Draw);
+		const std::vector<ShaderDataUniform>& drawUniforms = _shaderInfo.DrawUniforms.DataUniforms;
 
 		VkPushConstantRange range{};
 		range.offset = 0;
@@ -102,15 +86,16 @@ namespace Coco::Rendering::Vulkan
 		return std::vector<VkPushConstantRange>({ range });
 	}
 
-	bool VulkanRenderPassShader::NeedsUpdate(const RenderPassShader& shaderInfo) const
+	bool VulkanRenderPassShader::NeedsUpdate(const RenderPassShaderData& shaderInfo) const
 	{
-		return shaderInfo.Version != _version || _stages.size() == 0;
+		return shaderInfo.Version != _version || 
+			_stages.size() == 0;
 	}
 
-	void VulkanRenderPassShader::Update(const RenderPassShader& shaderInfo)
+	void VulkanRenderPassShader::Update(const RenderPassShaderData& shaderInfo)
 	{
 		DestroyShaderObjects();
-		CreateShaderObjects(shaderInfo);
+		CreateShaderObjects(shaderInfo.ShaderData);
 
 		_version = shaderInfo.Version;
 	}
@@ -122,10 +107,10 @@ namespace Coco::Rendering::Vulkan
 			CreateStage(stage);
 		}
 
-		if (shaderInfo.HasScope(UniformScope::Global))
-			CreateLayout(UniformScope::Global);
+		if (shaderInfo.GlobalUniforms.Hash != ShaderUniformLayout::EmptyHash)
+			CreateLayout(UniformScope::ShaderGlobal);
 
-		if (shaderInfo.HasScope(UniformScope::Instance))
+		if (shaderInfo.InstanceUniforms.Hash != ShaderUniformLayout::EmptyHash)
 			CreateLayout(UniformScope::Instance);
 
 		CocoTrace("Created VulkanRenderPassShader")
@@ -181,48 +166,84 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanRenderPassShader::CreateLayout(UniformScope scope)
 	{
-		VulkanDescriptorSetLayout layout{};
+		const ShaderUniformLayout& layout = scope == UniformScope::ShaderGlobal ? _shaderInfo.GlobalUniforms : _shaderInfo.InstanceUniforms;
+		VulkanDescriptorSetLayout setLayout{};
 
-		std::vector<ShaderDataUniform> dataUniforms = _shaderInfo.GetScopedDataUniforms(scope);
-		std::vector<ShaderTextureUniform> textureUniforms = _shaderInfo.GetScopedTextureUniforms(scope);
+		bool hasDataUniforms = layout.DataUniforms.size() > 0;
 
-		bool hasDataUniforms = dataUniforms.size() > 0;
+		setLayout.LayoutBindings.resize((hasDataUniforms ? 1 : 0) + layout.TextureUniforms.size());
+		setLayout.WriteTemplates.resize(setLayout.LayoutBindings.size());
 
-		layout.LayoutBindings.resize(textureUniforms.size() + (hasDataUniforms ? 1 : 0));
 		uint32 bindingIndex = 0;
 
 		if (hasDataUniforms)
 		{
-			VkDescriptorSetLayoutBinding& binding = layout.LayoutBindings.at(bindingIndex);
+			VkDescriptorSetLayoutBinding& binding = setLayout.LayoutBindings.at(bindingIndex);
 			binding.descriptorCount = 1;
 			binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			binding.pImmutableSamplers = nullptr;
 			binding.binding = bindingIndex;
-			binding.stageFlags = ToVkShaderStageFlags(_shaderInfo.GetUniformScopeBindStages(scope));
+			binding.stageFlags = ToVkShaderStageFlags(layout.GetDataUniformBindStages());
+
+			VkWriteDescriptorSet& write = setLayout.WriteTemplates.at(bindingIndex);
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.dstBinding = bindingIndex;
+			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			write.descriptorCount = 1;
 
 			bindingIndex++;
 		}
 
-		for (uint32 i = 0; i < textureUniforms.size(); i++)
+		for (uint32 i = 0; i < layout.TextureUniforms.size(); i++)
 		{
-			VkDescriptorSetLayoutBinding& binding = layout.LayoutBindings.at(bindingIndex);
+			VkDescriptorSetLayoutBinding& binding = setLayout.LayoutBindings.at(bindingIndex);
 			binding.descriptorCount = 1;
 			binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			binding.pImmutableSamplers = nullptr;
 			binding.binding = bindingIndex;
-			binding.stageFlags = ToVkShaderStageFlags(textureUniforms.at(i).BindingPoints);
+			binding.stageFlags = ToVkShaderStageFlags(layout.TextureUniforms.at(i).BindingPoints);
+
+			VkWriteDescriptorSet& write = setLayout.WriteTemplates.at(bindingIndex);
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.dstBinding = bindingIndex;
+			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			write.descriptorCount = 1;
 
 			bindingIndex++;
 		}
 
+		if (const GlobalShaderUniformLayout* globalLayout = dynamic_cast<const GlobalShaderUniformLayout*>(&layout))
+		{
+			setLayout.LayoutBindings.resize(setLayout.LayoutBindings.size() + globalLayout->BufferUniforms.size());
+			setLayout.WriteTemplates.resize(setLayout.LayoutBindings.size());
+
+			for (uint32 i = 0; i < globalLayout->BufferUniforms.size(); i++)
+			{
+				VkDescriptorSetLayoutBinding& binding = setLayout.LayoutBindings.at(bindingIndex);
+				binding.descriptorCount = 1;
+				binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				binding.pImmutableSamplers = nullptr;
+				binding.binding = bindingIndex;
+				binding.stageFlags = ToVkShaderStageFlags(globalLayout->BufferUniforms.at(i).BindingPoints);
+
+				VkWriteDescriptorSet& write = setLayout.WriteTemplates.at(bindingIndex);
+				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.dstBinding = bindingIndex;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				write.descriptorCount = 1;
+
+				bindingIndex++;
+			}
+		}
+
 		VkDescriptorSetLayoutCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		createInfo.bindingCount = static_cast<uint32_t>(layout.LayoutBindings.size());
-		createInfo.pBindings = layout.LayoutBindings.data();
+		createInfo.bindingCount = static_cast<uint32_t>(setLayout.LayoutBindings.size());
+		createInfo.pBindings = setLayout.LayoutBindings.data();
 
-		AssertVkSuccess(vkCreateDescriptorSetLayout(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &layout.Layout));
+		AssertVkSuccess(vkCreateDescriptorSetLayout(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &setLayout.Layout));
 
-		_layouts.try_emplace(scope, layout);
+		_layouts.try_emplace(scope, setLayout);
 
 		CocoTrace("Created VulkanDescriptorSetLayout for scope {}", static_cast<int>(scope))
 	}

@@ -21,4 +21,15 @@ void RenderViewProvider2D::SetupRenderView(
     Matrix4x4 view = Matrix4x4::Identity;
 
     renderView.Setup(viewport, viewport, view, projection, ViewFrustum(), MSAASamples::One, rts);
+
+    GlobalShaderUniformLayout globalLayout(
+        {
+            ShaderDataUniform("ProjectionMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
+            ShaderDataUniform("ViewMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+        },
+        {},
+        {}
+    );
+
+    renderView.SetGlobalUniformLayout(globalLayout);
 }

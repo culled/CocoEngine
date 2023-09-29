@@ -63,6 +63,24 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
+	VulkanGlobalUniformData& VulkanRenderContextCache::GetOrCreateGlobalUniformData(const GlobalShaderUniformLayout& layout)
+	{
+		GraphicsDeviceResourceID key = VulkanGlobalUniformData::MakeKey(layout);
+
+		auto it = _globalUniformDatas.find(key);
+
+		if (it == _globalUniformDatas.end())
+		{
+			it = _globalUniformDatas.try_emplace(key, layout).first;
+		}
+
+		VulkanGlobalUniformData& resource = it->second;
+
+		resource.Use();
+
+		return resource;
+	}
+
 	void VulkanRenderContextCache::ResetForNextFrame()
 	{
 		for (auto it = _uniformDatas.begin(); it != _uniformDatas.end(); it++)

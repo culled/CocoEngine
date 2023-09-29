@@ -24,7 +24,7 @@ SceneDataProvider2D::SceneDataProvider2D() :
 	_shader = resourceLibrary.Create<Shader>("Shader2D", "2d");
 	_shader->AddRenderPassShader(
 		RenderPassShader(
-			0,
+			_shader->GetID(),
 			"basic",
 			{
 				ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Unlit.vert.spv"),
@@ -38,15 +38,21 @@ SceneDataProvider2D::SceneDataProvider2D() :
 				ShaderVertexAttribute("Position", BufferDataType::Float3),
 				ShaderVertexAttribute("UV", BufferDataType::Float2)
 			},
-			{
-				ShaderDataUniform("projectionMatrix", UniformScope::Global, ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
-				ShaderDataUniform("viewMatrix", UniformScope::Global, ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
-				ShaderDataUniform("baseColor", UniformScope::Instance, ShaderStageFlags::Fragment, BufferDataType::Float4),
-				ShaderDataUniform("modelMatrix", UniformScope::Draw, ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
-			},
-			{
-				ShaderTextureUniform("baseTexSampler", UniformScope::Instance, ShaderStageFlags::Fragment)
-			}
+			GlobalShaderUniformLayout(),
+			ShaderUniformLayout(
+				{
+					ShaderDataUniform("BaseColor", ShaderStageFlags::Fragment, BufferDataType::Float4)
+				},
+				{
+					ShaderTextureUniform("BaseTexSampler", ShaderStageFlags::Fragment)
+				}
+			),
+			ShaderUniformLayout(
+				{
+					ShaderDataUniform("ModelMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+				},
+				{}
+			)
 		)
 	);
 
@@ -55,8 +61,8 @@ SceneDataProvider2D::SceneDataProvider2D() :
 
 	_material = resourceLibrary.Create<Material>("Material2D", _shader);
 	_material->SetShader(_shader);
-	_material->SetFloat4("baseColor", Color::White);
-	_material->SetTexture("baseTexSampler", _texture);
+	_material->SetFloat4("BaseColor", Color::White);
+	_material->SetTexture("BaseTexSampler", _texture);
 }
 
 SceneDataProvider2D::~SceneDataProvider2D()

@@ -4,6 +4,7 @@
 #include <Coco/Core/Types/String.h>
 #include "GraphicsPipelineTypes.h"
 #include "RenderPassShaderTypes.h"
+#include "ShaderUniformLayout.h"
 
 namespace Coco::Rendering
 {
@@ -13,11 +14,8 @@ namespace Coco::Rendering
 		/// @brief The ID of this shader
 		uint64 ID;
 
-		/// @brief The hash of this shader (auto-calculated after calling CalculateHash())
+		/// @brief The hash of this shader's values (auto-calculated after calling CalculateHash())
 		uint64 Hash;
-
-		/// @brief The version of this shader
-		uint64 Version;
 
 		/// @brief The name of the RenderPass this shader is used for
 		string PassName;
@@ -37,42 +35,27 @@ namespace Coco::Rendering
 		/// @brief The size of each vertex's data, in bytes (auto-calculated after calling CalculateAttributeOffsets())
 		uint32 VertexDataSize;
 
-		/// @brief The data uniforms for this shader
-		std::vector<ShaderDataUniform> DataUniforms;
+		/// @brief The layout for the shader global uniforms
+		GlobalShaderUniformLayout GlobalUniforms;
 
-		/// @brief The texture uniforms for this shader
-		std::vector<ShaderTextureUniform> TextureUniforms;
+		/// @brief The layout for instance uniforms
+		ShaderUniformLayout InstanceUniforms;
+
+		/// @brief The layout for draw uniforms
+		ShaderUniformLayout DrawUniforms;
 
 		RenderPassShader(
-			uint64 id,
+			uint64 baseID,
 			const string& passName,
 			const std::vector<ShaderStage>& stages,
 			const GraphicsPipelineState& pipelineState,
 			const std::vector<BlendState>& attachmentBlendStates,
 			const std::vector<ShaderVertexAttribute>& vertexAttributes,
-			const std::vector<ShaderDataUniform>& dataUniforms,
-			const std::vector<ShaderTextureUniform>& textureUniforms);
+			const GlobalShaderUniformLayout& globalUniforms,
+			const ShaderUniformLayout& instanceUniforms,
+			const ShaderUniformLayout& drawUniforms);
 
 		bool operator==(const RenderPassShader& other) const;
-
-		/// @brief Gets the data uniforms in the given scope
-		/// @param scope The scope
-		/// @return A list of data uniforms in the given scope
-		std::vector<ShaderDataUniform> GetScopedDataUniforms(UniformScope scope) const;
-
-		/// @brief Gets the texture uniforms in the given scope
-		/// @param scope The scope
-		/// @return A list of texture uniforms in the given scope
-		std::vector<ShaderTextureUniform> GetScopedTextureUniforms(UniformScope scope) const;
-
-		/// @brief Gets the binding points for a given scope
-		/// @param scope The scope
-		/// @return The binding points for all uniforms in the scope
-		ShaderStageFlags GetUniformScopeBindStages(UniformScope scope) const;
-
-		/// @brief Determines if this shader has any uniforms for the given scope
-		/// @return True if this shader has any uniforms for the given scope
-		bool HasScope(UniformScope scope) const;
 
 		/// @brief Calculates the offsets for each vertex attribute and the total vertex data size
 		void CalculateAttributeOffsets();

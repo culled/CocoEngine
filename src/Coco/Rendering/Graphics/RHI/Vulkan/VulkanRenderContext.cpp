@@ -47,7 +47,9 @@ namespace Coco::Rendering::Vulkan
 		_waitOnSemaphores{},
 		_renderCompletedSignalSemaphores{},
 		_commandBuffer{},
-		_deviceCache(_device.GetCache())
+		_deviceCache(_device.GetCache()),
+		_globalDescriptorSetLayout(nullptr),
+		_globalDescriptorSet(nullptr)
 	{
 		DeviceQueue* graphicsQueue = _device.GetQueue(DeviceQueue::Type::Graphics);
 		if (!graphicsQueue)
@@ -160,9 +162,9 @@ namespace Coco::Rendering::Vulkan
 		if (_vulkanRenderOperation->InstanceState.has_value() && _vulkanRenderOperation->InstanceState->InstanceID == material.ID)
 			return;
 
-		const ShaderData& shader = _renderOperation->RenderView.GetShaderData(material.ShaderID);
+		const ShaderData& shader = _renderView->GetShaderData(material.ShaderID);
 		uint64 passKey = shader.RenderPassShaders.at(_renderOperation->CurrentPassName);
-		const RenderPassShaderData& passShader = _renderOperation->RenderView.GetRenderPassShaderData(passKey);
+		const RenderPassShaderData& passShader = _renderView->GetRenderPassShaderData(passKey);
 
 		SetShader(passShader);
 
@@ -229,16 +231,38 @@ namespace Coco::Rendering::Vulkan
 		_drawUniforms.Clear();
 	}
 
+	void VulkanRenderContext::SetGlobalBufferData(ShaderUniformData::UniformKey key, uint64 offset, const void* data, uint64 dataSize)
+	{
+		Assert(_renderView != nullptr)
+		Assert(_renderView->HasGlobalUniformLayout())
+
+		VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
+		VulkanGlobalUniformData& globalData = cache.GetOrCreateGlobalUniformData(_renderView->GetGlobalUniformLayout());
+		globalData.SetBufferUniformData(key, offset, data, dataSize);
+	}
+
+	void VulkanRenderContext::SetShaderGlobalBufferData(ShaderUniformData::UniformKey key, uint64 offset, const void* data, uint64 dataSize)
+	{
+		Assert(_vulkanRenderOperation.has_value())
+		Assert(_vulkanRenderOperation->GlobalState.has_value())
+		Assert(_vulkanRenderOperation->GlobalState->ShaderID != RenderView::InvalidID)
+
+		const RenderPassShaderData& boundShaderData = _renderView->GetRenderPassShaderData(_vulkanRenderOperation->GlobalState->ShaderID);
+		VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
+		VulkanRenderPassShader& shader = _deviceCache.GetOrCreateShader(boundShaderData);
+		VulkanUniformData& uniformData = cache.GetOrCreateUniformData(shader);
+
+		uniformData.SetBufferUniformData(shader, key, offset, data, dataSize);
+	}
+
 	bool VulkanRenderContext::BeginImpl()
 	{
 		try
 		{
 			_renderCompletedSignalSemaphores.push_back(_renderCompletedSemaphore);
 
-			const RenderView& renderView = _renderOperation->RenderView;
-
 			// Get the images from the render targets
-			std::span<const RenderTarget> rts = renderView.GetRenderTargets();
+			std::span<const RenderTarget> rts = _renderView->GetRenderTargets();
 			std::vector<const VulkanImage*> vulkanImages(rts.size());
 			std::vector<uint8> resolveImageIndices;
 
@@ -287,10 +311,10 @@ namespace Coco::Rendering::Vulkan
 				clearValues.push_back(clearValues.at(i));
 			}
 
- 			const RectInt& viewportRect = renderView.GetViewportRect();
+ 			const RectInt& viewportRect = _renderView->GetViewportRect();
 			SizeInt viewportSize = viewportRect.GetSize();
 
-			VulkanRenderPass& renderPass = _deviceCache.GetOrCreateRenderPass(_renderOperation->Pipeline, renderView.GetMSAASamples(), resolveImageIndices);
+			VulkanRenderPass& renderPass = _deviceCache.GetOrCreateRenderPass(_renderOperation->Pipeline, _renderView->GetMSAASamples(), resolveImageIndices);
 			VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
 			VulkanFramebuffer& framebuffer = cache.GetOrCreateFramebuffer(viewportSize, renderPass, vulkanImages);
 
@@ -298,7 +322,7 @@ namespace Coco::Rendering::Vulkan
 			_vulkanRenderOperation.emplace(VulkanContextRenderOperation(framebuffer, renderPass));
 
 			_vulkanRenderOperation->ViewportRect = viewportRect;
-			_vulkanRenderOperation->ScissorRect = renderView.GetScissorRect();
+			_vulkanRenderOperation->ScissorRect = _renderView->GetScissorRect();
 
 			_commandBuffer->Begin(true, false);
 
@@ -326,6 +350,15 @@ namespace Coco::Rendering::Vulkan
 
 			// TODO: dynamic line width?
 			vkCmdSetLineWidth(_commandBuffer->GetCmdBuffer(), 1.0f);
+
+			// Upload global state data
+			if (_renderView->HasGlobalUniformLayout())
+			{
+				VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
+				VulkanGlobalUniformData& globalData = cache.GetOrCreateGlobalUniformData(_renderView->GetGlobalUniformLayout());
+				_globalDescriptorSet = globalData.PrepareData(_globalUniforms);
+				_globalDescriptorSetLayout = &globalData.GetDescriptorSetLayout();
+			}
 		}
 		catch (const std::exception& ex)
 		{
@@ -372,10 +405,16 @@ namespace Coco::Rendering::Vulkan
 		_waitOnSemaphores.clear();
 		_renderCompletedSignalSemaphores.clear();
 		_renderCompletedFence->Reset();
+
+		_globalDescriptorSetLayout = nullptr;
+		_globalDescriptorSet = nullptr;
 	}
 
 	void VulkanRenderContext::UniformChanged(UniformScope scope, ShaderUniformData::UniformKey key)
 	{
+		if (scope == UniformScope::Global)
+			return;
+
 		Assert(_vulkanRenderOperation.has_value())
 
 		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Uniform);
@@ -386,7 +425,7 @@ namespace Coco::Rendering::Vulkan
 		Assert(_vulkanRenderOperation.has_value())
 
 		const auto& attachmentFormats = _renderOperation->Pipeline.InputAttachments;
-		std::span<RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
+		std::span<RenderTarget> rts = _renderView->GetRenderTargets();
 
 		for (size_t i = 0; i < attachmentFormats.size(); i++)
 		{
@@ -415,7 +454,7 @@ namespace Coco::Rendering::Vulkan
 		Assert(_vulkanRenderOperation.has_value())
 
 		const auto& attachmentFormats = _renderOperation->Pipeline.InputAttachments;
-		std::span<RenderTarget> rts = _renderOperation->RenderView.GetRenderTargets();
+		std::span<RenderTarget> rts = _renderView->GetRenderTargets();
 
 		for (size_t i = 0; i < attachmentFormats.size(); i++)
 		{
@@ -468,8 +507,8 @@ namespace Coco::Rendering::Vulkan
 			if (globalState.ShaderID == RenderView::InvalidID)
 				throw std::exception("Invalid shader");
 
-			const RenderPassShaderData& boundShaderData = _renderOperation->RenderView.GetRenderPassShaderData(globalState.ShaderID);
-			VulkanRenderPassShader& shader = _deviceCache.GetOrCreateShader(boundShaderData.ShaderData);
+			const RenderPassShaderData& boundShaderData = _renderView->GetRenderPassShaderData(globalState.ShaderID);
+			VulkanRenderPassShader& shader = _deviceCache.GetOrCreateShader(boundShaderData);
 
 			VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
 
@@ -482,10 +521,24 @@ namespace Coco::Rendering::Vulkan
 				globalState.Pipeline = &_deviceCache.GetOrCreatePipeline(
 					_vulkanRenderOperation->RenderPass,
 					_renderOperation->CurrentPassIndex,
-					shader
+					shader,
+					_renderView->HasGlobalUniformLayout() ? &_renderView->GetGlobalUniformLayout() : nullptr,
+					_globalDescriptorSetLayout
 				);
 
 				vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, globalState.Pipeline->GetPipeline());
+
+				if (_globalDescriptorSet)
+				{
+					// Bind the global descriptor set
+					vkCmdBindDescriptorSets(
+						cmdBuffer,
+						VK_PIPELINE_BIND_POINT_GRAPHICS,
+						globalState.Pipeline->GetPipelineLayout(),
+						0,
+						1, &_globalDescriptorSet,
+						0, 0);
+				}
 
 				globalState.DescriptorSet = uniformData.PrepareData(VulkanUniformData::sGlobalInstanceID, _globalUniforms, shader, true);
 				if (globalState.DescriptorSet)
@@ -495,7 +548,7 @@ namespace Coco::Rendering::Vulkan
 						cmdBuffer,
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
 						globalState.Pipeline->GetPipelineLayout(),
-						0, 
+						_globalDescriptorSet ? 1 : 0,
 						1, &globalState.DescriptorSet,
 						0, 0);
 				}
@@ -517,7 +570,13 @@ namespace Coco::Rendering::Vulkan
 
 				if (instanceState.DescriptorSet)
 				{
-					uint32 offset = globalState.DescriptorSet ? 1 : 0;
+					uint32 offset = 0;
+
+					if (_globalDescriptorSet)
+						offset++;
+
+					if (globalState.DescriptorSet)
+						offset++;
 
 					// Bind the instance descriptor set
 					vkCmdBindDescriptorSets(

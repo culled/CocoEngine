@@ -66,6 +66,17 @@ void RenderViewProvider3D::SetupRenderView(
         frustum,
         pipeline.SupportsMSAA ? _msaaSamples : MSAASamples::One, 
         rts);
+
+    GlobalShaderUniformLayout globalLayout(
+        {
+            ShaderDataUniform("ProjectionMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
+            ShaderDataUniform("ViewMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+        },
+        {},
+        {}
+    );
+
+    renderView.SetGlobalUniformLayout(globalLayout);
 }
 
 void RenderViewProvider3D::SetMSAASamples(MSAASamples samples)

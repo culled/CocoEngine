@@ -11,8 +11,9 @@ namespace Coco::Rendering::Vulkan
 	VulkanPipeline::VulkanPipeline(
 		const VulkanRenderPass& renderPass,
 		const VulkanRenderPassShader& shader,
-		uint32 subpassIndex) :
-		CachedVulkanResource(MakeKey(renderPass, shader, subpassIndex)),
+		uint32 subpassIndex,
+		const GlobalShaderUniformLayout* globalLayout) :
+		CachedVulkanResource(MakeKey(renderPass, shader, subpassIndex, globalLayout)),
 		_version(0),
 		_subpassIndex(subpassIndex),
 		_pipelineLayout(nullptr),
@@ -27,20 +28,34 @@ namespace Coco::Rendering::Vulkan
 	GraphicsDeviceResourceID VulkanPipeline::MakeKey(
 		const VulkanRenderPass& renderPass, 
 		const VulkanRenderPassShader& shader, 
-		uint32 subpassIndex)
+		uint32 subpassIndex,
+		const GlobalShaderUniformLayout* globalLayout)
 	{
-		return Math::CombineHashes(renderPass.ID, shader.ID, subpassIndex);
+		uint64 hash = Math::CombineHashes(renderPass.ID, shader.ID, subpassIndex);
+
+		if (globalLayout)
+		{
+			hash = Math::CombineHashes(globalLayout->Hash, hash);
+		}
+
+		return hash;
 	}
 
-	bool VulkanPipeline::NeedsUpdate(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader)
+	bool VulkanPipeline::NeedsUpdate(
+		const VulkanRenderPass& renderPass, 
+		const VulkanRenderPassShader& shader)
 	{
 		return _pipeline == nullptr || MakeVersion(renderPass, shader) != _version;
 	}
 
-	void VulkanPipeline::Update(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader, uint32 subpassIndex)
+	void VulkanPipeline::Update(
+		const VulkanRenderPass& renderPass, 
+		const VulkanRenderPassShader& shader, 
+		uint32 subpassIndex,
+		const VulkanDescriptorSetLayout* globalLayout)
 	{
 		DestroyPipeline();
-		CreatePipeline(renderPass, shader, subpassIndex);
+		CreatePipeline(renderPass, shader, subpassIndex, globalLayout);
 
 		_version = MakeVersion(renderPass, shader);
 	}
@@ -50,14 +65,22 @@ namespace Coco::Rendering::Vulkan
 		return Math::CombineHashes(renderPass.GetVersion(), shader.GetVersion());
 	}
 
-	void VulkanPipeline::CreatePipeline(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader, uint32 subpassIndex)
+	void VulkanPipeline::CreatePipeline(
+		const VulkanRenderPass& renderPass, 
+		const VulkanRenderPassShader& shader, 
+		uint32 subpassIndex,
+		const VulkanDescriptorSetLayout* globalLayout)
 	{
 		std::vector<VulkanDescriptorSetLayout> shaderLayouts = shader.GetDescriptorSetLayouts();
+
 		std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
 		std::transform(shaderLayouts.begin(), shaderLayouts.end(),
 			std::back_inserter(descriptorSetLayouts),
 			[](const VulkanDescriptorSetLayout& layout) { return layout.Layout; });
+
+		if (globalLayout)
+			descriptorSetLayouts.emplace(descriptorSetLayouts.begin(), globalLayout->Layout);
 
 		std::vector<VkPushConstantRange> pushConstantRanges = shader.GetPushConstantRanges();
 

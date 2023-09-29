@@ -37,19 +37,23 @@ namespace Coco::Rendering::Vulkan
 		VulkanRenderPass& GetOrCreateRenderPass(CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices);
 
 		/// @brief Gets/creates a VulkanRenderPassShader 
-		/// @param shaderInfo The shader info
+		/// @param shaderData The shader data
 		/// @return The shader
-		VulkanRenderPassShader& GetOrCreateShader(const RenderPassShader& shaderInfo);
+		VulkanRenderPassShader& GetOrCreateShader(const RenderPassShaderData& shaderData);
 
 		/// @brief Gets/creates a VulkanPipeline
 		/// @param renderPass The render pass
 		/// @param subpassIndex The index of the render pass within the pipeline
 		/// @param shader The shader
+		/// @param globalLayout The layout for the global uniforms, if any
+		/// @param globalDescriptorSetLayout The descriptor set layout for the global uniforms, if any
 		/// @return The pipeline
 		VulkanPipeline& GetOrCreatePipeline(
 			const VulkanRenderPass& renderPass,
 			uint32 subpassIndex,
-			const VulkanRenderPassShader& shader);
+			const VulkanRenderPassShader& shader,
+			const GlobalShaderUniformLayout* globalLayout,
+			const VulkanDescriptorSetLayout* globalDescriptorSetLayout);
 
 		/// @brief Gets/creates a cache for a RenderContext
 		/// @param id The ID of the context 

@@ -3,6 +3,7 @@
 #include "../../../../Renderpch.h"
 #include "VulkanFramebuffer.h"
 #include "VulkanUniformData.h"
+#include "VulkanGlobalUniformData.h"
 
 namespace Coco::Rendering::Vulkan
 {
@@ -23,6 +24,7 @@ namespace Coco::Rendering::Vulkan
 	private:
 		std::unordered_map<GraphicsDeviceResourceID, VulkanFramebuffer> _framebuffers;
 		std::unordered_map<GraphicsDeviceResourceID, VulkanUniformData> _uniformDatas;
+		std::unordered_map<GraphicsDeviceResourceID, VulkanGlobalUniformData> _globalUniformDatas;
 
 	public:
 		VulkanRenderContextCache(const GraphicsDeviceResourceID& id);
@@ -39,6 +41,11 @@ namespace Coco::Rendering::Vulkan
 		/// @param shader The shader
 		/// @return The uniform data container
 		VulkanUniformData& GetOrCreateUniformData(const VulkanRenderPassShader& shader);
+
+		/// @brief Gets/creates a global uniform data container
+		/// @param layout The global uniform layout
+		/// @return The global uniform data container
+		VulkanGlobalUniformData& GetOrCreateGlobalUniformData(const GlobalShaderUniformLayout& layout);
 
 		/// @brief Resets this cache for a new frame
 		void ResetForNextFrame();

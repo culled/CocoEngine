@@ -34,7 +34,7 @@ namespace Coco::Rendering
 
 		_shader->AddRenderPassShader(
 			RenderPassShader(
-				1,
+				_shader->GetID(),
 				DebugRenderPass::sPassName,
 				{
 					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Debug.vert.spv"),
@@ -47,13 +47,15 @@ namespace Coco::Rendering
 				{
 					ShaderVertexAttribute("Position", BufferDataType::Float3)
 				},
-				{
-					ShaderDataUniform("Projection", UniformScope::Global, ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
-					ShaderDataUniform("View", UniformScope::Global, ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
-					ShaderDataUniform("Model", UniformScope::Draw, ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
-					ShaderDataUniform("Color", UniformScope::Draw, ShaderStageFlags::Vertex, BufferDataType::Float4)
-				},
-				{}
+				GlobalShaderUniformLayout(),
+				ShaderUniformLayout(),
+				ShaderUniformLayout(
+					{
+						ShaderDataUniform("Model", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
+						ShaderDataUniform("Color", ShaderStageFlags::Vertex, BufferDataType::Float4)
+					},
+					{}
+				)
 			)
 		);
 

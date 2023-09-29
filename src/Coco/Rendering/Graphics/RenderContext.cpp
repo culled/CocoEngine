@@ -8,8 +8,7 @@
 
 namespace Coco::Rendering
 {
-	ContextRenderOperation::ContextRenderOperation(Rendering::RenderView& renderView, CompiledRenderPipeline& pipeline) :
-		RenderView(renderView),
+	ContextRenderOperation::ContextRenderOperation(CompiledRenderPipeline& pipeline) :
 		Pipeline(pipeline),
 		CurrentPassIndex(0)
 	{
@@ -33,18 +32,25 @@ namespace Coco::Rendering
 		_executionStopwatch(),
 		_currentPassStopwatch(),
 		_globalUniforms{},
+		_globalShaderUniforms{},
 		_instanceUniforms{},
 		_drawUniforms{}
 	{}
 
+	void RenderContext::SetCurrentRenderView(RenderView& renderView)
+	{
+		_renderView = &renderView;
+	}
+
 	void RenderContext::SetFloat(UniformScope scope, ShaderUniformData::UniformKey key, float value)
 	{
-		Assert(_renderOperation.has_value())
-
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Floats[key] = value;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Floats[key] = value;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Floats[key] = value;
@@ -61,14 +67,15 @@ namespace Coco::Rendering
 
 	void RenderContext::SetFloat2(UniformScope scope, ShaderUniformData::UniformKey key, const Vector2& value)
 	{
-		Assert(_renderOperation.has_value())
-
 		ShaderUniformData::float2 v = ShaderUniformData::ToFloat2(value);
 
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Float2s[key] = v;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Float2s[key] = v;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Float2s[key] = v;
@@ -85,14 +92,15 @@ namespace Coco::Rendering
 
 	void RenderContext::SetFloat3(UniformScope scope, ShaderUniformData::UniformKey key, const Vector3& value)
 	{
-		Assert(_renderOperation.has_value())
-
 		ShaderUniformData::float3 v = ShaderUniformData::ToFloat3(value);
 
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Float3s[key] = v;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Float3s[key] = v;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Float3s[key] = v;
@@ -109,14 +117,15 @@ namespace Coco::Rendering
 
 	void RenderContext::SetFloat4(UniformScope scope, ShaderUniformData::UniformKey key, const Vector4& value)
 	{
-		Assert(_renderOperation.has_value())
-
 		ShaderUniformData::float4 v = ShaderUniformData::ToFloat4(value);
 
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Float4s[key] = v;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Float4s[key] = v;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Float4s[key] = v;
@@ -139,14 +148,15 @@ namespace Coco::Rendering
 
 	void RenderContext::SetMatrix4x4(UniformScope scope, ShaderUniformData::UniformKey key, const Matrix4x4& value)
 	{
-		Assert(_renderOperation.has_value())
-
 		ShaderUniformData::Mat4x4 v = ShaderUniformData::ToMat4x4(value);
 
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Mat4x4s[key] = v;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Mat4x4s[key] = v;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Mat4x4s[key] = v;
@@ -163,12 +173,13 @@ namespace Coco::Rendering
 
 	void RenderContext::SetInt(UniformScope scope, ShaderUniformData::UniformKey key, int32 value)
 	{
-		Assert(_renderOperation.has_value())
-
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Ints[key] = value;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Ints[key] = value;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Ints[key] = value;
@@ -185,14 +196,15 @@ namespace Coco::Rendering
 
 	void RenderContext::SetInt2(UniformScope scope, ShaderUniformData::UniformKey key, const Vector2Int& value)
 	{
-		Assert(_renderOperation.has_value())
-
 		ShaderUniformData::int2 v = ShaderUniformData::ToInt2(value);
 
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Int2s[key] = v;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Int2s[key] = v;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Int2s[key] = v;
@@ -209,14 +221,15 @@ namespace Coco::Rendering
 
 	void RenderContext::SetInt3(UniformScope scope, ShaderUniformData::UniformKey key, const Vector3Int& value)
 	{
-		Assert(_renderOperation.has_value())
-
 		ShaderUniformData::int3 v = ShaderUniformData::ToInt3(value);
 
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Int3s[key] = v;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Int3s[key] = v;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Int3s[key] = v;
@@ -233,14 +246,15 @@ namespace Coco::Rendering
 
 	void RenderContext::SetInt4(UniformScope scope, ShaderUniformData::UniformKey key, const Vector4Int& value)
 	{
-		Assert(_renderOperation.has_value())
-
 		ShaderUniformData::int4 v = ShaderUniformData::ToInt4(value);
 
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Int4s[key] = v;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Int4s[key] = v;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Int4s[key] = v;
@@ -257,12 +271,13 @@ namespace Coco::Rendering
 
 	void RenderContext::SetBool(UniformScope scope, ShaderUniformData::UniformKey key, bool value)
 	{
-		Assert(_renderOperation.has_value())
-
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Bools[key] = value;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Bools[key] = value;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Bools[key] = value;
@@ -279,14 +294,15 @@ namespace Coco::Rendering
 
 	void RenderContext::SetTextureSampler(UniformScope scope, ShaderUniformData::UniformKey key, const Ref<Image>& image, const Ref<ImageSampler>& sampler)
 	{
-		Assert(_renderOperation.has_value())
-
 		ShaderUniformData::TextureSampler v = ShaderUniformData::ToTextureSampler(image, sampler);
 
 		switch (scope)
 		{
 		case UniformScope::Global:
 			_globalUniforms.Textures[key] = v;
+			break;
+		case UniformScope::ShaderGlobal:
+			_globalShaderUniforms.Textures[key] = v;
 			break;
 		case UniformScope::Instance:
 			_instanceUniforms.Textures[key] = v;
@@ -301,9 +317,11 @@ namespace Coco::Rendering
 		UniformChanged(scope, key);
 	}
 
-	bool RenderContext::Begin(RenderView& renderView, CompiledRenderPipeline& pipeline)
+	bool RenderContext::Begin(CompiledRenderPipeline& pipeline)
 	{
-		_renderOperation.emplace(ContextRenderOperation(renderView, pipeline));
+		Assert(_renderView != nullptr)
+
+		_renderOperation.emplace(ContextRenderOperation(pipeline));
 
 		bool began = BeginImpl();
 
@@ -314,7 +332,7 @@ namespace Coco::Rendering
 			_executionStopwatch.Start();
 			_currentPassStopwatch.Start();
 			
-			_stats.FramebufferSize = renderView.GetViewportRect().GetSize();
+			_stats.FramebufferSize = _renderView->GetViewportRect().GetSize();
 		}
 		else
 			_renderOperation.reset();
@@ -351,11 +369,13 @@ namespace Coco::Rendering
 	{
 		ResetImpl();
 
+		_renderView = nullptr;
 		_renderOperation.reset();
 		_stats.Reset();
 		_currentState = RenderContextState::ReadyForRender;
 
 		_globalUniforms.Clear();
+		_globalShaderUniforms.Clear();
 		_instanceUniforms.Clear();
 		_drawUniforms.Clear();
 	}

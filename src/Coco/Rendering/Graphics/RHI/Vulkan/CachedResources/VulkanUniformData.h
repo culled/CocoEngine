@@ -23,12 +23,12 @@ namespace Coco::Rendering::Vulkan
 	struct UniformDataBuffer
 	{
 		/// @brief The buffer
-		Ref<VulkanBuffer> Buffer;
+		ManagedRef<VulkanBuffer> Buffer;
 
 		/// @brief The mapped memory of the buffer (if it has been locked)
 		char* MappedMemory;
 
-		UniformDataBuffer(Ref<VulkanBuffer> buffer);
+		UniformDataBuffer(ManagedRef<VulkanBuffer>&& buffer);
 	};
 
 	using UniformDataBufferList = std::list<UniformDataBuffer>;
@@ -98,6 +98,7 @@ namespace Coco::Rendering::Vulkan
 		DescriptorPoolList _pools;
 		std::unordered_map<uint64, AllocatedUniformData> _uniformData;
 		std::unordered_map<uint64, VkDescriptorSet> _allocatedSets;
+		std::unordered_map<uint64, ManagedRef<VulkanBuffer>> _shaderGlobalBuffers;
 
 	public:
 		VulkanUniformData(const VulkanRenderPassShader& passShader);
@@ -111,6 +112,14 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Gets this resource's version
 		/// @return The version
 		uint64 GetVersion() const { return _version; }
+
+		/// @brief Sets data for a buffer uniform
+		/// @param shader The shader
+		/// @param key The uniform key
+		/// @param dataOffset The offset into the buffer to start copying data
+		/// @param data The data
+		/// @param dataSize The size of the data
+		void SetBufferUniformData(const VulkanRenderPassShader& shader, ShaderUniformData::UniformKey key, uint64 dataOffset, const void* data, uint64 dataSize);
 
 		/// @brief Prepares uniform data for a given instance
 		/// @param instanceID The id of the instance
@@ -143,14 +152,7 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Gets the scope of an instance. Will only be global for the global instance ID
 		/// @param instanceID The instance ID
 		/// @return The scope
-		constexpr static UniformScope GetInstanceScope(uint64 instanceID) { return instanceID == sGlobalInstanceID ? UniformScope::Global : UniformScope::Instance; }
-
-		/// @brief Gets buffer-friendly uniform data
-		/// @param scope The scope of the data
-		/// @param data The uniform data
-		/// @param shader The shader
-		/// @return Buffer-friendly uniform data
-		std::vector<uint8> GetBufferData(UniformScope scope, const ShaderUniformData& data, const RenderPassShader& shader) const;
+		constexpr static UniformScope GetInstanceScope(uint64 instanceID) { return instanceID == sGlobalInstanceID ? UniformScope::ShaderGlobal : UniformScope::Instance; }
 
 		/// @brief Allocates a region in the uniform buffers
 		/// @param requiredSize The required size of the region, in bytes
@@ -160,19 +162,46 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Frees the data of a uniform block
 		/// @param data The data to free
 		void FreeBufferRegion(AllocatedUniformData& data);
+
+		/// @brief Frees all uniform buffer regions
 		void FreeAllBufferRegions();
 
+		/// @brief Creates a descriptor pool
+		/// @return The descriptor pool
 		VulkanDescriptorPool& CreateDescriptorPool();
+
+		/// @brief Destroys a descriptor pool
+		/// @param pool The pool to destroy
 		void DestroyDescriptorPool(const VulkanDescriptorPool& pool);
+
+		/// @brief Destroys all descriptor pools
 		void DestroyDescriptorPools();
 
+		/// @brief Allocates a new descriptor set
+		/// @param instanceID The ID of the instance
+		/// @param layout The descriptor set layout
+		/// @return A descriptor set
 		VkDescriptorSet AllocateDescriptorSet(uint64 instanceID, const VulkanDescriptorSetLayout& layout);
 
+		/// @brief Updates a descriptor set
+		/// @param layout The uniform layout
+		/// @param setLayout The descriptor set layout
+		/// @param uniformData The uniform data
+		/// @param data The allocated uniform data
+		/// @param set The set that will be updated
+		/// @return True if the set was successfully updated
 		bool UpdateDescriptorSet(
-			UniformScope scope,
-			const ShaderUniformData& uniformData, 
-			const VulkanRenderPassShader& shader, 
-			const AllocatedUniformData& data, 
+			const ShaderUniformLayout& layout,
+			const VulkanDescriptorSetLayout& setLayout,
+			const ShaderUniformData& uniformData,
+			const AllocatedUniformData& data,
 			VkDescriptorSet& set);
+
+		/// @brief Creates a shader global uniform buffer
+		/// @param uniform The buffer uniform
+		void CreateBufferUniform(const ShaderBufferUniform& uniform);
+
+		/// @brief Destroys all shader global uniform buffers
+		void DestroyBufferUniforms();
 	};
 }

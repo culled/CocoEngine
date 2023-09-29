@@ -24,9 +24,6 @@ namespace Coco::Rendering
 	/// @brief Holds data that a RenderContext uses during actual rendering
 	struct ContextRenderOperation
 	{
-		/// @brief The view being rendered to
-		RenderView& RenderView;
-
 		/// @brief The pipeline being rendered with
 		CompiledRenderPipeline& Pipeline;
 
@@ -36,7 +33,7 @@ namespace Coco::Rendering
 		/// @brief The name of the current RenderPass in the pipeline
 		string CurrentPassName;
 
-		ContextRenderOperation(Rendering::RenderView& renderView, CompiledRenderPipeline& pipeline);
+		ContextRenderOperation(CompiledRenderPipeline& pipeline);
 
 		/// @brief Gets the current pass
 		/// @return The current pass
@@ -53,12 +50,14 @@ namespace Coco::Rendering
 
 	protected:
 		RenderContextState _currentState;
+		RenderView* _renderView;
 		std::optional<ContextRenderOperation> _renderOperation;
 		RenderContextRenderStats _stats;
 		Stopwatch _executionStopwatch;
 		Stopwatch _currentPassStopwatch;
 
 		ShaderUniformData _globalUniforms;
+		ShaderUniformData _globalShaderUniforms;
 		ShaderUniformData _instanceUniforms;
 		ShaderUniformData _drawUniforms;
 
@@ -116,6 +115,10 @@ namespace Coco::Rendering
 		/// @param firstIndexOffset The offset of the first index in the mesh's index buffer
 		/// @param indexCount The number of indices to draw
 		virtual void DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount) = 0;
+
+		/// @brief Sets the current RenderView
+		/// @param renderView The render view
+		void SetCurrentRenderView(RenderView& renderView);
 
 		/// @brief Gets the current render stats. Gets reset via Reset()
 		/// @return The render stats
@@ -215,11 +218,25 @@ namespace Coco::Rendering
 		/// @param sampler The image sampler
 		void SetTextureSampler(UniformScope scope, ShaderUniformData::UniformKey key, const Ref<Image>& image, const Ref<ImageSampler>& sampler);
 
+		/// @brief Sets global buffer data
+		/// @param key The uniform key
+		/// @param offset The offset of the first byte of data in the buffer
+		/// @param data The data
+		/// @param dataSize The size of the data
+		virtual void SetGlobalBufferData(ShaderUniformData::UniformKey key, uint64 offset, const void* data, uint64 dataSize) = 0;
+
+		/// @brief Sets shader global buffer data.
+		/// NOTE: bind a shader before calling this
+		/// @param key The uniform key
+		/// @param offset The offset of the first byte of data in the buffer
+		/// @param data The data
+		/// @param dataSize The size of the data
+		virtual void SetShaderGlobalBufferData(ShaderUniformData::UniformKey key, uint64 offset, const void* data, uint64 dataSize) = 0;
+
 		/// @brief Begins rendering
-		/// @param renderView The view to render with
 		/// @param pipeline The pipeline to render with
 		/// @return True if this context is ready for rendering
-		bool Begin(RenderView& renderView, CompiledRenderPipeline& pipeline);
+		bool Begin(CompiledRenderPipeline& pipeline);
 
 		/// @brief Begins the next render pass
 		/// @return True if this context is ready for rendering

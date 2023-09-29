@@ -114,7 +114,11 @@ namespace Coco::Rendering
 			}
 		}
 
-		ExecuteRender(*context, compiledPipeline, _renderView, waitOn);
+		if (!ExecuteRender(*context, compiledPipeline, _renderView, waitOn))
+		{
+			// The render failed, so don't save it as a task
+			return RenderTask();
+		}
 
 		_stats += context->GetRenderStats();
 		_individualRenderStats.push_back(context->GetRenderStats());
@@ -124,26 +128,43 @@ namespace Coco::Rendering
 		return task;
 	}
 
-	void RenderService::ExecuteRender(
+	bool RenderService::ExecuteRender(
 		RenderContext& context, 
 		CompiledRenderPipeline& compiledPipeline, 
 		RenderView& renderView,
 		Ref<GraphicsSemaphore> waitOn)
 	{
+		context.SetCurrentRenderView(renderView);
+
 		try
 		{
+			// Go through each pass and prepare it
+			for (auto it = compiledPipeline.RenderPasses.begin(); it != compiledPipeline.RenderPasses.end(); it++)
+			{
+				it->Pass->Prepare(context, renderView);
+			}
+		}
+		catch (const std::exception& ex)
+		{
+			CocoError("Error preparing render: {}", ex.what())
+
+			return false;
+		}
+
+		try
+		{
+			if (waitOn.IsValid())
+			{
+				context.AddWaitOnSemaphore(waitOn);
+			}
+
 			// Go through each pass and execute it
 			for (auto it = compiledPipeline.RenderPasses.begin(); it != compiledPipeline.RenderPasses.end(); it++)
 			{
 				if (it == compiledPipeline.RenderPasses.begin())
 				{
-					if (!context.Begin(renderView, compiledPipeline))
-						return;
-
-					if (waitOn.IsValid())
-					{
-						context.AddWaitOnSemaphore(waitOn);
-					}
+					if (!context.Begin(compiledPipeline))
+						return false;
 				}
 				else
 				{
@@ -156,10 +177,12 @@ namespace Coco::Rendering
 		}
 		catch (const std::exception& ex)
 		{
-			CocoError("Error during render: {}", ex.what())
+			CocoError("Error executing render: {}", ex.what())
 		}
 
 		context.End();
+
+		return true;
 	}
 
 	void RenderService::CreateDefaultDiffuseTexture()

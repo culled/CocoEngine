@@ -114,7 +114,8 @@ namespace Coco::Rendering
 		/// @param compiledPipeline The compiled pipeline to render with
 		/// @param renderView The view to render with
 		/// @param waitOn If given, the render will not start until this semaphore is signaled
-		void ExecuteRender(
+		/// @return If true, the render was completed and should be saved as a task
+		bool ExecuteRender(
 			RenderContext& context, 
 			CompiledRenderPipeline& compiledPipeline, 
 			RenderView& renderView, 

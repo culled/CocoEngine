@@ -1,6 +1,7 @@
 #pragma once
 #include "CachedVulkanResource.h"
 #include "../../../RenderPassShaderTypes.h"
+#include "../../../RenderViewTypes.h"
 #include "../VulkanDescriptorSetLayout.h"
 #include "../VulkanIncludes.h"
 
@@ -28,16 +29,16 @@ namespace Coco::Rendering::Vulkan
 		uint64 _version;
 		std::vector<VulkanShaderStage> _stages;
 		RenderPassShader _shaderInfo;
-		std::unordered_map<UniformScope, VulkanDescriptorSetLayout> _layouts;
+		std::map<UniformScope, VulkanDescriptorSetLayout> _layouts;
 
 	public:
-		VulkanRenderPassShader(const RenderPassShader& shaderInfo);
+		VulkanRenderPassShader(const RenderPassShaderData& shader);
 		~VulkanRenderPassShader();
 
 		/// @brief Creates a key from the given shader info
-		/// @param shaderInfo The shader info
+		/// @param shader The shader data
 		/// @return The key
-		static GraphicsDeviceResourceID MakeKey(const RenderPassShader& shaderInfo);
+		static GraphicsDeviceResourceID MakeKey(const RenderPassShaderData& shader);
 
 		/// @brief Gets this shader's version
 		/// @return The version
@@ -56,11 +57,6 @@ namespace Coco::Rendering::Vulkan
 		/// @return The descriptor set layout
 		const VulkanDescriptorSetLayout& GetDescriptorSetLayout(UniformScope scope) const;
 
-		/// @brief Gets the size of the uniform data for a given scope
-		/// @param scope The uniform scope
-		/// @return The size of the uniform data, in bytes
-		uint32 GetUniformDataSize(UniformScope scope) const;
-
 		/// @brief Gets the push constant ranges for the draw uniforms
 		/// @return The push constant ranges
 		std::vector<VkPushConstantRange> GetPushConstantRanges() const;
@@ -72,11 +68,11 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Determines if this shader needs to be updated
 		/// @param shaderInfo The shader info
 		/// @return True if this shader should be updated
-		bool NeedsUpdate(const RenderPassShader& shaderInfo) const;
+		bool NeedsUpdate(const RenderPassShaderData& shaderInfo) const;
 
 		/// @brief Updates this shader from the given shader info
 		/// @param shaderInfo The shader info
-		void Update(const RenderPassShader& shaderInfo);
+		void Update(const RenderPassShaderData& shaderInfo);
 
 	private:
 		/// @brief Creates all shader objects

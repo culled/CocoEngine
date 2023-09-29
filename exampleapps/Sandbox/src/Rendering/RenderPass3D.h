@@ -14,9 +14,10 @@ private:
 public:
 	RenderPass3D();
 
-	std::span<const AttachmentFormat> GetInputAttachments() const { return _attachments; }
-	const char* GetName() const { return "basic"; }
+	const char* GetName() const final { return "basic"; }
+	std::span<const AttachmentFormat> GetInputAttachments() const final{ return _attachments; }
 	bool SupportsMSAA() const final { return true; }
-	void Execute(RenderContext& context, const RenderView& renderView);
+	void Prepare(RenderContext& context, const RenderView& renderView) final;
+	void Execute(RenderContext& context, const RenderView& renderView) final;
 };
 

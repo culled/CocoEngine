@@ -17,6 +17,7 @@ namespace Coco::Rendering::Vulkan
     class VulkanPipeline;
     class VulkanRenderContextCache;
     class VulkanCommandBuffer;
+    struct VulkanDescriptorSetLayout;
 
     /// @brief The bound global state
     struct BoundGlobalState
@@ -27,7 +28,7 @@ namespace Coco::Rendering::Vulkan
         /// @brief The bound pipeline, if any
         VulkanPipeline* Pipeline;
 
-        /// @brief The bound descriptor set, if any
+        /// @brief The bound shader global descriptor set, if any
         VkDescriptorSet DescriptorSet;
 
         BoundGlobalState(uint64 shaderID);
@@ -93,6 +94,9 @@ namespace Coco::Rendering::Vulkan
         UniqueRef<VulkanCommandBuffer> _commandBuffer;
         VulkanGraphicsDeviceCache& _deviceCache;
 
+        const VulkanDescriptorSetLayout* _globalDescriptorSetLayout;
+        VkDescriptorSet _globalDescriptorSet;
+
         std::vector<Ref<VulkanGraphicsSemaphore>> _waitOnSemaphores;
         std::vector<Ref<VulkanGraphicsSemaphore>> _renderCompletedSignalSemaphores;
         std::optional<VulkanContextRenderOperation> _vulkanRenderOperation;
@@ -117,6 +121,9 @@ namespace Coco::Rendering::Vulkan
         void SetShader(const RenderPassShaderData& shader) final;
 
         void DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount) final;
+
+        void SetGlobalBufferData(ShaderUniformData::UniformKey key, uint64 offset, const void* data, uint64 dataSize) final;
+        void SetShaderGlobalBufferData(ShaderUniformData::UniformKey key, uint64 offset, const void* data, uint64 dataSize) final;
 
     protected:
         bool BeginImpl() final;

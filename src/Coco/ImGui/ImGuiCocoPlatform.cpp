@@ -356,6 +356,16 @@ namespace Coco::ImGuiCoco
             -1.0, 1.0);
 
         renderView.Setup(viewport, viewport, Matrix4x4::Identity, projection, ViewFrustum(), MSAASamples::One, rts);
+
+        GlobalShaderUniformLayout globalLayout(
+            {
+                ShaderDataUniform("Projection", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+            },
+            {},
+            {}
+        );
+
+        renderView.SetGlobalUniformLayout(globalLayout);
     }
 
     void ImGuiCocoPlatform::GatherSceneData(RenderView& renderView)
@@ -752,7 +762,7 @@ namespace Coco::ImGuiCoco
         _shader = resources.Create<Shader>("ImGui", ImGuiRenderPass::sPassName);
         _shader->AddRenderPassShader(
             RenderPassShader(
-                0,
+                _shader->GetID(),
                 ImGuiRenderPass::sPassName,
                 {
                     ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/ImGui.vert.spv"),
@@ -767,12 +777,13 @@ namespace Coco::ImGuiCoco
                     ShaderVertexAttribute("Color", BufferDataType::Float4),
                     ShaderVertexAttribute("UV", BufferDataType::Float2)
                 },
-                {
-                    ShaderDataUniform("projection", UniformScope::Global, ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
-                },
-                {
-                    ShaderTextureUniform("sTexture", UniformScope::Instance, ShaderStageFlags::Fragment)
-                }
+                GlobalShaderUniformLayout(),
+                ShaderUniformLayout(
+                    {},
+                    {
+                        ShaderTextureUniform("FontTexture", ShaderStageFlags::Fragment)
+                    }),
+                {}
             )
         );
 
@@ -802,7 +813,7 @@ namespace Coco::ImGuiCoco
 
         // Setup ImGui material
         _material = resources.Create<Material>("ImGui", _shader);
-        _material->SetTexture("sTexture", _texture);
+        _material->SetTexture("FontTexture", _texture);
     }
 
     void ImGuiCocoPlatform::UpdateDisplays()

@@ -8,24 +8,25 @@ namespace Coco::Rendering
 	std::hash<string> _sStringHasher;
 
 	RenderPassShader::RenderPassShader(
-		uint64 id,
+		uint64 baseID,
 		const string& passName,
 		const std::vector<ShaderStage>& stages,
 		const GraphicsPipelineState& pipelineState,
 		const std::vector<BlendState>& attachmentBlendStates,
 		const std::vector<ShaderVertexAttribute>& vertexAttributes,
-		const std::vector<ShaderDataUniform>& dataUniforms,
-		const std::vector<ShaderTextureUniform>& textureUniforms) :
-		ID(id),
+		const GlobalShaderUniformLayout& globalUniforms,
+		const ShaderUniformLayout& instanceUniforms,
+		const ShaderUniformLayout& drawUniforms) :
+		ID(Math::CombineHashes(baseID, _sStringHasher(passName))),
 		Hash(0),
-		Version(0),
 		PassName(passName),
 		Stages(stages),
 		PipelineState(pipelineState),
 		AttachmentBlendStates(attachmentBlendStates),
 		VertexAttributes(vertexAttributes),
-		DataUniforms(dataUniforms),
-		TextureUniforms(textureUniforms)
+		GlobalUniforms(globalUniforms),
+		InstanceUniforms(instanceUniforms),
+		DrawUniforms(drawUniforms)
 	{
 		CalculateAttributeOffsets();
 		CalculateHash();
@@ -33,63 +34,7 @@ namespace Coco::Rendering
 
 	bool RenderPassShader::operator==(const RenderPassShader& other) const
 	{
-		return PassName == other.PassName &&
-			PipelineState == other.PipelineState &&
-			std::equal(Stages.cbegin(), Stages.cend(), other.Stages.cbegin()) &&
-			std::equal(VertexAttributes.cbegin(), VertexAttributes.cend(), other.VertexAttributes.cbegin()) &&
-			std::equal(AttachmentBlendStates.cbegin(), AttachmentBlendStates.cend(), other.AttachmentBlendStates.cbegin()) &&
-			std::equal(DataUniforms.cbegin(), DataUniforms.cend(), other.DataUniforms.cbegin()) &&
-			std::equal(TextureUniforms.cbegin(), TextureUniforms.cend(), other.TextureUniforms.cbegin());
-	}
-
-	std::vector<ShaderDataUniform> RenderPassShader::GetScopedDataUniforms(UniformScope scope) const
-	{
-		std::vector<ShaderDataUniform> scopedUniforms;
-
-		for (const ShaderDataUniform& u : DataUniforms)
-			if (u.Scope == scope)
-				scopedUniforms.emplace_back(u);
-
-		return scopedUniforms;
-	}
-
-	std::vector<ShaderTextureUniform> RenderPassShader::GetScopedTextureUniforms(UniformScope scope) const
-	{
-		std::vector<ShaderTextureUniform> scopedUniforms;
-
-		for (const ShaderTextureUniform& u : TextureUniforms)
-			if (u.Scope == scope)
-				scopedUniforms.emplace_back(u);
-
-		return scopedUniforms;
-	}
-
-	ShaderStageFlags RenderPassShader::GetUniformScopeBindStages(UniformScope scope) const
-	{
-		ShaderStageFlags flags = ShaderStageFlags::None;
-
-		for (const ShaderDataUniform& u : DataUniforms)
-			if (u.Scope == scope)
-				flags |= u.BindingPoints;
-
-		for (const ShaderTextureUniform& u : TextureUniforms)
-			if (u.Scope == scope)
-				flags |= u.BindingPoints;
-
-		return flags;
-	}
-
-	bool RenderPassShader::HasScope(UniformScope scope) const
-	{
-		for (const auto& uniform : DataUniforms)
-			if (uniform.Scope == scope)
-				return true;
-
-		for (const auto& uniform : TextureUniforms)
-			if (uniform.Scope == scope)
-				return true;
-
-		return false;
+		return Hash == other.Hash;
 	}
 
 	void RenderPassShader::CalculateAttributeOffsets()
@@ -134,30 +79,14 @@ namespace Coco::Rendering
 			blendHash = Math::CombineHashes(blendHash, state.GetHash());
 		}
 
-		uint64 dataUniformHash = 0;
-		for (const ShaderDataUniform& u : DataUniforms)
-		{
-			dataUniformHash = Math::CombineHashes(
-				dataUniformHash,
-				u.Key,
-				static_cast<uint64>(u.Scope),
-				static_cast<uint64>(u.BindingPoints),
-				static_cast<uint64>(u.Type)
-			);
-		}
-
-		uint64 textureUniformHash = 0;
-		for (const ShaderTextureUniform& u : TextureUniforms)
-		{
-			textureUniformHash = Math::CombineHashes(
-				textureUniformHash,
-				u.Key,
-				static_cast<uint64>(u.Scope),
-				static_cast<uint64>(u.BindingPoints),
-				static_cast<uint64>(u.DefaultTexture)
-			);
-		}
-
-		Hash = Math::CombineHashes(Version, _sStringHasher(PassName), stageHash, PipelineState.GetHash(), blendHash, attrHash, dataUniformHash, textureUniformHash);
+		Hash = Math::CombineHashes(
+			_sStringHasher(PassName), 
+			stageHash, 
+			PipelineState.GetHash(), 
+			blendHash, 
+			attrHash, 
+			GlobalUniforms.Hash, 
+			InstanceUniforms.Hash,
+			DrawUniforms.Hash);
 	}
 }

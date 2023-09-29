@@ -14,6 +14,9 @@ namespace Coco::Rendering::Vulkan
 		/// @brief The bindings for the Vulkan descriptor set
 		std::vector<VkDescriptorSetLayoutBinding> LayoutBindings;
 
+		/// @brief Templates for writing descriptor sets with this layout
+		std::vector<VkWriteDescriptorSet> WriteTemplates;
+
 		VulkanDescriptorSetLayout();
 
 		/// @brief Gets the count for a descriptor type in this layout
