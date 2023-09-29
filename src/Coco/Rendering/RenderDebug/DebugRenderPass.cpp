@@ -13,13 +13,12 @@ namespace Coco::Rendering
 
     void DebugRenderPass::Prepare(RenderContext& context, const RenderView& renderView)
     {
+        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("Projection"), renderView.GetProjectionMatrix());
+        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("View"), renderView.GetViewMatrix());
     }
 
     void DebugRenderPass::Execute(RenderContext& context, const RenderView& renderView)
     {
-        context.SetMatrix4x4(UniformScope::ShaderGlobal, ShaderUniformData::MakeKey("Projection"), renderView.GetProjectionMatrix());
-        context.SetMatrix4x4(UniformScope::ShaderGlobal, ShaderUniformData::MakeKey("View"), renderView.GetViewMatrix());
-
         for (const ObjectData& obj : renderView.GetRenderObjects())
         {
             const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);

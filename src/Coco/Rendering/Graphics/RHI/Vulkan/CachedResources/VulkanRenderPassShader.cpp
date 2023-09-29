@@ -67,10 +67,11 @@ namespace Coco::Rendering::Vulkan
 
 		VkPushConstantRange range{};
 		range.offset = 0;
+		range.size = static_cast<uint32_t>(dataSize);
 		range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // TODO: configurable push constant stages
 
-		uint64 offset = 0;
-
+		/*uint64 offset = 0;
+		
 		for (int i = 0; i < drawUniforms.size(); i++)
 		{
 			const ShaderDataUniform& uniform = drawUniforms.at(i);
@@ -81,7 +82,7 @@ namespace Coco::Rendering::Vulkan
 			range.size += size;
 
 			offset += size;
-		}
+		}*/
 
 		return std::vector<VkPushConstantRange>({ range });
 	}
