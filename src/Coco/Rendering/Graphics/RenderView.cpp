@@ -14,6 +14,7 @@ namespace Coco::Rendering
 		_scissorRect(),
 		_viewMat(),
 		_projectionMat(),
+		_viewPosition(),
 		_frustum(),
 		_samples(),
 		_renderTargets(),
@@ -21,7 +22,8 @@ namespace Coco::Rendering
 		_renderPassShaderDatas(),
 		_shaderDatas(),
 		_materialDatas(),
-		_objectDatas()
+		_objectDatas(),
+		_directionalLightDatas()
 	{}
 
 	void RenderView::Setup(
@@ -29,6 +31,7 @@ namespace Coco::Rendering
 		const RectInt& scissorRect, 
 		const Matrix4x4& viewMatrix, 
 		const Matrix4x4& projectionMatrix,
+		const Vector3& viewPosition,
 		const ViewFrustum& frustum,
 		MSAASamples samples, 
 		const std::vector<RenderTarget>&renderTargets)
@@ -37,6 +40,7 @@ namespace Coco::Rendering
 		_scissorRect = scissorRect;
 		_viewMat = viewMatrix;
 		_projectionMat = projectionMatrix;
+		_viewPosition = viewPosition;
 		_frustum = frustum;
 		_samples = samples;
 		_renderTargets = renderTargets;
@@ -51,6 +55,7 @@ namespace Coco::Rendering
 		_shaderDatas.clear();
 		_materialDatas.clear();
 		_objectDatas.clear();
+		_directionalLightDatas.clear();
 	}
 
 	RenderTarget& RenderView::GetRenderTarget(size_t index)
@@ -199,5 +204,12 @@ namespace Coco::Rendering
 			extraData);
 
 		return objectID;
+	}
+
+	void RenderView::AddDirectionalLight(const Vector3& direction, const Color& color, double intensity)
+	{
+		Color c = color.AsLinear();
+		c.A = intensity;
+		_directionalLightDatas.emplace_back(direction, c);
 	}
 }

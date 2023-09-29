@@ -168,4 +168,15 @@ namespace Coco::Rendering
 			SharedRef<ExtraObjectData> extraData);
 	};
 
+	/// @brief Data for a directional light
+	struct DirectionalLightData
+	{
+		/// @brief The direction that the light is facing
+		Vector3 Direction;
+
+		/// @brief The color of the light, with the alpha value used for intensity
+		Color Color;
+
+		DirectionalLightData(const Vector3& direction, const Coco::Color& color);
+	};
 }

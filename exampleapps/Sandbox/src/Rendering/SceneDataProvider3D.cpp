@@ -8,6 +8,7 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	_drawBounds(false)
 {
 	VertexDataFormat format{};
+	format.HasNormals = true;
 	format.HasUV0 = true;
 
 	std::vector<VertexData> vertices;
@@ -52,8 +53,8 @@ SceneDataProvider3D::SceneDataProvider3D() :
 			_shader->GetID(),
 			"basic",
 			{
-				ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Unlit.vert.spv"),
-				ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Unlit.frag.spv")
+				ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Lit.vert.spv"),
+				ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Lit.frag.spv")
 			},
 			pipelineState,
 			{
@@ -61,6 +62,7 @@ SceneDataProvider3D::SceneDataProvider3D() :
 			},
 			{
 				ShaderVertexAttribute("Position", BufferDataType::Float3),
+				ShaderVertexAttribute("Normal", BufferDataType::Float3),
 				ShaderVertexAttribute("UV", BufferDataType::Float2)
 			},
 			GlobalShaderUniformLayout(),
@@ -117,4 +119,6 @@ void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
 		debug->DrawRay3D(Vector3::Zero, Vector3::Up, Color::Green);
 		debug->DrawRay3D(Vector3::Zero, Vector3::Right, Color::Red);
 	}
+
+	renderView.AddDirectionalLight(Vector3(-0.2, -0.5, -0.3).Normalized(), Color::White, 1.0);
 }

@@ -22,6 +22,7 @@ namespace Coco::Rendering
 		RectInt _scissorRect;
 		Matrix4x4 _viewMat;
 		Matrix4x4 _projectionMat;
+		Vector3 _viewPosition;
 		ViewFrustum _frustum;
 		MSAASamples _samples;
 		std::vector<RenderTarget> _renderTargets;
@@ -31,6 +32,7 @@ namespace Coco::Rendering
 		std::unordered_map<uint64, ShaderData> _shaderDatas;
 		std::unordered_map<uint64, MaterialData> _materialDatas;
 		std::vector<ObjectData> _objectDatas;
+		std::vector<DirectionalLightData> _directionalLightDatas;
 
 	public:
 		RenderView();
@@ -40,6 +42,7 @@ namespace Coco::Rendering
 		/// @param scissorRect The scissor rectangle
 		/// @param viewMatrix The view matrix
 		/// @param projectionMatrix The projection matrix
+		/// @param viewPosition The view position
 		/// @param frustum The view frustum
 		/// @param samples The number of MSAA samples
 		/// @param renderTargets The render targets
@@ -47,6 +50,7 @@ namespace Coco::Rendering
 			const RectInt& scissorRect,
 			const Matrix4x4& viewMatrix,
 			const Matrix4x4& projectionMatrix,
+			const Vector3& viewPosition,
 			const ViewFrustum& frustum,
 			MSAASamples samples,
 			const std::vector<RenderTarget>& renderTargets);
@@ -69,6 +73,10 @@ namespace Coco::Rendering
 		/// @brief Gets the projection matrix
 		/// @return The projection matrix
 		const Matrix4x4& GetProjectionMatrix() const { return _projectionMat; }
+
+		/// @brief Gets the view position
+		/// @return The view position
+		const Vector3& GetViewPosition() const { return _viewPosition; }
 
 		/// @brief Gets the view frustum
 		/// @return The view frustum
@@ -180,5 +188,15 @@ namespace Coco::Rendering
 		/// @brief Gets all objects to be rendered
 		/// @return The renderable objects
 		std::span<const ObjectData> GetRenderObjects() const { return _objectDatas; }
+
+		/// @brief Adds a directional light
+		/// @param direction The direction that the light is facing
+		/// @param color The color of the light
+		/// @param intensity The intensity of the light
+		void AddDirectionalLight(const Vector3& direction, const Color& color, double intensity);
+
+		/// @brief Gets all the directional lights
+		/// @return The directional lights
+		std::span<const DirectionalLightData> GetDirectionalLights() const { return _directionalLightDatas; }
 	};
 }

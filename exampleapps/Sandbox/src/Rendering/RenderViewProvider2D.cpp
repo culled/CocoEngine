@@ -20,7 +20,7 @@ void RenderViewProvider2D::SetupRenderView(
     Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(0, backbufferSize.Width, 0, backbufferSize.Height, -100, 100);
     Matrix4x4 view = Matrix4x4::Identity;
 
-    renderView.Setup(viewport, viewport, view, projection, ViewFrustum(), MSAASamples::One, rts);
+    renderView.Setup(viewport, viewport, view, projection, Vector3::Zero, ViewFrustum(), MSAASamples::One, rts);
 
     GlobalShaderUniformLayout globalLayout(
         {

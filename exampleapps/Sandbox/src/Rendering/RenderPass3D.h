@@ -5,6 +5,12 @@
 using namespace Coco;
 using namespace Coco::Rendering;
 
+struct DirectionalLight
+{
+	alignas(16) ShaderUniformData::float3 Direction;
+	alignas(16) ShaderUniformData::float4 Color;
+};
+
 class RenderPass3D : 
 	public RenderPass
 {

@@ -86,4 +86,9 @@ namespace Coco::Rendering
 		Bounds(bounds),
 		ExtraData(extraData)
 	{}
+
+	DirectionalLightData::DirectionalLightData(const Vector3& direction, const Coco::Color& color) :
+		Direction(direction),
+		Color(color)
+	{}
 }

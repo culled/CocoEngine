@@ -5,6 +5,8 @@
 #include <Coco/Core/MainLoop/MainLoop.h>
 #include <Coco/Core/Engine.h>
 
+#include "RenderPass3D.h"
+
 RenderViewProvider3D::RenderViewProvider3D(AttachmentCache& attachmentCache) :
     _clearColor(Color(0.1, 0.2, 0.3, 1.0)),
     _msaaSamples(MSAASamples::Four),
@@ -63,6 +65,7 @@ void RenderViewProvider3D::SetupRenderView(
         viewport, 
         view, 
         projection, 
+        _cameraTransform.GetGlobalPosition(),
         frustum,
         pipeline.SupportsMSAA ? _msaaSamples : MSAASamples::One, 
         rts);
@@ -70,10 +73,14 @@ void RenderViewProvider3D::SetupRenderView(
     GlobalShaderUniformLayout globalLayout(
         {
             ShaderDataUniform("ProjectionMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
-            ShaderDataUniform("ViewMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+            ShaderDataUniform("ViewMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
+            ShaderDataUniform("ViewPosition", ShaderStageFlags::Vertex | ShaderStageFlags::Fragment, BufferDataType::Float3),
+            ShaderDataUniform("AmbientColor", ShaderStageFlags::Vertex | ShaderStageFlags::Fragment, BufferDataType::Float4)
         },
         {},
-        {}
+        {
+            ShaderBufferUniform("DirectionalLights", ShaderStageFlags::Fragment, GetDataTypeSize(BufferDataType::Float4) + (sizeof(DirectionalLight) * 2))
+        }
     );
 
     renderView.SetGlobalUniformLayout(globalLayout);

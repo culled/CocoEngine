@@ -6,10 +6,6 @@ layout(location = 0) in struct varyings
     vec2 uv;
 } inVaryings;
 
-layout(set = 0, binding = 1) uniform test1 {
-    vec4 color;
-} test;
-
 layout(set = 1, binding = 0) uniform shaderUniformObject {
     vec4 baseColor;
 } shaderUBO;

@@ -355,7 +355,7 @@ namespace Coco::ImGuiCoco
             viewport.GetBottom(),
             -1.0, 1.0);
 
-        renderView.Setup(viewport, viewport, Matrix4x4::Identity, projection, ViewFrustum(), MSAASamples::One, rts);
+        renderView.Setup(viewport, viewport, Matrix4x4::Identity, projection, Vector3::Zero, ViewFrustum(), MSAASamples::One, rts);
 
         GlobalShaderUniformLayout globalLayout(
             {
