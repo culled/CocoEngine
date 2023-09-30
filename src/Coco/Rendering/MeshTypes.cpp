@@ -7,6 +7,7 @@ namespace Coco::Rendering
 	VertexDataFormat::VertexDataFormat() :
 		HasNormals(false),
 		HasColor(false),
+		HasTangents(false),
 		HasUV0(false)
 	{}
 
@@ -20,6 +21,9 @@ namespace Coco::Rendering
 		if (HasColor)
 			size += GetDataTypeSize(BufferDataType::Float4);
 
+		if (HasTangents)
+			size += GetDataTypeSize(BufferDataType::Float4);
+
 		if (HasUV0)
 			size += GetDataTypeSize(BufferDataType::Float2);
 
@@ -30,6 +34,7 @@ namespace Coco::Rendering
 		GetDataTypeSize(BufferDataType::Float3) + // Position
 		GetDataTypeSize(BufferDataType::Float3) + // Normal
 		GetDataTypeSize(BufferDataType::Float4) + // Color
+		GetDataTypeSize(BufferDataType::Float4) + // Tangent
 		GetDataTypeSize(BufferDataType::Float2); // UV0
 
 	VertexData::VertexData() :
@@ -39,7 +44,8 @@ namespace Coco::Rendering
 	VertexData::VertexData(const Vector3& position) :
 		Position(position),
 		Normal(Vector3::Zero),
-		Color(Vector3::Zero),
+		Color(Vector4::Zero),
+		Tangent(Vector4::Zero),
 		UV0(Vector2::Zero)
 	{}
 
@@ -72,6 +78,14 @@ namespace Coco::Rendering
 				temp[p++] = static_cast<float>(vertex.Color.Y);
 				temp[p++] = static_cast<float>(vertex.Color.Z);
 				temp[p++] = static_cast<float>(vertex.Color.W);
+			}
+
+			if (format.HasTangents)
+			{
+				temp[p++] = static_cast<float>(vertex.Tangent.X);
+				temp[p++] = static_cast<float>(vertex.Tangent.Y);
+				temp[p++] = static_cast<float>(vertex.Tangent.Z);
+				temp[p++] = static_cast<float>(vertex.Tangent.W);
 			}
 
 			if (format.HasUV0)

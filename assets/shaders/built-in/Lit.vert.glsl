@@ -3,7 +3,8 @@
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
-layout(location = 2) in vec2 inUV;
+layout(location = 2) in vec4 inTangent;
+layout(location = 3) in vec2 inUV;
 
 layout(set = 0, binding = 0) uniform globalUniformObject {
     mat4 projection;
@@ -20,12 +21,14 @@ layout(push_constant) uniform pushConstants {
 layout(location = 0) out struct varyings
 {
     vec3 normal;
+    vec4 tangent;
     vec2 uv;
     vec3 worldPosition;
 } outVaryings;
 
 void main() {
     outVaryings.normal = mat3(constants.model) * inNormal;
+    outVaryings.tangent = vec4(mat3(constants.model) * inTangent.xyz, inTangent.w); 
     outVaryings.uv = inUV;
     outVaryings.worldPosition = (constants.model * vec4(inPosition, 1.0)).xyz;
     

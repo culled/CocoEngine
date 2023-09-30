@@ -15,6 +15,9 @@ namespace Coco::Rendering
 		/// @brief If true, the vertex data includes color data
 		bool HasColor;
 
+		/// @brief If true, the vertex data includes tangent data
+		bool HasTangents;
+
 		/// @brief If true, the vertex data includes uv0 data
 		bool HasUV0;
 
@@ -39,6 +42,9 @@ namespace Coco::Rendering
 
 		/// @brief The vertex color
 		Vector4 Color;
+
+		/// @brief The vertex tangent
+		Vector4 Tangent;
 
 		/// @brief The first texture coordinate
 		Vector2 UV0;

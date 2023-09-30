@@ -435,7 +435,7 @@ namespace Coco::Rendering
 
 		// Based on https://danielsieger.com/blog/2021/03/27/generating-spheres.html
 
-		const double uOffset = 1.0 / (slices * 2);
+		const double uOffset = 1.0 / (slices * 2.0);
 
 		// Add the top vertices
 		for (uint32 j = 0; j < slices; j++)
@@ -456,7 +456,7 @@ namespace Coco::Rendering
 		for (uint32 i = 0; i < stacks - 1; i++)
 		{
 			double v = 1.0 - ((static_cast<double>(i) + 1.0) / stacks);
-			double phi = Math::PI * static_cast<double>(i + 1) / stacks;
+			double phi = Math::PI * (static_cast<double>(i) + 1.0) / stacks;
 
 			for (uint32 j = 0; j <= slices; j++)
 			{
@@ -530,6 +530,77 @@ namespace Coco::Rendering
 				indices.push_back(vertexOffset + (flipDirection ? i1 : i3));
 				indices.push_back(vertexOffset + (flipDirection ? i3 : i1));
 			}
+		}
+	}
+
+	void MeshUtilities::CalculateNormals(std::vector<VertexData>& vertices, std::span<const uint32> indices)
+	{
+		std::unordered_map<uint64, Vector3> normals;
+
+		for (uint64 i = 0; i < indices.size(); i += 3)
+		{
+			const uint32_t i0 = indices[i];
+			const uint32_t i1 = indices[i + 1];
+			const uint32_t i2 = indices[i + 2];
+
+			Vector3 edge1 = vertices[i1].Position - vertices[i0].Position;
+			Vector3 edge2 = vertices[i2].Position - vertices[i0].Position;
+
+			Vector3 normal = edge1.Cross(edge2).Normalized();
+
+			normals[i0] += normal;
+			normals[i1] += normal;
+			normals[i2] += normal;
+		}
+
+		for (uint64 i = 0; i < vertices.size(); i++)
+		{
+			vertices.at(i).Normal = normals[i].Normalized();
+		}
+	}
+
+	void MeshUtilities::CalculateTangents(std::vector<VertexData>& vertices, std::span<const uint32> indices)
+	{
+		std::unordered_map<uint64, Vector4> tangents;
+
+		// https://stackoverflow.com/questions/5255806/how-to-calculate-tangent-and-binormal
+		for (uint64 i = 0; i < indices.size(); i += 3)
+		{
+			const uint32 i0 = indices[i];
+			const uint32 i1 = indices[i + 1];
+			const uint32 i2 = indices[i + 2];
+
+			Vector3 v1 = vertices[i1].Position - vertices[i0].Position;
+			Vector3 v2 = vertices[i2].Position - vertices[i0].Position;
+
+			Vector2 t1 = vertices[i1].UV0 - vertices[i0].UV0;
+			Vector2 t2 = vertices[i2].UV0 - vertices[i0].UV0;
+
+			Vector3 normal = (vertices[i0].Normal + vertices[i1].Normal + vertices[i2].Normal).Normalized();
+
+			v1 -= normal * v1.Dot(normal);
+			v2 -= normal * v2.Dot(normal);
+
+			double handedness = ((t1.X * t2.Y - t1.Y * t2.X) < 0.0) ? -1.0 : 1.0;
+
+			Vector3 s = ((v1 * t2.Y - v2 * t1.Y) * handedness).Normalized();
+
+			double angle = Math::Acos(v1.Dot(v2) / (v1.GetLength() * v2.GetLength()));
+
+			Vector4 tangent4(s, handedness);
+
+			tangents[i0] += tangent4;
+			tangents[i1] += tangent4;
+			tangents[i2] += tangent4;
+		}
+
+		for (uint64 i = 0; i < vertices.size(); i++)
+		{
+			const Vector4& t = tangents.at(i);
+			Vector3 xyz(t.X, t.Y, t.Z);
+			xyz.Normalize();
+
+			vertices.at(i).Tangent = Vector4(xyz, t.W > 0.0 ? 1.0 : -1.0);
 		}
 	}
 }

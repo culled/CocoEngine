@@ -4,6 +4,7 @@
 layout(location = 0) in struct varyings
 {
     vec3 normal;
+    vec4 tangent;
     vec2 uv;
     vec3 worldPosition;
 } inVaryings;
@@ -37,6 +38,7 @@ layout(set = 1, binding = 0) uniform shaderUniformObject {
 } shaderUBO;
 
 layout(set = 1, binding = 1) uniform sampler2D baseTexSampler;
+layout(set = 1, binding = 2) uniform sampler2D normalTexSampler;
 
 layout(location = 0) out vec4 outColor;
 
@@ -45,20 +47,30 @@ vec4 calculatePointLight(PointLight light, float shininess, vec3 worldNormal, ve
 
 void main() {
     vec3 worldNormal = normalize(inVaryings.normal);
+    vec3 worldTangent = normalize(inVaryings.tangent.xyz);
+    worldTangent = (worldTangent - dot(worldTangent, worldNormal) * worldNormal);
+    vec3 worldBitangent = cross(worldNormal, worldTangent) * inVaryings.tangent.w;
+    mat3 TBN = mat3(worldTangent, worldBitangent, worldNormal);
+
     vec3 viewDirection = normalize(globalUBO.viewPosition - inVaryings.worldPosition);
 
     vec4 albedo = shaderUBO.baseColor * texture(baseTexSampler, inVaryings.uv);
     vec4 light = globalUBO.ambientColor;
 
+    vec3 tangentSpaceNormal = 2.0 * texture(normalTexSampler, inVaryings.uv).rgb - 1.0;
+    tangentSpaceNormal.g *= -1.0;
+
+    vec3 bentWorldNormal = normalize(mix(worldNormal, TBN * tangentSpaceNormal, 1.0));
+
     for(int i = 0; i < lightBO.directionalLightCount; i++)
     {
-        vec4 dirLight = calculateDirectionalLight(lightBO.directionalLights[i], 32.0, worldNormal, viewDirection);
+        vec4 dirLight = calculateDirectionalLight(lightBO.directionalLights[i], 32.0, bentWorldNormal, viewDirection);
         light += vec4(dirLight.rgb, 1.0) * dirLight.a;
     }
 
     for(int i = 0; i < lightBO.pointLightCount; i++)
     {
-        vec4 pointLight = calculatePointLight(lightBO.pointLights[i], 32.0, worldNormal, inVaryings.worldPosition, viewDirection);
+        vec4 pointLight = calculatePointLight(lightBO.pointLights[i], 32.0, bentWorldNormal, inVaryings.worldPosition, viewDirection);
         light += vec4(pointLight.rgb, 1.0) * pointLight.a;
     }
 

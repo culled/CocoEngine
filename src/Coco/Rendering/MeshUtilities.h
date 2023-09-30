@@ -165,5 +165,15 @@ namespace Coco::Rendering
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			bool flipDirection = false);
+
+		/// @brief Calculates normals for vertices
+		/// @param vertices The vertices 
+		/// @param indices The vertex indices
+		static void CalculateNormals(std::vector<VertexData>& vertices, std::span<const uint32> indices);
+
+		/// @brief Calculates tangents for vertices
+		/// @param vertices The vertices
+		/// @param indices The vertex indices
+		static void CalculateTangents(std::vector<VertexData>& vertices, std::span<const uint32> indices);
 	};
 }

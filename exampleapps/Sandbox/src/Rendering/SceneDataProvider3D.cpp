@@ -9,6 +9,7 @@ SceneDataProvider3D::SceneDataProvider3D() :
 {
 	VertexDataFormat format{};
 	format.HasNormals = true;
+	format.HasTangents = true;
 	format.HasUV0 = true;
 
 	std::vector<VertexData> vertices;
@@ -27,6 +28,8 @@ SceneDataProvider3D::SceneDataProvider3D() :
 
 	MeshUtilities::CreateUVSphere(16, 8, 1.0, Vector3(5.0, 0.0, 3.0), format, vertices, indices);
 
+	MeshUtilities::CalculateTangents(vertices, indices);
+
 	ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
 	_mesh = resourceLibrary.Create<Mesh>("Mesh");
@@ -40,6 +43,8 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	_boxMesh = resourceLibrary.Create<Mesh>("BoxMesh");
 
 	MeshUtilities::CreateBox(Vector3::One, Vector3::Zero, format, vertices, indices);
+
+	MeshUtilities::CalculateTangents(vertices, indices);
 
 	_boxMesh->SetVertices(format, vertices);
 	_boxMesh->SetIndices(indices, 0);
@@ -63,6 +68,7 @@ SceneDataProvider3D::SceneDataProvider3D() :
 			{
 				ShaderVertexAttribute("Position", BufferDataType::Float3),
 				ShaderVertexAttribute("Normal", BufferDataType::Float3),
+				ShaderVertexAttribute("Tangent", BufferDataType::Float4),
 				ShaderVertexAttribute("UV", BufferDataType::Float2)
 			},
 			GlobalShaderUniformLayout(),
@@ -71,7 +77,8 @@ SceneDataProvider3D::SceneDataProvider3D() :
 					ShaderDataUniform("BaseColor", ShaderStageFlags::Fragment, BufferDataType::Float4)
 				},
 				{
-					ShaderTextureUniform("BaseTexSampler", ShaderStageFlags::Fragment)
+					ShaderTextureUniform("BaseTexSampler", ShaderStageFlags::Fragment),
+					ShaderTextureUniform("NormalTexSampler", ShaderStageFlags::Fragment)
 				}
 			),
 			ShaderUniformLayout(
@@ -87,11 +94,13 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	sampler.LODBias = -1.0;
 	sampler.MaxAnisotropy = 16;
 	_texture = resourceLibrary.Create<Texture>("Texture", "assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
+	_normalTexture = resourceLibrary.Create<Texture>("Normal Texture", "assets/textures/LargeBlocks_N.png", ImageColorSpace::Linear, ImageUsageFlags::Sampled, sampler);
 
 	_material = resourceLibrary.Create<Material>("Material", _shader);
 	_material->SetShader(_shader);
 	_material->SetFloat4("BaseColor", Color::White);
 	_material->SetTexture("BaseTexSampler", _texture);
+	_material->SetTexture("NormalTexSampler", _normalTexture);
 }
 
 void SceneDataProvider3D::SetDrawBounds(bool drawBounds)

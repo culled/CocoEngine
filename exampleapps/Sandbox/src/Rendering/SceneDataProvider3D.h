@@ -20,6 +20,7 @@ private:
     Ref<Mesh> _mesh;
     Ref<Shader> _shader;
     Ref<Texture> _texture;
+    Ref<Texture> _normalTexture;
     Ref<Material> _material;
 
     bool _drawBounds;
