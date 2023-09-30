@@ -21,6 +21,9 @@ namespace Coco::Rendering
 		/// @brief The amount of time executing render pipelines
 		TimeSpan TotalExecutionTime;
 
+		/// @brief The amount of time spent waiting for the previous frame's rendering to complete 
+		TimeSpan RenderSyncWait;
+
 		RenderStats();
 
 		void operator+=(const RenderContextRenderStats& other);

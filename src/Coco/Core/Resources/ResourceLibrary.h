@@ -100,7 +100,9 @@ namespace Coco
 		/// @brief Clears all resources from this library
 		virtual void Clear()
 		{
+			_isPurgingResources = true;
 			_resources.clear();
+			_isPurgingResources = false;
 		}
 
 		/// @brief Gets the number of resources in this library

@@ -36,6 +36,9 @@ namespace Coco::Rendering
 	class RenderService : public EngineService, public Singleton<RenderService>
 	{
 	public:
+		/// @brief The tick priority for the RenderService's early tick
+		static constexpr int sEarlyTickPriority = -10000;
+
 		/// @brief The tick priority for the RenderService's late tick
 		static constexpr int sLateTickPriority = 10000;
 
@@ -47,6 +50,7 @@ namespace Coco::Rendering
 		Ref<Texture> _defaultNormalTexture;
 		Ref<Texture> _defaultCheckerTexture;
 		RenderStats _stats;
+		UniqueRef<TickListener> _earlyTickListener;
 		UniqueRef<TickListener> _lateTickListener;
 		std::unordered_map<uint64, std::vector<RenderServiceRenderTask>> _renderTasks;
 		std::vector<RenderContextRenderStats> _individualRenderStats;
@@ -129,6 +133,10 @@ namespace Coco::Rendering
 
 		/// @brief Creates the default checker texture
 		void CreateDefaultCheckerTexture();
+
+		/// @brief Handles the early tick
+		/// @param tickInfo The current tick info
+		void HandleEarlyTick(const TickInfo& tickInfo);
 
 		/// @brief Handles the late tick
 		/// @param tickInfo The current tick info

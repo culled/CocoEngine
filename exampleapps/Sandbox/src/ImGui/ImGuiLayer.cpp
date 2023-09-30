@@ -78,6 +78,7 @@ void ImGuiLayer::DrawPostRender()
 		ImGui::Text("%i triangles", renderStats.TrianglesDrawn);
 		ImGui::Text("%i draw call(s)", renderStats.DrawCalls);
 		ImGui::Text("Total render time: %.3fms", renderStats.TotalExecutionTime.GetMilliseconds());
+		ImGui::Text("Render wait time: %.3fms", renderStats.RenderSyncWait.GetMilliseconds());
 
 		size_t renderIndex = 0;
 

@@ -14,6 +14,7 @@ namespace Coco::Rendering
 	{}
 
 	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory, bool includeDebugRendering) :
+		_earlyTickListener(CreateUniqueRef<TickListener>(this, &RenderService::HandleEarlyTick, sEarlyTickPriority)),
 		_lateTickListener(CreateUniqueRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
 		_renderTasks{},
 		_debugRender(nullptr),
@@ -29,6 +30,7 @@ namespace Coco::Rendering
 		CreateDefaultNormalTexture();
 		CreateDefaultCheckerTexture();
 
+		//MainLoop::Get()->AddListener(*_earlyTickListener);
 		MainLoop::Get()->AddListener(*_lateTickListener);
 
 		CocoTrace("RenderService initialized")
@@ -36,6 +38,7 @@ namespace Coco::Rendering
 
 	RenderService::~RenderService()
 	{
+		//MainLoop::Get()->RemoveListener(*_earlyTickListener);
 		MainLoop::Get()->RemoveListener(*_lateTickListener);
 		_renderTasks.clear();
 
@@ -71,11 +74,14 @@ namespace Coco::Rendering
 		// Get the context used for rendering from the presenter
 		Ref<RenderContext> context;
 		Ref<Image> backbuffer;
+		Stopwatch presenterPrepareTime(true);
 		if (!presenter->PrepareForRender(context, backbuffer))
 		{
 			CocoError("Failed to prepare presenter for rendering")
 			return RenderTask();
 		}
+
+		_stats.RenderSyncWait += presenterPrepareTime.Stop();
 
 		// Create the RenderView using the acquired backbuffers
 		std::array<Ref<Image>, 1> backbuffers{ backbuffer };
@@ -270,6 +276,25 @@ namespace Coco::Rendering
 		CocoTrace("Created default checker texture");
 	}
 
+	void RenderService::HandleEarlyTick(const TickInfo& tickInfo)
+	{
+		Stopwatch waitForRenderSyncStopwatch(true);
+
+		for (auto it = _renderTasks.begin(); it != _renderTasks.end(); it++)
+		{
+			std::vector<RenderServiceRenderTask>& tasks = it->second;
+
+			if (tasks.size() == 0)
+				continue;
+
+			RenderServiceRenderTask& lastTask = tasks.back();
+			if (lastTask.Context.IsValid())
+				lastTask.Context->WaitForRenderingToComplete();
+		}
+
+		_stats.RenderSyncWait = waitForRenderSyncStopwatch.Stop();
+	}
+
 	void RenderService::HandleLateTick(const TickInfo& tickInfo)
 	{
 		// Queue presentation for each rendered presenter
@@ -289,9 +314,9 @@ namespace Coco::Rendering
 			}
 		}
 
-		_renderTasks.clear();
 		_individualRenderStats.clear();
 		_stats.Reset();
+		_renderTasks.clear();
 
 		_device->ResetForNewFrame();
 	}

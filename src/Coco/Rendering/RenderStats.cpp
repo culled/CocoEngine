@@ -24,5 +24,6 @@ namespace Coco::Rendering
 		VertexCount = 0;
 		DrawCalls = 0;
 		TotalExecutionTime = TimeSpan();
+		RenderSyncWait = TimeSpan();
 	}
 }
