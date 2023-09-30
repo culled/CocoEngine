@@ -47,6 +47,7 @@ namespace Coco::Rendering
 		std::vector<DebugDrawCall> _drawCalls;
 		std::pair<uint64, uint64> _lineIndexInfo;
 		std::pair<uint64, uint64> _boxIndexInfo;
+		std::pair<uint64, uint64> _sphereIndexInfo;
 
 		Ref<Mesh> _mesh;
 		Ref<Shader> _shader;
@@ -88,6 +89,12 @@ namespace Coco::Rendering
 		/// @param transform The transform
 		/// @param color The color of the box
 		void DrawWireBounds(const BoundingBox& box, const Matrix4x4& transform, const Color& color);
+
+		/// @brief Draws a wire sphere
+		/// @param radius The radius of the sphere
+		/// @param position The position of the sphere
+		/// @param color The color of the sphere
+		void DrawWireSphere(double radius, const Vector3& position, const Color& color);
 
 	private:
 		/// @brief Sets up the debug mesh

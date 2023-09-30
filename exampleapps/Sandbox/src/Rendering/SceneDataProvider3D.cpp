@@ -118,6 +118,8 @@ void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
 		debug->DrawRay3D(Vector3::Zero, Vector3::Backward, Color::Blue);
 		debug->DrawRay3D(Vector3::Zero, Vector3::Up, Color::Green);
 		debug->DrawRay3D(Vector3::Zero, Vector3::Right, Color::Red);
+
+		debug->DrawWireSphere(0.5, Vector3(2.0, 0.0, 0.0), Color::Cyan);
 	}
 
 	renderView.AddDirectionalLight(Vector3(-0.2, -0.5, -0.3).Normalized(), Color::White, 1.0);

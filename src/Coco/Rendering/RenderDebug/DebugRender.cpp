@@ -118,6 +118,11 @@ namespace Coco::Rendering
 		DrawWireBox(transformedBox.GetCenter(), Quaternion::Identity, transformedBox.GetSize(), color);
 	}
 
+	void DebugRender::DrawWireSphere(double radius, const Vector3& position, const Color& color)
+	{
+		_drawCalls.emplace_back(_sphereIndexInfo.first, _sphereIndexInfo.second, color, Matrix4x4::CreateTransform(position, Quaternion::Identity, Vector3::One * radius));
+	}
+
 	void DebugRender::SetupMesh()
 	{
 		std::vector<VertexData> verts;
@@ -132,15 +137,15 @@ namespace Coco::Rendering
 		// | 0-----|-1
 		// |/      |/
 		// 4-------5
-		verts.push_back(VertexData(Vector3(-0.5, -0.5, -0.5)));
-		verts.push_back(VertexData(Vector3(0.5, -0.5, -0.5)));
-		verts.push_back(VertexData(Vector3(-0.5, 0.5, -0.5)));
-		verts.push_back(VertexData(Vector3(0.5, 0.5, -0.5)));
+		verts.emplace_back(Vector3(-0.5, -0.5, -0.5));
+		verts.emplace_back(Vector3(0.5, -0.5, -0.5));
+		verts.emplace_back(Vector3(-0.5, 0.5, -0.5));
+		verts.emplace_back(Vector3(0.5, 0.5, -0.5));
 
-		verts.push_back(VertexData(Vector3(-0.5, -0.5, 0.5)));
-		verts.push_back(VertexData(Vector3(0.5, -0.5, 0.5)));
-		verts.push_back(VertexData(Vector3(-0.5, 0.5, 0.5)));
-		verts.push_back(VertexData(Vector3(0.5, 0.5, 0.5)));
+		verts.emplace_back(Vector3(-0.5, -0.5, 0.5));
+		verts.emplace_back(Vector3(0.5, -0.5, 0.5));
+		verts.emplace_back(Vector3(-0.5, 0.5, 0.5));
+		verts.emplace_back(Vector3(0.5, 0.5, 0.5));
 
 		indices.push_back(0);
 		indices.push_back(1);
@@ -184,13 +189,58 @@ namespace Coco::Rendering
 		uint32 indexOffset = static_cast<uint32>(indices.size());
 
 		// Create line mesh (line points forward)
-		verts.push_back(VertexData(Vector3::Zero));
-		verts.push_back(VertexData(Vector3::Forward));
+		verts.emplace_back(Vector3::Zero);
+		verts.emplace_back(Vector3::Forward);
 
 		indices.push_back(vertexOffset);
 		indices.push_back(vertexOffset + 1);
 
 		_lineIndexInfo = std::make_pair(indexOffset, 2);
+
+		vertexOffset = static_cast<uint32>(verts.size());
+		indexOffset = static_cast<uint32>(indices.size());
+
+		// Create sphere mesh
+		const double radius = 1.0;
+		const uint32 resolution = 32;
+
+		// ZY circle
+		for (uint32 x = 0; x < resolution; x++)
+		{
+			double r = (static_cast<double>(x) / resolution) * Math::PI * 2.0;
+			verts.emplace_back(Vector3(0.0, Math::Sin(r), Math::Cos(r)) * radius);
+		}
+
+		// XY circle
+		for (uint32 z = 0; z < resolution; z++)
+		{
+			double r = (static_cast<double>(z) / resolution) * Math::PI * 2.0;
+			verts.emplace_back(Vector3(Math::Cos(r), Math::Sin(r), 0.0) * radius);
+		}
+
+		// XZ circle
+		for (uint32 y = 0; y < resolution; y++)
+		{
+			double r = (static_cast<double>(y) / resolution) * Math::PI * 2.0;
+			verts.emplace_back(Vector3(Math::Cos(r), 0.0, Math::Sin(r)) * radius);
+		}
+
+		for (uint32 i = 0; i < resolution; i++)
+		{
+			uint32 i0 = vertexOffset + i;
+			uint32 i1 = vertexOffset + ((i + 1) % resolution);
+
+			indices.push_back(i0);
+			indices.push_back(i1);
+
+			indices.push_back(i0 + resolution);
+			indices.push_back(i1 + resolution);
+
+			indices.push_back(i0 + resolution * 2);
+			indices.push_back(i1 + resolution * 2);
+		}
+
+		_sphereIndexInfo = std::make_pair(indexOffset, indices.size() - indexOffset);
 
 		_mesh->SetVertices(_sVertexFormat, verts);
 		_mesh->SetIndices(indices, 0);
