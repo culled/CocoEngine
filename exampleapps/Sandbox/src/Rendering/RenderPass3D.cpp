@@ -54,11 +54,9 @@ void RenderPass3D::Execute(RenderContext& context, const RenderView& renderView)
         const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
         const ShaderData& shader = renderView.GetShaderData(material.ShaderID);
 
-        auto it = shader.RenderPassShaders.find(GetName());
-        if (it == shader.RenderPassShaders.end())
+        if (!shader.GroupTag.empty())
             continue;
 
-        context.SetShader(renderView.GetRenderPassShaderData(it->second));
         context.SetMaterial(material);
 
         context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("ModelMatrix"), obj.ModelMatrix);
