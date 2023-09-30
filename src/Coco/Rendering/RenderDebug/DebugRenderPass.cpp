@@ -1,6 +1,5 @@
 #include "Renderpch.h"
 #include "DebugRenderPass.h"
-#include "DebugRenderObjectExtraData.h"
 
 namespace Coco::Rendering
 {
@@ -33,9 +32,9 @@ namespace Coco::Rendering
 
             context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("Model"), obj.ModelMatrix);
 
-            if (const SharedRef<DebugRenderObjectExtraData> data = std::dynamic_pointer_cast<DebugRenderObjectExtraData>(obj.ExtraData))
+            if (const Color* color = std::any_cast<Color>(&obj.ExtraData))
             {
-                context.SetFloat4(UniformScope::Draw, ShaderUniformData::MakeKey("Color"), data->ObjectColor);
+                context.SetFloat4(UniformScope::Draw, ShaderUniformData::MakeKey("Color"), *color);
             }
             else
             {

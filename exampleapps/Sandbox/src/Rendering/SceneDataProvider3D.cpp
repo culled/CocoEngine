@@ -121,4 +121,5 @@ void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
 	}
 
 	renderView.AddDirectionalLight(Vector3(-0.2, -0.5, -0.3).Normalized(), Color::White, 1.0);
+	//renderView.AddDirectionalLight(Vector3(0.2, -0.5, 0.3).Normalized(), Color::Green, 1.0);
 }

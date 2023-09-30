@@ -121,12 +121,6 @@ namespace Coco::Rendering
 		MaterialData(uint64 id, uint64 shaderID, const ShaderUniformData& uniformData);
 	};
 
-	/// @brief Base struct for extra per-object data
-	struct ExtraObjectData
-	{
-		virtual ~ExtraObjectData() = default;
-	};
-
 	/// @brief Data for an object to render
 	struct ObjectData
 	{
@@ -154,7 +148,8 @@ namespace Coco::Rendering
 		/// @brief The bounding box of this object
 		BoundingBox Bounds;
 
-		SharedRef<ExtraObjectData> ExtraData;
+		/// @brief Extra stored data, if any
+		std::any ExtraData;
 
 		ObjectData(
 			uint64 id,
@@ -165,7 +160,7 @@ namespace Coco::Rendering
 			uint64 materialID,
 			const RectInt& scissorRect,
 			const BoundingBox& bounds,
-			SharedRef<ExtraObjectData> extraData);
+			std::any extraData);
 	};
 
 	/// @brief Data for a directional light

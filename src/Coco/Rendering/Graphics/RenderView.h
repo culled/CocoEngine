@@ -162,7 +162,7 @@ namespace Coco::Rendering
 			const Matrix4x4& modelMatrix, 
 			const MaterialDataProvider* material, 
 			const RectInt* scissorRect = nullptr,
-			SharedRef<ExtraObjectData> extraData = nullptr);
+			std::any extraData = nullptr);
 
 		/// @brief Adds an object to be rendered. 
 		/// NOTE: the mesh must have been applied for this to work
@@ -183,7 +183,7 @@ namespace Coco::Rendering
 			const BoundingBox& bounds,
 			const MaterialDataProvider* material,
 			const RectInt* scissorRect = nullptr,
-			SharedRef<ExtraObjectData> extraData = nullptr);
+			std::any extraData = nullptr);
 
 		/// @brief Gets all objects to be rendered
 		/// @return The renderable objects

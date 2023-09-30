@@ -1,5 +1,16 @@
 #include "RenderPass3D.h"
 
+#include <Coco/Rendering/Graphics/BufferDataWriter.h>
+#include <Coco/Rendering/RenderService.h>
+
+const BufferDataLayout RenderPass3D::sLightingBufferLayout = BufferDataLayout({
+    BufferDataElement({ BufferDataType::Int }, 1),
+    BufferDataElement({
+        BufferDataType::Float3,
+        BufferDataType::Float4
+        }, 2)
+    });
+
 RenderPass3D::RenderPass3D() :
     _attachments({
         AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, true),
@@ -15,25 +26,21 @@ void RenderPass3D::Prepare(RenderContext& context, const RenderView& renderView)
     context.SetFloat4(UniformScope::Global, ShaderUniformData::MakeKey("AmbientColor"), Vector4(0.1, 0.1, 0.12, 1.0));
 
     {
+        BufferDataWriter writer(sLightingBufferLayout, RenderService::cGet()->GetDevice());
+
         std::span<const DirectionalLightData> directionalLights = renderView.GetDirectionalLights();
-        std::vector<uint8> directionalLightBufferData;
-        directionalLightBufferData.resize(GetDataTypeSize(BufferDataType::Int));
-        int32 size = static_cast<int32>(directionalLights.size());
-        Assert(memcpy_s(directionalLightBufferData.data(), directionalLightBufferData.size(), &size, GetDataTypeSize(BufferDataType::Int)) == 0)
+        writer.WriteElement(0, 0, static_cast<int32>(directionalLights.size()));
 
-        uint64 offset = GetDataTypeSize(BufferDataType::Float4);
-        for (const DirectionalLightData& d : directionalLights)
+        uint64 i = 0;
+        for (const DirectionalLightData& d : renderView.GetDirectionalLights())
         {
-            DirectionalLight l{};
-            l.Direction = ShaderUniformData::ToFloat3(d.Direction);
-            l.Color = ShaderUniformData::ToFloat4(Vector4(d.Color.R, d.Color.G, d.Color.B, d.Color.A));
+            writer.WriteSubElement(1, i, 0, ShaderUniformData::ToFloat3(d.Direction));
+            writer.WriteSubElement(1, i, 1, ShaderUniformData::ToFloat4(Vector4(d.Color.R, d.Color.G, d.Color.B, d.Color.A)));
 
-            directionalLightBufferData.resize(offset + sizeof(DirectionalLight));
-            Assert(memcpy_s(directionalLightBufferData.data() + offset, directionalLightBufferData.size(), &l, sizeof(DirectionalLight)) == 0)
-            offset += sizeof(DirectionalLight);
+            i++;
         }
 
-        context.SetGlobalBufferData(ShaderUniformData::MakeKey("DirectionalLights"), 0, directionalLightBufferData.data(), directionalLightBufferData.size());
+        context.SetGlobalBufferData(ShaderUniformData::MakeKey("DirectionalLights"), 0, writer.GetRawData(), writer.GetSize());
     }
 }
 

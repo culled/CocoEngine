@@ -75,7 +75,7 @@ namespace Coco::Rendering
 		uint64 materialID,
 		const RectInt& scissorRect,
 		const BoundingBox& bounds,
-		SharedRef<ExtraObjectData> extraData) :
+		std::any extraData) :
 		ID(id),
 		ModelMatrix(modelMatrix),
 		MeshID(meshID),

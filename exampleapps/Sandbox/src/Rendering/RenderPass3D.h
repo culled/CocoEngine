@@ -1,19 +1,17 @@
 #pragma once
 #include <Coco\Rendering\Pipeline\RenderPass.h>
+#include <Coco/Rendering/Graphics/BufferDataLayout.h>
 #include <vector>
 
 using namespace Coco;
 using namespace Coco::Rendering;
 
-struct DirectionalLight
-{
-	alignas(16) ShaderUniformData::float3 Direction;
-	alignas(16) ShaderUniformData::float4 Color;
-};
-
 class RenderPass3D : 
 	public RenderPass
 {
+public:
+	static const BufferDataLayout sLightingBufferLayout;
+
 private:
 	std::vector<AttachmentFormat> _attachments;
 

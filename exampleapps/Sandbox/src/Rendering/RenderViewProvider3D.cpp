@@ -79,7 +79,7 @@ void RenderViewProvider3D::SetupRenderView(
         },
         {},
         {
-            ShaderBufferUniform("DirectionalLights", ShaderStageFlags::Fragment, GetDataTypeSize(BufferDataType::Float4) + (sizeof(DirectionalLight) * 2))
+            ShaderBufferUniform("DirectionalLights", ShaderStageFlags::Fragment, RenderPass3D::sLightingBufferLayout.GetTotalSize(RenderService::cGet()->GetDevice()))
         }
     );
 

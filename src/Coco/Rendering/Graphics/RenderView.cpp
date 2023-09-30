@@ -164,7 +164,7 @@ namespace Coco::Rendering
 		const Matrix4x4& modelMatrix, 
 		const MaterialDataProvider* material,
 		const RectInt* scissorRect,
-		SharedRef<ExtraObjectData> extraData)
+		std::any extraData)
 	{
 		SubMesh submesh;
 		Assert(mesh.TryGetSubmesh(submeshID, submesh))
@@ -186,7 +186,7 @@ namespace Coco::Rendering
 		const BoundingBox& bounds,
 		const MaterialDataProvider* material, 
 		const RectInt* scissorRect,
-		SharedRef<ExtraObjectData> extraData)
+		std::any extraData)
 	{
 		uint64 meshID = AddMesh(mesh);
 		uint64 materialID = material ? AddMaterial(*material) : InvalidID;

@@ -6,7 +6,6 @@
 #include "../Material.h"
 #include "../MeshUtilities.h"
 #include "DebugRenderPass.h"
-#include "DebugRenderObjectExtraData.h"
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering
@@ -85,7 +84,7 @@ namespace Coco::Rendering
 				BoundingBox::Zero,
 				_material.Get(),
 				nullptr,
-				CreateSharedRef<DebugRenderObjectExtraData>(dc.Color));
+				dc.Color);
 		}
 
 		_drawCalls.clear();
