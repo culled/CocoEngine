@@ -91,4 +91,9 @@ namespace Coco::Rendering
 		Direction(direction),
 		Color(color)
 	{}
+
+	PointLightData::PointLightData(const Vector3& position, const Coco::Color& color) :
+		Position(position),
+		Color(color)
+	{}
 }

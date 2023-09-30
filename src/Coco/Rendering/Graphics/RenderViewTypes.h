@@ -174,4 +174,16 @@ namespace Coco::Rendering
 
 		DirectionalLightData(const Vector3& direction, const Coco::Color& color);
 	};
+
+	/// @brief Data for a point light
+	struct PointLightData
+	{
+		/// @brief The position of the light
+		Vector3 Position;
+
+		/// @brief The color of the light, with the alpha value used for intensity
+		Color Color;
+
+		PointLightData(const Vector3& position, const Coco::Color& color);
+	};
 }

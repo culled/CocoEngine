@@ -20,10 +20,17 @@ struct DirectionalLight {
     vec4 color;
 };
 
-layout(set = 0, binding = 1) uniform DirectionalLightBlock {
-    int lightCount;
-    DirectionalLight lights[2];
-} directionalLights;
+struct PointLight {
+    vec3 position;
+    vec4 color;
+};
+
+layout(set = 0, binding = 1) uniform LightBlock {
+    int directionalLightCount;
+    DirectionalLight directionalLights[2];
+    int pointLightCount;
+    PointLight pointLights[10];
+} lightBO;
 
 layout(set = 1, binding = 0) uniform shaderUniformObject {
     vec4 baseColor;
@@ -34,6 +41,7 @@ layout(set = 1, binding = 1) uniform sampler2D baseTexSampler;
 layout(location = 0) out vec4 outColor;
 
 vec4 calculateDirectionalLight(DirectionalLight light, float shininess, vec3 worldNormal, vec3 viewDirection);
+vec4 calculatePointLight(PointLight light, float shininess, vec3 worldNormal, vec3 worldPosition, vec3 viewDirection);
 
 void main() {
     vec3 worldNormal = normalize(inVaryings.normal);
@@ -42,10 +50,16 @@ void main() {
     vec4 albedo = shaderUBO.baseColor * texture(baseTexSampler, inVaryings.uv);
     vec4 light = globalUBO.ambientColor;
 
-    for(int i = 0; i < directionalLights.lightCount; i++)
+    for(int i = 0; i < lightBO.directionalLightCount; i++)
     {
-        vec4 dirLight = calculateDirectionalLight(directionalLights.lights[i], 32.0, worldNormal, viewDirection);
+        vec4 dirLight = calculateDirectionalLight(lightBO.directionalLights[i], 32.0, worldNormal, viewDirection);
         light += vec4(dirLight.rgb, 1.0) * dirLight.a;
+    }
+
+    for(int i = 0; i < lightBO.pointLightCount; i++)
+    {
+        vec4 pointLight = calculatePointLight(lightBO.pointLights[i], 32.0, worldNormal, inVaryings.worldPosition, viewDirection);
+        light += vec4(pointLight.rgb, 1.0) * pointLight.a;
     }
 
     outColor = albedo * vec4(light.xyz, 1.0);
@@ -61,4 +75,23 @@ vec4 calculateDirectionalLight(DirectionalLight light, float shininess, vec3 wor
     vec3 spec = light.color.rgb * specFactor * NdotL;
 
     return vec4(diffuse + spec, light.color.a);
+}
+
+vec4 calculatePointLight(PointLight light, float shininess, vec3 worldNormal, vec3 worldPosition, vec3 viewDirection)
+{
+    vec3 posToLight = light.position - worldPosition;
+    vec3 lightDir = normalize(posToLight);
+
+    float NdotL = max(dot(worldNormal, lightDir), 0.0);
+
+    float dist = length(posToLight);
+    float attenuation = light.color.a / (dist * dist);
+
+    vec3 diffuse = light.color.rgb * NdotL;
+
+    vec3 halfDir = normalize(viewDirection + lightDir);
+    float specFactor = pow(max(dot(halfDir, worldNormal), 0.0), shininess);
+    vec3 spec = light.color.rgb * specFactor * NdotL;
+
+    return vec4(diffuse + spec, attenuation);
 }

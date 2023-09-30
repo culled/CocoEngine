@@ -4,11 +4,16 @@
 #include <Coco/Rendering/RenderService.h>
 
 const BufferDataLayout RenderPass3D::sLightingBufferLayout = BufferDataLayout({
-    BufferDataElement({ BufferDataType::Int }, 1),
-    BufferDataElement({
-        BufferDataType::Float3,
-        BufferDataType::Float4
-        }, 2)
+    BufferDataElement({ BufferDataType::Int }, 1),  // Directional light count
+    BufferDataElement({                             // Directional lights
+        BufferDataType::Float3, // Light direction
+        BufferDataType::Float4  // Light color
+        }, 2),
+    BufferDataElement({BufferDataType::Int}, 1),    // Point light count
+    BufferDataElement({                             // Point lights
+        BufferDataType::Float3, // Light position
+        BufferDataType::Float4  // Light color
+        }, 10)
     });
 
 RenderPass3D::RenderPass3D() :
@@ -25,23 +30,37 @@ void RenderPass3D::Prepare(RenderContext& context, const RenderView& renderView)
     context.SetFloat3(UniformScope::Global, ShaderUniformData::MakeKey("ViewPosition"), renderView.GetViewPosition());
     context.SetFloat4(UniformScope::Global, ShaderUniformData::MakeKey("AmbientColor"), Vector4(0.1, 0.1, 0.12, 1.0));
 
-    {
-        BufferDataWriter writer(sLightingBufferLayout, RenderService::cGet()->GetDevice());
+    BufferDataWriter writer(sLightingBufferLayout, RenderService::cGet()->GetDevice());
 
+    {
         std::span<const DirectionalLightData> directionalLights = renderView.GetDirectionalLights();
         writer.WriteElement(0, 0, static_cast<int32>(directionalLights.size()));
 
         uint64 i = 0;
-        for (const DirectionalLightData& d : renderView.GetDirectionalLights())
+        for (const DirectionalLightData& d : directionalLights)
         {
             writer.WriteSubElement(1, i, 0, ShaderUniformData::ToFloat3(d.Direction));
             writer.WriteSubElement(1, i, 1, ShaderUniformData::ToFloat4(Vector4(d.Color.R, d.Color.G, d.Color.B, d.Color.A)));
 
             i++;
         }
-
-        context.SetGlobalBufferData(ShaderUniformData::MakeKey("DirectionalLights"), 0, writer.GetRawData(), writer.GetSize());
     }
+
+    {
+        std::span<const PointLightData> pointLights = renderView.GetPointLights();
+        writer.WriteElement(2, 0, static_cast<int32>(pointLights.size()));
+
+        uint64 i = 0;
+        for (const PointLightData& d : pointLights)
+        {
+            writer.WriteSubElement(3, i, 0, ShaderUniformData::ToFloat3(d.Position));
+            writer.WriteSubElement(3, i, 1, ShaderUniformData::ToFloat4(Vector4(d.Color.R, d.Color.G, d.Color.B, d.Color.A)));
+
+            i++;
+        }
+    }
+
+    context.SetGlobalBufferData(ShaderUniformData::MakeKey("Lights"), 0, writer.GetRawData(), writer.GetSize());
 }
 
 void RenderPass3D::Execute(RenderContext& context, const RenderView& renderView)

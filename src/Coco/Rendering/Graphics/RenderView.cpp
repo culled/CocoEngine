@@ -23,7 +23,8 @@ namespace Coco::Rendering
 		_shaderDatas(),
 		_materialDatas(),
 		_objectDatas(),
-		_directionalLightDatas()
+		_directionalLightDatas(),
+		_pointLightDatas()
 	{}
 
 	void RenderView::Setup(
@@ -56,6 +57,7 @@ namespace Coco::Rendering
 		_materialDatas.clear();
 		_objectDatas.clear();
 		_directionalLightDatas.clear();
+		_pointLightDatas.clear();
 	}
 
 	RenderTarget& RenderView::GetRenderTarget(size_t index)
@@ -211,5 +213,12 @@ namespace Coco::Rendering
 		Color c = color.AsLinear();
 		c.A = intensity;
 		_directionalLightDatas.emplace_back(direction, c);
+	}
+
+	void RenderView::AddPointLight(const Vector3& position, const Color& color, double intensity)
+	{
+		Color c = color.AsLinear();
+		c.A = intensity;
+		_pointLightDatas.emplace_back(position, c);
 	}
 }

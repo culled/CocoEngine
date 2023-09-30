@@ -33,6 +33,7 @@ namespace Coco::Rendering
 		std::unordered_map<uint64, MaterialData> _materialDatas;
 		std::vector<ObjectData> _objectDatas;
 		std::vector<DirectionalLightData> _directionalLightDatas;
+		std::vector<PointLightData> _pointLightDatas;
 
 	public:
 		RenderView();
@@ -198,5 +199,9 @@ namespace Coco::Rendering
 		/// @brief Gets all the directional lights
 		/// @return The directional lights
 		std::span<const DirectionalLightData> GetDirectionalLights() const { return _directionalLightDatas; }
+
+		void AddPointLight(const Vector3& position, const Color& color, double intensity);
+
+		std::span<const PointLightData> GetPointLights() const { return _pointLightDatas; }
 	};
 }
