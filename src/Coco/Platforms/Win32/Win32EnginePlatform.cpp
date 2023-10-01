@@ -98,7 +98,12 @@ namespace Coco::Platforms::Win32
 	{
 		auto it = std::find_if(_processArguments.cbegin(), _processArguments.cend(), [arg](const string& s)
 			{
-				return strcmp(arg, s.c_str()) == 0;
+				size_t endPartPos = s.find('=');
+
+				if (endPartPos != string::npos)
+					return s.substr(0, endPartPos) == arg;
+
+				return s == arg;
 			});
 
 		return it != _processArguments.cend();
@@ -108,7 +113,12 @@ namespace Coco::Platforms::Win32
 	{
 		auto it = std::find_if(_processArguments.cbegin(), _processArguments.cend(), [arg](const string& s)
 			{
-				return strcmp(arg, s.c_str()) == 0;
+				size_t endPartPos = s.find('=');
+
+				if (endPartPos != string::npos)
+					return s.substr(0, endPartPos) == arg;
+
+				return s == arg;
 			});
 
 		if (it == _processArguments.cend())
