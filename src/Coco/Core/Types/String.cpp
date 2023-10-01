@@ -10,16 +10,18 @@ namespace Coco
 
 		mbstowcs_s(&wStrSize, wStr.data(), wStrSize, str, wStrSize - 1);
 
+		wStr.resize(wStrSize - 1);
 		return wStr;
 	}
 
 	string WideStringToString(const wchar_t* wStr)
 	{
-		size_t strSize = wcslen(wStr) * sizeof(wchar_t) + 1;
+		size_t strSize = wcslen(wStr) + 1;
 		string str(strSize, '#');
 
 		wcstombs_s(&strSize, str.data(), strSize, wStr, strSize - 1);
 
+		str.resize(strSize - 1);
 		return str;
 	}
 }
