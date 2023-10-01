@@ -19,6 +19,7 @@ namespace Coco::Platforms::Win32
         bool _canResize;
         bool _isFullscreen;
         bool _decorated;
+        bool _cursorVisible;
         WINDOWPLACEMENT _restorePlacement;
 
     public:
@@ -50,6 +51,9 @@ namespace Coco::Platforms::Win32
         bool HasFocus() const final;
 
         bool IsVisible() const final;
+
+        void SetCursorVisibility(bool isVisible) final;
+        bool GetCursorVisibility() const final;
 
         /// @brief Gets this window's internal handle
         /// @return The window handle

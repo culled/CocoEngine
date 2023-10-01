@@ -32,6 +32,7 @@ namespace Coco::Platforms::Win32
 		_canResize(createParams.CanResize),
 		_isFullscreen(createParams.IsFullscreen),
 		_decorated(!createParams.WithoutDecoration),
+		_cursorVisible(true),
 		_restorePlacement{sizeof(WINDOWPLACEMENT)}
 	{
 		DWORD windowFlags = GetWindowFlags(_canResize, _isFullscreen, _decorated);
@@ -347,13 +348,33 @@ namespace Coco::Platforms::Win32
 
 	bool Win32Window::IsVisible() const
 	{
+		CheckWindowHandle()
+
 		SizeInt size = GetClientAreaSize();
 
 		return IsWindowVisible(_handle) && size.Width > 0 && size.Height > 0;
 	}
 
+	void Win32Window::SetCursorVisibility(bool isVisible)
+	{
+		if (_cursorVisible == isVisible)
+			return;
+
+		CheckWindowHandle()
+
+		::ShowCursor(isVisible);
+		_cursorVisible = isVisible;
+	}
+
+	bool Win32Window::GetCursorVisibility() const
+	{
+		return _cursorVisible;
+	}
+
 	SharedRef<Rendering::GraphicsPresenterSurface> Win32Window::CreateSurface()
 	{
+		CheckWindowHandle()
+
 		if (!Rendering::RenderService::Get())
 			throw std::exception("No RenderService is active");
 

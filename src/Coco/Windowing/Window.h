@@ -131,6 +131,13 @@ namespace Coco::Windowing
 		/// @return True if this window is visible
 		virtual bool IsVisible() const = 0;
 
+		/// @brief Sets the cursor visiblity once it's over this window
+		virtual void SetCursorVisibility(bool isVisible) = 0;
+
+		/// @brief Gets the cursor visibility of this window
+		/// @return True if the cursor is visible when it is over this window
+		virtual bool GetCursorVisibility() const = 0;
+
 		/// @brief Gets this window's GraphicsPresenter
 		/// @return This window's GraphicsPresenter
 		Ref<Rendering::GraphicsPresenter> GetPresenter() const { return _presenter; }
