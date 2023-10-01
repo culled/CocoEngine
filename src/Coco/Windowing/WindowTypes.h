@@ -14,6 +14,19 @@ namespace Coco::Windowing
 		Maximized
 	};
 
+	/// @brief Modes for a confining a cursor to a window
+	enum class CursorConfineMode
+	{
+		/// @brief The cursor is not confined
+		None,
+		
+		/// @brief The cursor cannot move outside of the window's client area
+		ClientArea,
+
+		/// @brief The cursor is locked to the window's center
+		Locked
+	};
+
 	/// @brief A window ID
 	using WindowID = uint32;
 

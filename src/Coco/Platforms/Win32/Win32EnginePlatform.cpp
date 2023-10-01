@@ -7,6 +7,10 @@
 #include "Win32Window.h"
 #endif // COCO_SERVICES_WINDOWING
 
+#ifdef COCO_SERVICES_INPUT
+#include <hidusage.h>
+#endif
+
 namespace Coco::Platforms::Win32
 {
 	Win32EnginePlatform::Win32EnginePlatform(HINSTANCE hInstance) :
@@ -27,6 +31,10 @@ namespace Coco::Platforms::Win32
 		}
 
 		_windowExtensions = CreateSharedRef<Win32WindowExtensions>();
+#endif
+
+#ifdef COCO_SERVICES_INPUT
+		SetupRawInput();
 #endif
 	}
 
@@ -239,6 +247,7 @@ namespace Coco::Platforms::Win32
 		case WM_SYSKEYUP: // A key was released
 		case WM_MOUSEMOVE: // The mouse moved in the client area
 		//case WM_NCMOUSEMOVE: // The mouse moved in the non-client area
+		case WM_INPUT: // Raw input message
 		case WM_MOUSEWHEEL: // The mouse wheel moved
 		case WM_LBUTTONDOWN: // The left mouse button was pressed
 		case WM_MBUTTONDOWN: // The middle mouse button was pressed
@@ -418,6 +427,24 @@ namespace Coco::Platforms::Win32
 		}
 
 		return window->ProcessMessage(message, wParam, lParam);
+	}
+#endif
+
+#ifdef COCO_SERVICES_INPUT
+	void Win32::Win32EnginePlatform::SetupRawInput()
+	{
+		std::array<RAWINPUTDEVICE, 1> rids = {};
+		RAWINPUTDEVICE& rid = rids.at(0);
+		rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
+		rid.usUsage = HID_USAGE_GENERIC_MOUSE;
+		rid.dwFlags = 0;
+		rid.hwndTarget = NULL;
+
+		if (!RegisterRawInputDevices(rids.data(), static_cast<UINT>(rids.size()), sizeof(rid)))
+		{
+			string err = FormatString("Failed to register raw input - code {}", ::GetLastError());
+			throw std::exception(err.c_str());
+		}
 	}
 #endif
 }

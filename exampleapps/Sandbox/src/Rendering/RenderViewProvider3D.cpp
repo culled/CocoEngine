@@ -4,6 +4,7 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Core/MainLoop/MainLoop.h>
 #include <Coco/Core/Engine.h>
+#include <Coco/Windowing/WindowService.h>
 
 #include "RenderPass3D.h"
 
@@ -93,14 +94,24 @@ void RenderViewProvider3D::SetMSAASamples(MSAASamples samples)
 
 void RenderViewProvider3D::Tick(const TickInfo& tickInfo)
 {
+    using namespace Coco::Windowing;
     using namespace Coco::Input;
-
-    Vector3 velocity = Vector3::Zero;
 
     InputService* input = InputService::Get();
     Mouse& mouse = input->GetMouse();
 
-    Vector2Int mouseDelta = mouse.GetDelta();
+    Ref<Window> mainWindow = WindowService::Get()->GetMainWindow();
+    if (!mouse.IsButtonPressed(MouseButton::Right))
+    {
+        mainWindow->SetCursorConfineMode(CursorConfineMode::None);
+        mainWindow->SetCursorVisibility(true);
+        return;
+    }
+
+    mainWindow->SetCursorConfineMode(CursorConfineMode::Locked);
+    mainWindow->SetCursorVisibility(false);
+
+    Vector2Int mouseDelta = mouse.GetMoveDelta();
     Vector3 eulerAngles = _cameraTransform.LocalRotation.ToEulerAngles();
     eulerAngles.X = Math::Clamp(eulerAngles.X - mouseDelta.Y * _mouseSensitivity, Math::DegToRad(-90.0), Math::DegToRad(90.0));
     eulerAngles.Y -= mouseDelta.X * _mouseSensitivity;
@@ -108,6 +119,8 @@ void RenderViewProvider3D::Tick(const TickInfo& tickInfo)
     _cameraTransform.LocalRotation = Quaternion(eulerAngles);
 
     Keyboard& keyboard = input->GetKeyboard();
+
+    Vector3 velocity = Vector3::Zero;
 
     if (keyboard.IsKeyPressed(KeyboardKey::W))
         velocity += Vector3::Forward;

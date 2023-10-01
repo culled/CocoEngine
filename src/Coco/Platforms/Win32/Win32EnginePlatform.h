@@ -114,5 +114,11 @@ namespace Coco::Platforms::Win32
 		/// @return True if the class was registered
 		bool RegisterWindowClass();
 #endif
+
+#ifdef COCO_SERVICES_INPUT
+	private:
+		/// @brief Sets up raw input receiving
+		void SetupRawInput();
+#endif
     };
 }

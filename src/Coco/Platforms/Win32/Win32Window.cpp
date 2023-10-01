@@ -33,6 +33,8 @@ namespace Coco::Platforms::Win32
 		_isFullscreen(createParams.IsFullscreen),
 		_decorated(!createParams.WithoutDecoration),
 		_cursorVisible(true),
+		_cursorConfineMode(CursorConfineMode::None),
+		_cursorConfined(false),
 		_restorePlacement{sizeof(WINDOWPLACEMENT)}
 	{
 		DWORD windowFlags = GetWindowFlags(_canResize, _isFullscreen, _decorated);
@@ -366,9 +368,13 @@ namespace Coco::Platforms::Win32
 		_cursorVisible = isVisible;
 	}
 
-	bool Win32Window::GetCursorVisibility() const
+	void Win32Window::SetCursorConfineMode(CursorConfineMode mode)
 	{
-		return _cursorVisible;
+		if (mode == _cursorConfineMode)
+			return;
+
+		_cursorConfineMode = mode;
+		UpdateCursorConfineState(HasFocus());
 	}
 
 	SharedRef<Rendering::GraphicsPresenterSurface> Win32Window::CreateSurface()
@@ -437,6 +443,8 @@ namespace Coco::Platforms::Win32
 				if (size.Width == 0 && size.Height == 0 && width > 0 && height > 0)
 					UpdateFullscreenState(IsFullscreen());
 
+				UpdateCursorConfineState(false);
+
 				HandleResized();
 				return true;
 			}
@@ -451,6 +459,8 @@ namespace Coco::Platforms::Win32
 					suggestedRect->left, suggestedRect->top,
 					suggestedRect->right - suggestedRect->left, suggestedRect->bottom - suggestedRect->top,
 					SWP_NOZORDER | SWP_NOACTIVATE);
+
+				UpdateCursorConfineState(false);
 
 				try
 				{
@@ -476,14 +486,21 @@ namespace Coco::Platforms::Win32
 				{
 					CocoError("Error invoking Win32Window::OnPositionChanged: {}", ex.what())
 				}
+
+				UpdateCursorConfineState(false);
+
 				return true;
 			}
 			case WM_SETFOCUS:
 			case WM_KILLFOCUS:
 			{
+				bool focused = message == WM_SETFOCUS;
+
+				UpdateCursorConfineState(focused);
+
 				try
 				{
-					OnFocusChanged.Invoke(message == WM_SETFOCUS);
+					OnFocusChanged.Invoke(focused);
 				}
 				catch (const std::exception& ex)
 				{
@@ -491,25 +508,24 @@ namespace Coco::Platforms::Win32
 				}
 				return true;
 			}
-#ifdef COCO_SERVICES_INPUT
-			case WM_KEYDOWN:
-			case WM_SYSKEYDOWN:
-			case WM_KEYUP:
-			case WM_SYSKEYUP:
-			case WM_MOUSEMOVE:
-			case WM_NCMOUSEMOVE:
-			case WM_MOUSEWHEEL:
 			case WM_LBUTTONDOWN:
 			case WM_MBUTTONDOWN:
 			case WM_RBUTTONDOWN:
 			case WM_XBUTTONDOWN:
+			case WM_MOUSEMOVE:
+			case WM_NCMOUSEMOVE:
+			case WM_INPUT:
+			case WM_KEYDOWN:
+			case WM_SYSKEYDOWN:
+			case WM_KEYUP:
+			case WM_SYSKEYUP:
+			case WM_MOUSEWHEEL:
 			case WM_LBUTTONUP:
 			case WM_MBUTTONUP:
 			case WM_RBUTTONUP:
 			case WM_XBUTTONUP:
 			case WM_ACTIVATEAPP:
 				return HandleInputMessage(message, wParam, lParam);		
-#endif
 			default:
 				break;
 			}
@@ -587,9 +603,82 @@ namespace Coco::Platforms::Win32
 		}
 	}
 
-#ifdef COCO_SERVICES_INPUT
+	void Win32Window::UpdateCursorConfineState(bool shouldCapture)
+	{
+		// Unconfine the cursor if needed
+		if (_cursorConfineMode == CursorConfineMode::None || (!shouldCapture && _cursorConfined))
+		{
+			::ClipCursor(NULL);
+			_cursorConfined = false;
+			return;
+		}
+
+		CheckWindowHandle()
+
+		// Get the client rectangle screen coordinates
+		RECT clientRect{};
+		::GetClientRect(_handle, &clientRect);
+		RECT screenRect = clientRect;
+		::MapWindowPoints(_handle, HWND_DESKTOP, (LPPOINT)(&screenRect), 2);
+
+		POINT cursorPos{};
+		if (!::GetCursorPos(&cursorPos))
+		{
+			CocoError("Failed to get cursor position - code {}", ::GetLastError())
+		}
+
+		// The cursor is not inside the client rectangle, so don't confine it
+		if (cursorPos.x < screenRect.left || cursorPos.x > screenRect.right ||
+			cursorPos.y < screenRect.top || cursorPos.y > screenRect.bottom)
+			return;
+
+		switch (_cursorConfineMode)
+		{
+		case CursorConfineMode::ClientArea:
+		{
+			if (::ClipCursor(&screenRect))
+			{
+				_cursorConfined = true;
+			}
+			else
+			{
+				CocoError("Failed to confine cursor - code {}", ::GetLastError())
+			}
+
+			break;
+		}
+		case CursorConfineMode::Locked:
+		{
+			int width = screenRect.right - screenRect.left;
+			int height = screenRect.bottom - screenRect.top;
+			RECT centerRect{};
+			centerRect.left = screenRect.left + width / 2;
+			centerRect.top = screenRect.top + height / 2;
+			centerRect.right = centerRect.left + 1;
+			centerRect.bottom = centerRect.top + 1;
+
+			if (::ClipCursor(&centerRect))
+			{
+				_cursorConfined = true;
+			}
+			else
+			{
+				CocoError("Failed to confine cursor - code {}", ::GetLastError())
+			}
+
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
 	bool Win32Window::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
+		if (!HasFocus())
+			return false;
+
+#ifdef COCO_SERVICES_INPUT
 		using namespace Coco::Input;
 
 		InputService* input = InputService::Get();
@@ -600,6 +689,7 @@ namespace Coco::Platforms::Win32
 		Mouse& mouse = input->GetMouse();
 		Keyboard& keyboard = input->GetKeyboard();
 
+#endif
 		switch (message)
 		{
 		case WM_KEYDOWN:
@@ -608,7 +698,9 @@ namespace Coco::Platforms::Win32
 		case WM_SYSKEYUP:
 		{
 			bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
+#ifdef COCO_SERVICES_INPUT
 			keyboard.UpdateKeyState(static_cast<KeyboardKey>(wParam), pressed);
+#endif
 			return true;
 		}
 		case WM_MOUSEMOVE:
@@ -617,10 +709,32 @@ namespace Coco::Platforms::Win32
 			POINT p{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
 			// Mouse move is in client coordinates, so convert to screen coordinates
-			if(message == WM_MOUSEMOVE)
+			if (message == WM_MOUSEMOVE)
+			{
 				::MapWindowPoints(_handle, HWND_DESKTOP, &p, 1);
+			}
 
+#ifdef COCO_SERVICES_INPUT
 			mouse.UpdatePositionState(Vector2Int(p.x, p.y));
+#endif
+			return true;
+		}
+		case WM_INPUT:
+		{
+			UINT dwSize = sizeof(RAWINPUT);
+			static BYTE lpb[sizeof(RAWINPUT)];
+
+			GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+			RAWINPUT* raw = (RAWINPUT*)lpb;
+
+			if (raw->header.dwType == RIM_TYPEMOUSE)
+			{
+#ifdef COCO_SERVICES_INPUT
+				mouse.UpdateMoveDeltaState(Vector2Int(raw->data.mouse.lLastX, raw->data.mouse.lLastY));
+#endif
+			}
+
 			return true;
 		}
 		case WM_MOUSEWHEEL:
@@ -632,7 +746,9 @@ namespace Coco::Platforms::Win32
 				// Flatten the z delta to be platform-independent
 				yDelta = (yDelta >= 0) ? 1 : -1;
 
+#ifdef COCO_SERVICES_INPUT
 				mouse.UpdateScrollState(Vector2Int(0, yDelta));
+#endif
 			}
 
 			return true;
@@ -642,6 +758,9 @@ namespace Coco::Platforms::Win32
 		case WM_RBUTTONDOWN:
 		case WM_XBUTTONDOWN:
 		{
+			if (HasFocus() && !_cursorConfined && _cursorConfineMode != CursorConfineMode::None)
+				UpdateCursorConfineState(true);
+
 			MouseButton button = MouseButton::Left;
 
 			switch (message)
@@ -666,7 +785,9 @@ namespace Coco::Platforms::Win32
 			if (::GetCapture() == nullptr)
 				::SetCapture(_handle);
 
+#ifdef COCO_SERVICES_INPUT
 			mouse.UpdateButtonState(button, true);
+#endif
 			return true;
 		}
 		case WM_LBUTTONUP:
@@ -698,22 +819,27 @@ namespace Coco::Platforms::Win32
 			if (::GetCapture() == _handle)
 				::ReleaseCapture();
 
+#ifdef COCO_SERVICES_INPUT
 			mouse.UpdateButtonState(button, false);
+#endif
 			return true;
 		}
 		case WM_ACTIVATEAPP:
 		{
 			if (wParam == FALSE)
 			{
+#ifdef COCO_SERVICES_INPUT
 				// The app is unfocusing, so clear all states
 				keyboard.ClearAllKeyStates();
 				mouse.ClearAllButtonStates();
+#endif
 			}
 			return false;
 		}
 		default:
-			return false;
+			break;
 		}
+
+		return false;
 	}
-#endif
 }

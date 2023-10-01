@@ -6,6 +6,7 @@ namespace Coco::Input
 	MouseState::MouseState() :
 		ButtonStates{false},
 		Position(Vector2Int::Zero),
+		MoveDelta(Vector2Int::Zero),
 		ScrollDelta(Vector2Int::Zero)
 	{}
 
@@ -13,14 +14,20 @@ namespace Coco::Input
 		Button(),
 		IsButtonPressed(false),
 		Position(),
-		MoveDelta(Vector2Int::Zero),
+		MoveDelta(),
 		ScrollDelta()
 	{}
 
-	MouseStateChange MouseStateChange::MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta)
+	MouseStateChange MouseStateChange::PositionStateChange(const Vector2Int& newPosition)
 	{
 		MouseStateChange stateChange{};
 		stateChange.Position = newPosition;
+		return stateChange;
+	}
+
+	MouseStateChange MouseStateChange::MoveDeltaStateChange(const Vector2Int& delta)
+	{
+		MouseStateChange stateChange{};
 		stateChange.MoveDelta = delta;
 		return stateChange;
 	}
@@ -65,8 +72,14 @@ namespace Coco::Input
 		if (currentPos.Equals(newPosition))
 			return;
 
-		_preProcessStateChanges.push_back(MouseStateChange::MoveStateChange(newPosition, newPosition - currentPos));
+		_preProcessStateChanges.push_back(MouseStateChange::PositionStateChange(newPosition));
 		currentPos = newPosition;
+	}
+
+	void Mouse::UpdateMoveDeltaState(const Vector2Int& moveDelta)
+	{
+		_preProcessStateChanges.push_back(MouseStateChange::MoveDeltaStateChange(moveDelta));
+		_currentState.MoveDelta = moveDelta;
 	}
 
 	void Mouse::UpdateScrollState(const Vector2Int& scrollDelta)
@@ -141,7 +154,14 @@ namespace Coco::Input
 			{
 				_currentState.Position = state.Position.value();
 
-				OnMoved.Invoke(state.Position.value(), state.MoveDelta);
+				OnPositionChanged.Invoke(state.Position.value());
+			}
+
+			if (state.MoveDelta.has_value())
+			{
+				_currentState.MoveDelta = state.MoveDelta.value();
+
+				OnMoved.Invoke(state.MoveDelta.value());
 			}
 
 			if (state.ScrollDelta.has_value())
@@ -160,7 +180,8 @@ namespace Coco::Input
 	{
 		_previousState = _currentState;
 
-		// Reset the scroll delta since we don't have an explicit "stopped scrolling" state change
+		// Reset deltas since we don't have an explicit "stopped" state change
+		_currentState.MoveDelta = Vector2Int::Zero;
 		_currentState.ScrollDelta = Vector2Int::Zero;
 	}
 }

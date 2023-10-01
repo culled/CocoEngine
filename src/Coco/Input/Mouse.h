@@ -19,6 +19,9 @@ namespace Coco::Input
 		/// @brief The mouse position
 		Vector2Int Position;
 
+		/// @brief The mouse move delta
+		Vector2Int MoveDelta;
+
 		/// @brief The mouse scroll delta
 		Vector2Int ScrollDelta;
 
@@ -37,8 +40,8 @@ namespace Coco::Input
 		/// @brief The new mouse position (if any)
 		std::optional<Vector2Int> Position;
 
-		/// @brief If the position has changed, this is the delta movement since the last state change
-		Vector2Int MoveDelta;
+		/// @brief The new mouse move delta (if any)
+		std::optional<Vector2Int> MoveDelta;
 
 		/// @brief The mouse scroll delta (if any)
 		std::optional<Vector2Int> ScrollDelta;
@@ -47,9 +50,13 @@ namespace Coco::Input
 
 		/// @brief Creates a mouse state change for moving the mouse
 		/// @param newPosition The new mouse position
-		/// @param delta The delta between the new mouse position and the last position
 		/// @return A mouse state change
-		static MouseStateChange MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta);
+		static MouseStateChange PositionStateChange(const Vector2Int& newPosition);
+
+		/// @brief Creates a mouse state change for moving the mouse, but the position may not have changed (i.e. the mouse is confined)
+		/// @param delta The move delta
+		/// @return A mouse state change
+		static MouseStateChange MoveDeltaStateChange(const Vector2Int& delta);
 
 		/// @brief Creates a mouse state change for scrolling the mouse
 		/// @param scrollDelta The amount the mouse was scrolled
@@ -78,8 +85,11 @@ namespace Coco::Input
 		/// @brief Invoked when a mouse button is double-clicked
 		//Event<MouseButton> OnDoubleClicked; // TODO: handle double clicks
 
+		/// @brief Invoked when the mouse's position changed
+		Event<const Vector2Int&> OnPositionChanged;
+
 		/// @brief Invoked when the mouse is moved
-		Event<const Vector2Int&, const Vector2Int&> OnMoved;
+		Event<const Vector2Int&> OnMoved;
 
 		/// @brief Invoked when the mouse is scrolled
 		Event<const Vector2Int&> OnScrolled;
@@ -103,6 +113,10 @@ namespace Coco::Input
 		/// @brief Updates the position state for the mouse
 		/// @param newPosition The new mouse position
 		void UpdatePositionState(const Vector2Int& newPosition);
+
+		/// @brief Updates the move delta for the mouse
+		/// @param moveDelta The move delta
+		void UpdateMoveDeltaState(const Vector2Int& moveDelta);
 
 		/// @brief Updates the scroll wheel state for the mouse
 		/// @param scrollDelta The scroll delta
@@ -134,9 +148,13 @@ namespace Coco::Input
 		/// @return The mouse position
 		Vector2Int GetPosition() const { return _currentState.Position; }
 
+		/// @brief Gets the amount the mouse's position has changed since the last tick
+		/// @return The position delta since last tick
+		Vector2Int GetPositionDelta() const { return _currentState.Position - _previousState.Position; }
+
 		/// @brief Gets the amount the mouse has moved since the last tick
 		/// @return The movement delta since last tick
-		Vector2Int GetDelta() const { return _currentState.Position - _previousState.Position; }
+		Vector2Int GetMoveDelta() const { return _currentState.MoveDelta; }
 
 		/// @brief Gets the amount the scroll wheel has moved since last tick
 		/// @return The scroll wheel delta

@@ -20,6 +20,8 @@ namespace Coco::Platforms::Win32
         bool _isFullscreen;
         bool _decorated;
         bool _cursorVisible;
+        CursorConfineMode _cursorConfineMode;
+        bool _cursorConfined;
         WINDOWPLACEMENT _restorePlacement;
 
     public:
@@ -53,7 +55,10 @@ namespace Coco::Platforms::Win32
         bool IsVisible() const final;
 
         void SetCursorVisibility(bool isVisible) final;
-        bool GetCursorVisibility() const final;
+        bool GetCursorVisibility() const final { return _cursorVisible; }
+
+        void SetCursorConfineMode(CursorConfineMode mode) final;
+        CursorConfineMode GetCursorConfineMode() const final { return _cursorConfineMode; }
 
         /// @brief Gets this window's internal handle
         /// @return The window handle
@@ -98,14 +103,15 @@ namespace Coco::Platforms::Win32
         /// @param fullscreen If true, this window will become fullscreen
         void UpdateFullscreenState(bool fullscreen);
 
-#ifdef COCO_SERVICES_INPUT
-    private:
+        /// @brief Updates the confined state of the mouse
+        /// @param shouldCapture If true, the mouse will be confined, else it will be freed regardless of the current confine mode
+        void UpdateCursorConfineState(bool shouldCapture);
+
         /// @brief Handles an input message
         /// @param message The message
         /// @param wParam The wParam
         /// @param lParam The lParam
         /// @return True if the message was handled
         bool HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam);
-#endif
     };
 }

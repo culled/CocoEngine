@@ -138,6 +138,14 @@ namespace Coco::Windowing
 		/// @return True if the cursor is visible when it is over this window
 		virtual bool GetCursorVisibility() const = 0;
 
+		/// @brief Sets the confine mode of the cursor
+		/// @param mode The cursor confine mode
+		virtual void SetCursorConfineMode(CursorConfineMode mode) = 0;
+
+		/// @brief Gets the confine mode of the cursor
+		/// @return The cursor's confine mode 
+		virtual CursorConfineMode GetCursorConfineMode() const = 0;
+
 		/// @brief Gets this window's GraphicsPresenter
 		/// @return This window's GraphicsPresenter
 		Ref<Rendering::GraphicsPresenter> GetPresenter() const { return _presenter; }
