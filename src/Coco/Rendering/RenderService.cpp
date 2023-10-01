@@ -4,6 +4,8 @@
 #include "Pipeline/RenderPipeline.h"
 #include "RenderDebug/DebugRender.h"
 
+#include "Serializers/ShaderSerializer.h"
+
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering
@@ -32,6 +34,10 @@ namespace Coco::Rendering
 
 		//MainLoop::Get()->AddListener(*_earlyTickListener);
 		MainLoop::Get()->AddListener(*_lateTickListener);
+
+		// Add resource serializers
+		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
+		resources.CreateSerializer<ShaderSerializer>();
 
 		CocoTrace("RenderService initialized")
 	}

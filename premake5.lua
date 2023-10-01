@@ -19,6 +19,7 @@ workspace "CocoEngine"
     IncludeDir = {}
     IncludeDir["Coco"] = "%{wks.location}\\src\\"
     IncludeDir["uuid_v4"] = "%{wks.location}\\src\\Vendor\\uuid_v4"
+    IncludeDir["yaml_cpp"] = "%{wks.location}\\src\\Vendor\\yaml-cpp\\include"
 
     -- Assets directory
     AssetsDir = "%{wks.location}assets\\"
@@ -211,6 +212,9 @@ workspace "CocoEngine"
             group "Tests"
                 include "tests\\Coco\\Core"
         end
+
+        group "Engine/Third Party"
+            include "src\\Coco\\Third Party\\yaml-cpp"
 
         group "Example Apps"
             include "exampleapps\\Sandbox"

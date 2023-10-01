@@ -39,7 +39,7 @@ namespace Coco::Rendering
 		/// @brief The default for this texture
 		DefaultTextureType DefaultTexture;
 
-		ShaderTextureUniform(const string& name, ShaderStageFlags bindPoints, DefaultTextureType defaultTexture = DefaultTextureType::White);
+		ShaderTextureUniform(const string& name, ShaderStageFlags bindPoints, DefaultTextureType defaultTexture);
 
 		bool operator==(const ShaderTextureUniform& other) const;
 	};

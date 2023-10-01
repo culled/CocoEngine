@@ -30,8 +30,8 @@ namespace Coco::Rendering
 		ColorSourceFactor(colorSrcFactor),
 		ColorDestinationFactor(colorDstFactor),
 		ColorBlendOperation(colorOp),
-		AlphaSourceBlendFactor(alphaSrcFactor),
-		AlphaDestinationBlendFactor(alphaDstFactor),
+		AlphaSourceFactor(alphaSrcFactor),
+		AlphaDestinationFactor(alphaDstFactor),
 		AlphaBlendOperation(alphaOp)
 	{}
 
@@ -40,8 +40,8 @@ namespace Coco::Rendering
 		return ColorSourceFactor == other.ColorSourceFactor &&
 			ColorDestinationFactor == other.ColorDestinationFactor &&
 			ColorBlendOperation == other.ColorBlendOperation &&
-			AlphaSourceBlendFactor == other.AlphaSourceBlendFactor &&
-			AlphaDestinationBlendFactor == other.AlphaDestinationBlendFactor &&
+			AlphaSourceFactor == other.AlphaSourceFactor &&
+			AlphaDestinationFactor == other.AlphaDestinationFactor &&
 			AlphaBlendOperation == other.AlphaBlendOperation;
 	}
 
@@ -51,8 +51,8 @@ namespace Coco::Rendering
 			static_cast<uint64>(ColorSourceFactor),
 			static_cast<uint64>(ColorDestinationFactor),
 			static_cast<uint64>(ColorBlendOperation),
-			static_cast<uint64>(AlphaSourceBlendFactor),
-			static_cast<uint64>(AlphaDestinationBlendFactor),
+			static_cast<uint64>(AlphaSourceFactor),
+			static_cast<uint64>(AlphaDestinationFactor),
 			static_cast<uint64>(AlphaBlendOperation));
 	}
 

@@ -157,8 +157,8 @@ namespace Coco::Rendering::Vulkan
 			blendState.srcColorBlendFactor = ToVkBlendFactor(state.ColorSourceFactor);
 			blendState.dstColorBlendFactor = ToVkBlendFactor(state.ColorDestinationFactor);
 			blendState.colorBlendOp = ToVkBlendOp(state.ColorBlendOperation);
-			blendState.srcAlphaBlendFactor = ToVkBlendFactor(state.AlphaSourceBlendFactor);
-			blendState.dstAlphaBlendFactor = ToVkBlendFactor(state.AlphaDestinationBlendFactor);
+			blendState.srcAlphaBlendFactor = ToVkBlendFactor(state.AlphaSourceFactor);
+			blendState.dstAlphaBlendFactor = ToVkBlendFactor(state.AlphaDestinationFactor);
 			blendState.alphaBlendOp = ToVkBlendOp(state.AlphaBlendOperation);
 		}
 

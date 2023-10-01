@@ -46,8 +46,8 @@ namespace Coco
 				return false;
 		}
 
-		File f = efs.OpenFile(contentPath, FileOpenFlags::Read);
-		std::vector<uint8> data = f.ReadToEnd();
+		File f = efs.OpenFile(contentPath, FileOpenFlags::Read | FileOpenFlags::Text);
+		string data = f.ReadTextToEnd();
 		f.Close();
 
 		ResourceID id = _idGenerator();
@@ -80,9 +80,9 @@ namespace Coco
 
 		try
 		{
-			std::vector<uint8> data = serializer->Serialize(resource);
+			string data = serializer->Serialize(resource);
 
-			File f = efs.OpenFile(contentPath, FileOpenFlags::Write);
+			File f = efs.OpenFile(contentPath, FileOpenFlags::Write | FileOpenFlags::Text);
 			f.Write(data);
 			f.Close();
 

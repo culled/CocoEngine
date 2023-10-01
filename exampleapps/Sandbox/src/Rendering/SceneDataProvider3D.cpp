@@ -52,43 +52,58 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	
 	GraphicsPipelineState pipelineState{};
 
-	_shader = resourceLibrary.Create<Shader>("Shader", "");
-	_shader->AddRenderPassShader(
-		RenderPassShader(
-			_shader->GetID(),
-			"basic",
-			{
-				ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Lit.vert.spv"),
-				ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Lit.frag.spv")
-			},
-			pipelineState,
-			{
-				BlendState::Opaque
-			},
+	const EngineFileSystem& fs = Engine::Get()->GetFileSystem();
+
+	const char* shaderFilePath = "shaders/built-in/Lit.cshader";
+	if (fs.FileExists(shaderFilePath))
+	{
+		Ref<Resource> tempShader;
+		Assert(resourceLibrary.GetOrLoad(shaderFilePath, tempShader))
+
+		_shader = static_cast<Ref<Shader>>(tempShader);
+	}
+	else
+	{
+		_shader = resourceLibrary.Create<Shader>("Shader", "");
+		_shader->AddRenderPassShader(
+			RenderPassShader(
+				_shader->GetID(),
+				"basic",
+				{
+					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Lit.vert.spv"),
+					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Lit.frag.spv")
+				},
+				pipelineState,
+				{
+					BlendState::Opaque
+				},
 			{
 				ShaderVertexAttribute("Position", BufferDataType::Float3),
 				ShaderVertexAttribute("Normal", BufferDataType::Float3),
 				ShaderVertexAttribute("Tangent", BufferDataType::Float4),
 				ShaderVertexAttribute("UV", BufferDataType::Float2)
 			},
-			GlobalShaderUniformLayout(),
-			ShaderUniformLayout(
+				GlobalShaderUniformLayout(),
+				ShaderUniformLayout(
+					{
+						ShaderDataUniform("BaseColor", ShaderStageFlags::Fragment, BufferDataType::Float4)
+					},
 				{
-					ShaderDataUniform("BaseColor", ShaderStageFlags::Fragment, BufferDataType::Float4)
-				},
-				{
-					ShaderTextureUniform("BaseTexSampler", ShaderStageFlags::Fragment),
-					ShaderTextureUniform("NormalTexSampler", ShaderStageFlags::Fragment)
+					ShaderTextureUniform("BaseTexSampler", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::White),
+					ShaderTextureUniform("NormalTexSampler", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::Normal)
 				}
-			),
-			ShaderUniformLayout(
-				{
-					ShaderDataUniform("ModelMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
-				},
-				{}
+				),
+				ShaderUniformLayout(
+					{
+						ShaderDataUniform("ModelMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+					},
+					{}
+				)
 			)
-		)
-	);
+		);
+
+		resourceLibrary.Save("shaders/built-in/Lit.cshader", _shader, true);
+	}
 
 	ImageSamplerDescription sampler = ImageSamplerDescription::LinearRepeat;
 	sampler.LODBias = -1.0;

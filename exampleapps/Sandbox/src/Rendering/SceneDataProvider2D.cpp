@@ -44,7 +44,7 @@ SceneDataProvider2D::SceneDataProvider2D() :
 					ShaderDataUniform("BaseColor", ShaderStageFlags::Fragment, BufferDataType::Float4)
 				},
 				{
-					ShaderTextureUniform("BaseTexSampler", ShaderStageFlags::Fragment)
+					ShaderTextureUniform("BaseTexSampler", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::Normal)
 				}
 			),
 			ShaderUniformLayout(

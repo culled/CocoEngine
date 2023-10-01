@@ -1,0 +1,55 @@
+name: Shader
+group tag: ""
+pass shaders:
+  - id: 9929646808729021548
+    pass name: basic
+    stages:
+      - type: 0
+        entry name: main
+        file path: shaders/built-in/Lit.vert.spv
+      - type: 3
+        entry name: main
+        file path: shaders/built-in/Lit.frag.spv
+    pipeline state:
+      topology: 3
+      cull: 1
+      winding: 0
+      fill: 2
+      depth clamping: false
+      depth test: 1
+      depth write: true
+    blend states:
+      - color src factor: 1
+        color dst factor: 0
+        color blend op: 0
+        alpha src factor: 1
+        alpha dst factor: 1
+        alpha blend op: 0
+    vertex attributes:
+      - name: Position
+        type: 2
+      - name: Normal
+        type: 2
+      - name: Tangent
+        type: 3
+      - name: UV
+        type: 1
+    instance layout:
+      data uniforms:
+        - name: BaseColor
+          binding points: 8
+          type: 3
+      texture uniforms:
+        - name: BaseTexSampler
+          binding points: 8
+          default: 0
+        - name: NormalTexSampler
+          binding points: 8
+          default: 2
+    draw layout:
+      data uniforms:
+        - name: ModelMatrix
+          binding points: 1
+          type: 4
+      texture uniforms:
+        []  # Fix

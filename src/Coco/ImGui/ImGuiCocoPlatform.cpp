@@ -781,7 +781,7 @@ namespace Coco::ImGuiCoco
                 ShaderUniformLayout(
                     {},
                     {
-                        ShaderTextureUniform("FontTexture", ShaderStageFlags::Fragment)
+                        ShaderTextureUniform("FontTexture", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::Checker)
                     }),
                 {}
             )

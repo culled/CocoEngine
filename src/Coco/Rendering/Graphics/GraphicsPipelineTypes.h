@@ -106,10 +106,10 @@ namespace Coco::Rendering
 		BlendOperation ColorBlendOperation;
 
 		/// @brief The blend factor for the alpha source
-		BlendFactorMode AlphaSourceBlendFactor;
+		BlendFactorMode AlphaSourceFactor;
 
 		/// @brief The blend factor for the alpha destination
-		BlendFactorMode AlphaDestinationBlendFactor;
+		BlendFactorMode AlphaDestinationFactor;
 
 		/// @brief The operation to use for combining the source and destination alphas
 		BlendOperation AlphaBlendOperation;

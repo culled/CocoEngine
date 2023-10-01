@@ -74,7 +74,7 @@ project "Sandbox"
             "COCO_LOG_WARNING",
         }
 
-        debugargs { "--show-console" }
+        debugargs { "--show-console", "--content-path=%{wks.location}assets" }
         debugdir "%{TargetDir}"
 
         runtime "Debug"

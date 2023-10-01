@@ -24,12 +24,12 @@ namespace Coco
 		/// @brief Serializes the given resource into binary data
 		/// @param resource The resource
 		/// @return The serialized data
-		virtual std::vector<uint8> Serialize(Ref<Resource> resource) = 0;
+		virtual string Serialize(Ref<Resource> resource) = 0;
 
 		/// @brief Deserializes a resource from the given data
 		/// @param resourceID The id for the resource
 		/// @param data The serialized resource data
 		/// @return A resource
-		virtual ManagedRef<Resource> Deserialize(const ResourceID& resourceID, std::span<const uint8> data) = 0;
+		virtual ManagedRef<Resource> Deserialize(const ResourceID& resourceID, const string& data) = 0;
 	};
 }
