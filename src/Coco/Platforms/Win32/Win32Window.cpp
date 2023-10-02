@@ -506,6 +506,11 @@ namespace Coco::Platforms::Win32
 				{
 					CocoError("Error invoking Win32Window::OnFocusChanged: {}", ex.what())
 				}
+
+				// Release the mouse if we captured it
+				if (!focused && ::GetCapture() == _handle)
+					::ReleaseCapture();
+
 				return true;
 			}
 			case WM_LBUTTONDOWN:
