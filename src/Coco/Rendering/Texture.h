@@ -11,6 +11,8 @@ namespace Coco::Rendering
 	/// @brief Holds an image and an image sampler
 	class Texture : public RendererResource
 	{
+		friend class TextureSerializer;
+
 	private:
 		uint64 _version;
 		Ref<Image> _image;

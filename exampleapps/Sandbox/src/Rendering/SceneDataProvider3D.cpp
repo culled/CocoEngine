@@ -102,14 +102,40 @@ SceneDataProvider3D::SceneDataProvider3D() :
 			)
 		);
 
-		resourceLibrary.Save("shaders/built-in/Lit.cshader", _shader, true);
+		resourceLibrary.Save(shaderFilePath, _shader, true);
 	}
 
 	ImageSamplerDescription sampler = ImageSamplerDescription::LinearRepeat;
 	sampler.LODBias = -1.0;
 	sampler.MaxAnisotropy = 16;
-	_texture = resourceLibrary.Create<Texture>("Texture", "assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
-	_normalTexture = resourceLibrary.Create<Texture>("Normal Texture", "assets/textures/LargeBlocks_N.png", ImageColorSpace::Linear, ImageUsageFlags::Sampled, sampler);
+
+	const char* colorTexFilePath = "textures/LargeBlocks.ctexture";
+	if (fs.FileExists(colorTexFilePath))
+	{
+		Ref<Resource> tempTexture;
+		Assert(resourceLibrary.GetOrLoad(colorTexFilePath, tempTexture))
+
+		_texture = static_cast<Ref<Texture>>(tempTexture);
+	}
+	else
+	{
+		_texture = resourceLibrary.Create<Texture>("LargeBlocks", "assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
+		resourceLibrary.Save(colorTexFilePath, _texture, true);
+	}
+
+	const char* normalTexFilePath = "textures/LargeBlocks_N.ctexture";
+	if (fs.FileExists(normalTexFilePath))
+	{
+		Ref<Resource> tempTexture;
+		Assert(resourceLibrary.GetOrLoad(normalTexFilePath, tempTexture))
+
+		_normalTexture = static_cast<Ref<Texture>>(tempTexture);
+	}
+	else
+	{
+		_normalTexture = resourceLibrary.Create<Texture>("LargeBlocks_N", "assets/textures/LargeBlocks_N.png", ImageColorSpace::Linear, ImageUsageFlags::Sampled, sampler);
+		resourceLibrary.Save(normalTexFilePath, _normalTexture, true);
+	}
 
 	_material = resourceLibrary.Create<Material>("Material", _shader);
 	_material->SetShader(_shader);

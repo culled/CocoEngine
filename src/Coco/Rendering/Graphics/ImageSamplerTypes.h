@@ -79,5 +79,10 @@ namespace Coco::Rendering
 		double LODBias;
 
 		ImageSamplerDescription(ImageFilterMode filterMode, ImageRepeatMode repeatMode, MipMapFilterMode mipMapFilterMode, uint8 maxAnisotropy);
+		ImageSamplerDescription(ImageFilterMode minimizeFilter, ImageFilterMode magnifyFilter, 
+			ImageRepeatMode repeatModeU, ImageRepeatMode repeatModeV, ImageRepeatMode repeatModeW, 
+			MipMapFilterMode mipMapFilterMode, 
+			uint8 maxAnisotropy,
+			uint32 minLOD, uint32 maxLOD, double lodBias);
 	};
 }

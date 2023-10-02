@@ -15,15 +15,28 @@ namespace Coco::Rendering
 		ImageRepeatMode repeatMode, 
 		MipMapFilterMode mipMapFilterMode,
 		uint8 maxAnisotropy) :
-		MinimizeFilter(filterMode),
-		MagnifyFilter(filterMode),
-		RepeatModeU(repeatMode),
-		RepeatModeV(repeatMode),
-		RepeatModeW(repeatMode),
+		ImageSamplerDescription(filterMode, filterMode,
+			repeatMode, repeatMode, repeatMode,
+			mipMapFilterMode,
+			maxAnisotropy,
+			0, 0, 0.0)
+	{}
+
+	ImageSamplerDescription::ImageSamplerDescription(
+		ImageFilterMode minimizeFilter, ImageFilterMode magnifyFilter, 
+		ImageRepeatMode repeatModeU, ImageRepeatMode repeatModeV, ImageRepeatMode repeatModeW, 
+		MipMapFilterMode mipMapFilterMode, 
+		uint8 maxAnisotropy, 
+		uint32 minLOD, uint32 maxLOD, double lodBias) :
+		MinimizeFilter(minimizeFilter),
+		MagnifyFilter(magnifyFilter),
+		RepeatModeU(repeatModeU),
+		RepeatModeV(repeatModeV),
+		RepeatModeW(repeatModeW),
 		MipMapFilter(mipMapFilterMode),
 		MaxAnisotropy(maxAnisotropy),
-		MinLOD(0),
-		MaxLOD(0),
-		LODBias(0.0)
+		MinLOD(minLOD),
+		MaxLOD(maxLOD),
+		LODBias(lodBias)
 	{}
 }

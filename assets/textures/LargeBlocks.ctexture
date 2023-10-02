@@ -1,9 +1,23 @@
-version=1
-id=da149cb0-5ffd-44aa-8b4f-5e5ff95b03ff
-name=Large Blocks
-imageFile=textures/LargeBlocks.png
-usageFlags=7
-filterMode=1
-repeatMode=0
-maxAnisotropy=16
-colorSpace=0
+name: LargeBlocks
+image file: assets/textures/LargeBlocks.png
+image description:
+  width: 1024
+  height: 1024
+  depth: 1
+  layers: 1
+  pixel format: 0
+  color space: 0
+  mipmaps: true
+  usage flags: 7
+  sample count: 0
+sampler description:
+  minimize filter: 1
+  magnify filter: 1
+  repeat U: 0
+  repeat V: 0
+  repeat W: 0
+  mipmap filter: 1
+  max anisotropy: 16
+  min lod: 0
+  max lod: 11
+  lod bias: -1  # Fix
