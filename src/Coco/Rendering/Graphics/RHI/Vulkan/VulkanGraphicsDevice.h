@@ -122,6 +122,7 @@ namespace Coco::Rendering::Vulkan
 		Ref<Buffer> CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind) final;
 		Ref<Image> CreateImage(const ImageDescription& description) final;
 		Ref<ImageSampler> CreateImageSampler(const ImageSamplerDescription& description) final;
+		Ref<RenderContext> CreateRenderContext() final;
 		void PurgeUnusedResources() final;
 		void ResetForNewFrame() final;
 

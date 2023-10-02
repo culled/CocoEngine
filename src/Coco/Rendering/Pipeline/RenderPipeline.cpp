@@ -18,7 +18,7 @@ namespace Coco::Rendering
 		_renderPasses.clear();
 	}
 
-	bool RenderPipeline::AddRenderPass(SharedRef<RenderPass> renderPass, std::span<uint8> bindingIndices)
+	bool RenderPipeline::AddRenderPass(SharedRef<RenderPass> renderPass, std::span<const uint8> bindingIndices)
 	{
 		std::span<const AttachmentFormat> passInputAttachments = renderPass->GetInputAttachments();
 

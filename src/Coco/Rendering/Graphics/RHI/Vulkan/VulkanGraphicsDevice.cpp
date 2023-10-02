@@ -4,6 +4,7 @@
 #include "VulkanBuffer.h"
 #include "VulkanImage.h"
 #include "VulkanImageSampler.h"
+#include "VulkanRenderContext.h"
 #include "../../GraphicsDeviceResource.h"
 
 #include <Coco/Core/Core.h>
@@ -151,6 +152,11 @@ namespace Coco::Rendering::Vulkan
 	Ref<ImageSampler> VulkanGraphicsDevice::CreateImageSampler(const ImageSamplerDescription& description)
 	{
 		return _resources.Create<VulkanImageSampler>(description);
+	}
+
+	Ref<RenderContext> VulkanGraphicsDevice::CreateRenderContext()
+	{
+		return _resources.Create<VulkanRenderContext>();
 	}
 
 	void VulkanGraphicsDevice::ResetForNewFrame()

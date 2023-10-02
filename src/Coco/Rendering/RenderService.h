@@ -29,6 +29,7 @@ namespace Coco::Rendering
 		/// @brief The presenter, if any, linked to this task
 		Ref<GraphicsPresenter> Presenter;
 
+		RenderServiceRenderTask(Ref<RenderContext> context);
 		RenderServiceRenderTask(Ref<RenderContext> context, Ref<GraphicsPresenter> presenter);
 	};
 
@@ -54,6 +55,7 @@ namespace Coco::Rendering
 		UniqueRef<TickListener> _lateTickListener;
 		std::unordered_map<uint64, std::vector<RenderServiceRenderTask>> _renderTasks;
 		std::vector<RenderContextRenderStats> _individualRenderStats;
+		std::vector<Ref<RenderContext>> _renderContextCache;
 
 		// TODO: when adding multithreaded rendering, support a RenderView pool
 		RenderView _renderView;
@@ -98,19 +100,61 @@ namespace Coco::Rendering
 		/// @return The stats for each render
 		std::span<const RenderContextRenderStats> GetIndividualRenderStats() const { return _individualRenderStats; }
 
-		/// @brief Performs a render
+		/// @brief Performs a render to a GraphicsPresenter's backbuffer
 		/// @param presenter The presenter to render with
 		/// @param pipeline The pipeline to render with
 		/// @param renderViewProvider The provider for the RenderView
 		/// @param sceneDataProviders The providers for the scene data
 		/// @param dependsOn If given, this render will occur after the render associated with the given task
-		/// @return A task that can be used for render synchronization
-		RenderTask Render(
+		/// @param outTask If given, will be filled out with information that can be used for render synchronization
+		/// @return True if the render was successful
+		bool Render(
 			Ref<GraphicsPresenter> presenter, 
 			RenderPipeline& pipeline, 
 			RenderViewProvider& renderViewProvider, 
 			std::span<SceneDataProvider*> sceneDataProviders,
-			std::optional<RenderTask> dependsOn = std::optional<RenderTask>());
+			std::optional<RenderTask> dependsOn = std::optional<RenderTask>(),
+			RenderTask* outTask = nullptr);
+
+		/// @brief Performs a render using a list of predefined images
+		/// @param rendererID The id of the renderer
+		/// @param framebuffers The images to render to
+		/// @param pipeline The pipeline to render with
+		/// @param renderViewProvider The provider for the RenderView
+		/// @param sceneDataProviders The providers for the scene data
+		/// @param dependsOn If given, this render will occur after the render associated with the given task
+		/// @param outTask If given, will be filled out with information that can be used for render synchronization
+		/// @return True if the render was successful
+		bool Render(
+			uint64 rendererID,
+			std::span<Ref<Image>> framebuffers,
+			RenderPipeline& pipeline,
+			RenderViewProvider& renderViewProvider,
+			std::span<SceneDataProvider*> sceneDataProviders,
+			std::optional<RenderTask> dependsOn = std::optional<RenderTask>(),
+			RenderTask* outTask = nullptr);
+
+		/// @brief Performs a render
+		/// @param rendererID The ID of the renderer
+		/// @param compiledPipeline The pipeline to use
+		/// @param framebuffers The images to render to
+		/// @param framebufferSize The size of the frambuffer
+		/// @param renderContext The render context to use
+		/// @param renderViewProvider The provider for the RenderView
+		/// @param sceneDataProviders The providers for the scene data
+		/// @param dependsOn If given, this render will occur after the render associated with the given task
+		/// @param outTask If given, will be filled out with information that can be used for render synchronization
+		/// @return True if the render was successful
+		bool Render(
+			uint64 rendererID,
+			CompiledRenderPipeline& compiledPipeline,
+			std::span<Ref<Image>> framebuffers,
+			const SizeInt& framebufferSize,
+			Ref<RenderContext> renderContext,
+			RenderViewProvider& renderViewProvider,
+			std::span<SceneDataProvider*> sceneDataProviders,
+			std::optional<RenderTask> dependsOn = std::optional<RenderTask>(),
+			RenderTask* outTask = nullptr);
 
 	private:
 		/// @brief Performs rendering
@@ -141,5 +185,9 @@ namespace Coco::Rendering
 		/// @brief Handles the late tick
 		/// @param tickInfo The current tick info
 		void HandleLateTick(const TickInfo& tickInfo);
+
+		/// @brief Gets/creates a RenderContext that can be used for rendering
+		/// @return A RenderContext
+		Ref<RenderContext> GetReadyRenderContext();
 	};
 }

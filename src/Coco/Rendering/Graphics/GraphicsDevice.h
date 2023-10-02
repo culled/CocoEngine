@@ -14,6 +14,7 @@ namespace Coco::Rendering
 	class ImageSampler;
 	struct ImageSamplerDescription;
 	class GraphicsPresenter;
+	class RenderContext;
 
 	/// @brief A device that can perform graphics operations
 	class GraphicsDevice
@@ -83,6 +84,10 @@ namespace Coco::Rendering
 		/// @param description The sampler description
 		/// @return The image sampler
 		virtual Ref<ImageSampler> CreateImageSampler(const ImageSamplerDescription& description) = 0;
+
+		/// @brief Creates a RenderContext
+		/// @return The render context
+		virtual Ref<RenderContext> CreateRenderContext() = 0;
 
 		/// @brief Purges any resources that are no longer in use
 		virtual void PurgeUnusedResources() = 0;
