@@ -21,15 +21,21 @@ namespace Coco
 		/// @return True if this serializer supports the resource type
 		virtual bool SupportsResourceType(const std::type_index& type) const = 0;
 
+		/// @brief Gets the type of resource for the associated file extension
+		/// @param extension The extension (including the ".")
+		/// @return The resource type
+		virtual const std::type_index GetResourceTypeForExtension(const string& extension) const = 0;
+
 		/// @brief Serializes the given resource into binary data
 		/// @param resource The resource
 		/// @return The serialized data
 		virtual string Serialize(Ref<Resource> resource) = 0;
 
 		/// @brief Deserializes a resource from the given data
+		/// @param type The type of resource to deserialize
 		/// @param resourceID The id for the resource
 		/// @param data The serialized resource data
 		/// @return A resource
-		virtual ManagedRef<Resource> Deserialize(const ResourceID& resourceID, const string& data) = 0;
+		virtual ManagedRef<Resource> Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data) = 0;
 	};
 }

@@ -90,6 +90,11 @@ namespace Coco::Rendering
 		/// @return The key
 		static UniformKey MakeKey(const char* name);
 
+		/// @brief Makes a uniform key from a name
+		/// @param name The uniform name
+		/// @return The key
+		static UniformKey MakeKey(const string& name);
+
 		/// @brief Convertes a Vector2 into a float2
 		/// @param v The vector
 		/// @return The float2

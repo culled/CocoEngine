@@ -18,6 +18,11 @@ namespace Coco::Rendering
 		return type == typeid(Shader);
 	}
 
+	const std::type_index ShaderSerializer::GetResourceTypeForExtension(const string& extension) const
+	{
+		return typeid(Shader);
+	}
+
 	string ShaderSerializer::Serialize(Ref<Resource> resource)
 	{
 		const Shader* shader = dynamic_cast<const Shader*>(resource.Get());
@@ -45,7 +50,7 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	ManagedRef<Resource> ShaderSerializer::Deserialize(const ResourceID& resourceID, const string& data)
+	ManagedRef<Resource> ShaderSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
 	{
 		YAML::Node shaderNode = YAML::Load(data);
 

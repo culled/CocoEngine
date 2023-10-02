@@ -10,6 +10,8 @@ namespace Coco::Rendering
 		public RendererResource,
 		public MaterialDataProvider
 	{
+		friend class MaterialSerializer;
+
 	private:
 		Ref<Material> _baseMaterial;
 		ShaderUniformData _uniformData;

@@ -178,6 +178,25 @@ namespace Coco
 		/// @return True if the resource was loaded/retrieved
 		bool GetOrLoad(const string& contentPath, Ref<Resource>& outResource);
 
+		/// @brief Gets/loads a resource at the given content path. Throws if the resource is not derived ResourceType
+		/// @tparam ResourceType The type of resource that should be returned
+		/// @param contentPath The path of the resource
+		/// @return The resource
+		template<typename ResourceType>
+		Ref<ResourceType> GetOrLoad(const string& contentPath)
+		{
+			Ref<Resource> tempResource;
+			Assert(GetOrLoad(contentPath, tempResource))
+
+			if (ResourceType* resource = dynamic_cast<ResourceType*>(tempResource.Get()))
+			{
+				return static_cast<Ref<ResourceType>>(tempResource);
+			}
+
+			string err = FormatString("Resource was not of type {}", typeid(ResourceType).name());
+			throw std::exception(err.c_str());
+		}
+
 		/// @brief Saves a resource to a file
 		/// @param contentPath The path of the file to save
 		/// @param resource The resource to save
@@ -193,8 +212,9 @@ namespace Coco
 
 		/// @brief Gets a ResourceSerializer that supports the given file type
 		/// @param contentPath The path to the file
+		/// @param outType Will be set to the resource type if a serializer was found
 		/// @return A resource serializer, or nullptr if no serializer supports the file type
-		ResourceSerializer* GetSerializerForFileType(const string& contentPath);
+		ResourceSerializer* GetSerializerForFileType(const string& contentPath, std::type_index& outType);
 
 		/// @brief Finds a resource with the given content path
 		/// @param contentPath The content path

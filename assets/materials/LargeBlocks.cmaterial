@@ -1,0 +1,8 @@
+name: Material
+shader path: shaders/built-in/Lit.cshader
+uniforms:
+  float4s:
+    3904591900938973999: [1, 1, 1, 1]
+  textures:
+    6945396204586470123: textures/LargeBlocks.ctexture
+    2939578869755250485: textures/LargeBlocks_N.ctexture  # Fix

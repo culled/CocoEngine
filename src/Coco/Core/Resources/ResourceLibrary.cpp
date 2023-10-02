@@ -38,7 +38,8 @@ namespace Coco
 			return false;
 		}
 
-		ResourceSerializer* serializer = GetSerializerForFileType(contentPath);
+		std::type_index resourceType = typeid(nullptr);
+		ResourceSerializer* serializer = GetSerializerForFileType(contentPath, resourceType);
 
 		if (!serializer)
 		{
@@ -46,12 +47,14 @@ namespace Coco
 				return false;
 		}
 
+		Assert(resourceType != typeid(nullptr))
+
 		File f = efs.OpenFile(contentPath, FileOpenFlags::Read | FileOpenFlags::Text);
 		string data = f.ReadTextToEnd();
 		f.Close();
 
 		ResourceID id = _idGenerator();
-		it = _resources.try_emplace(id, serializer->Deserialize(id, data)).first;
+		it = _resources.try_emplace(id, serializer->Deserialize(resourceType, id, data)).first;
 		
 		ManagedRef<Resource>& resource = it->second;
 		resource->_contentPath = contentPath;
@@ -70,7 +73,8 @@ namespace Coco
 			return false;
 		}
 
-		ResourceSerializer* serializer = GetSerializerForFileType(contentPath);
+		std::type_index resourceType = typeid(nullptr);
+		ResourceSerializer* serializer = GetSerializerForFileType(contentPath, resourceType);
 
 		if (!serializer)
 		{
@@ -85,6 +89,8 @@ namespace Coco
 			File f = efs.OpenFile(contentPath, FileOpenFlags::Write | FileOpenFlags::Text);
 			f.Write(data);
 			f.Close();
+
+			resource->_contentPath = contentPath;
 
 			return true;
 		}
@@ -108,7 +114,7 @@ namespace Coco
 		return it->get();
 	}
 
-	ResourceSerializer* ResourceLibrary::GetSerializerForFileType(const string& contentPath)
+	ResourceSerializer* ResourceLibrary::GetSerializerForFileType(const string& contentPath, std::type_index& outType)
 	{
 		FilePath fp(contentPath);
 		string extension = fp.GetExtension();
@@ -121,7 +127,9 @@ namespace Coco
 		if (it == _serializers.end())
 			return nullptr;
 
-		return it->get();
+		ResourceSerializer* serializer = it->get();
+		outType = serializer->GetResourceTypeForExtension(extension);
+		return serializer;
 	}
 
 	ResourceLibrary::ResourceMap::iterator ResourceLibrary::FindResource(const string& contentPath)

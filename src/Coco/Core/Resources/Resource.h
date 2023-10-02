@@ -50,6 +50,10 @@ namespace Coco
 		/// @return This resource's name
 		const string& GetName() const { return _name; }
 
+		/// @brief Gets the content path of this resource, if it is associated with a file
+		/// @return This resource's content path
+		const string& GetContentPath() const { return _contentPath; }
+
 	protected:
 		/// @brief Sets the version of this resource
 		/// @param version The new version

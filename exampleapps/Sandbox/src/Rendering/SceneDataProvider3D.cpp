@@ -57,10 +57,7 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	const char* shaderFilePath = "shaders/built-in/Lit.cshader";
 	if (fs.FileExists(shaderFilePath))
 	{
-		Ref<Resource> tempShader;
-		Assert(resourceLibrary.GetOrLoad(shaderFilePath, tempShader))
-
-		_shader = static_cast<Ref<Shader>>(tempShader);
+		_shader = resourceLibrary.GetOrLoad<Shader>(shaderFilePath);
 	}
 	else
 	{
@@ -112,10 +109,7 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	const char* colorTexFilePath = "textures/LargeBlocks.ctexture";
 	if (fs.FileExists(colorTexFilePath))
 	{
-		Ref<Resource> tempTexture;
-		Assert(resourceLibrary.GetOrLoad(colorTexFilePath, tempTexture))
-
-		_texture = static_cast<Ref<Texture>>(tempTexture);
+		_texture = resourceLibrary.GetOrLoad<Texture>(colorTexFilePath);
 	}
 	else
 	{
@@ -126,10 +120,7 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	const char* normalTexFilePath = "textures/LargeBlocks_N.ctexture";
 	if (fs.FileExists(normalTexFilePath))
 	{
-		Ref<Resource> tempTexture;
-		Assert(resourceLibrary.GetOrLoad(normalTexFilePath, tempTexture))
-
-		_normalTexture = static_cast<Ref<Texture>>(tempTexture);
+		_normalTexture = resourceLibrary.GetOrLoad<Texture>(normalTexFilePath);
 	}
 	else
 	{
@@ -137,11 +128,21 @@ SceneDataProvider3D::SceneDataProvider3D() :
 		resourceLibrary.Save(normalTexFilePath, _normalTexture, true);
 	}
 
-	_material = resourceLibrary.Create<Material>("Material", _shader);
-	_material->SetShader(_shader);
-	_material->SetFloat4("BaseColor", Color::White);
-	_material->SetTexture("BaseTexSampler", _texture);
-	_material->SetTexture("NormalTexSampler", _normalTexture);
+	const char* materialFilePath = "materials/LargeBlocks.cmaterial";
+	if (fs.FileExists(materialFilePath))
+	{
+		_material = resourceLibrary.GetOrLoad<Material>(materialFilePath);
+	}
+	else
+	{
+		_material = resourceLibrary.Create<Material>("Material", _shader);
+		_material->SetShader(_shader);
+		_material->SetFloat4("BaseColor", Color::White);
+		_material->SetTexture("BaseTexSampler", _texture);
+		_material->SetTexture("NormalTexSampler", _normalTexture);
+
+		resourceLibrary.Save(materialFilePath, _material, true);
+	}
 }
 
 void SceneDataProvider3D::SetDrawBounds(bool drawBounds)

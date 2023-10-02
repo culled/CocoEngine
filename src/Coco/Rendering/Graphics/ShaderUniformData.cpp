@@ -32,6 +32,11 @@ namespace Coco::Rendering
 		return stringHash(view);
 	}
 
+	ShaderUniformData::UniformKey ShaderUniformData::MakeKey(const string& name)
+	{
+		return stringHash(name);
+	}
+
 	ShaderUniformData::Mat4x4 ShaderUniformData::ToMat4x4(const Matrix4x4& v) { return v.AsFloatArray(); }
 
 	void ShaderUniformData::Clear()

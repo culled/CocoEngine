@@ -19,6 +19,11 @@ namespace Coco::Rendering
 		return type == typeid(Texture);
 	}
 
+	const std::type_index TextureSerializer::GetResourceTypeForExtension(const string& extension) const
+	{
+		return typeid(Texture);
+	}
+
 	string TextureSerializer::Serialize(Ref<Resource> resource)
 	{
 		const Texture* texture = dynamic_cast<const Texture*>(resource.Get());
@@ -45,7 +50,7 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	ManagedRef<Resource> TextureSerializer::Deserialize(const ResourceID& resourceID, const string& data)
+	ManagedRef<Resource> TextureSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
 	{
 		YAML::Node baseNode = YAML::Load(data);
 		string name = baseNode["name"].as<string>();

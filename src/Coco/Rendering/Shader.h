@@ -9,6 +9,8 @@ namespace Coco::Rendering
 	/// @brief Defines how geometry gets rendered
 	class Shader : public RendererResource
 	{
+		friend class ShaderSerializer;
+
 	private:
 		string _groupTag;
 		std::vector<RenderPassShader> _passShaders;
