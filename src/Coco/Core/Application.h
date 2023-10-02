@@ -55,12 +55,12 @@ namespace Coco
 		/// @brief Called after the engine has completed initialization and right before the main loop starts
 		virtual void Start() {}
 	};
+
+	/// @brief Creates an application instance.
+	/// NOTE: This should be defined somewhere in the application itself
+	/// @return The application
+	Application* CreateApplication();
 }
 
-/// @brief Creates an application instance.
-/// NOTE: This should be defined somewhere in the application itself
-/// @return The application
-Coco::Application* CreateApplication();
-
 /// @brief Basic macro for defining an application class type
-#define MainApplication(AppClass) Coco::Application* CreateApplication() { return new AppClass(); }
+#define MainApplication(AppClass) Coco::Application* Coco::CreateApplication() { return new AppClass(); }
