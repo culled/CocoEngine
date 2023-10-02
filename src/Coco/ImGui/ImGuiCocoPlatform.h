@@ -68,6 +68,7 @@ namespace Coco::ImGuiCoco
 		static std::unordered_map<uint64, CocoViewportData> _sViewports;
 
 		std::vector<Windowing::DisplayInfo> _displays;
+		bool _shouldUpdateDisplays;
 		Ref<Shader> _shader;
 		Ref<Material> _material;
 		Ref<Mesh> _mesh;

@@ -291,7 +291,8 @@ namespace Coco::ImGuiCoco
 
     ImGuiCocoPlatform::ImGuiCocoPlatform(bool enableViewports) :
         _renderPass(CreateSharedRef<ImGuiRenderPass>()),
-        _currentlyRenderingViewport(nullptr)
+        _currentlyRenderingViewport(nullptr),
+        _shouldUpdateDisplays(true)
     {
         _sViewports = std::unordered_map<uint64, CocoViewportData>();
 
@@ -316,7 +317,6 @@ namespace Coco::ImGuiCoco
         }
 
         CreateObjects();
-        UpdateDisplays();
     }
 
     ImGuiCocoPlatform::~ImGuiCocoPlatform()
@@ -482,6 +482,9 @@ namespace Coco::ImGuiCoco
 
 		ImGuiIO& io = ::ImGui::GetIO();
 
+        if(_shouldUpdateDisplays)
+            UpdateDisplays();
+
 		// Add basic info
 		io.DeltaTime = static_cast<float>(tickInfo.UnscaledDeltaTime);
 
@@ -543,14 +546,17 @@ namespace Coco::ImGuiCoco
     {
         Assert(viewport->PlatformHandle)
 
-            using namespace Coco::Rendering;
+        using namespace Coco::Rendering;
         using namespace Coco::Windowing;
+
+        Window* window = static_cast<Window*>(viewport->PlatformHandle);
+
+        if (!window->IsVisible())
+            return;
 
         RenderService* rendering = RenderService::Get();
         if (!rendering)
             throw std::exception("No active RenderService found");
-
-        Window* window = static_cast<Window*>(viewport->PlatformHandle);
 
         _currentlyRenderingViewport = viewport;
 
@@ -842,5 +848,7 @@ namespace Coco::ImGuiCoco
             monitor.PlatformHandle = static_cast<void*>(&display);
             platformIO.Monitors.push_back(monitor);
         }
+
+        _shouldUpdateDisplays = false;
     }
 }
