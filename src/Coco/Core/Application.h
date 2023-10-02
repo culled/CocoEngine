@@ -13,6 +13,9 @@ namespace Coco
 		/// @brief The version of the application
 		Version Version;
 
+		/// @brief The minimum message severity for a log message to be logged
+		LogMessageSeverity LogSeverity;
+
 		ApplicationCreateParameters(const string& name, const Coco::Version& version);
 	};
 

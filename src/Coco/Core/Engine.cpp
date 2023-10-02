@@ -14,7 +14,7 @@ namespace Coco
 		_exitCode(0)
 	{
 		_platform = platformFactory.Create();
-		_log = CreateUniqueRef<Log>("Coco", LogMessageSeverity::Trace);
+		_log = CreateUniqueRef<Log>("Coco", LogMessageSeverity::Info);
 
 		SetupFromProcessArguments();
 

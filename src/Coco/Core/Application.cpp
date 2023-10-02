@@ -6,12 +6,13 @@ namespace Coco
 {
 	ApplicationCreateParameters::ApplicationCreateParameters(const string& name, const Coco::Version& version):
 		Name(name), 
-		Version(version)
+		Version(version),
+		LogSeverity(LogMessageSeverity::Info)
 	{}
 
 	Application::Application(const ApplicationCreateParameters& createParams) :
 		_createParams(createParams),
-		_log(CreateUniqueRef<Log>(createParams.Name, LogMessageSeverity::Trace))
+		_log(CreateUniqueRef<Log>(createParams.Name, createParams.LogSeverity))
 	{
 		Engine::cGet()->GetLog().CopySinksTo(*_log);
 	}
