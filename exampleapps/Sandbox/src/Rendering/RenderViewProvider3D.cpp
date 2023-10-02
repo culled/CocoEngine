@@ -12,6 +12,7 @@ RenderViewProvider3D::RenderViewProvider3D(AttachmentCache& attachmentCache) :
     _clearColor(Color(0.1, 0.2, 0.3, 1.0)),
     _msaaSamples(MSAASamples::Four),
     _cameraTransform(),
+    _mouseSensitivity(0.005),
     _tickListener(this, &RenderViewProvider3D::Tick, 0),
     _attachmentCache(attachmentCache)
 {

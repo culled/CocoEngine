@@ -15,7 +15,7 @@ private:
 	Color _clearColor;
 	MSAASamples _msaaSamples;
 	Transform3D _cameraTransform;
-	double _mouseSensitivity = 0.01;
+	double _mouseSensitivity;
 	TickListener _tickListener;
 
 public:
