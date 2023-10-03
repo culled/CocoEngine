@@ -2,7 +2,7 @@
 
 #include "RendererResource.h"
 #include <Coco/Core/Types/String.h>
-#include "Graphics/RenderPassShader.h"
+#include "Graphics/ShaderVariant.h"
 
 namespace Coco::Rendering
 {
@@ -13,7 +13,7 @@ namespace Coco::Rendering
 
 	private:
 		string _groupTag;
-		std::vector<RenderPassShader> _passShaders;
+		std::vector<ShaderVariant> _variants;
 
 	public:
 		Shader(const ResourceID& id, const string& name, const string& groupTag);
@@ -29,18 +29,18 @@ namespace Coco::Rendering
 		/// @return The group tag
 		const string& GetGroupTag() const { return _groupTag; }
 
-		/// @brief Adds a render pass shader to this shader
-		/// @param passShader The pass shader
-		void AddRenderPassShader(RenderPassShader&& passShader);
+		/// @brief Adds a shader variant to this shader
+		/// @param variant The shader variant
+		void AddVariant(ShaderVariant&& variant);
 
-		/// @brief Gets this shader's render pass shaders
-		/// @return A list of render pass shaders
-		std::span<const RenderPassShader> GetRenderPassShaders() const { return _passShaders; }
+		/// @brief Gets this shader's variants
+		/// @return A list of shader variants
+		std::span<const ShaderVariant> GetShaderVariants() const { return _variants; }
 
-		/// @brief Gets a render pass shader if this shader has one for the given pass
-		/// @param renderPassName The name of the render pass
-		/// @param outRenderPassShader Will be set to the RenderPassShader that corresponds to the given render pass name
-		/// @return True if a render pass shader was found for the given render pass name
-		bool TryGetRenderPassShader(const char* renderPassName, const RenderPassShader*& outRenderPassShader) const;
+		/// @brief Tries to get a variant of this shader by name
+		/// @param variantName The name of the variant
+		/// @param outShaderVariant Will be set to the ShaderVariant that corresponds to the given name
+		/// @return True if a shader variant was found for the given name
+		bool TryGetShaderVariant(const char* variantName, const ShaderVariant*& outShaderVariant) const;
 	};
 }

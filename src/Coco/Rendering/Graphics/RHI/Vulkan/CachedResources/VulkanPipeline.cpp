@@ -1,7 +1,7 @@
 #include "Renderpch.h"
 #include "VulkanPipeline.h"
 #include "VulkanRenderPass.h"
-#include "VulkanRenderPassShader.h"
+#include "VulkanShaderVariant.h"
 #include "../VulkanGraphicsDevice.h"
 #include "../VulkanUtils.h"
 #include <Coco/Core/Engine.h>
@@ -10,7 +10,7 @@ namespace Coco::Rendering::Vulkan
 {
 	VulkanPipeline::VulkanPipeline(
 		const VulkanRenderPass& renderPass,
-		const VulkanRenderPassShader& shader,
+		const VulkanShaderVariant& shader,
 		uint32 subpassIndex,
 		const VulkanDescriptorSetLayout* globalLayout) :
 		CachedVulkanResource(MakeKey(renderPass, shader, subpassIndex, globalLayout)),
@@ -27,7 +27,7 @@ namespace Coco::Rendering::Vulkan
 
 	GraphicsDeviceResourceID VulkanPipeline::MakeKey(
 		const VulkanRenderPass& renderPass, 
-		const VulkanRenderPassShader& shader, 
+		const VulkanShaderVariant& shader, 
 		uint32 subpassIndex,
 		const VulkanDescriptorSetLayout* globalLayout)
 	{
@@ -36,14 +36,14 @@ namespace Coco::Rendering::Vulkan
 
 	bool VulkanPipeline::NeedsUpdate(
 		const VulkanRenderPass& renderPass, 
-		const VulkanRenderPassShader& shader)
+		const VulkanShaderVariant& shader)
 	{
 		return _pipeline == nullptr || MakeVersion(renderPass, shader) != _version;
 	}
 
 	void VulkanPipeline::Update(
 		const VulkanRenderPass& renderPass, 
-		const VulkanRenderPassShader& shader, 
+		const VulkanShaderVariant& shader, 
 		uint32 subpassIndex,
 		const VulkanDescriptorSetLayout* globalLayout)
 	{
@@ -53,14 +53,14 @@ namespace Coco::Rendering::Vulkan
 		_version = MakeVersion(renderPass, shader);
 	}
 
-	uint64 VulkanPipeline::MakeVersion(const VulkanRenderPass& renderPass, const VulkanRenderPassShader& shader)
+	uint64 VulkanPipeline::MakeVersion(const VulkanRenderPass& renderPass, const VulkanShaderVariant& shader)
 	{
 		return Math::CombineHashes(renderPass.GetVersion(), shader.GetVersion());
 	}
 
 	void VulkanPipeline::CreatePipeline(
 		const VulkanRenderPass& renderPass, 
-		const VulkanRenderPassShader& shader, 
+		const VulkanShaderVariant& shader, 
 		uint32 subpassIndex,
 		const VulkanDescriptorSetLayout* globalLayout)
 	{
@@ -102,8 +102,8 @@ namespace Coco::Rendering::Vulkan
 		viewportState.viewportCount = 1;
 		viewportState.scissorCount = 1;
 
-		const RenderPassShader& shaderInfo = shader.GetInfo();
-		const GraphicsPipelineState& pipelineState = shaderInfo.PipelineState;
+		const ShaderVariant& variant = shader.GetVariant();
+		const GraphicsPipelineState& pipelineState = variant.PipelineState;
 
 		// Rasterization state
 		VkPipelineRasterizationStateCreateInfo rasterizationState{};
@@ -139,10 +139,10 @@ namespace Coco::Rendering::Vulkan
 		depthStencilState.stencilTestEnable = VK_FALSE; // TODO: stencils
 
 		// Blend states
-		std::vector<VkPipelineColorBlendAttachmentState> attachmentBlendStates(shaderInfo.AttachmentBlendStates.size());
+		std::vector<VkPipelineColorBlendAttachmentState> attachmentBlendStates(variant.AttachmentBlendStates.size());
 		for (uint64_t i = 0; i < attachmentBlendStates.size(); i++)
 		{
-			const BlendState& state = shaderInfo.AttachmentBlendStates.at(i);
+			const BlendState& state = variant.AttachmentBlendStates.at(i);
 			VkPipelineColorBlendAttachmentState& blendState = attachmentBlendStates.at(i);
 			blendState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
@@ -169,15 +169,15 @@ namespace Coco::Rendering::Vulkan
 		// Attribute inputs
 		VkVertexInputBindingDescription vertexInput{};
 		vertexInput.binding = 0; // The index of the binding
-		vertexInput.stride = shaderInfo.VertexDataSize;
+		vertexInput.stride = variant.VertexDataSize;
 		vertexInput.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // One data entry for each vertex
 
 		std::array<VkVertexInputBindingDescription, 1> vertexInputs = { vertexInput };
 
-		std::vector<VkVertexInputAttributeDescription> vertexAttributes(shaderInfo.VertexAttributes.size());
+		std::vector<VkVertexInputAttributeDescription> vertexAttributes(variant.VertexAttributes.size());
 		for (uint32_t i = 0; i < vertexAttributes.size(); i++)
 		{
-			const ShaderVertexAttribute& attr = shaderInfo.VertexAttributes.at(i);
+			const ShaderVertexAttribute& attr = variant.VertexAttributes.at(i);
 			VkVertexInputAttributeDescription& attrDescription = vertexAttributes.at(i);
 			attrDescription.binding = 0; // The input binding index
 			attrDescription.location = i;

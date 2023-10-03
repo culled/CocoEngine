@@ -38,21 +38,21 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
-	VulkanRenderPassShader& VulkanGraphicsDeviceCache::GetOrCreateShader(const RenderPassShaderData& shaderData)
+	VulkanShaderVariant& VulkanGraphicsDeviceCache::GetOrCreateShader(const ShaderVariantData& variantData)
 	{
-		GraphicsDeviceResourceID key = VulkanRenderPassShader::MakeKey(shaderData);
+		GraphicsDeviceResourceID key = VulkanShaderVariant::MakeKey(variantData);
 
 		auto it = _shaders.find(key);
 
 		if (it == _shaders.end())
 		{
-			it = _shaders.try_emplace(key, shaderData).first;
+			it = _shaders.try_emplace(key, variantData).first;
 		}
 
-		VulkanRenderPassShader& resource = it->second;
+		VulkanShaderVariant& resource = it->second;
 
-		if (resource.NeedsUpdate(shaderData))
-			resource.Update(shaderData);
+		if (resource.NeedsUpdate(variantData))
+			resource.Update(variantData);
 
 		resource.Use();
 
@@ -62,7 +62,7 @@ namespace Coco::Rendering::Vulkan
 	VulkanPipeline& VulkanGraphicsDeviceCache::GetOrCreatePipeline(
 		const VulkanRenderPass& renderPass, 
 		uint32 subpassIndex, 
-		const VulkanRenderPassShader& shader,
+		const VulkanShaderVariant& shader,
 		const VulkanDescriptorSetLayout* globalDescriptorSetLayout)
 	{
 		GraphicsDeviceResourceID key = VulkanPipeline::MakeKey(renderPass, shader, subpassIndex, globalDescriptorSetLayout);

@@ -29,7 +29,7 @@ namespace Coco::Rendering
 		_samples(),
 		_renderTargets(),
 		_meshDatas(),
-		_renderPassShaderDatas(),
+		_shaderVariantDatas(),
 		_shaderDatas(),
 		_materialDatas(),
 		_objectDatas(),
@@ -62,7 +62,7 @@ namespace Coco::Rendering
 		_renderTargets.clear();
 		_globalUniformLayout = DefaultGlobalUniformLayout;
 		_meshDatas.clear();
-		_renderPassShaderDatas.clear();
+		_shaderVariantDatas.clear();
 		_shaderDatas.clear();
 		_materialDatas.clear();
 		_objectDatas.clear();
@@ -115,12 +115,12 @@ namespace Coco::Rendering
 		{
 			std::unordered_map<string, uint64> passShaders;
 
-			for (const RenderPassShader& passShader : shader.GetRenderPassShaders())
+			for (const ShaderVariant& variant : shader.GetShaderVariants())
 			{
-				uint64 passShaderID = passShader.ID;
-				_renderPassShaderDatas.try_emplace(passShaderID, passShaderID, shader.GetVersion(), passShader);
+				uint64 variantID = variant.Hash;
+				_shaderVariantDatas.try_emplace(variantID, variantID, shader.GetVersion(), variant);
 
-				passShaders.try_emplace(passShader.PassName, passShaderID);
+				passShaders.try_emplace(variant.Name, variantID);
 			}
 
 			_shaderDatas.try_emplace(shaderID, shaderID, shader.GetVersion(), shader.GetGroupTag(), passShaders);
@@ -136,11 +136,11 @@ namespace Coco::Rendering
 		return _shaderDatas.at(key);
 	}
 
-	const RenderPassShaderData& RenderView::GetRenderPassShaderData(uint64 key) const
+	const ShaderVariantData& RenderView::GetShaderVariantData(uint64 key) const
 	{
-		Assert(_renderPassShaderDatas.contains(key))
+		Assert(_shaderVariantDatas.contains(key))
 
-		return _renderPassShaderDatas.at(key);
+		return _shaderVariantDatas.at(key);
 	}
 
 	uint64 RenderView::AddMaterial(const MaterialDataProvider& materialData)

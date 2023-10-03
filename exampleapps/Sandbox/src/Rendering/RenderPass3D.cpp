@@ -73,10 +73,10 @@ void RenderPass3D::Execute(RenderContext& context, const RenderView& renderView)
         const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
         const ShaderData& shader = renderView.GetShaderData(material.ShaderID);
 
-        if (!shader.GroupTag.empty())
+        if (shader.GroupTag != "lit")
             continue;
 
-        context.SetMaterial(material);
+        context.SetMaterial(material, "lit");
 
         context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("ModelMatrix"), obj.ModelMatrix);
         context.DrawIndexed(renderView.GetMeshData(obj.MeshID), obj.IndexOffset, obj.IndexCount);

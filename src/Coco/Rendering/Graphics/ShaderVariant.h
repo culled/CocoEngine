@@ -3,22 +3,19 @@
 #include "../Renderpch.h"
 #include <Coco/Core/Types/String.h>
 #include "GraphicsPipelineTypes.h"
-#include "RenderPassShaderTypes.h"
+#include "ShaderTypes.h"
 #include "ShaderUniformLayout.h"
 
 namespace Coco::Rendering
 {
-	/// @brief A shader for a single RenderPass
-	struct RenderPassShader
+	/// @brief A variant of a shader
+	struct ShaderVariant
 	{
-		/// @brief The ID of this shader
-		uint64 ID;
-
 		/// @brief The hash of this shader's values (auto-calculated after calling CalculateHash())
 		uint64 Hash;
 
-		/// @brief The name of the RenderPass this shader is used for
-		string PassName;
+		/// @brief The name of this shader variant
+		string Name;
 
 		/// @brief The stages of this shader
 		std::vector<ShaderStage> Stages;
@@ -44,9 +41,8 @@ namespace Coco::Rendering
 		/// @brief The layout for draw uniforms
 		ShaderUniformLayout DrawUniforms;
 
-		RenderPassShader(
-			uint64 baseID,
-			const string& passName,
+		ShaderVariant(
+			const string& name,
 			const std::vector<ShaderStage>& stages,
 			const GraphicsPipelineState& pipelineState,
 			const std::vector<BlendState>& attachmentBlendStates,
@@ -55,7 +51,7 @@ namespace Coco::Rendering
 			const ShaderUniformLayout& instanceUniforms,
 			const ShaderUniformLayout& drawUniforms);
 
-		bool operator==(const RenderPassShader& other) const;
+		bool operator==(const ShaderVariant& other) const;
 
 		/// @brief Calculates the offsets for each vertex attribute and the total vertex data size
 		void CalculateAttributeOffsets();

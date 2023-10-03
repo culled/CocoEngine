@@ -23,7 +23,7 @@ void RenderPass2D::Execute(RenderContext& context, const RenderView& renderView)
         if (shader.GroupTag != "2d")
             continue;
 
-        context.SetMaterial(material);
+        context.SetMaterial(material, "unlit");
 
         context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("ModelMatrix"), obj.ModelMatrix);
         context.DrawIndexed(renderView.GetMeshData(obj.MeshID), obj.IndexOffset, obj.IndexCount);

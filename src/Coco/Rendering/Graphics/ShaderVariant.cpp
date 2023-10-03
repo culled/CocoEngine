@@ -1,5 +1,5 @@
 #include "Renderpch.h"
-#include "RenderPassShader.h"
+#include "ShaderVariant.h"
 
 #include <Coco/Core/Math/Math.h>
 
@@ -7,9 +7,8 @@ namespace Coco::Rendering
 {
 	std::hash<string> _sStringHasher;
 
-	RenderPassShader::RenderPassShader(
-		uint64 baseID,
-		const string& passName,
+	ShaderVariant::ShaderVariant(
+		const string& name,
 		const std::vector<ShaderStage>& stages,
 		const GraphicsPipelineState& pipelineState,
 		const std::vector<BlendState>& attachmentBlendStates,
@@ -17,9 +16,8 @@ namespace Coco::Rendering
 		const GlobalShaderUniformLayout& globalUniforms,
 		const ShaderUniformLayout& instanceUniforms,
 		const ShaderUniformLayout& drawUniforms) :
-		ID(Math::CombineHashes(baseID, _sStringHasher(passName))),
 		Hash(0),
-		PassName(passName),
+		Name(name),
 		Stages(stages),
 		PipelineState(pipelineState),
 		AttachmentBlendStates(attachmentBlendStates),
@@ -32,12 +30,12 @@ namespace Coco::Rendering
 		CalculateHash();
 	}
 
-	bool RenderPassShader::operator==(const RenderPassShader& other) const
+	bool ShaderVariant::operator==(const ShaderVariant& other) const
 	{
 		return Hash == other.Hash;
 	}
 
-	void RenderPassShader::CalculateAttributeOffsets()
+	void ShaderVariant::CalculateAttributeOffsets()
 	{
 		uint32 offset = 0;
 		for (ShaderVertexAttribute& attr : VertexAttributes)
@@ -49,7 +47,7 @@ namespace Coco::Rendering
 		VertexDataSize = offset;
 	}
 
-	void RenderPassShader::CalculateHash()
+	void ShaderVariant::CalculateHash()
 	{
 		uint64 stageHash = 0;
 		for (const ShaderStage& stage : Stages)
@@ -80,7 +78,7 @@ namespace Coco::Rendering
 		}
 
 		Hash = Math::CombineHashes(
-			_sStringHasher(PassName), 
+			_sStringHasher(Name), 
 			stageHash, 
 			PipelineState.GetHash(), 
 			blendHash, 

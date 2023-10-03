@@ -1,6 +1,6 @@
 #pragma once
 #include "CachedVulkanResource.h"
-#include "../../../RenderPassShaderTypes.h"
+#include "../../../ShaderVariant.h"
 #include "../../../RenderViewTypes.h"
 #include "../VulkanDescriptorSetLayout.h"
 #include "../VulkanIncludes.h"
@@ -22,31 +22,31 @@ namespace Coco::Rendering::Vulkan
 	};
 
 	/// @brief A Vulkan shader for a specific render pass
-	class VulkanRenderPassShader : 
+	class VulkanShaderVariant : 
 		public CachedVulkanResource
 	{
 	private:
 		uint64 _version;
 		std::vector<VulkanShaderStage> _stages;
-		RenderPassShader _shaderInfo;
+		ShaderVariant _variant;
 		std::map<UniformScope, VulkanDescriptorSetLayout> _layouts;
 
 	public:
-		VulkanRenderPassShader(const RenderPassShaderData& shader);
-		~VulkanRenderPassShader();
+		VulkanShaderVariant(const ShaderVariantData& variantData);
+		~VulkanShaderVariant();
 
 		/// @brief Creates a key from the given shader info
-		/// @param shader The shader data
+		/// @param variantData The shader variant data
 		/// @return The key
-		static GraphicsDeviceResourceID MakeKey(const RenderPassShaderData& shader);
+		static GraphicsDeviceResourceID MakeKey(const ShaderVariantData& variantData);
 
 		/// @brief Gets this shader's version
 		/// @return The version
 		uint64 GetVersion() const { return _version; }
 
-		/// @brief Gets the info that was used to create this shader
-		/// @return The shader info
-		const RenderPassShader& GetInfo() const { return _shaderInfo; }
+		/// @brief Gets the variant that was used to create this shader
+		/// @return The shader variant
+		const ShaderVariant& GetVariant() const { return _variant; }
 
 		/// @brief Gets all descriptor set layouts for this shader
 		/// @return This shader's descriptor set layouts
@@ -71,18 +71,17 @@ namespace Coco::Rendering::Vulkan
 		std::span<const VulkanShaderStage> GetStages() const { return _stages; }
 
 		/// @brief Determines if this shader needs to be updated
-		/// @param shaderInfo The shader info
+		/// @param variantData The shader variant
 		/// @return True if this shader should be updated
-		bool NeedsUpdate(const RenderPassShaderData& shaderInfo) const;
+		bool NeedsUpdate(const ShaderVariantData& variantData) const;
 
-		/// @brief Updates this shader from the given shader info
-		/// @param shaderInfo The shader info
-		void Update(const RenderPassShaderData& shaderInfo);
+		/// @brief Updates this shader from the given shader variant
+		/// @param variantData The shader variant
+		void Update(const ShaderVariantData& variantData);
 
 	private:
 		/// @brief Creates all shader objects
-		/// @param shaderInfo The shader info
-		void CreateShaderObjects(const RenderPassShader& shaderInfo);
+		void CreateShaderObjects();
 
 		/// @brief Destroys all shader objects
 		void DestroyShaderObjects();

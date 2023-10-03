@@ -3,7 +3,7 @@
 #include "../../../../RenderService.h"
 #include "../../../../Texture.h"
 #include "VulkanGlobalUniformData.h"
-#include "VulkanRenderPassShader.h"
+#include "VulkanShaderVariant.h"
 #include "../VulkanGraphicsDevice.h"
 #include "../VulkanBuffer.h"
 #include "../VulkanCommandBuffer.h"
@@ -37,7 +37,7 @@ namespace Coco::Rendering::Vulkan
 		LastAllocateTime(0.0)
 	{}
 
-	VulkanShaderUniformData::VulkanShaderUniformData(const VulkanRenderPassShader& shader) :
+	VulkanShaderUniformData::VulkanShaderUniformData(const VulkanShaderVariant& shader) :
 		CachedVulkanResource(MakeKey(shader)),
 		_version(0),
 		_uniformBuffers{},
@@ -55,17 +55,17 @@ namespace Coco::Rendering::Vulkan
 		_uniformBuffers.clear();
 	}
 
-	GraphicsDeviceResourceID VulkanShaderUniformData::MakeKey(const VulkanRenderPassShader& passShader)
+	GraphicsDeviceResourceID VulkanShaderUniformData::MakeKey(const VulkanShaderVariant& shader)
 	{
-		return passShader.ID;
+		return shader.ID;
 	}
 
-	bool VulkanShaderUniformData::NeedsUpdate(const VulkanRenderPassShader& shader) const
+	bool VulkanShaderUniformData::NeedsUpdate(const VulkanShaderVariant& shader) const
 	{
 		return _version != shader.GetVersion() || _pools.size() == 0;
 	}
 
-	void VulkanShaderUniformData::Update(const VulkanRenderPassShader& shader)
+	void VulkanShaderUniformData::Update(const VulkanShaderVariant& shader)
 	{
 		_globalUniformData.reset();
 		DestroyDescriptorPools();
@@ -73,7 +73,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (shader.HasScope(UniformScope::ShaderGlobal))
 		{
-			_globalUniformData.emplace(shader.GetInfo().GlobalUniforms, &shader.GetDescriptorSetLayout(UniformScope::ShaderGlobal));
+			_globalUniformData.emplace(shader.GetVariant().GlobalUniforms, &shader.GetDescriptorSetLayout(UniformScope::ShaderGlobal));
 		}
 
 		for (const VulkanDescriptorSetLayout& layout : shader.GetDescriptorSetLayouts())
@@ -113,7 +113,7 @@ namespace Coco::Rendering::Vulkan
 		return _globalUniformData->PrepareData(uniformData);
 	}
 
-	VkDescriptorSet VulkanShaderUniformData::PrepareInstanceData(const VulkanRenderPassShader& shader, uint64 instanceID, const ShaderUniformData& uniformData, bool preserve)
+	VkDescriptorSet VulkanShaderUniformData::PrepareInstanceData(const VulkanShaderVariant& shader, uint64 instanceID, const ShaderUniformData& uniformData, bool preserve)
 	{
 		auto it = _instanceSets.find(instanceID);
 
@@ -132,7 +132,7 @@ namespace Coco::Rendering::Vulkan
 			needsUpdate = true;
 		}
 
-		const ShaderUniformLayout& instanceLayout = shader.GetInfo().InstanceUniforms;
+		const ShaderUniformLayout& instanceLayout = shader.GetVariant().InstanceUniforms;
 		AllocatedUniformData& data = uniformIt->second;
 		uint64 dataSize = instanceLayout.GetUniformDataSize(_device);
 
@@ -175,19 +175,23 @@ namespace Coco::Rendering::Vulkan
 		return set;
 	}
 
-	VkDescriptorSet VulkanShaderUniformData::PrepareDrawData(const VulkanRenderPassShader& shader, VulkanCommandBuffer& commandBuffer, const VulkanPipeline& pipeline, const ShaderUniformData& uniformData)
+	VkDescriptorSet VulkanShaderUniformData::PrepareDrawData(
+		const VulkanShaderVariant& shader, 
+		VulkanCommandBuffer& commandBuffer, 
+		const VulkanPipeline& pipeline, 
+		const ShaderUniformData& uniformData)
 	{
 		if (!shader.HasScope(UniformScope::Draw))
 			return nullptr;
 
-		const RenderPassShader& shaderInfo = shader.GetInfo();
+		const ShaderVariant& variant = shader.GetVariant();
 
-		if (shaderInfo.DrawUniforms.GetUniformDataSize(_device) > 0)
+		if (variant.DrawUniforms.GetUniformDataSize(_device) > 0)
 		{
-			std::vector<uint8> pushConstantData = shaderInfo.DrawUniforms.GetBufferFriendlyData(_device, uniformData);
+			std::vector<uint8> pushConstantData = variant.DrawUniforms.GetBufferFriendlyData(_device, uniformData);
 			VkShaderStageFlags stageFlags = VK_SHADER_STAGE_ALL;
 
-			for (const ShaderDataUniform& u : shaderInfo.DrawUniforms.DataUniforms)
+			for (const ShaderDataUniform& u : variant.DrawUniforms.DataUniforms)
 			{
 				VkShaderStageFlags uniformStage = ToVkShaderStageFlags(u.BindingPoints);
 
@@ -198,12 +202,12 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		// Don't bind a descriptor set for draw uniforms if we don't have draw textures
-		if (shaderInfo.DrawUniforms.TextureUniforms.size() == 0)
+		if (variant.DrawUniforms.TextureUniforms.size() == 0)
 			return nullptr;
 
 		const VulkanDescriptorSetLayout& setLayout = shader.GetDescriptorSetLayout(UniformScope::Draw);
 		VkDescriptorSet set = AllocateDescriptorSet(setLayout);
-		if (!UpdateDescriptorSet(shaderInfo.DrawUniforms, setLayout, uniformData, nullptr, set))
+		if (!UpdateDescriptorSet(variant.DrawUniforms, setLayout, uniformData, nullptr, set))
 		{
 			return nullptr;
 		}

@@ -7,7 +7,7 @@
 #include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/BoundingBox.h>
-#include "RenderPassShader.h"
+#include "ShaderVariant.h"
 
 namespace Coco::Rendering
 {
@@ -80,8 +80,8 @@ namespace Coco::Rendering
 			const BoundingBox& bounds);
 	};
 
-	/// @brief Data for a single RenderPassShader
-	struct RenderPassShaderData
+	/// @brief Data for a single ShaderVariant
+	struct ShaderVariantData
 	{
 		/// @brief The id of this shader
 		uint64 ID;
@@ -90,9 +90,9 @@ namespace Coco::Rendering
 		uint64 Version;
 
 		/// @brief The shader data
-		RenderPassShader ShaderData;
+		ShaderVariant Variant;
 
-		RenderPassShaderData(uint64 id, uint64 version, const RenderPassShader& shaderData);
+		ShaderVariantData(uint64 id, uint64 version, const ShaderVariant& variant);
 	};
 
 	/// @brief Data for a Shader
@@ -108,7 +108,7 @@ namespace Coco::Rendering
 		string GroupTag;
 
 		/// @brief Renderpass shaders for this shader
-		std::unordered_map<string, uint64> RenderPassShaders;
+		std::unordered_map<string, uint64> Variants;
 
 		ShaderData(uint64 id, uint64 version, const string& groupTag, const std::unordered_map<string, uint64>& passShaders);
 	};

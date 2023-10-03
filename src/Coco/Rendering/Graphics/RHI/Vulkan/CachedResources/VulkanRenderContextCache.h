@@ -45,7 +45,7 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Gets/creates shader-specific uniform data
 		/// @param shader The shader for the uniform data
 		/// @return The shader-specific uniform data
-		VulkanShaderUniformData& GetOrCreateShaderUniformData(const VulkanRenderPassShader& shader);
+		VulkanShaderUniformData& GetOrCreateShaderUniformData(const VulkanShaderVariant& shader);
 
 		/// @brief Resets this cache for a new frame
 		void ResetForNextFrame();

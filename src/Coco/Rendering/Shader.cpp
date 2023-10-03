@@ -6,12 +6,12 @@ namespace Coco::Rendering
 	Shader::Shader(const ResourceID& id, const string& name, const string& groupTag) :
 		RendererResource(id, name),
 		_groupTag(groupTag),
-		_passShaders{}
+		_variants{}
 	{}
 
 	Shader::~Shader()
 	{
-		_passShaders.clear();
+		_variants.clear();
 	}
 
 	void Shader::SetGroupTag(const char* groupTag)
@@ -19,20 +19,18 @@ namespace Coco::Rendering
 		_groupTag = groupTag;
 	}
 
-	void Shader::AddRenderPassShader(RenderPassShader&& passShader)
+	void Shader::AddVariant(ShaderVariant&& passShader)
 	{
-		RenderPassShader& shader = _passShaders.emplace_back(std::forward<RenderPassShader>(passShader));
-
-		shader.ID = Math::CombineHashes(GetID(), _passShaders.size());
+		_variants.emplace_back(std::forward<ShaderVariant>(passShader));
 	}
 
-	bool Shader::TryGetRenderPassShader(const char* renderPassName, const RenderPassShader*& outRenderPassShader) const
+	bool Shader::TryGetShaderVariant(const char* variantName, const ShaderVariant*& outShaderVariant) const
 	{
-		for (const RenderPassShader& passShader : _passShaders)
+		for (const ShaderVariant& variant : _variants)
 		{
-			if (passShader.PassName == renderPassName)
+			if (variant.Name == variantName)
 			{
-				outRenderPassShader = &passShader;
+				outShaderVariant = &variant;
 				return true;
 			}
 		}

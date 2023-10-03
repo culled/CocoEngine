@@ -155,35 +155,17 @@ namespace Coco::Rendering::Vulkan
 		vkCmdSetScissor(_commandBuffer->GetCmdBuffer(), 0, 1, &scissor);
 	}
 
-	void VulkanRenderContext::SetMaterial(const MaterialData& material)
+	void VulkanRenderContext::SetShader(const ShaderData& shader, const string& variantName)
 	{
 		Assert(_vulkanRenderOperation.has_value())
+		Assert(shader.Variants.contains(variantName))
 
-		if (_vulkanRenderOperation->InstanceState.has_value() && _vulkanRenderOperation->InstanceState->InstanceID == material.ID)
+		const ShaderVariantData& variantData = _renderView->GetShaderVariantData(shader.Variants.at(variantName));
+
+		if (_vulkanRenderOperation->GlobalState.has_value() && _vulkanRenderOperation->GlobalState->ShaderID == variantData.ID)
 			return;
 
-		const ShaderData& shader = _renderView->GetShaderData(material.ShaderID);
-		Assert(shader.RenderPassShaders.contains(_renderOperation->CurrentPassName))
-
-		uint64 passKey = shader.RenderPassShaders.at(_renderOperation->CurrentPassName);
-		const RenderPassShaderData& passShader = _renderView->GetRenderPassShaderData(passKey);
-
-		SetShader(passShader);
-
-		_instanceUniforms = material.UniformData;
-
-		_vulkanRenderOperation->InstanceState.emplace(material.ID);
-		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Instance);
-	}
-
-	void VulkanRenderContext::SetShader(const RenderPassShaderData& shader)
-	{
-		Assert(_vulkanRenderOperation.has_value())
-
-		if (_vulkanRenderOperation->GlobalState.has_value() && _vulkanRenderOperation->GlobalState->ShaderID == shader.ID)
-			return;
-
-		_vulkanRenderOperation->GlobalState.emplace(shader.ID);
+		_vulkanRenderOperation->GlobalState.emplace(variantData.ID);
 
 		// Clear shader-specific uniforms
 		_instanceUniforms.Clear();
@@ -193,6 +175,23 @@ namespace Coco::Rendering::Vulkan
 		_vulkanRenderOperation->InstanceState.reset();
 
 		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Shader);
+	}
+
+	void VulkanRenderContext::SetMaterial(const MaterialData& material, const string& shaderVariantName)
+	{
+		Assert(_vulkanRenderOperation.has_value())
+
+		if (_vulkanRenderOperation->InstanceState.has_value() && _vulkanRenderOperation->InstanceState->InstanceID == material.ID)
+			return;
+
+		const ShaderData& shader = _renderView->GetShaderData(material.ShaderID);
+
+		SetShader(shader, shaderVariantName);
+
+		_instanceUniforms = material.UniformData;
+
+		_vulkanRenderOperation->InstanceState.emplace(material.ID);
+		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Instance);
 	}
 
 	void VulkanRenderContext::DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount)
@@ -513,7 +512,7 @@ namespace Coco::Rendering::Vulkan
 			if (globalState.ShaderID == RenderView::InvalidID)
 				throw std::exception("Invalid shader");
 
-			VulkanRenderPassShader* shader = nullptr;
+			VulkanShaderVariant* shader = nullptr;
 			VulkanShaderUniformData& uniformData = GetUniformDataForBoundShader(&shader);
 
 			VkCommandBuffer cmdBuffer = _commandBuffer->GetCmdBuffer();
@@ -620,15 +619,15 @@ namespace Coco::Rendering::Vulkan
 		return stateBound;
 	}
 
-	VulkanShaderUniformData& VulkanRenderContext::GetUniformDataForBoundShader(VulkanRenderPassShader** outShader)
+	VulkanShaderUniformData& VulkanRenderContext::GetUniformDataForBoundShader(VulkanShaderVariant** outShader)
 	{
 		Assert(_vulkanRenderOperation.has_value())
 		Assert(_vulkanRenderOperation->GlobalState.has_value())
 		Assert(_vulkanRenderOperation->GlobalState->ShaderID != Resource::InvalidID)
 
-		const RenderPassShaderData& boundShaderData = _renderView->GetRenderPassShaderData(_vulkanRenderOperation->GlobalState->ShaderID);
+		const ShaderVariantData& boundShaderData = _renderView->GetShaderVariantData(_vulkanRenderOperation->GlobalState->ShaderID);
 		VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
-		VulkanRenderPassShader& shader = _deviceCache.GetOrCreateShader(boundShaderData);
+		VulkanShaderVariant& shader = _deviceCache.GetOrCreateShader(boundShaderData);
 
 		if (outShader)
 			*outShader = &shader;

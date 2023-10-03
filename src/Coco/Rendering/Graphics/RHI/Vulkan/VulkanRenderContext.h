@@ -3,7 +3,7 @@
 #include <Coco/Core/Defines.h>
 #include "../../RenderContext.h"
 #include "../../GraphicsDeviceResource.h"
-#include "../../RenderPassShaderTypes.h"
+#include "../../ShaderVariant.h"
 #include "VulkanGraphicsSemaphore.h"
 #include "VulkanGraphicsFence.h"
 #include "VulkanIncludes.h"
@@ -19,7 +19,7 @@ namespace Coco::Rendering::Vulkan
     class VulkanCommandBuffer;
     struct VulkanDescriptorSetLayout;
     class VulkanShaderUniformData;
-    class VulkanRenderPassShader;
+    class VulkanShaderVariant;
     class VulkanImage;
 
     /// @brief The bound global state
@@ -120,8 +120,8 @@ namespace Coco::Rendering::Vulkan
 
         void SetViewportRect(const RectInt& viewportRect) final;
         void SetScissorRect(const RectInt& scissorRect) final;
-        void SetMaterial(const MaterialData& material) final;
-        void SetShader(const RenderPassShaderData& shader) final;
+        void SetShader(const ShaderData& shader, const string& variantName) final;
+        void SetMaterial(const MaterialData& material, const string& shaderVariantName) final;
 
         void DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount) final;
 
@@ -154,6 +154,6 @@ namespace Coco::Rendering::Vulkan
         /// @brief Gets the uniform data for the currently-bound shader
         /// @param outShader If given, will be set to the currently-bound shader
         /// @return The shader's uniform data
-        VulkanShaderUniformData& GetUniformDataForBoundShader(VulkanRenderPassShader** outShader);
+        VulkanShaderUniformData& GetUniformDataForBoundShader(VulkanShaderVariant** outShader);
     };
 }

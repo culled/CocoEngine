@@ -35,9 +35,9 @@ namespace Coco::Rendering
 		out << YAML::Key << "group tag" << YAML::Value << shader->GetGroupTag();
 		out << YAML::Key << "pass shaders" << YAML::Value << YAML::BeginSeq;
 
-		for (const RenderPassShader& passShader : shader->GetRenderPassShaders())
+		for (const ShaderVariant& variant : shader->GetShaderVariants())
 		{
-			SerializeRenderPassShader(out, passShader);
+			SerializeShaderVariant(out, variant);
 		}
 
 		out << YAML::EndSeq;
@@ -62,22 +62,21 @@ namespace Coco::Rendering
 		YAML::Node passShadersNode = shaderNode["pass shaders"];
 		for (YAML::const_iterator it = passShadersNode.begin(); it != passShadersNode.end(); ++it)
 		{
-			shader->AddRenderPassShader(DeserializeRenderPassShader(*it));
+			shader->AddVariant(DeserializeShaderVariant(*it));
 		}
 
 		return shader;
 	}
 
-	void ShaderSerializer::SerializeRenderPassShader(YAML::Emitter& emitter, const RenderPassShader& passShader)
+	void ShaderSerializer::SerializeShaderVariant(YAML::Emitter& emitter, const ShaderVariant& variant)
 	{
 		emitter << YAML::BeginMap;
 
-		emitter << YAML::Key << "id" << YAML::Value << passShader.ID;
-		emitter << YAML::Key << "pass name" << YAML::Value << passShader.PassName;
+		emitter << YAML::Key << "name" << YAML::Value << variant.Name;
 
 		emitter << YAML::Key << "stages" << YAML::Value << YAML::BeginSeq;
 
-		for (const ShaderStage& stage : passShader.Stages)
+		for (const ShaderStage& stage : variant.Stages)
 		{
 			emitter << YAML::BeginMap;
 
@@ -92,19 +91,19 @@ namespace Coco::Rendering
 
 		emitter << YAML::Key << "pipeline state" << YAML::Value << YAML::BeginMap;
 
-		emitter << YAML::Key << "topology" << YAML::Value << static_cast<int>(passShader.PipelineState.TopologyMode);
-		emitter << YAML::Key << "cull" << YAML::Value << static_cast<int>(passShader.PipelineState.CullingMode);
-		emitter << YAML::Key << "winding" << YAML::Value << static_cast<int>(passShader.PipelineState.WindingMode);
-		emitter << YAML::Key << "fill" << YAML::Value << static_cast<int>(passShader.PipelineState.PolygonFillMode);
-		emitter << YAML::Key << "depth clamping" << YAML::Value << passShader.PipelineState.EnableDepthClamping;
-		emitter << YAML::Key << "depth test" << YAML::Value << static_cast<int>(passShader.PipelineState.DepthTestingMode);
-		emitter << YAML::Key << "depth write" << YAML::Value << passShader.PipelineState.EnableDepthWrite;
+		emitter << YAML::Key << "topology" << YAML::Value << static_cast<int>(variant.PipelineState.TopologyMode);
+		emitter << YAML::Key << "cull" << YAML::Value << static_cast<int>(variant.PipelineState.CullingMode);
+		emitter << YAML::Key << "winding" << YAML::Value << static_cast<int>(variant.PipelineState.WindingMode);
+		emitter << YAML::Key << "fill" << YAML::Value << static_cast<int>(variant.PipelineState.PolygonFillMode);
+		emitter << YAML::Key << "depth clamping" << YAML::Value << variant.PipelineState.EnableDepthClamping;
+		emitter << YAML::Key << "depth test" << YAML::Value << static_cast<int>(variant.PipelineState.DepthTestingMode);
+		emitter << YAML::Key << "depth write" << YAML::Value << variant.PipelineState.EnableDepthWrite;
 
 		emitter << YAML::EndMap;
 
 		emitter << YAML::Key << "blend states" << YAML::Value << YAML::BeginSeq;
 
-		for (const BlendState& blendState : passShader.AttachmentBlendStates)
+		for (const BlendState& blendState : variant.AttachmentBlendStates)
 		{
 			emitter << YAML::BeginMap;
 
@@ -122,7 +121,7 @@ namespace Coco::Rendering
 
 		emitter << YAML::Key << "vertex attributes" << YAML::Value << YAML::BeginSeq;
 
-		for (const ShaderVertexAttribute& attr : passShader.VertexAttributes)
+		for (const ShaderVertexAttribute& attr : variant.VertexAttributes)
 		{
 			emitter << YAML::BeginMap;
 
@@ -134,34 +133,33 @@ namespace Coco::Rendering
 
 		emitter << YAML::EndSeq;
 
-		if (passShader.GlobalUniforms.Hash != ShaderUniformLayout::EmptyHash)
+		if (variant.GlobalUniforms.Hash != ShaderUniformLayout::EmptyHash)
 		{
 			emitter << YAML::Key << "global layout" << YAML::Value << YAML::BeginMap;
-			ShaderUniformLayoutSerialization::SerializeLayout(emitter, passShader.GlobalUniforms);
+			ShaderUniformLayoutSerialization::SerializeLayout(emitter, variant.GlobalUniforms);
 			emitter << YAML::EndMap;
 		}
 
-		if (passShader.InstanceUniforms.Hash != ShaderUniformLayout::EmptyHash)
+		if (variant.InstanceUniforms.Hash != ShaderUniformLayout::EmptyHash)
 		{
 			emitter << YAML::Key << "instance layout" << YAML::Value << YAML::BeginMap;
-			ShaderUniformLayoutSerialization::SerializeLayout(emitter, passShader.InstanceUniforms);
+			ShaderUniformLayoutSerialization::SerializeLayout(emitter, variant.InstanceUniforms);
 			emitter << YAML::EndMap;
 		}
 
-		if (passShader.DrawUniforms.Hash != ShaderUniformLayout::EmptyHash)
+		if (variant.DrawUniforms.Hash != ShaderUniformLayout::EmptyHash)
 		{
 			emitter << YAML::Key << "draw layout" << YAML::Value << YAML::BeginMap;
-			ShaderUniformLayoutSerialization::SerializeLayout(emitter, passShader.DrawUniforms);
+			ShaderUniformLayoutSerialization::SerializeLayout(emitter, variant.DrawUniforms);
 			emitter << YAML::EndMap;
 		}
 
 		emitter << YAML::EndMap;
 	}
 
-	RenderPassShader ShaderSerializer::DeserializeRenderPassShader(const YAML::Node& baseNode)
+	ShaderVariant ShaderSerializer::DeserializeShaderVariant(const YAML::Node& baseNode)
 	{
-		uint64 id = baseNode["id"].as<uint64>();
-		string passName = baseNode["pass name"].as<string>();
+		string name = baseNode["name"].as<string>();
 
 		std::vector<ShaderStage> stages;
 
@@ -232,9 +230,8 @@ namespace Coco::Rendering
 			drawLayout = ShaderUniformLayoutSerialization::DeserializeLayout(baseNode["draw layout"]);
 		}
 
-		return RenderPassShader(
-			id,
-			passName,
+		return ShaderVariant(
+			name,
 			stages,
 			pipelineState,
 			blendStates,

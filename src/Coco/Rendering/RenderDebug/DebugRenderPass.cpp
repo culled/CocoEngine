@@ -28,7 +28,7 @@ namespace Coco::Rendering
 
             const MeshData& mesh = renderView.GetMeshData(obj.MeshID);
 
-            context.SetMaterial(material);
+            context.SetMaterial(material, sPassName);
 
             context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("Model"), obj.ModelMatrix);
 

@@ -10,14 +10,14 @@
 #include "GraphicsFence.h"
 #include "GraphicsSemaphore.h"
 #include "ShaderUniformData.h"
-#include "RenderPassShaderTypes.h"
+#include "ShaderUniformLayout.h"
 
 namespace Coco::Rendering
 {
 	struct CompiledRenderPipeline;
 	struct RenderPassBinding;
 	class RenderView;
-	struct RenderPassShaderData;
+	struct ShaderData;
 	struct MaterialData;
 	struct MeshData;
 
@@ -104,11 +104,13 @@ namespace Coco::Rendering
 
 		/// @brief Sets the shader that should be used for subsequent draw calls
 		/// @param shader The shader
-		virtual void SetShader(const RenderPassShaderData& shader) = 0;
+		/// @param variantName The name of the shader variant
+		virtual void SetShader(const ShaderData& shader, const string& variantName) = 0;
 
 		/// @brief Sets the material that should be used for subsequent draw calls
 		/// @param material The material
-		virtual void SetMaterial(const MaterialData& material) = 0;
+		/// @param shaderVariantName The name of the shader variant that should be bound
+		virtual void SetMaterial(const MaterialData& material, const string& shaderVariantName) = 0;
 
 		/// @brief Draws a number of indices of a mesh
 		/// @param mesh The mesh

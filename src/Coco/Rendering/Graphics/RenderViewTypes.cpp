@@ -64,17 +64,17 @@ namespace Coco::Rendering
 		Bounds(bounds)
 	{}
 
-	RenderPassShaderData::RenderPassShaderData(uint64 id, uint64 version, const RenderPassShader& shaderData) :
+	ShaderVariantData::ShaderVariantData(uint64 id, uint64 version, const ShaderVariant& variant) :
 		ID(id),
 		Version(version),
-		ShaderData(shaderData)
+		Variant(variant)
 	{}
 
 	ShaderData::ShaderData(uint64 id, uint64 version, const string& groupTag, const std::unordered_map<string, uint64>& passShaders) :
 		ID(id),
 		Version(version),
 		GroupTag(groupTag),
-		RenderPassShaders(passShaders)
+		Variants(passShaders)
 	{}
 
 	MaterialData::MaterialData(uint64 id, uint64 shaderID, const ShaderUniformData& uniformData) :

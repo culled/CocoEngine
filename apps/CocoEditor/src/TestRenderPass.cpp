@@ -19,7 +19,7 @@ namespace Coco
 			const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
 			const ShaderData& shader = renderView.GetShaderData(material.ShaderID);
 
-			context.SetMaterial(material);
+			context.SetMaterial(material, "unlit");
 
 			context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("ModelMatrix"), obj.ModelMatrix);
 			context.DrawIndexed(renderView.GetMeshData(obj.MeshID), obj.IndexOffset, obj.IndexCount);

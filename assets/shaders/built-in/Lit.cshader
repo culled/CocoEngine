@@ -1,8 +1,7 @@
 name: Shader
-group tag: ""
+group tag: lit
 pass shaders:
-  - id: 9929646808729021548
-    pass name: basic
+  - name: lit
     stages:
       - type: 0
         entry name: main

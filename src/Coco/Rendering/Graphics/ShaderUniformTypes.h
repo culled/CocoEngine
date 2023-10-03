@@ -1,10 +1,26 @@
 #pragma once
 
 #include <Coco/Core/Types/String.h>
-#include "RenderPassShaderTypes.h"
+#include "ShaderTypes.h"
 
 namespace Coco::Rendering
 {
+	/// @brief Scopes for a shader uniform
+	enum class UniformScope
+	{
+		/// @brief Can only be updated once per render operation
+		Global,
+
+		/// @brief Can only be updated once per shader per render operation
+		ShaderGlobal,
+
+		/// @brief Can only be updated once per instance
+		Instance,
+
+		/// @brief Can be updated every draw call
+		Draw
+	};
+
 	/// @brief A uniform for a shader
 	struct ShaderUniform
 	{

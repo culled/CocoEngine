@@ -32,7 +32,7 @@ namespace Coco::Rendering
 		std::vector<RenderTarget> _renderTargets;
 		GlobalShaderUniformLayout _globalUniformLayout;
 		std::unordered_map<uint64, MeshData> _meshDatas;
-		std::unordered_map<uint64, RenderPassShaderData> _renderPassShaderDatas;
+		std::unordered_map<uint64, ShaderVariantData> _shaderVariantDatas;
 		std::unordered_map<uint64, ShaderData> _shaderDatas;
 		std::unordered_map<uint64, MaterialData> _materialDatas;
 		std::vector<ObjectData> _objectDatas;
@@ -132,10 +132,10 @@ namespace Coco::Rendering
 		/// @return The shader data
 		const ShaderData& GetShaderData(uint64 key) const;
 
-		/// @brief Gets a stored render pass shader's data
-		/// @param key The shader's key
-		/// @return The render pass shader data
-		const RenderPassShaderData& GetRenderPassShaderData(uint64 key) const;
+		/// @brief Gets a stored shader variant's data
+		/// @param key The shader variant's key
+		/// @return The shader variant data
+		const ShaderVariantData& GetShaderVariantData(uint64 key) const;
 
 		/// @brief Adds material data to this view
 		/// @param materialData The material data

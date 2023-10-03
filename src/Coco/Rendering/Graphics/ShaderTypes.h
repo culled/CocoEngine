@@ -6,22 +6,6 @@
 
 namespace Coco::Rendering
 {
-	/// @brief Scopes for a shader uniform
-	enum class UniformScope
-	{
-		/// @brief Can only be updated once per render operation
-		Global,
-
-		/// @brief Can only be updated once per shader per render operation
-		ShaderGlobal,
-
-		/// @brief Can only be updated once per instance
-		Instance,
-
-		/// @brief Can be updated every draw call
-		Draw
-	};
-
 	/// @brief Shader stage flags
 	enum class ShaderStageFlags
 	{

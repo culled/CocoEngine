@@ -22,10 +22,9 @@ SceneDataProvider2D::SceneDataProvider2D() :
 	GraphicsPipelineState pipelineState{};
 
 	_shader = resourceLibrary.Create<Shader>("Shader2D", "2d");
-	_shader->AddRenderPassShader(
-		RenderPassShader(
-			_shader->GetID(),
-			"basic",
+	_shader->AddVariant(
+		ShaderVariant(
+			"unlit",
 			{
 				ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Unlit.vert.spv"),
 				ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Unlit.frag.spv")

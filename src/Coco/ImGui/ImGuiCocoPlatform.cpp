@@ -768,9 +768,8 @@ namespace Coco::ImGuiCoco
 
         ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
         _shader = resources.Create<Shader>("ImGui", ImGuiRenderPass::sPassName);
-        _shader->AddRenderPassShader(
-            RenderPassShader(
-                _shader->GetID(),
+        _shader->AddVariant(
+            ShaderVariant(
                 ImGuiRenderPass::sPassName,
                 {
                     ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/ImGui.vert.spv"),

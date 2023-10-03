@@ -61,11 +61,10 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	}
 	else
 	{
-		_shader = resourceLibrary.Create<Shader>("Shader", "");
-		_shader->AddRenderPassShader(
-			RenderPassShader(
-				_shader->GetID(),
-				"basic",
+		_shader = resourceLibrary.Create<Shader>("Shader", "lit");
+		_shader->AddVariant(
+			ShaderVariant(
+				"lit",
 				{
 					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Lit.vert.spv"),
 					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Lit.frag.spv")
@@ -74,21 +73,21 @@ SceneDataProvider3D::SceneDataProvider3D() :
 				{
 					BlendState::Opaque
 				},
-			{
-				ShaderVertexAttribute("Position", BufferDataType::Float3),
-				ShaderVertexAttribute("Normal", BufferDataType::Float3),
-				ShaderVertexAttribute("Tangent", BufferDataType::Float4),
-				ShaderVertexAttribute("UV", BufferDataType::Float2)
-			},
+				{
+					ShaderVertexAttribute("Position", BufferDataType::Float3),
+					ShaderVertexAttribute("Normal", BufferDataType::Float3),
+					ShaderVertexAttribute("Tangent", BufferDataType::Float4),
+					ShaderVertexAttribute("UV", BufferDataType::Float2)
+				},
 				GlobalShaderUniformLayout(),
 				ShaderUniformLayout(
 					{
 						ShaderDataUniform("BaseColor", ShaderStageFlags::Fragment, BufferDataType::Float4)
 					},
-				{
-					ShaderTextureUniform("BaseTexSampler", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::White),
-					ShaderTextureUniform("NormalTexSampler", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::Normal)
-				}
+					{
+						ShaderTextureUniform("BaseTexSampler", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::White),
+						ShaderTextureUniform("NormalTexSampler", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::Normal)
+					}
 				),
 				ShaderUniformLayout(
 					{

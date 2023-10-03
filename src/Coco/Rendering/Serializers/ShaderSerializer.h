@@ -10,7 +10,7 @@ namespace YAML
 
 namespace Coco::Rendering
 {
-	struct RenderPassShader;
+	struct ShaderVariant;
 
 	/// @brief A ResourceSerializer for Shader resources
 	class ShaderSerializer :
@@ -24,14 +24,14 @@ namespace Coco::Rendering
 		ManagedRef<Resource> Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data) override;
 
 	private:
-		/// @brief Serializes a RenderPassShader
+		/// @brief Serializes a ShaderVariant
 		/// @param emitter The emitter
-		/// @param passShader The pass shader
-		void SerializeRenderPassShader(YAML::Emitter& emitter, const RenderPassShader& passShader);
+		/// @param variant The shader variant
+		void SerializeShaderVariant(YAML::Emitter& emitter, const ShaderVariant& variant);
 
-		/// @brief Deserializes a RenderPassShader
+		/// @brief Deserializes a ShaderVariant
 		/// @param baseNode The base node of the render pass shader
-		/// @return The deserialized pass shader
-		RenderPassShader DeserializeRenderPassShader(const YAML::Node& baseNode);
+		/// @return The deserialized shader variant
+		ShaderVariant DeserializeShaderVariant(const YAML::Node& baseNode);
 	};
 }

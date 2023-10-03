@@ -31,9 +31,8 @@ namespace Coco::Rendering
 		pipelineState.CullingMode = CullMode::None;
 		pipelineState.EnableDepthWrite = false;
 
-		_shader->AddRenderPassShader(
-			RenderPassShader(
-				_shader->GetID(),
+		_shader->AddVariant(
+			ShaderVariant(
 				DebugRenderPass::sPassName,
 				{
 					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Debug.vert.spv"),

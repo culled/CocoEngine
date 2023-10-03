@@ -23,7 +23,7 @@ namespace Coco::ImGuiCoco
         for (const ObjectData& obj : renderView.GetRenderObjects())
         {
             const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
-            context.SetMaterial(material);
+            context.SetMaterial(material, ImGuiRenderPass::sPassName);
             
             if (obj.ExtraData.has_value())
             {
