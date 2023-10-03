@@ -8,7 +8,8 @@
 
 namespace Coco
 {
-	ViewportPanel::ViewportPanel() :
+	ViewportPanel::ViewportPanel(const char* name) :
+		_name(name),
 		_collapsed(true),
 		_clearColor(Color(0.1, 0.1, 0.1, 1.0)),
 		_sampleCount(MSAASamples::One), 
@@ -74,7 +75,7 @@ namespace Coco
 		bool open = true;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		if (ImGui::Begin("Viewport", &open) && open)
+		if (ImGui::Begin(_name.c_str(), &open) && open)
 		{
 			ImVec2 size = ImGui::GetContentRegionAvail();
 

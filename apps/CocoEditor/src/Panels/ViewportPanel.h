@@ -25,6 +25,7 @@ namespace Coco
 		Event<const ViewportPanel&> OnClosed;
 
 	private:
+		string _name;
 		ManagedRef<TickListener> _updateTickListener;
 		bool _collapsed;
 		Color _clearColor;
@@ -35,7 +36,7 @@ namespace Coco
 		ManagedRef<Texture> _viewportTexture;
 
 	public:
-		ViewportPanel();
+		ViewportPanel(const char* name);
 		~ViewportPanel();
 
 		// Inherited via RenderViewProvider

@@ -165,7 +165,7 @@ namespace Coco
 
 	UniqueRef<ViewportPanel> EditorApplication::CreateViewportPanel()
 	{
-		UniqueRef<ViewportPanel> viewport = CreateUniqueRef<ViewportPanel>();
+		UniqueRef<ViewportPanel> viewport = CreateUniqueRef<ViewportPanel>("Viewport");
 		_viewportClosedHandler.Connect(viewport->OnClosed);
 
 		return viewport;
