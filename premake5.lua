@@ -3,8 +3,6 @@ workspace "CocoEngine"
     platforms { "Win64" }
     architecture "x64"
 
-    startproject "Sandbox"
-
     OutputFolder = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}\\"
 
     -- Library directories relative to the workspace
@@ -181,6 +179,8 @@ workspace "CocoEngine"
         Platforms["Linux"] = true
     end
 
+    startproject "CocoEditor"
+
     if (_ACTION ~= nil) then
         group "Engine"
             include "src\\Coco\\Core"
@@ -215,6 +215,9 @@ workspace "CocoEngine"
 
         group "Engine/Third Party"
             include "src\\Coco\\Third Party\\yaml-cpp"
+
+        group "Apps"
+            include "apps\\CocoEditor"
 
         group "Example Apps"
             include "exampleapps\\Sandbox"

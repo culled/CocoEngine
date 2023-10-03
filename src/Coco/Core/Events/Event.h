@@ -31,7 +31,7 @@ namespace Coco
 			for (auto it = tempHandlers.begin(); it != tempHandlers.end(); it++)
 			{
 				if(*it)
-					(*it)->Disconnect();
+					(*it)->Disconnect(*this);
 			}
 		}
 
@@ -96,52 +96,66 @@ namespace Coco
 		using CallbackFunction = std::function<bool(ArgTypes...)>;
 
 	private:
-		EventType* _event;
+		std::vector<EventType*> _events;
 		CallbackFunction _callback;
 
 	public:
 		EventHandler() :
-			_event(nullptr),
+			_events(),
 			_callback(nullptr)
 		{}
 
 		EventHandler(CallbackFunction callback) :
-			_event(nullptr)
+			_events()
 		{
 			SetCallback(callback);
 		}
 
 		template<typename ObjectType>
 		EventHandler(ObjectType* instance, bool(ObjectType::* callback)(ArgTypes...)) :
-			_event(nullptr)
+			_events()
 		{
 			SetCallback(instance, callback);
 		}
 
 		~EventHandler()
 		{
-			Disconnect();
+			DisconnectAll();
 		}
 
-		/// @brief Connects this handler to an event.
-		/// NOTE: This will disconnect from the current event if one is already connected
+		/// @brief Connects this handler to an event
 		/// @param source The event
 		void Connect(EventType& source)
 		{
-			if (_event)
-				Disconnect();
+			auto it = std::find(_events.begin(), _events.end(), &source);
 
-			_event = &source;
-			_event->AddHandler(*this);
+			if (it != _events.end())
+				return;
+
+			_events.push_back(&source);
+			source.AddHandler(*this);
 		}
 
-		/// @brief Disconnects from the connected event
-		void Disconnect()
+		/// @brief Disconnects this handler from an event
+		/// @param source The event
+		void Disconnect(EventType& source)
 		{
-			if (_event)
-				_event->RemoveHandler(*this);
+			auto it = std::find(_events.begin(), _events.end(), &source);
 
-			_event = nullptr;
+			if (it == _events.end())
+				return;
+
+			source.RemoveHandler(*this);
+			_events.erase(it);
+		}
+
+		/// @brief Disconnects all events from this handler
+		void DisconnectAll()
+		{
+			std::vector<EventType*> tempEvents = _events;
+
+			for (auto it = tempEvents.begin(); it != tempEvents.end(); it++)
+				Disconnect(*(*it));
 		}
 
 		/// @brief Sets the callback function that this handler will invoke when the connected event is fired
@@ -161,9 +175,14 @@ namespace Coco
 			_callback = std::bind(callback, instance, std::placeholders::_1);
 		}
 
-		/// @brief Gets if this handler is connected to an event
-		/// @return True if this handler is connected to an event
-		bool IsConnected() const { return _event != nullptr; }
+		/// @brief Determines if this handler is connected to any events
+		/// @return True if this handler is connected to any events
+		bool IsConnected() const { return _events.size() > 0; }
+
+		/// @brief Determines if this handler is connected to a specific event
+		/// @param source The event
+		/// @return True if this handler is connected to the event
+		bool IsConnectedTo(EventType& source) const { return std::find(_events.begin(), _events.end(), &source) != _events.end(); }
 
 	private:
 		/// @brief Invokes the callback function

@@ -22,8 +22,8 @@ namespace Coco::Input
 	private:
 		UniqueRef<Keyboard> _keyboard;
 		UniqueRef<Mouse> _mouse;
-		TickListener _preTickHandler;
-		TickListener _postTickHandler;
+		ManagedRef<TickListener> _postTickHandler;
+		ManagedRef<TickListener> _preTickHandler;
 
 	public:
 		InputService();

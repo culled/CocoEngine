@@ -163,6 +163,8 @@ namespace Coco::Rendering::Vulkan
 			return;
 
 		const ShaderData& shader = _renderView->GetShaderData(material.ShaderID);
+		Assert(shader.RenderPassShaders.contains(_renderOperation->CurrentPassName))
+
 		uint64 passKey = shader.RenderPassShaders.at(_renderOperation->CurrentPassName);
 		const RenderPassShaderData& passShader = _renderView->GetRenderPassShaderData(passKey);
 

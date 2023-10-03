@@ -20,6 +20,8 @@ Coordinate system: Right-handed
 
 Positive rotation = turn counter-clockwise when looking from the positive to negative direction on the axis
 
+View matrix has camera face -Z, with +Y being up and +X being right
+
 Rotation Matrix:
 	[xx, yx, zx]
 	[xy, yy, zy]

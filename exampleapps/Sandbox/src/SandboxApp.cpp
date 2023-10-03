@@ -17,7 +17,7 @@ MainApplication(SandboxApp)
 
 SandboxApp::SandboxApp() : 
 	Application(ApplicationCreateParameters("Sandbox", Version(0, 0, 1))),
-	_tickListener(this, &SandboxApp::Tick, 0),
+	_tickListener(CreateManagedRef<TickListener>(this, &SandboxApp::Tick, 0)),
 	_attachmentCache(CreateUniqueRef<AttachmentCache>())
 {
 	MainLoop::Get()->AddListener(_tickListener);

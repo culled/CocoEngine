@@ -15,6 +15,23 @@ namespace Coco::Rendering
 		ClearValue(clearValue)
 	{}
 
+	void RenderTarget::SetClearValues(std::span<RenderTarget> renderTargets, const Color& clearColor, double clearDepth, uint8 clearStencil)
+	{
+		for (RenderTarget& rt : renderTargets)
+		{
+			ImagePixelFormat pixelFormat = rt.MainImage->GetDescription().PixelFormat;
+
+			if (IsDepthFormat(pixelFormat) || IsStencilFormat(pixelFormat))
+			{
+				rt.SetDepthStencilClearValue(clearDepth, clearStencil);
+			}
+			else
+			{
+				rt.SetColorClearValue(clearColor);
+			}
+		}
+	}
+
 	void RenderTarget::SetColorClearValue(const Color& clearColor)
 	{
 		Color gammaColor = clearColor.AsLinear();

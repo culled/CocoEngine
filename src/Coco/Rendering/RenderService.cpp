@@ -22,8 +22,8 @@ namespace Coco::Rendering
 	{}
 
 	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory, bool includeDebugRendering) :
-		_earlyTickListener(CreateUniqueRef<TickListener>(this, &RenderService::HandleEarlyTick, sEarlyTickPriority)),
-		_lateTickListener(CreateUniqueRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
+		_earlyTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleEarlyTick, sEarlyTickPriority)),
+		_lateTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
 		_renderTasks{},
 		_debugRender(nullptr),
 		_renderView()
@@ -38,8 +38,8 @@ namespace Coco::Rendering
 		CreateDefaultNormalTexture();
 		CreateDefaultCheckerTexture();
 
-		//MainLoop::Get()->AddListener(*_earlyTickListener);
-		MainLoop::Get()->AddListener(*_lateTickListener);
+		//MainLoop::Get()->AddListener(_earlyTickListener);
+		MainLoop::Get()->AddListener(_lateTickListener);
 
 		// Add resource serializers
 		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
@@ -52,8 +52,8 @@ namespace Coco::Rendering
 
 	RenderService::~RenderService()
 	{
-		//MainLoop::Get()->RemoveListener(*_earlyTickListener);
-		MainLoop::Get()->RemoveListener(*_lateTickListener);
+		//MainLoop::Get()->RemoveListener(_earlyTickListener);
+		MainLoop::Get()->RemoveListener(_lateTickListener);
 		_renderTasks.clear();
 
 		_renderContextCache.clear();

@@ -29,6 +29,13 @@ namespace Coco::Rendering
 		RenderTarget();
 		RenderTarget(Ref<Image> mainImage, const Vector4& clearValue);
 
+		/// @brief Sets clear values for all render targets using the clear color if it is a color target and the depth/stencil value otherwise
+		/// @param renderTargets The render targets
+		/// @param clearColor The color for clearing color targets
+		/// @param clearDepth The depth value for clearing depth targets
+		/// @param clearStencil The stencil value for clearing stencil targets
+		static void SetClearValues(std::span<RenderTarget> renderTargets, const Color& clearColor, double clearDepth, uint8 clearStencil);
+
 		/// @brief Sets the clear value from a color
 		/// @param clearColor The clear color
 		void SetColorClearValue(const Color& clearColor);

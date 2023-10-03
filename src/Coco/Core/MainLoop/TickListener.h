@@ -34,8 +34,6 @@ namespace Coco
 			TickListener(std::bind(callback, instance, std::placeholders::_1), priority)
 		{}
 
-		~TickListener();
-
 		/// @brief Sets the enabled state of this listener
 		/// @param enabled If true, this listener will dispatch ticks to the callback
 		void SetEnabled(bool enabled);

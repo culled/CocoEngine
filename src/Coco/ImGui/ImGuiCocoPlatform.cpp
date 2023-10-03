@@ -282,9 +282,9 @@ namespace Coco::ImGuiCoco
 
     CocoViewportData::~CocoViewportData()
     {
-        OnPositionChanged.Disconnect();
-        OnSizeChanged.Disconnect();
-        OnClosing.Disconnect();
+        OnPositionChanged.DisconnectAll();
+        OnSizeChanged.DisconnectAll();
+        OnClosing.DisconnectAll();
     }
 
     std::unordered_map<uint64, CocoViewportData> ImGuiCocoPlatform::_sViewports;

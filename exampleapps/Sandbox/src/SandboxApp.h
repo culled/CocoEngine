@@ -14,7 +14,7 @@ using namespace Coco;
 class SandboxApp : public Application
 {
 private:
-	TickListener _tickListener;
+	ManagedRef<TickListener> _tickListener;
 
 	UniqueRef<AttachmentCache> _attachmentCache;
 

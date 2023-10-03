@@ -13,6 +13,9 @@ namespace Coco
 		/// @brief A black color (0.0, 0.0, 0.0, 1.0)
 		static const Color Black;
 
+		/// @brief A mid-grey color (0.5, 0.5, 0.5, 1.0)
+		static const Color MidGrey;
+
 		/// @brief A white color (1.0, 1.0, 1.0, 1.0)
 		static const Color White;
 

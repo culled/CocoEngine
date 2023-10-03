@@ -11,12 +11,12 @@
 
 namespace Coco::ImGuiCoco
 {
-	const int ImGuiService::sImGuiNewFramePriority = -100;
-	const int ImGuiService::sImGuiDrawPriority = 100;
+	const int ImGuiService::sImGuiNewFramePriority = -1000;
+	const int ImGuiService::sImGuiDrawPriority = 1000;
 
 	ImGuiService::ImGuiService(bool enableViewports) :
-		_newFrameTickListener(this, &ImGuiService::HandleNewFrameTick, sImGuiNewFramePriority),
-		_drawTickListener(this, &ImGuiService::HandleDrawTick, sImGuiDrawPriority)
+		_newFrameTickListener(CreateManagedRef<TickListener>(this, &ImGuiService::HandleNewFrameTick, sImGuiNewFramePriority)),
+		_drawTickListener(CreateManagedRef<TickListener>(this, &ImGuiService::HandleDrawTick, sImGuiDrawPriority))
 	{
 		using namespace Coco::Rendering;
 

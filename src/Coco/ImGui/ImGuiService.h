@@ -18,8 +18,8 @@ namespace Coco::ImGuiCoco
         static const int sImGuiDrawPriority;
 
     private:
-        TickListener _newFrameTickListener;
-        TickListener _drawTickListener;
+        ManagedRef<TickListener> _newFrameTickListener;
+        ManagedRef<TickListener> _drawTickListener;
         UniqueRef<ImGuiCocoPlatform> _platform;
 
     public:

@@ -16,7 +16,7 @@ private:
 	MSAASamples _msaaSamples;
 	Transform3D _cameraTransform;
 	double _mouseSensitivity;
-	TickListener _tickListener;
+	ManagedRef<TickListener> _tickListener;
 
 public:
 	RenderViewProvider3D(AttachmentCache& attachmentCache);

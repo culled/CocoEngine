@@ -22,27 +22,33 @@ namespace Coco
 		_tickListeners.clear();
 	}
 
-	void MainLoop::AddListener(TickListener& listener)
+	void MainLoop::AddListener(Ref<TickListener> listener)
 	{
-		const auto it = std::find(_tickListeners.cbegin(), _tickListeners.cend(), &listener);
+		const auto it = std::find_if(_tickListeners.cbegin(), _tickListeners.cend(), [listener](const Ref<TickListener>& other)
+			{
+				return other.Get() == listener.Get();
+			});
 
 		if (it != _tickListeners.cend())
 			return;
 
-		_tickListeners.push_back(&listener);
-		listener._isRegistered = true;
+		_tickListeners.push_back(listener);
+		listener->_isRegistered = true;
 		_listenersNeedSorting = true;
 	}
 
-	void MainLoop::RemoveListener(TickListener& listener)
+	void MainLoop::RemoveListener(Ref<TickListener> listener)
 	{
-		const auto it = std::find(_tickListeners.cbegin(), _tickListeners.cend(), &listener);
+		const auto it = std::find_if(_tickListeners.cbegin(), _tickListeners.cend(), [listener](const Ref<TickListener>& other)
+			{
+				return other.Get() == listener.Get();
+			});
 
 		if (it == _tickListeners.cend())
 			return;
 
 		_tickListeners.erase(it);
-		listener._isRegistered = false;
+		listener->_isRegistered = false;
 	}
 
 	void MainLoop::SetTargetTicksPerSecond(uint32 ticksPerSecond)
@@ -100,9 +106,12 @@ namespace Coco
 			{
 				PreTick();
 
-				std::vector<TickListener*> tempListeners(_tickListeners);
+				std::vector<Ref<TickListener>> tempListeners(_tickListeners);
 				for (auto it = tempListeners.begin(); it != tempListeners.end(); it++)
 				{
+					if (!it->IsValid())
+						continue;
+
 					try
 					{
 						(*it)->Invoke(_currentTick);
@@ -139,8 +148,14 @@ namespace Coco
 	void MainLoop::SortTickHandlers()
 	{
 		std::sort(_tickListeners.begin(), _tickListeners.end(),
-			[](const TickListener* a, const TickListener* b)
+			[](const Ref<TickListener>& a, const Ref<TickListener>& b)
 			{
+				if (!a.IsValid())
+					return false;
+
+				if (!b.IsValid())
+					return true;
+
 				return a->Priority < b->Priority;
 			});
 
@@ -155,6 +170,19 @@ namespace Coco
 
 	void MainLoop::PostTick()
 	{
+		auto it = _tickListeners.begin();
+
+		while (it != _tickListeners.end())
+		{
+			if (!it->IsValid())
+			{
+				it = _tickListeners.erase(it);
+			}
+			else
+			{
+				it++;
+			}
+		}
 	}
 
 	void MainLoop::WaitForTargetTickTime(double lastTickTime)

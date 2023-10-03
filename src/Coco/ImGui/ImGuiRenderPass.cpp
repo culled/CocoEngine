@@ -31,7 +31,8 @@ namespace Coco::ImGuiCoco
 
                 Assert(tex != nullptr)
 
-                context.SetTextureSampler(UniformScope::Draw, ShaderUniformData::MakeKey("Texture"), tex->GetImage(), tex->GetImageSampler());
+                if(tex->GetImage().IsValid() && tex->GetImageSampler().IsValid())
+                    context.SetTextureSampler(UniformScope::Draw, ShaderUniformData::MakeKey("Texture"), tex->GetImage(), tex->GetImageSampler());
             }
 
             const MeshData& mesh = renderView.GetMeshData(obj.MeshID);

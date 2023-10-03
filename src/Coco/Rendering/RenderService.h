@@ -51,8 +51,8 @@ namespace Coco::Rendering
 		Ref<Texture> _defaultNormalTexture;
 		Ref<Texture> _defaultCheckerTexture;
 		RenderStats _stats;
-		UniqueRef<TickListener> _earlyTickListener;
-		UniqueRef<TickListener> _lateTickListener;
+		ManagedRef<TickListener> _earlyTickListener;
+		ManagedRef<TickListener> _lateTickListener;
 		std::unordered_map<uint64, std::vector<RenderServiceRenderTask>> _renderTasks;
 		std::vector<RenderContextRenderStats> _individualRenderStats;
 		std::vector<Ref<RenderContext>> _renderContextCache;

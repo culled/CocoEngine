@@ -8,8 +8,8 @@ namespace Coco::Input
 	InputService::InputService() :
 		_keyboard(CreateUniqueRef<Keyboard>()),
 		_mouse(CreateUniqueRef<Mouse>()),
-		_preTickHandler(this, &InputService::HandlePreTick, PreProcessTickPriority),
-		_postTickHandler(this, &InputService::HandlePostTick, PostProcessTickPriority)
+		_preTickHandler(CreateManagedRef<TickListener>(this, &InputService::HandlePreTick, PreProcessTickPriority)),
+		_postTickHandler(CreateManagedRef<TickListener>(this, &InputService::HandlePostTick, PostProcessTickPriority))
 	{
 		MainLoop* loop = MainLoop::Get();
 		loop->AddListener(_preTickHandler);

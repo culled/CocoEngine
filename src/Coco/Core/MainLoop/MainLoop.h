@@ -2,6 +2,7 @@
 
 #include "../Corepch.h"
 #include "../Types/Singleton.h"
+#include "../Types/Refs.h"
 #include "TickInfo.h"
 #include "TickListener.h"
 
@@ -11,7 +12,7 @@ namespace Coco
 	class MainLoop : public Singleton<MainLoop>
 	{
 	private:
-		std::vector<TickListener*> _tickListeners;
+		std::vector<Ref<TickListener>> _tickListeners;
 		bool _isRunning;
 		uint32 _targetTicksPerSecond;
 		bool _isSuspended;
@@ -27,11 +28,11 @@ namespace Coco
 
 		/// @brief Adds a listener to this loop
 		/// @param listener The listener
-		void AddListener(TickListener& listener);
+		void AddListener(Ref<TickListener> listener);
 
 		/// @brief Removes a listener from this loop
 		/// @param listener The listener
-		void RemoveListener(TickListener& listener);
+		void RemoveListener(Ref<TickListener> listener);
 
 		/// @brief Sets the target amount of ticks per second that the loop will run at
 		/// @param ticksPerSecond The target number of ticks per second. Set to 0 to run as fast as possible

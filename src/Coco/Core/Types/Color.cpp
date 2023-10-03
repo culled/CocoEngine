@@ -6,6 +6,7 @@
 namespace Coco
 {
 	const Color Color::Black = Color(0.0, 0.0, 0.0, 1.0);
+	const Color Color::MidGrey = Color(0.5, 0.5, 0.5, 1.0);
 	const Color Color::White = Color(1.0, 1.0, 1.0, 1.0);
 	const Color Color::Red = Color(1.0, 0.0, 0.0, 1.0);
 	const Color Color::Green = Color(0.0, 1.0, 0.0, 1.0);

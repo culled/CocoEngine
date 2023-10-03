@@ -14,12 +14,6 @@ namespace Coco
 		_isRegistered(false)
 	{}
 
-	TickListener::~TickListener()
-	{
-		if (_isRegistered)
-			MainLoop::Get()->RemoveListener(*this);
-	}
-
 	void TickListener::SetEnabled(bool enabled)
 	{
 		_enabled = enabled;

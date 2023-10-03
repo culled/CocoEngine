@@ -25,7 +25,7 @@ namespace Events
 			Assert::IsTrue(h.IsConnected());
 
 			// Disconnect the handler from the event
-			h.Disconnect();
+			h.Disconnect(e);
 			Assert::IsFalse(h.IsConnected());
 			Assert::IsTrue(e.GetHandlerCount() == 0);
 		}
@@ -46,7 +46,7 @@ namespace Events
 			Assert::IsTrue(e.Invoke(testValue));
 
 			// Disconnect the handler and make sure the event returns to its unhandled state
-			h.Disconnect();
+			h.Disconnect(e);
 			Assert::IsFalse(e.Invoke(testValue));
 		}
 
