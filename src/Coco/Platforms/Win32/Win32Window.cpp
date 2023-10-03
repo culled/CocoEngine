@@ -680,9 +680,6 @@ namespace Coco::Platforms::Win32
 
 	bool Win32Window::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
-		if (!HasFocus())
-			return false;
-
 #ifdef COCO_SERVICES_INPUT
 		using namespace Coco::Input;
 

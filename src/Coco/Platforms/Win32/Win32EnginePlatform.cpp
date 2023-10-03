@@ -256,7 +256,7 @@ namespace Coco::Platforms::Win32
 		case WM_KEYUP: // A key was released
 		case WM_SYSKEYUP: // A key was released
 		case WM_MOUSEMOVE: // The mouse moved in the client area
-		//case WM_NCMOUSEMOVE: // The mouse moved in the non-client area
+		case WM_NCMOUSEMOVE: // The mouse moved in the non-client area
 		case WM_INPUT: // Raw input message
 		case WM_MOUSEWHEEL: // The mouse wheel moved
 		case WM_LBUTTONDOWN: // The left mouse button was pressed
