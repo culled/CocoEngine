@@ -12,14 +12,21 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanGlobalUniformData::VulkanGlobalUniformData(const GlobalShaderUniformLayout& layout) :
+	VulkanGlobalUniformData::VulkanGlobalUniformData(const GlobalShaderUniformLayout& layout, const VulkanDescriptorSetLayout* descriptorSetLayout) :
 		CachedVulkanResource(layout.Hash),
 		_uniformLayout(layout),
-		_descriptorSetLayout(),
+		_descriptorSetLayout(0),
 		_pool(nullptr),
 		_set(nullptr)
 	{
-		CreateDescriptorSetLayout();
+		if (descriptorSetLayout)
+		{
+			_descriptorSetLayout = *descriptorSetLayout;
+		}
+		else
+		{
+			_descriptorSetLayout = VulkanDescriptorSetLayout::CreateForUniformLayout(_device, layout, true);
+		}
 
 		if (_descriptorSetLayout.Layout)
 		{
@@ -104,79 +111,6 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		return _set;
-	}
-
-	void VulkanGlobalUniformData::CreateDescriptorSetLayout()
-	{
-		if (_uniformLayout.Hash == ShaderUniformLayout::EmptyHash)
-			return;
-
-		bool hasDataUniforms = _uniformLayout.DataUniforms.size() > 0;
-
-		_descriptorSetLayout.LayoutBindings.resize(_uniformLayout.TextureUniforms.size() + _uniformLayout.BufferUniforms.size() + (hasDataUniforms ? 1 : 0));
-		_descriptorSetLayout.WriteTemplates.resize(_descriptorSetLayout.LayoutBindings.size());
-		uint32 bindingIndex = 0;
-
-		if (hasDataUniforms)
-		{
-			VkDescriptorSetLayoutBinding& binding = _descriptorSetLayout.LayoutBindings.at(bindingIndex);
-			binding.descriptorCount = 1;
-			binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			binding.pImmutableSamplers = nullptr;
-			binding.binding = bindingIndex;
-			binding.stageFlags = ToVkShaderStageFlags(_uniformLayout.GetDataUniformBindStages());
-
-			VkWriteDescriptorSet& write = _descriptorSetLayout.WriteTemplates.at(bindingIndex);
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstBinding = bindingIndex;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			write.descriptorCount = 1;
-
-			bindingIndex++;
-		}
-
-		for (uint32 i = 0; i < _uniformLayout.TextureUniforms.size(); i++)
-		{
-			VkDescriptorSetLayoutBinding& binding = _descriptorSetLayout.LayoutBindings.at(bindingIndex);
-			binding.descriptorCount = 1;
-			binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			binding.pImmutableSamplers = nullptr;
-			binding.binding = bindingIndex;
-			binding.stageFlags = ToVkShaderStageFlags(_uniformLayout.TextureUniforms.at(i).BindingPoints);
-
-			VkWriteDescriptorSet& write = _descriptorSetLayout.WriteTemplates.at(bindingIndex);
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstBinding = bindingIndex;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			write.descriptorCount = 1;
-
-			bindingIndex++;
-		}
-
-		for (uint32 i = 0; i < _uniformLayout.BufferUniforms.size(); i++)
-		{
-			VkDescriptorSetLayoutBinding& binding = _descriptorSetLayout.LayoutBindings.at(bindingIndex);
-			binding.descriptorCount = 1;
-			binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			binding.pImmutableSamplers = nullptr;
-			binding.binding = bindingIndex;
-			binding.stageFlags = ToVkShaderStageFlags(_uniformLayout.BufferUniforms.at(i).BindingPoints);
-
-			VkWriteDescriptorSet& write = _descriptorSetLayout.WriteTemplates.at(bindingIndex);
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstBinding = bindingIndex;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			write.descriptorCount = 1;
-
-			bindingIndex++;
-		}
-
-		VkDescriptorSetLayoutCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		createInfo.bindingCount = static_cast<uint32_t>(_descriptorSetLayout.LayoutBindings.size());
-		createInfo.pBindings = _descriptorSetLayout.LayoutBindings.data();
-
-		AssertVkSuccess(vkCreateDescriptorSetLayout(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_descriptorSetLayout.Layout))
 	}
 
 	void VulkanGlobalUniformData::CreateDescriptorSetPool()

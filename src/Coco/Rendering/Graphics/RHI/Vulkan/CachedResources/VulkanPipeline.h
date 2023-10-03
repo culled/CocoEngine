@@ -25,7 +25,7 @@ namespace Coco::Rendering::Vulkan
 			const VulkanRenderPass& renderPass,
 			const VulkanRenderPassShader& shader,
 			uint32 subpassIndex,
-			const GlobalShaderUniformLayout* globalLayout);
+			const VulkanDescriptorSetLayout* globalLayout);
 
 		~VulkanPipeline();
 
@@ -33,13 +33,13 @@ namespace Coco::Rendering::Vulkan
 		/// @param renderPass The render pass
 		/// @param shader The shader
 		/// @param subpassIndex The subpass index
-		/// @param globalLayout The global uniform layout, if one exists
+		/// @param globalLayout The global descriptor set layout, if one exists
 		/// @return A key created from the given items
 		static GraphicsDeviceResourceID MakeKey(
 			const VulkanRenderPass& renderPass,
 			const VulkanRenderPassShader& shader,
 			uint32 subpassIndex,
-			const GlobalShaderUniformLayout* globalLayout);
+			const VulkanDescriptorSetLayout* globalLayout);
 
 		/// @brief Gets this pipeline's version
 		/// @return The version

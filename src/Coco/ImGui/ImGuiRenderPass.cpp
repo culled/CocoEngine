@@ -1,6 +1,7 @@
 #include "ImGuiRenderPass.h"
 
 #include "ImGuiService.h"
+#include <Coco/Rendering/Texture.h>
 #include <Coco/Core/Engine.h>
 #include <imgui.h>
 
@@ -23,6 +24,15 @@ namespace Coco::ImGuiCoco
         {
             const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
             context.SetMaterial(material);
+            
+            if (obj.ExtraData.has_value())
+            {
+                Texture* tex = std::any_cast<Texture*>(obj.ExtraData);
+
+                Assert(tex != nullptr)
+
+                context.SetTextureSampler(UniformScope::Draw, ShaderUniformData::MakeKey("Texture"), tex->GetImage(), tex->GetImageSampler());
+            }
 
             const MeshData& mesh = renderView.GetMeshData(obj.MeshID);
             context.SetScissorRect(obj.ScissorRect);

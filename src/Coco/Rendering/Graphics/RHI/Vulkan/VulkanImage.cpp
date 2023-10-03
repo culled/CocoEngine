@@ -129,7 +129,22 @@ namespace Coco::Rendering::Vulkan
 		barrier.dstQueueFamilyIndex = graphicsQueue->FamilyIndex;
 		barrier.image = _image;
 
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		VkImageAspectFlags aspectFlags = 0;
+
+		if (IsDepthFormat(_description.PixelFormat) || IsStencilFormat(_description.PixelFormat))
+		{
+			if (IsStencilFormat(_description.PixelFormat))
+				aspectFlags |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			
+			if (IsDepthFormat(_description.PixelFormat))
+				aspectFlags |= VK_IMAGE_ASPECT_DEPTH_BIT;
+		}
+		else
+		{
+			aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+		}
+
+		barrier.subresourceRange.aspectMask = aspectFlags;
 		barrier.subresourceRange.baseMipLevel = 0;
 		barrier.subresourceRange.levelCount = _description.MipCount;
 		barrier.subresourceRange.baseArrayLayer = 0;

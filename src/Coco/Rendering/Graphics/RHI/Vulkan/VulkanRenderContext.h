@@ -18,6 +18,9 @@ namespace Coco::Rendering::Vulkan
     class VulkanRenderContextCache;
     class VulkanCommandBuffer;
     struct VulkanDescriptorSetLayout;
+    class VulkanShaderUniformData;
+    class VulkanRenderPassShader;
+    class VulkanImage;
 
     /// @brief The bound global state
     struct BoundGlobalState
@@ -54,8 +57,8 @@ namespace Coco::Rendering::Vulkan
         {
             None,
             Shader,
-            Uniform,
-            Instance
+            Instance,
+            DrawUniform
         };
 
         /// @brief The framebuffer being rendered to
@@ -139,8 +142,18 @@ namespace Coco::Rendering::Vulkan
         /// @brief Adds image transitions after the render pass ends
         void AddPostRenderPassImageTransitions();
 
+        /// @brief Adds post-render pass transitions for an image
+        /// @param currentLayout The current layout of the image after rendering
+        /// @param image The image
+        void AddPostRenderPassImageTransitions(VkImageLayout currentLayout, VulkanImage& image);
+
         /// @brief Flushes pending state changes to complete setup for a drawing operation
         /// @return True if the state was setup successfully
         bool FlushStateChanges();
+
+        /// @brief Gets the uniform data for the currently-bound shader
+        /// @param outShader If given, will be set to the currently-bound shader
+        /// @return The shader's uniform data
+        VulkanShaderUniformData& GetUniformDataForBoundShader(VulkanRenderPassShader** outShader);
     };
 }

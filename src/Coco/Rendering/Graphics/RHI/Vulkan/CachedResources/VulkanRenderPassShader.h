@@ -57,6 +57,11 @@ namespace Coco::Rendering::Vulkan
 		/// @return The descriptor set layout
 		const VulkanDescriptorSetLayout& GetDescriptorSetLayout(UniformScope scope) const;
 
+		/// @brief Determines if this shader has a descriptor set layout for the given scope
+		/// @param scope The uniform scope
+		/// @return True if this shader has a layout for the given scope
+		bool HasScope(UniformScope scope) const;
+
 		/// @brief Gets the push constant ranges for the draw uniforms
 		/// @return The push constant ranges
 		std::vector<VkPushConstantRange> GetPushConstantRanges() const;

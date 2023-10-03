@@ -429,6 +429,7 @@ namespace Coco::Rendering
 			if (context->CheckForRenderingComplete())
 			{
 				context->Reset();
+				context->AddWaitOnSemaphore(context->GetRenderCompletedSemaphore());
 				return context;
 			}
 

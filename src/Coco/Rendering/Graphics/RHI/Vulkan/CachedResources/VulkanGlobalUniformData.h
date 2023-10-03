@@ -24,7 +24,7 @@ namespace Coco::Rendering::Vulkan
         std::unordered_map<ShaderUniformData::UniformKey, ManagedRef<VulkanBuffer>> _globalBuffers;
 
     public:
-        VulkanGlobalUniformData(const GlobalShaderUniformLayout& layout);
+        VulkanGlobalUniformData(const GlobalShaderUniformLayout& layout, const VulkanDescriptorSetLayout* descriptorSetLayout);
         ~VulkanGlobalUniformData();
 
         /// @brief Makes a key for the given layout
@@ -49,9 +49,6 @@ namespace Coco::Rendering::Vulkan
         const VulkanDescriptorSetLayout& GetDescriptorSetLayout() const { return _descriptorSetLayout; }
 
     private:
-        /// @brief Creates the global descriptor set layout
-        void CreateDescriptorSetLayout();
-
         /// @brief Creates the global descriptor set pool
         void CreateDescriptorSetPool();
 

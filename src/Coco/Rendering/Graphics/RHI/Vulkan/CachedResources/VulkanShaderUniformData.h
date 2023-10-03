@@ -3,6 +3,7 @@
 #include "CachedVulkanResource.h"
 #include <Coco/Core/Types/Freelist.h>
 
+#include "VulkanGlobalUniformData.h"
 #include "../VulkanIncludes.h"
 
 namespace Coco::Rendering
@@ -18,6 +19,7 @@ namespace Coco::Rendering::Vulkan
 	class VulkanCommandBuffer;
 	class VulkanCommandBuffer;
 	struct VulkanDescriptorSetLayout;
+	class VulkanPipeline;
 
 	/// @brief Holds shader uniform data
 	struct UniformDataBuffer
@@ -79,13 +81,9 @@ namespace Coco::Rendering::Vulkan
 	};
 
 	/// @brief Manages uniform data for a VulkanRenderContext
-	class VulkanUniformData : 
+	class VulkanShaderUniformData : 
 		public CachedVulkanResource
 	{
-	public:
-		/// @brief The ID of the global instance
-		static const uint64 sGlobalInstanceID;
-
 	private:
 		using DescriptorPoolList = std::list<VulkanDescriptorPool>;
 
@@ -93,67 +91,67 @@ namespace Coco::Rendering::Vulkan
 		static constexpr uint64 _sMaxSets = 500;
 
 		uint64 _version;
+		std::optional<VulkanGlobalUniformData> _globalUniformData;
 		UniformDataBufferList _uniformBuffers;
 		VulkanDescriptorPoolCreateInfo _poolCreateInfo;
 		DescriptorPoolList _pools;
 		std::unordered_map<uint64, AllocatedUniformData> _uniformData;
-		std::unordered_map<uint64, VkDescriptorSet> _allocatedSets;
-		std::unordered_map<uint64, ManagedRef<VulkanBuffer>> _shaderGlobalBuffers;
+		std::unordered_map<uint64, VkDescriptorSet> _instanceSets;
 
 	public:
-		VulkanUniformData(const VulkanRenderPassShader& passShader);
-		~VulkanUniformData();
+		VulkanShaderUniformData(const VulkanRenderPassShader& shader);
+		~VulkanShaderUniformData();
 
-		/// @brief Creates a key for a VulkanUniformData object
-		/// @param passShader The shader
-		/// @return The key
-		static GraphicsDeviceResourceID MakeKey(const VulkanRenderPassShader& passShader);
+		/// @brief Makes a key from a shader
+		/// @param shader The shader
+		/// @return The key unique to the shader
+		static GraphicsDeviceResourceID MakeKey(const VulkanRenderPassShader& shader);
 
 		/// @brief Gets this resource's version
 		/// @return The version
 		uint64 GetVersion() const { return _version; }
 
-		/// @brief Sets data for a buffer uniform
+		/// @brief Determines if this uniform data needs to be updated
 		/// @param shader The shader
+		/// @return True if this resource should be updated
+		bool NeedsUpdate(const VulkanRenderPassShader& shader) const;
+
+		/// @brief Updates this uniform data to be compatible with the given shader
+		/// @param shader The shader
+		void Update(const VulkanRenderPassShader& shader);
+
+		/// @brief Sets data for a buffer uniform
 		/// @param key The uniform key
 		/// @param dataOffset The offset into the buffer to start copying data
 		/// @param data The data
 		/// @param dataSize The size of the data
-		void SetBufferUniformData(const VulkanRenderPassShader& shader, ShaderUniformData::UniformKey key, uint64 dataOffset, const void* data, uint64 dataSize);
+		void SetBufferUniformData(ShaderUniformData::UniformKey key, uint64 dataOffset, const void* data, uint64 dataSize);
 
-		/// @brief Prepares uniform data for a given instance
-		/// @param instanceID The id of the instance
+		/// @brief Prepares the given global uniform data
 		/// @param uniformData The uniform data
-		/// @param shader The shader
-		/// @param preserve If true, the uniform data will be preserved between renders
-		/// @return A descriptor set that can be used to bind the uniform data, or nullptr if no descriptors are needed
-		VkDescriptorSet PrepareData(uint64 instanceID, const ShaderUniformData& uniformData, const VulkanRenderPassShader& shader, bool preserve);
+		/// @return A descriptor set if the data was prepared, else nullptr
+		VkDescriptorSet PrepareGlobalData(const ShaderUniformData& uniformData);
 
-		/// @brief Prepares push constant uniform data
+		/// @brief Prepares the given instance uniform data
+		/// @param shader The shader
+		/// @param instanceID The instance ID
+		/// @param uniformData The uniform data
+		/// @param preserve If true, the data will be preserved between frames
+		/// @return A descriptor set if the data was prepared, else nullptr
+		VkDescriptorSet PrepareInstanceData(const VulkanRenderPassShader& shader, uint64 instanceID, const ShaderUniformData& uniformData, bool preserve);
+
+		/// @brief Prepares the given draw uniform data
+		/// @param shader The shader
 		/// @param commandBuffer The command buffer
-		/// @param pipelineLayout The pipeline layout
+		/// @param pipeline The current pipeline
 		/// @param uniformData The uniform data
-		/// @param shader The shader
-		void PreparePushConstants(VulkanCommandBuffer& commandBuffer, VkPipelineLayout pipelineLayout, const ShaderUniformData& uniformData, const VulkanRenderPassShader& shader);
+		/// @return A descriptor set if the data was prepared, else nullptr
+		VkDescriptorSet PrepareDrawData(const VulkanRenderPassShader& shader, VulkanCommandBuffer& commandBuffer, const VulkanPipeline& pipeline, const ShaderUniformData& uniformData);
 
 		/// @brief Resets this object for a new frame
 		void ResetForNextFrame();
 
-		/// @brief Determines if this uniform data needs to be updated
-		/// @param passShader The shader
-		/// @return True if this resource should be updated
-		bool NeedsUpdate(const VulkanRenderPassShader& passShader) const;
-
-		/// @brief Updates this uniform data to be compatible with the given shader
-		/// @param passShader The shader
-		void Update(const VulkanRenderPassShader& passShader);
-
 	private:
-		/// @brief Gets the scope of an instance. Will only be global for the global instance ID
-		/// @param instanceID The instance ID
-		/// @return The scope
-		constexpr static UniformScope GetInstanceScope(uint64 instanceID) { return instanceID == sGlobalInstanceID ? UniformScope::ShaderGlobal : UniformScope::Instance; }
-
 		/// @brief Allocates a region in the uniform buffers
 		/// @param requiredSize The required size of the region, in bytes
 		/// @param data The data that will be changed
@@ -181,7 +179,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param instanceID The ID of the instance
 		/// @param layout The descriptor set layout
 		/// @return A descriptor set
-		VkDescriptorSet AllocateDescriptorSet(uint64 instanceID, const VulkanDescriptorSetLayout& layout);
+		VkDescriptorSet AllocateDescriptorSet(const VulkanDescriptorSetLayout& layout);
 
 		/// @brief Updates a descriptor set
 		/// @param layout The uniform layout
@@ -194,14 +192,7 @@ namespace Coco::Rendering::Vulkan
 			const ShaderUniformLayout& layout,
 			const VulkanDescriptorSetLayout& setLayout,
 			const ShaderUniformData& uniformData,
-			const AllocatedUniformData& data,
+			const AllocatedUniformData* data,
 			VkDescriptorSet& set);
-
-		/// @brief Creates a shader global uniform buffer
-		/// @param uniform The buffer uniform
-		void CreateBufferUniform(const ShaderBufferUniform& uniform);
-
-		/// @brief Destroys all shader global uniform buffers
-		void DestroyBufferUniforms();
 	};
 }

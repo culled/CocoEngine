@@ -1,7 +1,8 @@
 #include "Renderpch.h"
+#include "VulkanShaderUniformData.h"
 #include "../../../../RenderService.h"
 #include "../../../../Texture.h"
-#include "VulkanUniformData.h"
+#include "VulkanGlobalUniformData.h"
 #include "VulkanRenderPassShader.h"
 #include "../VulkanGraphicsDevice.h"
 #include "../VulkanBuffer.h"
@@ -36,157 +37,46 @@ namespace Coco::Rendering::Vulkan
 		LastAllocateTime(0.0)
 	{}
 
-	const uint64 VulkanUniformData::sGlobalInstanceID = 0;
-
-	VulkanUniformData::VulkanUniformData(const VulkanRenderPassShader& passShader) :
-		CachedVulkanResource(MakeKey(passShader)),
+	VulkanShaderUniformData::VulkanShaderUniformData(const VulkanRenderPassShader& shader) :
+		CachedVulkanResource(MakeKey(shader)),
 		_version(0),
 		_uniformBuffers{},
 		_pools{},
 		_poolCreateInfo{},
 		_uniformData{},
-		_allocatedSets{},
-		_shaderGlobalBuffers{}
+		_instanceSets{}
 	{}
 
-	VulkanUniformData::~VulkanUniformData()
+	VulkanShaderUniformData::~VulkanShaderUniformData()
 	{
-		DestroyBufferUniforms();
+		_globalUniformData.reset();
 		DestroyDescriptorPools();
+		FreeAllBufferRegions();
 		_uniformBuffers.clear();
 	}
 
-	GraphicsDeviceResourceID VulkanUniformData::MakeKey(const VulkanRenderPassShader& passShader)
+	GraphicsDeviceResourceID VulkanShaderUniformData::MakeKey(const VulkanRenderPassShader& passShader)
 	{
 		return passShader.ID;
 	}
 
-	void VulkanUniformData::SetBufferUniformData(const VulkanRenderPassShader& shader, ShaderUniformData::UniformKey key, uint64 dataOffset, const void* data, uint64 dataSize)
+	bool VulkanShaderUniformData::NeedsUpdate(const VulkanRenderPassShader& shader) const
 	{
-		if (!_shaderGlobalBuffers.contains(key))
-		{
-			const RenderPassShader& shaderInfo = shader.GetInfo();
-			auto it = std::find_if(shaderInfo.GlobalUniforms.BufferUniforms.begin(), shaderInfo.GlobalUniforms.BufferUniforms.end(), [key](const ShaderBufferUniform& u)
-				{
-					return u.Key == key;
-				});
-
-			Assert(it != shaderInfo.GlobalUniforms.BufferUniforms.end())
-
-			CreateBufferUniform(*it);
-		}
-
-		_shaderGlobalBuffers.at(key)->LoadData(dataOffset, data, dataSize);
+		return _version != shader.GetVersion() || _pools.size() == 0;
 	}
 
-	VkDescriptorSet VulkanUniformData::PrepareData(uint64 instanceID, const ShaderUniformData& uniformData, const VulkanRenderPassShader& shader, bool preserve)
+	void VulkanShaderUniformData::Update(const VulkanRenderPassShader& shader)
 	{
-		auto it = _allocatedSets.find(instanceID);
-
-		if (it != _allocatedSets.end())
-			return it->second;
-
-		const RenderPassShader& shaderInfo = shader.GetInfo();
-		UniformScope scope = GetInstanceScope(instanceID);
-		const ShaderUniformLayout& layout = scope == UniformScope::ShaderGlobal ? shaderInfo.GlobalUniforms : shaderInfo.InstanceUniforms;
-
-		if (layout.Hash == ShaderUniformLayout::EmptyHash)
-			return nullptr;
-
-		auto uniformIt = _uniformData.find(instanceID);
-		bool needsUpdate = false;
-
-		if (uniformIt == _uniformData.end())
-		{
-			uniformIt = _uniformData.try_emplace(instanceID, instanceID, preserve).first;
-			needsUpdate = true;
-		}
-
-		AllocatedUniformData& data = uniformIt->second;
-		uint64 dataSize = layout.GetUniformDataSize(_device);
-
-		if (dataSize > 0 && dataSize != data.AllocatedBlock.Size)
-		{
-			if (data.AllocatedBlock.Size != 0)
-				FreeBufferRegion(data);
-
-			AllocateBufferRegion(dataSize, data);
-			needsUpdate = true;
-		}
-
-		if (data.Version == ShaderUniformData::TemporaryVersion || data.Version != uniformData.Version)
-			needsUpdate = true;
-
-		const VulkanDescriptorSetLayout& setLayout = shader.GetDescriptorSetLayout(scope);
-		VkDescriptorSet set = AllocateDescriptorSet(instanceID, setLayout);
-		if (!UpdateDescriptorSet(layout, setLayout, uniformData, data, set))
-		{
-			return nullptr;
-		}
-
-		if (dataSize > 0)
-		{
-			UniformDataBuffer& buffer = *data.Buffer;
-
-			if (!buffer.MappedMemory)
-				buffer.MappedMemory = reinterpret_cast<char*>(buffer.Buffer->Lock(0, _sBufferSize));
-
-			std::vector<uint8> bufferData = layout.GetBufferFriendlyData(_device, uniformData);
-
-			char* dst = buffer.MappedMemory + data.AllocatedBlock.Offset;
-			Assert(memcpy_s(dst, data.AllocatedBlock.Size, bufferData.data(), bufferData.size()) == 0)
-		}
-
-		data.Version = uniformData.Version;
-
-		return set;
-	}
-
-	void VulkanUniformData::ResetForNextFrame()
-	{
-		_allocatedSets.clear();
-
-		_device.WaitForIdle();
-
-		for(auto it = _pools.begin(); it != _pools.end(); it++)
-			AssertVkSuccess(vkResetDescriptorPool(_device.GetDevice(), it->Pool, 0))
-	}
-
-	void VulkanUniformData::PreparePushConstants(
-		VulkanCommandBuffer& commandBuffer, 
-		VkPipelineLayout pipelineLayout, 
-		const ShaderUniformData& uniformData, 
-		const VulkanRenderPassShader& shader)
-	{
-		const RenderPassShader& shaderInfo = shader.GetInfo();
-		if (shaderInfo.DrawUniforms.Hash == ShaderUniformLayout::EmptyHash)
-			return;
-
-		std::vector<uint8> pushConstantData = shaderInfo.DrawUniforms.GetBufferFriendlyData(_device, uniformData);
-		VkShaderStageFlags stageFlags = VK_SHADER_STAGE_ALL;
-
-		for (const ShaderDataUniform& u : shaderInfo.DrawUniforms.DataUniforms)
-		{
-			VkShaderStageFlags uniformStage = ToVkShaderStageFlags(u.BindingPoints);
-
-			stageFlags = Math::Min(stageFlags, uniformStage);
-		}
-
-		vkCmdPushConstants(commandBuffer.GetCmdBuffer(), pipelineLayout, stageFlags, 0, static_cast<uint32_t>(pushConstantData.size()), pushConstantData.data());
-	}
-
-	bool VulkanUniformData::NeedsUpdate(const VulkanRenderPassShader& passShader) const
-	{
-		return _version != passShader.GetVersion() || _pools.size() == 0;
-	}
-
-	void VulkanUniformData::Update(const VulkanRenderPassShader& passShader)
-	{
-		DestroyBufferUniforms();
+		_globalUniformData.reset();
 		DestroyDescriptorPools();
 		FreeAllBufferRegions();
 
-		for (const VulkanDescriptorSetLayout& layout : passShader.GetDescriptorSetLayouts())
+		if (shader.HasScope(UniformScope::ShaderGlobal))
+		{
+			_globalUniformData.emplace(shader.GetInfo().GlobalUniforms, &shader.GetDescriptorSetLayout(UniformScope::ShaderGlobal));
+		}
+
+		for (const VulkanDescriptorSetLayout& layout : shader.GetDescriptorSetLayouts())
 		{
 			for (const VkDescriptorSetLayoutBinding& binding : layout.LayoutBindings)
 			{
@@ -203,12 +93,135 @@ namespace Coco::Rendering::Vulkan
 		_poolCreateInfo.CreateInfo.pPoolSizes = _poolCreateInfo.PoolSizes.data();
 		_poolCreateInfo.CreateInfo.maxSets = _sMaxSets;
 
-		CreateDescriptorPool();
+		if(_poolCreateInfo.PoolSizes.size() > 0)
+			CreateDescriptorPool();
 
-		_version = passShader.GetVersion();
+		_version = shader.GetVersion();
 	}
 
-	void VulkanUniformData::AllocateBufferRegion(uint64 requiredSize, AllocatedUniformData& data)
+	void VulkanShaderUniformData::SetBufferUniformData(ShaderUniformData::UniformKey key, uint64 dataOffset, const void* data, uint64 dataSize)
+	{
+		Assert(_globalUniformData.has_value())
+
+		_globalUniformData->SetBufferUniformData(key, dataOffset, data, dataSize);
+	}
+
+	VkDescriptorSet VulkanShaderUniformData::PrepareGlobalData(const ShaderUniformData& uniformData)
+	{
+		Assert(_globalUniformData.has_value())
+
+		return _globalUniformData->PrepareData(uniformData);
+	}
+
+	VkDescriptorSet VulkanShaderUniformData::PrepareInstanceData(const VulkanRenderPassShader& shader, uint64 instanceID, const ShaderUniformData& uniformData, bool preserve)
+	{
+		auto it = _instanceSets.find(instanceID);
+
+		if (it != _instanceSets.end())
+			return it->second;
+
+		if (!shader.HasScope(UniformScope::Instance))
+			return nullptr;
+
+		auto uniformIt = _uniformData.find(instanceID);
+		bool needsUpdate = false;
+
+		if (uniformIt == _uniformData.end())
+		{
+			uniformIt = _uniformData.try_emplace(instanceID, instanceID, preserve).first;
+			needsUpdate = true;
+		}
+
+		const ShaderUniformLayout& instanceLayout = shader.GetInfo().InstanceUniforms;
+		AllocatedUniformData& data = uniformIt->second;
+		uint64 dataSize = instanceLayout.GetUniformDataSize(_device);
+
+		if (dataSize > 0 && dataSize != data.AllocatedBlock.Size)
+		{
+			if (data.AllocatedBlock.Size != 0)
+				FreeBufferRegion(data);
+
+			AllocateBufferRegion(dataSize, data);
+			needsUpdate = true;
+		}
+
+		if (data.Version == ShaderUniformData::TemporaryVersion || data.Version != uniformData.Version)
+			needsUpdate = true;
+
+		const VulkanDescriptorSetLayout& setLayout = shader.GetDescriptorSetLayout(UniformScope::Instance);
+		VkDescriptorSet set = AllocateDescriptorSet(setLayout);
+		if (!UpdateDescriptorSet(instanceLayout, setLayout, uniformData, &data, set))
+		{
+			return nullptr;
+		}
+
+		_instanceSets.try_emplace(instanceID, set);
+
+		if (dataSize > 0)
+		{
+			UniformDataBuffer& buffer = *data.Buffer;
+
+			if (!buffer.MappedMemory)
+				buffer.MappedMemory = reinterpret_cast<char*>(buffer.Buffer->Lock(0, _sBufferSize));
+
+			std::vector<uint8> bufferData = instanceLayout.GetBufferFriendlyData(_device, uniformData);
+
+			char* dst = buffer.MappedMemory + data.AllocatedBlock.Offset;
+			Assert(memcpy_s(dst, data.AllocatedBlock.Size, bufferData.data(), bufferData.size()) == 0)
+		}
+
+		data.Version = uniformData.Version;
+
+		return set;
+	}
+
+	VkDescriptorSet VulkanShaderUniformData::PrepareDrawData(const VulkanRenderPassShader& shader, VulkanCommandBuffer& commandBuffer, const VulkanPipeline& pipeline, const ShaderUniformData& uniformData)
+	{
+		if (!shader.HasScope(UniformScope::Draw))
+			return nullptr;
+
+		const RenderPassShader& shaderInfo = shader.GetInfo();
+
+		if (shaderInfo.DrawUniforms.GetUniformDataSize(_device) > 0)
+		{
+			std::vector<uint8> pushConstantData = shaderInfo.DrawUniforms.GetBufferFriendlyData(_device, uniformData);
+			VkShaderStageFlags stageFlags = VK_SHADER_STAGE_ALL;
+
+			for (const ShaderDataUniform& u : shaderInfo.DrawUniforms.DataUniforms)
+			{
+				VkShaderStageFlags uniformStage = ToVkShaderStageFlags(u.BindingPoints);
+
+				stageFlags = Math::Min(stageFlags, uniformStage);
+			}
+
+			vkCmdPushConstants(commandBuffer.GetCmdBuffer(), pipeline.GetPipelineLayout(), stageFlags, 0, static_cast<uint32_t>(pushConstantData.size()), pushConstantData.data());
+		}
+
+		// Don't bind a descriptor set for draw uniforms if we don't have draw textures
+		if (shaderInfo.DrawUniforms.TextureUniforms.size() == 0)
+			return nullptr;
+
+		const VulkanDescriptorSetLayout& setLayout = shader.GetDescriptorSetLayout(UniformScope::Draw);
+		VkDescriptorSet set = AllocateDescriptorSet(setLayout);
+		if (!UpdateDescriptorSet(shaderInfo.DrawUniforms, setLayout, uniformData, nullptr, set))
+		{
+			return nullptr;
+		}
+
+		return set;
+	}
+
+	void VulkanShaderUniformData::ResetForNextFrame()
+	{
+		_instanceSets.clear();
+
+		_device.WaitForIdle();
+
+		for(auto it = _pools.begin(); it != _pools.end(); it++)
+			AssertVkSuccess(vkResetDescriptorPool(_device.GetDevice(), it->Pool, 0))
+	}
+
+	void VulkanShaderUniformData::AllocateBufferRegion(uint64 requiredSize, AllocatedUniformData& data)
 	{
 		UniformDataBufferList::iterator freeBuffer = _uniformBuffers.begin();
 
@@ -222,11 +235,6 @@ namespace Coco::Rendering::Vulkan
 
 		if (freeBuffer == _uniformBuffers.end())
 		{
-			//Ref<VulkanBuffer> buffer = _device.CreateBuffer(
-			//	_sBufferSize,
-			//	BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
-			//	true);
-
 			_uniformBuffers.emplace_back(
 				CreateManagedRef<VulkanBuffer>(
 					ID, 
@@ -244,7 +252,7 @@ namespace Coco::Rendering::Vulkan
 		data.Buffer = freeBuffer;
 	}
 
-	void VulkanUniformData::FreeBufferRegion(AllocatedUniformData& data)
+	void VulkanShaderUniformData::FreeBufferRegion(AllocatedUniformData& data)
 	{
 		data.Buffer->Buffer->Free(data.AllocatedBlock);
 
@@ -253,7 +261,7 @@ namespace Coco::Rendering::Vulkan
 		data.Buffer = _uniformBuffers.end();
 	}
 
-	void VulkanUniformData::FreeAllBufferRegions()
+	void VulkanShaderUniformData::FreeAllBufferRegions()
 	{
 		for (UniformDataBuffer& buffer : _uniformBuffers)
 		{
@@ -261,10 +269,10 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		_uniformData.clear();
-		_allocatedSets.clear();
+		_instanceSets.clear();
 	}
 
-	VulkanDescriptorPool& VulkanUniformData::CreateDescriptorPool()
+	VulkanDescriptorPool& VulkanShaderUniformData::CreateDescriptorPool()
 	{
 		VulkanDescriptorPool& pool = _pools.emplace_back();
 		AssertVkSuccess(vkCreateDescriptorPool(_device.GetDevice(), &_poolCreateInfo.CreateInfo, _device.GetAllocationCallbacks(), &pool.Pool));
@@ -273,7 +281,7 @@ namespace Coco::Rendering::Vulkan
 		return pool;
 	}
 
-	void VulkanUniformData::DestroyDescriptorPool(const VulkanDescriptorPool& pool)
+	void VulkanShaderUniformData::DestroyDescriptorPool(const VulkanDescriptorPool& pool)
 	{
 		_device.WaitForIdle();
 
@@ -282,7 +290,7 @@ namespace Coco::Rendering::Vulkan
 		CocoTrace("Destroyed VulkanDescriptorPool")
 	}
 
-	void VulkanUniformData::DestroyDescriptorPools()
+	void VulkanShaderUniformData::DestroyDescriptorPools()
 	{
 		for (auto it = _pools.begin(); it != _pools.end(); it++)
 			DestroyDescriptorPool(*it);
@@ -290,7 +298,7 @@ namespace Coco::Rendering::Vulkan
 		_pools.clear();
 	}
 
-	VkDescriptorSet VulkanUniformData::AllocateDescriptorSet(uint64 instanceID, const VulkanDescriptorSetLayout& layout)
+	VkDescriptorSet VulkanShaderUniformData::AllocateDescriptorSet(const VulkanDescriptorSetLayout& layout)
 	{
 		DescriptorPoolList::iterator it = _pools.begin();
 		VkDescriptorSet set = nullptr;
@@ -328,20 +336,19 @@ namespace Coco::Rendering::Vulkan
 			}
 		} while (!set);
 
-		_allocatedSets.try_emplace(instanceID, set);
 		return set;
 	}
 
-	bool VulkanUniformData::UpdateDescriptorSet(
+	bool VulkanShaderUniformData::UpdateDescriptorSet(
 		const ShaderUniformLayout& layout,
 		const VulkanDescriptorSetLayout& setLayout, 
 		const ShaderUniformData& uniformData, 
-		const AllocatedUniformData& data,
+		const AllocatedUniformData* data,
 		VkDescriptorSet& set)
 	{
 		std::vector<VkWriteDescriptorSet> descriptorWrites = setLayout.WriteTemplates;
 		std::vector<VkDescriptorImageInfo> imageInfos(layout.TextureUniforms.size());
-		bool hasUniforms = layout.DataUniforms.size() > 0;
+		bool hasUniforms = layout.DataUniforms.size() > 0 && data != nullptr;
 
 		std::vector<VkDescriptorBufferInfo> bufferInfos(hasUniforms ? 1 : 0);
 		uint32 bufferIndex = 0;
@@ -351,9 +358,9 @@ namespace Coco::Rendering::Vulkan
 		if (hasUniforms)
 		{
 			VkDescriptorBufferInfo& bufferInfo = bufferInfos.at(bufferIndex);
-			bufferInfo.buffer = data.Buffer->Buffer->GetBuffer();
-			bufferInfo.offset = data.AllocatedBlock.Offset;
-			bufferInfo.range = data.AllocatedBlock.Size;
+			bufferInfo.buffer = data->Buffer->Buffer->GetBuffer();
+			bufferInfo.offset = data->AllocatedBlock.Offset;
+			bufferInfo.range = data->AllocatedBlock.Size;
 
 			VkWriteDescriptorSet& write = descriptorWrites.at(bindingIndex);
 			write.dstSet = set;
@@ -426,56 +433,7 @@ namespace Coco::Rendering::Vulkan
 			bindingIndex++;
 		}
 
-		if (const GlobalShaderUniformLayout* globalLayout = dynamic_cast<const GlobalShaderUniformLayout*>(&layout))
-		{
-			descriptorWrites.resize(descriptorWrites.size() + globalLayout->BufferUniforms.size());
-			bufferInfos.resize(bufferInfos.size() + globalLayout->BufferUniforms.size());
-
-			// Write uniform bindings
-			for (uint32_t i = 0; i < globalLayout->BufferUniforms.size(); i++)
-			{
-				const ShaderBufferUniform& bufferUniform = globalLayout->BufferUniforms.at(i);
-				if (!_shaderGlobalBuffers.contains(bufferUniform.Key))
-					CreateBufferUniform(bufferUniform);
-
-				Assert(_shaderGlobalBuffers.contains(bufferUniform.Key))
-
-				VkDescriptorBufferInfo& bufferInfo = bufferInfos.at(bufferIndex);
-				bufferInfo.buffer = _shaderGlobalBuffers.at(bufferUniform.Key)->GetBuffer();
-				bufferInfo.offset = 0;
-				bufferInfo.range = bufferUniform.Size;
-
-				VkWriteDescriptorSet& write = descriptorWrites.at(bindingIndex);
-				write.dstSet = set;
-				write.pBufferInfo = &bufferInfo;
-
-				bufferIndex++;
-				bindingIndex++;
-			}
-		}
-
 		vkUpdateDescriptorSets(_device.GetDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		return true;
-	}
-
-	void VulkanUniformData::CreateBufferUniform(const ShaderBufferUniform& uniform)
-	{
-		if (_shaderGlobalBuffers.contains(uniform.Key))
-			return;
-
-		_shaderGlobalBuffers.try_emplace(
-			uniform.Key,
-			CreateManagedRef<VulkanBuffer>(
-				uniform.Key,
-				uniform.Size,
-				BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
-				true
-			)
-		);
-	}
-
-	void VulkanUniformData::DestroyBufferUniforms()
-	{
-		_shaderGlobalBuffers.clear();
 	}
 }

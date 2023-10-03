@@ -41,28 +41,7 @@ namespace Coco::Rendering::Vulkan
 
 		return resource;
 	}
-
-	VulkanUniformData& VulkanRenderContextCache::GetOrCreateUniformData(const VulkanRenderPassShader& shader)
-	{
-		GraphicsDeviceResourceID key = VulkanUniformData::MakeKey(shader);
-
-		auto it = _uniformDatas.find(key);
-
-		if (it == _uniformDatas.end())
-		{
-			it = _uniformDatas.try_emplace(key, shader).first;
-		}
-
-		VulkanUniformData& resource = it->second;
-
-		if (resource.NeedsUpdate(shader))
-			resource.Update(shader);
-
-		resource.Use();
-
-		return resource;
-	}
-
+	
 	VulkanGlobalUniformData& VulkanRenderContextCache::GetOrCreateGlobalUniformData(const GlobalShaderUniformLayout& layout)
 	{
 		GraphicsDeviceResourceID key = VulkanGlobalUniformData::MakeKey(layout);
@@ -71,7 +50,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (it == _globalUniformDatas.end())
 		{
-			it = _globalUniformDatas.try_emplace(key, layout).first;
+			it = _globalUniformDatas.try_emplace(key, layout, nullptr).first;
 		}
 
 		VulkanGlobalUniformData& resource = it->second;
@@ -81,9 +60,31 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
+
+	VulkanShaderUniformData& VulkanRenderContextCache::GetOrCreateShaderUniformData(const VulkanRenderPassShader& shader)
+	{
+		GraphicsDeviceResourceID key = VulkanShaderUniformData::MakeKey(shader);
+
+		auto it = _shaderUniformDatas.find(key);
+
+		if (it == _shaderUniformDatas.end())
+		{
+			it = _shaderUniformDatas.try_emplace(key, shader).first;
+		}
+
+		VulkanShaderUniformData& resource = it->second;
+
+		if (resource.NeedsUpdate(shader))
+			resource.Update(shader);
+
+		resource.Use();
+
+		return resource;
+	}
+
 	void VulkanRenderContextCache::ResetForNextFrame()
 	{
-		for (auto it = _uniformDatas.begin(); it != _uniformDatas.end(); it++)
+		for (auto it = _shaderUniformDatas.begin(); it != _shaderUniformDatas.end(); it++)
 			it->second.ResetForNextFrame();
 	}
 
@@ -108,17 +109,17 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		uint64 uniformDatasPurged = 0;
+		uint64 globalUniformDatasPurged = 0;
 
 		{
-			auto it = _uniformDatas.begin();
+			auto it = _globalUniformDatas.begin();
 
-			while (it != _uniformDatas.end())
+			while (it != _globalUniformDatas.end())
 			{
 				if (it->second.IsStale(sPurgeThreshold))
 				{
-					it = _uniformDatas.erase(it);
-					uniformDatasPurged++;
+					it = _globalUniformDatas.erase(it);
+					globalUniformDatasPurged++;
 				}
 				else
 				{
@@ -127,9 +128,29 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		if (framebuffersPurged > 0 || uniformDatasPurged > 0)
+		uint64 shaderUniformDatasPurged = 0;
+
 		{
-			CocoTrace("Purged {} VulkanFramebuffers and {} VulkanUniformDatas", framebuffersPurged, uniformDatasPurged)
+			auto it = _shaderUniformDatas.begin();
+
+			while (it != _shaderUniformDatas.end())
+			{
+				if (it->second.IsStale(sPurgeThreshold))
+				{
+					it = _shaderUniformDatas.erase(it);
+					shaderUniformDatasPurged++;
+				}
+				else
+				{
+					it++;
+				}
+			}
+		}
+
+		if (framebuffersPurged > 0 || globalUniformDatasPurged  > 0 || shaderUniformDatasPurged > 0)
+		{
+			CocoTrace("Purged {} VulkanFramebuffers, {} VulkanGlobalUniformDatas, and {} VulkanShaderUniformDatas", 
+				framebuffersPurged, globalUniformDatasPurged, shaderUniformDatasPurged)
 		}
 	}
 }

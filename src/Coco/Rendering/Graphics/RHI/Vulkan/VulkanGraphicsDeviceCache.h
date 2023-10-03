@@ -45,14 +45,12 @@ namespace Coco::Rendering::Vulkan
 		/// @param renderPass The render pass
 		/// @param subpassIndex The index of the render pass within the pipeline
 		/// @param shader The shader
-		/// @param globalLayout The layout for the global uniforms, if any
 		/// @param globalDescriptorSetLayout The descriptor set layout for the global uniforms, if any
 		/// @return The pipeline
 		VulkanPipeline& GetOrCreatePipeline(
 			const VulkanRenderPass& renderPass,
 			uint32 subpassIndex,
 			const VulkanRenderPassShader& shader,
-			const GlobalShaderUniformLayout* globalLayout,
 			const VulkanDescriptorSetLayout* globalDescriptorSetLayout);
 
 		/// @brief Gets/creates a cache for a RenderContext

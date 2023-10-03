@@ -63,16 +63,15 @@ namespace Coco::Rendering::Vulkan
 		const VulkanRenderPass& renderPass, 
 		uint32 subpassIndex, 
 		const VulkanRenderPassShader& shader,
-		const GlobalShaderUniformLayout* globalLayout,
 		const VulkanDescriptorSetLayout* globalDescriptorSetLayout)
 	{
-		GraphicsDeviceResourceID key = VulkanPipeline::MakeKey(renderPass, shader, subpassIndex, globalLayout);
+		GraphicsDeviceResourceID key = VulkanPipeline::MakeKey(renderPass, shader, subpassIndex, globalDescriptorSetLayout);
 
 		auto it = _pipelines.find(key);
 
 		if (it == _pipelines.end())
 		{
-			it = _pipelines.try_emplace(key, renderPass, shader, subpassIndex, globalLayout).first;
+			it = _pipelines.try_emplace(key, renderPass, shader, subpassIndex, globalDescriptorSetLayout).first;
 		}
 
 		VulkanPipeline& resource = it->second;

@@ -454,7 +454,8 @@ namespace Coco::ImGuiCoco
                         Matrix4x4::Identity,
                         _mesh->GetBounds(),
                         _material.Get(),
-                        &scissorRect
+                        &scissorRect,
+                        reinterpret_cast<Texture*>(cmd.GetTexID())
                     );
                 }
 
@@ -784,12 +785,13 @@ namespace Coco::ImGuiCoco
                     ShaderVertexAttribute("UV", BufferDataType::Float2)
                 },
                 GlobalShaderUniformLayout(),
+                ShaderUniformLayout(),
                 ShaderUniformLayout(
                     {},
                     {
-                        ShaderTextureUniform("FontTexture", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::Checker)
-                    }),
-                {}
+                        ShaderTextureUniform("Texture", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::Checker)
+                    }
+                )
             )
         );
 
@@ -815,11 +817,10 @@ namespace Coco::ImGuiCoco
 
         _texture->SetPixels(0, pixels, static_cast<uint64>(width) * height * GetPixelFormatChannelCount(ImagePixelFormat::RGBA8));
 
-        io.Fonts->SetTexID(static_cast<void*>(_texture.Get()));
+        io.Fonts->SetTexID(_texture.Get());
 
         // Setup ImGui material
         _material = resources.Create<Material>("ImGui", _shader);
-        _material->SetTexture("FontTexture", _texture);
     }
 
     void ImGuiCocoPlatform::UpdateDisplays()

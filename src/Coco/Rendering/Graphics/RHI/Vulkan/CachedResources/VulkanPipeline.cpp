@@ -12,7 +12,7 @@ namespace Coco::Rendering::Vulkan
 		const VulkanRenderPass& renderPass,
 		const VulkanRenderPassShader& shader,
 		uint32 subpassIndex,
-		const GlobalShaderUniformLayout* globalLayout) :
+		const VulkanDescriptorSetLayout* globalLayout) :
 		CachedVulkanResource(MakeKey(renderPass, shader, subpassIndex, globalLayout)),
 		_version(0),
 		_subpassIndex(subpassIndex),
@@ -29,16 +29,9 @@ namespace Coco::Rendering::Vulkan
 		const VulkanRenderPass& renderPass, 
 		const VulkanRenderPassShader& shader, 
 		uint32 subpassIndex,
-		const GlobalShaderUniformLayout* globalLayout)
+		const VulkanDescriptorSetLayout* globalLayout)
 	{
-		uint64 hash = Math::CombineHashes(renderPass.ID, shader.ID, subpassIndex);
-
-		if (globalLayout)
-		{
-			hash = Math::CombineHashes(globalLayout->Hash, hash);
-		}
-
-		return hash;
+		return Math::CombineHashes(globalLayout ? globalLayout->LayoutHash : 0, renderPass.ID, shader.ID, subpassIndex);
 	}
 
 	bool VulkanPipeline::NeedsUpdate(
