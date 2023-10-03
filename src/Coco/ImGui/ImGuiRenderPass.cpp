@@ -27,12 +27,9 @@ namespace Coco::ImGuiCoco
             
             if (obj.ExtraData.has_value())
             {
-                Texture* tex = std::any_cast<Texture*>(obj.ExtraData);
+                ShaderUniformData::TextureSampler sampler = std::any_cast<ShaderUniformData::TextureSampler>(obj.ExtraData);
 
-                Assert(tex != nullptr)
-
-                if(tex->GetImage().IsValid() && tex->GetImageSampler().IsValid())
-                    context.SetTextureSampler(UniformScope::Draw, ShaderUniformData::MakeKey("Texture"), tex->GetImage(), tex->GetImageSampler());
+                context.SetTextureSampler(UniformScope::Draw, ShaderUniformData::MakeKey("Texture"), sampler.first, sampler.second);
             }
 
             const MeshData& mesh = renderView.GetMeshData(obj.MeshID);

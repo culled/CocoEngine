@@ -447,6 +447,7 @@ namespace Coco::ImGuiCoco
                             static_cast<int>(cmd.ClipRect.w - drawData->DisplayPos.y))
                     );
 
+                    Texture* tex = reinterpret_cast<Texture*>(cmd.GetTexID());
                     renderView.AddRenderObject(
                         *_mesh,
                         cmd.IdxOffset + indexOffset,
@@ -455,7 +456,7 @@ namespace Coco::ImGuiCoco
                         _mesh->GetBounds(),
                         _material.Get(),
                         &scissorRect,
-                        reinterpret_cast<Texture*>(cmd.GetTexID())
+                        ShaderUniformData::ToTextureSampler(tex->GetImage(), tex->GetImageSampler())
                     );
                 }
 
