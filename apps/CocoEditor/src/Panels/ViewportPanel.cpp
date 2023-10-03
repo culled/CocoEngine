@@ -8,14 +8,6 @@
 
 namespace Coco
 {
-	const GlobalShaderUniformLayout ViewportPanel::sGlobalLayout = GlobalShaderUniformLayout(
-		{
-			ShaderDataUniform("ProjectionMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
-			ShaderDataUniform("ViewMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
-		},
-		{},
-		{});
-
 	ViewportPanel::ViewportPanel() :
 		_collapsed(true),
 		_clearColor(Color(0.1, 0.1, 0.1, 1.0)),
@@ -66,8 +58,6 @@ namespace Coco
 			frustum,
 			pipeline.SupportsMSAA ? _sampleCount : MSAASamples::One,
 			rts);
-
-		renderView.SetGlobalUniformLayout(sGlobalLayout);
 	}
 
 	void ViewportPanel::Render(RenderPipeline& pipeline, std::span<SceneDataProvider*> sceneDataProviders)

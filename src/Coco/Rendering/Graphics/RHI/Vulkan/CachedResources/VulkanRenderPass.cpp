@@ -72,24 +72,26 @@ namespace Coco::Rendering::Vulkan
 		std::vector<VkAttachmentDescription> attachments;
 
 		// Create attachment descriptions for all primary attachments
-		for (const AttachmentFormat& attachment : pipeline.InputAttachments)
+		for (uint64 i = 0; i < pipeline.InputAttachments.size(); i++)
 		{
+			const AttachmentFormat& attachment = pipeline.InputAttachments.at(i);
+			bool shouldClear = pipeline.ClearAttachments.at(i);
 			VkImageLayout layout = ToAttachmentLayout(attachment.PixelFormat);
 
 			VkAttachmentDescription description{};
 			description.samples = ToVkSampleCountFlagBits(_samples);
 			description.format = ToVkFormat(attachment.PixelFormat, attachment.ColorSpace);
 
-			description.loadOp = attachment.ShouldClear ?
+			description.loadOp = shouldClear ?
 				VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
 
 			description.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
-			description.stencilLoadOp = attachment.ShouldClear ? 
+			description.stencilLoadOp = shouldClear ?
 				VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
 			description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-			description.initialLayout = attachment.ShouldClear ?
+			description.initialLayout = shouldClear ?
 				VK_IMAGE_LAYOUT_UNDEFINED : layout;
 
 			description.finalLayout = layout;

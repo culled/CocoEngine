@@ -10,7 +10,7 @@ namespace Coco::ImGuiCoco
     const string ImGuiRenderPass::sPassName = "imgui";
 
     ImGuiRenderPass::ImGuiRenderPass() :
-        _attachments({ AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, false) })
+        _attachments({ AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::Never) })
     {}
 
     void ImGuiRenderPass::Prepare(RenderContext& context, const RenderView& renderView)

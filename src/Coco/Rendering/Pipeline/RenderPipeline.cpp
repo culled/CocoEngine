@@ -65,6 +65,7 @@ namespace Coco::Rendering
 		{
 			std::vector<RenderPassBinding> bindings;
 			std::vector<std::optional<AttachmentFormat>> inputAttachments;
+			std::vector<bool> clearAttachments;
 			bool supportsMSAA = true;
 
 			for (const RenderPassBinding& binding : _renderPasses)
@@ -96,6 +97,7 @@ namespace Coco::Rendering
 					else
 					{
 						inputAttachments.resize(static_cast<size_t>(pipelineAttachmentIndex) + 1);
+						clearAttachments.resize(inputAttachments.size());
 					}
 
 					std::optional<AttachmentFormat>& pipelineAttachment = inputAttachments.at(pipelineAttachmentIndex);
@@ -103,8 +105,8 @@ namespace Coco::Rendering
 					if (!pipelineAttachment.has_value())
 					{
 						pipelineAttachment = passAttachments[passAttachmentIndex];
+						clearAttachments.at(passAttachmentIndex) = pipelineAttachment->ClearMode != AttachmentClearMode::Never;
 					}
-
 				}
 
 				bindings.push_back(binding);
@@ -122,6 +124,7 @@ namespace Coco::Rendering
 
 			_compiledPipeline.Version++;
 			_compiledPipeline.RenderPasses = std::move(bindings);
+			_compiledPipeline.ClearAttachments = std::move(clearAttachments);
 			_compiledPipeline.SupportsMSAA = supportsMSAA;
 
 			_compiledPipeline.InputAttachments.clear();

@@ -15,7 +15,11 @@ namespace Coco::Rendering
 	class RenderView
 	{
 	public:
+		/// @brief An invalid resource ID
 		static constexpr uint64 InvalidID = Math::MaxValue<uint64>();
+
+		/// @brief The default layout for global uniforms
+		static const GlobalShaderUniformLayout DefaultGlobalUniformLayout;
 
 	private:
 		RectInt _viewportRect;
@@ -26,7 +30,7 @@ namespace Coco::Rendering
 		ViewFrustum _frustum;
 		MSAASamples _samples;
 		std::vector<RenderTarget> _renderTargets;
-		std::optional<GlobalShaderUniformLayout> _globalUniformLayout;
+		GlobalShaderUniformLayout _globalUniformLayout;
 		std::unordered_map<uint64, MeshData> _meshDatas;
 		std::unordered_map<uint64, RenderPassShaderData> _renderPassShaderDatas;
 		std::unordered_map<uint64, ShaderData> _shaderDatas;
@@ -104,14 +108,9 @@ namespace Coco::Rendering
 		/// @param layout The global uniform layout
 		void SetGlobalUniformLayout(const GlobalShaderUniformLayout& layout);
 
-		/// @brief Determines if a global uniform layout has been set
-		/// @return True if a global uniform layout has been set
-		bool HasGlobalUniformLayout() const { return _globalUniformLayout.has_value(); }
-
-		/// @brief Gets the global uniform layout.
-		/// NOTE: check if the layout exists first by calling HasGlobalUniformLayout()
+		/// @brief Gets the global uniform layout
 		/// @return The global uniform layout
-		const GlobalShaderUniformLayout& GetGlobalUniformLayout() const { return _globalUniformLayout.value(); }
+		const GlobalShaderUniformLayout& GetGlobalUniformLayout() const { return _globalUniformLayout; }
 
 		/// @brief Adds a mesh to this view
 		/// @param mesh The mesh

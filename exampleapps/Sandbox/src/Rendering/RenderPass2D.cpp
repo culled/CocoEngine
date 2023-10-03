@@ -2,7 +2,7 @@
 
 RenderPass2D::RenderPass2D() :
     _attachments({
-        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, false)
+        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::Never)
         })
 {
 }

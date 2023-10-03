@@ -4,6 +4,12 @@
 
 namespace Coco::Rendering
 {
+	enum class AttachmentClearMode
+	{
+		Never,
+		ClearOnFirstUse
+	};
+
 	/// @brief A format for a rendering attachment
 	struct AttachmentFormat
 	{
@@ -13,11 +19,11 @@ namespace Coco::Rendering
 		/// @brief The color space for this attachment
 		ImageColorSpace ColorSpace;
 		
-		/// @brief If true, this attachment will be cleared before rendering
-		bool ShouldClear;
+		/// @brief The clear mode for this attachment
+		AttachmentClearMode ClearMode;
 
 		AttachmentFormat();
-		AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, bool shouldClear);
+		AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, AttachmentClearMode clearMode);
 
 		/// @brief Determines if this AttachmentFormat is compatible with another
 		/// @param other The other format

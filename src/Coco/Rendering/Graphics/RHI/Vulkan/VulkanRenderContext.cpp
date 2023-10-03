@@ -236,7 +236,6 @@ namespace Coco::Rendering::Vulkan
 	void VulkanRenderContext::SetGlobalBufferData(ShaderUniformData::UniformKey key, uint64 offset, const void* data, uint64 dataSize)
 	{
 		Assert(_renderView != nullptr)
-		Assert(_renderView->HasGlobalUniformLayout())
 
 		VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
 		VulkanGlobalUniformData& globalData = cache.GetOrCreateGlobalUniformData(_renderView->GetGlobalUniformLayout());
@@ -352,11 +351,13 @@ namespace Coco::Rendering::Vulkan
 			// TODO: dynamic line width?
 			vkCmdSetLineWidth(_commandBuffer->GetCmdBuffer(), 1.0f);
 
+			const GlobalShaderUniformLayout& globalLayout = _renderView->GetGlobalUniformLayout();
+
 			// Upload global state data
-			if (_renderView->HasGlobalUniformLayout())
+			if (globalLayout.Hash != ShaderUniformLayout::EmptyHash)
 			{
 				VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
-				VulkanGlobalUniformData& uniformData = cache.GetOrCreateGlobalUniformData(_renderView->GetGlobalUniformLayout());
+				VulkanGlobalUniformData& uniformData = cache.GetOrCreateGlobalUniformData(globalLayout);
 				_globalDescriptorSet = uniformData.PrepareData(_globalUniforms);
 				_globalDescriptorSetLayout = &uniformData.GetDescriptorSetLayout();
 			}
@@ -429,7 +430,7 @@ namespace Coco::Rendering::Vulkan
 			const AttachmentFormat& attachment = attachmentFormats.at(i);
 
 			// Don't bother transitioning layouts for attachments that are cleared as Vulkan will handle that for us
-			if (attachment.ShouldClear)
+			if (_renderOperation->Pipeline.ClearAttachments.at(i))
 				continue;
 
 			RenderTarget& rt = rts[i];

@@ -21,6 +21,9 @@ namespace Coco::Rendering
 		/// @brief The attachments in this pipeline
 		std::vector<AttachmentFormat> InputAttachments;
 
+		/// @brief Specifies which input attachments should be cleared
+		std::vector<bool> ClearAttachments;
+
 		/// @brief True if this pipeline supports MSAA
 		bool SupportsMSAA;
 

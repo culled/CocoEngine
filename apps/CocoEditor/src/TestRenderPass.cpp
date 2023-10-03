@@ -3,7 +3,7 @@
 namespace Coco
 {
 	std::vector<AttachmentFormat> TestRenderPass::_sAttachments = {
-		AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, true)
+		AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::ClearOnFirstUse)
 	};
 
 	void TestRenderPass::Prepare(RenderContext& context, const RenderView& renderView)

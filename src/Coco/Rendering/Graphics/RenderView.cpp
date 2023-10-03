@@ -9,12 +9,22 @@
 
 namespace Coco::Rendering
 {
+	const GlobalShaderUniformLayout RenderView::DefaultGlobalUniformLayout = GlobalShaderUniformLayout(
+		{
+			ShaderDataUniform("ProjectionMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
+			ShaderDataUniform("ViewMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+		},
+		{},
+		{}
+	);
+
 	RenderView::RenderView() :
 		_viewportRect(),
 		_scissorRect(),
 		_viewMat(),
 		_projectionMat(),
 		_viewPosition(),
+		_globalUniformLayout(DefaultGlobalUniformLayout),
 		_frustum(),
 		_samples(),
 		_renderTargets(),
@@ -50,7 +60,7 @@ namespace Coco::Rendering
 	void RenderView::Reset()
 	{
 		_renderTargets.clear();
-		_globalUniformLayout.reset();
+		_globalUniformLayout = DefaultGlobalUniformLayout;
 		_meshDatas.clear();
 		_renderPassShaderDatas.clear();
 		_shaderDatas.clear();

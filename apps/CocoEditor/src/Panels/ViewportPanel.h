@@ -22,8 +22,6 @@ namespace Coco
 		public RenderViewProvider
 	{
 	public:
-		static const GlobalShaderUniformLayout sGlobalLayout;
-
 		Event<const ViewportPanel&> OnClosed;
 
 	private:

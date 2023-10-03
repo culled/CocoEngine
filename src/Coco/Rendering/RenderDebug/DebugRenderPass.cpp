@@ -6,8 +6,8 @@ namespace Coco::Rendering
     const char* DebugRenderPass::sPassName = "debug";
 
     const std::vector<AttachmentFormat> DebugRenderPass::_sAttachments = {
-        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, false),
-        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, false)
+        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::ClearOnFirstUse),
+        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::ClearOnFirstUse)
     };
 
     void DebugRenderPass::Prepare(RenderContext& context, const RenderView& renderView)
