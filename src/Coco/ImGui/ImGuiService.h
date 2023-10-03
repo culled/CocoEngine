@@ -2,6 +2,7 @@
 #include <Coco/Core/Services/EngineService.h>
 #include <Coco/Core/MainLoop/TickListener.h>
 #include "ImGuiCocoPlatform.h"
+#include <Coco/Core/Events/Query.h>
 
 namespace Coco::ImGuiCoco
 {
@@ -16,6 +17,12 @@ namespace Coco::ImGuiCoco
 
         /// @brief The priority of the tick that draws the ImGui frame
         static const int sImGuiDrawPriority;
+
+        /// @brief A handler for a query that determines if ImGui wants to capture the mouse (i.e. mouse events should be ignored)
+        QueryHandler<bool> HasMouseCapture;
+
+        /// @brief A handler for a query that determines if ImGui wants to capture the keyboard (i.e. keyboard events should be ignored)
+        QueryHandler<bool> HasKeyboardCapture;
 
     private:
         ManagedRef<TickListener> _newFrameTickListener;

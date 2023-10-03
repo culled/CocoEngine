@@ -2,6 +2,8 @@
 
 #include <Coco/Rendering/Graphics/ShaderUniformLayout.h>
 #include <Coco/Rendering/RenderService.h>
+#include <Coco/Input/InputService.h>
+#include <Coco/Windowing/WindowService.h>
 #include <Coco/Core/Engine.h>
 
 #include <imgui.h>
@@ -12,9 +14,12 @@ namespace Coco
 		_name(name),
 		_collapsed(true),
 		_clearColor(Color(0.1, 0.1, 0.1, 1.0)),
-		_sampleCount(MSAASamples::One), 
+		_sampleCount(MSAASamples::One),
 		_verticalFOV(90.0),
 		_cameraTransform(Vector3(0.0, 0.0, 1.0), Quaternion::Identity, Vector3::One),
+		_lookSensitivity(0.005),
+		_moveSpeed(2.0),
+		_isFlying(false),
 		_attachmentCache(CreateUniqueRef<AttachmentCache>()),
 		_updateTickListener(CreateManagedRef<TickListener>(this, &ViewportPanel::Update, 10))
 	{
@@ -77,8 +82,9 @@ namespace Coco
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 		if (ImGui::Begin(_name.c_str(), &open) && open)
 		{
-			ImVec2 size = ImGui::GetContentRegionAvail();
+			UpdateCamera(tickInfo);
 
+			ImVec2 size = ImGui::GetContentRegionAvail();
 			EnsureViewportTexture(SizeInt(static_cast<uint32>(size.x), static_cast<uint32>(size.y)));
 
 			ImGui::Image(_viewportTexture.Get(), size);
@@ -127,5 +133,67 @@ namespace Coco
 				false,
 				_sampleCount),
 			ImageSamplerDescription::LinearClamp);
+	}
+
+	void ViewportPanel::UpdateCamera(const TickInfo& tickInfo)
+	{
+		using namespace Coco::Input;
+		using namespace Coco::Windowing;
+
+		InputService& input = *InputService::Get();
+
+		Mouse& mouse = input.GetMouse();
+
+		Ref<Window> mainWindow = WindowService::Get()->GetMainWindow();
+		if (!mouse.IsButtonPressed(MouseButton::Right))
+		{
+			mainWindow->SetCursorConfineMode(CursorConfineMode::None);
+			mainWindow->SetCursorVisibility(true);
+			_isFlying = false;
+			return;
+		}
+		else if (mouse.WasButtonJustPressed(MouseButton::Right) && ImGui::IsWindowHovered())
+		{
+			_isFlying = true;
+		}
+
+		if (!_isFlying)
+			return;
+
+		mainWindow->SetCursorConfineMode(CursorConfineMode::Locked);
+		mainWindow->SetCursorVisibility(false);
+
+		Vector2Int mouseDelta = mouse.GetMoveDelta();
+		Vector3 eulerAngles = _cameraTransform.LocalRotation.ToEulerAngles();
+		eulerAngles.X = Math::Clamp(eulerAngles.X - mouseDelta.Y * _lookSensitivity, Math::DegToRad(-90.0), Math::DegToRad(90.0));
+		eulerAngles.Y -= mouseDelta.X * _lookSensitivity;
+
+		_cameraTransform.LocalRotation = Quaternion(eulerAngles);
+
+		Keyboard& keyboard = input.GetKeyboard();
+
+		Vector3 velocity = Vector3::Zero;
+
+		if (keyboard.IsKeyPressed(KeyboardKey::W))
+			velocity += Vector3::Forward;
+
+		if (keyboard.IsKeyPressed(KeyboardKey::S))
+			velocity += Vector3::Backward;
+
+		if (keyboard.IsKeyPressed(KeyboardKey::D))
+			velocity += Vector3::Right;
+
+		if (keyboard.IsKeyPressed(KeyboardKey::A))
+			velocity += Vector3::Left;
+
+		if (keyboard.IsKeyPressed(KeyboardKey::E))
+			velocity += Vector3::Up;
+
+		if (keyboard.IsKeyPressed(KeyboardKey::Q))
+			velocity += Vector3::Down;
+
+		velocity = _cameraTransform.LocalRotation * velocity;
+		_cameraTransform.TranslateLocal(velocity * tickInfo.DeltaTime);
+		_cameraTransform.Recalculate();
 	}
 }

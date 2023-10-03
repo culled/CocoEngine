@@ -14,7 +14,25 @@ namespace Coco::ImGuiCoco
 	const int ImGuiService::sImGuiNewFramePriority = -900;
 	const int ImGuiService::sImGuiDrawPriority = 900;
 
+	bool ImGuiWantsMouse(bool &wantsMouse)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		wantsMouse = io.WantCaptureMouse;
+
+		return true;
+	}
+
+	bool ImGuiWantsKeyboard(bool& wantsKeyboard)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		wantsKeyboard = io.WantCaptureKeyboard;
+
+		return true;
+	}
+
 	ImGuiService::ImGuiService(bool enableViewports) :
+		HasMouseCapture(&ImGuiWantsMouse),
+		HasKeyboardCapture(&ImGuiWantsKeyboard),
 		_newFrameTickListener(CreateManagedRef<TickListener>(this, &ImGuiService::HandleNewFrameTick, sImGuiNewFramePriority)),
 		_drawTickListener(CreateManagedRef<TickListener>(this, &ImGuiService::HandleDrawTick, sImGuiDrawPriority))
 	{

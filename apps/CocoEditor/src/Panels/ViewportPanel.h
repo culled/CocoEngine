@@ -32,6 +32,9 @@ namespace Coco
 		MSAASamples _sampleCount;
 		double _verticalFOV;
 		Transform3D _cameraTransform;
+		double _lookSensitivity;
+		double _moveSpeed;
+		bool _isFlying;
 		UniqueRef<AttachmentCache> _attachmentCache;
 		ManagedRef<Texture> _viewportTexture;
 
@@ -53,5 +56,7 @@ namespace Coco
 	private:
 		void Update(const TickInfo& tickInfo);
 		void EnsureViewportTexture(const SizeInt& size);
+
+		void UpdateCamera(const TickInfo& tickInfo);
 	};
 }
