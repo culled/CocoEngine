@@ -145,7 +145,7 @@ namespace Coco
 		Mouse& mouse = input.GetMouse();
 
 		Ref<Window> mainWindow = WindowService::Get()->GetMainWindow();
-		if (!mouse.IsButtonPressed(MouseButton::Right))
+		if (_isFlying && !mouse.IsButtonPressed(MouseButton::Right))
 		{
 			mainWindow->SetCursorConfineMode(CursorConfineMode::None);
 			mainWindow->SetCursorVisibility(true);

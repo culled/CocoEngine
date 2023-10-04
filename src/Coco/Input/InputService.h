@@ -6,6 +6,8 @@
 #include <Coco/Core/MainLoop/TickListener.h>
 #include "Keyboard.h"
 #include "Mouse.h"
+#include "InputLayer.h"
+#include "UnhandledInputLayer.h"
 
 namespace Coco::Input
 {
@@ -14,7 +16,7 @@ namespace Coco::Input
 	{
 	public:
 		/// @brief Priority for the tick handling input processing
-		static constexpr int PreProcessTickPriority = -1000;
+		static constexpr int ProcessTickPriority = -100;
 
 		/// @brief Priority for the tick handling late input processing
 		static constexpr int PostProcessTickPriority = 1000;
@@ -22,8 +24,11 @@ namespace Coco::Input
 	private:
 		UniqueRef<Keyboard> _keyboard;
 		UniqueRef<Mouse> _mouse;
+		ManagedRef<TickListener> _processTickHandler;
 		ManagedRef<TickListener> _postTickHandler;
-		ManagedRef<TickListener> _preTickHandler;
+		std::vector<Ref<InputLayer>> _inputLayers;
+		ManagedRef<UnhandledInputLayer> _unhandledInputLayer;
+		bool _inputLayersNeedSorting;
 
 	public:
 		InputService();
@@ -45,10 +50,25 @@ namespace Coco::Input
 		/// @return The current mouse
 		const Mouse& GetMouse() const { return *_mouse; }
 
+		/// @brief Registers an input layer
+		/// @param layer The input layer
+		void RegisterInputLayer(Ref<InputLayer> layer);
+
+		/// @brief Unregisters an input layer
+		/// @param layer The input layer
+		void UnregisterInputLayer(Ref<InputLayer> layer);
+
+		/// @brief Gets the unhandled input layer
+		/// @return The unhandled input layer
+		Ref<UnhandledInputLayer> GetUnhandledInputLayer() const { return _unhandledInputLayer; }
+
 	private:
 		/// @brief Tick for updating the current state of the peripherals
 		/// @param tickInfo The info for the current tick
-		void HandlePreTick(const TickInfo& tickInfo);
+		void HandleProcessTick(const TickInfo& tickInfo);
+
+		/// @brief Sorts input layers by their priorites
+		void SortInputLayers();
 
 		/// @brief Tick for updating the previous state of the peripherals
 		/// @param tickInfo The info for the current tick

@@ -131,6 +131,11 @@ namespace Coco
 		ValueType& operator*() { return *_instance; }
 		const ValueType& operator*() const { return *_instance; }
 
+		operator bool() const
+		{
+			return IsValid();
+		}
+
 		/// @brief Invalidates the managed object and all references to it
 		void Invalidate()
 		{
@@ -245,6 +250,21 @@ namespace Coco
 				"Cannot convert reference types");
 
 			return Ref<RefType>(static_cast<RefType*>(_ptr), _state);
+		}
+
+		bool operator==(const ManagedRef<ValueType>& other) const
+		{
+			return other.Get() == _ptr;
+		}
+
+		bool operator==(const Ref& other) const
+		{
+			return other.Get() == _ptr;
+		}
+
+		operator bool() const
+		{
+			return IsValid();
 		}
 
 		/// @brief Invalidates this reference

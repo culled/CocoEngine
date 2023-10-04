@@ -63,6 +63,16 @@ namespace Coco::Input
 
 		_preProcessStateChanges.push_back(MouseStateChange::ButtonStateChange(button, isPressed));
 		currentState = isPressed;
+
+		try
+		{
+			if (isPressed)
+				OnButtonPressed.Invoke(button);
+			else
+				OnButtonReleased.Invoke(button);
+		}
+		catch(...)
+		{}
 	}
 
 	void Mouse::UpdatePositionState(const Vector2Int& newPosition)
@@ -74,12 +84,26 @@ namespace Coco::Input
 
 		_preProcessStateChanges.push_back(MouseStateChange::PositionStateChange(newPosition));
 		currentPos = newPosition;
+
+		try
+		{
+			OnPositionChanged.Invoke(newPosition);
+		}
+		catch (...)
+		{}
 	}
 
 	void Mouse::UpdateMoveDeltaState(const Vector2Int& moveDelta)
 	{
 		_preProcessStateChanges.push_back(MouseStateChange::MoveDeltaStateChange(moveDelta));
 		_currentState.MoveDelta = moveDelta;
+
+		try
+		{
+			OnMoved.Invoke(moveDelta);
+		}
+		catch (...)
+		{}
 	}
 
 	void Mouse::UpdateScrollState(const Vector2Int& scrollDelta)
@@ -91,6 +115,13 @@ namespace Coco::Input
 
 		_preProcessStateChanges.push_back(MouseStateChange::ScrollStateChange(scrollDelta));
 		currentDelta = scrollDelta;
+
+		try
+		{
+			OnScrolled.Invoke(scrollDelta);
+		}
+		catch (...)
+		{}
 	}
 
 	void Mouse::ClearAllButtonStates()
@@ -121,61 +152,6 @@ namespace Coco::Input
 		return !_currentState.ButtonStates.at(index) && _previousState.ButtonStates.at(index);
 	}
 
-	void Mouse::ProcessCurrentState()
-	{
-		// Set the previous state to be the current on the first frame to prevent large delta spikes
-		if (_isFirstState)
-		{
-			_previousState = _currentState;
-			_isFirstState = false;
-			return;
-		}
-
-		MouseState tempState = _currentState;
-		_currentState = _previousState;
-
-		for (const auto& state : _preProcessStateChanges)
-		{
-			if (state.Button.has_value())
-			{
-				_currentState.ButtonStates.at(static_cast<size_t>(state.Button.value())) = state.IsButtonPressed;
-
-				if (state.IsButtonPressed)
-				{
-					OnButtonPressed.Invoke(state.Button.value());
-				}
-				else
-				{
-					OnButtonReleased.Invoke(state.Button.value());
-				}
-			}
-			
-			if (state.Position.has_value())
-			{
-				_currentState.Position = state.Position.value();
-
-				OnPositionChanged.Invoke(state.Position.value());
-			}
-
-			if (state.MoveDelta.has_value())
-			{
-				_currentState.MoveDelta = state.MoveDelta.value();
-
-				OnMoved.Invoke(state.MoveDelta.value());
-			}
-
-			if (state.ScrollDelta.has_value())
-			{
-				_currentState.ScrollDelta = state.ScrollDelta.value();
-
-				OnScrolled.Invoke(state.ScrollDelta.value());
-			}
-		}
-
-		_currentState = tempState;
-		_preProcessStateChanges.clear();
-	}
-
 	void Mouse::SavePreviousState()
 	{
 		_previousState = _currentState;
@@ -183,5 +159,7 @@ namespace Coco::Input
 		// Reset deltas since we don't have an explicit "stopped" state change
 		_currentState.MoveDelta = Vector2Int::Zero;
 		_currentState.ScrollDelta = Vector2Int::Zero;
+
+		_preProcessStateChanges.clear();
 	}
 }

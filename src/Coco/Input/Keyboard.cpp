@@ -26,6 +26,16 @@ namespace Coco::Input
 
 		_preProcessStateChanges.emplace_back(key, isPressed);
 		currentState = isPressed;
+
+		try
+		{
+			if (isPressed)
+				OnKeyPressed.Invoke(key);
+			else
+				OnKeyReleased.Invoke(key);
+		}
+		catch(...)
+		{ }
 	}
 
 	void Keyboard::ClearAllKeyStates()
@@ -56,32 +66,10 @@ namespace Coco::Input
 		return !_currentState.KeyStates.at(index) && _previousState.KeyStates.at(index);
 	}
 
-	void Keyboard::ProcessCurrentState()
-	{
-		KeyboardState tempState = _currentState;
-		_currentState = _previousState;
-
-		// Replay the states and fire their proper events
-		for (const auto& state : _preProcessStateChanges)
-		{
-			_currentState.KeyStates.at(static_cast<size_t>(state.Key)) = state.IsPressed;
-
-			if (state.IsPressed)
-			{
-				OnKeyPressed.Invoke(state.Key);
-			}
-			else
-			{
-				OnKeyReleased.Invoke(state.Key);
-			}
-		}
-
-		_currentState = tempState;
-		_preProcessStateChanges.clear();
-	}
-
 	void Keyboard::SavePreviousState()
 	{
 		_previousState = _currentState;
+
+		_preProcessStateChanges.clear();
 	}
 }

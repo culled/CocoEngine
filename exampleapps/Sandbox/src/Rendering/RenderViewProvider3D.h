@@ -3,6 +3,9 @@
 #include <Coco/Core/Types/Transform.h>
 #include <Coco/Rendering/Graphics/AttachmentCache.h>
 #include <Coco/Core/MainLoop/TickListener.h>
+#include <Coco/Input/Mouse.h>
+#include <Coco/Input/Keyboard.h>
+#include <Coco/Core/Events/Event.h>
 
 using namespace Coco;
 using namespace Coco::Rendering;
@@ -17,6 +20,11 @@ private:
 	Transform3D _cameraTransform;
 	double _mouseSensitivity;
 	ManagedRef<TickListener> _tickListener;
+	Vector3 _moveInput;
+	bool _isLooking;
+
+	EventHandler<const Input::MouseStateChange&> _mouseStateChangedHandler;
+	EventHandler<const Input::KeyboardStateChange&> _keyboardStateChangedHandler;
 
 public:
 	RenderViewProvider3D(AttachmentCache& attachmentCache);
@@ -34,5 +42,7 @@ public:
 
 private:
 	void Tick(const TickInfo& tickInfo);
+	bool OnMouseStateUpdate(const Input::MouseStateChange& state);
+	bool OnKeyboardStateUpdate(const Input::KeyboardStateChange& state);
 };
 

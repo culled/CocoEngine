@@ -2,6 +2,7 @@
 
 #include <Coco/Windowing/WindowService.h>
 #include <Coco/Rendering/RenderService.h>
+#include <Coco/Input/InputService.h>
 #include <Coco/Core/Engine.h>
 
 #include <vector>
@@ -50,6 +51,8 @@ namespace Coco::ImGuiCoco
 
 	ImGuiService::~ImGuiService()
 	{
+		_inputLayer.Invalidate();
+
 		_platform.reset();
 
 		MainLoop::Get()->RemoveListener(_newFrameTickListener);
@@ -62,6 +65,16 @@ namespace Coco::ImGuiCoco
 
 	void ImGuiService::HandleNewFrameTick(const TickInfo& tickInfo)
 	{
+		using namespace Coco::Input;
+
+		if (!_inputLayer.IsValid() && Engine::Get()->GetServiceManager().HasService<InputService>())
+		{
+			_inputLayer = CreateManagedRef<ImGuiInputLayer>();
+			Engine::Get()->GetServiceManager().GetService<InputService>().RegisterInputLayer(_inputLayer);
+
+			CocoTrace("Registered ImGuiInputLayer")
+		}
+
 		if (!_platform->NewFrame(tickInfo))
 			return;
 

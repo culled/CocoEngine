@@ -6,6 +6,7 @@
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Core/Events/Event.h>
 #include <Coco/Core/MainLoop/TickListener.h>
+#include <Coco/Input/InputService.h>
 
 using namespace Coco::Rendering;
 
@@ -28,6 +29,7 @@ namespace Coco
 		string _name;
 		ManagedRef<TickListener> _updateTickListener;
 		bool _collapsed;
+
 		Color _clearColor;
 		MSAASamples _sampleCount;
 		double _verticalFOV;
@@ -35,6 +37,7 @@ namespace Coco
 		double _lookSensitivity;
 		double _moveSpeed;
 		bool _isFlying;
+
 		UniqueRef<AttachmentCache> _attachmentCache;
 		ManagedRef<Texture> _viewportTexture;
 

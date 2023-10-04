@@ -1,8 +1,9 @@
 #pragma once
 #include <Coco/Core/Services/EngineService.h>
 #include <Coco/Core/MainLoop/TickListener.h>
-#include "ImGuiCocoPlatform.h"
 #include <Coco/Core/Events/Query.h>
+#include "ImGuiCocoPlatform.h"
+#include "ImGuiInputLayer.h"
 
 namespace Coco::ImGuiCoco
 {
@@ -27,6 +28,7 @@ namespace Coco::ImGuiCoco
     private:
         ManagedRef<TickListener> _newFrameTickListener;
         ManagedRef<TickListener> _drawTickListener;
+        ManagedRef<ImGuiInputLayer> _inputLayer;
         UniqueRef<ImGuiCocoPlatform> _platform;
 
     public:

@@ -75,8 +75,9 @@ namespace Coco::Input
 		bool WasKeyJustReleased(KeyboardKey key) const;
 
 	private:
-		/// @brief Processes all state changes since the last tick
-		void ProcessCurrentState();
+		/// @brief Gets all state changes since the last tick
+		/// @return The state changes
+		std::span<const KeyboardStateChange> GetStateChanges() const { return _preProcessStateChanges; }
 
 		/// @brief Saves the current state as the previous state
 		void SavePreviousState();
