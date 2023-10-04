@@ -20,6 +20,7 @@ namespace Coco
 		_lookSensitivity(0.005),
 		_moveSpeed(2.0),
 		_isFlying(false),
+		_isMouseHovering(false),
 		_attachmentCache(CreateUniqueRef<AttachmentCache>()),
 		_updateTickListener(CreateManagedRef<TickListener>(this, &ViewportPanel::Update, 10))
 	{
@@ -82,6 +83,9 @@ namespace Coco
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 		if (ImGui::Begin(_name.c_str(), &open) && open)
 		{
+			_isMouseHovering = ImGui::IsWindowHovered();
+			_isFocused = ImGui::IsWindowFocused();
+
 			UpdateCamera(tickInfo);
 
 			ImVec2 size = ImGui::GetContentRegionAvail();
@@ -152,48 +156,56 @@ namespace Coco
 			_isFlying = false;
 			return;
 		}
-		else if (mouse.WasButtonJustPressed(MouseButton::Right) && ImGui::IsWindowHovered())
+		else if (mouse.WasButtonJustPressed(MouseButton::Right) && _isMouseHovering)
 		{
 			_isFlying = true;
 		}
 
-		if (!_isFlying)
-			return;
+		if (_isFlying)
+		{
+			mainWindow->SetCursorConfineMode(CursorConfineMode::Locked);
+			mainWindow->SetCursorVisibility(false);
 
-		mainWindow->SetCursorConfineMode(CursorConfineMode::Locked);
-		mainWindow->SetCursorVisibility(false);
+			Vector2Int mouseDelta = mouse.GetMoveDelta();
+			Vector3 eulerAngles = _cameraTransform.LocalRotation.ToEulerAngles();
+			eulerAngles.X = Math::Clamp(eulerAngles.X - mouseDelta.Y * _lookSensitivity, Math::DegToRad(-90.0), Math::DegToRad(90.0));
+			eulerAngles.Y -= mouseDelta.X * _lookSensitivity;
 
-		Vector2Int mouseDelta = mouse.GetMoveDelta();
-		Vector3 eulerAngles = _cameraTransform.LocalRotation.ToEulerAngles();
-		eulerAngles.X = Math::Clamp(eulerAngles.X - mouseDelta.Y * _lookSensitivity, Math::DegToRad(-90.0), Math::DegToRad(90.0));
-		eulerAngles.Y -= mouseDelta.X * _lookSensitivity;
+			_cameraTransform.LocalRotation = Quaternion(eulerAngles);
 
-		_cameraTransform.LocalRotation = Quaternion(eulerAngles);
+			Keyboard& keyboard = input.GetKeyboard();
 
-		Keyboard& keyboard = input.GetKeyboard();
+			Vector3 velocity = Vector3::Zero;
 
-		Vector3 velocity = Vector3::Zero;
+			if (keyboard.IsKeyPressed(KeyboardKey::W))
+				velocity += Vector3::Forward;
 
-		if (keyboard.IsKeyPressed(KeyboardKey::W))
-			velocity += Vector3::Forward;
+			if (keyboard.IsKeyPressed(KeyboardKey::S))
+				velocity += Vector3::Backward;
 
-		if (keyboard.IsKeyPressed(KeyboardKey::S))
-			velocity += Vector3::Backward;
+			if (keyboard.IsKeyPressed(KeyboardKey::D))
+				velocity += Vector3::Right;
 
-		if (keyboard.IsKeyPressed(KeyboardKey::D))
-			velocity += Vector3::Right;
+			if (keyboard.IsKeyPressed(KeyboardKey::A))
+				velocity += Vector3::Left;
 
-		if (keyboard.IsKeyPressed(KeyboardKey::A))
-			velocity += Vector3::Left;
+			if (keyboard.IsKeyPressed(KeyboardKey::E))
+				velocity += Vector3::Up;
 
-		if (keyboard.IsKeyPressed(KeyboardKey::E))
-			velocity += Vector3::Up;
+			if (keyboard.IsKeyPressed(KeyboardKey::Q))
+				velocity += Vector3::Down;
 
-		if (keyboard.IsKeyPressed(KeyboardKey::Q))
-			velocity += Vector3::Down;
+			velocity = _cameraTransform.LocalRotation * velocity;
+			_cameraTransform.TranslateLocal(velocity * tickInfo.DeltaTime);
+			_cameraTransform.Recalculate();
+		}
 
-		velocity = _cameraTransform.LocalRotation * velocity;
-		_cameraTransform.TranslateLocal(velocity * tickInfo.DeltaTime);
-		_cameraTransform.Recalculate();
+		int zoomDelta = mouse.GetScrollWheelDelta().Y;
+
+		if (_isMouseHovering && zoomDelta != 0)
+		{
+			_cameraTransform.TranslateGlobal(_cameraTransform.GetGlobalBackward() * zoomDelta * 0.2);
+			_cameraTransform.Recalculate();
+		}
 	}
 }

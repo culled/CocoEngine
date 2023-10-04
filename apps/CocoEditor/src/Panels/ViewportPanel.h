@@ -6,7 +6,6 @@
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Core/Events/Event.h>
 #include <Coco/Core/MainLoop/TickListener.h>
-#include <Coco/Input/InputService.h>
 
 using namespace Coco::Rendering;
 
@@ -37,6 +36,8 @@ namespace Coco
 		double _lookSensitivity;
 		double _moveSpeed;
 		bool _isFlying;
+		bool _isMouseHovering;
+		bool _isFocused;
 
 		UniqueRef<AttachmentCache> _attachmentCache;
 		ManagedRef<Texture> _viewportTexture;
