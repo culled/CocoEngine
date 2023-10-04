@@ -10,6 +10,9 @@
 
 namespace Coco
 {
+	const double ViewportPanel::_sMinMoveSpeed = 0.01;
+	const double ViewportPanel::_sMaxMoveSpeed = 100;
+
 	ViewportPanel::ViewportPanel(const char* name) :
 		_name(name),
 		_collapsed(true),
@@ -19,8 +22,10 @@ namespace Coco
 		_cameraTransform(Vector3(0.0, 0.0, 1.0), Quaternion::Identity, Vector3::One),
 		_lookSensitivity(0.005),
 		_moveSpeed(2.0),
+		_scrollDistance(0.2),
 		_isFlying(false),
 		_isMouseHovering(false),
+		_isFocused(false),
 		_attachmentCache(CreateUniqueRef<AttachmentCache>()),
 		_updateTickListener(CreateManagedRef<TickListener>(this, &ViewportPanel::Update, 10))
 	{
@@ -161,6 +166,8 @@ namespace Coco
 			_isFlying = true;
 		}
 
+		int scrollDelta = mouse.GetScrollWheelDelta().Y;
+
 		if (_isFlying)
 		{
 			mainWindow->SetCursorConfineMode(CursorConfineMode::Locked);
@@ -172,6 +179,11 @@ namespace Coco
 			eulerAngles.Y -= mouseDelta.X * _lookSensitivity;
 
 			_cameraTransform.LocalRotation = Quaternion(eulerAngles);
+
+			if (scrollDelta != 0)
+			{
+				_moveSpeed = Math::Clamp(_moveSpeed + (_moveSpeed * scrollDelta * 0.2), _sMinMoveSpeed, _sMaxMoveSpeed);
+			}
 
 			Keyboard& keyboard = input.GetKeyboard();
 
@@ -196,16 +208,40 @@ namespace Coco
 				velocity += Vector3::Down;
 
 			velocity = _cameraTransform.LocalRotation * velocity;
-			_cameraTransform.TranslateLocal(velocity * tickInfo.DeltaTime);
+			_cameraTransform.TranslateLocal(velocity * (tickInfo.DeltaTime * _moveSpeed));
 			_cameraTransform.Recalculate();
+
+			ShowCameraStatsWindow();
 		}
-
-		int zoomDelta = mouse.GetScrollWheelDelta().Y;
-
-		if (_isMouseHovering && zoomDelta != 0)
+		else if (_isMouseHovering && scrollDelta != 0)
 		{
-			_cameraTransform.TranslateGlobal(_cameraTransform.GetGlobalBackward() * zoomDelta * 0.2);
+			_cameraTransform.TranslateGlobal(_cameraTransform.GetGlobalBackward() * (scrollDelta * _scrollDistance));
 			_cameraTransform.Recalculate();
 		}
+	}
+
+	void ViewportPanel::ShowCameraStatsWindow()
+	{
+		ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+		ImVec2 min = ImGui::GetWindowPos();
+		min.x += 20;
+		min.y += 30;
+		ImGui::SetNextWindowPos(min);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
+		ImGui::Begin("Stats", nullptr,
+			ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoNav |
+			ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoMove |
+			ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoSavedSettings);
+
+		ImGui::Text("Position: %.3f, %.3f, %.3f", _cameraTransform.LocalPosition.X, _cameraTransform.LocalPosition.Y, _cameraTransform.LocalPosition.Z);
+		ImGui::Text("Move speed: %.2f", _moveSpeed);
+
+		ImGui::End();
+		ImGui::PopStyleVar();
 	}
 }

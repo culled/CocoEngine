@@ -25,6 +25,9 @@ namespace Coco
 		Event<const ViewportPanel&> OnClosed;
 
 	private:
+		static const double _sMinMoveSpeed;
+		static const double _sMaxMoveSpeed;
+
 		string _name;
 		ManagedRef<TickListener> _updateTickListener;
 		bool _collapsed;
@@ -35,6 +38,7 @@ namespace Coco
 		Transform3D _cameraTransform;
 		double _lookSensitivity;
 		double _moveSpeed;
+		double _scrollDistance;
 		bool _isFlying;
 		bool _isMouseHovering;
 		bool _isFocused;
@@ -62,5 +66,7 @@ namespace Coco
 		void EnsureViewportTexture(const SizeInt& size);
 
 		void UpdateCamera(const TickInfo& tickInfo);
+		
+		void ShowCameraStatsWindow();
 	};
 }
