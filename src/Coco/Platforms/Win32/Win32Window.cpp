@@ -842,6 +842,12 @@ namespace Coco::Platforms::Win32
 					code = static_cast<int>(wParam);
 				}
 			}
+			else
+			{
+				wchar_t wchar = 0;
+				::MultiByteToWideChar(CP_UTF8, 0, (LPCCH)&wParam, 1, &wchar, 1);
+				code = static_cast<int>(wchar);
+			}
 
 #ifdef COCO_SERVICE_INPUT
 			if(code != -1)
