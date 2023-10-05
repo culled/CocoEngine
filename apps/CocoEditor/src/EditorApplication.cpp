@@ -134,7 +134,7 @@ namespace Coco
 		std::unordered_map<uint32, SharedRef<MaterialDataProvider>> materials = { { 0, material } };
 		_entity.AddComponent<MeshRendererComponent>(mesh, materials);
 
-		_entity2 = _mainScene->CreateEntity("Test");
+		_entity2 = _mainScene->CreateEntity("Test 2");
 		_entity2.AddComponent<Transform3DComponent>(Vector3(2.0, 2.0, 2.0), Quaternion(Vector3::Up, Math::DegToRad(180.0)), Vector3::One * 2.0);
 		_entity2.AddComponent<MeshRendererComponent>(mesh, materials);
 	}

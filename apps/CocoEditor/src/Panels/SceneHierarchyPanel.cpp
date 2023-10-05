@@ -24,6 +24,11 @@ namespace Coco
 			_scene->EachEntity([&](Entity& e) {
 				DrawEntityNode(e);
 				});
+
+			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+			{
+				_selection.ClearSelectedEntity();
+			}
 		}
 
 		ImGui::End();

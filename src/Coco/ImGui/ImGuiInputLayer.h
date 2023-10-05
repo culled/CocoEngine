@@ -16,6 +16,9 @@ namespace Coco::ImGuiCoco
         static const int Priority;
 
     public:
+        /// @brief Converts a keyboard key to an ImGuiKey
+        /// @param key The key
+        /// @return The equivalent ImGuiKey
         static ImGuiKey ToImGuiKey(KeyboardKey key);
 
         int GetPriority() const final { return Priority; }
