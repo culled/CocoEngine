@@ -3,11 +3,11 @@
 
 #include <Coco/Core/Engine.h>
 
-#ifdef COCO_SERVICES_WINDOWING
+#ifdef COCO_SERVICE_WINDOWING
 #include "Win32Window.h"
-#endif // COCO_SERVICES_WINDOWING
+#endif // COCO_SERVICE_WINDOWING
 
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 #include <hidusage.h>
 #endif
 
@@ -20,11 +20,11 @@ namespace Coco::Platforms::Win32
 		GetProcessArgumentsFromWindows();
 		GetTimingInfo();
 
-#ifdef COCO_SERVICES_RENDERING
+#ifdef COCO_SERVICE_RENDERING
 		_renderingExtensions = CreateSharedRef<Win32RenderingExtensions>();
 #endif
 
-#ifdef COCO_SERVICES_WINDOWING
+#ifdef COCO_SERVICE_WINDOWING
 		if (!RegisterWindowClass())
 		{
 			throw std::exception("Failed to register window class");
@@ -33,7 +33,7 @@ namespace Coco::Platforms::Win32
 		_windowExtensions = CreateSharedRef<Win32WindowExtensions>();
 #endif
 
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 		SetupRawInput();
 #endif
 	}
@@ -233,7 +233,7 @@ namespace Coco::Platforms::Win32
 	{
 		switch (message)
 		{
-#ifdef COCO_SERVICES_WINDOWING
+#ifdef COCO_SERVICE_WINDOWING
 		case WM_NCCREATE:
 		case WM_CREATE:
 		{
@@ -326,7 +326,7 @@ namespace Coco::Platforms::Win32
 		_startTime = GetSeconds();
 	}
 
-#ifdef COCO_SERVICES_RENDERING
+#ifdef COCO_SERVICE_RENDERING
 	void Win32EnginePlatform::SetRenderingExtensions(SharedRef<Win32RenderingExtensions> renderingExtensions)
 	{
 		_renderingExtensions = renderingExtensions;
@@ -338,7 +338,7 @@ namespace Coco::Platforms::Win32
 	}
 #endif
 
-#ifdef COCO_SERVICES_WINDOWING
+#ifdef COCO_SERVICE_WINDOWING
 	const wchar_t* Win32EnginePlatform::sWindowClassName = L"CocoWindow";
 
 	void Win32::Win32EnginePlatform::SetWindowExtensions(SharedRef<Win32WindowExtensions> windowExtensions)
@@ -440,7 +440,7 @@ namespace Coco::Platforms::Win32
 	}
 #endif
 
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 	void Win32::Win32EnginePlatform::SetupRawInput()
 	{
 		std::array<RAWINPUTDEVICE, 1> rids = {};

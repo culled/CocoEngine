@@ -38,7 +38,7 @@ project "Coco.Platforms.Win32"
             "Coco.Input"
         }
     
-        defines { "COCO_SERVICES_INPUT" }
+        defines { "COCO_SERVICE_INPUT" }
     end
 
     if (Services["Rendering"]) then 
@@ -47,7 +47,7 @@ project "Coco.Platforms.Win32"
             "Coco.Rendering"
         }
 
-        defines { "COCO_SERVICES_RENDERING" }
+        defines { "COCO_SERVICE_RENDERING" }
 
         if(RenderRHI["Vulkan"] == true) then
             defines { "COCO_RENDERING_VULKAN" }
@@ -75,7 +75,7 @@ project "Coco.Platforms.Win32"
             "Coco.Windowing"
         }
 
-        defines { "COCO_SERVICES_WINDOWING" }
+        defines { "COCO_SERVICE_WINDOWING" }
 
         if (_OPTIONS["high-dpi"] ~= nil) then
             print("Adding HighDPI support to Win32 platform")

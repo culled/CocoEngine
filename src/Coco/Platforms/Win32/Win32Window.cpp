@@ -14,7 +14,7 @@
 #include <Coco/Windowing/WindowService.h>
 #pragma pop_macro("CreateWindow")
 
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 #include <Coco/Input/InputService.h>
 #endif
 
@@ -680,7 +680,7 @@ namespace Coco::Platforms::Win32
 
 	bool Win32Window::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 		using namespace Coco::Input;
 
 		InputService* input = InputService::Get();
@@ -700,7 +700,7 @@ namespace Coco::Platforms::Win32
 		case WM_SYSKEYUP:
 		{
 			bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 			keyboard.UpdateKeyState(static_cast<KeyboardKey>(wParam), pressed);
 #endif
 			return true;
@@ -716,7 +716,7 @@ namespace Coco::Platforms::Win32
 				::MapWindowPoints(_handle, HWND_DESKTOP, &p, 1);
 			}
 
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 			mouse.UpdatePositionState(Vector2Int(p.x, p.y));
 #endif
 			return true;
@@ -732,7 +732,7 @@ namespace Coco::Platforms::Win32
 
 			if (raw->header.dwType == RIM_TYPEMOUSE)
 			{
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 				mouse.UpdateMoveDeltaState(Vector2Int(raw->data.mouse.lLastX, raw->data.mouse.lLastY));
 #endif
 			}
@@ -748,7 +748,7 @@ namespace Coco::Platforms::Win32
 				// Flatten the z delta to be platform-independent
 				yDelta = (yDelta >= 0) ? 1 : -1;
 
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 				mouse.UpdateScrollState(Vector2Int(0, yDelta));
 #endif
 			}
@@ -787,7 +787,7 @@ namespace Coco::Platforms::Win32
 			if (::GetCapture() == nullptr)
 				::SetCapture(_handle);
 
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 			mouse.UpdateButtonState(button, true);
 #endif
 			return true;
@@ -821,7 +821,7 @@ namespace Coco::Platforms::Win32
 			if (::GetCapture() == _handle)
 				::ReleaseCapture();
 
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 			mouse.UpdateButtonState(button, false);
 #endif
 			return true;
@@ -830,7 +830,7 @@ namespace Coco::Platforms::Win32
 		{
 			if (wParam == FALSE)
 			{
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 				// The app is unfocusing, so clear all states
 				keyboard.ClearAllKeyStates();
 				mouse.ClearAllButtonStates();

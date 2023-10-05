@@ -23,7 +23,7 @@ namespace Coco::Platforms::Win32
 #ifdef COCO_RENDERING_VULKAN
 	void Win32RenderingExtensions::AddVulkanRenderingExtensions(bool includePresentationExtensions, std::vector<const char*>& outExtensions) const
 	{
-#ifdef COCO_SERVICES_WINDOWING
+#ifdef COCO_SERVICE_WINDOWING
 		if(includePresentationExtensions)
 			outExtensions.push_back("VK_KHR_win32_surface");
 #endif

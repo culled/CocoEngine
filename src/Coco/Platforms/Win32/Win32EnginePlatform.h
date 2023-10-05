@@ -2,12 +2,12 @@
 #include <Coco/Core/Platform/EnginePlatform.h>
 #include <Coco/Core/Types/Refs.h>
 
-#ifdef COCO_SERVICES_RENDERING
+#ifdef COCO_SERVICE_RENDERING
 #include <Coco/Rendering/RenderingPlatform.h>
 #include "Win32RenderingExtensions.h"
 #endif
 
-#ifdef COCO_SERVICES_WINDOWING
+#ifdef COCO_SERVICE_WINDOWING
 #include <Coco/Windowing/WindowingPlatform.h>
 #include "Win32WindowExtensions.h"
 #endif
@@ -18,10 +18,10 @@ namespace Coco::Platforms::Win32
 {
     /// @brief Win32 implementation of an EnginePlatform
     class Win32EnginePlatform : public EnginePlatform
-#ifdef COCO_SERVICES_RENDERING
+#ifdef COCO_SERVICE_RENDERING
 		, public Rendering::RenderingPlatform
 #endif
-#ifdef COCO_SERVICES_WINDOWING
+#ifdef COCO_SERVICE_WINDOWING
 		, public Windowing::WindowingPlatform
 #endif
     {
@@ -70,7 +70,7 @@ namespace Coco::Platforms::Win32
 		/// @brief Gets timing information for the processor
 		void GetTimingInfo();
 
-#ifdef COCO_SERVICES_RENDERING
+#ifdef COCO_SERVICE_RENDERING
 	public:
 		SharedRef<Win32RenderingExtensions> _renderingExtensions;
 
@@ -81,7 +81,7 @@ namespace Coco::Platforms::Win32
 		void GetPlatformRenderingExtensions(const char* renderRHIName, bool includePresentationExtensions, std::vector<const char*>& outExtensions) const final;
 #endif
 
-#ifdef COCO_SERVICES_WINDOWING
+#ifdef COCO_SERVICE_WINDOWING
 	public:
 		static const wchar_t* sWindowClassName;
 		SharedRef<Win32WindowExtensions> _windowExtensions;
@@ -115,7 +115,7 @@ namespace Coco::Platforms::Win32
 		bool RegisterWindowClass();
 #endif
 
-#ifdef COCO_SERVICES_INPUT
+#ifdef COCO_SERVICE_INPUT
 	private:
 		/// @brief Sets up raw input receiving
 		void SetupRawInput();
