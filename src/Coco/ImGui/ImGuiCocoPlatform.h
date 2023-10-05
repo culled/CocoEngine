@@ -9,6 +9,8 @@
 
 #include <Coco/Windowing/DisplayInfo.h>
 
+#include <Coco/Input/InputTypes.h>
+
 #include "ImGuiRenderPass.h"
 
 struct ImGuiViewport;
@@ -21,6 +23,7 @@ namespace Coco::Rendering
 	class Texture;
 	class Mesh;
 	class RenderPipeline;
+	struct GlobalShaderUniformLayout;
 }
 
 namespace Coco::Windowing
@@ -66,13 +69,13 @@ namespace Coco::ImGuiCoco
 
 	private:
 		static std::unordered_map<uint64, CocoViewportData> _sViewports;
+		static const GlobalShaderUniformLayout _sGlobalUniformLayout;
 
 		std::vector<Windowing::DisplayInfo> _displays;
 		bool _shouldUpdateDisplays;
-		Ref<Shader> _shader;
-		Ref<Material> _material;
-		Ref<Mesh> _mesh;
-		Ref<Texture> _texture;
+		SharedRef<Shader> _shader;
+		SharedRef<Mesh> _mesh;
+		SharedRef<Texture> _texture;
 		SharedRef<ImGuiRenderPass> _renderPass;
 		UniqueRef<Rendering::RenderPipeline> _renderPipeline;
 		ImGuiViewport* _currentlyRenderingViewport;
@@ -95,21 +98,17 @@ namespace Coco::ImGuiCoco
 		/// @return True if the new frame was initialized successfully
 		bool NewFrame(const TickInfo& tickInfo);
 
-		/// @brief Gets the ImGui material
-		/// @return The ImGui material
-		Ref<Material> GetMaterial() const { return _material; }
-
 		/// @brief Gets the ImGui mesh
 		/// @return The ImGui mesh
-		Ref<Mesh> GetMesh() const { return _mesh; }
+		SharedRef<Mesh> GetMesh() const { return _mesh; }
 
 		/// @brief Gets the ImGui font texture
 		/// @return The ImGui font texture
-		Ref<Texture> GetTexture() const { return _texture; }
+		SharedRef<Texture> GetTexture() const { return _texture; }
 
 		/// @brief Gets the ImGui shader
 		/// @return The ImGui shader
-		Ref<Shader> GetShader() const { return _shader; }
+		SharedRef<Shader> GetShader() const { return _shader; }
 
 		/// @brief Renders a viewport
 		/// @param viewport The viewport

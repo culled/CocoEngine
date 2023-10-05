@@ -15,13 +15,13 @@ class SceneDataProvider3D :
 {
 private:
     Transform3D _boxTransform;
-    Ref<Mesh> _boxMesh;
+    SharedRef<Mesh> _boxMesh;
 
-    Ref<Mesh> _mesh;
-    Ref<Shader> _shader;
-    Ref<Texture> _texture;
-    Ref<Texture> _normalTexture;
-    Ref<Material> _material;
+    SharedRef<Mesh> _mesh;
+    SharedRef<Shader> _shader;
+    SharedRef<Texture> _texture;
+    SharedRef<Texture> _normalTexture;
+    SharedRef<Material> _material;
 
     bool _drawBounds;
 

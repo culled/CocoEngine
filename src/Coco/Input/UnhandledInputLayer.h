@@ -19,7 +19,7 @@ namespace Coco::Input
 
     public:
         int GetPriority() const final { return Math::MaxValue<int>(); }
-        bool HandleMouseStateChange(const MouseStateChange& state) final;
-        bool HandleKeyboardStateChange(const KeyboardStateChange& state) final;
+        bool HandleMouseStateChange(const Input::MouseStateChange& state, const Mouse& mouse) final;
+        bool HandleKeyboardStateChange(const Input::KeyboardStateChange& state, const Keyboard& keyboard) final;
     };
 }

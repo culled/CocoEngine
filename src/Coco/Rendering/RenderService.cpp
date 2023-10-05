@@ -59,9 +59,9 @@ namespace Coco::Rendering
 		_renderContextCache.clear();
 		_individualRenderStats.clear();
 
-		_defaultDiffuseTexture.Invalidate();
-		_defaultNormalTexture.Invalidate();
-		_defaultCheckerTexture.Invalidate();
+		_defaultDiffuseTexture.reset();
+		_defaultNormalTexture.reset();
+		_defaultCheckerTexture.reset();
 
 		_debugRender.reset();
 		_device.reset();
@@ -110,7 +110,16 @@ namespace Coco::Rendering
 		std::array<Ref<Image>, 1> backbuffers{ backbuffer };
 		uint64 rendererID = presenter->GetID();
 
-		bool success = Render(rendererID, compiledPipeline, backbuffers, presenter->GetFramebufferSize(), context, renderViewProvider, sceneDataProviders, dependsOn, outTask);
+		bool success = Render(
+			rendererID, 
+			compiledPipeline, 
+			backbuffers, 
+			presenter->GetFramebufferSize(), 
+			context, 
+			renderViewProvider, 
+			sceneDataProviders, 
+			dependsOn, 
+			outTask);
 		_renderTasks[rendererID].emplace_back(context, presenter);
 		return success;
 	}

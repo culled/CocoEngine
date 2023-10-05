@@ -24,6 +24,6 @@ namespace Coco::Rendering
 
 		/// @brief Gets the shader used by this material instance
 		/// @return The shader
-		virtual Ref<Shader> GetShader() const = 0;
+		virtual SharedRef<Shader> GetShader() const = 0;
 	};
 }

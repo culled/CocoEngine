@@ -1,7 +1,7 @@
 name: Shader
-group tag: lit
+group tag: ""
 pass shaders:
-  - name: lit
+  - name: DefaultLit
     stages:
       - type: 0
         entry name: main
@@ -18,11 +18,11 @@ pass shaders:
       depth test: 1
       depth write: true
     blend states:
-      - color src factor: 1
+      - color src factor: 0
         color dst factor: 0
         color blend op: 0
-        alpha src factor: 1
-        alpha dst factor: 1
+        alpha src factor: 0
+        alpha dst factor: 0
         alpha blend op: 0
     vertex attributes:
       - name: Position
@@ -35,14 +35,14 @@ pass shaders:
         type: 1
     instance layout:
       data uniforms:
-        - name: BaseColor
+        - name: AlbedoTintColor
           binding points: 8
           type: 3
       texture uniforms:
-        - name: BaseTexSampler
+        - name: AlbedoTexture
           binding points: 8
           default: 0
-        - name: NormalTexSampler
+        - name: NormalTexture
           binding points: 8
           default: 2
     draw layout:

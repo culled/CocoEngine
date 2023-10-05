@@ -24,7 +24,10 @@ namespace Coco::Windowing
 		ClientArea,
 
 		/// @brief The cursor is locked to the window's center
-		Locked
+		LockedCenter,
+
+		/// @brief The cursor is locked where it currently is
+		LockedInPlace,
 	};
 
 	/// @brief A window ID

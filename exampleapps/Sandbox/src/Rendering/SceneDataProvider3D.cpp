@@ -1,6 +1,7 @@
 #include "SceneDataProvider3D.h"
 #include <Coco/Rendering/MeshUtilities.h>
 #include <Coco/Rendering/RenderDebug/DebugRender.h>
+#include <Coco/Rendering/Resources/BuiltInShaders.h>
 #include <Coco/Core/Engine.h>
 
 SceneDataProvider3D::SceneDataProvider3D() :
@@ -61,42 +62,8 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	}
 	else
 	{
-		_shader = resourceLibrary.Create<Shader>("Shader", "lit");
-		_shader->AddVariant(
-			ShaderVariant(
-				"lit",
-				{
-					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Lit.vert.spv"),
-					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Lit.frag.spv")
-				},
-				pipelineState,
-				{
-					BlendState::Opaque
-				},
-				{
-					ShaderVertexAttribute("Position", BufferDataType::Float3),
-					ShaderVertexAttribute("Normal", BufferDataType::Float3),
-					ShaderVertexAttribute("Tangent", BufferDataType::Float4),
-					ShaderVertexAttribute("UV", BufferDataType::Float2)
-				},
-				GlobalShaderUniformLayout(),
-				ShaderUniformLayout(
-					{
-						ShaderDataUniform("BaseColor", ShaderStageFlags::Fragment, BufferDataType::Float4)
-					},
-					{
-						ShaderTextureUniform("BaseTexSampler", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::White),
-						ShaderTextureUniform("NormalTexSampler", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::Normal)
-					}
-				),
-				ShaderUniformLayout(
-					{
-						ShaderDataUniform("ModelMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
-					},
-					{}
-				)
-			)
-		);
+		_shader = resourceLibrary.Create<Shader>("Shader", "");
+		_shader->AddVariant(BuiltInShaders::LitVariant);
 
 		resourceLibrary.Save(shaderFilePath, _shader, true);
 	}
@@ -136,9 +103,9 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	{
 		_material = resourceLibrary.Create<Material>("Material", _shader);
 		_material->SetShader(_shader);
-		_material->SetFloat4("BaseColor", Color::White);
-		_material->SetTexture("BaseTexSampler", _texture);
-		_material->SetTexture("NormalTexSampler", _normalTexture);
+		_material->SetFloat4("AlbedoTintColor", Color::White);
+		_material->SetTexture("AlbedoTexture", _texture);
+		_material->SetTexture("NormalTexture", _normalTexture);
 
 		resourceLibrary.Save(materialFilePath, _material, true);
 	}
@@ -155,8 +122,8 @@ void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
 	_boxTransform.LocalRotation = Quaternion(Vector3(Math::Sin(t), Math::Cos(t * 0.8 + 20.0), Math::Sin(t * 1.2 - 30.0)));
 	_boxTransform.Recalculate();
 
-	renderView.AddRenderObject(*_mesh, 0, Matrix4x4::Identity, _material.Get());
-	renderView.AddRenderObject(*_boxMesh, 0, _boxTransform.GlobalTransform, _material.Get());
+	renderView.AddRenderObject(*_mesh, 0, Matrix4x4::Identity, *_material);
+	renderView.AddRenderObject(*_boxMesh, 0, _boxTransform.GlobalTransform, *_material);
 
 	DebugRender* debug = DebugRender::Get();
 

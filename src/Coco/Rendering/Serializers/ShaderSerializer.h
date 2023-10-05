@@ -20,8 +20,8 @@ namespace Coco::Rendering
 		bool SupportsFileExtension(const string& extension) const override;
 		bool SupportsResourceType(const std::type_index& type) const override;
 		const std::type_index GetResourceTypeForExtension(const string& extension) const final;
-		string Serialize(Ref<Resource> resource) override;
-		ManagedRef<Resource> Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data) override;
+		string Serialize(SharedRef<Resource> resource) override;
+		SharedRef<Resource> Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data) override;
 
 	private:
 		/// @brief Serializes a ShaderVariant

@@ -26,17 +26,17 @@ namespace Coco::Rendering
 		return extension == ".cmaterial" ? typeid(Material) : typeid(MaterialInstance);
 	}
 
-	string MaterialSerializer::Serialize(Ref<Resource> resource)
+	string MaterialSerializer::Serialize(SharedRef<Resource> resource)
 	{
-		if (const Material* material = dynamic_cast<const Material*>(resource.Get()))
+		if (SharedRef<Material> material = std::dynamic_pointer_cast<Material>(resource))
 			return SerializeMaterial(*material);
-		else if (const MaterialInstance* materialInst = dynamic_cast<const MaterialInstance*>(resource.Get()))
+		else if (SharedRef<MaterialInstance> materialInst = std::dynamic_pointer_cast<MaterialInstance>(resource))
 			return SerializeMaterialInstance(*materialInst);
 
 		throw std::exception("Unsupported resource type");
 	}
 
-	ManagedRef<Resource> MaterialSerializer::Deserialize(const std::type_index& resourceType, const ResourceID& resourceID, const string& data)
+	SharedRef<Resource> MaterialSerializer::Deserialize(const std::type_index& resourceType, const ResourceID& resourceID, const string& data)
 	{
 		if (resourceType == typeid(Material))
 			return DeserializeMaterial(resourceID, data);
@@ -53,10 +53,9 @@ namespace Coco::Rendering
 
 		out << YAML::Key << "name" << YAML::Value << material.GetName();
 
-		Ref<Shader> shader = material.GetShader();
-		Assert(shader.IsValid())
+		SharedRef<Shader> shader = material.GetShader();
 
-		out << YAML::Key << "shader path" << YAML::Value << shader->GetContentPath();
+		out << YAML::Key << "shader path" << YAML::Value << (shader ? shader->GetContentPath() : "");
 
 		out << YAML::Key << "uniforms" << YAML::Value << YAML::BeginMap;
 
@@ -69,14 +68,17 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	ManagedRef<Resource> MaterialSerializer::DeserializeMaterial(const ResourceID& resourceID, const string& data)
+	SharedRef<Resource> MaterialSerializer::DeserializeMaterial(const ResourceID& resourceID, const string& data)
 	{
 		YAML::Node baseNode = YAML::Load(data);
 		string name = baseNode["name"].as<string>();
 		string shaderPath = baseNode["shader path"].as<string>();
+		SharedRef<Shader> shader = nullptr;
+		
+		if(!shaderPath.empty())
+			shader = Engine::Get()->GetResourceLibrary().GetOrLoad<Shader>(shaderPath);
 
-		Ref<Shader> shader = Engine::Get()->GetResourceLibrary().GetOrLoad<Shader>(shaderPath);
-		ManagedRef<Material> material = CreateManagedRef<Material>(resourceID, name, shader);
+		SharedRef<Material> material = CreateSharedRef<Material>(resourceID, name, shader);
 
 		YAML::Node uniformsNode = baseNode["uniforms"];
 		ShaderUniformDataSerializer::Deserialize(uniformsNode, material->_uniformData, material->_textures);
@@ -91,10 +93,9 @@ namespace Coco::Rendering
 
 		out << YAML::Key << "name" << YAML::Value << material.GetName();
 
-		Ref<Material> baseMaterial = material._baseMaterial;
-		Assert(baseMaterial.IsValid())
+		SharedRef<Material> baseMaterial = material._baseMaterial;
 
-		out << YAML::Key << "base material path" << YAML::Value << baseMaterial->GetContentPath();
+		out << YAML::Key << "base material path" << YAML::Value << (baseMaterial ? baseMaterial->GetContentPath() : "");
 
 		out << YAML::Key << "uniforms" << YAML::Value << YAML::BeginMap;
 
@@ -107,14 +108,17 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	ManagedRef<Resource> MaterialSerializer::DeserializeMaterialInstance(const ResourceID& resourceID, const string& data)
+	SharedRef<Resource> MaterialSerializer::DeserializeMaterialInstance(const ResourceID& resourceID, const string& data)
 	{
 		YAML::Node baseNode = YAML::Load(data);
 		string name = baseNode["name"].as<string>();
 		string baseMaterialPath = baseNode["base material path"].as<string>();
 
-		Ref<Material> baseMaterial = Engine::Get()->GetResourceLibrary().GetOrLoad<Material>(baseMaterialPath);
-		ManagedRef<MaterialInstance> material = CreateManagedRef<MaterialInstance>(resourceID, name, baseMaterial);
+		SharedRef<Material> baseMaterial = nullptr;
+		if(!baseMaterialPath.empty())
+			baseMaterial = Engine::Get()->GetResourceLibrary().GetOrLoad<Material>(baseMaterialPath);
+
+		SharedRef<MaterialInstance> material = CreateSharedRef<MaterialInstance>(resourceID, name, baseMaterial);
 
 		YAML::Node uniformsNode = baseNode["uniforms"];
 		ShaderUniformDataSerializer::Deserialize(uniformsNode, material->_uniformData, material->_textures);

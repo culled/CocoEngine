@@ -2,6 +2,7 @@
 
 #include "../Graphics/RenderView.h"
 #include "../Pipeline/CompiledRenderPipeline.h"
+#include <Coco/Core/Types/Transform.h>
 
 namespace Coco::Rendering
 {

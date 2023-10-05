@@ -10,8 +10,16 @@
 #include <imgui.h>
 
 // TEMPORARY
-#include "TestRenderPass.h"
+#include <Coco/Rendering/Resources/BuiltInPipeline.h>
+#include <Coco/Rendering/Mesh.h>
+#include <Coco/Rendering/Material.h>
+#include <Coco/Rendering/MeshUtilities.h>
+#include <Coco/ECS/Components/Transform3DComponent.h>
+#include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
+#include <Coco/Rendering/Resources/BuiltinShaders.h>
 // TEMPORARY
+
+using namespace Coco::ECS;
 
 namespace Coco
 {
@@ -19,23 +27,22 @@ namespace Coco
 
 	EditorApplication::EditorApplication() :
 		Application(ApplicationCreateParameters("Coco Editor", Version(0, 0, 1))),
+		_selection(),
 		_mainWindow(),
 		_updateTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleUpdateTick, 0)),
 		_renderTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleRenderTick, 99)),
-		_renderTest(CreateUniqueRef<RenderTest>()),
-		_pipeline(CreateUniqueRef<RenderPipeline>()),
+		_pipeline(BuiltInPipeline::Create(true)),
+		_mainScene(Scene::Create()),
 		_viewportClosedHandler(this, &EditorApplication::OnViewportPanelClosed)
 	{
 		SetupServices();
 		CreateMainWindow();
+		CreateMainScene();
 		SetupDefaultLayout();
 
 		MainLoop& loop = Engine::Get()->GetMainLoop();
 		loop.AddListener(_updateTickListener);
 		loop.AddListener(_renderTickListener);
-
-		std::array<uint8, 1> bindings = { 0 };
-		_pipeline->AddRenderPass(CreateSharedRef<TestRenderPass>(), bindings);
 	}
 
 	EditorApplication::~EditorApplication()
@@ -44,6 +51,10 @@ namespace Coco
 		loop.RemoveListener(_updateTickListener);
 		loop.RemoveListener(_renderTickListener);
 
+		if (_viewport)
+			CloseViewportPanel();
+
+		_scenePanel.reset();
 		_mainWindow.Invalidate();
 	}
 
@@ -86,6 +97,46 @@ namespace Coco
 	void EditorApplication::SetupDefaultLayout()
 	{
 		_viewport = CreateViewportPanel();
+		_scenePanel = CreateUniqueRef<SceneHierarchyPanel>(_mainScene);
+		_inspectorPanel = CreateUniqueRef<InspectorPanel>();
+	}
+
+	void EditorApplication::CreateMainScene()
+	{
+		using namespace Coco::Rendering;
+		using namespace Coco::ECS;
+
+		VertexDataFormat format{};
+		format.HasUV0 = true;
+
+		std::vector<VertexData> vertices;
+		std::vector<uint32> indices;
+		MeshUtilities::CreateXYGrid(Vector2::One, Vector3::Zero, format, vertices, indices);
+
+		ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
+
+		SharedRef<Mesh> mesh = resourceLibrary.Create<Mesh>("Mesh");
+		mesh->SetVertices(format, vertices);
+		mesh->SetIndices(indices, 0);
+		mesh->Apply();
+
+		GraphicsPipelineState pipelineState{};
+
+		SharedRef<Shader> shader = resourceLibrary.Create<Shader>("UnlitShader", "");
+		shader->AddVariant(BuiltInShaders::UnlitVariant);
+
+		SharedRef<Material> material = resourceLibrary.Create<Material>("UnlitMaterial", shader);
+		material->SetFloat4("TintColor", Color::Red);
+
+		_entity = _mainScene->CreateEntity("Test");
+		_entity.AddComponent<Transform3DComponent>(Vector3::Forward, Quaternion::Identity, Vector3::One);
+
+		std::unordered_map<uint32, SharedRef<MaterialDataProvider>> materials = { { 0, material } };
+		_entity.AddComponent<MeshRendererComponent>(mesh, materials);
+
+		_entity2 = _mainScene->CreateEntity("Test");
+		_entity2.AddComponent<Transform3DComponent>(Vector3(2.0, 2.0, 2.0), Quaternion(Vector3::Up, Math::DegToRad(180.0)), Vector3::One * 2.0);
+		_entity2.AddComponent<MeshRendererComponent>(mesh, materials);
 	}
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)
@@ -118,14 +169,18 @@ namespace Coco
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("View"))
-			{
-				ShowViewMenu();
-				ImGui::EndMenu();
-			}
+			//if (ImGui::BeginMenu("View"))
+			//{
+			//	ShowViewMenu();
+			//	ImGui::EndMenu();
+			//}
 
 			ImGui::EndMenuBar();
 		}
+
+		_viewport->Update(tickInfo);
+		_inspectorPanel->Update(tickInfo);
+		_scenePanel->Update(tickInfo);
 
 		ImGui::End();
 	}
@@ -135,8 +190,7 @@ namespace Coco
 		if (!_mainWindow->IsVisible() || !_viewport)
 			return;
 
-		std::array<SceneDataProvider*, 1> providers = { _renderTest.get() };
-		_viewport->Render(*_pipeline, providers);
+		_viewport->Render(*_pipeline);
 	}
 
 	void EditorApplication::ShowFileMenu()
@@ -165,7 +219,7 @@ namespace Coco
 
 	UniqueRef<ViewportPanel> EditorApplication::CreateViewportPanel()
 	{
-		UniqueRef<ViewportPanel> viewport = CreateUniqueRef<ViewportPanel>("Viewport");
+		UniqueRef<ViewportPanel> viewport = CreateUniqueRef<ViewportPanel>("Viewport", _mainScene);
 		_viewportClosedHandler.Connect(viewport->OnClosed);
 
 		return viewport;

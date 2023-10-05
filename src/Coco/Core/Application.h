@@ -20,7 +20,7 @@ namespace Coco
 	};
 
 	/// @brief Base class for an application run by the Engine
-	class Application : public Singleton<Application>
+	class Application
 	{
 		friend class Engine;
 

@@ -126,7 +126,7 @@ bool RenderViewProvider3D::OnMouseStateUpdate(const Input::MouseStateChange& sta
 
         if (state.IsButtonPressed)
         {
-            mainWindow->SetCursorConfineMode(CursorConfineMode::Locked);
+            mainWindow->SetCursorConfineMode(CursorConfineMode::LockedCenter);
             mainWindow->SetCursorVisibility(false);
             _isLooking = true;
         }

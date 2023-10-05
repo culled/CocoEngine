@@ -267,6 +267,7 @@ namespace Coco::Platforms::Win32
 		case WM_MBUTTONUP: // The middle mouse button was released
 		case WM_RBUTTONUP: // The right mouse button was released
 		case WM_XBUTTONUP: // A mouse button was released
+		case WM_CHAR: // A unicode character was entered
 		case WM_KILLFOCUS: // A window lost focus
 		{
 			bool handled = DispatchWindowMessage(windowHandle, message, wParam, lParam);

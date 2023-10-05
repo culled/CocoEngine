@@ -97,7 +97,7 @@ namespace Coco::Rendering::Vulkan
 		UniqueRef<DeviceQueue> _computeQueue;
 		DeviceQueue* _presentQueue;
 		UniqueRef<VulkanGraphicsDeviceCache> _cache;
-		TypedResourceLibrary<GraphicsDeviceResourceID, GraphicsDeviceResourceBase, GraphicsDeviceResourceIDGenerator> _resources;
+		OwnedResourceLibrary<GraphicsDeviceResourceID, GraphicsDeviceResourceBase, GraphicsDeviceResourceIDGenerator> _resources;
 		double _lastPurgeTime;
 
 	public:

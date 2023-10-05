@@ -66,9 +66,9 @@ namespace Coco::Rendering
 
 	DebugRender::~DebugRender()
 	{
-		_mesh.Invalidate();
-		_shader.Invalidate();
-		_material.Invalidate();
+		_mesh.reset();
+		_shader.reset();
+		_material.reset();
 	}
 
 	void DebugRender::GatherSceneData(RenderView& renderView)
@@ -81,7 +81,7 @@ namespace Coco::Rendering
 				dc.IndexCount,
 				dc.Transform,
 				BoundingBox::Zero,
-				_material.Get(),
+				*_material,
 				nullptr,
 				dc.Color);
 		}

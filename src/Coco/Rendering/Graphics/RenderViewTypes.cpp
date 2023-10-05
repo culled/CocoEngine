@@ -90,6 +90,7 @@ namespace Coco::Rendering
 		uint64 indexOffset,
 		uint64 indexCount,
 		uint64 materialID,
+		uint64 shaderID,
 		const RectInt& scissorRect,
 		const BoundingBox& bounds,
 		std::any extraData) :
@@ -99,6 +100,7 @@ namespace Coco::Rendering
 		IndexOffset(indexOffset),
 		IndexCount(indexCount),
 		MaterialID(materialID),
+		ShaderID(shaderID),
 		ScissorRect(scissorRect),
 		Bounds(bounds),
 		ExtraData(extraData)

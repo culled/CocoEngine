@@ -71,7 +71,7 @@ namespace Coco::Input
 			{
 				try
 				{
-					if (tempLayers.at(i)->HandleMouseStateChange(state))
+					if (tempLayers.at(i)->HandleMouseStateChange(state, *_mouse))
 						break;
 				}
 				catch (const std::exception& ex)
@@ -87,7 +87,7 @@ namespace Coco::Input
 			{
 				try
 				{
-					if (tempLayers.at(i)->HandleKeyboardStateChange(state))
+					if (tempLayers.at(i)->HandleKeyboardStateChange(state, *_keyboard))
 						break;
 				}
 				catch (const std::exception& ex)

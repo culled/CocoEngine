@@ -21,7 +21,8 @@ project "CocoEditor"
     {
         "%{IncludeDir.Coco}",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.yaml_cpp}"
+        "%{IncludeDir.yaml_cpp}",
+        "%{IncludeDir.entt}"
     }
 
     links
@@ -30,7 +31,8 @@ project "CocoEditor"
         "Coco.Input",
         "Coco.Rendering",
         "Coco.Windowing",
-        "Coco.ImGui"
+        "Coco.ImGui",
+        "Coco.ECS"
     }
 
     if (RenderRHI["Vulkan"] == true) then

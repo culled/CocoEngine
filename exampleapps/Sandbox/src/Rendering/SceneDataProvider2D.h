@@ -15,10 +15,10 @@ class SceneDataProvider2D :
 private:
     Transform2D _transform;
 
-    Ref<Mesh> _mesh;
-    Ref<Shader> _shader;
-    Ref<Texture> _texture;
-    Ref<Material> _material;
+    SharedRef<Mesh> _mesh;
+    SharedRef<Shader> _shader;
+    SharedRef<Texture> _texture;
+    SharedRef<Material> _material;
 
 public:
     SceneDataProvider2D();

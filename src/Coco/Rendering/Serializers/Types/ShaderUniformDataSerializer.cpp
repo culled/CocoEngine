@@ -43,7 +43,7 @@ namespace Coco::Rendering
 	void ShaderUniformDataSerializer::Serialize(
 		YAML::Emitter& emitter, 
 		const ShaderUniformData& data, 
-		const std::unordered_map<ShaderUniformData::UniformKey, Ref<Texture>>& textures)
+		const std::unordered_map<ShaderUniformData::UniformKey, SharedRef<Texture>>& textures)
 	{
 		if (data.Floats.size() > 0)
 		{
@@ -150,8 +150,10 @@ namespace Coco::Rendering
 			emitter << YAML::Key << "textures" << YAML::Value << YAML::BeginMap;
 			for (const auto& it : textures)
 			{
-				Assert(it.second.IsValid())
+				if (it.second)
+				{
 					emitter << YAML::Key << it.first << YAML::Value << it.second->GetContentPath();
+				}
 			}
 			emitter << YAML::EndMap;
 		}
@@ -160,7 +162,7 @@ namespace Coco::Rendering
 	void ShaderUniformDataSerializer::Deserialize(
 		const YAML::Node& baseNode, 
 		ShaderUniformData& outData, 
-		std::unordered_map<ShaderUniformData::UniformKey, Ref<Texture>>& outTextures)
+		std::unordered_map<ShaderUniformData::UniformKey, SharedRef<Texture>>& outTextures)
 	{
 		if (baseNode["floats"])
 		{
@@ -270,7 +272,7 @@ namespace Coco::Rendering
 			for (YAML::const_iterator it = texturesNode.begin(); it != texturesNode.end(); ++it)
 			{
 				ShaderUniformData::UniformKey key = it->first.as<uint64>();
-				Ref<Texture> tex = resources.GetOrLoad<Texture>(it->second.as<string>());
+				SharedRef<Texture> tex = resources.GetOrLoad<Texture>(it->second.as<string>());
 				outTextures[key] = tex;
 				outData.Textures[key] = ShaderUniformData::ToTextureSampler(tex->GetImage(), tex->GetImageSampler());
 			}

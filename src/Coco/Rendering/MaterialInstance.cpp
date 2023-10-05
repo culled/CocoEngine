@@ -5,7 +5,7 @@
 
 namespace Coco::Rendering
 {
-	MaterialInstance::MaterialInstance(const ResourceID& id, const string& name, Ref<Material> baseMaterial) :
+	MaterialInstance::MaterialInstance(const ResourceID& id, const string& name, SharedRef<Material> baseMaterial) :
 		RendererResource(id, name),
 		_baseMaterial(baseMaterial),
 		_uniformData(0)
@@ -14,12 +14,12 @@ namespace Coco::Rendering
 
 	MaterialInstance::~MaterialInstance()
 	{
-		_baseMaterial.Invalidate();
+		_baseMaterial.reset();
 	}
 
 	ShaderUniformData MaterialInstance::GetUniformData() const
 	{
-		if (!_baseMaterial.IsValid())
+		if (!_baseMaterial)
 		{
 			CocoError("Base material is invalid")
 			return _uniformData;
@@ -32,12 +32,12 @@ namespace Coco::Rendering
 		return uniforms;
 	}
 
-	Ref<Shader> MaterialInstance::GetShader() const
+	SharedRef<Shader> MaterialInstance::GetShader() const
 	{
-		if (!_baseMaterial.IsValid())
+		if (!_baseMaterial)
 		{
 			CocoError("Base material is invalid")
-			return Ref<Shader>();
+			return nullptr;
 		}
 
 		return _baseMaterial->GetShader();
@@ -233,23 +233,35 @@ namespace Coco::Rendering
 		return it->second == 1;
 	}
 
-	void MaterialInstance::SetTexture(const char* name, Ref<Texture> texture)
+	void MaterialInstance::SetTexture(const char* name, SharedRef<Texture> texture)
 	{
-		Assert(texture.IsValid())
+		ShaderUniformData::UniformKey key = ShaderUniformData::MakeKey(name);
 
-			ShaderUniformData::UniformKey key = ShaderUniformData::MakeKey(name);
-		_textures[key] = texture;
-		_uniformData.Textures[key] = ShaderUniformData::ToTextureSampler(texture->GetImage(), texture->GetImageSampler());
+		if (texture)
+		{
+			_textures[key] = texture;
+			_uniformData.Textures[key] = ShaderUniformData::ToTextureSampler(texture->GetImage(), texture->GetImageSampler());
+		}
+		else
+		{
+			auto textureIt = _textures.find(key);
+			if (textureIt != _textures.end())
+				_textures.erase(textureIt);
+
+			auto uniformIt = _uniformData.Textures.find(key);
+			if (uniformIt != _uniformData.Textures.end())
+				_uniformData.Textures.erase(uniformIt);
+		}
 
 		IncrementVersion();
 	}
 
-	Ref<Texture> MaterialInstance::GetTexture(const char* name) const
+	SharedRef<Texture> MaterialInstance::GetTexture(const char* name) const
 	{
 		auto it = _textures.find(ShaderUniformData::MakeKey(name));
 
 		if (it == _textures.end())
-			return Ref<Texture>();
+			return nullptr;
 
 		return it->second;
 	}

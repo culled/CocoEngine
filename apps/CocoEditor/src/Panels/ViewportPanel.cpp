@@ -5,6 +5,7 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Windowing/WindowService.h>
 #include <Coco/Core/Engine.h>
+#include <Coco/ECS/Systems/Rendering/SceneRenderProvider.h>
 
 #include <imgui.h>
 
@@ -13,30 +14,26 @@ namespace Coco
 	const double ViewportPanel::_sMinMoveSpeed = 0.01;
 	const double ViewportPanel::_sMaxMoveSpeed = 100;
 
-	ViewportPanel::ViewportPanel(const char* name) :
+	ViewportPanel::ViewportPanel(const char* name, SharedRef<Scene> scene) :
 		_name(name),
 		_collapsed(true),
-		_clearColor(Color(0.1, 0.1, 0.1, 1.0)),
+		_currentScene(scene),
+		_attachmentCache(),
 		_sampleCount(MSAASamples::One),
-		_verticalFOV(90.0),
 		_cameraTransform(Vector3(0.0, 0.0, 1.0), Quaternion::Identity, Vector3::One),
+		_cameraComponent(),
 		_lookSensitivity(0.005),
 		_moveSpeed(2.0),
 		_scrollDistance(0.2),
 		_isFlying(false),
 		_isMouseHovering(false),
-		_isFocused(false),
-		_attachmentCache(CreateUniqueRef<AttachmentCache>()),
-		_updateTickListener(CreateManagedRef<TickListener>(this, &ViewportPanel::Update, 10))
+		_isFocused(false)
 	{
-		MainLoop::Get()->AddListener(_updateTickListener);
+		_cameraComponent.ClearColor = Color(0.1, 0.1, 0.1, 1.0);
 	}
 
 	ViewportPanel::~ViewportPanel()
 	{
-		_attachmentCache.reset();
-
-		MainLoop::Get()->RemoveListener(_updateTickListener);
 	}
 
 	void ViewportPanel::SetupRenderView(
@@ -46,39 +43,31 @@ namespace Coco
 		const SizeInt& backbufferSize, 
 		std::span<Ref<Image>> backbuffers)
 	{
-		std::vector<RenderTarget> rts = _attachmentCache->CreateRenderTargets(pipeline, rendererID, backbufferSize, _sampleCount, backbuffers);
-		RenderTarget::SetClearValues(rts, _clearColor, 1.0, 0);
-
 		double aspectRatio = static_cast<double>(backbufferSize.Width) / backbufferSize.Height;
-		RectInt viewport(Vector2Int::Zero, backbufferSize);
+		Matrix4x4 projection = _cameraComponent.GetProjectionMatrix(aspectRatio);
 		Matrix4x4 view = _cameraTransform.InvGlobalTransform;
-		Matrix4x4 projection = RenderService::Get()->GetPlatform().CreatePerspectiveProjection(Math::DegToRad(_verticalFOV), aspectRatio, 0.1, 100);
-		ViewFrustum frustum = ViewFrustum::CreatePerspective(
-			_cameraTransform.GetGlobalPosition(),
-			_cameraTransform.GetGlobalBackward(),
-			_cameraTransform.GetGlobalUp(),
-			Math::DegToRad(_verticalFOV),
-			aspectRatio,
-			0.1, 100);
+		Vector3 viewPosition = _cameraTransform.GetGlobalPosition();
+		ViewFrustum frustum = _cameraComponent.GetViewFrustum(aspectRatio, viewPosition, _cameraTransform.GetGlobalRotation());
+
+		RectInt viewport(Vector2Int::Zero, backbufferSize);
+
+		std::vector<RenderTarget> rts = _attachmentCache.CreateRenderTargets(pipeline, rendererID, backbufferSize, _sampleCount, backbuffers);
+		RenderTarget::SetClearValues(rts, _cameraComponent.ClearColor, 1.0, 0);
 
 		renderView.Setup(
-			viewport,
-			viewport,
+			viewport, viewport,
 			view,
 			projection,
-			_cameraTransform.GetGlobalPosition(),
+			viewPosition,
 			frustum,
-			pipeline.SupportsMSAA ? _sampleCount : MSAASamples::One,
-			rts);
+			_sampleCount,
+			rts
+		);
 	}
 
-	void ViewportPanel::Render(RenderPipeline& pipeline, std::span<SceneDataProvider*> sceneDataProviders)
+	void ViewportPanel::SetCurrentScene(SharedRef<Scene> scene)
 	{
-		if (_collapsed)
-			return;
-
-		std::array<Ref<Image>, 1> images = { _viewportTexture->GetImage() };
-		RenderService::Get()->Render(0, images, pipeline, *this, sceneDataProviders);
+		_currentScene = scene;
 	}
 
 	void ViewportPanel::Update(const TickInfo& tickInfo)
@@ -86,7 +75,8 @@ namespace Coco
 		bool open = true;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		if (ImGui::Begin(_name.c_str(), &open) && open)
+		//if (ImGui::Begin(_name.c_str(), &open) && open)
+		if (ImGui::Begin(_name.c_str()))
 		{
 			_isMouseHovering = ImGui::IsWindowHovered();
 			_isFocused = ImGui::IsWindowFocused();
@@ -108,8 +98,19 @@ namespace Coco
 		ImGui::End();
 		ImGui::PopStyleVar();
 
-		if (!open)
-			OnClosed.Invoke(*this);
+		//if (!open)
+		//	OnClosed.Invoke(*this);
+	}
+
+	void ViewportPanel::Render(RenderPipeline& pipeline)
+	{
+		if (_collapsed)
+			return;
+
+		std::array<Ref<Image>, 1> images = { _viewportTexture->GetImage() };
+		SceneRender3DProvider sceneProvider(_currentScene);
+		std::array<SceneDataProvider*, 1> sceneProviders = { &sceneProvider };
+		RenderService::Get()->Render(0, images, pipeline, *this, sceneProviders);
 	}
 
 	void ViewportPanel::EnsureViewportTexture(const SizeInt& size)
@@ -170,7 +171,7 @@ namespace Coco
 
 		if (_isFlying)
 		{
-			mainWindow->SetCursorConfineMode(CursorConfineMode::Locked);
+			mainWindow->SetCursorConfineMode(CursorConfineMode::LockedInPlace);
 			mainWindow->SetCursorVisibility(false);
 
 			Vector2Int mouseDelta = mouse.GetMoveDelta();

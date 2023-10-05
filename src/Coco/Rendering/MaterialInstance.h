@@ -13,19 +13,19 @@ namespace Coco::Rendering
 		friend class MaterialSerializer;
 
 	private:
-		Ref<Material> _baseMaterial;
+		SharedRef<Material> _baseMaterial;
 		ShaderUniformData _uniformData;
-		std::unordered_map<ShaderUniformData::UniformKey, Ref<Texture>> _textures;
+		std::unordered_map<ShaderUniformData::UniformKey, SharedRef<Texture>> _textures;
 
 	public:
-		MaterialInstance(const ResourceID& id, const string& name, Ref<Material> baseMaterial);
+		MaterialInstance(const ResourceID& id, const string& name, SharedRef<Material> baseMaterial);
 		~MaterialInstance();
 
 		std::type_index GetType() const final { return typeid(MaterialInstance); }
 
 		uint64 GetMaterialID() const final { return GetID(); }
 		ShaderUniformData GetUniformData() const final;
-		Ref<Shader> GetShader() const final;
+		SharedRef<Shader> GetShader() const final;
 
 		/// @brief Sets a float uniform
 		/// @param name The name of the uniform
@@ -136,12 +136,12 @@ namespace Coco::Rendering
 		/// @brief Sets a texture uniform
 		/// @param name The name of the uniform
 		/// @param texture The texture
-		void SetTexture(const char* name, Ref<Texture> texture);
+		void SetTexture(const char* name, SharedRef<Texture> texture);
 
 		/// @brief Gets a texture uniform
 		/// @param name The name of the uniform
 		/// @return The texture
-		Ref<Texture> GetTexture(const char* name) const;
+		SharedRef<Texture> GetTexture(const char* name) const;
 
 	private:
 		/// @brief Increments the version of this material

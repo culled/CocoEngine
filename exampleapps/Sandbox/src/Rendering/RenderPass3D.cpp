@@ -1,6 +1,7 @@
 #include "RenderPass3D.h"
 
 #include <Coco/Rendering/Graphics/BufferDataWriter.h>
+#include <Coco/Rendering/Resources/BuiltInShaders.h>
 #include <Coco/Rendering/RenderService.h>
 
 const BufferDataLayout RenderPass3D::sLightingBufferLayout = BufferDataLayout({
@@ -65,20 +66,20 @@ void RenderPass3D::Prepare(RenderContext& context, const RenderView& renderView)
 
 void RenderPass3D::Execute(RenderContext& context, const RenderView& renderView)
 {
-    for (const ObjectData& obj : renderView.GetRenderObjects())
+    std::vector<uint64> objectIndices = renderView.GetRenderObjectIndices();
+    renderView.FilterWithShaderVariant(objectIndices, BuiltInShaders::LitVariant.Name);
+    renderView.FilterOutsideFrustum(objectIndices);
+
+    for (const uint64& i : objectIndices)
     {
-        if (!renderView.GetViewFrustum().IsInside(obj.Bounds))
-            continue;
+        const ObjectData& obj = renderView.GetRenderObject(i);
 
         const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
-        const ShaderData& shader = renderView.GetShaderData(material.ShaderID);
 
-        if (shader.GroupTag != "lit")
-            continue;
-
-        context.SetMaterial(material, "lit");
+        context.SetMaterial(material, BuiltInShaders::LitVariant.Name);
 
         context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("ModelMatrix"), obj.ModelMatrix);
+
         context.DrawIndexed(renderView.GetMeshData(obj.MeshID), obj.IndexOffset, obj.IndexCount);
     }
 }

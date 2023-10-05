@@ -530,6 +530,7 @@ namespace Coco::Platforms::Win32
 			case WM_RBUTTONUP:
 			case WM_XBUTTONUP:
 			case WM_ACTIVATEAPP:
+			case WM_CHAR:
 				return HandleInputMessage(message, wParam, lParam);		
 			default:
 				break;
@@ -637,44 +638,48 @@ namespace Coco::Platforms::Win32
 			cursorPos.y < screenRect.top || cursorPos.y > screenRect.bottom)
 			return;
 
+		RECT confineRect{};
+
 		switch (_cursorConfineMode)
 		{
 		case CursorConfineMode::ClientArea:
 		{
-			if (::ClipCursor(&screenRect))
-			{
-				_cursorConfined = true;
-			}
-			else
-			{
-				CocoError("Failed to confine cursor - code {}", ::GetLastError())
-			}
-
+			confineRect = screenRect;
 			break;
 		}
-		case CursorConfineMode::Locked:
+		case CursorConfineMode::LockedCenter:
 		{
 			int width = screenRect.right - screenRect.left;
 			int height = screenRect.bottom - screenRect.top;
-			RECT centerRect{};
-			centerRect.left = screenRect.left + width / 2;
-			centerRect.top = screenRect.top + height / 2;
-			centerRect.right = centerRect.left + 1;
-			centerRect.bottom = centerRect.top + 1;
+			confineRect.left = screenRect.left + width / 2;
+			confineRect.top = screenRect.top + height / 2;
+			confineRect.right = confineRect.left + 1;
+			confineRect.bottom = confineRect.top + 1;
+			break;
+		}
+		case CursorConfineMode::LockedInPlace:
+		{
+			POINT pos{};
+			Assert(::GetCursorPos(&pos))
 
-			if (::ClipCursor(&centerRect))
-			{
-				_cursorConfined = true;
-			}
-			else
-			{
-				CocoError("Failed to confine cursor - code {}", ::GetLastError())
-			}
+			confineRect.left = pos.x;
+			confineRect.top = pos.y;
+			confineRect.right = confineRect.left + 1;
+			confineRect.bottom = confineRect.top + 1;
 
 			break;
 		}
 		default:
 			break;
+		}
+
+		if (::ClipCursor(&confineRect))
+		{
+			_cursorConfined = true;
+		}
+		else
+		{
+			CocoError("Failed to confine cursor - code {}", ::GetLastError())
 		}
 	}
 
@@ -823,6 +828,24 @@ namespace Coco::Platforms::Win32
 
 #ifdef COCO_SERVICE_INPUT
 			mouse.UpdateButtonState(button, false);
+#endif
+			return true;
+		}
+		case WM_CHAR:
+		{
+			int code = -1;
+
+			if (::IsWindowUnicode(_handle))
+			{
+				if (wParam > 0 && wParam < 0x10000)
+				{
+					code = static_cast<int>(wParam);
+				}
+			}
+
+#ifdef COCO_SERVICE_INPUT
+			if(code != -1)
+				keyboard.AddUnicodeKeyEvent(code);
 #endif
 			return true;
 		}

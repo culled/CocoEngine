@@ -16,12 +16,14 @@ namespace Coco::Input
 
 		/// @brief Called when the mouse's state has changed
 		/// @param state The mouse state changes
+		/// @param mouse The mouse
 		/// @return True if the mouse input was consumed
-		virtual bool HandleMouseStateChange(const MouseStateChange& state);
+		virtual bool HandleMouseStateChange(const MouseStateChange& state, const Mouse& mouse);
 
 		/// @brief Called when the keyboard's state has changed
 		/// @param state The keyboard state changes
+		/// @param keyboard The keyboard
 		/// @return True if the keyboard input was consumed
-		virtual bool HandleKeyboardStateChange(const KeyboardStateChange& state);
+		virtual bool HandleKeyboardStateChange(const KeyboardStateChange& state, const Keyboard& keyboard);
 	};
 }

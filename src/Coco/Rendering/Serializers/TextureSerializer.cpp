@@ -24,9 +24,9 @@ namespace Coco::Rendering
 		return typeid(Texture);
 	}
 
-	string TextureSerializer::Serialize(Ref<Resource> resource)
+	string TextureSerializer::Serialize(SharedRef<Resource> resource)
 	{
-		const Texture* texture = dynamic_cast<const Texture*>(resource.Get());
+		SharedRef<Texture> texture = std::dynamic_pointer_cast<Texture>(resource);
 		Assert(texture)
 		Assert(texture->GetImage().IsValid())
 		Assert(texture->GetImageSampler().IsValid())
@@ -50,7 +50,7 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	ManagedRef<Resource> TextureSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
+	SharedRef<Resource> TextureSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
 	{
 		YAML::Node baseNode = YAML::Load(data);
 		string name = baseNode["name"].as<string>();
@@ -62,6 +62,6 @@ namespace Coco::Rendering
 		YAML::Node samplerDescNode = baseNode["sampler description"];
 		ImageSamplerDescription samplerDesc = ImageSamplerDescriptionSerializer::Deserialize(samplerDescNode);
 
-		return CreateManagedRef<Texture>(resourceID, name, imageFilePath, imageDesc.ColorSpace, imageDesc.UsageFlags, samplerDesc);
+		return CreateSharedRef<Texture>(resourceID, name, imageFilePath, imageDesc.ColorSpace, imageDesc.UsageFlags, samplerDesc);
 	}
 }

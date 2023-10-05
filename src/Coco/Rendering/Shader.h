@@ -33,6 +33,10 @@ namespace Coco::Rendering
 		/// @param variant The shader variant
 		void AddVariant(ShaderVariant&& variant);
 
+		/// @brief Adds a shader variant to this shader
+		/// @param variant The shader variant
+		void AddVariant(const ShaderVariant& variant);
+
 		/// @brief Gets this shader's variants
 		/// @return A list of shader variants
 		std::span<const ShaderVariant> GetShaderVariants() const { return _variants; }

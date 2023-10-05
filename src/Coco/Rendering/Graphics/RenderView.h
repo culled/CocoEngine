@@ -152,7 +152,7 @@ namespace Coco::Rendering
 		/// @param mesh The mesh
 		/// @param submeshID The ID of the submesh
 		/// @param modelMatrix The model matrix
-		/// @param material The material, or nullptr for no material
+		/// @param material The material
 		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
 		/// @param extraData Extra data for the object
 		/// @return The key to the object
@@ -160,7 +160,24 @@ namespace Coco::Rendering
 			const Mesh& mesh, 
 			uint32 submeshID, 
 			const Matrix4x4& modelMatrix, 
-			const MaterialDataProvider* material, 
+			const MaterialDataProvider& material, 
+			const RectInt* scissorRect = nullptr,
+			std::any extraData = nullptr);
+
+		/// @brief Adds an object to be rendered. 
+		/// NOTE: the mesh must have been applied for this to work
+		/// @param mesh The mesh
+		/// @param submeshID The ID of the submesh
+		/// @param modelMatrix The model matrix
+		/// @param shader The shader, or nullptr for no shader
+		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
+		/// @param extraData Extra data for the object
+		/// @return The key to the object
+		uint64 AddRenderObject(
+			const Mesh& mesh,
+			uint32 submeshID,
+			const Matrix4x4& modelMatrix,
+			const Shader* shader,
 			const RectInt* scissorRect = nullptr,
 			std::any extraData = nullptr);
 
@@ -171,7 +188,7 @@ namespace Coco::Rendering
 		/// @param indexCount The number of indices to render
 		/// @param modelMatrix The model matrix
 		/// @param bounds The bounds of the object
-		/// @param material The material, or nullptr for no material
+		/// @param material The material
 		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
 		/// @param extraData Extra data for the object
 		/// @return The key to the object
@@ -181,13 +198,39 @@ namespace Coco::Rendering
 			uint64 indexCount,
 			const Matrix4x4& modelMatrix,
 			const BoundingBox& bounds,
-			const MaterialDataProvider* material,
+			const MaterialDataProvider& material,
+			const RectInt* scissorRect = nullptr,
+			std::any extraData = nullptr);
+
+		/// @brief Adds an object to be rendered. 
+		/// NOTE: the mesh must have been applied for this to work
+		/// @param mesh The mesh
+		/// @param indexOffset The offset of the first index in the mesh's index buffer 
+		/// @param indexCount The number of indices to render
+		/// @param modelMatrix The model matrix
+		/// @param bounds The bounds of the object
+		/// @param shader The shader to render with, or nullptr for no shader
+		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
+		/// @param extraData Extra data for the object
+		/// @return The key to the object
+		uint64 AddRenderObject(
+			const Mesh& mesh,
+			uint64 indexOffset,
+			uint64 indexCount,
+			const Matrix4x4& modelMatrix,
+			const BoundingBox& bounds,
+			const Shader* shader,
 			const RectInt* scissorRect = nullptr,
 			std::any extraData = nullptr);
 
 		/// @brief Gets all objects to be rendered
 		/// @return The renderable objects
-		std::span<const ObjectData> GetRenderObjects() const { return _objectDatas; }
+		const std::vector<ObjectData>& GetRenderObjects() const { return _objectDatas; }
+
+		/// @brief Gets a render object at the given index
+		/// @param index The index of the object
+		/// @return The object
+		const ObjectData& GetRenderObject(uint64 index) const;
 
 		/// @brief Adds a directional light
 		/// @param direction The direction that the light is facing
@@ -199,8 +242,47 @@ namespace Coco::Rendering
 		/// @return The directional lights
 		std::span<const DirectionalLightData> GetDirectionalLights() const { return _directionalLightDatas; }
 
+		/// @brief Adds a point light
+		/// @param position The position of the light
+		/// @param color The color of the light
+		/// @param intensity The intensity of the light
 		void AddPointLight(const Vector3& position, const Color& color, double intensity);
 
+		/// @brief Gets all the point lights
+		/// @return The point lights
 		std::span<const PointLightData> GetPointLights() const { return _pointLightDatas; }
+
+		/// @brief Gets a vector of all render object indices
+		/// @return A vector of indices for every render object
+		std::vector<uint64> GetRenderObjectIndices() const;
+
+		/// @brief Gets objects according to the given object indices
+		/// @param objectIndices The indices of the objects to get
+		/// @return The render objects
+		std::vector<ObjectData> GetRenderObjects(std::span<const uint64> objectIndices) const;
+
+		/// @brief Filters out object indices that are outside of this view's frustum
+		/// @param objectIndices The object indices
+		void FilterOutsideFrustum(std::vector<uint64>& objectIndices) const;
+
+		/// @brief Filters out object indices that are outside of a frustum
+		/// @param frustum The view frustum
+		/// @param objectIndices The object indices
+		void FilterOutsideFrustum(const ViewFrustum& frustum, std::vector<uint64>& objectIndices) const;
+
+		/// @brief Filters out objects whose shader group tags don't equal the given tag
+		/// @param objectIndices The object indices
+		/// @param tag The shader group tag
+		void FilterWithTag(std::vector<uint64>& objectIndices, const string& tag) const;
+
+		/// @brief Filters out objects whose shader group tags aren't in the list of tags
+		/// @param objectIndices The object indices
+		/// @param tags The shader group tags
+		void FilterWithTags(std::vector<uint64>& objectIndices, std::span<const string> tags) const;
+
+		/// @brief Filters out objects whose shaders do not contain a variant of the given name
+		/// @param objectIndices The object indices
+		/// @param variantName The name of the shader variant
+		void FilterWithShaderVariant(std::vector<uint64>& objectIndices, const string& variantName) const;
 	};
 }

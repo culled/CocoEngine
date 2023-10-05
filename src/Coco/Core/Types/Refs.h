@@ -10,6 +10,11 @@ namespace Coco
 	template<typename ValueType>
 	using SharedRef = std::shared_ptr<ValueType>;
 
+	/// @brief A wrapper for std::weak_ptr
+	/// @tparam ValueType The type of object
+	template<typename ValueType>
+	using WeakSharedRef = std::weak_ptr<ValueType>;
+
 	/// @brief Wrapper for std::make_shared
 	/// @tparam ValueType The type of object
 	/// @tparam ...Args The types of arguments

@@ -192,11 +192,11 @@ namespace Coco
 
 		/// @brief Gets the global rotation of this transform
 		/// @return The global rotation
-		Quaternion GetGlobalRotation() const { return GlobalToLocalRotation(Quaternion::Identity); }
+		Quaternion GetGlobalRotation() const { return LocalToGlobalRotation(Quaternion::Identity); }
 
 		/// @brief Gets the global scale of this transform
 		/// @return The global scale
-		Vector3 GetGlobalScale() const { return GlobalToLocalVector(Vector3::One); }
+		Vector3 GetGlobalScale() const { return LocalToGlobalVector(Vector3::One); }
 
 		/// @brief Gets the global forward direction of this transform
 		/// @return The global forward direction

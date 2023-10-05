@@ -395,7 +395,7 @@ namespace Coco::Rendering::Vulkan
 			if(!image.IsValid())
 			{
 				RenderService* rendering = RenderService::Get();
-				Ref<Texture> defaultTexture;
+				SharedRef<Texture> defaultTexture;
 
 				switch (textureSampler.DefaultTexture)
 				{

@@ -149,6 +149,9 @@ namespace Coco::Rendering
 		/// @brief The ID of the material to render with
 		uint64 MaterialID;
 
+		/// @brief The ID of the shader to render with
+		uint64 ShaderID;
+
 		/// @brief The scissor rectangle to use for rendering this object
 		RectInt ScissorRect;
 
@@ -165,6 +168,7 @@ namespace Coco::Rendering
 			uint64 indexOffset,
 			uint64 indexCount,
 			uint64 materialID,
+			uint64 shaderID,
 			const RectInt& scissorRect,
 			const BoundingBox& bounds,
 			std::any extraData);

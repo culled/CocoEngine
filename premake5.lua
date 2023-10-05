@@ -55,6 +55,16 @@ workspace "CocoEngine"
     }
 
     newoption {
+        trigger = "service-imgui",
+        description = "Include the ImGui service in the engine build"
+    }
+
+    newoption {
+        trigger = "service-ecs",
+        description = "Include the entity-component-system service in the engine build"
+    }
+
+    newoption {
         trigger = "services-all",
         description = "Include all the services in the engine build"
     }
@@ -83,6 +93,12 @@ workspace "CocoEngine"
         print("Including ImGUI service") 
         Services["ImGui"] = true
         IncludeDir["ImGui"] = "%{wks.location}\\src\\Vendor\\imgui"
+    end
+
+    if (_OPTIONS["service-ecs"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
+        print("Including ECS service") 
+        Services["ECS"] = true
+        IncludeDir["entt"] = "%{wks.location}\\src\\Vendor\\entt\\src"
     end
 
     -- Rendering RHI options
@@ -199,6 +215,10 @@ workspace "CocoEngine"
 
             if(Services["ImGui"] == true) then         
                 include "src\\Coco\\ImGUI"
+            end
+
+            if(Services["ECS"] == true) then         
+                include "src\\Coco\\ECS"
             end
 
         group "Engine/Platforms"

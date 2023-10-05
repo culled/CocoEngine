@@ -149,13 +149,8 @@ namespace Coco::Rendering
 
 		if (!_materialDatas.contains(id))
 		{
-			Ref<Shader> shader = materialData.GetShader();
-			uint64 shaderID = InvalidID;
-
-			if (shader.IsValid())
-			{
-				shaderID = AddShader(*shader);
-			}
+			SharedRef<Shader> shader = materialData.GetShader();
+			uint64 shaderID = shader ? AddShader(*shader) : InvalidID;
 
 			_materialDatas.try_emplace(id, id, shaderID, materialData.GetUniformData());
 		}
@@ -174,7 +169,7 @@ namespace Coco::Rendering
 		const Mesh& mesh, 
 		uint32 submeshID, 
 		const Matrix4x4& modelMatrix, 
-		const MaterialDataProvider* material,
+		const MaterialDataProvider& material,
 		const RectInt* scissorRect,
 		std::any extraData)
 	{
@@ -192,16 +187,37 @@ namespace Coco::Rendering
 
 	uint64 RenderView::AddRenderObject(
 		const Mesh& mesh, 
+		uint32 submeshID, 
+		const Matrix4x4& modelMatrix, 
+		const Shader* shader, 
+		const RectInt* scissorRect, 
+		std::any extraData)
+	{
+		SubMesh submesh;
+		Assert(mesh.TryGetSubmesh(submeshID, submesh))
+		return AddRenderObject(
+			mesh,
+			submesh.Offset, submesh.Count,
+			modelMatrix,
+			submesh.Bounds.Transformed(modelMatrix),
+			shader,
+			scissorRect,
+			extraData);
+	}
+
+	uint64 RenderView::AddRenderObject(
+		const Mesh& mesh, 
 		uint64 indexOffset, 
 		uint64 indexCount, 
 		const Matrix4x4& modelMatrix,
 		const BoundingBox& bounds,
-		const MaterialDataProvider* material, 
+		const MaterialDataProvider& material, 
 		const RectInt* scissorRect,
 		std::any extraData)
 	{
 		uint64 meshID = AddMesh(mesh);
-		uint64 materialID = material ? AddMaterial(*material) : InvalidID;
+		uint64 materialID = AddMaterial(material);
+		uint64 shaderID = _materialDatas.at(materialID).ShaderID;
 
 		uint64 objectID = _objectDatas.size();
 		_objectDatas.emplace_back(
@@ -211,11 +227,49 @@ namespace Coco::Rendering
 			indexOffset,
 			indexCount,
 			materialID,
+			shaderID,
 			scissorRect ? *scissorRect : _scissorRect,
 			bounds,
 			extraData);
 
 		return objectID;
+	}
+
+	uint64 RenderView::AddRenderObject(
+		const Mesh& mesh, 
+		uint64 indexOffset, 
+		uint64 indexCount, 
+		const Matrix4x4& modelMatrix, 
+		const BoundingBox& bounds, 
+		const Shader* shader, 
+		const RectInt* scissorRect, 
+		std::any extraData)
+	{
+		uint64 meshID = AddMesh(mesh);
+		uint64 shaderID = shader ? AddShader(*shader) : InvalidID;
+
+		uint64 objectID = _objectDatas.size();
+		_objectDatas.emplace_back(
+			objectID,
+			modelMatrix,
+			meshID,
+			indexOffset,
+			indexCount,
+			InvalidID,
+			shaderID,
+			scissorRect ? *scissorRect : _scissorRect,
+			bounds,
+			extraData);
+
+		return objectID;
+	}
+
+	const ObjectData& RenderView::GetRenderObject(uint64 index) const
+	{
+		Assert(index >= 0)
+		Assert(index < _objectDatas.size())
+
+		return _objectDatas.at(index);
 	}
 
 	void RenderView::AddDirectionalLight(const Vector3& direction, const Color& color, double intensity)
@@ -230,5 +284,109 @@ namespace Coco::Rendering
 		Color c = color.AsLinear();
 		c.A = intensity;
 		_pointLightDatas.emplace_back(position, c);
+	}
+
+	std::vector<uint64> RenderView::GetRenderObjectIndices() const
+	{
+		std::vector<uint64> indices(_objectDatas.size());
+
+		for (uint64 i = 0; i < indices.size(); i++)
+			indices.at(i) = i;
+
+		return indices;
+	}
+
+	std::vector<ObjectData> RenderView::GetRenderObjects(std::span<const uint64> objectIndices) const
+	{
+		std::vector<ObjectData> objects;
+
+		for (uint64 i = 0; i < objectIndices.size(); i++)
+			objects.emplace_back(GetRenderObject(objectIndices[i]));
+
+		return objects;
+	}
+
+	void RenderView::FilterOutsideFrustum(std::vector<uint64>& objectIndices) const
+	{
+		FilterOutsideFrustum(_frustum, objectIndices);
+	}
+
+	void RenderView::FilterOutsideFrustum(const ViewFrustum& frustum, std::vector<uint64>& objectIndices) const
+	{
+		auto it = objectIndices.begin();
+
+		while (it != objectIndices.end())
+		{
+			const ObjectData& obj = GetRenderObject(*it);
+
+			if (frustum.IsInside(obj.Bounds))
+			{
+				it++;
+			}
+			else
+			{
+				it = objectIndices.erase(it);
+			}
+		}
+	}
+
+	void RenderView::FilterWithTag(std::vector<uint64>& objectIndices, const string& tag) const
+	{
+		std::array<string, 1> tags = { tag };
+		FilterWithTags(objectIndices, tags);
+	}
+
+	void RenderView::FilterWithTags(std::vector<uint64>& objectIndices, std::span<const string> tags) const
+	{
+		auto it = objectIndices.begin();
+
+		while (it != objectIndices.end())
+		{
+			const ObjectData& obj = GetRenderObject(*it);
+
+			if (obj.ShaderID == InvalidID)
+			{
+				it = objectIndices.erase(it);
+				continue;
+			}
+
+			const ShaderData& shader = GetShaderData(obj.ShaderID);
+
+			if (std::find(tags.begin(), tags.end(), shader.GroupTag) != tags.end())
+			{
+				it++;
+			}
+			else
+			{
+				it = objectIndices.erase(it);
+			}
+		}
+	}
+
+	void RenderView::FilterWithShaderVariant(std::vector<uint64>& objectIndices, const string& variantName) const
+	{
+		auto it = objectIndices.begin();
+
+		while (it != objectIndices.end())
+		{
+			const ObjectData& obj = GetRenderObject(*it);
+
+			if (obj.ShaderID == InvalidID)
+			{
+				it = objectIndices.erase(it);
+				continue;
+			}
+
+			const ShaderData& shader = GetShaderData(obj.ShaderID);
+
+			if (shader.Variants.contains(variantName))
+			{
+				it++;
+			}
+			else
+			{
+				it = objectIndices.erase(it);
+			}
+		}
 	}
 }

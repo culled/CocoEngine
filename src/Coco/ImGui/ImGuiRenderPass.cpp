@@ -15,15 +15,15 @@ namespace Coco::ImGuiCoco
 
     void ImGuiRenderPass::Prepare(RenderContext& context, const RenderView& renderView)
     {
-        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("Projection"), renderView.GetProjectionMatrix());
+        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("ProjectionMatrix"), renderView.GetProjectionMatrix());
     }
 
     void ImGuiRenderPass::Execute(RenderContext& context, const RenderView& renderView)
     {
         for (const ObjectData& obj : renderView.GetRenderObjects())
         {
-            const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
-            context.SetMaterial(material, ImGuiRenderPass::sPassName);
+            const ShaderData& shader = renderView.GetShaderData(obj.ShaderID);
+            context.SetShader(shader, ImGuiRenderPass::sPassName);
             
             if (obj.ExtraData.has_value())
             {

@@ -3,11 +3,14 @@
 #include <Coco/Rendering/Providers/RenderViewProvider.h>
 #include <Coco/Rendering/Graphics/AttachmentCache.h>
 #include <Coco/Core/Types/Transform.h>
+#include <Coco/Core/MainLoop/TickInfo.h>
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Core/Events/Event.h>
-#include <Coco/Core/MainLoop/TickListener.h>
+#include <Coco/ECS/Components/Rendering/CameraComponent.h>
+#include <Coco/ECS/Scene.h>
 
 using namespace Coco::Rendering;
+using namespace Coco::ECS;
 
 namespace Coco::Rendering
 {
@@ -29,13 +32,14 @@ namespace Coco
 		static const double _sMaxMoveSpeed;
 
 		string _name;
-		ManagedRef<TickListener> _updateTickListener;
 		bool _collapsed;
+		SharedRef<Scene> _currentScene;
+		AttachmentCache _attachmentCache;
 
-		Color _clearColor;
 		MSAASamples _sampleCount;
-		double _verticalFOV;
 		Transform3D _cameraTransform;
+		ECS::CameraComponent _cameraComponent;
+
 		double _lookSensitivity;
 		double _moveSpeed;
 		double _scrollDistance;
@@ -43,11 +47,10 @@ namespace Coco
 		bool _isMouseHovering;
 		bool _isFocused;
 
-		UniqueRef<AttachmentCache> _attachmentCache;
 		ManagedRef<Texture> _viewportTexture;
 
 	public:
-		ViewportPanel(const char* name);
+		ViewportPanel(const char* name, SharedRef<Scene> scene);
 		~ViewportPanel();
 
 		// Inherited via RenderViewProvider
@@ -58,11 +61,12 @@ namespace Coco
 			const SizeInt& backbufferSize, 
 			std::span<Ref<Image>> backbuffers) override;
 
-		void Render(RenderPipeline& pipeline,
-			std::span<SceneDataProvider*> sceneDataProviders);
+		void SetCurrentScene(SharedRef<Scene> scene);
+
+		void Update(const TickInfo& tickInfo);
+		void Render(RenderPipeline& pipeline);
 
 	private:
-		void Update(const TickInfo& tickInfo);
 		void EnsureViewportTexture(const SizeInt& size);
 
 		void UpdateCamera(const TickInfo& tickInfo);

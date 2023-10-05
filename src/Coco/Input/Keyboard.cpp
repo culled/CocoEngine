@@ -4,11 +4,20 @@
 namespace Coco::Input
 {
 	KeyboardState::KeyboardState() :
-		KeyStates{false}
+		KeyStates{false},
+		UnicodeKeyPoints()
 	{}
 
 	KeyboardStateChange::KeyboardStateChange(KeyboardKey key, bool isPressed) :
-		Key(key), IsPressed(isPressed)
+		Key(key),
+		IsPressed(isPressed),
+		UnicodeKeyPoint()
+	{}
+
+	KeyboardStateChange::KeyboardStateChange(int unicodeKeyPoint) :
+		Key(),
+		IsPressed(false),
+		UnicodeKeyPoint(unicodeKeyPoint)
 	{}
 
 	Keyboard::Keyboard() :
@@ -35,6 +44,19 @@ namespace Coco::Input
 				OnKeyReleased.Invoke(key);
 		}
 		catch(...)
+		{ }
+	}
+
+	void Keyboard::AddUnicodeKeyEvent(int unicodeCharacter)
+	{
+		_preProcessStateChanges.emplace_back(unicodeCharacter);
+		_currentState.UnicodeKeyPoints.push_back(unicodeCharacter);
+
+		try
+		{
+			OnUnicodeCharacterEntered.Invoke(unicodeCharacter);
+		}
+		catch (...)
 		{ }
 	}
 
@@ -69,6 +91,7 @@ namespace Coco::Input
 	void Keyboard::SavePreviousState()
 	{
 		_previousState = _currentState;
+		_currentState.UnicodeKeyPoints.clear();
 
 		_preProcessStateChanges.clear();
 	}

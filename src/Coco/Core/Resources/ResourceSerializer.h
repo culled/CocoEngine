@@ -29,13 +29,13 @@ namespace Coco
 		/// @brief Serializes the given resource into binary data
 		/// @param resource The resource
 		/// @return The serialized data
-		virtual string Serialize(Ref<Resource> resource) = 0;
+		virtual string Serialize(SharedRef<Resource> resource) = 0;
 
 		/// @brief Deserializes a resource from the given data
 		/// @param type The type of resource to deserialize
 		/// @param resourceID The id for the resource
 		/// @param data The serialized resource data
 		/// @return A resource
-		virtual ManagedRef<Resource> Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data) = 0;
+		virtual SharedRef<Resource> Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data) = 0;
 	};
 }

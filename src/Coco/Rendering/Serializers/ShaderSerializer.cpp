@@ -23,9 +23,9 @@ namespace Coco::Rendering
 		return typeid(Shader);
 	}
 
-	string ShaderSerializer::Serialize(Ref<Resource> resource)
+	string ShaderSerializer::Serialize(SharedRef<Resource> resource)
 	{
-		const Shader* shader = dynamic_cast<const Shader*>(resource.Get());
+		SharedRef<Shader> shader = std::dynamic_pointer_cast<Shader>(resource);
 		Assert(shader)
 
 		YAML::Emitter out;
@@ -50,14 +50,14 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	ManagedRef<Resource> ShaderSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
+	SharedRef<Resource> ShaderSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
 	{
 		YAML::Node shaderNode = YAML::Load(data);
 
 		string name = shaderNode["name"].as<string>();
 		string groupTag = shaderNode["group tag"].as<string>();
 
-		ManagedRef<Shader> shader = CreateManagedRef<Shader>(resourceID, name, groupTag);
+		SharedRef<Shader> shader = CreateSharedRef<Shader>(resourceID, name, groupTag);
 
 		YAML::Node passShadersNode = shaderNode["pass shaders"];
 		for (YAML::const_iterator it = passShadersNode.begin(); it != passShadersNode.end(); ++it)

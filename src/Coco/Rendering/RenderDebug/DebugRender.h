@@ -49,9 +49,9 @@ namespace Coco::Rendering
 		std::pair<uint64, uint64> _boxIndexInfo;
 		std::pair<uint64, uint64> _sphereIndexInfo;
 
-		Ref<Mesh> _mesh;
-		Ref<Shader> _shader;
-		Ref<Material> _material;
+		SharedRef<Mesh> _mesh;
+		SharedRef<Shader> _shader;
+		SharedRef<Material> _material;
 
 	public:
 		DebugRender();

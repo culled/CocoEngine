@@ -21,7 +21,7 @@ namespace Coco
 		_resources.clear();
 	}
 
-	bool ResourceLibrary::GetOrLoad(const string& contentPath, Ref<Resource>& outResource)
+	bool ResourceLibrary::GetOrLoad(const string& contentPath, SharedRef<Resource>& outResource)
 	{
 		auto it = FindResource(contentPath);
 		if (it != _resources.end())
@@ -44,7 +44,7 @@ namespace Coco
 		if (!serializer)
 		{
 			CocoError("No serializers support deserializing the file at \"{}\"", contentPath)
-				return false;
+			return false;
 		}
 
 		Assert(resourceType != typeid(nullptr))
@@ -56,14 +56,14 @@ namespace Coco
 		ResourceID id = _idGenerator();
 		it = _resources.try_emplace(id, serializer->Deserialize(resourceType, id, data)).first;
 		
-		ManagedRef<Resource>& resource = it->second;
+		SharedRef<Resource>& resource = it->second;
 		resource->_contentPath = contentPath;
 		outResource = resource;
 
 		return true;
 	}
 
-	bool ResourceLibrary::Save(const string& contentPath, Ref<Resource> resource, bool overwrite)
+	bool ResourceLibrary::Save(const string& contentPath, SharedRef<Resource> resource, bool overwrite)
 	{
 		EngineFileSystem& efs = Engine::Get()->GetFileSystem();
 

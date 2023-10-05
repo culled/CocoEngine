@@ -19,9 +19,14 @@ namespace Coco::Rendering
 		_groupTag = groupTag;
 	}
 
-	void Shader::AddVariant(ShaderVariant&& passShader)
+	void Shader::AddVariant(ShaderVariant&& variant)
 	{
-		_variants.emplace_back(std::forward<ShaderVariant>(passShader));
+		_variants.emplace_back(std::forward<ShaderVariant>(variant));
+	}
+
+	void Shader::AddVariant(const ShaderVariant& variant)
+	{
+		_variants.push_back(variant);
 	}
 
 	bool Shader::TryGetShaderVariant(const char* variantName, const ShaderVariant*& outShaderVariant) const

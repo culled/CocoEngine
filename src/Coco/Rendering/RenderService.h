@@ -47,9 +47,9 @@ namespace Coco::Rendering
 		UniqueRef<GraphicsPlatform> _platform;
 		UniqueRef<GraphicsDevice> _device;
 		UniqueRef<DebugRender> _debugRender;
-		Ref<Texture> _defaultDiffuseTexture;
-		Ref<Texture> _defaultNormalTexture;
-		Ref<Texture> _defaultCheckerTexture;
+		SharedRef<Texture> _defaultDiffuseTexture;
+		SharedRef<Texture> _defaultNormalTexture;
+		SharedRef<Texture> _defaultCheckerTexture;
 		RenderStats _stats;
 		ManagedRef<TickListener> _earlyTickListener;
 		ManagedRef<TickListener> _lateTickListener;
@@ -82,15 +82,15 @@ namespace Coco::Rendering
 
 		/// @brief Gets the default diffuse texture (white)
 		/// @return The default diffuse texture
-		Ref<Texture> GetDefaultDiffuseTexture() const { return _defaultDiffuseTexture; }
+		SharedRef<Texture> GetDefaultDiffuseTexture() const { return _defaultDiffuseTexture; }
 
 		/// @brief Gets the default normal-map texture
 		/// @return The default normal-map texture
-		Ref<Texture> GetDefaultNormalTexture() const { return _defaultNormalTexture; }
+		SharedRef<Texture> GetDefaultNormalTexture() const { return _defaultNormalTexture; }
 
 		/// @brief Gets the default checker texture. Useful if a texture should definitely not be missing
 		/// @return The default checker texture
-		Ref<Texture> GetDefaultCheckerTexture() const { return _defaultCheckerTexture; }
+		SharedRef<Texture> GetDefaultCheckerTexture() const { return _defaultCheckerTexture; }
 
 		/// @brief Gets the general stats for all renders since the end of the last tick
 		/// @return The general render stats

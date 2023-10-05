@@ -15,19 +15,26 @@ namespace Coco::Input
 		/// @brief Pressed states for each keyboard key
 		std::array<bool, KeyCount> KeyStates;
 
+		/// @brief The unicode characters that were entered since the last tick
+		std::vector<int> UnicodeKeyPoints;
+
 		KeyboardState();
 	};
 
 	/// @brief A state change for the keyboard
 	struct KeyboardStateChange
 	{
-		/// @brief The key that changed state
-		KeyboardKey Key;
+		/// @brief The key that changed state, if any
+		std::optional<KeyboardKey> Key;
 
 		/// @brief If true, the key is now pressed, else it is released
 		bool IsPressed;
 
+		/// @brief Represents the unicode character point that was just entered
+		std::optional<int> UnicodeKeyPoint;
+
 		KeyboardStateChange(KeyboardKey key, bool isPressed);
+		KeyboardStateChange(int unicodeKeyPoint);
 	};
 
 	/// @brief A keyboard input device
@@ -42,6 +49,9 @@ namespace Coco::Input
 		/// @brief Invoked when a key is released
 		Event<KeyboardKey> OnKeyReleased;
 
+		/// @brief Invoked when a unicode character is input
+		Event<int> OnUnicodeCharacterEntered;
+
 	private:
 		std::vector<KeyboardStateChange> _preProcessStateChanges;
 		KeyboardState _currentState;
@@ -55,6 +65,10 @@ namespace Coco::Input
 		/// @param key The key
 		/// @param isPressed True if the key is pressed
 		void UpdateKeyState(KeyboardKey key, bool isPressed);
+		
+		/// @brief Adds a unicode character event
+		/// @param unicodeCharacter The character code
+		void AddUnicodeKeyEvent(int unicodeCharacter);
 
 		/// @brief Clears all current key states
 		void ClearAllKeyStates();
@@ -73,6 +87,10 @@ namespace Coco::Input
 		/// @param key The key
 		/// @return True if the key was released since the last tick
 		bool WasKeyJustReleased(KeyboardKey key) const;
+
+		/// @brief Gets the unicode characters that were entered within the last tick
+		/// @return The unicode characters
+		std::span<const int> GetUnicodeCharactersEntered() const { return _currentState.UnicodeKeyPoints; }
 
 	private:
 		/// @brief Gets all state changes since the last tick

@@ -7,11 +7,15 @@
 #include <Coco/Core/Events/Event.h>
 #include <Coco/Core/Types/Refs.h>
 
+#include "SelectionContext.h"
 #include "Panels/ViewportPanel.h"
+#include "Panels/SceneHierarchyPanel.h"
+#include "Panels/InspectorPanel.h"
 
 // TEMPORARY
-#include "RenderTest.h"
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
+#include <Coco/ECS/Scene.h>
+#include <Coco/ECS/Entity.h>
 // TEMPORARY
 
 namespace Coco
@@ -21,21 +25,28 @@ namespace Coco
         public Singleton<EditorApplication>
     {
     private:
+        SelectionContext _selection;
         Ref<Windowing::Window> _mainWindow;
         ManagedRef<TickListener> _updateTickListener;
         ManagedRef<TickListener> _renderTickListener;
 
         UniqueRef<ViewportPanel> _viewport;
+        UniqueRef<SceneHierarchyPanel> _scenePanel;
+        UniqueRef<InspectorPanel> _inspectorPanel;
         EventHandler<const ViewportPanel&> _viewportClosedHandler;
         
         // TEMPORARY
-        UniqueRef<RenderTest> _renderTest;
-        UniqueRef<RenderPipeline> _pipeline;
+        SharedRef<RenderPipeline> _pipeline;
+        SharedRef<ECS::Scene> _mainScene;
+        ECS::Entity _entity;
+        ECS::Entity _entity2;
         // TEMPORARY
 
     public:
         EditorApplication();
         ~EditorApplication();
+
+        SelectionContext& GetSelection() { return _selection; }
 
         Ref<Windowing::Window> GetMainWindow() const { return _mainWindow; }
 
@@ -43,6 +54,7 @@ namespace Coco
         void SetupServices();
         void CreateMainWindow();
         void SetupDefaultLayout();
+        void CreateMainScene();
 
         void HandleUpdateTick(const TickInfo& tickInfo);
         void HandleRenderTick(const TickInfo& tickInfo);
