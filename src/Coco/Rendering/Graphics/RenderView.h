@@ -284,5 +284,16 @@ namespace Coco::Rendering
 		/// @param objectIndices The object indices
 		/// @param variantName The name of the shader variant
 		void FilterWithShaderVariant(std::vector<uint64>& objectIndices, const string& variantName) const;
+
+		/// @brief Sorts objects by distance from this view's view position
+		/// @param objectIndices The object indices
+		/// @param sortMode The sort mode
+		void SortByDistance(std::vector<uint64>& objectIndices, RenderObjectSortMode sortMode) const;
+
+		/// @brief Sorts objects by distance from a view position 
+		/// @param objectIndices The object indices
+		/// @param position The position to sort relative to
+		/// @param sortMode The sort mode
+		void SortByDistance(std::vector<uint64>& objectIndices, const Vector3& position, RenderObjectSortMode sortMode) const;
 	};
 }

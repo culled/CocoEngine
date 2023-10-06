@@ -18,7 +18,6 @@ namespace Coco
 		_name(name),
 		_collapsed(true),
 		_currentScene(scene),
-		_attachmentCache(),
 		_sampleCount(MSAASamples::One),
 		_cameraTransform(Vector3(0.0, 0.0, 1.0), Quaternion::Identity, Vector3::One),
 		_cameraComponent(),
@@ -51,7 +50,7 @@ namespace Coco
 
 		RectInt viewport(Vector2Int::Zero, backbufferSize);
 
-		std::vector<RenderTarget> rts = _attachmentCache.CreateRenderTargets(pipeline, rendererID, backbufferSize, _sampleCount, backbuffers);
+		std::vector<RenderTarget> rts = RenderService::Get()->GetAttachmentCache().CreateRenderTargets(pipeline, rendererID, backbufferSize, _sampleCount, backbuffers);
 		RenderTarget::SetClearValues(rts, _cameraComponent.ClearColor, 1.0, 0);
 
 		renderView.Setup(

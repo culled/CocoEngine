@@ -389,4 +389,31 @@ namespace Coco::Rendering
 			}
 		}
 	}
+
+	void RenderView::SortByDistance(std::vector<uint64>& objectIndices, RenderObjectSortMode sortMode) const
+	{
+		SortByDistance(objectIndices, _viewPosition, sortMode);
+	}
+
+	void RenderView::SortByDistance(std::vector<uint64>& objectIndices, const Vector3& position, RenderObjectSortMode sortMode) const
+	{
+		std::sort(objectIndices.begin(), objectIndices.end(), [&, position, sortMode](const uint64& a, const uint64& b)
+			{
+				const ObjectData& objA = GetRenderObject(a);
+				const ObjectData& objB = GetRenderObject(b);
+
+				double distA = Vector3::DistanceBetween(position, objA.Bounds.GetCenter());
+				double distB = Vector3::DistanceBetween(position, objB.Bounds.GetCenter());
+
+				switch (sortMode)
+				{
+				case RenderObjectSortMode::BackToFront:
+					return distA > distB;
+				case RenderObjectSortMode::FrontToBack:
+					return distA < distB;
+				default:
+					return true;
+				}
+			});
+	}
 }

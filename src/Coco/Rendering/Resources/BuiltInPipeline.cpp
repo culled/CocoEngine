@@ -1,6 +1,7 @@
 #include "Renderpch.h"
 #include "BuiltInPipeline.h"
 #include "../Pipeline/RenderPasses/BuiltInRenderPass.h"
+#include "../RenderDebug/DebugRenderPass.h"
 
 namespace Coco::Rendering
 {
@@ -10,6 +11,7 @@ namespace Coco::Rendering
 
 		std::array<uint8, 2> bindings = { 0, 1 };
 		pipeline->AddRenderPass(CreateSharedRef<BuiltInRenderPass>(useFrustumCulling), bindings);
+		pipeline->AddRenderPass(CreateSharedRef<DebugRenderPass>(), bindings);
 
 		return pipeline;
 	}

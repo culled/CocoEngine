@@ -14,6 +14,13 @@ namespace Coco::Rendering
 	class Image;
 	class Buffer;
 
+	/// @brief Sorting modes for render objects
+	enum class RenderObjectSortMode
+	{
+		FrontToBack,
+		BackToFront
+	};
+
 	/// @brief An image that can be rendered to
 	struct RenderTarget
 	{

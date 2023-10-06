@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Coco/Rendering/Providers/RenderViewProvider.h>
-#include <Coco/Rendering/Graphics/AttachmentCache.h>
 #include <Coco/Core/Types/Transform.h>
 #include <Coco/Core/MainLoop/TickInfo.h>
 #include <Coco/Rendering/Texture.h>
@@ -34,7 +33,6 @@ namespace Coco
 		string _name;
 		bool _collapsed;
 		SharedRef<Scene> _currentScene;
-		AttachmentCache _attachmentCache;
 
 		MSAASamples _sampleCount;
 		Transform3D _cameraTransform;

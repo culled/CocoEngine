@@ -8,6 +8,7 @@
 #include "Graphics/GraphicsDevice.h"
 #include "Graphics/GraphicsPresenter.h"
 #include "Graphics/RenderView.h"
+#include "Graphics/AttachmentCache.h"
 #include "Providers/RenderViewProvider.h"
 #include "Providers/SceneDataProvider.h"
 #include "RenderTask.h"
@@ -56,6 +57,7 @@ namespace Coco::Rendering
 		std::unordered_map<uint64, std::vector<RenderServiceRenderTask>> _renderTasks;
 		std::vector<RenderContextRenderStats> _individualRenderStats;
 		std::vector<Ref<RenderContext>> _renderContextCache;
+		AttachmentCache _attachmentCache;
 
 		// TODO: when adding multithreaded rendering, support a RenderView pool
 		RenderView _renderView;
@@ -99,6 +101,10 @@ namespace Coco::Rendering
 		/// @brief Gets the render stats for each render since the end of the last tick
 		/// @return The stats for each render
 		std::span<const RenderContextRenderStats> GetIndividualRenderStats() const { return _individualRenderStats; }
+
+		/// @brief Gets the global attachment cache
+		/// @return The global attachment cache
+		AttachmentCache& GetAttachmentCache() { return _attachmentCache; }
 
 		/// @brief Performs a render to a GraphicsPresenter's backbuffer
 		/// @param presenter The presenter to render with

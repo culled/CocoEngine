@@ -26,7 +26,8 @@ namespace Coco::Rendering
 		_lateTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
 		_renderTasks{},
 		_debugRender(nullptr),
-		_renderView()
+		_renderView(),
+		_attachmentCache()
 	{
 		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
