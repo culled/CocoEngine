@@ -31,7 +31,7 @@ namespace Coco
 	private:
 		static const double _sMinMoveSpeed;
 		static const double _sMaxMoveSpeed;
-		static const SizeInt _sCameraPreviewSize;
+		static const double _sCameraPreviewSizePercentage;
 
 		SelectionContext& _selection;
 		string _name;
@@ -50,6 +50,7 @@ namespace Coco
 		bool _isFocused;
 		bool _showCameraPreview;
 		bool _previewCameraFullscreen;
+		SizeInt _cameraPreviewSize;
 
 		ManagedRef<Texture> _cameraPreviewTexture;
 		ManagedRef<Texture> _viewportTexture;
@@ -72,7 +73,7 @@ namespace Coco
 		void Render(RenderPipeline& pipeline);
 
 	private:
-		void EnsureViewportTexture(const SizeInt& size);
+		void EnsureTexture(const SizeInt& size, ManagedRef<Texture>& texture);
 
 		void UpdateCamera(const TickInfo& tickInfo);
 		
