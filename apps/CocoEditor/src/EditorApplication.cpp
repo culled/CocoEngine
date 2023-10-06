@@ -16,6 +16,7 @@
 #include <Coco/Rendering/MeshUtilities.h>
 #include <Coco/ECS/Components/Transform3DComponent.h>
 #include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
+#include <Coco/ECS/Components/Rendering/CameraComponent.h>
 #include <Coco/Rendering/Resources/BuiltinShaders.h>
 // TEMPORARY
 
@@ -137,6 +138,10 @@ namespace Coco
 		_entity2 = _mainScene->CreateEntity("Test 2");
 		_entity2.AddComponent<Transform3DComponent>(Vector3(2.0, 2.0, 2.0), Quaternion(Vector3::Up, Math::DegToRad(180.0)), Vector3::One * 2.0);
 		_entity2.AddComponent<MeshRendererComponent>(mesh, materials);
+
+		_cameraEntity = _mainScene->CreateEntity("Camera");
+		_cameraEntity.AddComponent<Transform3DComponent>(Vector3(0.0, 0.0, 1.0), Quaternion::Identity, Vector3::One);
+		_cameraEntity.AddComponent<CameraComponent>();
 	}
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)

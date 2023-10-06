@@ -4,9 +4,14 @@
 
 namespace Coco
 {
-	struct ComponentUI
+	class ComponentUI
 	{
+	public:
 		virtual ~ComponentUI() = default;
-		virtual void DrawComponent(ECS::Entity& entity) = 0;
+		void Draw(ECS::Entity& entity);
+
+	protected:
+		virtual const char* GetHeader() const = 0;
+		virtual void DrawImpl(ECS::Entity& entity) = 0;
 	};
 }

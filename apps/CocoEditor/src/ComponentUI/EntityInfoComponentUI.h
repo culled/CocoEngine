@@ -6,7 +6,9 @@ namespace Coco
     class EntityInfoComponentUI :
         public ComponentUI
     {
+    protected:
         // Inherited via ComponentUI
-        void DrawComponent(ECS::Entity& entity) override;
+        const char* GetHeader() const override { return "Entity Info"; }
+        void DrawImpl(ECS::Entity& entity) override;
     };
 }

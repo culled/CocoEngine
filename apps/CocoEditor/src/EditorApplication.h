@@ -40,6 +40,7 @@ namespace Coco
         SharedRef<ECS::Scene> _mainScene;
         ECS::Entity _entity;
         ECS::Entity _entity2;
+        ECS::Entity _cameraEntity;
         // TEMPORARY
 
     public:

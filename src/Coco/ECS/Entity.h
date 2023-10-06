@@ -105,6 +105,10 @@ namespace Coco::ECS
 			s->_registry.remove<ComponentType>(_handle);
 		}
 
+		/// @brief Tries to find a component of the given type on this entity and returns it if found
+		/// @tparam ComponentType The type of component to get
+		/// @param component Will be set to the component if found
+		/// @return True if the component was found
 		template<typename ComponentType>
 		bool TryGetComponent(ComponentType*& component)
 		{

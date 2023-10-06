@@ -10,9 +10,11 @@ namespace Coco::ECS
 	CameraComponent::CameraComponent() :
 		ClearColor(Color::Black),
 		VerticalFOV(1.0),
+		PerspectiveNearClip(0.1),
+		PerspectiveFarClip(100.0),
 		OrthoSize(1.0),
-		NearClip(0.1),
-		FarClip(100.0),
+		OrthoNearClip(-1.0),
+		OrthoFarClip(1.0),
 		SampleCount(MSAASamples::One)
 	{
 		SetPerspectiveProjection(Math::DegToRad(90.0), 0.1, 100.0);
@@ -21,16 +23,16 @@ namespace Coco::ECS
 	void CameraComponent::SetPerspectiveProjection(double verticalFOVRadians, double nearClip, double farClip)
 	{
 		VerticalFOV = verticalFOVRadians;
-		NearClip = nearClip;
-		FarClip = farClip;
+		PerspectiveNearClip = nearClip;
+		PerspectiveFarClip = farClip;
 		ProjectionType = CameraProjectionType::Perspective;
 	}
 
 	void CameraComponent::SetOrthographicProjection(double size, double nearClip, double farClip)
 	{
 		OrthoSize = size;
-		NearClip = nearClip;
-		FarClip = farClip;
+		OrthoNearClip = nearClip;
+		OrthoFarClip = farClip;
 		ProjectionType = CameraProjectionType::Orthographic;
 	}
 
@@ -41,9 +43,9 @@ namespace Coco::ECS
 		switch (ProjectionType)
 		{
 		case CameraProjectionType::Perspective:
-			return RenderService::Get()->GetPlatform().CreatePerspectiveProjection(VerticalFOV, aspectRatio, NearClip, FarClip);
+			return RenderService::Get()->GetPlatform().CreatePerspectiveProjection(VerticalFOV, aspectRatio, PerspectiveNearClip, PerspectiveFarClip);
 		case CameraProjectionType::Orthographic:
-			return RenderService::Get()->GetPlatform().CreateOrthographicProjection(OrthoSize, aspectRatio, NearClip, FarClip);
+			return RenderService::Get()->GetPlatform().CreateOrthographicProjection(OrthoSize, aspectRatio, OrthoNearClip, OrthoFarClip);
 		default:
 			return Matrix4x4::Identity;
 		}
@@ -57,11 +59,37 @@ namespace Coco::ECS
 		switch (ProjectionType)
 		{
 		case CameraProjectionType::Perspective:
-			return ViewFrustum::CreatePerspective(position, forward, up, VerticalFOV, aspectRatio, NearClip, FarClip);
+			return ViewFrustum::CreatePerspective(position, forward, up, VerticalFOV, aspectRatio, PerspectiveNearClip, PerspectiveFarClip);
 		case CameraProjectionType::Orthographic:
-			return ViewFrustum::CreateOrthographic(position, forward, up, OrthoSize, aspectRatio, NearClip, FarClip);
+			return ViewFrustum::CreateOrthographic(position, forward, up, OrthoSize, aspectRatio, OrthoNearClip, OrthoFarClip);
 		default:
 			return ViewFrustum();
+		}
+	}
+
+	double CameraComponent::GetNearClip() const
+	{
+		switch (ProjectionType)
+		{
+		case CameraProjectionType::Perspective:
+			return PerspectiveNearClip;
+		case CameraProjectionType::Orthographic:
+			return OrthoNearClip;
+		default:
+			return 0.0;
+		}
+	}
+
+	double CameraComponent::GetFarClip() const
+	{
+		switch (ProjectionType)
+		{
+		case CameraProjectionType::Perspective:
+			return PerspectiveFarClip;
+		case CameraProjectionType::Orthographic:
+			return OrthoFarClip;
+		default:
+			return 0.0;
 		}
 	}
 }

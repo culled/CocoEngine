@@ -2,8 +2,12 @@
 
 #include <Coco/ECS/Components/EntityInfoComponent.h>
 #include "../ComponentUI/EntityInfoComponentUI.h"
+
 #include <Coco/ECS/Components/Transform3DComponent.h>
 #include "../ComponentUI/Transform3DComponentUI.h"
+
+#include <Coco/ECS/Components/Rendering/CameraComponent.h>
+#include "../ComponentUI/Rendering/CameraComponentUI.h"
 
 #include "../EditorApplication.h"
 #include <imgui.h>
@@ -37,6 +41,7 @@ namespace Coco
 	{
 		RegisterComponentUI<EntityInfoComponent, EntityInfoComponentUI>();
 		RegisterComponentUI<Transform3DComponent, Transform3DComponentUI>();
+		RegisterComponentUI<CameraComponent, CameraComponentUI>();
 	}
 
 	void InspectorPanel::DrawEntityInspector()
@@ -47,7 +52,7 @@ namespace Coco
 		{
 			if (kvp.TestFunc(entity))
 			{
-				kvp.UI->DrawComponent(entity);
+				kvp.UI->Draw(entity);
 			}
 		}
 	}

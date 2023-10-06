@@ -23,14 +23,20 @@ namespace Coco::ECS
         /// @brief The type of projection that this camera has
         CameraProjectionType ProjectionType;
 
-        /// @brief The distance to the near clip plane
-        double NearClip;
+        /// @brief The distance to the near clip plane in perspective mode
+        double PerspectiveNearClip;
 
-        /// @brief The distance to the far clip plane
-        double FarClip;
+        /// @brief The distance to the far clip plane in perspective mode
+        double PerspectiveFarClip;
 
         /// @brief The vertical field of view, in radians
         double VerticalFOV;
+
+        /// @brief The distance to the near clip plane in orthographic mode
+        double OrthoNearClip;
+
+        /// @brief The distance to the far clip plane in orthographic mode
+        double OrthoFarClip;
 
         /// @brief The vertical size of the orthographic frustum
         double OrthoSize;
@@ -63,5 +69,13 @@ namespace Coco::ECS
         /// @param rotation The rotation of the camera
         /// @return The view frustum
         ViewFrustum GetViewFrustum(double aspectRatio, const Vector3& position, const Quaternion& rotation) const;
+
+        /// @brief Gets the near clip distance for this camera
+        /// @return The near clip distance
+        double GetNearClip() const;
+
+        /// @brief Gets the far clip distance for this camera
+        /// @return The far clip distance
+        double GetFarClip() const;
     };
 }
