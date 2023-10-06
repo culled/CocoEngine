@@ -57,6 +57,7 @@ namespace Coco::Rendering
 		std::unordered_map<uint64, std::vector<RenderServiceRenderTask>> _renderTasks;
 		std::vector<RenderContextRenderStats> _individualRenderStats;
 		std::vector<Ref<RenderContext>> _renderContextCache;
+		std::vector<Ref<RenderContext>> _orphanedRenderContexts;
 		AttachmentCache _attachmentCache;
 
 		// TODO: when adding multithreaded rendering, support a RenderView pool

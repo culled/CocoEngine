@@ -116,6 +116,7 @@ namespace Coco::Rendering::Vulkan
         Ref<GraphicsFence> GetRenderCompletedFence() final { return _renderCompletedFence; }
 
         void AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore) final;
+        uint64 GetWaitOnSemaphoreCount() const final { return _waitOnSemaphores.size(); }
         void AddRenderCompletedSignalSemaphore(Ref<GraphicsSemaphore> semaphore) final;
 
         void SetViewportRect(const RectInt& viewportRect) final;

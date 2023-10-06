@@ -44,7 +44,7 @@ namespace Coco::ECS
 
 		RectInt viewport(Vector2Int::Zero, backbufferSize);
 
-		std::vector<RenderTarget> rts = CameraSystem::_sAttachmentCache.CreateRenderTargets(pipeline, rendererID, backbufferSize, sampleCount, backbuffers);
+		std::vector<RenderTarget> rts = RenderService::Get()->GetAttachmentCache().CreateRenderTargets(pipeline, rendererID, backbufferSize, sampleCount, backbuffers);
 		RenderTarget::SetClearValues(rts, camera.ClearColor, 1.0, 0);
 
 		renderView.Setup(
@@ -57,8 +57,6 @@ namespace Coco::ECS
 			rts
 		);
 	}
-
-	AttachmentCache CameraSystem::_sAttachmentCache = AttachmentCache();
 
 	void CameraSystem::Render(const Entity& camera, std::span<Ref<Image>> framebuffers, RenderPipeline& pipeline)
 	{

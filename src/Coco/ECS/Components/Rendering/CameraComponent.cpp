@@ -9,20 +9,21 @@ namespace Coco::ECS
 {
 	CameraComponent::CameraComponent() :
 		ClearColor(Color::Black),
-		VerticalFOV(1.0),
+		PerspectiveFOV(1.0),
 		PerspectiveNearClip(0.1),
 		PerspectiveFarClip(100.0),
 		OrthoSize(1.0),
 		OrthoNearClip(-1.0),
 		OrthoFarClip(1.0),
-		SampleCount(MSAASamples::One)
+		SampleCount(MSAASamples::One),
+		Priority(0)
 	{
 		SetPerspectiveProjection(Math::DegToRad(90.0), 0.1, 100.0);
 	}
 
 	void CameraComponent::SetPerspectiveProjection(double verticalFOVRadians, double nearClip, double farClip)
 	{
-		VerticalFOV = verticalFOVRadians;
+		PerspectiveFOV = verticalFOVRadians;
 		PerspectiveNearClip = nearClip;
 		PerspectiveFarClip = farClip;
 		ProjectionType = CameraProjectionType::Perspective;
@@ -43,7 +44,7 @@ namespace Coco::ECS
 		switch (ProjectionType)
 		{
 		case CameraProjectionType::Perspective:
-			return RenderService::Get()->GetPlatform().CreatePerspectiveProjection(VerticalFOV, aspectRatio, PerspectiveNearClip, PerspectiveFarClip);
+			return RenderService::Get()->GetPlatform().CreatePerspectiveProjection(PerspectiveFOV, aspectRatio, PerspectiveNearClip, PerspectiveFarClip);
 		case CameraProjectionType::Orthographic:
 			return RenderService::Get()->GetPlatform().CreateOrthographicProjection(OrthoSize, aspectRatio, OrthoNearClip, OrthoFarClip);
 		default:
@@ -59,7 +60,7 @@ namespace Coco::ECS
 		switch (ProjectionType)
 		{
 		case CameraProjectionType::Perspective:
-			return ViewFrustum::CreatePerspective(position, forward, up, VerticalFOV, aspectRatio, PerspectiveNearClip, PerspectiveFarClip);
+			return ViewFrustum::CreatePerspective(position, forward, up, PerspectiveFOV, aspectRatio, PerspectiveNearClip, PerspectiveFarClip);
 		case CameraProjectionType::Orthographic:
 			return ViewFrustum::CreateOrthographic(position, forward, up, OrthoSize, aspectRatio, OrthoNearClip, OrthoFarClip);
 		default:

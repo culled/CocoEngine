@@ -91,6 +91,8 @@ namespace Coco::Rendering
 			}
 		}
 
+		RenderService::Get()->GetDevice().PurgeUnusedResources();
+
 		return rts;
 	}
 

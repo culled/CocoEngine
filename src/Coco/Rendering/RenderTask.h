@@ -9,6 +9,9 @@ namespace Coco::Rendering
 	/// @brief An object that can be used to synchronize multiple rendering operations
 	struct RenderTask
 	{
+		/// @brief The ID of the renderer that started this task
+		uint64 RendererID;
+
 		/// @brief The semaphore that will be signaled when this task completes
 		Ref<GraphicsSemaphore> RenderCompletedSemaphore;
 
@@ -16,6 +19,6 @@ namespace Coco::Rendering
 		Ref<GraphicsFence> RenderCompletedFence;
 
 		RenderTask();
-		RenderTask(Ref<GraphicsSemaphore> renderCompletedSemaphore, Ref<GraphicsFence> renderCompletedFence);
+		RenderTask(uint64 rendererID, Ref<GraphicsSemaphore> renderCompletedSemaphore, Ref<GraphicsFence> renderCompletedFence);
 	};
 }

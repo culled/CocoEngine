@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Coco/Rendering/Graphics/AttachmentCache.h>
 #include <Coco/Rendering/Providers/RenderViewProvider.h>
 #include "../../Entity.h"
 
@@ -43,9 +42,6 @@ namespace Coco::ECS
 	class CameraSystem
 	{
 		friend class CameraRenderViewProvider;
-
-	private:
-		static AttachmentCache _sAttachmentCache;
 
 	public:
 		/// @brief Renders the given camera entity

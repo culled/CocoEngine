@@ -20,6 +20,8 @@ namespace Coco::Rendering
 
 namespace Coco
 {
+	class SelectionContext;
+
 	class ViewportPanel :
 		public RenderViewProvider
 	{
@@ -29,7 +31,9 @@ namespace Coco
 	private:
 		static const double _sMinMoveSpeed;
 		static const double _sMaxMoveSpeed;
+		static const SizeInt _sCameraPreviewSize;
 
+		SelectionContext& _selection;
 		string _name;
 		bool _collapsed;
 		SharedRef<Scene> _currentScene;
@@ -44,7 +48,10 @@ namespace Coco
 		bool _isFlying;
 		bool _isMouseHovering;
 		bool _isFocused;
+		bool _showCameraPreview;
+		bool _previewCameraFullscreen;
 
+		ManagedRef<Texture> _cameraPreviewTexture;
 		ManagedRef<Texture> _viewportTexture;
 
 	public:
@@ -70,5 +77,7 @@ namespace Coco
 		void UpdateCamera(const TickInfo& tickInfo);
 		
 		void ShowCameraStatsWindow();
+
+		void ShowCameraPreview();
 	};
 }

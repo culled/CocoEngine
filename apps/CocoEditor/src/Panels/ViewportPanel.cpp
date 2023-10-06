@@ -6,6 +6,8 @@
 #include <Coco/Windowing/WindowService.h>
 #include <Coco/Core/Engine.h>
 #include <Coco/ECS/Systems/Rendering/SceneRenderProvider.h>
+#include "../EditorApplication.h"
+#include <Coco/ECS/Systems/Rendering/CameraSystem.h>
 
 #include <imgui.h>
 
@@ -13,9 +15,11 @@ namespace Coco
 {
 	const double ViewportPanel::_sMinMoveSpeed = 0.01;
 	const double ViewportPanel::_sMaxMoveSpeed = 100;
+	const SizeInt ViewportPanel::_sCameraPreviewSize = SizeInt(160, 90);
 
 	ViewportPanel::ViewportPanel(const char* name, SharedRef<Scene> scene) :
 		_name(name),
+		_selection(EditorApplication::Get()->GetSelection()),
 		_collapsed(true),
 		_currentScene(scene),
 		_sampleCount(MSAASamples::One),
@@ -26,7 +30,22 @@ namespace Coco
 		_scrollDistance(0.2),
 		_isFlying(false),
 		_isMouseHovering(false),
-		_isFocused(false)
+		_isFocused(false),
+		_showCameraPreview(false),
+		_previewCameraFullscreen(false),
+		_cameraPreviewTexture(
+			CreateManagedRef<Texture>(0,
+				"Viewport Camera Preview Backbuffer",
+				ImageDescription(
+					_sCameraPreviewSize.Width, _sCameraPreviewSize.Height,
+					ImagePixelFormat::RGBA8,
+					ImageColorSpace::sRGB,
+					ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled,
+					false,
+					_sampleCount),
+				ImageSamplerDescription::LinearClamp
+			)
+		)
 	{
 		_cameraComponent.ClearColor = Color(0.1, 0.1, 0.1, 1.0);
 	}
@@ -72,6 +91,7 @@ namespace Coco
 	void ViewportPanel::Update(const TickInfo& tickInfo)
 	{
 		bool open = true;
+		_showCameraPreview = false;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 		//if (ImGui::Begin(_name.c_str(), &open) && open)
@@ -81,6 +101,20 @@ namespace Coco
 			_isFocused = ImGui::IsWindowFocused();
 
 			UpdateCamera(tickInfo);
+
+			if (_selection.HasSelectedEntity())
+			{
+				Entity& e = _selection.GetSelectedEntity();
+
+				if (e.HasComponent<CameraComponent>())
+				{
+					_showCameraPreview = true;
+					ShowCameraPreview();
+				}
+			}
+
+			if (!_showCameraPreview)
+				_previewCameraFullscreen = false;
 
 			ImVec2 size = ImGui::GetContentRegionAvail();
 			EnsureViewportTexture(SizeInt(static_cast<uint32>(size.x), static_cast<uint32>(size.y)));
@@ -106,10 +140,25 @@ namespace Coco
 		if (_collapsed)
 			return;
 
-		std::array<Ref<Image>, 1> images = { _viewportTexture->GetImage() };
-		SceneRender3DProvider sceneProvider(_currentScene);
-		std::array<SceneDataProvider*, 1> sceneProviders = { &sceneProvider };
-		RenderService::Get()->Render(0, images, pipeline, *this, sceneProviders);
+		std::array<Ref<Image>, 1> viewportImages = { _viewportTexture->GetImage() };
+
+		if (_showCameraPreview)
+		{
+			std::array<Ref<Image>, 1> cameraImages = { _cameraPreviewTexture->GetImage() };
+			CameraSystem::Render(_selection.GetSelectedEntity(), cameraImages, pipeline);
+
+			if (_previewCameraFullscreen)
+			{
+				CameraSystem::Render(_selection.GetSelectedEntity(), viewportImages, pipeline);
+			}
+		}
+
+		if (!_previewCameraFullscreen)
+		{
+			SceneRender3DProvider sceneProvider(_currentScene);
+			std::array<SceneDataProvider*, 1> sceneProviders = { &sceneProvider };
+			RenderService::Get()->Render(0, viewportImages, pipeline, *this, sceneProviders);
+		}
 	}
 
 	void ViewportPanel::EnsureViewportTexture(const SizeInt& size)
@@ -133,7 +182,7 @@ namespace Coco
 
 		_viewportTexture = CreateManagedRef<Texture>(
 			0,
-			"ViewportPanel Backbuffer",
+			"Viewport Texture",
 			ImageDescription(
 				size.Width, size.Height,
 				ImagePixelFormat::RGBA8,
@@ -161,7 +210,7 @@ namespace Coco
 			_isFlying = false;
 			return;
 		}
-		else if (mouse.WasButtonJustPressed(MouseButton::Right) && _isMouseHovering)
+		else if (mouse.WasButtonJustPressed(MouseButton::Right) && _isMouseHovering && !_previewCameraFullscreen)
 		{
 			_isFlying = true;
 		}
@@ -240,6 +289,32 @@ namespace Coco
 
 		ImGui::Text("Position: %.3f, %.3f, %.3f", _cameraTransform.LocalPosition.X, _cameraTransform.LocalPosition.Y, _cameraTransform.LocalPosition.Z);
 		ImGui::Text("Move speed: %.2f", _moveSpeed);
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
+	void ViewportPanel::ShowCameraPreview()
+	{
+		ImVec2 previewSize{ static_cast<float>(_sCameraPreviewSize.Width), static_cast<float>(_sCameraPreviewSize.Height) };
+
+		ImVec2 pos = ImGui::GetWindowPos();
+		ImVec2 size = ImGui::GetContentRegionAvail();
+		pos.x += size.x - (previewSize.x + 30);
+		pos.y += 30;
+		ImGui::SetNextWindowPos(pos);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
+		ImGui::Begin("Camera Preview", nullptr,
+			ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoNav |
+			ImGuiWindowFlags_NoMove |
+			ImGuiWindowFlags_NoSavedSettings);
+
+		ImGui::Image(_cameraPreviewTexture.Get(), previewSize);
+
+		ImGui::Checkbox("Fullscreen", &_previewCameraFullscreen);
 
 		ImGui::End();
 		ImGui::PopStyleVar();

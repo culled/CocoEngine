@@ -29,8 +29,8 @@ namespace Coco::ECS
         /// @brief The distance to the far clip plane in perspective mode
         double PerspectiveFarClip;
 
-        /// @brief The vertical field of view, in radians
-        double VerticalFOV;
+        /// @brief The perspective vertical field of view, in radians
+        double PerspectiveFOV;
 
         /// @brief The distance to the near clip plane in orthographic mode
         double OrthoNearClip;
@@ -43,6 +43,9 @@ namespace Coco::ECS
 
         /// @brief The number of msaa samples
         Rendering::MSAASamples SampleCount;
+
+        /// @brief The priority of this camera. Lower values mean the camera renders before those with higher values
+        int Priority;
 
         CameraComponent();
 

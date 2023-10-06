@@ -90,6 +90,10 @@ namespace Coco::Rendering
 		/// @param semaphore The semaphore
 		virtual void AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore) = 0;
 
+		/// @brief Gets the number of semaphores that this context will wait on before rendering
+		/// @return The semaphore count
+		virtual uint64 GetWaitOnSemaphoreCount() const = 0;
+
 		/// @brief Adds a semaphore that this context will signal once rendering is completed
 		/// @param semaphore The semaphore
 		virtual void AddRenderCompletedSignalSemaphore(Ref<GraphicsSemaphore> semaphore) = 0;

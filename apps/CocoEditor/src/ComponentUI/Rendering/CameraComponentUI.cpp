@@ -32,21 +32,37 @@ namespace Coco
 			ImGui::EndCombo();
 		}
 
+		ImGui::DragInt("Priority", &camera.Priority);
+
+		std::array<float, 3> color = {
+			static_cast<float>(camera.ClearColor.R),
+			static_cast<float>(camera.ClearColor.G),
+			static_cast<float>(camera.ClearColor.B),
+		};
+
+		if (ImGui::ColorEdit3("Clear Color", color.data()))
+		{
+			camera.ClearColor.R = color.at(0);
+			camera.ClearColor.G = color.at(1);
+			camera.ClearColor.B = color.at(2);
+		}
+
 		switch (camera.ProjectionType)
 		{
 		case CameraProjectionType::Perspective:
 		{
-			float fov = static_cast<float>(Math::RadToDeg(camera.VerticalFOV));
-			if (ImGui::DragFloat("Vertical FOV", &fov, 0.2f))
-				camera.VerticalFOV = Math::DegToRad(fov);
+			float fov = static_cast<float>(Math::RadToDeg(camera.PerspectiveFOV));
+
+			if (ImGui::DragFloat("Vertical FOV", &fov, 0.2f, Math::EpsilonF))
+				camera.PerspectiveFOV = Math::DegToRad(fov);
 
 			float near = static_cast<float>(camera.PerspectiveNearClip);
-			if (ImGui::DragFloat("Near Clip", &near, 0.1f))
-				camera.PerspectiveNearClip = near;
-
 			float far = static_cast<float>(camera.PerspectiveFarClip);
-			if (ImGui::DragFloat("Far Clip", &far, 0.1f))
+			if (ImGui::DragFloatRange2("Clipping Distance", &near, &far, 0.1f, Math::EpsilonF))
+			{
+				camera.PerspectiveNearClip = near;
 				camera.PerspectiveFarClip = far;
+			}
 
 			break;
 		}
@@ -57,12 +73,12 @@ namespace Coco
 				camera.OrthoSize = size;
 
 			float near = static_cast<float>(camera.OrthoNearClip);
-			if (ImGui::DragFloat("Near Clip", &near, 0.1f))
-				camera.OrthoNearClip = near;
-
 			float far = static_cast<float>(camera.OrthoFarClip);
-			if (ImGui::DragFloat("Far Clip", &far, 0.1f))
+			if (ImGui::DragFloatRange2("Clipping Distance", &near, &far, 0.1f))
+			{
+				camera.OrthoNearClip = near;
 				camera.OrthoFarClip = far;
+			}
 
 			break;
 		}

@@ -183,9 +183,9 @@ namespace Coco
 			ImGui::EndMenuBar();
 		}
 
-		_viewport->Update(tickInfo);
 		_inspectorPanel->Update(tickInfo);
 		_scenePanel->Update(tickInfo);
+		_viewport->Update(tickInfo);
 
 		ImGui::End();
 	}

@@ -27,7 +27,8 @@ namespace Coco::Rendering
 		_renderTasks{},
 		_debugRender(nullptr),
 		_renderView(),
-		_attachmentCache()
+		_attachmentCache(),
+		_renderContextCache()
 	{
 		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
@@ -177,6 +178,7 @@ namespace Coco::Rendering
 
 		bool success = Render(rendererID, compiledPipeline, framebuffers, framebufferSize, context, renderViewProvider, sceneDataProviders, dependsOn, outTask);
 		_renderTasks[rendererID].emplace_back(context);
+		_orphanedRenderContexts.push_back(context);
 		return success;
 	}
 
@@ -212,18 +214,32 @@ namespace Coco::Rendering
 		// Add syncronization to the previous task if it was given
 		if (dependsOn.has_value())
 		{
+			// Explicitly wait on the previous task's completion semaphore
 			waitOn = dependsOn->RenderCompletedSemaphore;
 		}
 		else if (_renderTasks.contains(rendererID))
 		{
 			std::vector<RenderServiceRenderTask>& tasks = _renderTasks.at(rendererID);
 
+			// If this renderer already performed a task this frame, wait on the last task's completion semaphore
 			if (tasks.size() > 0)
 			{
 				RenderServiceRenderTask& task = tasks.back();
 				Assert(task.Context.IsValid())
+
 				waitOn = task.Context->GetRenderCompletedSemaphore();
+
+				// Since the previous context is now being used, remove it from the orphaned list
+				auto it = std::find(_orphanedRenderContexts.begin(), _orphanedRenderContexts.end(), task.Context);
+				if (it != _orphanedRenderContexts.end())
+					_orphanedRenderContexts.erase(it);
 			}
+		}
+		else if(renderContext->GetWaitOnSemaphoreCount() == 0 && _orphanedRenderContexts.size() > 0)
+		{
+			// Use the last orphaned context as the signaller for this context
+			renderContext->AddWaitOnSemaphore(_orphanedRenderContexts.back()->GetRenderCompletedSemaphore());
+			_orphanedRenderContexts.pop_back();
 		}
 
 		if (!ExecuteRender(*renderContext, compiledPipeline, _renderView, waitOn))
@@ -235,7 +251,7 @@ namespace Coco::Rendering
 		_individualRenderStats.push_back(renderContext->GetRenderStats());
 
 		if (outTask)
-			*outTask = RenderTask(renderContext->GetRenderCompletedSemaphore(), renderContext->GetRenderCompletedFence());
+			*outTask = RenderTask(rendererID, renderContext->GetRenderCompletedSemaphore(), renderContext->GetRenderCompletedFence());
 
 		return true;
 	}
@@ -403,7 +419,6 @@ namespace Coco::Rendering
 
 	void RenderService::HandleLateTick(const TickInfo& tickInfo)
 	{
-		// Queue presentation for each rendered presenter
 		for (auto it = _renderTasks.begin(); it != _renderTasks.end(); it++)
 		{
 			std::vector<RenderServiceRenderTask>& tasks = it->second;
@@ -439,7 +454,6 @@ namespace Coco::Rendering
 			if (context->CheckForRenderingComplete())
 			{
 				context->Reset();
-				context->AddWaitOnSemaphore(context->GetRenderCompletedSemaphore());
 				return context;
 			}
 
@@ -452,20 +466,21 @@ namespace Coco::Rendering
 			}
 		}
 
-		//if (_renderContextCache.size() == 0 || _renderContextCache.size() < _maxFramesInFlight)
-		//{
+		const int maxContexts = 20;
+		if (_renderContextCache.size() == 0 || _renderContextCache.size() < maxContexts)
+		{
 			Ref<RenderContext>& context = _renderContextCache.emplace_back(_device->CreateRenderContext());
 
 			CocoTrace("Created RenderContext for RenderService")
 
 			return context;
-		//}
-		//else
-		//{
-		//	ManagedRef<VulkanRenderContext>& context = _renderContexts.at(earliestContextIndex);
-		//	context->WaitForRenderingToComplete();
-		//	context->Reset();
-		//	return context;
-		//}
+		}
+		else
+		{
+			Ref<RenderContext>& context = _renderContextCache.at(earliestContextIndex);
+			context->WaitForRenderingToComplete();
+			context->Reset();
+			return context;
+		}
 	}
 }
