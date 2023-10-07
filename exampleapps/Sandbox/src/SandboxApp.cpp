@@ -4,7 +4,7 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
-#include <Coco/Rendering/RenderDebug/DebugRenderPass.h>
+#include <Coco/Rendering/Gizmos/GizmoRenderPass.h>
 
 #include <Coco/ImGui/ImGuiService.h>
 
@@ -62,7 +62,7 @@ SandboxApp::SandboxApp() :
 		SharedRef<RenderPass3D> pass = CreateSharedRef<RenderPass3D>();
 		_pipeline3D->AddRenderPass(pass, bindings);
 
-		_pipeline3D->AddRenderPass(CreateSharedRef<DebugRenderPass>(), bindings);
+		_pipeline3D->AddRenderPass(CreateSharedRef<GizmoRenderPass>(), bindings);
 	}
 
 	_renderViewProvider3D = CreateUniqueRef<RenderViewProvider3D>(*_attachmentCache);

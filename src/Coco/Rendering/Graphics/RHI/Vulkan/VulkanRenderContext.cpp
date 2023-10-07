@@ -156,7 +156,12 @@ namespace Coco::Rendering::Vulkan
 	void VulkanRenderContext::SetShader(const ShaderData& shader, const string& variantName)
 	{
 		Assert(_vulkanRenderOperation.has_value())
-		Assert(shader.Variants.contains(variantName))
+
+		if (!shader.Variants.contains(variantName))
+		{
+			CocoError("Shader {} does not contain a variant called {}", shader.ID, variantName)
+			return;
+		}
 
 		const ShaderVariantData& variantData = _renderView->GetShaderVariantData(shader.Variants.at(variantName));
 

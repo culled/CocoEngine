@@ -1,30 +1,32 @@
 #include "Renderpch.h"
-#include "DebugRender.h"
+#include "GizmoRender.h"
 
 #include "../Shader.h"
 #include "../Mesh.h"
 #include "../Material.h"
 #include "../MeshUtilities.h"
-#include "DebugRenderPass.h"
+#include "GizmoRenderPass.h"
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering
 {
-	DebugDrawCall::DebugDrawCall(uint64 firstIndexOffset, uint64 indexCount, const Coco::Color& color, const Matrix4x4& transform) :
+	GizmoDrawCall::GizmoDrawCall(uint64 firstIndexOffset, uint64 indexCount, const Coco::Color& color, const Matrix4x4& transform) :
 		FirstIndexOffset(firstIndexOffset),
 		IndexCount(indexCount),
 		Color(color),
 		Transform(transform)
 	{}
 
-	const VertexDataFormat DebugRender::_sVertexFormat = VertexDataFormat();
+	const int GizmoRender::sLateTickPriority = 999;
+	const VertexDataFormat GizmoRender::_sVertexFormat = VertexDataFormat();
 
-	DebugRender::DebugRender() :
-		_drawCalls()
+	GizmoRender::GizmoRender() :
+		_drawCalls(),
+		_lateTickListener(CreateManagedRef<TickListener>(this, &GizmoRender::HandleLateTick, sLateTickPriority))
 	{
 		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
 
-		_shader = resources.Create<Shader>("DebugShader", DebugRenderPass::sPassName);
+		_shader = resources.Create<Shader>("DebugShader", GizmoRenderPass::sPassName);
 
 		GraphicsPipelineState pipelineState;
 		pipelineState.TopologyMode = TopologyMode::Lines;
@@ -33,7 +35,7 @@ namespace Coco::Rendering
 
 		_shader->AddVariant(
 			ShaderVariant(
-				DebugRenderPass::sPassName,
+				GizmoRenderPass::sPassName,
 				{
 					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Debug.vert.spv"),
 					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Debug.frag.spv")
@@ -62,18 +64,22 @@ namespace Coco::Rendering
 		_mesh = resources.Create<Mesh>("DebugMesh", false);
 
 		SetupMesh();
+
+		MainLoop::Get()->AddListener(_lateTickListener);
 	}
 
-	DebugRender::~DebugRender()
+	GizmoRender::~GizmoRender()
 	{
+		MainLoop::Get()->RemoveListener(_lateTickListener);
+
 		_mesh.reset();
 		_shader.reset();
 		_material.reset();
 	}
 
-	void DebugRender::GatherSceneData(RenderView& renderView)
+	void GizmoRender::GatherSceneData(RenderView& renderView)
 	{
-		for (const DebugDrawCall& dc : _drawCalls)
+		for (const GizmoDrawCall& dc : _drawCalls)
 		{
 			renderView.AddRenderObject(
 				*_mesh,
@@ -85,44 +91,42 @@ namespace Coco::Rendering
 				nullptr,
 				dc.Color);
 		}
-
-		_drawCalls.clear();
 	}
 
-	void DebugRender::DrawLine3D(const Vector3& start, const Vector3& end, const Color& color)
+	void GizmoRender::DrawLine3D(const Vector3& start, const Vector3& end, const Color& color)
 	{
 		double dist = (start - end).GetLength();
 		Matrix4x4 t = Matrix4x4::CreateTransform(start, Quaternion::FromToRotation(Vector3::Forward, end), Vector3::One * dist);
 		_drawCalls.emplace_back(_lineIndexInfo.first, _lineIndexInfo.second, color, t);
 	}
 
-	void DebugRender::DrawRay3D(const Vector3& origin, const Vector3& direction, const Color& color)
+	void GizmoRender::DrawRay3D(const Vector3& origin, const Vector3& direction, const Color& color)
 	{
 		DrawLine3D(origin, origin + direction, color);
 	}
 
-	void DebugRender::DrawWireBox(const Vector3& origin, const Quaternion& rotation, const Vector3& scale, const Color& color)
+	void GizmoRender::DrawWireBox(const Vector3& origin, const Quaternion& rotation, const Vector3& scale, const Color& color)
 	{
 		DrawWireBox(Matrix4x4::CreateTransform(origin, rotation, scale), color);
 	}
 
-	void DebugRender::DrawWireBox(const Matrix4x4& transform, const Color& color)
+	void GizmoRender::DrawWireBox(const Matrix4x4& transform, const Color& color)
 	{
 		_drawCalls.emplace_back(_boxIndexInfo.first, _boxIndexInfo.second, color, transform);
 	}
 
-	void DebugRender::DrawWireBounds(const BoundingBox& box, const Matrix4x4& transform, const Color& color)
+	void GizmoRender::DrawWireBounds(const BoundingBox& box, const Matrix4x4& transform, const Color& color)
 	{
 		BoundingBox transformedBox = box.Transformed(transform);
 		DrawWireBox(transformedBox.GetCenter(), Quaternion::Identity, transformedBox.GetSize(), color);
 	}
 
-	void DebugRender::DrawWireSphere(double radius, const Vector3& position, const Color& color)
+	void GizmoRender::DrawWireSphere(double radius, const Vector3& position, const Color& color)
 	{
 		_drawCalls.emplace_back(_sphereIndexInfo.first, _sphereIndexInfo.second, color, Matrix4x4::CreateTransform(position, Quaternion::Identity, Vector3::One * radius));
 	}
 
-	void DebugRender::SetupMesh()
+	void GizmoRender::SetupMesh()
 	{
 		std::vector<VertexData> verts;
 		std::vector<uint32> indices;
@@ -244,5 +248,10 @@ namespace Coco::Rendering
 		_mesh->SetVertices(_sVertexFormat, verts);
 		_mesh->SetIndices(indices, 0);
 		_mesh->Apply();
+	}
+
+	void GizmoRender::HandleLateTick(const TickInfo& tickInfo)
+	{
+		_drawCalls.clear();
 	}
 }

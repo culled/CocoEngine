@@ -2,7 +2,7 @@
 #include "RenderService.h"
 #include "Texture.h"
 #include "Pipeline/RenderPipeline.h"
-#include "RenderDebug/DebugRender.h"
+#include "Gizmos/GizmoRender.h"
 
 #include "Serializers/ShaderSerializer.h"
 #include "Serializers/TextureSerializer.h"
@@ -21,11 +21,11 @@ namespace Coco::Rendering
 		Presenter(presenter)
 	{}
 
-	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory, bool includeDebugRendering) :
+	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory, bool includeGizmoRendering) :
 		_earlyTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleEarlyTick, sEarlyTickPriority)),
 		_lateTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
 		_renderTasks{},
-		_debugRender(nullptr),
+		_gizmoRender(nullptr),
 		_renderView(),
 		_attachmentCache(),
 		_renderContextCache()
@@ -33,8 +33,8 @@ namespace Coco::Rendering
 		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
 
-		if(includeDebugRendering)
-			_debugRender = CreateUniqueRef<DebugRender>();
+		if(includeGizmoRendering)
+			_gizmoRender = CreateUniqueRef<GizmoRender>();
 
 		CreateDefaultDiffuseTexture();
 		CreateDefaultNormalTexture();
@@ -65,7 +65,7 @@ namespace Coco::Rendering
 		_defaultNormalTexture.reset();
 		_defaultCheckerTexture.reset();
 
-		_debugRender.reset();
+		_gizmoRender.reset();
 		_device.reset();
 		_platform.reset();
 
@@ -206,8 +206,8 @@ namespace Coco::Rendering
 			provider->GatherSceneData(_renderView);
 		}
 
-		if (_debugRender)
-			_debugRender->GatherSceneData(_renderView);
+		if (_gizmoRender)
+			_gizmoRender->GatherSceneData(_renderView);
 
 		Ref<GraphicsSemaphore> waitOn;
 

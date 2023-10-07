@@ -3,8 +3,8 @@
 
 namespace Coco::Rendering
 {
-    /// @brief A RenderPass that draws debug information
-    class DebugRenderPass :
+    /// @brief A RenderPass that draws gizmos
+    class GizmoRenderPass :
         public RenderPass
     {
     public:

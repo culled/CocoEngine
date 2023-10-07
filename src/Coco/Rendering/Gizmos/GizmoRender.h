@@ -5,6 +5,7 @@
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/BoundingBox.h>
+#include <Coco/Core/MainLoop/TickListener.h>
 #include "../Providers/SceneDataProvider.h"
 #include "../MeshTypes.h"
 
@@ -14,13 +15,13 @@ namespace Coco::Rendering
 	class Shader;
 	class Material;
 
-	/// @brief A draw call for a debug shape
-	struct DebugDrawCall
+	/// @brief A draw call for a gizmo shape
+	struct GizmoDrawCall
 	{
-		/// @brief The offset of the first index in the debug mesh buffer
+		/// @brief The offset of the first index in the gizmo mesh buffer
 		uint64 FirstIndexOffset;
 
-		/// @brief The number of indices to draw in the debug mesh buffer
+		/// @brief The number of indices to draw in the gizmo mesh buffer
 		uint64 IndexCount;
 
 		/// @brief The color of this shape
@@ -29,22 +30,27 @@ namespace Coco::Rendering
 		/// @brief The transform of this shape
 		Matrix4x4 Transform;
 
-		DebugDrawCall(
+		GizmoDrawCall(
 			uint64 firstIndexOffset,
 			uint64 indexCount,
 			const Coco::Color& color,
 			const Matrix4x4& transform);
 	};
 
-	/// @brief Provides debug rendering support
-	class DebugRender :
-		public Singleton<DebugRender>,
+	/// @brief Provides gizmo rendering support
+	class GizmoRender :
+		public Singleton<GizmoRender>,
 		public SceneDataProvider
 	{
+	public:
+		static const int sLateTickPriority;
+
 	private:
 		static const VertexDataFormat _sVertexFormat;
 
-		std::vector<DebugDrawCall> _drawCalls;
+		ManagedRef<TickListener> _lateTickListener;
+
+		std::vector<GizmoDrawCall> _drawCalls;
 		std::pair<uint64, uint64> _lineIndexInfo;
 		std::pair<uint64, uint64> _boxIndexInfo;
 		std::pair<uint64, uint64> _sphereIndexInfo;
@@ -54,8 +60,8 @@ namespace Coco::Rendering
 		SharedRef<Material> _material;
 
 	public:
-		DebugRender();
-		~DebugRender();
+		GizmoRender();
+		~GizmoRender();
 
 		// Inherited via SceneDataProvider
 		void GatherSceneData(RenderView& renderView) override;
@@ -99,5 +105,7 @@ namespace Coco::Rendering
 	private:
 		/// @brief Sets up the debug mesh
 		void SetupMesh();
+
+		void HandleLateTick(const TickInfo& tickInfo);
 	};
 }

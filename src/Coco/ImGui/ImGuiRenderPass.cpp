@@ -20,8 +20,12 @@ namespace Coco::ImGuiCoco
 
     void ImGuiRenderPass::Execute(RenderContext& context, const RenderView& renderView)
     {
-        for (const ObjectData& obj : renderView.GetRenderObjects())
+        std::vector<uint64> objectIndices = renderView.GetRenderObjectIndices();
+        renderView.FilterWithShaderVariant(objectIndices, ImGuiRenderPass::sPassName);
+
+        for (uint64 i : objectIndices)
         {
+            const ObjectData& obj = renderView.GetRenderObject(i);
             const ShaderData& shader = renderView.GetShaderData(obj.ShaderID);
             context.SetShader(shader, ImGuiRenderPass::sPassName);
             

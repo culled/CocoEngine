@@ -1,31 +1,30 @@
 #include "Renderpch.h"
-#include "DebugRenderPass.h"
+#include "GizmoRenderPass.h"
 
 namespace Coco::Rendering
 {
-    const char* DebugRenderPass::sPassName = "debug";
+    const char* GizmoRenderPass::sPassName = "gizmo";
 
-    const std::vector<AttachmentFormat> DebugRenderPass::_sAttachments = {
+    const std::vector<AttachmentFormat> GizmoRenderPass::_sAttachments = {
         AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::ClearOnFirstUse),
         AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::ClearOnFirstUse)
     };
 
-    void DebugRenderPass::Prepare(RenderContext& context, const RenderView& renderView)
+    void GizmoRenderPass::Prepare(RenderContext& context, const RenderView& renderView)
     {
         context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("Projection"), renderView.GetProjectionMatrix());
         context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("View"), renderView.GetViewMatrix());
     }
 
-    void DebugRenderPass::Execute(RenderContext& context, const RenderView& renderView)
+    void GizmoRenderPass::Execute(RenderContext& context, const RenderView& renderView)
     {
-        for (const ObjectData& obj : renderView.GetRenderObjects())
+        std::vector<uint64> objectIndices = renderView.GetRenderObjectIndices();
+        renderView.FilterWithShaderVariant(objectIndices, sPassName);
+
+        for (uint64 i : objectIndices)
         {
+            const ObjectData& obj = renderView.GetRenderObject(i);
             const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
-            const ShaderData& shader = renderView.GetShaderData(material.ShaderID);
-
-            if (shader.GroupTag != sPassName)
-                continue;
-
             const MeshData& mesh = renderView.GetMeshData(obj.MeshID);
 
             context.SetMaterial(material, sPassName);

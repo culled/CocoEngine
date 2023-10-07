@@ -127,7 +127,7 @@ namespace Coco::Rendering
 
 				_lockedVertexMemory = nullptr;
 			}
-			else
+			else if(_vertexBuffer->GetSize() < vertexBufferData.size())
 			{
 				_vertexBuffer->Resize(vertexBufferData.size(), false);
 				_lockedVertexMemory = nullptr;
@@ -159,7 +159,7 @@ namespace Coco::Rendering
 
 				_lockedIndexMemory = nullptr;
 			}
-			else
+			else if(_indexBuffer->GetSize() < indexBufferData.size())
 			{
 				_indexBuffer->Resize(indexBufferData.size(), false);
 				_lockedIndexMemory = nullptr;

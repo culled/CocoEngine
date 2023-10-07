@@ -1,6 +1,6 @@
 #include "SceneDataProvider3D.h"
 #include <Coco/Rendering/MeshUtilities.h>
-#include <Coco/Rendering/RenderDebug/DebugRender.h>
+#include <Coco/Rendering/Gizmos/GizmoRender.h>
 #include <Coco/Rendering/Resources/BuiltInShaders.h>
 #include <Coco/Core/Engine.h>
 
@@ -125,18 +125,18 @@ void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
 	renderView.AddRenderObject(*_mesh, 0, Matrix4x4::Identity, *_material);
 	renderView.AddRenderObject(*_boxMesh, 0, _boxTransform.GlobalTransform, *_material);
 
-	DebugRender* debug = DebugRender::Get();
+	GizmoRender* gizmo = GizmoRender::Get();
 
-	if (debug && _drawBounds)
+	if (gizmo && _drawBounds)
 	{
-		debug->DrawWireBounds(_boxMesh->GetBounds(), _boxTransform.GlobalTransform, Color::Yellow);
-		debug->DrawWireBounds(_mesh->GetBounds(), Matrix4x4::Identity, Color::Yellow);
+		gizmo->DrawWireBounds(_boxMesh->GetBounds(), _boxTransform.GlobalTransform, Color::Yellow);
+		gizmo->DrawWireBounds(_mesh->GetBounds(), Matrix4x4::Identity, Color::Yellow);
 
-		debug->DrawRay3D(Vector3::Zero, Vector3::Backward, Color::Blue);
-		debug->DrawRay3D(Vector3::Zero, Vector3::Up, Color::Green);
-		debug->DrawRay3D(Vector3::Zero, Vector3::Right, Color::Red);
+		gizmo->DrawRay3D(Vector3::Zero, Vector3::Backward, Color::Blue);
+		gizmo->DrawRay3D(Vector3::Zero, Vector3::Up, Color::Green);
+		gizmo->DrawRay3D(Vector3::Zero, Vector3::Right, Color::Red);
 
-		debug->DrawWireSphere(0.5, Vector3(2.0, 0.0, 0.0), Color::Cyan);
+		gizmo->DrawWireSphere(0.5, Vector3(2.0, 0.0, 0.0), Color::Cyan);
 	}
 
 	renderView.AddDirectionalLight(Vector3(-0.2, -0.5, -0.3).Normalized(), Color::White, 1.0);
