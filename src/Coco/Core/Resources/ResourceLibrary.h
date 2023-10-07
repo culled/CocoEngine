@@ -141,6 +141,24 @@ namespace Coco
 
 			return purgeCount;
 		}
+
+		/// @brief Removes the given resource if there is only a single outside user
+		/// @param id The ID of the resource
+		void RemoveIfSingleOutsideUser(const IDType& id)
+		{
+			if (_isPurgingResources)
+				return;
+
+			auto it = std::find_if(_resources.begin(), _resources.end(), [id](const auto& kvp)
+				{
+					return kvp.first == id;
+				});
+
+			if (it == _resources.end() || it->second.GetUseCount() > 2)
+				return;
+
+			_resources.erase(it);
+		}
 	};
 
 	/// @brief A basic library that manages shared resources derived from a given type
@@ -265,6 +283,24 @@ namespace Coco
 			}
 
 			return purgeCount;
+		}
+
+		/// @brief Removes the given resource if there is only a single outside user
+		/// @param id The ID of the resource
+		void RemoveIfSingleOutsideUser(const IDType& id)
+		{
+			if (_isPurgingResources)
+				return;
+
+			auto it = std::find_if(_resources.begin(), _resources.end(), [id](const auto& kvp)
+				{
+					return kvp.first == id;
+				});
+
+			if (it == _resources.end() || it->second.use_count() > 2)
+				return;
+
+			_resources.erase(it);
 		}
 	};
 

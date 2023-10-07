@@ -34,8 +34,7 @@ namespace Coco::Windowing
 
 		if (_presenter.IsValid())
 		{
-			_presenter.Invalidate();
-			Rendering::RenderService::Get()->GetDevice().PurgeUnusedResources();
+			Rendering::RenderService::Get()->GetDevice().TryReleasePresenter(_presenter);
 		}
 	}
 

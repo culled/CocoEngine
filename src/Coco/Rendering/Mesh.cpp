@@ -35,12 +35,14 @@ namespace Coco::Rendering
 
 	Mesh::~Mesh()
 	{
-		_vertexBuffer.Invalidate();
-		_indexBuffer.Invalidate();
-
 		RenderService* rendering = RenderService::Get();
-		if(rendering)
-			rendering->GetDevice().PurgeUnusedResources();
+		if (rendering)
+		{
+			GraphicsDevice& device = rendering->GetDevice();
+
+			device.TryReleaseBuffer(_vertexBuffer);
+			device.TryReleaseBuffer(_indexBuffer);
+		}
 	}
 
 	void Mesh::SetVertices(const VertexDataFormat& format, std::span<const VertexData> vertices)
@@ -209,8 +211,7 @@ namespace Coco::Rendering
 
 		if (stagingBuffer.IsValid())
 		{
-			stagingBuffer.Invalidate();
-			rendering.GetDevice().PurgeUnusedResources();
+			rendering.GetDevice().TryReleaseBuffer(stagingBuffer);
 		}
 
 		return success;

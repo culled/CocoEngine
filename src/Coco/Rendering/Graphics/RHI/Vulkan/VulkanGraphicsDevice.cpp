@@ -139,9 +139,27 @@ namespace Coco::Rendering::Vulkan
 		return _resources.Create<VulkanGraphicsPresenter>();
 	}
 
+	void VulkanGraphicsDevice::TryReleasePresenter(Ref<GraphicsPresenter>& presenter)
+	{
+		if (!presenter.IsValid())
+			return;
+
+		VulkanGraphicsPresenter* vulkanPresenter = static_cast<VulkanGraphicsPresenter*>(presenter.Get());
+		_resources.RemoveIfSingleOutsideUser(vulkanPresenter->ID);
+	}
+
 	Ref<Buffer> VulkanGraphicsDevice::CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind)
 	{
 		return _resources.Create<VulkanBuffer>(size, usageFlags, bind);
+	}
+
+	void VulkanGraphicsDevice::TryReleaseBuffer(Ref<Buffer>& buffer)
+	{
+		if (!buffer.IsValid())
+			return;
+
+		VulkanBuffer* vulkanBuffer = static_cast<VulkanBuffer*>(buffer.Get());
+		_resources.RemoveIfSingleOutsideUser(vulkanBuffer->ID);
 	}
 
 	Ref<Image> VulkanGraphicsDevice::CreateImage(const ImageDescription& description)
@@ -149,14 +167,41 @@ namespace Coco::Rendering::Vulkan
 		return _resources.Create<VulkanImage>(description);
 	}
 
+	void VulkanGraphicsDevice::TryReleaseImage(Ref<Image>& image)
+	{
+		if (!image.IsValid())
+			return;
+
+		VulkanImage* vulkanImage = static_cast<VulkanImage*>(image.Get());
+		_resources.RemoveIfSingleOutsideUser(vulkanImage->ID);
+	}
+
 	Ref<ImageSampler> VulkanGraphicsDevice::CreateImageSampler(const ImageSamplerDescription& description)
 	{
 		return _resources.Create<VulkanImageSampler>(description);
 	}
 
+	void VulkanGraphicsDevice::TryReleaseImageSampler(Ref<ImageSampler>& imageSampler)
+	{
+		if (!imageSampler.IsValid())
+			return;
+
+		VulkanImageSampler* vulkanImageSampler = static_cast<VulkanImageSampler*>(imageSampler.Get());
+		_resources.RemoveIfSingleOutsideUser(vulkanImageSampler->ID);
+	}
+
 	Ref<RenderContext> VulkanGraphicsDevice::CreateRenderContext()
 	{
 		return _resources.Create<VulkanRenderContext>();
+	}
+
+	void VulkanGraphicsDevice::TryReleaseRenderContext(Ref<RenderContext>& context)
+	{
+		if (!context.IsValid())
+			return;
+
+		VulkanRenderContext* vulkanContext = static_cast<VulkanRenderContext*>(context.Get());
+		_resources.RemoveIfSingleOutsideUser(vulkanContext->ID);
 	}
 
 	void VulkanGraphicsDevice::ResetForNewFrame()
@@ -254,6 +299,11 @@ namespace Coco::Rendering::Vulkan
 
 		if (result != VK_SUCCESS)
 			WaitForIdle();
+	}
+
+	void VulkanGraphicsDevice::TryReleaseResource(const uint64& id)
+	{
+		_resources.RemoveIfSingleOutsideUser(id);
 	}
 
 	PhysicalDeviceQueueFamilyInfo VulkanGraphicsDevice::GetQueueFamilyInfo(VkPhysicalDevice device)

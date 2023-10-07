@@ -119,10 +119,15 @@ namespace Coco::Rendering::Vulkan
 		uint8 GetDataTypeAlignment(BufferDataType type) const final;
 		void AlignOffset(BufferDataType type, uint64& offset) const final;
 		Ref<GraphicsPresenter> CreatePresenter() final;
+		void TryReleasePresenter(Ref<GraphicsPresenter>& presenter) final;
 		Ref<Buffer> CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind) final;
+		void TryReleaseBuffer(Ref<Buffer>& buffer) final;
 		Ref<Image> CreateImage(const ImageDescription& description) final;
+		void TryReleaseImage(Ref<Image>& image) final;
 		Ref<ImageSampler> CreateImageSampler(const ImageSamplerDescription& description) final;
+		void TryReleaseImageSampler(Ref<ImageSampler>& imageSampler) final;
 		Ref<RenderContext> CreateRenderContext() final;
+		void TryReleaseRenderContext(Ref<RenderContext>& context) final;
 		void PurgeUnusedResources() final;
 		void ResetForNewFrame() final;
 
@@ -175,6 +180,8 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Waits until a queue has finished all operations
 		/// @param queueType The queue to wait for
 		void WaitForQueueIdle(DeviceQueue::Type queueType) const;
+
+		void TryReleaseResource(const uint64& id);
 
 	private:
 		/// @brief Gets queue family information for a device

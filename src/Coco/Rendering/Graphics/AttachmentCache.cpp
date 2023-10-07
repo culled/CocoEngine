@@ -91,8 +91,6 @@ namespace Coco::Rendering
 			}
 		}
 
-		RenderService::Get()->GetDevice().PurgeUnusedResources();
-
 		return rts;
 	}
 
@@ -105,10 +103,12 @@ namespace Coco::Rendering
 	{
 		std::unordered_map<uint8, Ref<Image>>& map = imageCache.Images;
 
+		GraphicsDevice& device = RenderService::Get()->GetDevice();
+
 		auto imageIt = map.find(attachmentIndex);
 		if (imageIt != map.end())
 		{
-			Ref<Image>& cachedImage = imageIt->second;
+			Ref<Image> cachedImage = imageIt->second;
 
 			if (cachedImage.IsValid())
 			{
@@ -124,6 +124,7 @@ namespace Coco::Rendering
 
 			// The cached image can't work with the attachment anymore, so release it
 			map.erase(imageIt);
+			device.TryReleaseImage(cachedImage);
 		}
 
 		// We need to create an image
@@ -136,7 +137,7 @@ namespace Coco::Rendering
 			msaaSamples
 		);
 
-		Ref<Image> createdImage = RenderService::Get()->GetDevice().CreateImage(attachmentImageDescription);
+		Ref<Image> createdImage = device.CreateImage(attachmentImageDescription);
 		map.try_emplace(attachmentIndex, createdImage);
 
 		return createdImage;

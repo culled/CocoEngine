@@ -68,6 +68,10 @@ namespace Coco::Rendering
 		/// @return The created presenter
 		virtual Ref<GraphicsPresenter> CreatePresenter() = 0;
 
+		/// @brief Invalidates the given presenter if it has no other users than the one providing the presenter
+		/// @param presenter The presenter
+		virtual void TryReleasePresenter(Ref<GraphicsPresenter>& presenter) = 0;
+
 		/// @brief Creates a Buffer
 		/// @param size The size of the buffer, in bytes
 		/// @param usageFlags The usage flags
@@ -75,19 +79,35 @@ namespace Coco::Rendering
 		/// @return The created buffer
 		virtual Ref<Buffer> CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind) = 0;
 
+		/// @brief Invalidates the given buffer if it has no other users than the one providing the buffer
+		/// @param buffer The buffer
+		virtual void TryReleaseBuffer(Ref<Buffer>& buffer) = 0;
+
 		/// @brief Creates an Image
 		/// @param description The image description
 		/// @return The image
 		virtual Ref<Image> CreateImage(const ImageDescription& description) = 0;
+
+		/// @brief Invalidates the given image if it has no other users than the one providing the image
+		/// @param image The image
+		virtual void TryReleaseImage(Ref<Image>& image) = 0;
 
 		/// @brief Creates an ImageSampler
 		/// @param description The sampler description
 		/// @return The image sampler
 		virtual Ref<ImageSampler> CreateImageSampler(const ImageSamplerDescription& description) = 0;
 
+		/// @brief Invalidates the given image sampler if it has no other users than the one providing the image sampler
+		/// @param imageSampler The image sampler
+		virtual void TryReleaseImageSampler(Ref<ImageSampler>& imageSampler) = 0;
+
 		/// @brief Creates a RenderContext
 		/// @return The render context
 		virtual Ref<RenderContext> CreateRenderContext() = 0;
+
+		/// @brief Invalidates the given render context if it has no other users than the one providing the render context
+		/// @param context The render context
+		virtual void TryReleaseRenderContext(Ref<RenderContext>& context) = 0;
 
 		/// @brief Purges any resources that are no longer in use
 		virtual void PurgeUnusedResources() = 0;

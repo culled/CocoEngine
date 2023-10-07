@@ -108,8 +108,7 @@ namespace Coco::Rendering::Vulkan
 		_device.WaitForQueueIdle(DeviceQueue::Type::Graphics);
 		queue->Pool.Free(*buffer);
 
-		staging.Invalidate();
-		_device.PurgeUnusedResources();
+		_device.TryReleaseResource(staging->ID);
 	}
 
 	void VulkanImage::TransitionLayout(VulkanCommandBuffer& commandBuffer, VkImageLayout to)

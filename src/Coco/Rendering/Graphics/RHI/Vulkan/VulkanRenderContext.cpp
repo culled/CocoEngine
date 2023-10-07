@@ -62,9 +62,9 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanRenderContext::~VulkanRenderContext()
 	{
-		_renderStartSemaphore.Invalidate();
-		_renderCompletedSemaphore.Invalidate();
-		_renderCompletedFence.Invalidate();
+		_device.TryReleaseResource(_renderStartSemaphore->ID);
+		_device.TryReleaseResource(_renderCompletedSemaphore->ID);
+		_device.TryReleaseResource(_renderCompletedFence->ID);
 
 		DeviceQueue* graphicsQueue = _device.GetQueue(DeviceQueue::Type::Graphics);
 		if (graphicsQueue)
@@ -73,8 +73,6 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		_commandBuffer.reset();
-
-		_device.PurgeUnusedResources();
 	}
 
 	void VulkanRenderContext::WaitForRenderingToComplete()

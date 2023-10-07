@@ -45,15 +45,18 @@ namespace Coco::Rendering
 
 	Texture::~Texture()
 	{
-		if (_image.IsValid())
-			_image.Invalidate();
-
-		if (_sampler.IsValid())
-			_sampler.Invalidate();
-
 		RenderService* rendering = RenderService::Get();
 		if (rendering)
-			rendering->GetDevice().PurgeUnusedResources();
+		{
+			GraphicsDevice& device = rendering->GetDevice();
+			device.TryReleaseImageSampler(_sampler);
+			device.TryReleaseImage(_image);
+		}
+		else
+		{
+			_image.Invalidate();
+			_sampler.Invalidate();
+		}
 	}
 
 	void Texture::SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize)
@@ -156,14 +159,14 @@ namespace Coco::Rendering
 			CocoError("Failed to transfer image data into backend: {}", ex.what())
 
 			// Revert to the previous image data
-			newImage.Invalidate();
-			device.PurgeUnusedResources();
+			device.TryReleaseImage(newImage);
 
 			return;
 		}
 
+		Ref<Image> oldImage = _image;
 		_image = newImage;
-		device.PurgeUnusedResources();
+		device.TryReleaseImage(oldImage);
 		_version++;
 
 		stbi_image_free(rawImageData);
