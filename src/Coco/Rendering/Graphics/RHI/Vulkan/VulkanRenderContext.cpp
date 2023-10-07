@@ -62,9 +62,9 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanRenderContext::~VulkanRenderContext()
 	{
-		_device.TryReleaseResource(_renderStartSemaphore->ID);
-		_device.TryReleaseResource(_renderCompletedSemaphore->ID);
-		_device.TryReleaseResource(_renderCompletedFence->ID);
+		_renderStartSemaphore.Invalidate();
+		_renderCompletedSemaphore.Invalidate();
+		_renderCompletedFence.Invalidate();
 
 		DeviceQueue* graphicsQueue = _device.GetQueue(DeviceQueue::Type::Graphics);
 		if (graphicsQueue)

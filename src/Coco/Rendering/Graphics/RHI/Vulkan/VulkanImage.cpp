@@ -84,7 +84,8 @@ namespace Coco::Rendering::Vulkan
 			throw std::exception(err.c_str());
 		}
 
-		Ref<VulkanBuffer> staging = _device.CreateBuffer(
+		ManagedRef<VulkanBuffer> staging = CreateManagedRef<VulkanBuffer>(
+			0,
 			pixelDataSize,
 			BufferUsageFlags::HostVisible | BufferUsageFlags::TransferSource | BufferUsageFlags::TransferDestination,
 			true);
@@ -108,7 +109,7 @@ namespace Coco::Rendering::Vulkan
 		_device.WaitForQueueIdle(DeviceQueue::Type::Graphics);
 		queue->Pool.Free(*buffer);
 
-		_device.TryReleaseResource(staging->ID);
+		staging.Invalidate();
 	}
 
 	void VulkanImage::TransitionLayout(VulkanCommandBuffer& commandBuffer, VkImageLayout to)
