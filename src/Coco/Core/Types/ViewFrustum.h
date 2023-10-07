@@ -10,6 +10,30 @@ namespace Coco
 	/// @brief Defines a view frustrum clipped by 6 planes
 	struct ViewFrustum
 	{
+		/// @brief The top-left corner of the near plane
+		static constexpr int NTL = 0;
+
+		/// @brief The top-right corner of the near plane
+		static constexpr int NTR = 1;
+
+		/// @brief The bottom-left corner of the near plane
+		static constexpr int NBL = 2;
+
+		/// @brief The bottom-right corner of the near plane
+		static constexpr int NBR = 3;
+
+		/// @brief The top-left corner of the far plane
+		static constexpr int FTL = 4;
+
+		/// @brief The top-right corner of the far plane
+		static constexpr int FTR = 5;
+
+		/// @brief The bottom-left corner of the far plane
+		static constexpr int FBL = 6;
+
+		/// @brief The bottom-right corner of the far plane
+		static constexpr int FBR = 7;
+
 		/// @brief The left plane
 		Plane Left;
 
@@ -27,6 +51,9 @@ namespace Coco
 
 		/// @brief The far plane
 		Plane Far;
+
+		/// @brief The points that define the corners of this frustum
+		std::array<Vector3, 8> CornerPoints;
 
 		ViewFrustum();
 		ViewFrustum(

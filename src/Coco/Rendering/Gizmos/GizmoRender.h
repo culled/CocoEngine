@@ -5,6 +5,7 @@
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/BoundingBox.h>
+#include <Coco/Core/Types/ViewFrustum.h>
 #include <Coco/Core/MainLoop/TickListener.h>
 #include "../Providers/SceneDataProvider.h"
 #include "../MeshTypes.h"
@@ -102,10 +103,17 @@ namespace Coco::Rendering
 		/// @param color The color of the sphere
 		void DrawWireSphere(double radius, const Vector3& position, const Color& color);
 
+		/// @brief Draws a wire view frustum
+		/// @param frustum The view frustum
+		/// @param color The color of the frustum
+		void DrawFrustum(const ViewFrustum& frustum, const Color& color);
+
 	private:
 		/// @brief Sets up the debug mesh
 		void SetupMesh();
 
+		/// @brief Handles the late tick
+		/// @param tickInfo The tick info
 		void HandleLateTick(const TickInfo& tickInfo);
 	};
 }

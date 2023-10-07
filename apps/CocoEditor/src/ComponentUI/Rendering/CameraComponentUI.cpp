@@ -1,7 +1,6 @@
 #include "CameraComponentUI.h"
 
 #include <Coco/ECS/Components/Rendering/CameraComponent.h>
-
 #include <imgui.h>
 
 using namespace Coco::ECS;

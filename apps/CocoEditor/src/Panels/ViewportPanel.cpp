@@ -8,6 +8,8 @@
 #include <Coco/ECS/Systems/Rendering/SceneRenderProvider.h>
 #include "../EditorApplication.h"
 #include <Coco/ECS/Systems/Rendering/CameraSystem.h>
+#include <Coco/Rendering/Gizmos/GizmoRender.h>
+#include <Coco/ECS/Components/Transform3DComponent.h>
 
 #include <imgui.h>
 
@@ -104,6 +106,7 @@ namespace Coco
 				{
 					_showCameraPreview = true;
 					ShowCameraPreview();
+					ShowCameraGizmo();
 				}
 			}
 
@@ -310,12 +313,31 @@ namespace Coco
 
 		ImGui::Checkbox("Fullscreen", &_previewCameraFullscreen);
 
-
 		ImVec2 size = ImGui::GetWindowSize();
 		pos.x -= size.x - previewSize.x;
 		ImGui::SetWindowPos(pos);
 
 		ImGui::End();
 		ImGui::PopStyleVar();
+	}
+
+	void ViewportPanel::ShowCameraGizmo()
+	{
+		if (Rendering::GizmoRender::Get() && _selection.HasSelectedEntity())
+		{
+			Entity& entity = _selection.GetSelectedEntity();
+			CameraComponent& camera = entity.GetComponent<CameraComponent>();
+			Transform3D transform;
+
+			if (entity.HasComponent<Transform3DComponent>())
+			{
+				transform = entity.GetComponent<Transform3DComponent>().Transform;
+			}
+
+			ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+			double aspect = viewportSize.x / viewportSize.y;
+
+			Rendering::GizmoRender::Get()->DrawFrustum(camera.GetViewFrustum(aspect, transform.GetGlobalPosition(), transform.GetGlobalRotation()), Color::White);
+		}
 	}
 }

@@ -95,8 +95,8 @@ namespace Coco::Rendering
 
 	void GizmoRender::DrawLine3D(const Vector3& start, const Vector3& end, const Color& color)
 	{
-		double dist = (start - end).GetLength();
-		Matrix4x4 t = Matrix4x4::CreateTransform(start, Quaternion::FromToRotation(Vector3::Forward, end), Vector3::One * dist);
+		Vector3 dir = end - start;
+		Matrix4x4 t = Matrix4x4::CreateTransform(start, Quaternion::FromToRotation(Vector3::Forward, dir.Normalized()), Vector3::One * dir.GetLength());
 		_drawCalls.emplace_back(_lineIndexInfo.first, _lineIndexInfo.second, color, t);
 	}
 
@@ -124,6 +124,27 @@ namespace Coco::Rendering
 	void GizmoRender::DrawWireSphere(double radius, const Vector3& position, const Color& color)
 	{
 		_drawCalls.emplace_back(_sphereIndexInfo.first, _sphereIndexInfo.second, color, Matrix4x4::CreateTransform(position, Quaternion::Identity, Vector3::One * radius));
+	}
+
+	void GizmoRender::DrawFrustum(const ViewFrustum& frustum, const Color& color)
+	{
+		// Draw the near plane
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::NTL], frustum.CornerPoints[ViewFrustum::NTR], color);
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::NTR], frustum.CornerPoints[ViewFrustum::NBR], color);
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::NBR], frustum.CornerPoints[ViewFrustum::NBL], color);
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::NBL], frustum.CornerPoints[ViewFrustum::NTL], color);
+
+		// Draw the far plane
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::FTL], frustum.CornerPoints[ViewFrustum::FTR], color);
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::FTR], frustum.CornerPoints[ViewFrustum::FBR], color);
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::FBR], frustum.CornerPoints[ViewFrustum::FBL], color);
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::FBL], frustum.CornerPoints[ViewFrustum::FTL], color);
+
+		// Connect the planes
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::NTL], frustum.CornerPoints[ViewFrustum::FTL], color);
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::NTR], frustum.CornerPoints[ViewFrustum::FTR], color);
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::NBL], frustum.CornerPoints[ViewFrustum::FBL], color);
+		DrawLine3D(frustum.CornerPoints[ViewFrustum::NBR], frustum.CornerPoints[ViewFrustum::FBR], color);
 	}
 
 	void GizmoRender::SetupMesh()

@@ -20,27 +20,39 @@ namespace Coco
 		const Vector3& nearOffset,
 		const Size& nearSize,
 		const Vector3& farOffset,
-		const Size& farSize)
+		const Size& farSize) :
+		CornerPoints{ Vector3::Zero }
 	{
 		Vector3 right = direction.Cross(up);
 
 		Vector3 nearCenter = origin + direction * nearOffset.Z + up * nearOffset.Y + right * nearOffset.X;
-		Vector3 nearBottom = nearCenter - up * nearSize.Height * 0.5;
-		Vector3 nearTop = nearBottom + up * nearSize.Height;
-		Vector3 nearLeft = nearCenter - right * nearSize.Width * 0.5;
-		Vector3 nearRight = nearLeft + right * nearSize.Width;
+		CornerPoints[NTL] = nearCenter + up * (nearSize.Height * 0.5) - right * (nearSize.Width * 0.5);
+		CornerPoints[NTR] = CornerPoints[NTL] + right * nearSize.Width;
+		CornerPoints[NBL] = CornerPoints[NTL] - up * nearSize.Height;
+		CornerPoints[NBR] = CornerPoints[NBL] + right * nearSize.Width;
 
 		Vector3 farCenter = origin + direction * farOffset.Z + up * farOffset.Y + right * farOffset.X;
-		Vector3 farBottom = farCenter - up * farSize.Height * 0.5;
-		Vector3 farTop = farBottom + up * farSize.Height;
-		Vector3 farLeft = farCenter - right * farSize.Width * 0.5;
-		Vector3 farRight = farLeft + right * farSize.Width;
+
+		CornerPoints[FTL] = farCenter + up * (farSize.Height * 0.5) - right * (farSize.Width * 0.5);
+		CornerPoints[FTR] = CornerPoints[FTL] + right * farSize.Width;
+		CornerPoints[FBL] = CornerPoints[FTL] - up * farSize.Height;
+		CornerPoints[FBR] = CornerPoints[FBL] + right * farSize.Width;
 
 		Near = Plane(nearCenter, direction);
 		Far = Plane(farCenter, -direction);
 
+		Vector3 nearTop = (CornerPoints[NTL] + CornerPoints[NTR]) / 2.0;
+		Vector3 farTop = (CornerPoints[FTL] + CornerPoints[FTR]) / 2.0;
+		Vector3 nearBottom = (CornerPoints[NBL] + CornerPoints[NBR]) / 2.0;
+		Vector3 farBottom = (CornerPoints[FBL] + CornerPoints[FBR]) / 2.0;
+
 		Top = Plane((nearTop + farTop) / 2.0, right.Cross(nearTop - farTop).Normalized());
 		Bottom = Plane((nearBottom + farBottom) / 2.0, right.Cross(farBottom - nearBottom).Normalized());
+
+		Vector3 nearRight = (CornerPoints[NTR] + CornerPoints[NBR]) / 2.0;
+		Vector3 farRight = (CornerPoints[FTR] + CornerPoints[FBR]) / 2.0;
+		Vector3 nearLeft = (CornerPoints[NTL] + CornerPoints[NBL]) / 2.0;
+		Vector3 farLeft = (CornerPoints[FTL] + CornerPoints[FBL]) / 2.0;
 
 		Right = Plane((nearRight + farRight) / 2.0, up.Cross(farRight - nearRight).Normalized());
 		Left = Plane((nearLeft + farLeft) / 2.0, up.Cross(nearLeft - farLeft).Normalized());

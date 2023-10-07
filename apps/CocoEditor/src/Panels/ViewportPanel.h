@@ -80,5 +80,7 @@ namespace Coco
 		void ShowCameraStatsWindow();
 
 		void ShowCameraPreview();
+
+		void ShowCameraGizmo();
 	};
 }
