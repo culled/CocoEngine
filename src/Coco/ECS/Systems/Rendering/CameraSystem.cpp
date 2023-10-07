@@ -60,6 +60,9 @@ namespace Coco::ECS
 
 	void CameraSystem::Render(const Entity& camera, std::span<Ref<Image>> framebuffers, RenderPipeline& pipeline)
 	{
+		if (!camera.HasComponent<CameraComponent>())
+			return;
+
 		Assert(RenderService::Get() != nullptr)
 
 		CameraRenderViewProvider cameraProvider(camera);
