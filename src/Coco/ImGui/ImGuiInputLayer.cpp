@@ -246,7 +246,26 @@ namespace Coco::ImGuiCoco
         }
     }
 
-	bool ImGuiInputLayer::HandleMouseStateChange(const Input::MouseStateChange& state, const Mouse& mouse)
+    ImGuiMouseButton ImGuiInputLayer::ToImGuiMouseButton(MouseButton button)
+    {
+        switch (button)
+        {
+        case MouseButton::Left:
+            return ImGuiMouseButton_Left;
+        case MouseButton::Middle:
+            return ImGuiMouseButton_Middle;
+        case MouseButton::Right:
+            return ImGuiMouseButton_Right;
+        case MouseButton::Button3:
+            return 3;
+        case MouseButton::Button4:
+            return 4;
+        default:
+            return 0;
+        }
+    }
+
+    bool ImGuiInputLayer::HandleMouseStateChange(const Input::MouseStateChange& state, const Mouse& mouse)
 	{
 		InputService& input = *InputService::Get();
 
@@ -269,9 +288,7 @@ namespace Coco::ImGuiCoco
 
 		if (state.Button.has_value())
 		{
-			MouseButton button = state.Button.value();
-
-			io.AddMouseButtonEvent(static_cast<int>(button), state.IsButtonPressed);
+			io.AddMouseButtonEvent(ToImGuiMouseButton(state.Button.value()), state.IsButtonPressed);
 		}
 
 		if (state.ScrollDelta.has_value())

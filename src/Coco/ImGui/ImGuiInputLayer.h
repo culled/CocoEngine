@@ -4,6 +4,7 @@
 using namespace Coco::Input;
 
 enum ImGuiKey;
+typedef int ImGuiMouseButton;
 
 namespace Coco::ImGuiCoco
 {
@@ -20,6 +21,11 @@ namespace Coco::ImGuiCoco
         /// @param key The key
         /// @return The equivalent ImGuiKey
         static ImGuiKey ToImGuiKey(KeyboardKey key);
+
+        /// @brief Converts a mouse button to an ImGuiMouseButton
+        /// @param button The mouse button
+        /// @return The equivalent ImGuiMouseButton
+        static ImGuiMouseButton ToImGuiMouseButton(MouseButton button);
 
         int GetPriority() const final { return Priority; }
         bool HandleMouseStateChange(const MouseStateChange& state, const Mouse& mouse) final;
