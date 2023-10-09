@@ -24,6 +24,23 @@ namespace Coco
 		RegisterComponentUI<CameraComponent, CameraComponentUI>();
 	}
 
+	bool ComponentUI::DrawAddComponentUI(ECS::Entity& entity)
+	{
+		for (ComponentUIInstance& inst : _sComponentUIInstances)
+		{
+			if (inst.TestFunc(entity))
+				continue;
+
+			if (ImGui::MenuItem(inst.UI->GetHeader()))
+			{
+				inst.AddFunc(entity);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	void ComponentUI::DrawProperties(ECS::Entity& entity)
 	{
 		for (const auto& ui : _sComponentUIInstances)
@@ -31,9 +48,39 @@ namespace Coco
 			if (!ui.TestFunc(entity))
 				continue;
 
-			if (ImGui::CollapsingHeader(ui.UI->GetHeader(), ImGuiTreeNodeFlags_DefaultOpen))
+			bool open = ImGui::CollapsingHeader(ui.UI->GetHeader(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+
+			bool remove = false;
+
+			if (ui.UI->IsRemovable())
+			{
+				const float buttonWidth = 30.f;
+				ImGui::SameLine(ImGui::GetWindowWidth() - buttonWidth);
+
+				if (ImGui::Button("...", ImVec2{ buttonWidth, 18.f }))
+				{
+					ImGui::OpenPopup("ComponentSettings");
+				}
+
+				if (ImGui::BeginPopup("ComponentSettings"))
+				{
+					if (ImGui::MenuItem("Remove"))
+					{
+						remove = true;
+					}
+
+					ImGui::EndPopup();
+				}
+			}
+
+			if (open)
 			{
 				ui.UI->DrawPropertiesImpl(entity);
+			}
+
+			if (remove)
+			{
+				ui.RemoveFunc(entity);
 			}
 		}
 	}

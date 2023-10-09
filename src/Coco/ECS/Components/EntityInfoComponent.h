@@ -16,6 +16,7 @@ namespace Coco::ECS
         /// @brief If true, this entity and its children are active in the scene
         bool IsActive;
 
+        EntityInfoComponent();
         EntityInfoComponent(const string& name, std::optional<Entity> parent);
     };
 }

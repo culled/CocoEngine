@@ -31,14 +31,16 @@ namespace Coco::Platforms::Win32
 		_title(createParams.Title),
 		_canResize(createParams.CanResize),
 		_isFullscreen(createParams.IsFullscreen),
-		_decorated(!createParams.WithoutDecoration),
+		_styleFlags(createParams.StyleFlags),
 		_cursorVisible(true),
 		_cursorConfineMode(CursorConfineMode::None),
 		_cursorConfined(false),
+		_handle(nullptr),
 		_restorePlacement{sizeof(WINDOWPLACEMENT)}
 	{
-		DWORD windowFlags = GetWindowFlags(_canResize, _isFullscreen, _decorated);
-		DWORD windowFlagsEx = WS_EX_APPWINDOW;
+		DWORD windowFlags = 0;
+		DWORD windowFlagsEx = 0;
+		GetWindowFlags(_canResize, _isFullscreen, _styleFlags, windowFlags, windowFlagsEx);
 
 		// Add flags based on initial state
 		switch (createParams.InitialState)
@@ -141,6 +143,9 @@ namespace Coco::Platforms::Win32
 			string err = FormatString("Failed to create Win32Window (code {})", GetLastError());
 			throw std::exception(err.c_str());
 		}
+
+		// Create the presenter surface
+		EnsurePresenterSurface();
 
 		CocoTrace("Created Win32Window")
 	}
@@ -389,20 +394,34 @@ namespace Coco::Platforms::Win32
 		return platform.CreateSurfaceForWindow(Rendering::RenderService::cGet()->GetPlatform().GetName(), *this);
 	}
 
-	DWORD Win32Window::GetWindowFlags(bool canResize, bool isFullscreen, bool decorated)
+	void Win32Window::GetWindowFlags(bool canResize, bool isFullscreen, WindowStyleFlags styleFlags, DWORD& outStyle, DWORD& outExStyle)
 	{
+		outStyle = WS_OVERLAPPEDWINDOW;
+
+		if (!canResize)
+			outStyle &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
+
+		if ((styleFlags & WindowStyleFlags::NoDecoration) == WindowStyleFlags::NoDecoration)
+			outStyle = WS_POPUP;
+
 		if (isFullscreen)
-			return 0;
+		{
+			outStyle = 0;
+		}
 
-		DWORD flags = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+		if ((styleFlags & WindowStyleFlags::NoTaskbarIcon) == WindowStyleFlags::NoTaskbarIcon)
+		{
+			outExStyle = WS_EX_TOOLWINDOW;
+		}
+		else
+		{
+			outExStyle = WS_EX_APPWINDOW;
+		}
 
-		if (canResize)
-			flags |= WS_THICKFRAME | WS_MAXIMIZEBOX;
-
-		if (!decorated)
-			flags &= ~WS_OVERLAPPEDWINDOW;
-
-		return flags;
+		if ((styleFlags & WindowStyleFlags::TopMost) == WindowStyleFlags::TopMost)
+		{
+			outExStyle |= WS_EX_TOPMOST;
+		}
 	}
 
 	SizeInt Win32Window::GetAdjustedWindowSize(const SizeInt& clientSize, DWORD windowFlags, DWORD exWindowFlags)
@@ -433,6 +452,10 @@ namespace Coco::Platforms::Win32
 				return true;
 			case WM_SIZE:
 			{
+				// This can be called before CreateWindow returns, and we won't have a handle yet, so ignore for now
+				if (!_handle)
+					return false;
+
 				LPRECT rect = reinterpret_cast<LPRECT>(lParam);
 
 				const WORD width = LOWORD(lParam);
@@ -578,7 +601,10 @@ namespace Coco::Platforms::Win32
 		if (!fullscreen && _isFullscreen)
 		{
 			DWORD windowStyle = ::GetWindowLong(_handle, GWL_STYLE);
-			::SetWindowLong(_handle, GWL_STYLE, windowStyle | GetWindowFlags(_canResize, false, _decorated));
+			DWORD windowStyleEx = 0;
+			GetWindowFlags(_canResize, false, _styleFlags, windowStyle, windowStyleEx);
+
+			::SetWindowLong(_handle, GWL_STYLE, windowStyle);
 			::SetWindowPlacement(_handle, &_restorePlacement);
 			::SetWindowPos(_handle,
 				NULL,

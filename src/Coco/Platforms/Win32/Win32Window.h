@@ -18,7 +18,7 @@ namespace Coco::Platforms::Win32
         string _title;
         bool _canResize;
         bool _isFullscreen;
-        bool _decorated;
+        WindowStyleFlags _styleFlags;
         bool _cursorVisible;
         CursorConfineMode _cursorConfineMode;
         bool _cursorConfined;
@@ -71,9 +71,10 @@ namespace Coco::Platforms::Win32
         /// @brief Gets window flags for the given options
         /// @param canResize If true, will add window flags for resizing
         /// @param isFullscreen If true, will set flags for a fullscreen window
-        /// @param decorated If true, will remove flags for window decoration
-        /// @return Window flags
-        static DWORD GetWindowFlags(bool canResize, bool isFullscreen, bool decorated);
+        /// @param styleFlags The window style flags
+        /// @param outStyle Will be set to the window style
+        /// @param outExStyle Will be set to the extended window style
+        static void GetWindowFlags(bool canResize, bool isFullscreen, WindowStyleFlags styleFlags, DWORD& outStyle, DWORD& outExStyle);
 
         /// @brief Gets the outer window size for a given client area
         /// @param clientSize The desired client area

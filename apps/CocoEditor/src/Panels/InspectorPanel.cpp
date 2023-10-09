@@ -27,8 +27,22 @@ namespace Coco
 
 	void InspectorPanel::DrawEntityInspector()
 	{
+		if (ImGui::Button("Add Component"))
+			ImGui::OpenPopup("Add Component");
+
 		Entity& entity = _selection.GetSelectedEntity();
 
 		ComponentUI::DrawProperties(entity);
+
+		// Right click over a black space
+		if (ImGui::BeginPopupContextWindow("Add Component", ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
+		{
+			ImGui::SeparatorText("Add Component");
+
+			if (ComponentUI::DrawAddComponentUI(entity))
+				ImGui::CloseCurrentPopup();
+
+			ImGui::EndPopup();
+		}
 	}
 }

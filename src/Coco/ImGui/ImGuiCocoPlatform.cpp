@@ -293,7 +293,15 @@ namespace Coco::ImGuiCoco
 
         WindowCreateParams createParams("ImGui Window", SizeInt(static_cast<uint32>(viewport->Size.x), static_cast<uint32>(viewport->Size.y)));
         createParams.InitialPosition = Vector2Int(static_cast<int32>(viewport->Pos.x), static_cast<int32>(viewport->Pos.y));
-        createParams.WithoutDecoration = true;
+
+        if((viewport->Flags & ImGuiViewportFlags_NoDecoration) == ImGuiViewportFlags_NoDecoration)
+            createParams.StyleFlags |= WindowStyleFlags::NoDecoration;
+        
+        if((viewport->Flags & ImGuiViewportFlags_TopMost) == ImGuiViewportFlags_TopMost)
+            createParams.StyleFlags |= WindowStyleFlags::TopMost;
+        
+        if ((viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon) == ImGuiViewportFlags_NoTaskBarIcon)
+            createParams.StyleFlags |= WindowStyleFlags::NoTaskbarIcon;
 
         Ref<Window> window = windowing->CreateWindow(createParams);
         CocoViewportData& viewportData = _sViewports.try_emplace(window->ID, window.Get()).first->second;

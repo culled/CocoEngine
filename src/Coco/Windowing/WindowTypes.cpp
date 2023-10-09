@@ -14,6 +14,6 @@ namespace Coco::Windowing
 		InitialPosition(),
 		ParentWindow(Window::InvalidID),
 		DisplayIndex(),
-		WithoutDecoration(false)
+		StyleFlags(WindowStyleFlags::None)
 	{}
 }

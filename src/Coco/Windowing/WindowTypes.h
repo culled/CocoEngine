@@ -30,6 +30,40 @@ namespace Coco::Windowing
 		LockedInPlace,
 	};
 
+	enum class WindowStyleFlags
+	{
+		None = 0,
+
+		/// @brief The window will not include any decorations (title bar, buttons, frame, etc.) 
+		NoDecoration = 1 << 0,
+
+		/// @brief This window will not show up in the toolbar of desktop window managers
+		NoTaskbarIcon = 1 << 1,
+
+		/// @brief The window will be placed above all other non-topmost windows and stay above them
+		TopMost = 1 << 2
+	};
+
+	constexpr WindowStyleFlags operator|(const WindowStyleFlags& a, const WindowStyleFlags& b)
+	{
+		return static_cast<WindowStyleFlags>(static_cast<int>(a) | static_cast<int>(b));
+	}
+
+	constexpr WindowStyleFlags operator&(const WindowStyleFlags& a, const WindowStyleFlags& b)
+	{
+		return static_cast<WindowStyleFlags>(static_cast<int>(a) & static_cast<int>(b));
+	}
+
+	constexpr void operator |=(WindowStyleFlags& a, const WindowStyleFlags& b)
+	{
+		a = a | b;
+	}
+
+	constexpr void operator &=(WindowStyleFlags& a, const WindowStyleFlags& b)
+	{
+		a = a & b;
+	}
+
 	/// @brief A window ID
 	using WindowID = uint32;
 
@@ -61,8 +95,8 @@ namespace Coco::Windowing
 		/// @brief If given, sets the index of the display to show the window on
 		std::optional<uint8> DisplayIndex;
 
-		/// @brief If true, the window will not include any decorations (title bar, buttons, frame, etc.) 
-		bool WithoutDecoration;
+		/// @brief Styling flags
+		WindowStyleFlags StyleFlags;
 
 		WindowCreateParams(const char* title, const SizeInt& initialSize);
 	};

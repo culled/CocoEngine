@@ -89,11 +89,18 @@ namespace Coco::Windowing
 		}
 
 		// Lazy initialize surface until we're visible
-		if (!_presenter->SurfaceInitialized())
-		{
-			SharedRef<Rendering::GraphicsPresenterSurface> surface = CreateSurface();
-			_presenter->InitializeSurface(*surface);
-		}
+		EnsurePresenterSurface();
+
+		_presenter->SetFramebufferSize(GetClientAreaSize());
+	}
+
+	void Window::EnsurePresenterSurface()
+	{
+		if (_presenter->SurfaceInitialized())
+			return;
+
+		SharedRef<Rendering::GraphicsPresenterSurface> surface = CreateSurface();
+		_presenter->InitializeSurface(*surface);
 
 		_presenter->SetFramebufferSize(GetClientAreaSize());
 	}

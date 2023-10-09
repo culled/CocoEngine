@@ -178,5 +178,8 @@ namespace Coco::Windowing
 
 		/// @brief Called when this window is resized
 		void HandleResized();
+
+		/// @brief Ensures that the presenter surface is created
+		void EnsurePresenterSurface();
 	};
 }
