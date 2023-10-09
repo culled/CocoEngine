@@ -700,13 +700,34 @@ namespace Coco::Platforms::Win32
 		switch (message)
 		{
 		case WM_KEYDOWN:
-		case WM_SYSKEYDOWN:
 		case WM_KEYUP:
+		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
 		{
-			bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
+			// https://learn.microsoft.com/en-us/windows/win32/inputdev/about-keyboard-input#keystroke-message-flags
+
+			WPARAM mappedParam = wParam;
+			WORD keyFlags = HIWORD(lParam);
+			WORD scancode = LOBYTE(keyFlags);
+			BOOL isExtendedKey = (keyFlags & KF_EXTENDED) == KF_EXTENDED;
+			bool released = (keyFlags & KF_UP) == KF_UP;
+
+			if (isExtendedKey)
+				scancode = MAKEWORD(scancode, 0xE0);
+
+			switch (wParam)
+			{
+			case VK_SHIFT:
+			case VK_CONTROL:
+			case VK_MENU:
+				mappedParam = LOWORD(::MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX));
+				break;
+			default:
+				break;
+			}
+
 #ifdef COCO_SERVICE_INPUT
-			keyboard.UpdateKeyState(static_cast<KeyboardKey>(wParam), pressed);
+			keyboard.UpdateKeyState(static_cast<KeyboardKey>(mappedParam), !released);
 #endif
 			return true;
 		}

@@ -421,7 +421,7 @@ namespace Coco::Platforms::Win32
 		windowClass.hIcon = icon;
 		windowClass.hCursor = LoadCursor(NULL, IDC_ARROW); // TODO: change cursor type
 		windowClass.hbrBackground = NULL;
-		windowClass.style = CS_DBLCLKS; // Get doubleclicks
+		//windowClass.style = CS_DBLCLKS; // Get doubleclicks
 
 		return RegisterClass(&windowClass);
 	}
