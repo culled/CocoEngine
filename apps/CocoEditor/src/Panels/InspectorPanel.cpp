@@ -1,14 +1,6 @@
 #include "InspectorPanel.h"
 
-#include <Coco/ECS/Components/EntityInfoComponent.h>
-#include "../ComponentUI/EntityInfoComponentUI.h"
-
-#include <Coco/ECS/Components/Transform3DComponent.h>
-#include "../ComponentUI/Transform3DComponentUI.h"
-
-#include <Coco/ECS/Components/Rendering/CameraComponent.h>
-#include "../ComponentUI/Rendering/CameraComponentUI.h"
-
+#include "../ComponentUI/ComponentUI.h"
 #include "../EditorApplication.h"
 #include <imgui.h>
 
@@ -16,13 +8,9 @@ using namespace Coco::ECS;
 
 namespace Coco
 {
-	std::vector<ComponentUIContainer> InspectorPanel::_sComponentUIs = std::vector<ComponentUIContainer>();
-
 	InspectorPanel::InspectorPanel() :
 		_selection(EditorApplication::Get()->GetSelection())
-	{
-		RegisterDefaultComponentUIs();
-	}
+	{}
 
 	void InspectorPanel::Update(const TickInfo& tickInfo)
 	{
@@ -37,23 +25,10 @@ namespace Coco
 		ImGui::End();
 	}
 
-	void InspectorPanel::RegisterDefaultComponentUIs()
-	{
-		RegisterComponentUI<EntityInfoComponent, EntityInfoComponentUI>();
-		RegisterComponentUI<Transform3DComponent, Transform3DComponentUI>();
-		RegisterComponentUI<CameraComponent, CameraComponentUI>();
-	}
-
 	void InspectorPanel::DrawEntityInspector()
 	{
 		Entity& entity = _selection.GetSelectedEntity();
 
-		for (const ComponentUIContainer& kvp : _sComponentUIs)
-		{
-			if (kvp.TestFunc(entity))
-			{
-				kvp.UI->Draw(entity);
-			}
-		}
+		ComponentUI::DrawProperties(entity);
 	}
 }

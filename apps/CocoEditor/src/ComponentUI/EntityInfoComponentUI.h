@@ -9,6 +9,7 @@ namespace Coco
     protected:
         // Inherited via ComponentUI
         const char* GetHeader() const override { return "Entity Info"; }
-        void DrawImpl(ECS::Entity& entity) override;
+        void DrawPropertiesImpl(ECS::Entity& entity) override;
+        void DrawGizmosImpl(ECS::Entity& entity, const SizeInt& viewportSize) override {}
     };
 }

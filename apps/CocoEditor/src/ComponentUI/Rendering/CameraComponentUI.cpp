@@ -1,13 +1,16 @@
 #include "CameraComponentUI.h"
 
 #include <Coco/ECS/Components/Rendering/CameraComponent.h>
+#include <Coco/ECS/Components/Transform3DComponent.h>
+#include <Coco/Core/Types/Transform.h>
+#include <Coco/Rendering/Gizmos/GizmoRender.h>
 #include <imgui.h>
 
 using namespace Coco::ECS;
 
 namespace Coco
 {
-	void CameraComponentUI::DrawImpl(ECS::Entity& entity)
+	void CameraComponentUI::DrawPropertiesImpl(ECS::Entity& entity)
 	{
 		CameraComponent& camera = entity.GetComponent<CameraComponent>();
 
@@ -84,5 +87,20 @@ namespace Coco
 		default:
 			break;
 		}
+	}
+
+	void CameraComponentUI::DrawGizmosImpl(ECS::Entity& entity, const SizeInt& viewportSize)
+	{
+		CameraComponent& camera = entity.GetComponent<CameraComponent>();
+		Transform3D transform;
+
+		if (entity.HasComponent<Transform3DComponent>())
+		{
+			transform = entity.GetComponent<Transform3DComponent>().Transform;
+		}
+
+		double aspect = static_cast<double>(viewportSize.Width) / viewportSize.Height;
+
+		Rendering::GizmoRender::Get()->DrawFrustum(camera.GetViewFrustum(aspect, transform.GetGlobalPosition(), transform.GetGlobalRotation()), Color::White);
 	}
 }

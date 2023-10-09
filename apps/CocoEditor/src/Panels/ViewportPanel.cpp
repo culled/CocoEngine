@@ -8,8 +8,8 @@
 #include <Coco/ECS/Systems/Rendering/SceneRenderProvider.h>
 #include "../EditorApplication.h"
 #include <Coco/ECS/Systems/Rendering/CameraSystem.h>
-#include <Coco/Rendering/Gizmos/GizmoRender.h>
 #include <Coco/ECS/Components/Transform3DComponent.h>
+#include "../ComponentUI/ComponentUI.h"
 
 #include <imgui.h>
 
@@ -93,7 +93,8 @@ namespace Coco
 
 			UpdateCamera(tickInfo);
 
-			ImVec2 size = ImGui::GetContentRegionAvail();
+			ImVec2 size = ImGui::GetContentRegionAvail(); 
+			_viewportSize = SizeInt(static_cast<uint32>(size.x), static_cast<uint32>(size.y));
 			_cameraPreviewSize = SizeInt(
 				static_cast<uint32>(size.x * _sCameraPreviewSizePercentage),
 				static_cast<uint32>(size.y * _sCameraPreviewSizePercentage));
@@ -106,14 +107,15 @@ namespace Coco
 				{
 					_showCameraPreview = true;
 					ShowCameraPreview();
-					ShowCameraGizmo();
 				}
+
+				ComponentUI::DrawGizmos(e, _viewportSize);
 			}
 
 			if (!_showCameraPreview)
 				_previewCameraFullscreen = false;
 
-			EnsureTexture(SizeInt(static_cast<uint32>(size.x), static_cast<uint32>(size.y)), _viewportTexture);
+			EnsureTexture(_viewportSize, _viewportTexture);
 
 			ImGui::Image(_viewportTexture.Get(), size);
 
@@ -296,8 +298,7 @@ namespace Coco
 		ImVec2 previewSize{ static_cast<float>(_cameraPreviewSize.Width), static_cast<float>(_cameraPreviewSize.Height) };
 
 		ImVec2 pos = ImGui::GetWindowPos();
-		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-		pos.x += viewportSize.x - (previewSize.x + 30);
+		pos.x += _viewportSize.Width - (previewSize.x + 30);
 		pos.y += 30;
 		ImGui::SetNextWindowPos(pos);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
@@ -319,25 +320,5 @@ namespace Coco
 
 		ImGui::End();
 		ImGui::PopStyleVar();
-	}
-
-	void ViewportPanel::ShowCameraGizmo()
-	{
-		if (Rendering::GizmoRender::Get() && _selection.HasSelectedEntity())
-		{
-			Entity& entity = _selection.GetSelectedEntity();
-			CameraComponent& camera = entity.GetComponent<CameraComponent>();
-			Transform3D transform;
-
-			if (entity.HasComponent<Transform3DComponent>())
-			{
-				transform = entity.GetComponent<Transform3DComponent>().Transform;
-			}
-
-			ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-			double aspect = viewportSize.x / viewportSize.y;
-
-			Rendering::GizmoRender::Get()->DrawFrustum(camera.GetViewFrustum(aspect, transform.GetGlobalPosition(), transform.GetGlobalRotation()), Color::White);
-		}
 	}
 }

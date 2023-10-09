@@ -8,7 +8,7 @@ using namespace Coco::ECS;
 
 namespace Coco
 {
-	void EntityInfoComponentUI::DrawImpl(ECS::Entity& entity)
+	void EntityInfoComponentUI::DrawPropertiesImpl(ECS::Entity& entity)
 	{
 		EntityInfoComponent& info = entity.GetComponent<EntityInfoComponent>();
 

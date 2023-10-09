@@ -8,7 +8,7 @@ using namespace Coco::ECS;
 
 namespace Coco
 {
-	void Transform3DComponentUI::DrawImpl(ECS::Entity& entity)
+	void Transform3DComponentUI::DrawPropertiesImpl(ECS::Entity& entity)
 	{
 		Transform3DComponent& transform = entity.GetComponent<Transform3DComponent>();
 

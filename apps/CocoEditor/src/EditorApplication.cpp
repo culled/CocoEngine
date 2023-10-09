@@ -5,6 +5,7 @@
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
 #include <Coco/ImGui/ImGuiService.h>
 #include <Coco/Windowing/WindowService.h>
+#include "ComponentUI/ComponentUI.h"
 #include <Coco/Core/Engine.h>
 
 #include <imgui.h>
@@ -40,6 +41,8 @@ namespace Coco
 		CreateMainWindow();
 		CreateMainScene();
 		SetupDefaultLayout();
+
+		ComponentUI::RegisterBuiltInComponentUIs();
 
 		MainLoop& loop = Engine::Get()->GetMainLoop();
 		loop.AddListener(_updateTickListener);
