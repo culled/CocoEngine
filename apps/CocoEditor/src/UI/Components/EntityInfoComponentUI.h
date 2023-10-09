@@ -1,14 +1,14 @@
 #pragma once
-#include "ComponentUI.h"
+#include "../ComponentUI.h"
 
 namespace Coco
 {
-    class Transform3DComponentUI :
+    class EntityInfoComponentUI :
         public ComponentUI
     {
     protected:
         // Inherited via ComponentUI
-        const char* GetHeader() const override { return "Transform 3D"; }
+        const char* GetHeader() const override { return "Entity Info"; }
         void DrawPropertiesImpl(ECS::Entity& entity) override;
         void DrawGizmosImpl(ECS::Entity& entity, const SizeInt& viewportSize) override {}
     };

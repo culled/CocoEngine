@@ -1,5 +1,5 @@
 #pragma once
-#include "../ComponentUI.h"
+#include "../../ComponentUI.h"
 
 namespace Coco
 {

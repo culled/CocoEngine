@@ -5,7 +5,7 @@
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
 #include <Coco/ImGui/ImGuiService.h>
 #include <Coco/Windowing/WindowService.h>
-#include "ComponentUI/ComponentUI.h"
+#include "UI/ComponentUI.h"
 #include <Coco/Core/Engine.h>
 
 #include <imgui.h>

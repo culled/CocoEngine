@@ -1,13 +1,13 @@
 #include "ComponentUI.h"
 
 #include <Coco/ECS/Components/EntityInfoComponent.h>
-#include "../ComponentUI/EntityInfoComponentUI.h"
+#include "Components/EntityInfoComponentUI.h"
 
 #include <Coco/ECS/Components/Transform3DComponent.h>
-#include "../ComponentUI/Transform3DComponentUI.h"
+#include "Components/Transform3DComponentUI.h"
 
 #include <Coco/ECS/Components/Rendering/CameraComponent.h>
-#include "../ComponentUI/Rendering/CameraComponentUI.h"
+#include "Components/Rendering/CameraComponentUI.h"
 
 #include <imgui.h>
 

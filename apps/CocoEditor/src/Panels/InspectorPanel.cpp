@@ -1,6 +1,6 @@
 #include "InspectorPanel.h"
 
-#include "../ComponentUI/ComponentUI.h"
+#include "../UI/ComponentUI.h"
 #include "../EditorApplication.h"
 #include <imgui.h>
 

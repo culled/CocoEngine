@@ -9,7 +9,7 @@
 #include "../EditorApplication.h"
 #include <Coco/ECS/Systems/Rendering/CameraSystem.h>
 #include <Coco/ECS/Components/Transform3DComponent.h>
-#include "../ComponentUI/ComponentUI.h"
+#include "../UI/ComponentUI.h"
 
 #include <imgui.h>
 
