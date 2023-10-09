@@ -25,9 +25,18 @@ namespace Coco
 				DrawEntityNode(e);
 				});
 
+			// Left click over a black space
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			{
 				_selection.ClearSelectedEntity();
+			}
+
+			// Right click over a black space
+			if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
+			{
+				DrawSceneContextMenu();
+
+				ImGui::EndPopup();
 			}
 		}
 
@@ -45,14 +54,40 @@ namespace Coco
 
 		bool expanded = ImGui::TreeNodeEx((void*)entity.GetID(), flags, "%s", info.Name.c_str());
 
+		// Left click entity
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 			_selection.SetSelectedEntity(entity);
+
+		// Right click entity
+		if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight))
+		{
+			DrawEntityContextMenu(entity);
+		
+			ImGui::EndPopup();
+		}
 
 		if (expanded)
 		{
 			// TODO
 
 			ImGui::TreePop();
+		}
+	}
+
+	void SceneHierarchyPanel::DrawSceneContextMenu()
+	{
+		if (ImGui::MenuItem("Create Empty Entity"))
+		{
+			_scene->CreateEntity();
+		}
+	}
+
+	void SceneHierarchyPanel::DrawEntityContextMenu(Entity& entity)
+	{
+		if (ImGui::MenuItem("Delete"))
+		{
+			_scene->DestroyEntity(entity);
+			_selection.ClearSelectedEntity();
 		}
 	}
 }

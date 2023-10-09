@@ -4,14 +4,23 @@
 #include "Entity.h"
 #include "Components/EntityInfoComponent.h"
 
+#include <Coco/Core/Engine.h>
+
 namespace Coco::ECS
 {
+	const int Scene::sLateTickPriority = 100000;
+
 	Scene::Scene() :
-		_registry()
-	{}
+		_lateTickListener(CreateManagedRef<TickListener>(this, &Scene::HandleLateTick, sLateTickPriority)),
+		_registry(),
+		_queuedDestroyEntities()
+	{
+		MainLoop::Get()->AddListener(_lateTickListener);
+	}
 
 	Scene::~Scene()
 	{
+		MainLoop::Get()->RemoveListener(_lateTickListener);
 	}
 
 	SharedRef<Scene> Scene::Create()
@@ -26,12 +35,47 @@ namespace Coco::ECS
 		return e;
 	}
 
+	void Scene::DestroyEntity(Entity& entity)
+	{
+		_queuedDestroyEntities.push_back(entity);
+	}
+
+	void Scene::DestroyEntityImmediate(Entity& entity)
+	{
+		if (!entity.IsValid())
+		{
+			CocoError("Failed to destroy entity: entity was not valid")
+			return;
+		}
+
+		if (entity._scene.lock().get() != this)
+		{
+			CocoError("Failed to destroy entity: entity was created in a different scene")
+			return;
+		}
+
+		_registry.destroy(entity._handle);
+		entity = Entity::Null;
+	}
+
 	void Scene::EachEntity(std::function<void(Entity&)> callback)
 	{
 		for (entt::entity e : _registry.view<entt::entity>())
 		{
+			// Invalid entities get read in the view, so only give out valid ones
+			if (!_registry.valid(e))
+				continue;
+
 			Entity entity(e, shared_from_this());
 			callback(entity);
 		}
+	}
+
+	void Scene::HandleLateTick(const TickInfo& tickInfo)
+	{
+		for (Entity& e : _queuedDestroyEntities)
+			DestroyEntityImmediate(e);
+
+		_queuedDestroyEntities.clear();
 	}
 }

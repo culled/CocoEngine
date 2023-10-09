@@ -24,5 +24,7 @@ namespace Coco
 
 	private:
 		void DrawEntityNode(Entity& entity);
+		void DrawSceneContextMenu();
+		void DrawEntityContextMenu(Entity& entity);
 	};
 }
