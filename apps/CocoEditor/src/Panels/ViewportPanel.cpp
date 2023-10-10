@@ -303,16 +303,18 @@ namespace Coco
 		ImGui::SetNextWindowPos(pos);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
 
-		ImGui::Begin("Camera Preview", nullptr,
+		if (ImGui::Begin("Camera Preview", nullptr,
 			ImGuiWindowFlags_NoFocusOnAppearing |
 			ImGuiWindowFlags_AlwaysAutoResize |
 			ImGuiWindowFlags_NoNav |
 			ImGuiWindowFlags_NoMove |
-			ImGuiWindowFlags_NoSavedSettings);
+			ImGuiWindowFlags_NoSavedSettings))
+		{
 
-		ImGui::Image(_cameraPreviewTexture.Get(), previewSize);
+			ImGui::Image(_cameraPreviewTexture.Get(), previewSize);
 
-		ImGui::Checkbox("Fullscreen", &_previewCameraFullscreen);
+			ImGui::Checkbox("Fullscreen", &_previewCameraFullscreen);
+		}
 
 		ImVec2 size = ImGui::GetWindowSize();
 		pos.x -= size.x - previewSize.x;

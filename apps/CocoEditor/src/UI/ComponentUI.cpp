@@ -48,6 +48,7 @@ namespace Coco
 			if (!ui.TestFunc(entity))
 				continue;
 
+			float availableWidth = ImGui::GetContentRegionAvail().x;
 			bool open = ImGui::CollapsingHeader(ui.UI->GetHeader(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 
 			bool remove = false;
@@ -56,10 +57,11 @@ namespace Coco
 
 			if (ui.UI->IsRemovable())
 			{
-				const float buttonWidth = 30.f;
-				ImGui::SameLine(ImGui::GetWindowWidth() - buttonWidth);
+				float lineHeight = ImGui::GetFrameHeight();
+				const float buttonWidth = 32.f;
+				ImGui::SameLine(availableWidth - buttonWidth + 12.f);
 
-				if (ImGui::Button("...", ImVec2{ buttonWidth, 18.f }))
+				if (ImGui::Button("...", ImVec2{ buttonWidth, lineHeight }))
 				{
 					ImGui::OpenPopup("##ComponentSettings");
 				}

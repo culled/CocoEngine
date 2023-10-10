@@ -47,7 +47,7 @@ namespace Coco
 	{
 		const EntityInfoComponent& info = entity.GetComponent<EntityInfoComponent>();
 
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 
 		if (_selection.HasSelectedEntity() && _selection.GetSelectedEntity() == entity)
 			flags |= ImGuiTreeNodeFlags_Selected;
