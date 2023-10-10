@@ -11,8 +11,13 @@ namespace Coco::Rendering
 		RenderCompletedFence()
 	{}
 
-	RenderTask::RenderTask(uint64 rendererID, Ref<GraphicsSemaphore> renderCompletedSemaphore, Ref<GraphicsFence> renderCompletedFence) :
+	RenderTask::RenderTask(
+		uint64 rendererID, 
+		const RenderContextRenderStats& stats, 
+		Ref<GraphicsSemaphore> renderCompletedSemaphore, 
+		Ref<GraphicsFence> renderCompletedFence) :
 		RendererID(rendererID),
+		RenderStats(stats),
 		RenderCompletedSemaphore(renderCompletedSemaphore),
 		RenderCompletedFence(renderCompletedFence)
 	{}

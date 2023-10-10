@@ -254,7 +254,7 @@ namespace Coco::Rendering
 		_renderView.Reset();
 
 		if (outTask)
-			*outTask = RenderTask(rendererID, renderContext->GetRenderCompletedSemaphore(), renderContext->GetRenderCompletedFence());
+			*outTask = RenderTask(rendererID, renderContext->GetRenderStats(), renderContext->GetRenderCompletedSemaphore(), renderContext->GetRenderCompletedFence());
 
 		return true;
 	}
