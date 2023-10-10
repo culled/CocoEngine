@@ -62,7 +62,8 @@ namespace Coco::ImGuiCoco
     ImGuiCocoPlatform::ImGuiCocoPlatform(bool enableViewports) :
         _renderPass(CreateSharedRef<ImGuiRenderPass>()),
         _currentlyRenderingViewport(nullptr),
-        _shouldUpdateDisplays(true)
+        _shouldUpdateDisplays(true), 
+        _viewportMeshes()
     {
         _sViewports = std::unordered_map<uint64, CocoViewportData>();
 
@@ -94,7 +95,7 @@ namespace Coco::ImGuiCoco
         _renderPipeline.reset();
         _renderPass.reset();
         _shader.reset();
-        _mesh.reset();
+        _viewportMeshes.clear();
     }
 
     void ImGuiCocoPlatform::SetupRenderView(
@@ -141,9 +142,11 @@ namespace Coco::ImGuiCoco
         format.HasColor = true;
         format.HasUV0 = true;
 
+        SharedRef<Mesh> mesh = GetOrCreateViewportMesh(_currentlyRenderingViewport);
+
         if (drawData->TotalVtxCount > 0)
         {
-            _mesh->ClearSubmeshes();
+            mesh->ClearSubmeshes();
 
             VertexDataFormat format{};
             format.HasUV0 = true;
@@ -181,13 +184,13 @@ namespace Coco::ImGuiCoco
                 }
 
                 vertexOffset += drawList->VtxBuffer.Size;
-                _mesh->SetIndices(indices, n);
+                mesh->SetIndices(indices, n);
             }
 
-            _mesh->SetVertices(format, vertices);
-            _mesh->Apply();
+            mesh->SetVertices(format, vertices);
+            mesh->Apply();
 
-            renderView.AddMesh(*_mesh);
+            renderView.AddMesh(*mesh);
 
             uint64 indexOffset = 0;
 
@@ -210,11 +213,11 @@ namespace Coco::ImGuiCoco
 
                     Texture* tex = reinterpret_cast<Texture*>(cmd.GetTexID());
                     renderView.AddRenderObject(
-                        *_mesh,
+                        *mesh,
                         cmd.IdxOffset + indexOffset,
                         cmd.ElemCount,
                         Matrix4x4::Identity,
-                        _mesh->GetBounds(),
+                        mesh->GetBounds(),
                         _shader.get(),
                         &scissorRect,
                         ShaderUniformData::ToTextureSampler(tex->GetImage(), tex->GetImageSampler())
@@ -326,6 +329,10 @@ namespace Coco::ImGuiCoco
                 window->Close();
 
                 viewport->PlatformHandle = nullptr;
+
+                ImGuiCocoPlatform* platform = ImGuiCocoPlatform::Get();
+
+                platform->RemoveViewportMesh(viewport);
             }
         }
 
@@ -519,9 +526,6 @@ namespace Coco::ImGuiCoco
             )
         );
 
-        // Setup ImGui mesh
-        _mesh = resources.Create<Mesh>("ImGui", true);
-
         // Setup the font texture
         int width, height;
         unsigned char* pixels = nullptr;
@@ -572,5 +576,31 @@ namespace Coco::ImGuiCoco
         }
 
         _shouldUpdateDisplays = false;
+    }
+
+    uint64 ImGuiCocoPlatform::GetViewportKey(ImGuiViewport* viewport)
+    {
+        const std::hash<ImGuiViewport*> hasher;
+        return hasher(viewport);
+    }
+
+    SharedRef<Mesh> ImGuiCocoPlatform::GetOrCreateViewportMesh(ImGuiViewport* viewport)
+    {
+        uint64 key = GetViewportKey(viewport);
+
+        if (!_viewportMeshes.contains(key))
+        {
+            _viewportMeshes.try_emplace(key, Engine::Get()->GetResourceLibrary().Create<Mesh>("ImGui", true));
+        }
+
+        return _viewportMeshes.at(key);
+    }
+
+    void ImGuiCocoPlatform::RemoveViewportMesh(ImGuiViewport* viewport)
+    {
+        uint64 key = GetViewportKey(viewport);
+
+        if (_viewportMeshes.contains(key))
+            _viewportMeshes.erase(key);
     }
 }

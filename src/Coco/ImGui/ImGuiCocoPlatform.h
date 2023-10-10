@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Coco/Core/Types/Singleton.h>
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/MainLoop/TickInfo.h>
 #include <Coco/Core/Events/Event.h>
@@ -62,6 +63,7 @@ namespace Coco::ImGuiCoco
 
 	/// @brief The platform that integrates ImGui with the Engine
 	class ImGuiCocoPlatform :
+		public Singleton<ImGuiCocoPlatform>,
 		public RenderViewProvider,
 		public SceneDataProvider
 	{
@@ -74,8 +76,8 @@ namespace Coco::ImGuiCoco
 		std::vector<Windowing::DisplayInfo> _displays;
 		bool _shouldUpdateDisplays;
 		SharedRef<Shader> _shader;
-		SharedRef<Mesh> _mesh;
 		SharedRef<Texture> _texture;
+		std::unordered_map<uint64, SharedRef<Mesh>> _viewportMeshes;
 		SharedRef<ImGuiRenderPass> _renderPass;
 		UniqueRef<Rendering::RenderPipeline> _renderPipeline;
 		ImGuiViewport* _currentlyRenderingViewport;
@@ -97,10 +99,6 @@ namespace Coco::ImGuiCoco
 		/// @param tickInfo The info for the current tick
 		/// @return True if the new frame was initialized successfully
 		bool NewFrame(const TickInfo& tickInfo);
-
-		/// @brief Gets the ImGui mesh
-		/// @return The ImGui mesh
-		SharedRef<Mesh> GetMesh() const { return _mesh; }
 
 		/// @brief Gets the ImGui font texture
 		/// @return The ImGui font texture
@@ -186,5 +184,19 @@ namespace Coco::ImGuiCoco
 
 		/// @brief Updates the ImGui displays
 		void UpdateDisplays();
+
+		/// @brief Gets a key for a given viewport
+		/// @param viewport The viewport
+		/// @return The unique key for the viewport
+		uint64 GetViewportKey(ImGuiViewport* viewport);
+
+		/// @brief Gets or creates a mesh for a viewport
+		/// @param viewport The viewport
+		/// @return The mesh for the viewport
+		SharedRef<Mesh> GetOrCreateViewportMesh(ImGuiViewport* viewport);
+
+		/// @brief Removes a mesh for the given viewport
+		/// @param viewport The viewport
+		void RemoveViewportMesh(ImGuiViewport* viewport);
 	};
 }
