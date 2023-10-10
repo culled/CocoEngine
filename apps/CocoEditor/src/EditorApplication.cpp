@@ -89,8 +89,9 @@ namespace Coco
 	void EditorApplication::CreateMainWindow()
 	{
 		using namespace Coco::Windowing;
-		WindowCreateParams createParams("Coco Editor", SizeInt(1280, 720));
+		WindowCreateParams createParams("Coco Editor", SizeInt(1440, 810));
 		createParams.CanResize = true;
+		createParams.InitialState = WindowState::Maximized;
 		
 		_mainWindow = WindowService::Get()->CreateWindow(createParams);
 
@@ -179,8 +180,16 @@ namespace Coco
 
 		// Submit the DockSpace
 		ImGuiIO& io = ImGui::GetIO();
+
+		ImGuiStyle& style = ImGui::GetStyle();
+
+		float minWidth = style.WindowMinSize.x;
+		style.WindowMinSize.x = 300.f;
+
 		ImGuiID dockspace_id = ImGui::GetID("CocoEditorDockspace");
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+		style.WindowMinSize.x = minWidth;
 
 		if (ImGui::BeginMenuBar())
 		{
