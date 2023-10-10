@@ -88,6 +88,7 @@ namespace Coco::ImGuiCoco
         }
 
         CreateObjects();
+        RebuildFontTexture();
     }
 
     ImGuiCocoPlatform::~ImGuiCocoPlatform()
@@ -284,6 +285,30 @@ namespace Coco::ImGuiCoco
         rendering->Render(window->GetPresenter(), *_renderPipeline, *this, sceneProviders);
 
         _currentlyRenderingViewport = nullptr;
+    }
+
+    void ImGuiCocoPlatform::RebuildFontTexture()
+    {
+        // Setup the font texture
+        int width, height;
+        unsigned char* pixels = nullptr;
+        ImGuiIO& io = ::ImGui::GetIO();
+
+        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+        _texture = Engine::Get()->GetResourceLibrary().Create<Texture>(
+            "ImGui",
+            ImageDescription(
+                static_cast<uint32>(width), static_cast<uint32>(height),
+                ImagePixelFormat::RGBA8, ImageColorSpace::sRGB,
+                ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination,
+                false
+            ),
+            ImageSamplerDescription::LinearClamp);
+
+        _texture->SetPixels(0, pixels, static_cast<uint64>(width) * height * GetPixelFormatChannelCount(ImagePixelFormat::RGBA8));
+
+        io.Fonts->SetTexID(_texture.get());
     }
 
     void ImGuiCocoPlatform::PlatformCreateWindow(ImGuiViewport* viewport)
@@ -528,27 +553,6 @@ namespace Coco::ImGuiCoco
                 )
             )
         );
-
-        // Setup the font texture
-        int width, height;
-        unsigned char* pixels = nullptr;
-        ImGuiIO& io = ::ImGui::GetIO();
-
-        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-        _texture = resources.Create<Texture>(
-            "ImGui",
-            ImageDescription(
-                static_cast<uint32>(width), static_cast<uint32>(height),
-                ImagePixelFormat::RGBA8, ImageColorSpace::sRGB,
-                ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination,
-                false
-            ),
-            ImageSamplerDescription::LinearClamp);
-
-        _texture->SetPixels(0, pixels, static_cast<uint64>(width) * height * GetPixelFormatChannelCount(ImagePixelFormat::RGBA8));
-
-        io.Fonts->SetTexID(_texture.get());
     }
 
     void ImGuiCocoPlatform::UpdateDisplays()

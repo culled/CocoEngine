@@ -37,11 +37,11 @@ namespace Coco::ImGuiCoco
 
         /// @brief Gets the ImGui platform
         /// @return The platform
-        ImGuiCocoPlatform* GetPlatform() { return _platform.get(); }
+        ImGuiCocoPlatform& GetPlatform() { return *_platform; }
 
         /// @brief Gets the ImGui platform
         /// @return The platform
-        const ImGuiCocoPlatform* GetPlatform() const { return _platform.get(); }
+        const ImGuiCocoPlatform& GetPlatform() const { return *_platform; }
 
     private:
         /// @brief Handles the new frame tick

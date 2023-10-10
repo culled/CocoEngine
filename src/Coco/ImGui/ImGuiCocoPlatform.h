@@ -112,6 +112,9 @@ namespace Coco::ImGuiCoco
 		/// @param viewport The viewport
 		void RenderViewport(ImGuiViewport* viewport);
 
+		/// @brief Rebuilds the internal font texture. Call this if a font in ImGui has changed
+		void RebuildFontTexture();
+
 	private:
 		/// @brief ImGui callback for creating a window
 		/// @param viewport The viewport

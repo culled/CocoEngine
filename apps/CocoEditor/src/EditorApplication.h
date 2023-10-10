@@ -29,6 +29,7 @@ namespace Coco
         Ref<Windowing::Window> _mainWindow;
         ManagedRef<TickListener> _updateTickListener;
         ManagedRef<TickListener> _renderTickListener;
+        std::vector<uint8> _fontData;
 
         UniqueRef<ViewportPanel> _viewport;
         UniqueRef<SceneHierarchyPanel> _scenePanel;

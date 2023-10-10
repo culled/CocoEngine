@@ -60,6 +60,7 @@ namespace Coco
 
 		_scenePanel.reset();
 		_mainWindow.Invalidate();
+		_fontData.clear();
 	}
 
 	void EditorApplication::SetupServices()
@@ -100,6 +101,18 @@ namespace Coco
 
 	void EditorApplication::SetupDefaultLayout()
 	{
+		using namespace Coco::ImGuiCoco;
+
+		File f = Engine::Get()->GetFileSystem().OpenFile("misc/fonts/Roboto/Roboto-Regular.ttf", FileOpenFlags::Read);
+		_fontData = f.ReadToEnd();
+		f.Close();
+
+		ImGuiIO& io = ImGui::GetIO();
+		ImFontConfig fontConfig;
+		fontConfig.FontDataOwnedByAtlas = false;
+		io.FontDefault = io.Fonts->AddFontFromMemoryTTF(_fontData.data(), static_cast<int>(_fontData.size()), 16.f, &fontConfig);
+		ImGuiService::Get()->GetPlatform().RebuildFontTexture();
+
 		_viewport = CreateViewportPanel();
 		_scenePanel = CreateUniqueRef<SceneHierarchyPanel>(_mainScene);
 		_inspectorPanel = CreateUniqueRef<InspectorPanel>();
