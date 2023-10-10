@@ -52,6 +52,8 @@ namespace Coco
 
 			bool remove = false;
 
+			ImGui::PushID(ui.UI->GetHeader());
+
 			if (ui.UI->IsRemovable())
 			{
 				const float buttonWidth = 30.f;
@@ -59,10 +61,10 @@ namespace Coco
 
 				if (ImGui::Button("...", ImVec2{ buttonWidth, 18.f }))
 				{
-					ImGui::OpenPopup("ComponentSettings");
+					ImGui::OpenPopup("##ComponentSettings");
 				}
 
-				if (ImGui::BeginPopup("ComponentSettings"))
+				if (ImGui::BeginPopup("##ComponentSettings"))
 				{
 					if (ImGui::MenuItem("Remove"))
 					{
@@ -82,6 +84,8 @@ namespace Coco
 			{
 				ui.RemoveFunc(entity);
 			}
+
+			ImGui::PopID();
 		}
 	}
 

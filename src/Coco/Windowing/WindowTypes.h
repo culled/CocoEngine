@@ -95,6 +95,9 @@ namespace Coco::Windowing
 		/// @brief If given, sets the index of the display to show the window on
 		std::optional<uint8> DisplayIndex;
 
+		/// @brief If true, the window will grab focus when it is shown
+		bool FocusOnShow;
+
 		/// @brief Styling flags
 		WindowStyleFlags StyleFlags;
 

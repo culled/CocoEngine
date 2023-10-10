@@ -306,6 +306,9 @@ namespace Coco::ImGuiCoco
         if ((viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon) == ImGuiViewportFlags_NoTaskBarIcon)
             createParams.StyleFlags |= WindowStyleFlags::NoTaskbarIcon;
 
+        if ((viewport->Flags & ImGuiViewportFlags_NoFocusOnAppearing) == ImGuiViewportFlags_NoFocusOnAppearing)
+            createParams.FocusOnShow = false;
+
         Ref<Window> window = windowing->CreateWindow(createParams);
         CocoViewportData& viewportData = _sViewports.try_emplace(window->ID, window.Get()).first->second;
 

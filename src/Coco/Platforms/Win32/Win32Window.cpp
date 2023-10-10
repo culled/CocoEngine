@@ -31,6 +31,7 @@ namespace Coco::Platforms::Win32
 		_title(createParams.Title),
 		_canResize(createParams.CanResize),
 		_isFullscreen(createParams.IsFullscreen),
+		_focusOnShow(createParams.FocusOnShow),
 		_styleFlags(createParams.StyleFlags),
 		_cursorVisible(true),
 		_cursorConfineMode(CursorConfineMode::None),
@@ -165,7 +166,7 @@ namespace Coco::Platforms::Win32
 	{
 		CheckWindowHandle()
 
-		::ShowWindow(_handle, SW_SHOW);
+		::ShowWindow(_handle, _focusOnShow ? SW_SHOW : SW_SHOWNA);
 		UpdateFullscreenState(IsFullscreen());
 	}
 

@@ -8,6 +8,8 @@ namespace Coco::Rendering
 	/// @brief A binding between a RenderPipeline and a RenderPass
 	struct RenderPassBinding
 	{
+		bool PassEnabled;
+
 		/// @brief The RenderPass
 		SharedRef<RenderPass> Pass;
 		

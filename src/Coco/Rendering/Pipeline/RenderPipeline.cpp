@@ -58,6 +58,8 @@ namespace Coco::Rendering
 
 	bool RenderPipeline::Compile()
 	{
+		CheckIfRenderPassesDirty();
+
 		if (!_isDirty)
 			return true;
 
@@ -70,6 +72,9 @@ namespace Coco::Rendering
 
 			for (const RenderPassBinding& binding : _renderPasses)
 			{
+				if (!binding.PassEnabled)
+					continue;
+
 				std::span<const AttachmentFormat> passAttachments = binding.Pass->GetInputAttachments();
 
 				if (!binding.Pass->SupportsMSAA())
@@ -150,5 +155,26 @@ namespace Coco::Rendering
 	void RenderPipeline::MarkDirty()
 	{
 		_isDirty = true;
+	}
+
+	void RenderPipeline::CheckIfRenderPassesDirty()
+	{
+		if (_compiledPipeline.RenderPasses.size() != _renderPasses.size())
+		{
+			MarkDirty();
+			return;
+		}
+
+		for (uint64 i = 0; i < _renderPasses.size(); i++)
+		{
+			const RenderPassBinding& binding = _renderPasses.at(i);
+			const RenderPassBinding& compiledBinding = _compiledPipeline.RenderPasses.at(i);
+
+			if (binding.PassEnabled != compiledBinding.PassEnabled)
+			{
+				MarkDirty();
+				return;
+			}
+		}
 	}
 }

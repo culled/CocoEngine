@@ -32,6 +32,10 @@ namespace Coco::Rendering
 		/// @return The number of render passes
 		uint64 GetRenderPassCount() const { return _renderPasses.size(); }
 
+		/// @brief Gets the render passes in this pipeline
+		/// @return The render passes in this pipeline
+		std::span<RenderPassBinding> GetRenderPasses() { return _renderPasses; }
+
 		/// @brief Compiles this pipeline if it is dirty
 		/// @return True if compilation was successful
 		bool Compile();
@@ -43,5 +47,8 @@ namespace Coco::Rendering
 	private:
 		/// @brief Marks this pipeline as dirty and needing to be re-compiled
 		void MarkDirty();
+
+		/// @brief Checks if any renderpasses differ in state from their compiled versions
+		void CheckIfRenderPassesDirty();
 	};
 }

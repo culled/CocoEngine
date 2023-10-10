@@ -18,6 +18,7 @@ namespace Coco::Platforms::Win32
         string _title;
         bool _canResize;
         bool _isFullscreen;
+        bool _focusOnShow;
         WindowStyleFlags _styleFlags;
         bool _cursorVisible;
         CursorConfineMode _cursorConfineMode;

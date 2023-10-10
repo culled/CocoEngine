@@ -14,6 +14,7 @@ namespace Coco::Windowing
 		InitialPosition(),
 		ParentWindow(Window::InvalidID),
 		DisplayIndex(),
+		FocusOnShow(true),
 		StyleFlags(WindowStyleFlags::None)
 	{}
 }
