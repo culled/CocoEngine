@@ -3,6 +3,7 @@
 #include "Texture.h"
 #include "Pipeline/RenderPipeline.h"
 #include "Gizmos/GizmoRender.h"
+#include "Graphics/RenderView.h"
 
 #include "Serializers/ShaderSerializer.h"
 #include "Serializers/TextureSerializer.h"
@@ -244,11 +245,13 @@ namespace Coco::Rendering
 
 		if (!ExecuteRender(*renderContext, compiledPipeline, _renderView, waitOn))
 		{
+			_renderView.Reset();
 			return false;
 		}
 
 		_stats += renderContext->GetRenderStats();
 		_individualRenderStats.push_back(renderContext->GetRenderStats());
+		_renderView.Reset();
 
 		if (outTask)
 			*outTask = RenderTask(rendererID, renderContext->GetRenderCompletedSemaphore(), renderContext->GetRenderCompletedFence());
