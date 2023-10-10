@@ -34,7 +34,6 @@ namespace Coco
 		_updateTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleUpdateTick, 0)),
 		_renderTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleRenderTick, 99)),
 		_pipeline(BuiltInPipeline::Create(true)),
-		_mainScene(Scene::Create()),
 		_viewportClosedHandler(this, &EditorApplication::OnViewportPanelClosed)
 	{
 		SetupServices();
@@ -104,7 +103,7 @@ namespace Coco
 	{
 		using namespace Coco::ImGuiCoco;
 
-		File f = Engine::Get()->GetFileSystem().OpenFile("misc/fonts/Roboto/Roboto-Regular.ttf", FileOpenFlags::Read);
+		File f = Engine::Get()->GetFileSystem().OpenFile("ui/fonts/Roboto/Roboto-Regular.ttf", FileOpenFlags::Read);
 		_fontData = f.ReadToEnd();
 		f.Close();
 
@@ -124,14 +123,16 @@ namespace Coco
 		using namespace Coco::Rendering;
 		using namespace Coco::ECS;
 
+		ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
+
+		_mainScene = resourceLibrary.Create<Scene>("Scene");
+
 		VertexDataFormat format{};
 		format.HasUV0 = true;
 
 		std::vector<VertexData> vertices;
 		std::vector<uint32> indices;
 		MeshUtilities::CreateXYGrid(Vector2::One, Vector3::Zero, format, vertices, indices);
-
-		ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
 		SharedRef<Mesh> mesh = resourceLibrary.Create<Mesh>("Mesh");
 		mesh->SetVertices(format, vertices);

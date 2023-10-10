@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Coco/Core/Resources/Resource.h>
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/String.h>
 #include <Coco/Core/MainLoop/TickListener.h>
@@ -11,10 +12,11 @@ namespace Coco::ECS
 
     /// @brief A collection of Entities
     class Scene :
-        public std::enable_shared_from_this<Scene>
+        public Resource
     {
         friend class Entity;
         friend class SceneRender3DProvider;
+        friend class SceneSerializer;
 
     public:
         static const int sLateTickPriority;
@@ -24,15 +26,11 @@ namespace Coco::ECS
         entt::registry _registry;
         std::vector<Entity> _queuedDestroyEntities;
 
-    private:
-        Scene();
-
     public:
+        Scene(const ResourceID& id, const string& name);
         ~Scene();
 
-        /// @brief Creates a Scene
-        /// @return The created scene
-        static SharedRef<Scene> Create();
+        std::type_index GetType() const { return typeid(Scene); }
 
         /// @brief Creates an entity within this scene
         /// @param name The name of the entity

@@ -18,8 +18,8 @@ namespace Coco
 
 		SetupFromProcessArguments();
 
-		_resourceLibrary = CreateUniqueRef<ResourceLibrary>();
 		_mainLoop = CreateUniqueRef<MainLoop>();
+		_resourceLibrary = CreateUniqueRef<ResourceLibrary>();
 		_serviceManager = CreateUniqueRef<ServiceManager>();
 
 		try
@@ -41,8 +41,8 @@ namespace Coco
 	{
 		_app.reset();
 		_serviceManager.reset();
-		_mainLoop.reset();
 		_resourceLibrary.reset();
+		_mainLoop.reset();
 		_fileSystem.reset();
 
 		LogTrace(_log, "Engine shutdown. Bye!")

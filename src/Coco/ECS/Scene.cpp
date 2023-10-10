@@ -10,7 +10,8 @@ namespace Coco::ECS
 {
 	const int Scene::sLateTickPriority = 100000;
 
-	Scene::Scene() :
+	Scene::Scene(const ResourceID& id, const string& name) :
+		Resource(id, name),
 		_lateTickListener(CreateManagedRef<TickListener>(this, &Scene::HandleLateTick, sLateTickPriority)),
 		_registry(),
 		_queuedDestroyEntities()
@@ -23,14 +24,9 @@ namespace Coco::ECS
 		MainLoop::Get()->RemoveListener(_lateTickListener);
 	}
 
-	SharedRef<Scene> Scene::Create()
-	{
-		return SharedRef<Scene>(new Scene());
-	}
-
 	Entity Scene::CreateEntity(const string& name)
 	{
-		Entity e(_registry.create(), shared_from_this());
+		Entity e(_registry.create(), GetSelfRef<Scene>());
 		e.AddComponent<EntityInfoComponent>(name, std::optional<Entity>());
 		return e;
 	}
@@ -66,7 +62,7 @@ namespace Coco::ECS
 			if (!_registry.valid(e))
 				continue;
 
-			Entity entity(e, shared_from_this());
+			Entity entity(e, GetSelfRef<Scene>());
 			callback(entity);
 		}
 	}

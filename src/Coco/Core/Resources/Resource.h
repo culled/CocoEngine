@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Defines.h"
+#include "../Types/Refs.h"
 #include "../Types/String.h"
 
 namespace Coco
@@ -12,7 +13,8 @@ namespace Coco
 	using ResourceVersion = uint64;
 
 	/// @brief Base class for Engine resources
-	class Resource
+	class Resource :
+		public std::enable_shared_from_this<Resource>
 	{
 		friend class ResourceLibrary;
 
@@ -58,5 +60,14 @@ namespace Coco
 		/// @brief Sets the version of this resource
 		/// @param version The new version
 		void SetVersion(const ResourceVersion& version);
+
+		/// @brief Gets a self-reference for this resource
+		/// @tparam DerivedType The derived type
+		/// @return A self-reference for the derived type
+		template<typename DerivedType>
+		SharedRef<DerivedType> GetSelfRef()
+		{
+			return std::static_pointer_cast<DerivedType>(shared_from_this());
+		}
 	};
 }
