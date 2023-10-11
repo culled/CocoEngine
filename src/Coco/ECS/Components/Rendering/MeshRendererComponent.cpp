@@ -11,4 +11,21 @@ namespace Coco::ECS
 		Mesh(mesh),
 		Materials(materials)
 	{}
+
+	void MeshRendererComponent::EnsureMaterialSlots()
+	{
+		if (!Mesh)
+		{
+			Materials.clear();
+			return;
+		}
+
+		for (const auto& it : Mesh->GetSubmeshes())
+		{
+			if (Materials.contains(it.first))
+				continue;
+
+			Materials[it.first] = nullptr;
+		}
+	}
 }

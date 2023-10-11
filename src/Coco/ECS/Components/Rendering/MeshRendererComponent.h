@@ -17,5 +17,8 @@ namespace Coco::ECS
 
         MeshRendererComponent();
         MeshRendererComponent(SharedRef<Rendering::Mesh> mesh, const std::unordered_map<uint32, SharedRef<MaterialDataProvider>>& materials);
+
+        /// @brief Populates the material slots based on the assigned mesh's submeshes
+        void EnsureMaterialSlots();
     };
 }
