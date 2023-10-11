@@ -1,5 +1,6 @@
 #pragma once
 
+#include "String.h"
 #include "../Math/Math.h"
 
 namespace Coco
@@ -76,5 +77,9 @@ namespace Coco
 		/// @brief Gets this rotation as euler angles
 		/// @return The euler angles that this rotation represents
 		Vector3 ToEulerAngles() const;
+
+		/// @brief Gets the string representation of this quaternion
+		/// @return A string
+		string ToString() const;
 	};
 }

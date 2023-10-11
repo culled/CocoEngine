@@ -1,5 +1,6 @@
 #pragma once
 #include <Coco/Core/Types/String.h>
+#include "../EntityTypes.h"
 #include "../Entity.h"
 
 namespace Coco::ECS
@@ -10,6 +11,9 @@ namespace Coco::ECS
         /// @brief The name of the entity
         string Name;
 
+        /// @brief The ID of the entity
+        uint64 ID;
+
         /// @brief The parent of the entity, if any
         std::optional<Entity> Parent;
 
@@ -17,6 +21,6 @@ namespace Coco::ECS
         bool IsActive;
 
         EntityInfoComponent();
-        EntityInfoComponent(const string& name, std::optional<Entity> parent);
+        EntityInfoComponent(const string& name, const EntityID& id, std::optional<Entity> parent);
     };
 }

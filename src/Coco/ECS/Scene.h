@@ -5,6 +5,7 @@
 #include <Coco/Core/Types/String.h>
 #include <Coco/Core/MainLoop/TickListener.h>
 #include "entt.h"
+#include "EntityTypes.h"
 
 namespace Coco::ECS
 {
@@ -48,6 +49,8 @@ namespace Coco::ECS
         void EachEntity(std::function<void(Entity&)> callback);
 
     private:
+        Entity CreateEntity(const string& name, const EntityID& id);
+
         void HandleLateTick(const TickInfo& tickInfo);
     };
 }

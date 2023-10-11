@@ -1,0 +1,231 @@
+#pragma once
+
+#include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Quaternion.h>
+#include <Coco/Core/Types/Color.h>
+#include <yaml-cpp/yaml.h>
+
+namespace YAML
+{
+	Emitter& operator<<(Emitter& out, const Coco::Vector2& v);
+
+	template<>
+	struct convert<Coco::Vector2>
+	{
+		static Node encode(const Coco::Vector2& v)
+		{
+			Node node;
+			node.push_back(v.X);
+			node.push_back(v.Y);
+			return node;
+		}
+
+		static bool decode(const Node& node, Coco::Vector2& v)
+		{
+			if (!node.IsSequence() || node.size() != 2)
+				return false;
+
+			v.X = node[0].as<double>();
+			v.Y = node[1].as<double>();
+
+			return true;
+		}
+	};
+
+	Emitter& operator<<(Emitter& out, const Coco::Vector2Int& v);
+
+	template<>
+	struct convert<Coco::Vector2Int>
+	{
+		static Node encode(const Coco::Vector2Int& v)
+		{
+			Node node;
+			node.push_back(v.X);
+			node.push_back(v.Y);
+			return node;
+		}
+
+		static bool decode(const Node& node, Coco::Vector2Int& v)
+		{
+			if (!node.IsSequence() || node.size() != 2)
+				return false;
+
+			v.X = node[0].as<int>();
+			v.Y = node[1].as<int>();
+
+			return true;
+		}
+	};
+
+	Emitter& operator<<(Emitter& out, const Coco::Vector3& v);
+
+	template<>
+	struct convert<Coco::Vector3>
+	{
+		static Node encode(const Coco::Vector3& v)
+		{
+			Node node;
+			node.push_back(v.X);
+			node.push_back(v.Y);
+			node.push_back(v.Z);
+			return node;
+		}
+
+		static bool decode(const Node& node, Coco::Vector3& v)
+		{
+			if (!node.IsSequence() || node.size() != 3)
+				return false;
+
+			v.X = node[0].as<double>();
+			v.Y = node[1].as<double>();
+			v.Z = node[2].as<double>();
+
+			return true;
+		}
+	};
+
+	Emitter& operator<<(Emitter& out, const Coco::Vector3Int& v);
+
+	template<>
+	struct convert<Coco::Vector3Int>
+	{
+		static Node encode(const Coco::Vector3Int& v)
+		{
+			Node node;
+			node.push_back(v.X);
+			node.push_back(v.Y);
+			node.push_back(v.Z);
+			return node;
+		}
+
+		static bool decode(const Node& node, Coco::Vector3Int& v)
+		{
+			if (!node.IsSequence() || node.size() != 3)
+				return false;
+
+			v.X = node[0].as<int>();
+			v.Y = node[1].as<int>();
+			v.Z = node[2].as<int>();
+
+			return true;
+		}
+	};
+
+	Emitter& operator<<(Emitter& out, const Coco::Vector4& v);
+
+	template<>
+	struct convert<Coco::Vector4>
+	{
+		static Node encode(const Coco::Vector4& v)
+		{
+			Node node;
+			node.push_back(v.X);
+			node.push_back(v.Y);
+			node.push_back(v.Z);
+			node.push_back(v.W);
+			return node;
+		}
+
+		static bool decode(const Node& node, Coco::Vector4& v)
+		{
+			if (!node.IsSequence() || node.size() != 4)
+				return false;
+
+			v.X = node[0].as<double>();
+			v.Y = node[1].as<double>();
+			v.Z = node[2].as<double>();
+			v.W = node[3].as<double>();
+
+			return true;
+		}
+	};
+
+	Emitter& operator<<(Emitter& out, const Coco::Vector4Int& v);
+
+	template<>
+	struct convert<Coco::Vector4Int>
+	{
+		static Node encode(const Coco::Vector4Int& v)
+		{
+			Node node;
+			node.push_back(v.X);
+			node.push_back(v.Y);
+			node.push_back(v.Z);
+			node.push_back(v.W);
+			return node;
+		}
+
+		static bool decode(const Node& node, Coco::Vector4Int& v)
+		{
+			if (!node.IsSequence() || node.size() != 4)
+				return false;
+
+			v.X = node[0].as<int>();
+			v.Y = node[1].as<int>();
+			v.Z = node[2].as<int>();
+			v.W = node[3].as<int>();
+
+			return true;
+		}
+	};
+
+	Emitter& operator<<(Emitter& out, const Coco::Quaternion& v);
+
+	template<>
+	struct convert<Coco::Quaternion>
+	{
+		static Node encode(const Coco::Quaternion& v)
+		{
+			Node node;
+			node.push_back(v.W);
+			node.push_back(v.X);
+			node.push_back(v.Y);
+			node.push_back(v.Z);
+			return node;
+		}
+
+		static bool decode(const Node& node, Coco::Quaternion& v)
+		{
+			if (!node.IsSequence() || node.size() != 4)
+				return false;
+
+			v.W = node[0].as<double>();
+			v.X = node[1].as<double>();
+			v.Y = node[2].as<double>();
+			v.Z = node[3].as<double>();
+
+			return true;
+		}
+	};
+
+	Emitter& operator<<(Emitter& out, const Coco::Color& v);
+
+	template<>
+	struct convert<Coco::Color>
+	{
+		static Node encode(const Coco::Color& v)
+		{
+			Node node;
+			node.push_back(v.R);
+			node.push_back(v.G);
+			node.push_back(v.B);
+			node.push_back(v.A);
+			node.push_back(v.IsLinear);
+			return node;
+		}
+
+		static bool decode(const Node& node, Coco::Color& v)
+		{
+			if (!node.IsSequence() || node.size() != 5)
+				return false;
+
+			v.R = node[0].as<double>();
+			v.G = node[1].as<double>();
+			v.B = node[2].as<double>();
+			v.A = node[3].as<double>();
+			v.IsLinear = node[4].as<bool>();
+
+			return true;
+		}
+	};
+}

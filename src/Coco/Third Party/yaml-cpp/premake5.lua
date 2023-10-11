@@ -15,16 +15,21 @@ project "yaml-cpp"
     files
     {
         "%{wks.location}\\src\\Vendor\\yaml-cpp\\src\\**.h",
-        "%{wks.location}\\src\\Vendor\\yaml-cpp\\src\\**.cpp"
+        "%{wks.location}\\src\\Vendor\\yaml-cpp\\src\\**.cpp",
+        "**.h",
+        "**.cpp"
     }
 
     includedirs
     {
         "%{IncludeDir.yaml_cpp}",
+        "%{IncludeDir.Coco}"
     }
 
     links
-    {}
+    {
+        "Coco.Core"
+    }
 
     -- Build configs
     filter { "configurations:Debug" }

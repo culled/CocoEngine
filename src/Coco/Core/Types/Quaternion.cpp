@@ -214,4 +214,9 @@ namespace Coco
 
 		return eulerAngles;
 	}
+
+	string Quaternion::ToString() const
+	{
+		return FormatString("{}, {}, {}, {}", W, X, Y, Z);
+	}
 }

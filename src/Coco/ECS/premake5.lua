@@ -13,7 +13,7 @@ project "Coco.ECS"
     targetdir(OutputBin)
     objdir(OutputObj)
 
-    defines { "COCO_ASSERTIONS" }
+    defines { "COCO_ASSERTIONS", "YAML_CPP_STATIC_DEFINE" }
 
     files
     {
@@ -24,12 +24,14 @@ project "Coco.ECS"
     includedirs
     {
         "%{IncludeDir.Coco}",
-        "%{IncludeDir.entt}"
+        "%{IncludeDir.entt}",
+        "%{IncludeDir.yaml_cpp}"
     }
 
     links
     {
-        "Coco.Core"
+        "Coco.Core",
+        "yaml-cpp"
     }
 
     if(Services["Rendering"] ~= nil) then

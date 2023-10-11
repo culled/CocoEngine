@@ -9,6 +9,9 @@
 #include <Coco/ECS/Components/Rendering/CameraComponent.h>
 #include "Components/Rendering/CameraComponentUI.h"
 
+#include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
+#include "Components/Rendering/MeshRendererComponentUI.h"
+
 #include <imgui.h>
 
 using namespace Coco::ECS;
@@ -22,6 +25,7 @@ namespace Coco
 		RegisterComponentUI<EntityInfoComponent, EntityInfoComponentUI>();
 		RegisterComponentUI<Transform3DComponent, Transform3DComponentUI>();
 		RegisterComponentUI<CameraComponent, CameraComponentUI>();
+		RegisterComponentUI<MeshRendererComponent, MeshRendererComponentUI>();
 	}
 
 	bool ComponentUI::DrawAddComponentUI(ECS::Entity& entity)

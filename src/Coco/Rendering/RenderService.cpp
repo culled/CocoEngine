@@ -8,6 +8,7 @@
 #include "Serializers/ShaderSerializer.h"
 #include "Serializers/TextureSerializer.h"
 #include "Serializers/MaterialSerializer.h"
+#include "Serializers/MeshSerializer.h"
 
 #include <Coco/Core/Engine.h>
 
@@ -49,6 +50,7 @@ namespace Coco::Rendering
 		resources.CreateSerializer<ShaderSerializer>();
 		resources.CreateSerializer<TextureSerializer>();
 		resources.CreateSerializer<MaterialSerializer>();
+		resources.CreateSerializer<MeshSerializer>();
 
 		CocoTrace("RenderService initialized")
 	}

@@ -24,7 +24,7 @@ namespace Coco::ECS
 			const Transform3DComponent& transform = _scene->_registry.get<const Transform3DComponent>(e);
 			const MeshRendererComponent& renderer = _scene->_registry.get<const MeshRendererComponent>(e);
 
-			if (!info.IsActive)
+			if (!info.IsActive || !renderer.Mesh)
 				continue;
 
 			for (const auto& kvp : renderer.Mesh->GetSubmeshes())

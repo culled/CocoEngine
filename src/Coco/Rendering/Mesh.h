@@ -52,7 +52,6 @@ namespace Coco::Rendering
 		/// @param format The format of the vertex data
 		/// @param vertices The vertices
 		void SetVertices(const VertexDataFormat& format, std::span<const VertexData> vertices);
-
 		/// @brief Sets the indices of this mesh
 		/// @param indices The indices
 		/// @param submeshID The id of the submesh that these indices reference
@@ -62,6 +61,14 @@ namespace Coco::Rendering
 		/// @param deleteLocalData If true, vertex and index data will be deleted locally and will be soley stored on the GPU
 		/// @return True if the apply was successful
 		bool Apply(bool deleteLocalData = true);
+
+		/// @brief Gets the vertices of this mesh
+		/// @return The mesh vertices
+		std::span<const VertexData> GetVertices() const { return _vertices; }
+
+		/// @brief Gets the indices of this mesh
+		/// @return The mesh indices
+		const std::unordered_map<uint32, std::vector<uint32>>& GetIndices() const { return _indices; }
 
 		/// @brief Gets the format of this mesh's vertex data
 		/// @return The format of the vertex data

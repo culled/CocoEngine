@@ -26,9 +26,7 @@ namespace Coco::ECS
 
 	Entity Scene::CreateEntity(const string& name)
 	{
-		Entity e(_registry.create(), GetSelfRef<Scene>());
-		e.AddComponent<EntityInfoComponent>(name, std::optional<Entity>());
-		return e;
+		return CreateEntity(name, _registry.view<entt::entity>().size());
 	}
 
 	void Scene::DestroyEntity(Entity& entity)
@@ -65,6 +63,13 @@ namespace Coco::ECS
 			Entity entity(e, GetSelfRef<Scene>());
 			callback(entity);
 		}
+	}
+
+	Entity Scene::CreateEntity(const string& name, const EntityID& id)
+	{
+		Entity e(_registry.create(), GetSelfRef<Scene>());
+		e.AddComponent<EntityInfoComponent>(name, id, std::optional<Entity>());
+		return e;
 	}
 
 	void Scene::HandleLateTick(const TickInfo& tickInfo)

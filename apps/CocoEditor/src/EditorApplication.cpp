@@ -19,6 +19,7 @@
 #include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
 #include <Coco/ECS/Components/Rendering/CameraComponent.h>
 #include <Coco/Rendering/Resources/BuiltinShaders.h>
+#include <Coco/ECS/Serializers/SceneSerializer.h>
 // TEMPORARY
 
 using namespace Coco::ECS;
@@ -36,6 +37,8 @@ namespace Coco
 		_pipeline(BuiltInPipeline::Create(true)),
 		_viewportClosedHandler(this, &EditorApplication::OnViewportPanelClosed)
 	{
+		Engine::Get()->GetResourceLibrary().CreateSerializer<SceneSerializer>();
+
 		SetupServices();
 		CreateMainWindow();
 		CreateMainScene();
@@ -123,43 +126,60 @@ namespace Coco
 		using namespace Coco::Rendering;
 		using namespace Coco::ECS;
 
+		EngineFileSystem& fs = Engine::Get()->GetFileSystem();
 		ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
-		_mainScene = resourceLibrary.Create<Scene>("Scene");
+		const char* sceneFile = "scenes/example.cscene";
+		if (fs.FileExists(sceneFile))
+		{
+			_mainScene = resourceLibrary.GetOrLoad<Scene>(sceneFile);
+		}
+		else
+		{
+			_mainScene = resourceLibrary.Create<Scene>("Scene");
 
-		VertexDataFormat format{};
-		format.HasUV0 = true;
+			VertexDataFormat format{};
+			format.HasUV0 = true;
 
-		std::vector<VertexData> vertices;
-		std::vector<uint32> indices;
-		MeshUtilities::CreateXYGrid(Vector2::One, Vector3::Zero, format, vertices, indices);
+			std::vector<VertexData> vertices;
+			std::vector<uint32> indices;
+			MeshUtilities::CreateXYGrid(Vector2::One, Vector3::Zero, format, vertices, indices);
 
-		SharedRef<Mesh> mesh = resourceLibrary.Create<Mesh>("Mesh");
-		mesh->SetVertices(format, vertices);
-		mesh->SetIndices(indices, 0);
-		mesh->Apply();
+			SharedRef<Mesh> mesh = resourceLibrary.Create<Mesh>("Mesh");
+			mesh->SetVertices(format, vertices);
+			mesh->SetIndices(indices, 0);
+			resourceLibrary.Save("meshes/Quad.cmesh", mesh, true);
 
-		GraphicsPipelineState pipelineState{};
+			mesh->Apply();
 
-		SharedRef<Shader> shader = resourceLibrary.Create<Shader>("UnlitShader", "");
-		shader->AddVariant(BuiltInShaders::UnlitVariant);
+			GraphicsPipelineState pipelineState{};
 
-		SharedRef<Material> material = resourceLibrary.Create<Material>("UnlitMaterial", shader);
-		material->SetFloat4("TintColor", Color::Red);
+			SharedRef<Shader> shader = resourceLibrary.Create<Shader>("UnlitShader", "");
+			shader->AddVariant(BuiltInShaders::UnlitVariant);
 
-		_entity = _mainScene->CreateEntity("Test");
-		_entity.AddComponent<Transform3DComponent>(Vector3::Forward, Quaternion::Identity, Vector3::One);
+			resourceLibrary.Save("shaders/built-in/Unlit.cshader", shader, true);
 
-		std::unordered_map<uint32, SharedRef<MaterialDataProvider>> materials = { { 0, material } };
-		_entity.AddComponent<MeshRendererComponent>(mesh, materials);
+			SharedRef<Material> material = resourceLibrary.Create<Material>("UnlitMaterial", shader);
+			material->SetFloat4("TintColor", Color::Red);
 
-		_entity2 = _mainScene->CreateEntity("Test 2");
-		_entity2.AddComponent<Transform3DComponent>(Vector3(2.0, 2.0, 2.0), Quaternion(Vector3::Up, Math::DegToRad(180.0)), Vector3::One * 2.0);
-		_entity2.AddComponent<MeshRendererComponent>(mesh, materials);
+			resourceLibrary.Save("materials/Unlit_Red.cmaterial", material, true);
 
-		_cameraEntity = _mainScene->CreateEntity("Camera");
-		_cameraEntity.AddComponent<Transform3DComponent>(Vector3(0.0, 0.0, 1.0), Quaternion::Identity, Vector3::One);
-		_cameraEntity.AddComponent<CameraComponent>();
+			_entity = _mainScene->CreateEntity("Test");
+			_entity.AddComponent<Transform3DComponent>(Vector3::Forward, Quaternion::Identity, Vector3::One);
+
+			std::unordered_map<uint32, SharedRef<MaterialDataProvider>> materials = { { 0, material } };
+			_entity.AddComponent<MeshRendererComponent>(mesh, materials);
+
+			_entity2 = _mainScene->CreateEntity("Test 2");
+			_entity2.AddComponent<Transform3DComponent>(Vector3(2.0, 2.0, 2.0), Quaternion(Vector3::Up, Math::DegToRad(180.0)), Vector3::One * 2.0);
+			_entity2.AddComponent<MeshRendererComponent>(mesh, materials);
+
+			_cameraEntity = _mainScene->CreateEntity("Camera");
+			_cameraEntity.AddComponent<Transform3DComponent>(Vector3(0.0, 0.0, 1.0), Quaternion::Identity, Vector3::One);
+			_cameraEntity.AddComponent<CameraComponent>();
+
+			resourceLibrary.Save("scenes/example.cscene", _mainScene, true);
+		}
 	}
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)
