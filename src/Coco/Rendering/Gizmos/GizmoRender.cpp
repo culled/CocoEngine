@@ -61,7 +61,7 @@ namespace Coco::Rendering
 
 		_material = resources.Create<Material>("Debug", _shader);
 
-		_mesh = resources.Create<Mesh>("DebugMesh", false);
+		_mesh = resources.Create<Mesh>("DebugMesh", false, false);
 
 		SetupMesh();
 

@@ -1,15 +1,15 @@
 name: Scene
 entities:
-  - struct Coco::ECS::EntityInfoComponent:
+  - EntityInfoComponent:
       name: Camera
       id: 2
       isActive: true
-    struct Coco::ECS::Transform3DComponent:
+    Transform3DComponent:
       localPosition: [0, 0, 1]
       localRotation: [1, 0, 0, 0]
       localScale: [1, 1, 1]
       inheritParentTransform: true
-    struct Coco::ECS::CameraComponent:
+    CameraComponent:
       priority: 0
       clearColor: [0, 0, 0, 1, false]
       msaaSamples: 0
@@ -18,29 +18,29 @@ entities:
       perspectiveClipping: [0.10000000000000001, 100]
       orthoSize: 1
       orthoClipping: [-1, 1]
-  - struct Coco::ECS::EntityInfoComponent:
+  - EntityInfoComponent:
       name: Test 2
       id: 1
       isActive: true
-    struct Coco::ECS::Transform3DComponent:
+    Transform3DComponent:
       localPosition: [2, 2, 2]
       localRotation: [6.123233995736766e-17, 0, 1, 0]
       localScale: [2, 2, 2]
       inheritParentTransform: true
-    struct Coco::ECS::MeshRendererComponent:
+    MeshRendererComponent:
       mesh: meshes/Quad.cmesh
       materials:
         0: materials/Unlit_Red.cmaterial
-  - struct Coco::ECS::EntityInfoComponent:
+  - EntityInfoComponent:
       name: Test
       id: 0
       isActive: true
-    struct Coco::ECS::Transform3DComponent:
+    Transform3DComponent:
       localPosition: [0, 0, -1]
       localRotation: [1, 0, 0, 0]
       localScale: [1, 1, 1]
       inheritParentTransform: true
-    struct Coco::ECS::MeshRendererComponent:
+    MeshRendererComponent:
       mesh: meshes/Quad.cmesh
       materials:
         0: materials/Unlit_Red.cmaterial  # Fix

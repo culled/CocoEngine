@@ -16,7 +16,7 @@ namespace Coco::Rendering
 		Bounds(bounds)
 	{}
 
-	Mesh::Mesh(const ResourceID& id, const string& name, bool isDynamic) :
+	Mesh::Mesh(const ResourceID& id, const string& name, bool keepLocalData, bool isDynamic) :
 		RendererResource(id, name),
 		_vertexBuffer(),
 		_indexBuffer(),
@@ -27,6 +27,7 @@ namespace Coco::Rendering
 		_vertexCount(0),
 		_indexCount(0),
 		_isDynamic(isDynamic),
+		_keepLocalData(keepLocalData),
 		_isDirty(true),
 		_lockedVertexMemory(nullptr),
 		_lockedIndexMemory(nullptr),
@@ -85,7 +86,7 @@ namespace Coco::Rendering
 		MarkDirty();
 	}
 
-	bool Mesh::Apply(bool deleteLocalData)
+	bool Mesh::Apply()
 	{
 		if (!_isDirty)
 			return true;
@@ -195,7 +196,7 @@ namespace Coco::Rendering
 			if (_submeshes.size() != _indices.size())
 				CalculateSubmeshes();
 
-			if (deleteLocalData)
+			if (!_keepLocalData)
 			{
 				_vertices.clear();
 				_indices.clear();

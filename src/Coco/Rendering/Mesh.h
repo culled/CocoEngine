@@ -27,6 +27,8 @@ namespace Coco::Rendering
 	/// @brief Defines geometry data used for rendering
 	class Mesh : public RendererResource
 	{
+		friend class MeshSerializer;
+
 	private:
 		Ref<Buffer> _vertexBuffer;
 		Ref<Buffer> _indexBuffer;
@@ -37,13 +39,14 @@ namespace Coco::Rendering
 		uint64 _vertexCount;
 		uint64 _indexCount;
 		bool _isDynamic;
+		bool _keepLocalData;
 		bool _isDirty;
 		void* _lockedVertexMemory;
 		void* _lockedIndexMemory;
 		BoundingBox _meshBounds;
 
 	public:
-		Mesh(const ResourceID& id, const string& name, bool isDynamic = false);
+		Mesh(const ResourceID& id, const string& name, bool keepLocalData = false, bool isDynamic = false);
 		~Mesh();
 
 		std::type_index GetType() const final { return typeid(Mesh); }
@@ -58,9 +61,8 @@ namespace Coco::Rendering
 		void SetIndices(std::span<const uint32> indices, uint32 submeshID);
 
 		/// @brief Uploads any pending changes to the GPU
-		/// @param deleteLocalData If true, vertex and index data will be deleted locally and will be soley stored on the GPU
 		/// @return True if the apply was successful
-		bool Apply(bool deleteLocalData = true);
+		bool Apply();
 
 		/// @brief Gets the vertices of this mesh
 		/// @return The mesh vertices

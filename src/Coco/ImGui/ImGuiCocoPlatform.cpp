@@ -597,7 +597,7 @@ namespace Coco::ImGuiCoco
 
         if (!_viewportMeshes.contains(key))
         {
-            _viewportMeshes.try_emplace(key, Engine::Get()->GetResourceLibrary().Create<Mesh>("ImGui", true));
+            _viewportMeshes.try_emplace(key, Engine::Get()->GetResourceLibrary().Create<Mesh>("ImGui", false, true));
         }
 
         return _viewportMeshes.at(key);

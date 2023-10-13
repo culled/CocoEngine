@@ -34,6 +34,8 @@ namespace Coco::Rendering
 		out << YAML::BeginMap;
 
 		out << YAML::Key << "name" << YAML::Value << mesh->GetName();
+		out << YAML::Key << "keepLocalData" << YAML::Value << mesh->_keepLocalData;
+		out << YAML::Key << "isDynamic" << YAML::Value << mesh->_isDynamic;
 
 		out << YAML::Key << "vertexFormat" << YAML::Value << YAML::Flow << YAML::BeginSeq;
 
@@ -71,6 +73,8 @@ namespace Coco::Rendering
 		YAML::Node baseNode = YAML::Load(data);
 
 		string name = baseNode["name"].as<string>();
+		bool keepLocalData = baseNode["keepLocalData"].as<bool>();
+		bool isDynamic = baseNode["isDynamic"].as<bool>();
 
 		const YAML::Node vertexFormatNode = baseNode["vertexFormat"];
 		VertexDataFormat format;
@@ -92,7 +96,7 @@ namespace Coco::Rendering
 			v.UV0 = vertexNode[4].as<Vector2>();
 		}
 
-		SharedRef<Mesh> mesh = CreateSharedRef<Mesh>(resourceID, name);
+		SharedRef<Mesh> mesh = CreateSharedRef<Mesh>(resourceID, name, keepLocalData, isDynamic);
 		mesh->SetVertices(format, vertices);
 
 		const YAML::Node indicesNode = baseNode["indices"];
