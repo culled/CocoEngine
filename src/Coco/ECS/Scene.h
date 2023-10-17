@@ -16,7 +16,6 @@ namespace Coco::ECS
         public Resource
     {
         friend class Entity;
-        friend class SceneRender3DProvider;
         friend class SceneSerializer;
 
         template<typename, typename...>

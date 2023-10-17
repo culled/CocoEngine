@@ -5,6 +5,8 @@
 #include "../../Components/Transform3DComponent.h"
 #include "../../Components/Rendering/MeshRendererComponent.h"
 
+#include "../../SceneView.h"
+
 namespace Coco::ECS
 {
 
@@ -16,13 +18,13 @@ namespace Coco::ECS
 	{
 		Assert(_scene != nullptr)
 
-		auto view = _scene->_registry.view<EntityInfoComponent, Transform3DComponent, MeshRendererComponent>();
+		auto view = SceneView<EntityInfoComponent, Transform3DComponent, MeshRendererComponent>(_scene);
 
-		for (const auto& e : view)
+		for (const Entity& e : view)
 		{
-			const EntityInfoComponent& info = _scene->_registry.get<const EntityInfoComponent>(e);
-			const Transform3DComponent& transform = _scene->_registry.get<const Transform3DComponent>(e);
-			const MeshRendererComponent& renderer = _scene->_registry.get<const MeshRendererComponent>(e);
+			const EntityInfoComponent& info = e.GetComponent<EntityInfoComponent>();
+			const Transform3DComponent& transform = e.GetComponent<Transform3DComponent>();
+			const MeshRendererComponent& renderer = e.GetComponent<MeshRendererComponent>();
 
 			if (!info.IsActive || !renderer.Mesh)
 				continue;
