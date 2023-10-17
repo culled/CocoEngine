@@ -2,7 +2,7 @@
 
 #include <Coco/Core/Types/Refs.h>
 #include "Scene.h"
-#include <entt/entity/entity.hpp>
+#include "entt.h"
 
 namespace Coco::ECS
 {
@@ -10,6 +10,9 @@ namespace Coco::ECS
 	class Entity
 	{
 		friend class Scene;
+
+		template<typename, typename...>
+		friend class SceneViewIterator;
 
 	public:
 		static const Entity Null;

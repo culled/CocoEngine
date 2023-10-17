@@ -19,6 +19,9 @@ namespace Coco::ECS
         friend class SceneRender3DProvider;
         friend class SceneSerializer;
 
+        template<typename, typename...>
+        friend class SceneView;
+
     public:
         static const int sLateTickPriority;
 
