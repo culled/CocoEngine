@@ -182,6 +182,9 @@ namespace Coco::ImGuiCoco
 		/// @brief Initializes the platform interface for ImGui
 		void InitPlatformInterface();
 
+		/// @brief Shuts down the platform interface for ImGui
+		void ShutdownPlatformInterface();
+
 		/// @brief Creates resources for ImGui rendering
 		void CreateObjects();
 

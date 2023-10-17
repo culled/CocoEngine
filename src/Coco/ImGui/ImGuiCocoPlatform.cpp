@@ -93,6 +93,13 @@ namespace Coco::ImGuiCoco
 
     ImGuiCocoPlatform::~ImGuiCocoPlatform()
     {
+        ImGuiIO& io = ::ImGui::GetIO();
+        if ((io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) == ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGui::DestroyPlatformWindows();
+            ShutdownPlatformInterface();
+        }
+
         _renderPipeline.reset();
         _renderPass.reset();
         _shader.reset();
@@ -509,6 +516,22 @@ namespace Coco::ImGuiCoco
         platformIO.Platform_SetWindowTitle = &ImGuiCocoPlatform::PlatformSetWindowTitle;
         platformIO.Platform_RenderWindow = nullptr;
         platformIO.Platform_SwapBuffers = nullptr;
+    }
+
+    void ImGuiCocoPlatform::ShutdownPlatformInterface()
+    {
+        ImGuiPlatformIO& platformIO = ::ImGui::GetPlatformIO();
+        platformIO.Platform_CreateWindow = nullptr;
+        platformIO.Platform_DestroyWindow = nullptr;
+        platformIO.Platform_ShowWindow = nullptr;
+        platformIO.Platform_SetWindowPos = nullptr;
+        platformIO.Platform_GetWindowPos = nullptr;
+        platformIO.Platform_SetWindowSize = nullptr;
+        platformIO.Platform_GetWindowSize = nullptr;
+        platformIO.Platform_SetWindowFocus = nullptr;
+        platformIO.Platform_GetWindowFocus = nullptr;
+        platformIO.Platform_GetWindowMinimized = nullptr;
+        platformIO.Platform_SetWindowTitle = nullptr;
     }
 
     void ImGuiCocoPlatform::CreateObjects()
