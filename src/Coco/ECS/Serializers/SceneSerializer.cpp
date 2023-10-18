@@ -67,6 +67,13 @@ namespace Coco::ECS
 
 		out << YAML::BeginMap;
 		out << YAML::Key << "name" << YAML::Value << scene->GetName();
+
+		out << YAML::Key << "hierarchy" << YAML::Value << YAML::BeginMap;
+		for (const auto& kvp : scene->_entityParentMap)
+			out << YAML::Key << kvp.first << YAML::Value << kvp.second;
+
+		out << YAML::EndMap;
+
 		out << YAML::Key << "entities" << YAML::Value << YAML::BeginSeq;
 
 		scene->EachEntity([&](Entity& e) 
@@ -87,6 +94,10 @@ namespace Coco::ECS
 		string name = baseNode["name"].as<string>();
 
 		SharedRef<Scene> scene = CreateSharedRef<Scene>(resourceID, name);
+
+		YAML::Node hierarchyNode = baseNode["hierarchy"];
+		for (YAML::const_iterator it = hierarchyNode.begin(); it != hierarchyNode.end(); it++)
+			scene->_entityParentMap[it->first.as<EntityID>()] = it->second.as<EntityID>();
 
 		YAML::Node entitiesNode = baseNode["entities"];
 		for (YAML::const_iterator it = entitiesNode.begin(); it != entitiesNode.end(); it++)

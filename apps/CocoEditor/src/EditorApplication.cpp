@@ -180,7 +180,7 @@ namespace Coco
 			_cameraEntity.AddComponent<Transform3DComponent>(Vector3(0.0, 0.0, 1.0), Quaternion::Identity, Vector3::One);
 			_cameraEntity.AddComponent<CameraComponent>();
 
-			//resourceLibrary.Save("scenes/example.cscene", _mainScene, true);
+			resourceLibrary.Save("scenes/example.cscene", _mainScene, true);
 		}
 	}
 
