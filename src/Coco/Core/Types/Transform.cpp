@@ -52,9 +52,18 @@ namespace Coco
 
 	double Transform2D::GlobalToLocalRotation(double rotation) const
 	{
-		Quaternion r(Vector3(0.0, 0.0, rotation));
-		Vector3 e = (InvGlobalTransform * r).ToEulerAngles();
+		Vector3 t, s;
+		Quaternion r;
+		InvGlobalTransform.Decompose(t, r, s);
+		Vector3 e = (r * Quaternion(Vector3(0.0, 0.0, rotation))).ToEulerAngles();
 		return e.Z;
+	}
+
+	Vector2 Transform2D::GlobalToLocalScale(const Vector2& scale) const
+	{
+		Quaternion rotation = Quaternion(Vector3(0.0, 0.0, GetGlobalRotation()));
+		Vector3 rotated = rotation * Vector3(scale, 0.0);
+		return GlobalToLocalVector(rotated.XY());
 	}
 
 	Vector2 Transform2D::GlobalToLocalVector(const Vector2& vector) const
@@ -71,9 +80,18 @@ namespace Coco
 
 	double Transform2D::LocalToGlobalRotation(double rotation) const
 	{
-		Quaternion r(Vector3(0.0, 0.0, rotation));
-		Vector3 e = (GlobalTransform * r).ToEulerAngles();
+		Vector3 t, s;
+		Quaternion r;
+		GlobalTransform.Decompose(t, r, s);
+		Vector3 e = (r * Quaternion(Vector3(0.0, 0.0, rotation))).ToEulerAngles();
 		return e.Z;
+	}
+
+	Vector2 Transform2D::LocalToGlobalScale(const Vector2& scale) const
+	{
+		Quaternion rotation = Quaternion(Vector3(0.0, 0.0, GetGlobalRotation())).Inverted();
+		Vector3 rotated = rotation * Vector3(scale, 0.0);
+		return GlobalToLocalVector(rotated.XY());
 	}
 
 	Vector2 Transform2D::LocalToGlobalVector(const Vector2& vector) const
@@ -164,13 +182,22 @@ namespace Coco
 
 	Quaternion Transform3D::GlobalToLocalRotation(const Quaternion& rotation) const
 	{
-		return InvGlobalTransform * rotation;
+		Vector3 t, s;
+		Quaternion r;
+		InvGlobalTransform.Decompose(t, r, s);
+		return r * rotation;
 	}
 
 	Vector3 Transform3D::GlobalToLocalVector(const Vector3& vector) const
 	{
 		Vector4 v = InvGlobalTransform * Vector4(vector, 0.0);
 		return Vector3(v.X, v.Y, v.Z);
+	}
+
+	Vector3 Transform3D::GlobalToLocalScale(const Vector3& scale) const
+	{
+		Quaternion rotation = GetGlobalRotation();
+		return GlobalToLocalVector(rotation * scale);
 	}
 
 	Vector3 Transform3D::LocalToGlobalPosition(const Vector3& position) const
@@ -181,13 +208,22 @@ namespace Coco
 
 	Quaternion Transform3D::LocalToGlobalRotation(const Quaternion& rotation) const
 	{
-		return GlobalTransform * rotation;
+		Vector3 t, s;
+		Quaternion r;
+		GlobalTransform.Decompose(t, r, s);
+		return r * rotation;
 	}
 
 	Vector3 Transform3D::LocalToGlobalVector(const Vector3& vector) const
 	{
-		Vector4 v = InvGlobalTransform * Vector4(vector, 0.0);
+		Vector4 v = GlobalTransform * Vector4(vector, 0.0);
 		return Vector3(v.X, v.Y, v.Z);
+	}
+
+	Vector3 Transform3D::LocalToGlobalScale(const Vector3& scale) const
+	{
+		Quaternion invRotation = GetGlobalRotation().Inverted();
+		return LocalToGlobalVector(invRotation * scale);
 	}
 
 	void Transform3D::TranslateLocal(const Vector3& translation)

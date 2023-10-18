@@ -10,7 +10,8 @@ namespace Coco::ECS
 
 	Transform3DComponent::Transform3DComponent(const Transform3D& transform, bool inheritParentTransform) :
 		Transform(transform),
-		InheritParentTransform(inheritParentTransform)
+		InheritParentTransform(inheritParentTransform),
+		IsDirty(true)
 	{
 	}
 

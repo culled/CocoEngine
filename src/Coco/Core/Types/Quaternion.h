@@ -65,6 +65,9 @@ namespace Coco
 		/// @return The conjugate of this quaternion
 		Quaternion Conjugate() const { return Quaternion(-X, -Y, -Z, W); }
 
+		/// @brief Inverts this quaternion
+		void Invert();
+
 		/// @brief Gets the inverse of this quaternion
 		/// @return The inverse of this quaternion
 		Quaternion Inverted() const { return Conjugate(); }

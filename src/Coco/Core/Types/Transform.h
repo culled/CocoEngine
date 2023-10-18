@@ -52,6 +52,11 @@ namespace Coco
 		/// @return The rotation in local space
 		double GlobalToLocalRotation(double rotation) const;
 
+		/// @brief Converts a scale from global to local coordinate space
+		/// @param scale The scale, in global space
+		/// @return The scale in local space
+		Vector2 GlobalToLocalScale(const Vector2& scale) const;
+
 		/// @brief Converts a directional vector from global to local coordinate space
 		/// @param vector The vector, in global space
 		/// @return The vector in local space
@@ -66,6 +71,11 @@ namespace Coco
 		/// @param rotation The rotation, in local space
 		/// @return The rotation in global space
 		double LocalToGlobalRotation(double rotation) const;
+
+		/// @brief Converts a scale from local to global coordinate space
+		/// @param scale The scale, in local space
+		/// @return The scale in global space
+		Vector2 LocalToGlobalScale(const Vector2& scale) const;
 
 		/// @brief Converts a directional vector from local to global coordinate space
 		/// @param vector The vector, in local space
@@ -89,6 +99,18 @@ namespace Coco
 		/// @param rotation The rotation, in global space
 		/// @param parent The parent, or nullptr if no parent
 		void RotateGlobal(double rotation, const Transform2D* parent = nullptr);
+
+		/// @brief Gets the global position of this transform
+		/// @return The global position
+		Vector3 GetGlobalPosition() const { return LocalToGlobalPosition(Vector2::Zero); }
+
+		/// @brief Gets the global rotation of this transform
+		/// @return The global rotation
+		double GetGlobalRotation() const { return LocalToGlobalRotation(0.0); }
+
+		/// @brief Gets the global scale of this transform
+		/// @return The global scale
+		Vector3 GetGlobalScale() const { return LocalToGlobalScale(Vector2::One); }
 	};
 
 	/// @brief Represents a 3D transformation
@@ -142,6 +164,11 @@ namespace Coco
 		/// @return The vector in local space
 		Vector3 GlobalToLocalVector(const Vector3& vector) const;
 
+		/// @brief Converts a scale from global to local space coordinate space
+		/// @param scale The scale, in global space
+		/// @return The scale in local space
+		Vector3 GlobalToLocalScale(const Vector3& scale) const;
+
 		/// @brief Converts a position from local to global coordinate space
 		/// @param position The position, in local space
 		/// @return The position in global space
@@ -156,6 +183,11 @@ namespace Coco
 		/// @param vector The vector, in local space
 		/// @return The vector in global space
 		Vector3 LocalToGlobalVector(const Vector3& vector) const;
+
+		/// @brief Converts a scale from local to global coordinate space
+		/// @param scale The scale, in local space
+		/// @return The scale in global space
+		Vector3 LocalToGlobalScale(const Vector3& scale) const;
 
 		/// @brief Translates this transform in local space
 		/// @param translation The translation, in local space
@@ -196,7 +228,7 @@ namespace Coco
 
 		/// @brief Gets the global scale of this transform
 		/// @return The global scale
-		Vector3 GetGlobalScale() const { return LocalToGlobalVector(Vector3::One); }
+		Vector3 GetGlobalScale() const { return LocalToGlobalScale(Vector3::One); }
 
 		/// @brief Gets the global forward direction of this transform
 		/// @return The global forward direction

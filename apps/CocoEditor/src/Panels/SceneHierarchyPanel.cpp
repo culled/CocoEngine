@@ -21,9 +21,12 @@ namespace Coco
 	{
 		if (ImGui::Begin("Scene Hierarchy"))
 		{
-			_scene->EachEntity([&](Entity& e) {
+			std::vector<Entity> rootEntities = _scene->GetRootEntities();
+
+			for (Entity& e : rootEntities)
+			{
 				DrawEntityNode(e);
-				});
+			}
 
 			// Left click over a black space
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
@@ -52,6 +55,11 @@ namespace Coco
 		if (_selection.HasSelectedEntity() && _selection.GetSelectedEntity() == entity)
 			flags |= ImGuiTreeNodeFlags_Selected;
 
+		std::vector<Entity> children = entity.GetChildren();
+
+		if (children.size() == 0)
+			flags |= ImGuiTreeNodeFlags_Leaf;
+
 		bool expanded = ImGui::TreeNodeEx((void*)entity.GetID(), flags, "%s", info.Name.c_str());
 
 		// Left click entity
@@ -68,7 +76,8 @@ namespace Coco
 
 		if (expanded)
 		{
-			// TODO
+			for (Entity& child : children)
+				DrawEntityNode(child);
 
 			ImGui::TreePop();
 		}

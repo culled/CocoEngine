@@ -14,12 +14,6 @@ namespace Coco::ECS
 		emitter << YAML::Key << "name" << YAML::Value << info.Name;
 		emitter << YAML::Key << "id" << YAML::Value << info.ID;
 		emitter << YAML::Key << "isActive" << YAML::Value << info.IsActive;
-
-		if (info.Parent.has_value())
-		{
-			const EntityInfoComponent& parentInfo = info.Parent->GetComponent<EntityInfoComponent>();
-			emitter << YAML::Key << "parent" << YAML::Value << parentInfo.ID;
-		}
 	}
 
 	void EntityInfoComponentSerializer::DeserializeImpl(const YAML::Node& baseNode, Entity& entity)
@@ -29,10 +23,5 @@ namespace Coco::ECS
 		info.Name = baseNode["name"].as<string>();
 		info.ID = baseNode["id"].as<uint64>();
 		info.IsActive = baseNode["isActive"].as<bool>();
-
-		if (baseNode["parent"])
-		{
-			// TODO: parenting
-		}
 	}
 }

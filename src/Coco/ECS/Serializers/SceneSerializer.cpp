@@ -114,7 +114,7 @@ namespace Coco::ECS
 
 	void SceneSerializer::DeserializeEntity(SharedRef<Scene>& scene, const YAML::Node& entityNode)
 	{
-		Entity entity = scene->CreateEntity("Entity", 0);
+		Entity entity = scene->CreateEntity("Entity", InvalidEntityID, Entity::Null);
 
 		for (auto& serializer : _sComponentSerializers)
 		{

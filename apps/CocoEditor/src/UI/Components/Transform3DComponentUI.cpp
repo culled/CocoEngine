@@ -1,6 +1,7 @@
 #include "Transform3DComponentUI.h"
 
 #include <Coco/ECS/Components/Transform3DComponent.h>
+#include <Coco/ECS/Systems/TransformSystem.h>
 #include "../UIUtils.h"
 
 #include <imgui.h>
@@ -11,25 +12,57 @@ namespace Coco
 {
 	void Transform3DComponentUI::DrawPropertiesImpl(ECS::Entity& entity)
 	{
-		Transform3DComponent& transform = entity.GetComponent<Transform3DComponent>();
+		Transform3DComponent& transformComp = entity.GetComponent<Transform3DComponent>();
+		Transform3D& transform = transformComp.Transform;
 
-		if (UIUtils::DrawVector3UI(entity.GetID(), "Position", transform.Transform.LocalPosition))
+		if (transformComp.IsDirty)
+			TransformSystem::UpdateTransform3D(entity);
+
+		if (UIUtils::DrawVector3UI(entity.GetID(), "Position", transform.LocalPosition))
 		{
-			transform.Transform.Recalculate();
+			TransformSystem::MarkTransform3DDirty(entity);
 		}
 
-		Vector3 eulerAngles = transform.Transform.LocalRotation.ToEulerAngles() * Math::Rad2DegMultiplier;
+		Vector3 eulerAngles = transform.LocalRotation.ToEulerAngles() * Math::Rad2DegMultiplier;
 
 		if (UIUtils::DrawVector3UI(entity.GetID(), "Rotation", eulerAngles))
 		{
-			transform.Transform.LocalRotation = Quaternion(eulerAngles * Math::Deg2RadMultiplier);
+			transform.LocalRotation = Quaternion(eulerAngles * Math::Deg2RadMultiplier);
 
-			transform.Transform.Recalculate();
+			TransformSystem::MarkTransform3DDirty(entity);
 		}
 
-		if (UIUtils::DrawVector3UI(entity.GetID(), "Scale", transform.Transform.LocalScale, 1.0))
+		if (UIUtils::DrawVector3UI(entity.GetID(), "Scale", transform.LocalScale, 1.0))
 		{
-			transform.Transform.Recalculate();
+			TransformSystem::MarkTransform3DDirty(entity);
+		}
+
+		if (ImGui::Checkbox("Inherit Parent Transform", &transformComp.InheritParentTransform))
+		{
+			Vector3 globalPosition = transform.GetGlobalPosition();
+			Quaternion globalRotation = transform.GetGlobalRotation();
+			Vector3 globalScale = transform.GetGlobalScale();
+			
+			if (transformComp.InheritParentTransform)
+			{
+				Transform3DComponent* parentTransformComp;
+				if (TransformSystem::TryGetParentTransform3D(entity, parentTransformComp))
+				{
+					Transform3D& parentTransform = parentTransformComp->Transform;
+
+					transform.LocalPosition = parentTransform.GlobalToLocalPosition(globalPosition);
+					transform.LocalRotation = parentTransform.GlobalToLocalRotation(globalRotation);
+					transform.LocalScale = parentTransform.GlobalToLocalScale(globalScale);
+				}				
+			}
+			else
+			{
+				transform.LocalPosition = globalPosition;
+				transform.LocalRotation = globalRotation;
+				transform.LocalScale = globalScale;
+			}
+
+			TransformSystem::MarkTransform3DDirty(entity);
 		}
 	}
 }

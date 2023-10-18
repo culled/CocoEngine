@@ -1,6 +1,10 @@
 #include "ECSpch.h"
 #include "Entity.h"
 
+#include "Components/EntityInfoComponent.h"
+
+#include <Coco/Core/Engine.h>
+
 namespace Coco::ECS
 {
 	const Entity Entity::Null = Entity();
@@ -42,13 +46,95 @@ namespace Coco::ECS
 		return s->_registry.valid(_handle);
 	}
 
-	uint64 Entity::GetID() const
+	EntityID Entity::GetID() const
 	{
-		return static_cast<uint64>(_handle);
+		return GetComponent<EntityInfoComponent>().ID;
 	}
 
 	SharedRef<Scene> Entity::GetScene() const
 	{
 		return _scene.expired() ? nullptr : _scene.lock();
+	}
+
+	void Entity::SetParent(const Entity& parent)
+	{
+		Assert(IsValid())
+		Assert(parent.IsValid())
+
+		SharedRef<Scene> scene = _scene.lock();
+		Assert(parent._scene.lock() == scene)
+
+		if (parent.IsDescendentOf(*this))
+		{
+			CocoError("Cannot parent entity as it would make a circular hierarchy")
+			return;
+		}
+
+		scene->_entityParentMap[GetID()] = parent.GetID();
+	}
+
+	bool Entity::HasParent() const
+	{
+		Assert(IsValid())
+
+		SharedRef<Scene> scene = _scene.lock();
+		return scene->_entityParentMap.contains(GetID());
+	}
+
+	void Entity::ClearParent()
+	{
+		Assert(IsValid())
+
+		SharedRef<Scene> scene = _scene.lock();
+		scene->_entityParentMap.erase(GetID());
+	}
+
+	bool Entity::IsDescendentOf(const Entity& ancestor) const
+	{
+		Assert(IsValid())
+		Assert(ancestor.IsValid())
+
+		if (ancestor == *this)
+			return true;
+
+		if (!HasParent())
+			return false;
+
+		return GetParent().IsDescendentOf(ancestor);
+	}
+
+	Entity Entity::GetParent() const
+	{
+		Assert(IsValid())
+
+		SharedRef<Scene> scene = _scene.lock();
+		auto it = scene->_entityParentMap.find(GetID());
+		
+		if (it == scene->_entityParentMap.end())
+			return Entity::Null;
+
+		Entity parent;
+		Assert(scene->TryGetEntity(it->second, parent))
+		return parent;
+	}
+
+	std::vector<Entity> Entity::GetChildren() const
+	{
+		Assert(IsValid())
+
+		std::vector<Entity> children;
+		SharedRef<Scene> scene = _scene.lock();
+		EntityID id = GetID();
+
+		for (const auto& kvp : scene->_entityParentMap)
+		{
+			if (kvp.second != id)
+				continue;
+
+			Entity& child = children.emplace_back();
+			Assert(scene->TryGetEntity(kvp.first, child))
+		}
+
+		return children;
 	}
 }

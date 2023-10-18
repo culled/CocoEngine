@@ -146,6 +146,10 @@ namespace Coco
 		/// @return The multiply result
 		Matrix4x4 Mul(const Matrix4x4& other) const { return *this * other; }
 
+		/// @brief Gets the determinant of this matrix
+		/// @return The determinant
+		double GetDeterminant() const;
+
 		/// @brief Returns a matrix that is the inverse of this matrix
 		/// @return The inverse of this matrix
 		Matrix4x4 Inverted() const;
@@ -178,13 +182,20 @@ namespace Coco
 		/// @return The translation component
 		Vector3 GetTranslation() const;
 
-		/// @brief Gets the rotation component of this matrix
+		/// @brief Gets the rotation component of this matrix.
+		/// NOTE: only works if this matrix has no scaling applied
 		/// @return The rotation component
 		Quaternion GetRotation() const;
 
-		/// @brief Gets the scale component of this matrix
-		/// @return The scale component
-		Vector3 GetScale() const;
+		/// @brief Gets the absolute scale component of this matrix
+		/// @return The absolute scale component
+		Vector3 GetAbsoluteScale() const;
+
+		/// @brief Decomposes this matrix into a translation, rotation, and scale
+		/// @param outTranslation Will be set to the translation
+		/// @param outRotation Will be set to the rotation
+		/// @param outScale Will be set to the scale
+		void Decompose(Vector3& outTranslation, Quaternion& outRotation, Vector3& outScale) const;
 
 		/// @brief Gets this matrix's data as a float array of 16 elements
 		/// @return This matrix's data as a float array of 16 elements

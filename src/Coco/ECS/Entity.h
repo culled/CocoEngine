@@ -37,7 +37,7 @@ namespace Coco::ECS
 
 		/// @brief Gets the ID of this entity
 		/// @return This entity's ID
-		uint64 GetID() const;
+		EntityID GetID() const;
 
 		/// @brief Gets the scene that this entity belongs to
 		/// @return The scene
@@ -113,7 +113,7 @@ namespace Coco::ECS
 		/// @param component Will be set to the component if found
 		/// @return True if the component was found
 		template<typename ComponentType>
-		bool TryGetComponent(ComponentType*& component)
+		bool TryGetComponent(ComponentType*& component) const
 		{
 			Assert(IsValid())
 
@@ -122,5 +122,29 @@ namespace Coco::ECS
 
 			return component != nullptr;
 		}
+
+		/// @brief Sets this entity's parent
+		/// @param parent The parent
+		void SetParent(const Entity& parent);
+
+		/// @brief Determines if this entity has a parent
+		/// @return True if this entity has a parent
+		bool HasParent() const;
+
+		/// @brief Clears this entity's parent
+		void ClearParent();
+		
+		/// @brief Determines if the given entity is an ancestor to this entity (i.e. this entity is somehow a child of the ancestor)
+		/// @param ancestor The ancestor entity
+		/// @return True if this entity is a descendent of the ancestor entity
+		bool IsDescendentOf(const Entity& ancestor) const;
+
+		/// @brief Gets this entity's parent, if it has one
+		/// @return The parent entity, or a null entity if this entity does not have a parent
+		Entity GetParent() const;
+
+		/// @brief Gets the children of this entity
+		/// @return The child entities
+		std::vector<Entity> GetChildren() const;
 	};
 }

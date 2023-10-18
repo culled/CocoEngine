@@ -92,7 +92,7 @@ namespace Coco
 	Quaternion Matrix4x4::operator*(const Quaternion& rotation) const
 	{
 		Matrix4x4 rotMatrix = CreateWithRotation(rotation);
-		return (*this * rotMatrix).GetRotation();
+		return (rotMatrix * *this).GetRotation();
 	}
 
 	Matrix4x4 Matrix4x4::CreateLookAtMatrix(const Vector3& eyePosition, const Vector3& targetPosition, const Vector3& up)
@@ -244,6 +244,21 @@ namespace Coco
 		return Matrix4x4::CreateWithScale(scale) * Matrix4x4::CreateWithRotation(rotation) * Matrix4x4::CreateWithTranslation(position);
 	}
 
+	double Matrix4x4::GetDeterminant() const
+	{
+		const double A2323 = Data[m33] * Data[m44] - Data[m34] * Data[m43];
+		const double A1323 = Data[m32] * Data[m44] - Data[m34] * Data[m42];
+		const double A1223 = Data[m32] * Data[m43] - Data[m33] * Data[m42];
+		const double A0323 = Data[m31] * Data[m44] - Data[m34] * Data[m41];
+		const double A0223 = Data[m31] * Data[m43] - Data[m33] * Data[m41];
+		const double A0123 = Data[m31] * Data[m42] - Data[m32] * Data[m41];
+
+		return Data[m11] * (Data[m22] * A2323 - Data[m23] * A1323 + Data[m24] * A1223) -
+			Data[m12] * (Data[m21] * A2323 - Data[m23] * A0323 + Data[m24] * A0223) +
+			Data[m13] * (Data[m21] * A1323 - Data[m22] * A0323 + Data[m24] * A0123) -
+			Data[m14] * (Data[m21] * A1223 - Data[m22] * A0223 + Data[m23] * A0123);
+	}
+
 	Matrix4x4 Matrix4x4::Inverted() const
 	{
 		Matrix4x4 inverse;
@@ -311,52 +326,73 @@ namespace Coco
 	Quaternion Matrix4x4::GetRotation() const
 	{
 		// https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-		const double t = Data[m11] + Data[m22] + Data[m33];
 		Quaternion result;
+		result.W = Math::Sqrt(Math::Max(0.0, 1.0 + Data[m11] + Data[m22] + Data[m33])) / 2.0;
+		result.X = Math::Sqrt(Math::Max(0.0, 1.0 + Data[m11] - Data[m22] - Data[m33])) / 2.0;
+		result.Y = Math::Sqrt(Math::Max(0.0, 1.0 - Data[m11] + Data[m22] - Data[m33])) / 2.0;
+		result.Z = Math::Sqrt(Math::Max(0.0, 1.0 - Data[m11] - Data[m22] + Data[m33])) / 2.0;
 
-		if (t > 0)
-		{
-			const double s = Math::Sqrt(t + 1.0) * 2.0;
-			result.W = 0.25 * s;
-			result.X = (Data[m32] - Data[m23]) / s;
-			result.Y = (Data[m13] - Data[m31]) / s;
-			result.Z = (Data[m21] - Data[m12]) / s;
-		}
-		else if (Data[m11] > Data[m22] && Data[m11] > Data[m33])
-		{
-			const double s = Math::Sqrt(1.0 + Data[m11] - Data[m22] - Data[m33]) * 2.0;
-			result.W = (Data[m32] - Data[m23]) / s;
-			result.X = 0.25 * s;
-			result.Y = (Data[m12] - Data[m21]) / s;
-			result.Z = (Data[m13] - Data[m31]) / s;
-		}
-		else if (Data[m22] > Data[m33])
-		{
-			const double s = Math::Sqrt(1.0 + Data[m22] - Data[m11] - Data[m33]) * 2.0;
-			result.W = (Data[m13] - Data[m31]) / s;
-			result.X = (Data[m12] - Data[m21]) / s;
-			result.Y = 0.25 * s;
-			result.Z = (Data[m23] - Data[m32]) / s;
-		}
-		else
-		{
-			const double s = Math::Sqrt(1.0 + Data[m22] - Data[m11] - Data[m33]) * 2.0;
-			result.W = (Data[m21] - Data[m12]) / s;
-			result.X = (Data[m13] - Data[m31]) / s;
-			result.Y = (Data[m23] - Data[m32]) / s;
-			result.Z = 0.25 * s;
-		}
+		if (Data[m32] - Data[m23] < 0.0)
+			result.X = -result.X;
 
-		return result;
+		if (Data[m13] - Data[m31] < 0.0)
+			result.Y = -result.Y;
+
+		if (Data[m21] - Data[m12] < 0.0)
+			result.Z = -result.Z;
+
+		return result.Normalized();
 	}
 
-	Vector3 Matrix4x4::GetScale() const
+	Vector3 Matrix4x4::GetAbsoluteScale() const
 	{
 		return Vector3(
 			Math::Sqrt(Data[m11] * Data[m11] + Data[m21] * Data[m21] + Data[m31] * Data[m31]),
 			Math::Sqrt(Data[m12] * Data[m12] + Data[m22] * Data[m22] + Data[m32] * Data[m32]),
 			Math::Sqrt(Data[m13] * Data[m13] + Data[m23] * Data[m23] + Data[m33] * Data[m33])
 		);
+	}
+
+	void Matrix4x4::Decompose(Vector3& outTranslation, Quaternion& outRotation, Vector3& outScale) const
+	{
+		outTranslation = GetTranslation();
+
+		outScale = GetAbsoluteScale();
+
+		// https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati/3554913#3554913
+
+		Matrix4x4 r = Matrix4x4::Identity;
+		r.Data[m11] = Data[m11] / outScale.X;
+		r.Data[m21] = Data[m21] / outScale.X;
+		r.Data[m31] = Data[m31] / outScale.X;
+
+		r.Data[m12] = Data[m12] / outScale.Y;
+		r.Data[m22] = Data[m22] / outScale.Y;
+		r.Data[m32] = Data[m32] / outScale.Y;
+
+		r.Data[m13] = Data[m13] / outScale.Z;
+		r.Data[m23] = Data[m23] / outScale.Z;
+		r.Data[m33] = Data[m33] / outScale.Z;
+
+		// Check for a reflection
+		if (r.GetDeterminant() < 0.0)
+		{
+			outScale *= -1.0;
+			
+			r.Data[m11] = -r.Data[m11];
+			r.Data[m21] = -r.Data[m21];
+			r.Data[m31] = -r.Data[m31];
+
+			r.Data[m12] = -r.Data[m12];
+			r.Data[m22] = -r.Data[m22];
+			r.Data[m32] = -r.Data[m32];
+
+			r.Data[m13] = -r.Data[m13];
+			r.Data[m23] = -r.Data[m23];
+			r.Data[m33] = -r.Data[m33];
+		}
+
+		outRotation = r.GetRotation();
 	}
 
 	std::array<float, Matrix4x4::CellCount> Matrix4x4::AsFloatArray() const

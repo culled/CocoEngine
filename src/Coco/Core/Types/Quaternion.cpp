@@ -175,6 +175,13 @@ namespace Coco
 		return copy;
 	}
 
+	void Quaternion::Invert()
+	{
+		X = -X;
+		Y = -Y;
+		Z = -Z;
+	}
+
 	Vector3 Quaternion::ToEulerAngles() const
 	{
 		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
