@@ -27,16 +27,20 @@ namespace Coco::ECS
 		if (transform.InheritParentTransform && entity.HasParent())
 		{
 			Entity parent = entity.GetParent();
-			UpdateTransform3D(parent);
-			parentTransform = &parent.GetComponent<Transform3DComponent>();
+
+			if(parent.TryGetComponent<Transform3DComponent>(parentTransform))
+				UpdateTransform3D(parent);
 		}
 
-		transform.Transform.Recalculate(&parentTransform->Transform);
+		transform.Transform.Recalculate(parentTransform ? &parentTransform->Transform : nullptr);
 		transform.IsDirty = false;
 	}
 
 	void TransformSystem::MarkTransform3DDirty(Entity& entity)
 	{
+		if (!entity.HasComponent<Transform3DComponent>())
+			return;
+
 		Transform3DComponent& transform = entity.GetComponent<Transform3DComponent>();
 		if (transform.IsDirty)
 			return;
