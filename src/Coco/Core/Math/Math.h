@@ -226,4 +226,11 @@ namespace Coco::Math
 	/// @return The converted degrees
 	template<typename ValueType>
 	constexpr double RadToDeg(const ValueType& rad) { return rad * Rad2DegMultiplier; }
+
+	/// @brief Determines the sign of a number
+	/// @tparam ValueType The value type
+	/// @param v The value
+	/// @return 1 if the given number is positive, else -1
+	template<typename ValueType>
+	int Sign(const ValueType& v) { return std::signbit(v) ? -1 : 1; }
 }
