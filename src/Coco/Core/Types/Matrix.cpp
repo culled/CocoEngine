@@ -325,74 +325,80 @@ namespace Coco
 
 	Quaternion Matrix4x4::GetRotation() const
 	{
+		Matrix4x4 r = Identity;
+		r.Data[m11] = Data[m11];
+		r.Data[m21] = Data[m21];
+		r.Data[m31] = Data[m31];
+
+		r.Data[m12] = Data[m12];
+		r.Data[m22] = Data[m22];
+		r.Data[m32] = Data[m32];
+
+		r.Data[m13] = Data[m13];
+		r.Data[m23] = Data[m23];
+		r.Data[m33] = Data[m33];
+
+		double s = Math::Pow(r.GetDeterminant(), 1.0 / 3.0);
 		// https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
 		Quaternion result;
-		result.W = Math::Sqrt(Math::Max(0.0, 1.0 + Data[m11] + Data[m22] + Data[m33])) / 2.0;
-		result.X = Math::Sqrt(Math::Max(0.0, 1.0 + Data[m11] - Data[m22] - Data[m33])) / 2.0;
-		result.Y = Math::Sqrt(Math::Max(0.0, 1.0 - Data[m11] + Data[m22] - Data[m33])) / 2.0;
-		result.Z = Math::Sqrt(Math::Max(0.0, 1.0 - Data[m11] - Data[m22] + Data[m33])) / 2.0;
+		result.W = Math::Sqrt(Math::Max(0.0, s + Data[m11] + Data[m22] + Data[m33])) / 2.0;
+		result.X = Math::Sqrt(Math::Max(0.0, s + Data[m11] - Data[m22] - Data[m33])) / 2.0;
+		result.Y = Math::Sqrt(Math::Max(0.0, s - Data[m11] + Data[m22] - Data[m33])) / 2.0;
+		result.Z = Math::Sqrt(Math::Max(0.0, s - Data[m11] - Data[m22] + Data[m33])) / 2.0;
 
-		if (Data[m32] - Data[m23] < 0.0)
+		double a = Data[m32] - Data[m23];
+		if (Math::Sign(a) != Math::Sign(result.X))
 			result.X = -result.X;
 
-		if (Data[m13] - Data[m31] < 0.0)
+		double b = Data[m13] - Data[m31];
+		if (Math::Sign(b) != Math::Sign(result.Y))
 			result.Y = -result.Y;
 
-		if (Data[m21] - Data[m12] < 0.0)
+		double c = Data[m21] - Data[m12];
+		if (Math::Sign(c) != Math::Sign(result.Z))
 			result.Z = -result.Z;
 
 		return result.Normalized();
 	}
 
-	Vector3 Matrix4x4::GetAbsoluteScale() const
+	Vector3 Matrix4x4::GetScale() const
 	{
-		return Vector3(
+		Matrix4x4 r = Identity;
+		r.Data[m11] = Data[m11];
+		r.Data[m21] = Data[m21];
+		r.Data[m31] = Data[m31];
+
+		r.Data[m12] = Data[m12];
+		r.Data[m22] = Data[m22];
+		r.Data[m32] = Data[m32];
+
+		r.Data[m13] = Data[m13];
+		r.Data[m23] = Data[m23];
+		r.Data[m33] = Data[m33];
+
+		Vector3 absScale = Vector3(
 			Math::Sqrt(Data[m11] * Data[m11] + Data[m21] * Data[m21] + Data[m31] * Data[m31]),
 			Math::Sqrt(Data[m12] * Data[m12] + Data[m22] * Data[m22] + Data[m32] * Data[m32]),
 			Math::Sqrt(Data[m13] * Data[m13] + Data[m23] * Data[m23] + Data[m33] * Data[m33])
 		);
+
+		// https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati/3554913#3554913
+
+		if (r.GetDeterminant() < 0.0)
+		{
+			absScale *= -1.0;
+		}
+
+		return absScale;
 	}
 
 	void Matrix4x4::Decompose(Vector3& outTranslation, Quaternion& outRotation, Vector3& outScale) const
 	{
 		outTranslation = GetTranslation();
 
-		outScale = GetAbsoluteScale();
+		outScale = GetScale();
 
-		// https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati/3554913#3554913
-
-		Matrix4x4 r = Matrix4x4::Identity;
-		r.Data[m11] = Data[m11] / outScale.X;
-		r.Data[m21] = Data[m21] / outScale.X;
-		r.Data[m31] = Data[m31] / outScale.X;
-
-		r.Data[m12] = Data[m12] / outScale.Y;
-		r.Data[m22] = Data[m22] / outScale.Y;
-		r.Data[m32] = Data[m32] / outScale.Y;
-
-		r.Data[m13] = Data[m13] / outScale.Z;
-		r.Data[m23] = Data[m23] / outScale.Z;
-		r.Data[m33] = Data[m33] / outScale.Z;
-
-		// Check for a reflection
-		if (r.GetDeterminant() < 0.0)
-		{
-			outScale *= -1.0;
-			
-			r.Data[m11] = -r.Data[m11];
-			r.Data[m21] = -r.Data[m21];
-			r.Data[m31] = -r.Data[m31];
-
-			r.Data[m12] = -r.Data[m12];
-			r.Data[m22] = -r.Data[m22];
-			r.Data[m32] = -r.Data[m32];
-
-			r.Data[m13] = -r.Data[m13];
-			r.Data[m23] = -r.Data[m23];
-			r.Data[m33] = -r.Data[m33];
-		}
-
-		outRotation = r.GetRotation();
+		outRotation = GetRotation();
 	}
 
 	std::array<float, Matrix4x4::CellCount> Matrix4x4::AsFloatArray() const

@@ -182,14 +182,13 @@ namespace Coco
 		/// @return The translation component
 		Vector3 GetTranslation() const;
 
-		/// @brief Gets the rotation component of this matrix.
-		/// NOTE: only works if this matrix has no scaling applied
+		/// @brief Gets the rotation component of this matrix
 		/// @return The rotation component
 		Quaternion GetRotation() const;
 
-		/// @brief Gets the absolute scale component of this matrix
-		/// @return The absolute scale component
-		Vector3 GetAbsoluteScale() const;
+		/// @brief Gets the scale component of this matrix
+		/// @return The scale component
+		Vector3 GetScale() const;
 
 		/// @brief Decomposes this matrix into a translation, rotation, and scale
 		/// @param outTranslation Will be set to the translation
