@@ -48,6 +48,7 @@ namespace Coco::Rendering
 		UniqueRef<GraphicsPlatform> _platform;
 		UniqueRef<GraphicsDevice> _device;
 		UniqueRef<GizmoRender> _gizmoRender;
+		bool _renderGizmos;
 		SharedRef<Texture> _defaultDiffuseTexture;
 		SharedRef<Texture> _defaultNormalTexture;
 		SharedRef<Texture> _defaultCheckerTexture;
@@ -162,6 +163,14 @@ namespace Coco::Rendering
 			std::span<SceneDataProvider*> sceneDataProviders,
 			std::optional<RenderTask> dependsOn = std::optional<RenderTask>(),
 			RenderTask* outTask = nullptr);
+
+		/// @brief Sets if gizmos should be rendered in subsequent renders
+		/// @param renderGizmos If true, gizmos will be rendered
+		void SetGizmoRendering(bool renderGizmos);
+
+		/// @brief Gets if gizmos are being rendered
+		/// @return True if gizmos will be rendered for each render
+		bool GetRenderGizmos() const { return _gizmoRender && _renderGizmos; }
 
 	private:
 		/// @brief Performs rendering

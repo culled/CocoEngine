@@ -28,6 +28,7 @@ namespace Coco::Rendering
 		_lateTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
 		_renderTasks{},
 		_gizmoRender(nullptr),
+		_renderGizmos(false),
 		_renderView(),
 		_attachmentCache(),
 		_renderContextCache()
@@ -35,8 +36,11 @@ namespace Coco::Rendering
 		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
 
-		if(includeGizmoRendering)
+		if (includeGizmoRendering)
+		{
 			_gizmoRender = CreateUniqueRef<GizmoRender>();
+			_renderGizmos = true;
+		}
 
 		CreateDefaultDiffuseTexture();
 		CreateDefaultNormalTexture();
@@ -209,7 +213,7 @@ namespace Coco::Rendering
 			provider->GatherSceneData(_renderView);
 		}
 
-		if (_gizmoRender)
+		if (_gizmoRender && _renderGizmos)
 			_gizmoRender->GatherSceneData(_renderView);
 
 		Ref<GraphicsSemaphore> waitOn;
@@ -259,6 +263,11 @@ namespace Coco::Rendering
 			*outTask = RenderTask(rendererID, renderContext->GetRenderStats(), renderContext->GetRenderCompletedSemaphore(), renderContext->GetRenderCompletedFence());
 
 		return true;
+	}
+
+	void RenderService::SetGizmoRendering(bool renderGizmos)
+	{
+		_renderGizmos = renderGizmos;
 	}
 
 	bool RenderService::ExecuteRender(

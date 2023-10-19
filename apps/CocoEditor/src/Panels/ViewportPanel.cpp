@@ -110,9 +110,6 @@ namespace Coco
 				static_cast<uint32>(size.x * _sCameraPreviewSizePercentage),
 				static_cast<uint32>(size.y * _sCameraPreviewSizePercentage));
 
-			if (!_showCameraPreview)
-				_previewCameraFullscreen = false;
-
 			EnsureTexture(_viewportRect.GetSize(), _viewportTexture);
 
 			ImGui::Image(_viewportTexture.Get(), size);
@@ -121,6 +118,9 @@ namespace Coco
 			{
 				DrawSelectedEntity();
 			}
+
+			if (!_showCameraPreview)
+				_previewCameraFullscreen = false;
 
 			_collapsed = false;
 		}
@@ -145,6 +145,10 @@ namespace Coco
 
 		if (_showCameraPreview)
 		{
+			RenderService* rendering = RenderService::Get();
+			bool gizmos = rendering->GetRenderGizmos();
+			rendering->SetGizmoRendering(false);
+
 			std::array<Ref<Image>, 1> cameraImages = { _cameraPreviewTexture->GetImage() };
 			CameraSystem::Render(_selection.GetSelectedEntity(), cameraImages, pipeline);
 
@@ -152,6 +156,8 @@ namespace Coco
 			{
 				CameraSystem::Render(_selection.GetSelectedEntity(), viewportImages, pipeline);
 			}
+
+			rendering->SetGizmoRendering(gizmos);
 		}
 
 		if (!_previewCameraFullscreen)
@@ -279,6 +285,9 @@ namespace Coco
 			_showCameraPreview = true;
 			ShowCameraPreview();
 		}
+
+		if (_previewCameraFullscreen)
+			return;
 
 		ComponentUI::DrawGizmos(e, _viewportRect.GetSize());
 
