@@ -83,5 +83,15 @@ namespace Coco
 		/// @param message The message
 		/// @param isError If true, the message will be shown as an error
 		virtual void ShowMessageBox(const char* title, const char* message, bool isError) = 0;
+
+		/// @brief Shows an open file dialog and returns its path
+		/// @param filter The file filters
+		/// @return The path to the file to open, or an empty string
+		virtual string ShowOpenFileDialog(const std::vector<std::pair<const char*, const char*>>& filters) = 0;
+
+		/// @brief Shows a save file dialog and returns its path
+		/// @param filter The file filters
+		/// @return The path to the file to save, or an empty string 
+		virtual string ShowSaveFileDialog(const std::vector<std::pair<const char*, const char*>>& filters) = 0;
 	};
 }

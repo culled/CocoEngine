@@ -67,5 +67,11 @@ namespace Coco
         UniqueRef<ViewportPanel> CreateViewportPanel();
         void CloseViewportPanel();
         bool OnViewportPanelClosed(const ViewportPanel& panel);
+
+        void NewScene();
+        void OpenScene();
+        void SaveSceneAs();
+
+        void ChangeScenes(SharedRef<Scene> newScene);
     };
 }

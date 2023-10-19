@@ -33,6 +33,9 @@ namespace Coco
 
 	FilePath UnpackedEngineFileSystem::GetFullFilePath(const string& contentPath) const
 	{
-		return FilePath::CombineToPath(_contentBasePath, contentPath);
+		if (FilePath::IsRelativePath(contentPath))
+			return FilePath::CombineToPath(_contentBasePath, contentPath);
+		else
+			return FilePath(contentPath);
 	}
 }

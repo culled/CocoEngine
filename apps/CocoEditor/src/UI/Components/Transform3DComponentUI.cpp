@@ -39,9 +39,10 @@ namespace Coco
 
 		if (ImGui::Checkbox("Inherit Parent Transform", &transformComp.InheritParentTransform))
 		{
-			Vector3 globalPosition = transform.GetGlobalPosition();
-			Quaternion globalRotation = transform.GetGlobalRotation();
-			Vector3 globalScale = transform.GetGlobalScale();
+			Vector3 globalPosition;
+			Quaternion globalRotation;
+			Vector3 globalScale;
+			transform.GetGlobalTransform(globalPosition, globalRotation, globalScale);
 			
 			if (transformComp.InheritParentTransform)
 			{

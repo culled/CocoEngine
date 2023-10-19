@@ -12,6 +12,7 @@ namespace Coco::Platforms::Win32
     class Win32Window : public Window
     {
         friend class Win32EnginePlatform;
+        friend class Win32WindowExtensions;
 
     private:
         HWND _handle;

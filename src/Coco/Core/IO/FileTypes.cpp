@@ -15,6 +15,12 @@ namespace Coco
 		_filePath(filePath)
 	{}
 
+	bool FilePath::IsRelativePath(const string& path)
+	{
+		FilePath p(path);
+		return p.IsRelative();
+	}
+
 	string FilePath::GetFileName(bool includeExtension) const
 	{
 		if (includeExtension)
@@ -35,6 +41,11 @@ namespace Coco
 	FilePath FilePath::GetParentDirectory() const
 	{
 		return FilePath(_filePath.parent_path());
+	}
+
+	bool FilePath::IsRelative() const
+	{
+		return _filePath.is_relative();
 	}
 
 	FilePath FilePath::GetCurrentWorkingDirectoryPath()

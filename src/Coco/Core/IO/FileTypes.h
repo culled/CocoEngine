@@ -46,6 +46,11 @@ namespace Coco
 		FilePath(const string& filePath);
 		FilePath(const std::filesystem::path& filePath);
 
+		/// @brief Determines if the file path is a relative path
+		/// @param path The file path
+		/// @return True if the given path is a relative path
+		static bool IsRelativePath(const string& path);
+
 		/// @brief Gets the name of the file for this path
 		/// @param includeExtension If true, the extension will be included as part of the file name
 		/// @return The file name
@@ -58,6 +63,10 @@ namespace Coco
 		/// @brief Gets the path of the directory that contains this file/directory
 		/// @return The parent directory path
 		FilePath GetParentDirectory() const;
+
+		/// @brief Determines if this file path represents a relative file path
+		/// @return True if this file path represents a relative file path
+		bool IsRelative() const;
 
 		/// @brief Combines multiple individual elements into a path
 		/// @tparam ...Args The types of arguments

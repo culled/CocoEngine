@@ -244,6 +244,19 @@ namespace Coco
 		return Matrix4x4::CreateWithScale(scale) * Matrix4x4::CreateWithRotation(rotation) * Matrix4x4::CreateWithTranslation(position);
 	}
 
+	void Matrix4x4::Normalize()
+	{
+		double w = Data[m44];
+
+		if (Math::Equal(w, 0.0))
+			return;
+
+		for (size_t i = 0; i < CellCount; i++)
+		{
+			Data[i] /= w;
+		}
+	}
+
 	double Matrix4x4::GetDeterminant() const
 	{
 		const double A2323 = Data[m33] * Data[m44] - Data[m34] * Data[m43];
@@ -325,80 +338,99 @@ namespace Coco
 
 	Quaternion Matrix4x4::GetRotation() const
 	{
-		Matrix4x4 r = Identity;
-		r.Data[m11] = Data[m11];
-		r.Data[m21] = Data[m21];
-		r.Data[m31] = Data[m31];
-
-		r.Data[m12] = Data[m12];
-		r.Data[m22] = Data[m22];
-		r.Data[m32] = Data[m32];
-
-		r.Data[m13] = Data[m13];
-		r.Data[m23] = Data[m23];
-		r.Data[m33] = Data[m33];
-
-		double s = Math::Pow(r.GetDeterminant(), 1.0 / 3.0);
-		// https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-		Quaternion result;
-		result.W = Math::Sqrt(Math::Max(0.0, s + Data[m11] + Data[m22] + Data[m33])) / 2.0;
-		result.X = Math::Sqrt(Math::Max(0.0, s + Data[m11] - Data[m22] - Data[m33])) / 2.0;
-		result.Y = Math::Sqrt(Math::Max(0.0, s - Data[m11] + Data[m22] - Data[m33])) / 2.0;
-		result.Z = Math::Sqrt(Math::Max(0.0, s - Data[m11] - Data[m22] + Data[m33])) / 2.0;
-
-		double a = Data[m32] - Data[m23];
-		if (Math::Sign(a) != Math::Sign(result.X))
-			result.X = -result.X;
-
-		double b = Data[m13] - Data[m31];
-		if (Math::Sign(b) != Math::Sign(result.Y))
-			result.Y = -result.Y;
-
-		double c = Data[m21] - Data[m12];
-		if (Math::Sign(c) != Math::Sign(result.Z))
-			result.Z = -result.Z;
-
-		return result.Normalized();
+		Vector3 t, s;
+		Quaternion r;
+		Decompose(t, r, s);
+		return r;
 	}
 
 	Vector3 Matrix4x4::GetScale() const
 	{
-		Matrix4x4 r = Identity;
-		r.Data[m11] = Data[m11];
-		r.Data[m21] = Data[m21];
-		r.Data[m31] = Data[m31];
-
-		r.Data[m12] = Data[m12];
-		r.Data[m22] = Data[m22];
-		r.Data[m32] = Data[m32];
-
-		r.Data[m13] = Data[m13];
-		r.Data[m23] = Data[m23];
-		r.Data[m33] = Data[m33];
-
-		Vector3 absScale = Vector3(
-			Math::Sqrt(Data[m11] * Data[m11] + Data[m21] * Data[m21] + Data[m31] * Data[m31]),
-			Math::Sqrt(Data[m12] * Data[m12] + Data[m22] * Data[m22] + Data[m32] * Data[m32]),
-			Math::Sqrt(Data[m13] * Data[m13] + Data[m23] * Data[m23] + Data[m33] * Data[m33])
-		);
-
-		// https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati/3554913#3554913
-
-		if (r.GetDeterminant() < 0.0)
-		{
-			absScale *= -1.0;
-		}
-
-		return absScale;
+		Vector3 t, s;
+		Quaternion r;
+		Decompose(t, r, s);
+		return s;
 	}
 
 	void Matrix4x4::Decompose(Vector3& outTranslation, Quaternion& outRotation, Vector3& outScale) const
 	{
-		outTranslation = GetTranslation();
+		// Based on GLM (https://github.com/g-truc/glm/blob/47585fde0c49fa77a2bf2fb1d2ead06999fd4b6e/glm/gtx/matrix_decompose.inl#L33)
 
-		outScale = GetScale();
+		Matrix4x4 local(*this);
 
-		outRotation = GetRotation();
+		// Can't operate on a matrix that can't be normalized
+		if (Math::Equal(local.Data[m44], 0.0))
+			return;
+
+		local.Normalize();
+
+		// Get translation
+		outTranslation = Vector3(local.Data[m14], local.Data[m24], local.Data[m34]);
+
+		Vector3 cx(local.Data[m11], local.Data[m21], local.Data[m31]);
+		Vector3 cy(local.Data[m12], local.Data[m22], local.Data[m32]);
+		Vector3 cz(local.Data[m13], local.Data[m23], local.Data[m33]);
+
+		// Get the X scale and normalize the X column
+		outScale.X = cx.GetLength();
+		cx /= outScale.X;
+
+		// Compute XY shear and make the Y column orthogonal to the X column
+		Vector3 skew(0.0, 0.0, cx.Dot(cy));
+		cy += cx * -skew.Z;
+
+		// Get the Y scale and normalize the Y column
+		outScale.Y = cy.GetLength();
+		cy /= outScale.Y;
+		skew.Z /= outScale.Y;
+
+		// Compute the XZ and YZ shears and make the Z column orthogonal to the X and Y columns	
+		skew.Y = cx.Dot(cz);
+		cz += cx * -skew.Y;
+
+		skew.X = cy.Dot(cz);
+		cz += cy * -skew.X;
+
+		// Get the Z scale and normalize the Z column
+		outScale.Z = cz.GetLength();
+		cz /= outScale.Z;
+		skew.X /= outScale.Z;
+		skew.Y /= outScale.Z;
+
+		// Now we can create an orthonormal rotation matrix
+		Matrix4x4 rotation({
+			cx.X, cx.Y, cx.Z, 0.0,
+			cy.X, cy.Y, cy.Z, 0.0,
+			cz.X, cz.Y, cz.Z, 0.0,
+			0.0, 0.0, 0.0, 1.0
+		});
+
+		// Check if there's a reflection and flip the scale and rotation if so
+		if (rotation.GetDeterminant() < 0.0)
+		{
+			outScale *= -1.0;
+
+			for(size_t i = 0; i < CellCount; i++)
+				rotation.Data[i] *= -1.0;
+		}
+
+		// Now extract the rotation from the matrix
+		outRotation.W = Math::Sqrt(Math::Max(0.0, 1.0 + rotation.Data[m11] + rotation.Data[m22] + rotation.Data[m33])) / 2.0;
+		outRotation.X = Math::Sqrt(Math::Max(0.0, 1.0 + rotation.Data[m11] - rotation.Data[m22] - rotation.Data[m33])) / 2.0;
+		outRotation.Y = Math::Sqrt(Math::Max(0.0, 1.0 - rotation.Data[m11] + rotation.Data[m22] - rotation.Data[m33])) / 2.0;
+		outRotation.Z = Math::Sqrt(Math::Max(0.0, 1.0 - rotation.Data[m11] - rotation.Data[m22] + rotation.Data[m33])) / 2.0;
+
+		double a = rotation.Data[m32] - rotation.Data[m23];
+		if (Math::Sign(a) != Math::Sign(outRotation.X))
+			outRotation.X = -outRotation.X;
+
+		double b = rotation.Data[m13] - rotation.Data[m31];
+		if (Math::Sign(b) != Math::Sign(outRotation.Y))
+			outRotation.Y = -outRotation.Y;
+
+		double c = rotation.Data[m21] - rotation.Data[m12];
+		if (Math::Sign(c) != Math::Sign(outRotation.Z))
+			outRotation.Z = -outRotation.Z;
 	}
 
 	std::array<float, Matrix4x4::CellCount> Matrix4x4::AsFloatArray() const

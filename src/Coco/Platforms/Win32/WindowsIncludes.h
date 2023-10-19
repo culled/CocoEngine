@@ -12,12 +12,17 @@
 
 // Exclude rarely-used stuff from Windows headers
 #define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
 #define NOMINMAX
+
+// When using windowing, we need to include these for file dialogs
+#ifndef COCO_SERVICE_WINDOWING
 #define NOGDI
 #define NODRAWTEXT
 #define NOCTLMGR
 #define NOFLATSBAPIS
 #define NOSERVICE
+#endif
 
 // Use unicode version of functions
 #ifndef UNICODE

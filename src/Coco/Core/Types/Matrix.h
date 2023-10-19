@@ -141,6 +141,9 @@ namespace Coco
 		/// @return A transform matrix
 		static Matrix4x4 CreateTransform(const Vector3& position, const Quaternion& rotation, const Vector3& scale);
 
+		/// @brief Divides every term in this matrix by the m44 term
+		void Normalize();
+
 		/// @brief Multiplies this matrix with another
 		/// @param other The other matrix
 		/// @return The multiply result

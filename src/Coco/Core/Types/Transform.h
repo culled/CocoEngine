@@ -230,6 +230,12 @@ namespace Coco
 		/// @return The global scale
 		Vector3 GetGlobalScale() const { return LocalToGlobalScale(Vector3::One); }
 
+		/// @brief Gets the global position, rotation, and scale of this transform
+		/// @param outPosition Will be set to the global position
+		/// @param outRotation Will be set to the global rotation
+		/// @param outScale Will be set to the global scale
+		void GetGlobalTransform(Vector3& outPosition, Quaternion& outRotation, Vector3& outScale);
+
 		/// @brief Gets the global forward direction of this transform
 		/// @return The global forward direction
 		Vector3 GetGlobalForward() const { return GlobalTransform.GetForwardVector(); }

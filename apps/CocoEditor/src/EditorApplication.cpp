@@ -248,6 +248,23 @@ namespace Coco
 
 	void EditorApplication::ShowFileMenu()
 	{
+		if (ImGui::MenuItem("New Scene", "Ctrl+N"))
+		{
+			NewScene();
+		}
+
+		if (ImGui::MenuItem("Open Scene...", "Ctrl+O"))
+		{
+			OpenScene();
+		}
+
+		if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
+		{
+			SaveSceneAs();
+		}
+
+		ImGui::Separator();
+
 		if (ImGui::MenuItem("Exit"))
 		{
 			Quit();
@@ -289,6 +306,52 @@ namespace Coco
 		CloseViewportPanel();
 
 		return true;
+	}
+
+	void EditorApplication::NewScene()
+	{
+		SharedRef<Scene> scene = Engine::Get()->GetResourceLibrary().Create<Scene>("Scene");
+		ChangeScenes(scene);
+	}
+
+	void EditorApplication::OpenScene()
+	{
+		Engine* engine = Engine::Get();
+		string path = engine->GetPlatform().ShowOpenFileDialog(
+			{ 
+				{"Coco Scene (*.cscene)", "*.cscene" } 
+			}
+		);
+
+		if (path.empty())
+			return;
+
+		SharedRef<Scene> newScene = engine->GetResourceLibrary().GetOrLoad<Scene>(path);
+		ChangeScenes(newScene);
+	}
+
+	void EditorApplication::SaveSceneAs()
+	{
+		Engine* engine = Engine::Get();
+		string path = engine->GetPlatform().ShowSaveFileDialog(
+			{
+				{"Coco Scene (*.cscene)", "*.cscene" }
+			}
+		);
+
+		if (path.empty())
+			return;
+
+		engine->GetResourceLibrary().Save(path, _mainScene, true);
+	}
+
+	void EditorApplication::ChangeScenes(SharedRef<Scene> newScene)
+	{
+		_selection.ClearSelectedEntity();
+		_mainScene = newScene;
+
+		_viewport->SetCurrentScene(_mainScene);
+		_scenePanel->SetCurrentScene(_mainScene);
 	}
 }
 

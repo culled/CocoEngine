@@ -24,13 +24,15 @@ namespace Coco::ECS
 	private:
 		using ViewType = entt::basic_view<entt::get_t<entt::storage_for_t<BaseType>, entt::storage_for_t<OtherTypes>...>, entt::exclude_t<>>;
 
+		const ViewType& _view;
 		ViewType::iterator _it;
 		SharedRef<Scene> _scene;
 		Entity _currentEntity;
 
 	public:
-		SceneViewIterator(const SharedRef<Scene>& scene, ViewType::iterator it) :
+		SceneViewIterator(const SharedRef<Scene>& scene, const ViewType& view, ViewType::iterator it) :
 			_scene(scene),
+			_view(view),
 			_it(it)
 		{
 			Update();
@@ -87,7 +89,10 @@ namespace Coco::ECS
 		/// @brief Updates the current entity
 		void Update()
 		{
-			_currentEntity = Entity(*_it, _scene);
+			if (_it != _view.end())
+				_currentEntity = Entity(*_it, _scene);
+			else
+				_currentEntity = Entity(entt::null, _scene);
 		}
 	};
 
@@ -113,7 +118,7 @@ namespace Coco::ECS
 
 		~SceneView() = default;
 
-		SceneViewIterator<BaseType, OtherTypes...> begin() { return SceneViewIterator<BaseType, OtherTypes...>(_scene, _view.begin()); }
-		SceneViewIterator<BaseType, OtherTypes...> end() { return SceneViewIterator<BaseType, OtherTypes...>(_scene, _view.end()); }
+		SceneViewIterator<BaseType, OtherTypes...> begin() { return SceneViewIterator<BaseType, OtherTypes...>(_scene, _view, _view.begin()); }
+		SceneViewIterator<BaseType, OtherTypes...> end() { return SceneViewIterator<BaseType, OtherTypes...>(_scene, _view, _view.end()); }
 	};
 }

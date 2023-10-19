@@ -260,4 +260,9 @@ namespace Coco
 	{
 		RotateGlobal(Quaternion(axis, angleRadians), parent);
 	}
+
+	void Transform3D::GetGlobalTransform(Vector3& outPosition, Quaternion& outRotation, Vector3& outScale)
+	{
+		GlobalTransform.Decompose(outPosition, outRotation, outScale);
+	}
 }

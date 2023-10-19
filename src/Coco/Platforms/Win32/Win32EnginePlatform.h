@@ -50,6 +50,8 @@ namespace Coco::Platforms::Win32
 		void ShowConsoleWindow(bool show) final;
 		void WriteToConsole(const char* message, ConsoleColor color) final;
 		void ShowMessageBox(const char* title, const char* message, bool isError) final;
+		string ShowOpenFileDialog(const std::vector<std::pair<const char*, const char*>>& filters) final;
+		string ShowSaveFileDialog(const std::vector<std::pair<const char*, const char*>>& filters) final;
 
 		/// @brief Gets the HINSTANCE
 		/// @return The HINSTANCE

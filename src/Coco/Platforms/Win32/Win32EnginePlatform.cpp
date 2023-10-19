@@ -229,6 +229,26 @@ namespace Coco::Platforms::Win32
 		MessageBox(NULL, messageStr, titleStr, flags);
 	}
 
+	string Win32EnginePlatform::ShowOpenFileDialog(const std::vector<std::pair<const char*, const char*>>& filters)
+	{
+#ifdef COCO_SERVICE_WINDOWING
+		return _windowExtensions->ShowOpenFileDialog(filters);
+#else
+		CocoError("The windowing service needs to be included to use file dialogs")
+		return string();
+#endif
+	}
+
+	string Win32EnginePlatform::ShowSaveFileDialog(const std::vector<std::pair<const char*, const char*>>& filters)
+	{
+#ifdef COCO_SERVICE_WINDOWING
+		return _windowExtensions->ShowSaveFileDialog(filters);
+#else
+		CocoError("The windowing service needs to be included to use file dialogs")
+			return string();
+#endif
+	}
+
 	LRESULT Win32EnginePlatform::ProcessMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		switch (message)
@@ -342,12 +362,12 @@ namespace Coco::Platforms::Win32
 #ifdef COCO_SERVICE_WINDOWING
 	const wchar_t* Win32EnginePlatform::sWindowClassName = L"CocoWindow";
 
-	void Win32::Win32EnginePlatform::SetWindowExtensions(SharedRef<Win32WindowExtensions> windowExtensions)
+	void Win32EnginePlatform::SetWindowExtensions(SharedRef<Win32WindowExtensions> windowExtensions)
 	{
 		_windowExtensions = windowExtensions;
 	}
 
-	SharedRef<Rendering::GraphicsPresenterSurface> Win32::Win32EnginePlatform::CreateSurfaceForWindow(const char* renderRHIName, const Win32Window& window) const
+	SharedRef<Rendering::GraphicsPresenterSurface> Win32EnginePlatform::CreateSurfaceForWindow(const char* renderRHIName, const Win32Window& window) const
 	{
 		return _windowExtensions->CreateSurfaceForWindow(renderRHIName, window);
 	}
