@@ -13,3 +13,6 @@
 [submodule "src/Vendor/entt"]
 	path = src/Vendor/entt
 	url = https://github.com/skypjack/entt.git
+[submodule "src/Vendor/imguizmo"]
+	path = src/Vendor/imguizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git
