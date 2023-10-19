@@ -129,6 +129,25 @@ namespace Coco
 		}
 	}
 
+	void Transform2D::GetGlobalTransform(Vector2& outPosition, double& outRotation, Vector2& outScale) const
+	{
+		Vector3 p, s;
+		Quaternion r;
+
+		GlobalTransform.Decompose(p, r, s);
+
+		outPosition = p.XY();
+		outRotation = r.ToEulerAngles().Z;
+		outScale = s.XY();
+	}
+
+	void Transform2D::TransformGlobalToLocal(Vector2& position, double& rotation, Vector2& scale) const
+	{
+		position = GlobalToLocalPosition(position);
+		rotation = GlobalToLocalRotation(rotation);
+		scale = GlobalToLocalScale(scale);
+	}
+
 	Transform3D::Transform3D() : 
 		Transform3D(Vector3::Zero, Quaternion::Identity, Vector3::One)
 	{}
@@ -261,8 +280,15 @@ namespace Coco
 		RotateGlobal(Quaternion(axis, angleRadians), parent);
 	}
 
-	void Transform3D::GetGlobalTransform(Vector3& outPosition, Quaternion& outRotation, Vector3& outScale)
+	void Transform3D::GetGlobalTransform(Vector3& outPosition, Quaternion& outRotation, Vector3& outScale) const
 	{
 		GlobalTransform.Decompose(outPosition, outRotation, outScale);
+	}
+
+	void Transform3D::TransformGlobalToLocal(Vector3& position, Quaternion& rotation, Vector3& scale) const
+	{
+		position = GlobalToLocalPosition(position);
+		rotation = GlobalToLocalRotation(rotation);
+		scale = GlobalToLocalScale(scale);
 	}
 }

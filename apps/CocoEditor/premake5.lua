@@ -21,6 +21,7 @@ project "CocoEditor"
     {
         "%{IncludeDir.Coco}",
         "%{IncludeDir.ImGui}",
+        "%{IncludeDir.ImGuizmo}",
         "%{IncludeDir.yaml_cpp}",
         "%{IncludeDir.entt}"
     }

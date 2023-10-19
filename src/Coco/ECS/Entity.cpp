@@ -23,11 +23,16 @@ namespace Coco::ECS
 		_scene(other._scene)
 	{}
 
-	bool Entity::operator==(const Entity & other) const
+	bool Entity::operator==(const Entity& other) const
 	{
 		if (_handle != other._handle)
 			return false;
 
+		// Same handle, so check if both are null handles
+		if (_handle == entt::null)
+			return true;
+
+		// Can't be the same if one's scene has expired
 		if (_scene.expired() != other._scene.expired())
 			return false;
 

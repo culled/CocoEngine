@@ -10,8 +10,10 @@
 #include <Coco/ECS/Systems/Rendering/CameraSystem.h>
 #include <Coco/ECS/Components/Transform3DComponent.h>
 #include "../UI/ComponentUI.h"
+#include <Coco/ECS/Systems/TransformSystem.h>
 
 #include <imgui.h>
+#include <ImGuizmo.h>
 
 namespace Coco
 {
@@ -93,31 +95,32 @@ namespace Coco
 
 			UpdateCamera(tickInfo);
 
+			ImVec2 pos = ImGui::GetWindowPos();
 			ImVec2 size = ImGui::GetContentRegionAvail(); 
-			_viewportSize = SizeInt(static_cast<uint32>(size.x), static_cast<uint32>(size.y));
+			_viewportRect.Minimum.X = static_cast<int>(pos.x);
+			_viewportRect.Minimum.Y = static_cast<int>(pos.y);
+			_viewportRect.Maximum.X = static_cast<int>(pos.x + size.x);
+			_viewportRect.Maximum.Y = static_cast<int>(pos.y + size.y); 
+			
+			ImGuizmo::SetOrthographic(_cameraComponent.ProjectionType == CameraProjectionType::Orthographic);
+			ImGuizmo::SetDrawlist();
+			ImGuizmo::SetRect(pos.x, pos.y + size.y, size.x, -size.y);
+
 			_cameraPreviewSize = SizeInt(
 				static_cast<uint32>(size.x * _sCameraPreviewSizePercentage),
 				static_cast<uint32>(size.y * _sCameraPreviewSizePercentage));
 
-			if (_selection.HasSelectedEntity())
-			{
-				Entity& e = _selection.GetSelectedEntity();
-
-				if (e.HasComponent<CameraComponent>())
-				{
-					_showCameraPreview = true;
-					ShowCameraPreview();
-				}
-
-				ComponentUI::DrawGizmos(e, _viewportSize);
-			}
-
 			if (!_showCameraPreview)
 				_previewCameraFullscreen = false;
 
-			EnsureTexture(_viewportSize, _viewportTexture);
+			EnsureTexture(_viewportRect.GetSize(), _viewportTexture);
 
 			ImGui::Image(_viewportTexture.Get(), size);
+
+			if (_selection.HasSelectedEntity())
+			{
+				DrawSelectedEntity();
+			}
 
 			_collapsed = false;
 		}
@@ -267,6 +270,53 @@ namespace Coco
 		}
 	}
 
+	void ViewportPanel::DrawSelectedEntity()
+	{
+		Entity& e = _selection.GetSelectedEntity();
+
+		if (e.HasComponent<CameraComponent>())
+		{
+			_showCameraPreview = true;
+			ShowCameraPreview();
+		}
+
+		ComponentUI::DrawGizmos(e, _viewportRect.GetSize());
+
+		if (e.HasComponent<Transform3DComponent>())
+		{
+			std::array<float, Matrix4x4::CellCount> cameraProjection = _cameraComponent.GetProjectionMatrix(_viewportRect.GetAspectRatio()).AsFloatArray();
+			std::array<float, Matrix4x4::CellCount> cameraView = _cameraTransform.InvGlobalTransform.AsFloatArray();
+
+			// Ensure our transform is updated
+			TransformSystem::UpdateTransform3D(e);
+			Transform3DComponent& transformComp = e.GetComponent<Transform3DComponent>();
+			Transform3D& transform = transformComp.Transform;
+			std::array<float, Matrix4x4::CellCount> model = transform.GlobalTransform.AsFloatArray();
+
+			if (ImGuizmo::Manipulate(
+				cameraView.data(),
+				cameraProjection.data(),
+				ImGuizmo::OPERATION::TRANSLATE | ImGuizmo::OPERATION::ROTATE | ImGuizmo::OPERATION::SCALE,
+				ImGuizmo::MODE::LOCAL,
+				model.data()))
+			{
+				Matrix4x4 transformed;
+				for (size_t i = 0; i < Matrix4x4::CellCount; i++)
+					transformed.Data[i] = model.at(i);
+
+				transformed.Decompose(transform.LocalPosition, transform.LocalRotation, transform.LocalScale);
+
+				Transform3DComponent* parentTransformComp = nullptr;
+				if (TransformSystem::TryGetParentTransform3D(e, parentTransformComp))
+				{
+					parentTransformComp->Transform.TransformGlobalToLocal(transform.LocalPosition, transform.LocalRotation, transform.LocalScale);
+				}
+
+				TransformSystem::MarkTransform3DDirty(e);
+			}
+		}
+	}
+
 	void ViewportPanel::ShowCameraStatsWindow()
 	{
 		ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
@@ -298,7 +348,7 @@ namespace Coco
 		ImVec2 previewSize{ static_cast<float>(_cameraPreviewSize.Width), static_cast<float>(_cameraPreviewSize.Height) };
 
 		ImVec2 pos = ImGui::GetWindowPos();
-		pos.x += _viewportSize.Width - (previewSize.x + 30);
+		pos.x += _viewportRect.GetSize().Width - (previewSize.x + 30);
 		pos.y += 30;
 		ImGui::SetNextWindowPos(pos);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));

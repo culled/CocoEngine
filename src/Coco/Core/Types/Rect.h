@@ -107,6 +107,10 @@ namespace Coco
 		/// @param outSide If given, will be set to the side that the point lies on
 		/// @return The closest point
 		Vector2 GetClosestPoint(const Rect& other, RectangleSide* outSide = nullptr) const;
+
+		/// @brief Gets the aspect ratio of this rectangle (width / heigth)
+		/// @return The aspect ratio
+		double GetAspectRatio() const;
 	};
 
 	/// @brief An axis-aligned rectangle backed by int values
@@ -198,5 +202,9 @@ namespace Coco
 		/// @param outSide If given, will be set to the side that the point lies on
 		/// @return The closest point
 		Vector2 GetClosestPoint(const RectInt& other, RectangleSide* outSide = nullptr) const;
+
+		/// @brief Gets the aspect ratio of this rectangle (width / heigth)
+		/// @return The aspect ratio
+		double GetAspectRatio() const;
 	};
 }

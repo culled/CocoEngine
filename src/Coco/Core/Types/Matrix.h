@@ -157,6 +157,10 @@ namespace Coco
 		/// @return The inverse of this matrix
 		Matrix4x4 Inverted() const;
 
+		/// @brief Returns a matrix that has its rows and columns switched (flipped over the diagonal)
+		/// @return The transposed matrix
+		Matrix4x4 Transposed() const;
+
 		/// @brief Gets a vector that points to the right
 		/// @return A vector that points to the right
 		Vector3 GetRightVector() const;

@@ -18,13 +18,13 @@ namespace Coco
 		/// @brief The local scale
 		Vector2 LocalScale;
 
-		/// @brief The local transform matrix
+		/// @brief The local transform matrix. This is how this transform is moved within its parent transform (or the world if it has no parent)
 		Matrix4x4 LocalTransform;
 
-		/// @brief The global transform matrix
+		/// @brief The global transform matrix. This transforms local space to global space
 		Matrix4x4 GlobalTransform;
 
-		/// @brief The inverse of the global transform matrix
+		/// @brief The inverse of the global transform matrix. This transforms global space to local space, which is NOT the same as parent space
 		Matrix4x4 InvGlobalTransform;
 
 		Transform2D();
@@ -111,6 +111,18 @@ namespace Coco
 		/// @brief Gets the global scale of this transform
 		/// @return The global scale
 		Vector3 GetGlobalScale() const { return LocalToGlobalScale(Vector2::One); }
+
+		/// @brief Gets the global position, rotation, and scale of this transform
+		/// @param outPosition Will be set to the global position
+		/// @param outRotation Will be set to the global rotation
+		/// @param outScale Will be set to the global scale
+		void GetGlobalTransform(Vector2& outPosition, double& outRotation, Vector2& outScale) const;
+
+		/// @brief Transforms global-space coordinates to local-space coordinates
+		/// @param position The position
+		/// @param rotation The rotation
+		/// @param scale The scale
+		void TransformGlobalToLocal(Vector2& position, double& rotation, Vector2& scale) const;
 	};
 
 	/// @brief Represents a 3D transformation
@@ -125,13 +137,13 @@ namespace Coco
 		/// @brief The local scale
 		Vector3 LocalScale;
 
-		/// @brief The local transform matrix
+		/// @brief The local transform matrix. This is how this transform is moved within its parent transform (or the world if it has no parent)
 		Matrix4x4 LocalTransform;
 
-		/// @brief The global transform matrix
+		/// @brief The global transform matrix. This transforms local space to global space
 		Matrix4x4 GlobalTransform;
 
-		/// @brief The inverse of the global transform matrix
+		/// @brief The inverse of the global transform matrix. This transforms global space to local space, which is NOT the same as parent space
 		Matrix4x4 InvGlobalTransform;
 
 		Transform3D();
@@ -234,7 +246,13 @@ namespace Coco
 		/// @param outPosition Will be set to the global position
 		/// @param outRotation Will be set to the global rotation
 		/// @param outScale Will be set to the global scale
-		void GetGlobalTransform(Vector3& outPosition, Quaternion& outRotation, Vector3& outScale);
+		void GetGlobalTransform(Vector3& outPosition, Quaternion& outRotation, Vector3& outScale) const;
+
+		/// @brief Transforms global-space coordinates to local-space coordinates
+		/// @param position The position
+		/// @param rotation The rotation
+		/// @param scale The scale
+		void TransformGlobalToLocal(Vector3& position, Quaternion& rotation, Vector3& scale) const;
 
 		/// @brief Gets the global forward direction of this transform
 		/// @return The global forward direction

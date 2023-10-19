@@ -51,7 +51,7 @@ namespace Coco
 		bool _showCameraPreview;
 		bool _previewCameraFullscreen;
 		SizeInt _cameraPreviewSize;
-		SizeInt _viewportSize;
+		RectInt _viewportRect;
 
 		ManagedRef<Texture> _cameraPreviewTexture;
 		ManagedRef<Texture> _viewportTexture;
@@ -77,6 +77,8 @@ namespace Coco
 		void EnsureTexture(const SizeInt& size, ManagedRef<Texture>& texture);
 
 		void UpdateCamera(const TickInfo& tickInfo);
+
+		void DrawSelectedEntity();
 		
 		void ShowCameraStatsWindow();
 

@@ -322,6 +322,16 @@ namespace Coco
 		return inverse;
 	}
 
+	Matrix4x4 Matrix4x4::Transposed() const
+	{
+		return Matrix4x4({
+			Data[m11], Data[m12], Data[m13], Data[m14],
+			Data[m21], Data[m22], Data[m23], Data[m24],
+			Data[m31], Data[m32], Data[m33], Data[m34],
+			Data[m41], Data[m42], Data[m43], Data[m44]
+			});
+	}
+
 	Vector3 Matrix4x4::GetRightVector() const { return Vector3(Data[m11], Data[m21], Data[m31]).Normalized(); }
 
 	Vector3 Matrix4x4::GetLeftVector() const { return -GetRightVector(); }

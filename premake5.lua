@@ -93,6 +93,7 @@ workspace "CocoEngine"
         print("Including ImGUI service") 
         Services["ImGui"] = true
         IncludeDir["ImGui"] = "%{wks.location}\\src\\Vendor\\imgui"
+        IncludeDir["ImGuizmo"] = "%{wks.location}\\src\\Vendor\\imguizmo"
     end
 
     if (_OPTIONS["service-ecs"] ~= nil or _OPTIONS["services-all"] ~= nil) then 

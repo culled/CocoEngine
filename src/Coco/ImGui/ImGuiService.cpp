@@ -9,6 +9,7 @@
 #include <array>
 
 #include <imgui.h>
+#include <ImGuizmo.h>
 
 namespace Coco::ImGuiCoco
 {
@@ -79,6 +80,7 @@ namespace Coco::ImGuiCoco
 			return;
 
 		::ImGui::NewFrame();
+		::ImGuizmo::BeginFrame();
 	}
 
 	void ImGuiService::HandleDrawTick(const TickInfo& tickInfo)

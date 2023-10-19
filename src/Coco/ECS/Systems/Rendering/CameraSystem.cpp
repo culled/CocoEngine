@@ -31,9 +31,13 @@ namespace Coco::ECS
 		if (_entity.HasComponent<Transform3DComponent>())
 		{
 			const Transform3DComponent& cameraTransform = _entity.GetComponent<const Transform3DComponent>();
+			Vector3 s;
+			Quaternion r;
+			cameraTransform.Transform.GetGlobalTransform(viewPosition, r, s);
+
 			view = cameraTransform.Transform.InvGlobalTransform;
 			viewPosition = cameraTransform.Transform.GetGlobalPosition();
-			frustum = camera.GetViewFrustum(aspectRatio, viewPosition, cameraTransform.Transform.GetGlobalRotation());
+			frustum = camera.GetViewFrustum(aspectRatio, viewPosition, r);
 		}
 		else
 		{

@@ -17,13 +17,16 @@ project "Coco.ImGui"
         "**.h",
         "**.cpp",
         "%{IncludeDir.ImGui}\\*.h",
-        "%{IncludeDir.ImGui}\\*.cpp"
+        "%{IncludeDir.ImGui}\\*.cpp",
+        "%{IncludeDir.ImGuizmo}\\ImGuizmo.h",
+        "%{IncludeDir.ImGuizmo}\\ImGuizmo.cpp"
     }
 
     includedirs
     {
         "%{IncludeDir.Coco}",
         "%{IncludeDir.ImGui}",
+        "%{IncludeDir.ImGuizmo}",
     }
 
     links

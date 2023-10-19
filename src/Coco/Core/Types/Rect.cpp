@@ -156,6 +156,12 @@ namespace Coco
 		return GetClosestPoint(i.GetCenter(), side);
 	}
 
+	double Rect::GetAspectRatio() const
+	{
+		Size size = GetSize();
+		return size.Width / size.Height;
+	}
+
 	RectInt::RectInt() : RectInt(Vector2Int::Zero, SizeInt::Zero)
 	{}
 
@@ -297,5 +303,11 @@ namespace Coco
 	{
 		RectInt i = GetIntersection(other);
 		return GetClosestPoint(i.GetCenter(), side);
+	}
+
+	double RectInt::GetAspectRatio() const
+	{
+		SizeInt size = GetSize();
+		return static_cast<double>(size.Width) / size.Height;
 	}
 }
