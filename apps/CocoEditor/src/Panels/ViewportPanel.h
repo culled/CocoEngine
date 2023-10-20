@@ -18,6 +18,12 @@ namespace Coco::Rendering
 	struct GlobalShaderUniformLayout;
 }
 
+namespace ImGuizmo
+{
+	enum OPERATION;
+	enum MODE;
+}
+
 namespace Coco
 {
 	class SelectionContext;
@@ -53,6 +59,8 @@ namespace Coco
 		SizeInt _cameraPreviewSize;
 		RectInt _viewportRect;
 
+		ImGuizmo::OPERATION _currentTransformOperation;
+
 		ManagedRef<Texture> _cameraPreviewTexture;
 		ManagedRef<Texture> _viewportTexture;
 
@@ -76,6 +84,7 @@ namespace Coco
 	private:
 		void EnsureTexture(const SizeInt& size, ManagedRef<Texture>& texture);
 
+		void UpdateWindowSettings();
 		void UpdateCamera(const TickInfo& tickInfo);
 
 		void DrawSelectedEntity();

@@ -38,7 +38,8 @@ namespace Coco
 		_showCameraPreview(false),
 		_previewCameraFullscreen(false),
 		_cameraPreviewTexture(),
-		_cameraPreviewSize()
+		_cameraPreviewSize(),
+		_currentTransformOperation(ImGuizmo::OPERATION::TRANSLATE)
 	{
 		_cameraComponent.ClearColor = Color(0.1, 0.1, 0.1, 1.0);
 	}
@@ -88,31 +89,75 @@ namespace Coco
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 		//if (ImGui::Begin(_name.c_str(), &open) && open)
-		if (ImGui::Begin(_name.c_str()))
+		if (ImGui::Begin(_name.c_str(), nullptr, ImGuiWindowFlags_MenuBar))
 		{
-			_isMouseHovering = ImGui::IsWindowHovered();
-			_isFocused = ImGui::IsWindowFocused();
+			if (ImGui::BeginMenuBar())
+			{
+				bool translate = _currentTransformOperation & ImGuizmo::OPERATION::TRANSLATE;
+				if (ImGui::Checkbox("Translate", &translate))
+				{
+					if (translate)
+						_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::TRANSLATE;
+					else
+						_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::TRANSLATE);
+				}
 
+				bool rotate = _currentTransformOperation & ImGuizmo::OPERATION::ROTATE;
+				if (ImGui::Checkbox("Rotate", &rotate))
+				{
+					if (rotate)
+						_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::ROTATE;
+					else
+						_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::ROTATE);
+				}
+
+				bool scale = _currentTransformOperation & ImGuizmo::OPERATION::SCALE;
+				if (ImGui::Checkbox("Scale", &scale))
+				{
+					if (scale)
+						_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::SCALE;
+					else
+						_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::SCALE);
+				}
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.f, 10.f));
+
+				if (ImGui::BeginMenu("View"))
+				{
+					ImGui::SeparatorText("Editor Camera Properties");
+
+					float fov = static_cast<float>(Math::RadToDeg(_cameraComponent.PerspectiveFOV));
+					if (ImGui::DragFloat("FOV", &fov, 0.1f, 0.01f, 180.f))
+					{
+						_cameraComponent.PerspectiveFOV = Math::DegToRad(fov);
+					}
+
+					float near = static_cast<float>(_cameraComponent.PerspectiveNearClip);
+					float far = static_cast<float>(_cameraComponent.PerspectiveFarClip);
+					if (ImGui::DragFloatRange2("Clipping Distance", &near, &far, 0.1f, Math::EpsilonF))
+					{
+						_cameraComponent.PerspectiveNearClip = near;
+						_cameraComponent.PerspectiveFarClip = far;
+					}
+
+					ImGui::EndMenu();
+				}
+
+				ImGui::PopStyleVar();
+
+				ImGui::EndMenuBar();
+			}
+
+			ImVec2 offset = ImGui::GetWindowContentRegionMin();
+
+			UpdateWindowSettings();
 			UpdateCamera(tickInfo);
 
-			ImVec2 pos = ImGui::GetWindowPos();
-			ImVec2 size = ImGui::GetContentRegionAvail(); 
-			_viewportRect.Minimum.X = static_cast<int>(pos.x);
-			_viewportRect.Minimum.Y = static_cast<int>(pos.y);
-			_viewportRect.Maximum.X = static_cast<int>(pos.x + size.x);
-			_viewportRect.Maximum.Y = static_cast<int>(pos.y + size.y); 
-			
-			ImGuizmo::SetOrthographic(_cameraComponent.ProjectionType == CameraProjectionType::Orthographic);
-			ImGuizmo::SetDrawlist();
-			ImGuizmo::SetRect(pos.x, pos.y + size.y, size.x, -size.y);
+			SizeInt viewportSize = _viewportRect.GetSize();
+			EnsureTexture(viewportSize, _viewportTexture);
 
-			_cameraPreviewSize = SizeInt(
-				static_cast<uint32>(size.x * _sCameraPreviewSizePercentage),
-				static_cast<uint32>(size.y * _sCameraPreviewSizePercentage));
-
-			EnsureTexture(_viewportRect.GetSize(), _viewportTexture);
-
-			ImGui::Image(_viewportTexture.Get(), size);
+			ImGui::SetCursorPos(ImVec2(0, offset.y));
+			ImGui::Image(_viewportTexture.Get(), ImVec2(static_cast<float>(viewportSize.Width), static_cast<float>(viewportSize.Height)));
 
 			if (_selection.HasSelectedEntity())
 			{
@@ -200,6 +245,31 @@ namespace Coco
 			ImageSamplerDescription::LinearClamp);
 	}
 
+	void ViewportPanel::UpdateWindowSettings()
+	{
+		_isMouseHovering = ImGui::IsWindowHovered();
+		_isFocused = ImGui::IsWindowFocused();
+
+		ImVec2 pos = ImGui::GetWindowPos();
+		ImVec2 min = ImGui::GetWindowContentRegionMin();
+		pos.x += min.x;
+		pos.y += min.y;
+
+		ImVec2 size = ImGui::GetContentRegionAvail();
+		_viewportRect.Minimum.X = static_cast<int>(pos.x);
+		_viewportRect.Minimum.Y = static_cast<int>(pos.y);
+		_viewportRect.Maximum.X = static_cast<int>(pos.x + size.x);
+		_viewportRect.Maximum.Y = static_cast<int>(pos.y + size.y);
+
+		ImGuizmo::SetOrthographic(_cameraComponent.ProjectionType == CameraProjectionType::Orthographic);
+		ImGuizmo::SetDrawlist();
+		ImGuizmo::SetRect(pos.x, size.y + pos.y, size.x, -size.y);
+
+		_cameraPreviewSize = SizeInt(
+			static_cast<uint32>(size.x * _sCameraPreviewSizePercentage),
+			static_cast<uint32>(size.y * _sCameraPreviewSizePercentage));
+	}
+
 	void ViewportPanel::UpdateCamera(const TickInfo& tickInfo)
 	{
 		using namespace Coco::Input;
@@ -209,11 +279,12 @@ namespace Coco
 
 		Mouse& mouse = input.GetMouse();
 
-		Ref<Window> mainWindow = WindowService::Get()->GetMainWindow();
+		Window* viewportWindow = reinterpret_cast<Window*>(ImGui::GetWindowViewport()->PlatformHandle);
+
 		if (_isFlying && !mouse.IsButtonPressed(MouseButton::Right))
 		{
-			mainWindow->SetCursorConfineMode(CursorConfineMode::None);
-			mainWindow->SetCursorVisibility(true);
+			viewportWindow->SetCursorConfineMode(CursorConfineMode::None);
+			viewportWindow->SetCursorVisibility(true);
 			_isFlying = false;
 			return;
 		}
@@ -223,11 +294,12 @@ namespace Coco
 		}
 
 		int scrollDelta = mouse.GetScrollWheelDelta().Y;
+		Keyboard& keyboard = input.GetKeyboard();
 
 		if (_isFlying)
 		{
-			mainWindow->SetCursorConfineMode(CursorConfineMode::LockedInPlace);
-			mainWindow->SetCursorVisibility(false);
+			viewportWindow->SetCursorConfineMode(CursorConfineMode::LockedInPlace);
+			viewportWindow->SetCursorVisibility(false);
 
 			Vector2Int mouseDelta = mouse.GetMoveDelta();
 			Vector3 eulerAngles = _cameraTransform.LocalRotation.ToEulerAngles();
@@ -240,8 +312,6 @@ namespace Coco
 			{
 				_moveSpeed = Math::Clamp(_moveSpeed + (_moveSpeed * scrollDelta * 0.2), _sMinMoveSpeed, _sMaxMoveSpeed);
 			}
-
-			Keyboard& keyboard = input.GetKeyboard();
 
 			Vector3 velocity = Vector3::Zero;
 
@@ -269,10 +339,54 @@ namespace Coco
 
 			ShowCameraStatsWindow();
 		}
-		else if (_isMouseHovering && scrollDelta != 0)
+		else if (_isMouseHovering)
 		{
-			_cameraTransform.TranslateGlobal(_cameraTransform.GetGlobalBackward() * (scrollDelta * _scrollDistance));
-			_cameraTransform.Recalculate();
+			if (scrollDelta != 0)
+			{
+				_cameraTransform.TranslateGlobal(_cameraTransform.GetGlobalBackward() * (scrollDelta * _scrollDistance));
+				_cameraTransform.Recalculate();
+			}
+
+			if (keyboard.WasKeyJustPressed(KeyboardKey::Q))
+			{
+				_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(0);
+			}
+
+			if (keyboard.WasKeyJustPressed(KeyboardKey::W))
+			{
+				if (_currentTransformOperation & ImGuizmo::OPERATION::TRANSLATE)
+				{
+					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::TRANSLATE);
+				}
+				else
+				{
+					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::TRANSLATE;
+				}
+			}
+
+			if (keyboard.WasKeyJustPressed(KeyboardKey::E))
+			{
+				if (_currentTransformOperation & ImGuizmo::OPERATION::ROTATE)
+				{
+					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::ROTATE);
+				}
+				else
+				{
+					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::ROTATE;
+				}
+			}
+
+			if (keyboard.WasKeyJustPressed(KeyboardKey::R))
+			{
+				if (_currentTransformOperation & ImGuizmo::OPERATION::SCALE)
+				{
+					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::SCALE);
+				}
+				else
+				{
+					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::SCALE;
+				}
+			}
 		}
 	}
 
@@ -305,7 +419,7 @@ namespace Coco
 			if (ImGuizmo::Manipulate(
 				cameraView.data(),
 				cameraProjection.data(),
-				ImGuizmo::OPERATION::TRANSLATE | ImGuizmo::OPERATION::ROTATE | ImGuizmo::OPERATION::SCALE,
+				_currentTransformOperation,
 				ImGuizmo::MODE::LOCAL,
 				model.data()))
 			{
@@ -329,25 +443,27 @@ namespace Coco
 	void ViewportPanel::ShowCameraStatsWindow()
 	{
 		ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
-		ImVec2 min = ImGui::GetWindowPos();
+		ImVec2 min(static_cast<float>(_viewportRect.Minimum.X), static_cast<float>(_viewportRect.Minimum.Y));
 		min.x += 20;
 		min.y += 30;
 		ImGui::SetNextWindowPos(min);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
 
-		ImGui::Begin("Stats", nullptr,
-			ImGuiWindowFlags_NoDecoration |
+		// HACK: until the child window can auto-calculate its size based on its content, we force its size for now
+		if (ImGui::BeginChild("Stats", 
+			ImVec2(200, 50), 
+			true,
 			ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoNav |
 			ImGuiWindowFlags_NoFocusOnAppearing |
 			ImGuiWindowFlags_NoMove |
-			ImGuiWindowFlags_AlwaysAutoResize |
-			ImGuiWindowFlags_NoSavedSettings);
+			ImGuiWindowFlags_NoSavedSettings))
+		{
+			ImGui::Text("Position: %.3f, %.3f, %.3f", _cameraTransform.LocalPosition.X, _cameraTransform.LocalPosition.Y, _cameraTransform.LocalPosition.Z);
+			ImGui::Text("Move speed: %.2f", _moveSpeed);
+		}
 
-		ImGui::Text("Position: %.3f, %.3f, %.3f", _cameraTransform.LocalPosition.X, _cameraTransform.LocalPosition.Y, _cameraTransform.LocalPosition.Z);
-		ImGui::Text("Move speed: %.2f", _moveSpeed);
-
-		ImGui::End();
+		ImGui::EndChild();
 		ImGui::PopStyleVar();
 	}
 
@@ -356,30 +472,27 @@ namespace Coco
 		EnsureTexture(_cameraPreviewSize, _cameraPreviewTexture);
 		ImVec2 previewSize{ static_cast<float>(_cameraPreviewSize.Width), static_cast<float>(_cameraPreviewSize.Height) };
 
-		ImVec2 pos = ImGui::GetWindowPos();
-		pos.x += _viewportRect.GetSize().Width - (previewSize.x + 30);
+		ImVec2 pos(static_cast<float>(_viewportRect.Minimum.X), static_cast<float>(_viewportRect.Minimum.Y));
+		pos.x += _viewportRect.GetSize().Width - (previewSize.x + 40);
 		pos.y += 30;
 		ImGui::SetNextWindowPos(pos);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
 
-		if (ImGui::Begin("Camera Preview", nullptr,
+		// HACK: until the child window can auto-calculate its size based on its content, we force its size for now
+		if (ImGui::BeginChild("Camera Preview",
+			ImVec2(previewSize.x + 10.f, previewSize.y + 40),
+			true,
 			ImGuiWindowFlags_NoFocusOnAppearing |
-			ImGuiWindowFlags_AlwaysAutoResize |
 			ImGuiWindowFlags_NoNav |
 			ImGuiWindowFlags_NoMove |
 			ImGuiWindowFlags_NoSavedSettings))
 		{
-
 			ImGui::Image(_cameraPreviewTexture.Get(), previewSize);
 
 			ImGui::Checkbox("Fullscreen", &_previewCameraFullscreen);
 		}
 
-		ImVec2 size = ImGui::GetWindowSize();
-		pos.x -= size.x - previewSize.x;
-		ImGui::SetWindowPos(pos);
-
-		ImGui::End();
+		ImGui::EndChild();
 		ImGui::PopStyleVar();
 	}
 }
