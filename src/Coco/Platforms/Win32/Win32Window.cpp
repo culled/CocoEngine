@@ -166,7 +166,7 @@ namespace Coco::Platforms::Win32
 	{
 		CheckWindowHandle()
 
-		::ShowWindow(_handle, _focusOnShow ? SW_SHOW : SW_SHOWNA);
+		::ShowWindow(_handle, _focusOnShow ? SW_SHOW : SW_SHOWNOACTIVATE);
 		UpdateFullscreenState(IsFullscreen());
 	}
 
@@ -222,7 +222,7 @@ namespace Coco::Platforms::Win32
 			NULL,
 			pos.X, pos.Y,
 			0, 0,
-			SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER
+			SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_NOACTIVATE
 		))
 		{
 			CocoError("Failed to set window position (code {})", ::GetLastError())
@@ -289,7 +289,7 @@ namespace Coco::Platforms::Win32
 			NULL,
 			0, 0,
 			static_cast<int>(windowSize.Width), static_cast<int>(windowSize.Height),
-			SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER)
+			SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_NOACTIVATE)
 			)
 		{
 			CocoError("Failed to set window size (code {})", ::GetLastError())
@@ -467,7 +467,7 @@ namespace Coco::Platforms::Win32
 				if (size.Width == 0 && size.Height == 0 && width > 0 && height > 0)
 					UpdateFullscreenState(IsFullscreen());
 
-				UpdateCursorConfineState(false);
+				UpdateCursorConfineState(HasFocus());
 
 				HandleResized();
 				return true;
@@ -484,7 +484,7 @@ namespace Coco::Platforms::Win32
 					suggestedRect->right - suggestedRect->left, suggestedRect->bottom - suggestedRect->top,
 					SWP_NOZORDER | SWP_NOACTIVATE);
 
-				UpdateCursorConfineState(false);
+				UpdateCursorConfineState(HasFocus());
 
 				try
 				{
@@ -499,6 +499,10 @@ namespace Coco::Platforms::Win32
 #endif
 			case WM_MOVE:
 			{
+				// This can be called by the CreateWindow function before we have a handle, so ignore for now
+				if (!_handle)
+					return false;
+
 				const int16 x = LOWORD(lParam);
 				const int16 y = HIWORD(lParam);
 
@@ -511,7 +515,7 @@ namespace Coco::Platforms::Win32
 					CocoError("Error invoking Win32Window::OnPositionChanged: {}", ex.what())
 				}
 
-				UpdateCursorConfineState(false);
+				UpdateCursorConfineState(HasFocus());
 
 				return true;
 			}
@@ -519,6 +523,8 @@ namespace Coco::Platforms::Win32
 			case WM_KILLFOCUS:
 			{
 				bool focused = message == WM_SETFOCUS;
+
+				CocoInfo("Window {} focus: {}", ID, focused)
 
 				UpdateCursorConfineState(focused);
 
@@ -625,7 +631,7 @@ namespace Coco::Platforms::Win32
 				NULL,
 				0, 0,
 				0, 0,
-				SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+				SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
 
 			_isFullscreen = false;
 		}
@@ -643,7 +649,7 @@ namespace Coco::Platforms::Win32
 					mi.rcMonitor.top,
 					mi.rcMonitor.right - mi.rcMonitor.left,
 					mi.rcMonitor.bottom - mi.rcMonitor.top,
-					SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+					SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
 
 				_isFullscreen = true;
 			}
@@ -653,9 +659,8 @@ namespace Coco::Platforms::Win32
 	void Win32Window::UpdateCursorConfineState(bool shouldCapture)
 	{
 		// Unconfine the cursor if needed
-		if (_cursorConfineMode == CursorConfineMode::None || (!shouldCapture && _cursorConfined))
+		if (_cursorConfineMode == CursorConfineMode::None || !shouldCapture)
 		{
-			::ClipCursor(NULL);
 			_cursorConfined = false;
 			return;
 		}
@@ -672,41 +677,34 @@ namespace Coco::Platforms::Win32
 		if (!::GetCursorPos(&cursorPos))
 		{
 			CocoError("Failed to get cursor position - code {}", ::GetLastError())
+			return;
 		}
 
-		// The cursor is not inside the client rectangle, so don't confine it
-		if (cursorPos.x < screenRect.left || cursorPos.x > screenRect.right ||
-			cursorPos.y < screenRect.top || cursorPos.y > screenRect.bottom)
-			return;
-
-		RECT confineRect{};
+		_cursorConfined = shouldCapture;
 
 		switch (_cursorConfineMode)
 		{
 		case CursorConfineMode::ClientArea:
 		{
-			confineRect = screenRect;
+			_cursorConfineRect = screenRect;
 			break;
 		}
 		case CursorConfineMode::LockedCenter:
 		{
 			int width = screenRect.right - screenRect.left;
 			int height = screenRect.bottom - screenRect.top;
-			confineRect.left = screenRect.left + width / 2;
-			confineRect.top = screenRect.top + height / 2;
-			confineRect.right = confineRect.left + 1;
-			confineRect.bottom = confineRect.top + 1;
+			_cursorConfineRect.left = screenRect.left + width / 2;
+			_cursorConfineRect.top = screenRect.top + height / 2;
+			_cursorConfineRect.right = _cursorConfineRect.left + 1;
+			_cursorConfineRect.bottom = _cursorConfineRect.top + 1;
 			break;
 		}
 		case CursorConfineMode::LockedInPlace:
 		{
-			POINT pos{};
-			Assert(::GetCursorPos(&pos))
-
-			confineRect.left = pos.x;
-			confineRect.top = pos.y;
-			confineRect.right = confineRect.left + 1;
-			confineRect.bottom = confineRect.top + 1;
+			_cursorConfineRect.left = cursorPos.x;
+			_cursorConfineRect.top = cursorPos.y;
+			_cursorConfineRect.right = _cursorConfineRect.left + 1;
+			_cursorConfineRect.bottom = _cursorConfineRect.top + 1;
 
 			break;
 		}
@@ -714,13 +712,29 @@ namespace Coco::Platforms::Win32
 			break;
 		}
 
-		if (::ClipCursor(&confineRect))
+		ConfineCursor();
+	}
+
+	void Win32Window::ConfineCursor()
+	{
+		if (_cursorConfineMode == CursorConfineMode::None)
+			return;
+
+		POINT cursorPos{};
+		if (!::GetCursorPos(&cursorPos))
 		{
-			_cursorConfined = true;
+			CocoError("Failed to get cursor position - code {}", ::GetLastError())
+			return;
 		}
-		else
+
+		if (cursorPos.x < _cursorConfineRect.left ||
+			cursorPos.x > _cursorConfineRect.right ||
+			cursorPos.y < _cursorConfineRect.top ||
+			cursorPos.y > _cursorConfineRect.bottom)
 		{
-			CocoError("Failed to confine cursor - code {}", ::GetLastError())
+			cursorPos.x = Math::Clamp(cursorPos.x, _cursorConfineRect.left, _cursorConfineRect.right);
+			cursorPos.y = Math::Clamp(cursorPos.y, _cursorConfineRect.top, _cursorConfineRect.bottom);
+			::SetCursorPos(cursorPos.x, cursorPos.y);
 		}
 	}
 
@@ -782,6 +796,9 @@ namespace Coco::Platforms::Win32
 			{
 				::MapWindowPoints(_handle, HWND_DESKTOP, &p, 1);
 			}
+
+			if (_cursorConfined)
+				ConfineCursor();
 
 #ifdef COCO_SERVICE_INPUT
 			mouse.UpdatePositionState(Vector2Int(p.x, p.y));

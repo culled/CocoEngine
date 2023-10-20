@@ -24,6 +24,7 @@ namespace Coco::Platforms::Win32
         bool _cursorVisible;
         CursorConfineMode _cursorConfineMode;
         bool _cursorConfined;
+        RECT _cursorConfineRect;
         WINDOWPLACEMENT _restorePlacement;
 
     public:
@@ -109,6 +110,9 @@ namespace Coco::Platforms::Win32
         /// @brief Updates the confined state of the mouse
         /// @param shouldCapture If true, the mouse will be confined, else it will be freed regardless of the current confine mode
         void UpdateCursorConfineState(bool shouldCapture);
+
+        /// @brief Confines the cursor
+        void ConfineCursor();
 
         /// @brief Handles an input message
         /// @param message The message
