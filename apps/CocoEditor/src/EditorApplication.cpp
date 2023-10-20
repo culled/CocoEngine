@@ -32,6 +32,7 @@ namespace Coco
 	EditorApplication::EditorApplication() :
 		Application(ApplicationCreateParameters("Coco Editor", Version(0, 0, 1))),
 		_selection(),
+		_inputLayer(CreateManagedRef<EditorInputLayer>()),
 		_mainWindow(),
 		_updateTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleUpdateTick, 0)),
 		_renderTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleRenderTick, 99)),
@@ -58,6 +59,8 @@ namespace Coco
 		loop.RemoveListener(_updateTickListener);
 		loop.RemoveListener(_renderTickListener);
 
+		Input::InputService::Get()->UnregisterInputLayer(_inputLayer);
+
 		if (_viewport)
 			CloseViewportPanel();
 
@@ -75,7 +78,8 @@ namespace Coco
 
 		ServiceManager& services = Engine::Get()->GetServiceManager();
 
-		services.CreateService<InputService>();
+		InputService& input = services.CreateService<InputService>();
+		input.RegisterInputLayer(_inputLayer);
 
 		GraphicsDeviceCreateParams deviceParams{};
 		GraphicsPlatformCreateParams platformParams(*this, true);

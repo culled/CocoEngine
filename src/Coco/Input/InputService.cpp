@@ -58,6 +58,12 @@ namespace Coco::Input
 		_inputLayers.erase(it);
 	}
 
+	void InputService::LostFocus()
+	{
+		_keyboard->ClearAllKeyStates();
+		_mouse->ClearAllButtonStates();
+	}
+
 	void InputService::HandleProcessTick(const TickInfo& tickInfo)
 	{
 		if (_inputLayersNeedSorting)

@@ -62,6 +62,9 @@ namespace Coco::Input
 		/// @return The unhandled input layer
 		Ref<UnhandledInputLayer> GetUnhandledInputLayer() const { return _unhandledInputLayer; }
 
+		/// @brief Causes all input devices to reset their state. Mainly should be called if the application looses focus
+		void LostFocus();
+
 	private:
 		/// @brief Tick for updating the current state of the peripherals
 		/// @param tickInfo The info for the current tick

@@ -535,6 +535,20 @@ namespace Coco::Platforms::Win32
 				if (!focused && ::GetCapture() == _handle)
 					::ReleaseCapture();
 
+#ifdef COCO_SERVICE_INPUT
+				if (!focused)
+				{
+					// If the next window is not one of our managed ones, make sure input gets reset
+					HWND windowHandle = (HWND)wParam;
+					LONG_PTR userPtr = GetWindowLongPtr(windowHandle, GWLP_USERDATA);
+					Input::InputService* input = Input::InputService::Get();
+
+					if (!userPtr && input)
+					{
+						input->LostFocus();
+					}
+				}
+#endif
 				return true;
 			}
 			case WM_LBUTTONDOWN:
@@ -909,8 +923,7 @@ namespace Coco::Platforms::Win32
 			{
 #ifdef COCO_SERVICE_INPUT
 				// The app is unfocusing, so clear all states
-				keyboard.ClearAllKeyStates();
-				mouse.ClearAllButtonStates();
+				input->LostFocus();
 #endif
 			}
 			return false;

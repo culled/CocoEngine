@@ -93,7 +93,7 @@ namespace Coco::Platforms::Win32
 
 				path = WideStringToString(selectedFilePath);
 			}
-			else if (showResult != ERROR_CANCELLED)
+			else if (showResult != HRESULT_FROM_WIN32(ERROR_CANCELLED))
 			{
 				AssertHResult(showResult)
 			}

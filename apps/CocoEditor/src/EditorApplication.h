@@ -8,6 +8,7 @@
 #include <Coco/Core/Types/Refs.h>
 
 #include "SelectionContext.h"
+#include "EditorInputLayer.h"
 #include "Panels/ViewportPanel.h"
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/InspectorPanel.h"
@@ -26,6 +27,7 @@ namespace Coco
     {
     private:
         SelectionContext _selection;
+        ManagedRef<EditorInputLayer> _inputLayer;
         Ref<Windowing::Window> _mainWindow;
         ManagedRef<TickListener> _updateTickListener;
         ManagedRef<TickListener> _renderTickListener;
@@ -52,6 +54,10 @@ namespace Coco
 
         Ref<Windowing::Window> GetMainWindow() const { return _mainWindow; }
 
+        void NewScene();
+        void OpenScene();
+        void SaveSceneAs();
+
     private:
         void SetupServices();
         void CreateMainWindow();
@@ -67,10 +73,6 @@ namespace Coco
         UniqueRef<ViewportPanel> CreateViewportPanel();
         void CloseViewportPanel();
         bool OnViewportPanelClosed(const ViewportPanel& panel);
-
-        void NewScene();
-        void OpenScene();
-        void SaveSceneAs();
 
         void ChangeScenes(SharedRef<Scene> newScene);
     };
