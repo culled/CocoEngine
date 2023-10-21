@@ -148,16 +148,13 @@ namespace Coco
 				ImGui::EndMenuBar();
 			}
 
-			ImVec2 offset = ImGui::GetWindowContentRegionMin();
-
 			UpdateWindowSettings();
-			UpdateCamera(tickInfo);
 
 			SizeInt viewportSize = _viewportRect.GetSize();
 			EnsureTexture(viewportSize, _viewportTexture);
-
-			ImGui::SetCursorPos(ImVec2(0, offset.y));
 			ImGui::Image(_viewportTexture.Get(), ImVec2(static_cast<float>(viewportSize.Width), static_cast<float>(viewportSize.Height)));
+
+			UpdateCamera(tickInfo);
 
 			if (_selection.HasSelectedEntity())
 			{
