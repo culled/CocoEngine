@@ -7,9 +7,6 @@ namespace Coco::ECS
 
     struct Transform3DComponent;
 
-    template<typename, typename...>
-    class SceneView;
-
     /// @brief Updates any dirty transforms, taking into account parent-child relationships
     class TransformSystem :
         public SceneSystem

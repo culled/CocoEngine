@@ -19,5 +19,7 @@ namespace Coco
 		{
 			info.Name = string(textBuffer.data());
 		}
+
+		ImGui::Checkbox("Active", &info.IsActive);
 	}
 }

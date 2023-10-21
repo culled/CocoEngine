@@ -1,9 +1,10 @@
 #include "ECSpch.h"
 #include "SceneRenderProvider.h"
 
-#include "../../Components/EntityInfoComponent.h"
+#include "../EntityInfoSystem.h"
 #include "../../Components/Transform3DComponent.h"
 #include "../../Components/Rendering/MeshRendererComponent.h"
+
 
 #include "../../SceneView.h"
 
@@ -18,15 +19,14 @@ namespace Coco::ECS
 	{
 		Assert(_scene != nullptr)
 
-		auto view = SceneView<EntityInfoComponent, Transform3DComponent, MeshRendererComponent>(_scene);
+		auto view = SceneView<Transform3DComponent, MeshRendererComponent>(_scene);
 
 		for (const Entity& e : view)
 		{
-			const EntityInfoComponent& info = e.GetComponent<EntityInfoComponent>();
 			const Transform3DComponent& transform = e.GetComponent<Transform3DComponent>();
 			const MeshRendererComponent& renderer = e.GetComponent<MeshRendererComponent>();
 
-			if (!info.IsActive || !renderer.Mesh)
+			if (!EntityInfoSystem::IsEntityVisible(e) || !renderer.Mesh)
 				continue;
 
 			for (const auto& kvp : renderer.Mesh->GetSubmeshes())
