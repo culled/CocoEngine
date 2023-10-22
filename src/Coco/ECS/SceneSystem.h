@@ -10,6 +10,8 @@ namespace Coco::ECS
 	class SceneSystem
 	{
 	public:
+		virtual ~SceneSystem() = default;
+
 		/// @brief Gets the execution priority for this system.
 		/// Systems with lower priorities are executed before those with higher priorities
 		/// @return This system's priority

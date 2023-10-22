@@ -10,6 +10,17 @@ namespace Coco::ECS
 {
 	const int TransformSystem::sPriority = -1000;
 
+	TransformSystem::TransformSystem(Scene& scene) :
+		HandleEntityParentChanged([](Entity& e) { MarkTransform3DDirty(e); return false; })
+	{
+		HandleEntityParentChanged.Connect(scene.OnEntityParentChanged);
+	}
+
+	TransformSystem::~TransformSystem()
+	{
+		HandleEntityParentChanged.DisconnectAll();
+	}
+
 	void TransformSystem::Execute(SharedRef<Scene> scene)
 	{
 		Update3DTransforms(scene);

@@ -5,6 +5,8 @@
 
 using namespace Coco::ECS;
 
+struct ImGuiPayload;
+
 namespace Coco
 {
 	class SelectionContext;
@@ -26,5 +28,6 @@ namespace Coco
 		void DrawEntityNode(Entity& entity);
 		void DrawSceneContextMenu();
 		void DrawEntityContextMenu(Entity& entity);
+		void ReparentEntity(const ImGuiPayload* dragDropPayload, const Entity& parent);
 	};
 }

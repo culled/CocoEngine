@@ -4,6 +4,7 @@
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/String.h>
 #include <Coco/Core/MainLoop/TickListener.h>
+#include <Coco/Core/Events/Event.h>
 #include "entt.h"
 #include "EntityTypes.h"
 #include "SceneSystem.h"
@@ -24,6 +25,9 @@ namespace Coco::ECS
 
     public:
         static const int sLateTickPriority;
+
+        /// @brief Invoked when an entity's parent has changed
+        Event<Entity&> OnEntityParentChanged;
 
     private:
         ManagedRef<TickListener> _lateTickListener;
@@ -49,6 +53,11 @@ namespace Coco::ECS
         /// @param outEntity Will be set to the entity if found
         /// @return True if an entity with the given ID was found in this scene
         bool TryGetEntity(const EntityID& id, Entity& outEntity);
+
+        /// @brief Sets the parent of an entity
+        /// @param entityID The entity ID
+        /// @param parentID The ID of the new parent entity, or InvalidEntityID to clear the parent
+        void ReparentEntity(const EntityID& entityID, const EntityID& parentID);
 
         /// @brief Gets all un-parented entities in this scene
         /// @return Unparented entities

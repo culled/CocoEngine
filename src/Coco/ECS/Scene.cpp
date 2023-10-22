@@ -10,13 +10,14 @@
 
 namespace Coco::ECS
 {
-	const int Scene::sLateTickPriority = 100000;
+	const int Scene::sLateTickPriority = 10000;
 
 	Scene::Scene(const ResourceID& id, const string& name, bool useDefaultSystems) :
 		Resource(id, name),
 		_lateTickListener(CreateManagedRef<TickListener>(this, &Scene::HandleLateTick, sLateTickPriority)),
 		_registry(),
-		_queuedDestroyEntities()
+		_queuedDestroyEntities(),
+		_systemsNeedSorting(false)
 	{
 		MainLoop::Get()->AddListener(_lateTickListener);
 
@@ -26,6 +27,7 @@ namespace Coco::ECS
 
 	Scene::~Scene()
 	{
+		_systems.clear();
 		MainLoop::Get()->RemoveListener(_lateTickListener);
 	}
 
@@ -49,6 +51,25 @@ namespace Coco::ECS
 		}
 
 		return false;
+	}
+
+	void Scene::ReparentEntity(const EntityID& entityID, const EntityID& parentID)
+	{
+		if (entityID == InvalidEntityID)
+			return;
+
+		if (parentID == InvalidEntityID)
+		{
+			_entityParentMap.erase(entityID);
+		}
+		else
+		{
+			_entityParentMap[entityID] = parentID;
+		}
+
+		Entity e;
+		Assert(TryGetEntity(entityID, e))
+		OnEntityParentChanged.Invoke(e);
 	}
 
 	std::vector<Entity> Scene::GetRootEntities()
@@ -120,7 +141,7 @@ namespace Coco::ECS
 
 	void Scene::UseDefaultSystems()
 	{
-		UseSystem<TransformSystem>();
+		UseSystem<TransformSystem>(*this);
 	}
 
 	void Scene::SortSystems()

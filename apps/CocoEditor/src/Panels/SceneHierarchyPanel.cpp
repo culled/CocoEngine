@@ -1,6 +1,8 @@
 #include "SceneHierarchyPanel.h"
 
 #include <Coco/ECS/Components/EntityInfoComponent.h>
+#include <Coco/ECS/Components/Transform3DComponent.h>
+#include <Coco/ECS/Systems/TransformSystem.h>
 
 #include "../EditorApplication.h"
 #include <imgui.h>
@@ -41,6 +43,16 @@ namespace Coco
 
 				ImGui::EndPopup();
 			}
+
+			ImGui::Dummy(ImGui::GetContentRegionAvail());
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(typeid(Entity).name()))
+				{
+					ReparentEntity(payload, Entity::Null);
+				}
+			}
 		}
 
 		ImGui::End();
@@ -74,6 +86,23 @@ namespace Coco
 			ImGui::EndPopup();
 		}
 
+		if (ImGui::BeginDragDropSource())
+		{
+			EntityID id = entity.GetID();
+			ImGui::SetDragDropPayload(typeid(Entity).name(), &id, sizeof(EntityID));
+			ImGui::EndDragDropSource();
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(typeid(Entity).name()))
+			{
+				ReparentEntity(payload, entity);
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
 		if (expanded)
 		{
 			for (Entity& child : children)
@@ -93,10 +122,51 @@ namespace Coco
 
 	void SceneHierarchyPanel::DrawEntityContextMenu(Entity& entity)
 	{
+		if (ImGui::MenuItem("Clear Parent"))
+		{
+			entity.ClearParent();
+		}
+
+		ImGui::Separator();
+
 		if (ImGui::MenuItem("Delete"))
 		{
 			_scene->DestroyEntity(entity);
 			_selection.ClearSelectedEntity();
 		}
+	}
+
+	void SceneHierarchyPanel::ReparentEntity(const ImGuiPayload* dragDropPayload, const Entity& parent)
+	{
+		EntityID id;
+		Assert(memcpy_s(&id, sizeof(EntityID), dragDropPayload->Data, dragDropPayload->DataSize) == 0)
+		Entity child;
+		Assert(_scene->TryGetEntity(id, child))
+
+		Transform3DComponent& transformComp = child.GetComponent<Transform3DComponent>();
+		Transform3D& transform = transformComp.Transform;
+		Vector3 p, s;
+		Quaternion r;
+
+		transform.GetGlobalTransform(p, r, s);
+
+		if (parent == Entity::Null)
+		{
+			child.ClearParent();
+		}
+		else
+		{
+			child.SetParent(parent);
+
+			Transform3DComponent* parentTransformComp;
+			if (parent.TryGetComponent(parentTransformComp))
+			{
+				parentTransformComp->Transform.TransformGlobalToLocal(p, r, s);
+			}
+		}
+
+		transform.LocalPosition = p;
+		transform.LocalRotation = r;
+		transform.LocalScale = s;
 	}
 }

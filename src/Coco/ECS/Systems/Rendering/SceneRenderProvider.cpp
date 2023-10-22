@@ -4,7 +4,7 @@
 #include "../EntityInfoSystem.h"
 #include "../../Components/Transform3DComponent.h"
 #include "../../Components/Rendering/MeshRendererComponent.h"
-
+#include "../TransformSystem.h"
 
 #include "../../SceneView.h"
 
@@ -21,13 +21,15 @@ namespace Coco::ECS
 
 		auto view = SceneView<Transform3DComponent, MeshRendererComponent>(_scene);
 
-		for (const Entity& e : view)
+		for (Entity& e : view)
 		{
 			const Transform3DComponent& transform = e.GetComponent<Transform3DComponent>();
 			const MeshRendererComponent& renderer = e.GetComponent<MeshRendererComponent>();
 
 			if (!EntityInfoSystem::IsEntityVisible(e) || !renderer.Mesh)
 				continue;
+
+			TransformSystem::UpdateTransform3D(e);
 
 			for (const auto& kvp : renderer.Mesh->GetSubmeshes())
 			{

@@ -1,5 +1,6 @@
 #pragma once
 #include "../SceneSystem.h"
+#include <Coco/Core/Events/Event.h>
 
 namespace Coco::ECS
 {
@@ -14,7 +15,12 @@ namespace Coco::ECS
     public:
         static const int sPriority;
 
+        EventHandler<Entity&> HandleEntityParentChanged;
+
     public:
+        TransformSystem(Scene& scene);
+        ~TransformSystem();
+
         // Inherited via SceneSystem
         int GetPriority() const override { return sPriority; }
         void Execute(SharedRef<Scene> scene) override;
@@ -38,5 +44,9 @@ namespace Coco::ECS
         /// @brief Updates the 3D transforms for a given scene
         /// @param scene The scene
         static void Update3DTransforms(SharedRef<Scene>& scene);
+
+        /// @brief Handler for the scene OnEntityParentChanged
+        /// @param entity The entity whose parent changed
+        static void HandleEntityReparented(Entity& entity);
     };
 }

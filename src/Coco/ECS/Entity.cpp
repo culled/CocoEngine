@@ -75,7 +75,7 @@ namespace Coco::ECS
 			return;
 		}
 
-		scene->_entityParentMap[GetID()] = parent.GetID();
+		scene->ReparentEntity(GetID(), parent.GetID());
 	}
 
 	bool Entity::HasParent() const
@@ -91,7 +91,7 @@ namespace Coco::ECS
 		Assert(IsValid())
 
 		SharedRef<Scene> scene = _scene.lock();
-		scene->_entityParentMap.erase(GetID());
+		scene->ReparentEntity(GetID(), InvalidEntityID);
 	}
 
 	bool Entity::IsDescendentOf(const Entity& ancestor) const
