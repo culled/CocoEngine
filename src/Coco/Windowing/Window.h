@@ -1,173 +1,185 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include "Windowpch.h"
 
-#include <Coco/Core/Types/Optional.h>
-#include <Coco/Core/Types/Size.h>
-#include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Math/Math.h>
 #include <Coco/Core/Events/Event.h>
-#include <Coco/Rendering/Graphics/Resources/GraphicsPresenter.h>
-#include "WindowExceptions.h"
+#include <Coco/Core/Types/Refs.h>
+#include <Coco/Core/Types/Rect.h>
+
 #include "WindowTypes.h"
+
+namespace Coco::Rendering
+{
+	class GraphicsPresenter;
+	struct GraphicsPresenterSurface;
+}
 
 namespace Coco::Windowing
 {
-	class WindowingService;
-	class Window;
-
-	/// @brief Parameters for creating a window
-	struct COCOAPI WindowCreateParameters
-	{
-		/// @brief The title for the window
-		string Title;
-
-		/// @brief The initial size for the window, if starting in a windowed state
-		SizeInt InitialSize;
-
-		/// @brief If true, the window will be resizable/maximizable
-		bool IsResizable = true;
-
-		/// @brief The initial state for the window
-		WindowState InitialState = WindowState::Normal;
-
-		/// @brief If true, the window will be shown in fullscreen
-		bool IsFullscreen = false;
-
-		/// @brief If provided, the window's top-left corner will be located here
-		Optional<Vector2Int> InitialPosition;
-
-		/// @brief If provided, this will be the index of the display that the window will be positioned on
-		Optional<int> DisplayIndex;
-
-		/// @brief If provided, this window will become the parent of the created window
-		Optional<Ref<Window>> Parent;
-
-		WindowCreateParameters(
-			const string& title, 
-			const SizeInt initialSize, 
-			bool isResizable = true, 
-			WindowState initialState = WindowState::Normal, 
-			bool isFullscreen = false
-		) noexcept :
-			Title(title), 
-			InitialSize(initialSize), 
-			IsResizable(isResizable), 
-			InitialState(initialState), 
-			IsFullscreen(isFullscreen)
-		{}
-	};
-
 	/// @brief A GUI window
-	class COCOAPI Window
+	class Window
 	{
 	public:
-		/// @brief Invoked when the window is trying to close. Setting the bool value to true means the close is cancelled
-		Event<Window*, bool&> OnClosing;
+		/// @brief An invalid window ID
+		static const WindowID InvalidID;
 
-		/// @brief Invoked when the window has closed
-		Event<Window*> OnClosed;
+		/// @brief The default DPI
+		static const uint16 DefaultDPI;
 
-		/// @brief Invoked when the window is resized
-		Event<Window*, const SizeInt&> OnResized;
+		/// @brief The ID of this window
+		const WindowID ID;
+
+		/// @brief Invoked when this window is requested to close
+		Event<bool&> OnClosing;
+
+		/// @brief Invoked when this window is closing
+		Event<> OnClosed;
+
+		/// @brief Invoked when this window's size changes
+		Event<const SizeInt&> OnResized;
+
+		/// @brief Invoked when this window's position changes
+		Event<const Vector2Int&> OnPositionChanged;
+
+		/// @brief Invoked when this window's dpi changes (like being moved to a different monitor)
+		Event<uint16> OnDPIChanged;
+
+		/// @brief Invoked when this window had become focused/unfocused
+		Event<bool> OnFocusChanged;
 
 	protected:
-		/// @brief The presenter for the window
+		WindowID _parentID;
 		Ref<Rendering::GraphicsPresenter> _presenter;
 
-		/// @brief The parent of this window
-		Ref<Window> _parent;
+	private:
+		static std::atomic<WindowID> _id;
 
 	protected:
-		Window(Optional<Ref<Window>> parent);
+		Window(const WindowCreateParams& createParams);
 
 	public:
-		virtual ~Window() = default;
+		virtual ~Window();
 
-		Window(const Window& other) = delete;
-		Window(Window&& other) = delete;
-
-		Window& operator=(const Window& other) = delete;
-		Window& operator=(Window&& other) = delete;
-
-		/// @brief Gets this window's presenter
-		/// @return This window's presenter
-		Ref<Rendering::GraphicsPresenter> GetPresenter() const noexcept { return _presenter; }
-
-		/// @brief Gets this window's parent window
-		/// @return This window's parent window
-		Ref<Window> GetParent() const { return _parent; }
-
-		/// @brief Gets the platform-specific ID for this window
-		/// @return The ID for this window
-		virtual void* GetID() const noexcept = 0;
-
-		/// @brief Gets the title of this window
-		/// @return This window's title
-		virtual string GetTitle() const noexcept = 0;
-
-		/// @brief Sets the title of this window
-		/// @param title The new title for this window
-		virtual void SetTitle(const string& title) = 0;
-
-		/// @brief Sets the size of the window's client area
-		/// @param size The size of the window's client area
-		virtual void SetSize(const SizeInt& size) = 0;
-
-		/// @brief Gets the size of the window's client area
-		/// @return The size of the window's client area
-		virtual SizeInt GetSize() const noexcept = 0;
-
-		/// @brief Gets the drawable size of the window's backbuffer
-		/// @return The size of the window's backbuffer
-		virtual SizeInt GetBackbufferSize() const noexcept = 0;
-
-		/// @brief Shows/restores this window
+		/// @brief Shows this window
 		virtual void Show() = 0;
 
+		/// @brief Sets this window's title
+		/// @param title The title
+		virtual void SetTitle(const char* title) = 0;
+
+		/// @brief Gets this window's title
+		/// @return The title
+		virtual const char* GetTitle() const = 0;
+
+		/// @brief Sets this window's fullscreen state
+		/// @param fullscreen If true, this window will attempt to go fullscreen
+		virtual void SetIsFullscreen(bool fullscreen) = 0;
+
+		/// @brief Gets this window's fullscreen state
+		/// @return If this window is fullscreen
+		virtual bool IsFullscreen() const = 0;
+
+		/// @brief Sets the top-left position of this window
+		/// @param position The position
+		/// @param clientAreaPosition If true, the top-left corner of the client area will be set to the position
+		/// @param relativeToParent If true, the position will be relative to this window's parent's top-left corner
+		virtual void SetPosition(const Vector2Int& position, bool clientAreaPosition = false, bool relativeToParent = true) = 0;
+
+		/// @brief Gets the top-left position of this window
+		/// @param clientAreaPosition If true, the top-left corner of the client area will be returned
+		/// @param relativeToParent If true, the position will be relative to this window's parent's top-left corner
+		/// @return The position
+		virtual Vector2Int GetPosition(bool clientAreaPosition = false, bool relativeToParent = true) const = 0;
+
+		/// @brief Sets the client-area size of this window
+		/// @param size The size of the client-area
+		virtual void SetClientAreaSize(const SizeInt& size) = 0;
+
+		/// @brief Gets the client-area size of this window
+		/// @return The client-area size
+		virtual SizeInt GetClientAreaSize() const = 0;
+
+		/// @brief Sets the size of the entire window
+		/// @param windowSize The size of the window
+		virtual void SetSize(const SizeInt& windowSize) = 0;
+
+		/// @brief Gets the total size of this window
+		/// @return The total size
+		virtual SizeInt GetSize() const = 0;
+
+		/// @brief Gets the DPI of the screen this window is currently on
+		/// @return The current DPI
+		virtual uint16 GetDPI() const = 0;
+
 		/// @brief Sets the state of this window
-		/// @param newState The state for this window
-		virtual void SetState(WindowState newState) = 0;
+		/// @param state The state
+		virtual void SetState(WindowState state) = 0;
 
-		/// @brief Gets the current state of this window
-		/// @return The current state of this window
-		virtual WindowState GetState() const noexcept = 0;
+		/// @brief Gets the state of this window
+		/// @return The state of this window
+		virtual WindowState GetState() const = 0;
 
-		/// @brief Sets if this window should be fullscreen
-		/// @param isFullscreen If true, the window will be fullscreen
-		virtual void SetIsFullscreen(bool isFullscreen) = 0;
-
-		/// @brief Gets the fullscreen status of this window
-		/// @return True if this window is fullscreen
-		virtual bool GetIsFullscreen() const = 0;
-
-		/// @brief Gets if this window is visible (shown and not minimized)
-		/// @return True if this window is visible
-		virtual bool GetIsVisible() const noexcept = 0;
-
-		/// @brief Sets the position of the top-left corner of the window
-		/// @param position The position of the top-left corner of the window
-		virtual void SetPosition(const Vector2Int& position) = 0;
-
-		/// @brief Gets the position of the top-left corner of the window
-		/// @return The position of the top-left corner of the window
-		virtual Vector2Int GetPosition() const = 0;
-
-		/// @brief Brings the window to the front and focuses it
+		/// @brief Focuses this window
 		virtual void Focus() = 0;
-
-		/// @brief Gets if this window is the one that is focused
-		/// @return True if this window is focused
+		
+		/// @brief Determines if this window has focus
+		/// @return True if this window has focus
 		virtual bool HasFocus() const = 0;
 
-		/// @brief Requests this window to close
-		/// @return True if this window will close
-		bool Close() noexcept;
+		/// @brief Determines if this window is visible
+		/// @return True if this window is visible
+		virtual bool IsVisible() const = 0;
+
+		/// @brief Sets the cursor visiblity once it's over this window
+		virtual void SetCursorVisibility(bool isVisible) = 0;
+
+		/// @brief Gets the cursor visibility of this window
+		/// @return True if the cursor is visible when it is over this window
+		virtual bool GetCursorVisibility() const = 0;
+
+		/// @brief Sets the confine mode of the cursor
+		/// @param mode The cursor confine mode
+		virtual void SetCursorConfineMode(CursorConfineMode mode) = 0;
+
+		/// @brief Gets the confine mode of the cursor
+		/// @return The cursor's confine mode 
+		virtual CursorConfineMode GetCursorConfineMode() const = 0;
+
+		/// @brief Gets this window's GraphicsPresenter
+		/// @return This window's GraphicsPresenter
+		Ref<Rendering::GraphicsPresenter> GetPresenter() const { return _presenter; }
+
+		/// @brief Closes this window
+		void Close();
+
+		/// @brief Determines if this window is parented
+		/// @return True if this window has a parent
+		bool HasParent() const;
+
+		/// @brief Gets the ID of this window's parent
+		/// @return The ID of the parent window, or Window::InvalidID if this window has no parent
+		WindowID GetParentID() const;
+
+		/// @brief Gets a rectangle that represents the position and size of this window
+		/// @param clientArea If true, the rectangle will only be for the client area
+		/// @param relativeToParent If true, the rectangle will be relative to this window's parent, if it has one
+		/// @return A rectangle that this window convers
+		RectInt GetRect(bool clientArea, bool relativeToParent = true) const;
 
 	protected:
-		/// @brief Called when the window has resized
+		/// @brief Creates a surface for this window to render to
+		/// @return The surface
+		virtual SharedRef<Rendering::GraphicsPresenterSurface> CreateSurface() = 0;
+
+		/// @brief Gets the parent window from the window service, if one exists
+		/// @return A pointer to the parent window, or nullptr if the parent could not be found or this window has no parent
+		Ref<Window> GetParentWindow() const;
+
+		/// @brief Called when this window is resized
 		void HandleResized();
 
-		/// @brief Sets up the surface for the window presenter
-		virtual void SetupPresenterSurface() = 0;
+		/// @brief Ensures that the presenter surface is created
+		void EnsurePresenterSurface();
 	};
 }

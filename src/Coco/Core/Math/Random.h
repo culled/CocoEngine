@@ -1,23 +1,25 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-#include <random>
+#include "../Corepch.h"
+#include "../Defines.h"
 
 namespace Coco
 {
-	/// @brief A class that provides psuedorandom number generating capabilities
-	class COCOAPI Random
+	/// @brief Provides random number generation capabilities
+	class Random
 	{
+	public:
+		/// @brief The global random object
+		static Random Global;
+
 	private:
 		bool _isSeeded = false;
-		uint _seed = 0;
+		uint32 _seed = 0;
 		std::default_random_engine _generator;
 
 	public:
-		Random() = default;
-		Random(uint seed);
-
-		virtual ~Random() = default;
+		Random();
+		Random(uint32 seed);
 
 		/// @brief Generates a psuedorandom value in the range [min, max]. Minimum and maximum are inclusive
 		/// @param min The minimum bound (inclusive)
@@ -37,11 +39,11 @@ namespace Coco
 
 		/// @brief Sets the seed of this psuedorandom number generator
 		/// @param seed The seed for the psuedorandom number generator
-		void SetSeed(uint seed);
+		void SetSeed(uint32 seed);
 
 		/// @brief Gets the current seed used by the psuedorandom number generator
 		/// @return The current seed
-		uint GetSeed();
+		uint32 GetSeed();
 
 	private:
 		/// @brief Ensures the psuedorandom number generator has been seeded, either manually or by the clock

@@ -363,3 +363,6 @@ docs/generated/
 
 # Random things
 misc/
+
+# ImGui config
+**/[Ii]mgui.ini*

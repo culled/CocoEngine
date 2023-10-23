@@ -1,22 +1,22 @@
 #pragma once
 
-#include <Coco/Core/API.h>
-
-#include "Vector.h"
-#include "Array.h"
+#include "../Corepch.h"
+#include "../Defines.h"
 
 namespace Coco
 {
+	struct Vector3;
+	struct Vector4;
 	struct Quaternion;
 
 	/// @brief A matrix with 4 rows and 4 columns, stored in column-major order
-	struct COCOAPI Matrix4x4
+	struct Matrix4x4
 	{
 		/// @brief The number of cells in a 4x4 matrix
-		static constexpr int CellCount = 16;
+		static constexpr int CellCount = 4 * 4;
 
-		/// @brief An identity matrix
-		static const Matrix4x4 Identity;
+		/// @brief The type of data
+		using DataType = std::array<double, CellCount>;
 
 		// First row, first column
 		static constexpr int m11 = 0;
@@ -66,141 +66,145 @@ namespace Coco
 		// Fourth row, fourth column
 		static constexpr int m44 = 15;
 
+		/// @brief An identity matrix
+		static const Matrix4x4 Identity;
+
 		/// @brief The matrix data, stored in column-major order
-		Array<double, CellCount> Data = { 0.0 };
+		DataType Data;
 
-		Matrix4x4() noexcept = default;
-		Matrix4x4(bool isIdentity) noexcept;
-		Matrix4x4(const Array<double, CellCount>& data) noexcept;
-		Matrix4x4(const Matrix4x4& other) noexcept;
-		Matrix4x4(Matrix4x4&& other) noexcept;
+		Matrix4x4();
+		Matrix4x4(bool isIdentity);
+		Matrix4x4(const DataType& data);
+		Matrix4x4(const Matrix4x4& other);
+		Matrix4x4(Matrix4x4&& other);
 
-		virtual ~Matrix4x4() = default;
+		Matrix4x4& operator=(const Matrix4x4& other);
+		Matrix4x4& operator=(Matrix4x4&& other);
 
-		Matrix4x4& operator=(const Matrix4x4& other) noexcept;
-		Matrix4x4& operator=(Matrix4x4&& other) noexcept;
+		Matrix4x4 operator*(const Matrix4x4& other) const;
+		Vector4 operator*(const Vector4& vector) const;
+		Quaternion operator*(const Quaternion& rotation) const;
 
 		/// @brief Creates a view matrix that looks from an eye position at a target position
 		/// @param eyePosition The eye position
 		/// @param targetPosition The position to look at
 		/// @param up The up direction
 		/// @return A view matrix with the looking from the eye position to the target position
-		static Matrix4x4 CreateLookAtMatrix(const Vector3& eyePosition, const Vector3& targetPosition, const Vector3& up) noexcept;
+		static Matrix4x4 CreateLookAtMatrix(const Vector3& eyePosition, const Vector3& targetPosition, const Vector3& up);
 
 		/// @brief Creates a matrix with only a translation
 		/// @param translation The translation
 		/// @return A matrix
-		static Matrix4x4 CreateWithTranslation(const Vector3& translation) noexcept;
+		static Matrix4x4 CreateWithTranslation(const Vector3& translation);
 
 		/// @brief Creates a matrix with only a scale
 		/// @param scale The scale
 		/// @return A matrix
-		static Matrix4x4 CreateWithScale(const Vector3& scale) noexcept;
+		static Matrix4x4 CreateWithScale(const Vector3& scale);
 
 		/// @brief Creates a matrix with only a rotation on the X axis
 		/// @param angleRadians The angle (in radians)
 		/// @return A matrix
-		static Matrix4x4 CreateWithRotationEulerX(double angleRadians) noexcept;
+		static Matrix4x4 CreateWithRotationEulerX(double angleRadians);
 
 		/// @brief Creates a matrix with only a rotation on the Y axis
 		/// @param angleRadians The angle (in radians)
 		/// @return A matrix
-		static Matrix4x4 CreateWithRotationEulerY(double angleRadians) noexcept;
+		static Matrix4x4 CreateWithRotationEulerY(double angleRadians);
 
 		/// @brief Creates a matrix with only a rotation on the Z axis
 		/// @param angleRadians The angle (in radians)
 		/// @return A matrix
-		static Matrix4x4 CreateWithRotationEulerZ(double angleRadians) noexcept;
+		static Matrix4x4 CreateWithRotationEulerZ(double angleRadians);
 
 		/// @brief Creates a matrix with only a rotation
 		/// @param xRadians The angle on the X axis (in radians)
 		/// @param yRadians The angle on the Y axis (in radians)
 		/// @param zRadians The angle on the Z axis (in radians)
 		/// @return A matrix
-		static Matrix4x4 CreateWithEulerRotation(double xRadians, double yRadians, double zRadians) noexcept;
+		static Matrix4x4 CreateWithEulerRotation(double xRadians, double yRadians, double zRadians);
 
 		/// @brief Creates a matrix with only a rotation
 		/// @param eulerAnglesRadians The euler angles in radians
 		/// @return A matrix
-		static Matrix4x4 CreateWithEulerRotation(const Vector3& eulerAnglesRadians) noexcept;
+		static Matrix4x4 CreateWithEulerRotation(const Vector3& eulerAnglesRadians);
 
-		/// @brief Creates a transform matrix with a translation, orientation, and scale
+		/// @brief Creates a matrix with only a rotation
+		/// @param rotation The rotation
+		/// @return A matrix
+		static Matrix4x4 CreateWithRotation(const Quaternion& rotation);
+
+		/// @brief Creates a transform matrix with a translation, rotation, and scale
 		/// @param position The position
-		/// @param orientation The orientation
+		/// @param rotation The rotation
 		/// @param scale The scale
 		/// @return A transform matrix
-		static Matrix4x4 CreateTransform(const Vector3& position, const Quaternion& orientation, const Vector3& scale) noexcept;
+		static Matrix4x4 CreateTransform(const Vector3& position, const Quaternion& rotation, const Vector3& scale);
 
-		/// @brief Parses a Matrix4x4 from a string
-		/// @param str The string
-		/// @return The parsed matrix
-		static Matrix4x4 Parse(const string& str);
+		/// @brief Divides every term in this matrix by the m44 term
+		void Normalize();
 
-		/// @brief Multiplies the rows of this matrix with the columns of another matrix
+		/// @brief Multiplies this matrix with another
 		/// @param other The other matrix
 		/// @return The multiply result
-		Matrix4x4 Mul(const Matrix4x4& other) const noexcept { return *this * other; }
+		Matrix4x4 Mul(const Matrix4x4& other) const { return *this * other; }
+
+		/// @brief Gets the determinant of this matrix
+		/// @return The determinant
+		double GetDeterminant() const;
 
 		/// @brief Returns a matrix that is the inverse of this matrix
 		/// @return The inverse of this matrix
-		Matrix4x4 Inverted() const noexcept;
+		Matrix4x4 Inverted() const;
 
-		/// @brief Returns a matrix that is the transpose of this matrix (rows and colums swapped)
-		/// @return The transpose of this matrix
-		Matrix4x4 Transposed() const noexcept;
+		/// @brief Returns a matrix that has its rows and columns switched (flipped over the diagonal)
+		/// @return The transposed matrix
+		Matrix4x4 Transposed() const;
 
 		/// @brief Gets a vector that points to the right
 		/// @return A vector that points to the right
-		Vector3 GetRightVector() const noexcept;
+		Vector3 GetRightVector() const;
 
 		/// @brief Gets a vector that points to the left
 		/// @return A vector that points to the left
-		Vector3 GetLeftVector() const noexcept { return -GetRightVector(); }
+		Vector3 GetLeftVector() const;
 
 		/// @brief Gets a vector that points upwards
 		/// @return A vector that points upwards
-		Vector3 GetUpVector() const noexcept;
+		Vector3 GetUpVector() const;
 
 		/// @brief Gets a vector that points downwards
 		/// @return A vector that points downwards
-		Vector3 GetDownVector() const noexcept { return -GetUpVector(); }
+		Vector3 GetDownVector() const;
 
 		/// @brief Gets a vector that points forwards
 		/// @return A vector that points forwards
-		Vector3 GetForwardVector() const noexcept;
+		Vector3 GetForwardVector() const;
 
 		/// @brief Gets a vector that points backwards
 		/// @return A vector that points backwards
-		Vector3 GetBackwardVector() const noexcept { return -GetForwardVector(); }
+		Vector3 GetBackwardVector() const;
 
-		/// @brief Gets this matrix's data as a float array of 16 elements
-		/// @return This matrix's data as a float array of 16 elements
-		Array<float, Matrix4x4::CellCount> AsFloat() const noexcept;
-
-		/// @brief Gets the position component of this matrix
-		/// @return The position component
-		Vector3 GetPosition() const noexcept;
+		/// @brief Gets the translation component of this matrix
+		/// @return The translation component
+		Vector3 GetTranslation() const;
 
 		/// @brief Gets the rotation component of this matrix
 		/// @return The rotation component
-		Quaternion GetRotation() const noexcept;
+		Quaternion GetRotation() const;
 
 		/// @brief Gets the scale component of this matrix
 		/// @return The scale component
-		Vector3 GetScale() const noexcept;
+		Vector3 GetScale() const;
 
-		/// @brief Gets the string representation of this matrix
-		/// @return The string representation of the matrix
-		string ToString() const {
-			return FormattedString("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
-				Data[0], Data[1], Data[2], Data[3],
-				Data[4], Data[5], Data[6], Data[7],
-				Data[8], Data[9], Data[10], Data[11],
-				Data[12], Data[13], Data[14], Data[15]);
-		}
+		/// @brief Decomposes this matrix into a translation, rotation, and scale
+		/// @param outTranslation Will be set to the translation
+		/// @param outRotation Will be set to the rotation
+		/// @param outScale Will be set to the scale
+		void Decompose(Vector3& outTranslation, Quaternion& outRotation, Vector3& outScale) const;
 
-		Matrix4x4 operator*(const Matrix4x4& other) const noexcept;
-		Vector4 operator*(const Vector4& vector) const noexcept;
-		Quaternion operator*(const Quaternion& rotation) const noexcept;
+		/// @brief Gets this matrix's data as a float array of 16 elements
+		/// @return This matrix's data as a float array of 16 elements
+		std::array<float, Matrix4x4::CellCount> AsFloatArray() const;
 	};
 }

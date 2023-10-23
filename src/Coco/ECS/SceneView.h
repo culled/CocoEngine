@@ -1,81 +1,124 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-#include "EntityTypes.h"
 #include "Entity.h"
-#include "ECSService.h"
-
-#include <iterator>
-#include <cstddef>
+#include "entt.h"
 
 namespace Coco::ECS
 {
-	class Scene;
+	//template<typename BaseType, typename ... OtherTypes>
+	//using ViewType = entt::basic_view<entt::get_t<entt::storage_for_t<BaseType>, entt::storage_for_t<OtherTypes>...>, entt::exclude_t<>>;
 
-	/// @brief An object that allows iteration over components in a scene
-	/// @tparam ...ComponentTypes The types of components
-	template<typename ... ComponentTypes>
-	class SceneView
+	/// @brief An iterator for entities within a scene
+	/// @tparam BaseType The type of component
+	/// @tparam ...OtherTypes The other types of components
+	template<typename BaseType, typename ... OtherTypes>
+	class SceneViewIterator
 	{
+	public:
+		using value_type = Entity;
+		using pointer = Entity*;
+		using reference = Entity&;
+		using difference_type = std::ptrdiff_t;
+		using iterator_category = std::forward_iterator_tag;
+
 	private:
-		Scene* _scene;
+		using ViewType = entt::basic_view<entt::get_t<entt::storage_for_t<BaseType>, entt::storage_for_t<OtherTypes>...>, entt::exclude_t<>>;
+
+		const ViewType& _view;
+		ViewType::iterator _it;
+		SharedRef<Scene> _scene;
+		Entity _currentEntity;
 
 	public:
-		struct Iterator
+		SceneViewIterator(const SharedRef<Scene>& scene, const ViewType& view, ViewType::iterator it) :
+			_scene(scene),
+			_view(view),
+			_it(it)
 		{
-		private:
-			Scene* _scene;
-			uint64_t _entityIndex;
-			List<Entity*> _entities;
+			Update();
+		}
 
-		public:
-			using iterator_category = std::forward_iterator_tag;
-			using difference_type = uint64_t;
+		~SceneViewIterator() = default;
 
-			Iterator(Scene* scene) : _scene(scene), _entityIndex(0), _entities(ECSService::Get()->GetEntities())
-			{
-				while (_entityIndex < _entities.Count() && !IsValidIndex())
-				{
-					_entityIndex++;
-				}
-			}
+		SceneViewIterator& operator++()
+		{
+			++_it;
+			Update();
+			return *this;
+		}
 
-			Iterator(Scene* scene, uint64_t _entityIndex) : _scene(scene), _entityIndex(_entityIndex)
-			{}
+		SceneViewIterator operator++(int)
+		{
+			SceneViewIterator copy = *this;
+			++_it;
+			Update();
+			return copy;
+		}
 
-			EntityID operator*() const { return GetEntityID(); }
+		reference operator*()
+		{
+			return _currentEntity;
+		}
 
-			constexpr bool operator==(const Iterator& other) const { return _scene == other._scene && _entityIndex == other._entityIndex; }
-			constexpr bool operator!=(const Iterator& other) const { return _scene != other._scene || _entityIndex != other._entityIndex; }
+		const reference operator*() const
+		{
+			return _currentEntity;
+		}
 
-			Iterator& operator++()
-			{
-				do
-				{
-					_entityIndex++;
-				} while (_entityIndex < _entities.Count() && !IsValidIndex());
+		pointer operator->()
+		{
+			return &_currentEntity;
+		}
 
-				return *this;
-			}
+		const pointer operator->() const
+		{
+			return &_currentEntity;
+		}
 
-		private:
-			bool IsValidIndex()
-			{
-				ECSService* ecs = ECSService::Get();
-				EntityID id = GetEntityID();
+		bool operator==(const SceneViewIterator& other) const
+		{
+			return _currentEntity == other._currentEntity;
+		}
 
-				return ecs->IsEntityInScene(id, _scene->GetID()) && ecs->HasComponents<ComponentTypes...>(id);
-			}
+		bool operator!=(const SceneViewIterator& other) const
+		{
+			return !(*this == other);
+		}
 
-			EntityID GetEntityID() const
-			{
-				return _entities[_entityIndex]->ID;
-			}
-		};
+	private:
+		/// @brief Updates the current entity
+		void Update()
+		{
+			if (_it != _view.end())
+				_currentEntity = Entity(*_it, _scene);
+			else
+				_currentEntity = Entity(entt::null, _scene);
+		}
+	};
 
-		SceneView(Scene& scene) : _scene(&scene) {}
+	/// @brief A view of entities with given components in a scene
+	/// @tparam BaseType The type of component
+	/// @tparam ...OtherTypes The other types of components
+	template<typename BaseType, typename ... OtherTypes>
+	class SceneView
+	{
+		friend class Scene;
 
-		Iterator begin() { return Iterator(_scene); }
-		Iterator end() { return Iterator(_scene, ECSService::Get()->GetEntities().Count()); }
+	private:
+		using ViewType = entt::basic_view<entt::get_t<entt::storage_for_t<BaseType>, entt::storage_for_t<OtherTypes>...>, entt::exclude_t<>>;
+
+		SharedRef<Scene> _scene;
+		ViewType _view;
+
+	public:
+		SceneView(const SharedRef<Scene>& scene) :
+			_scene(scene),
+			_view(scene->_registry.view<BaseType, OtherTypes...>())
+		{}
+
+		~SceneView() = default;
+
+		SceneViewIterator<BaseType, OtherTypes...> begin() { return SceneViewIterator<BaseType, OtherTypes...>(_scene, _view, _view.begin()); }
+		SceneViewIterator<BaseType, OtherTypes...> end() { return SceneViewIterator<BaseType, OtherTypes...>(_scene, _view, _view.end()); }
 	};
 }

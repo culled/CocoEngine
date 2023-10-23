@@ -1,61 +1,150 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-
-#include <Coco/Core/Types/List.h>
-#include "EntityTypes.h"
-#include "SceneTypes.h"
+#include <Coco/Core/Types/Refs.h>
+#include "Scene.h"
+#include "entt.h"
 
 namespace Coco::ECS
 {
-	/// @brief Represents an entity in a scene
+	/// @brief An object that components can be attached to
 	class Entity
 	{
-		friend class ECSService;
+		friend class Scene;
+
+		template<typename, typename...>
+		friend class SceneViewIterator;
 
 	public:
-		/// @brief The id of this entity
-		EntityID ID;
+		static const Entity Null;
 
 	private:
-		string _name;
-		EntityID _parentID;
-		SceneID _sceneID;
+		entt::entity _handle;
+		WeakSharedRef<Scene> _scene;
+
+	private:
+		Entity(entt::entity handle, SharedRef<Scene> scene);
 
 	public:
 		Entity();
-		Entity(const EntityID& id, const string& name, SceneID sceneID, const EntityID& parentID = InvalidEntityID);
+		Entity(const Entity& other);
 
-		bool operator==(const Entity& other) const { return ID == other.ID; }
-		bool operator!=(const Entity& other) const { return ID != other.ID; }
+		bool operator==(const Entity& other) const;
+		bool operator!=(const Entity& other) const { return !(*this == other); }
 
-		/// @brief Sets the name of this entity
-		/// @param name The new name
-		void SetName(string name) { _name = name; }
+		/// @brief Checks if this entity is still valid
+		/// @return True if this entity is valid and can be used
+		bool IsValid() const;
 
-		/// @brief Gets the name of this entity
-		/// @return The name
-		const string& GetName() const { return _name; }
+		/// @brief Gets the ID of this entity
+		/// @return This entity's ID
+		EntityID GetID() const;
 
-		/// @brief Sets the parent of this entity
-		/// @param parentID The ID of the parent entity, or InvalidEntityID to clear this entity's parent
-		void SetParentID(const EntityID& parentID);
+		/// @brief Gets the scene that this entity belongs to
+		/// @return The scene
+		SharedRef<Scene> GetScene() const;
 
-		/// @brief Gets the ID of this entity's parent
-		/// @return This ID of this entity's parent
-		const EntityID& GetParentID() const { return _parentID; }
+		/// @brief Adds a component to this entity
+		/// @tparam ComponentType The type of component
+		/// @tparam ...Args The component constructor argument types
+		/// @param ...args The arguments to pass to the component's constructor
+		/// @return The component
+		template<typename ComponentType, typename ... Args>
+		ComponentType& AddComponent(Args&& ... args)
+		{
+			Assert(IsValid())
+			Assert(!HasComponent<ComponentType>())
 
-		/// @brief Gets this entity's parent, checking first if it exists
-		/// @param parent Will be set to this entity's parent
-		/// @return True if this entity's parent exists
-		bool TryGetParent(Entity*& parent);
+			SharedRef<Scene> s = _scene.lock();
+			return s->_registry.emplace<ComponentType>(_handle, std::forward<Args>(args)...);
+		}
 
-		/// @brief Gets the direct child entities of this entity
-		/// @return A list of this entity's children
-		List<Entity*> GetChildren() const;
+		/// @brief Determines if this entity has a component of the given type
+		/// @tparam ComponentType The type of component
+		/// @return True if this entity has a component of the given type
+		template<typename ComponentType>
+		bool HasComponent() const
+		{
+			Assert(IsValid())
 
-		/// @brief Gets the ID of the scene that this entity exists in
-		/// @return The scene ID where this entity exists
-		SceneID GetSceneID() const { return _sceneID; }
+			SharedRef<Scene> s = _scene.lock();
+			return s->_registry.all_of<ComponentType>(_handle);
+		}
+
+		/// @brief Gets a component that is attached to this entity
+		/// @tparam ComponentType The type of component
+		/// @return The component
+		template<typename ComponentType>
+		ComponentType& GetComponent()
+		{
+			Assert(IsValid())
+			Assert(HasComponent<ComponentType>())
+
+			SharedRef<Scene> s = _scene.lock();
+			return s->_registry.get<ComponentType>(_handle);
+		}
+
+		/// @brief Gets a component that is attached to this entity
+		/// @tparam ComponentType The type of component
+		/// @return The component
+		template<typename ComponentType>
+		const ComponentType& GetComponent() const
+		{
+			Assert(IsValid())
+			Assert(HasComponent<ComponentType>())
+
+			SharedRef<Scene> s = _scene.lock();
+			return s->_registry.get<ComponentType>(_handle);
+		}
+
+		/// @brief Removes a component from this entity
+		/// @tparam ComponentType The type of component to remove
+		template<typename ComponentType>
+		void RemoveComponent()
+		{
+			Assert(IsValid())
+			Assert(HasComponent<ComponentType>())
+
+			SharedRef<Scene> s = _scene.lock();
+			s->_registry.remove<ComponentType>(_handle);
+		}
+
+		/// @brief Tries to find a component of the given type on this entity and returns it if found
+		/// @tparam ComponentType The type of component to get
+		/// @param component Will be set to the component if found
+		/// @return True if the component was found
+		template<typename ComponentType>
+		bool TryGetComponent(ComponentType*& component) const
+		{
+			Assert(IsValid())
+
+			SharedRef<Scene> s = _scene.lock();
+			component = s->_registry.try_get<ComponentType>(_handle);
+
+			return component != nullptr;
+		}
+
+		/// @brief Sets this entity's parent
+		/// @param parent The parent
+		void SetParent(const Entity& parent);
+
+		/// @brief Determines if this entity has a parent
+		/// @return True if this entity has a parent
+		bool HasParent() const;
+
+		/// @brief Clears this entity's parent
+		void ClearParent();
+		
+		/// @brief Determines if the given entity is an ancestor to this entity (i.e. this entity is somehow a child of the ancestor)
+		/// @param ancestor The ancestor entity
+		/// @return True if this entity is a descendent of the ancestor entity
+		bool IsDescendentOf(const Entity& ancestor) const;
+
+		/// @brief Gets this entity's parent, if it has one
+		/// @return The parent entity, or a null entity if this entity does not have a parent
+		Entity GetParent() const;
+
+		/// @brief Gets the children of this entity
+		/// @return The child entities
+		std::vector<Entity> GetChildren() const;
 	};
 }

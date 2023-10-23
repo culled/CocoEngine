@@ -1,10 +1,19 @@
+#include "Corepch.h"
 #include "Random.h"
-#include <Coco/Core/Engine.h>
-#include <Coco/Core/Platform/IEnginePlatform.h>
+#include "Math.h"
+
+#include "../Engine.h"
 
 namespace Coco
 {
-    Random::Random(uint seed)
+    Random Random::Global = Random();
+
+    Random::Random()
+    {
+        EnsureSeeded();
+    }
+
+    Random::Random(uint32 seed)
     {
         SetSeed(seed);
     }
@@ -32,14 +41,14 @@ namespace Coco
         return RandomRange(0.0, 1.0);
     }
 
-    void Random::SetSeed(uint seed)
+    void Random::SetSeed(uint32 seed)
     {
         _seed = seed;
         _generator = std::default_random_engine(_seed);
         _isSeeded = true;
     }
 
-    uint Random::GetSeed()
+    uint32 Random::GetSeed()
     {
         EnsureSeeded();
 
@@ -51,8 +60,14 @@ namespace Coco
         if (_isSeeded)
             return;
 
-        const double time = Math::Max(Engine::Get()->GetPlatform()->GetRunningTimeSeconds(), 0.0);
-        const int seed = Math::RoundToInt(time);
+        uint32 seed = 0;
+
+        if (Engine::cGet())
+        {
+            double time = Math::Max(Engine::cGet()->GetPlatform().GetSeconds(), 0.0);
+            seed = static_cast<uint32>(Math::Round(time));
+        }
+        
         SetSeed(seed);
     }
 }

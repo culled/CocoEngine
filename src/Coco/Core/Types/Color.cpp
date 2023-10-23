@@ -1,10 +1,12 @@
+#include "Corepch.h"
 #include "Color.h"
 
-#include "Vector.h"
+#include "../Math/Math.h"
 
 namespace Coco
 {
 	const Color Color::Black = Color(0.0, 0.0, 0.0, 1.0);
+	const Color Color::MidGrey = Color(0.5, 0.5, 0.5, 1.0);
 	const Color Color::White = Color(1.0, 1.0, 1.0, 1.0);
 	const Color Color::Red = Color(1.0, 0.0, 0.0, 1.0);
 	const Color Color::Green = Color(0.0, 1.0, 0.0, 1.0);
@@ -12,86 +14,58 @@ namespace Coco
 	const Color Color::Yellow = Color(1.0, 1.0, 0.0, 1.0);
 	const Color Color::Magenta = Color(1.0, 0.0, 1.0, 1.0);
 	const Color Color::Cyan = Color(0.0, 1.0, 1.0, 1.0);
-	const Color Color::Clear = Color(0.0, 0.0, 0.0, 0.0);
+	const Color Color::ClearBlack = Color(0.0, 0.0, 0.0, 0.0);
+	const Color Color::ClearWhite = Color(1.0, 1.0, 1.0, 0.0);
 
-	Color::Color(double r, double g, double b, double a, bool isLinear) noexcept :
-		R(r), G(g), B(b), A(a), IsLinear(isLinear)
+	Color::Color() : Color(0, 0, 0, 0, false)
 	{}
 
-	Color Color::Parse(const string& str)
-	{
-		uint64_t currentCharacterIndex = 0;
-		uint64_t fieldIndex = 0;
-		Color c;
-
-		while (currentCharacterIndex < str.length())
-		{
-			if (fieldIndex >= 5)
-				break;
-
-			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
-
-			if (endIndex == string::npos)
-				endIndex = str.length();
-
-			string part = str.substr(currentCharacterIndex, endIndex - currentCharacterIndex);
-
-			if (fieldIndex < 4)
-			{
-				double v = atof(part.c_str());
-
-				switch (fieldIndex)
-				{
-				case 0:
-					c.R = v;
-					break;
-				case 1:
-					c.G = v;
-					break;
-				case 2:
-					c.B = v;
-					break;
-				case 3:
-					c.A = v;
-					break;
-				default: break;
-				}
-			}
-			else
-			{
-				c.IsLinear = atoi(part.c_str()) == 1;
-			}
-
-			currentCharacterIndex = endIndex + 1;
-			fieldIndex++;
-		}
-
-		return c;
-	}
+	Color::Color(double r, double g, double b, double a, bool isLinear) :
+		R(r),
+		G(g),
+		B(b),
+		A(a),
+		IsLinear(isLinear)
+	{}
 
 	Color Color::AsLinear(double gamma) const
 	{
-		if (IsLinear)
-			return *this;
-
-		return Color(Math::Pow(R, gamma), Math::Pow(G, gamma), Math::Pow(B, gamma), A, true);
+		Color c(*this);
+		c.ConvertToLinear();
+		return c;
 	}
 
 	Color Color::AsGamma(double gamma) const
 	{
+		Color c(*this);
+		c.ConvertToGamma();
+		return c;
+	}
+
+	void Color::ConvertToLinear(double gamma)
+	{
+		if (IsLinear)
+			return;
+
+		R = Math::Pow(R, gamma);
+		G = Math::Pow(G, gamma);
+		B = Math::Pow(B, gamma);
+		IsLinear = true;
+	}
+
+	void Color::ConvertToGamma(double gamma)
+	{
 		if (!IsLinear)
-			return *this;
+			return;
 
-		return Color(Math::Pow(R, 1.0 / gamma), Math::Pow(G, 1.0 / gamma), Math::Pow(B, 1.0 / gamma), A, false);
+		R = Math::Pow(R, 1.0 / gamma);
+		G = Math::Pow(G, 1.0 / gamma);
+		B = Math::Pow(B, 1.0 / gamma);
+		IsLinear = false;
 	}
 
-	Color::operator Vector3() const noexcept
+	string Color::ToString() const
 	{
-		return Vector3(R, G, B);
-	}
-
-	Color::operator Vector4() const noexcept
-	{
-		return Vector4(R, G, B, A);
+		return FormatString("{}, {}, {}, {}, {}", R, G, B, A, IsLinear);
 	}
 }

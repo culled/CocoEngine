@@ -1,100 +1,70 @@
 #pragma once
 
-#include "RenderingResource.h"
-
-#include "Graphics/Resources/Image.h"
-#include "Graphics/Resources/ImageSampler.h"
+#include "RendererResource.h"
+#include <Coco/Core/Types/Refs.h>
+#include <Coco/Core/Types/String.h>
+#include "Graphics/Image.h"
+#include "Graphics/ImageSampler.h"
 
 namespace Coco::Rendering
 {
-	/// @brief A texture that can be used for rendering images
-	class COCOAPI Texture : public RenderingResource
+	/// @brief Holds an image and an image sampler
+	class Texture : public RendererResource
 	{
 		friend class TextureSerializer;
 
 	private:
+		uint64 _version;
 		Ref<Image> _image;
-		ImageUsageFlags _usageFlags;
 		Ref<ImageSampler> _sampler;
-		ImageSamplerProperties _samplerProperties;
 		string _imageFilePath;
-		ColorSpace _colorSpace;
 
 	public:
 		Texture(
 			const ResourceID& id,
-			const string& name);
-
-		Texture(
-			const ResourceID& id,
 			const string& name,
-			int width, 
-			int height, 
-			PixelFormat pixelFormat, 
-			ColorSpace colorSpace, 
-			ImageUsageFlags usageFlags, 
-			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default
+			const ImageDescription& imageDescription,
+			const ImageSamplerDescription& samplerDescription
 		);
 
 		Texture(
 			const ResourceID& id,
 			const string& name,
-			const ImageDescription& description,
-			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default
-		);
-
-		Texture(
-			const ResourceID& id,
-			const string& name,
-			const string& filePath,
-			ColorSpace colorSpace,
+			const string& imageFilePath,
+			ImageColorSpace colorSpace,
 			ImageUsageFlags usageFlags,
-			const ImageSamplerProperties& samplerProperties = ImageSamplerProperties::Default
+			const ImageSamplerDescription& samplerDescription
 		);
 
-		~Texture() override;
+		~Texture();
 
-		DefineResourceType(Texture)
+		std::type_index GetType() const final { return typeid(Texture); }
+
+		/// @brief Gets the image
+		/// @return The image
+		Ref<Image> GetImage() const { return _image; }
+
+		/// @brief Gets the image sampler
+		/// @return The image sampler
+		Ref<ImageSampler> GetImageSampler() const { return _sampler; }
 
 		/// @brief Sets the pixel data for this texture
 		/// @param offset The offset in the texture memory to start loading pixel data into
-		/// @param size The size of the pixel data being loaded 
 		/// @param pixelData The pixel data
-		void SetPixels(uint64_t offset, uint64_t size, const void* pixelData);
+		/// @param pixelDataSize The size of the pixel data
+		void SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize);
 
-		/// @brief Sets the properties for sampling this texture
-		/// @param samplerProperties The image sampler properties
-		void SetSamplerProperties(const ImageSamplerProperties& samplerProperties);
-
-		/// @brief Gets the image description of this texture
-		/// @return The image description of this texture
-		ImageDescription GetDescription() const noexcept;
-
-		/// @brief Gets the image sampler properties of this texture
-		/// @return The image sampler properties of this texture
-		const ImageSamplerProperties& GetSamplerProperties() const { return _samplerProperties; }
-
-		/// @brief Gets the image that backs this texture
-		/// @return The image that backs this texture
-		Ref<Image> GetImage() noexcept { return _image; }
-
-		/// @brief Gets this texture's sampler
-		/// @return This texture's sampler
-		Ref<ImageSampler> GetSampler() noexcept { return _sampler; }
-
-		/// @brief Reloads the image that this texture references. Does nothing if this texture was not created from an image
+		/// @brief Reload this texture's image from the image file
 		void ReloadImage();
 
-		/// @brief Gets the path to the image that this texture has loaded, if any
-		/// @return The path to the image that this texture has loaded, or an empty string if one has not been loaded
-		const string& GetImageFilePath() const noexcept { return _imageFilePath; }
-
 	private:
-		/// @brief Recreates the internal image using a given description
-		/// @param newDescription The new image description
-		void RecreateImageFromDescription(const ImageDescription& newDescription);
+		/// @brief Reloads this texture's image from the image file
+		/// @param colorSpace The color space to load the image as
+		/// @param usageFlags The usage flags for the image
+		void ReloadImage(ImageColorSpace colorSpace, ImageUsageFlags usageFlags);
 
-		/// @brief Recreates the internal sampler
-		void RecreateInternalSampler();
+		/// @brief Creates this texture's sampler
+		/// @param samplerDescription The description for the sampler
+		void CreateSampler(const ImageSamplerDescription& samplerDescription);
 	};
 }

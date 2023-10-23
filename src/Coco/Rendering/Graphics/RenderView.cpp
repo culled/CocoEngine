@@ -1,135 +1,419 @@
+#include "Renderpch.h"
 #include "RenderView.h"
-
-#include "Resources/Buffer.h"
-#include "Resources/Image.h"
-#include "Resources/ImageSampler.h"
-#include "../Material.h"
-#include "../Shader.h"
-#include "../Texture.h"
 #include "../Mesh.h"
+#include "../Shader.h"
+#include "../Material.h"
+#include "ShaderUniformLayout.h"
+
 #include <Coco/Core/Engine.h>
-#include "../RenderingService.h"
 
 namespace Coco::Rendering
 {
-	RenderView::RenderView(
-		const RectInt& viewportRect, 
-		const Matrix4x4& projection,
-		const Matrix4x4& projection2D,
-		const Matrix4x4& view,
-		const Vector3& viewPosition,
-		const List<RenderTarget>& renderTargets
-	) noexcept :
-		ViewportRect(viewportRect),
-		Projection(projection), 
-		Projection2D(projection2D),
-		View(view), 
-		ViewPosition(viewPosition),
-		RenderTargets(renderTargets),
-		Shaders{},
-		Textures{},
-		Materials{},
-		Meshs{},
-		Objects{}
+	const GlobalShaderUniformLayout RenderView::DefaultGlobalUniformLayout = GlobalShaderUniformLayout(
+		{
+			ShaderDataUniform("ProjectionMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
+			ShaderDataUniform("ViewMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+		},
+		{},
+		{}
+	);
+
+	RenderView::RenderView() :
+		_viewportRect(),
+		_scissorRect(),
+		_viewMat(),
+		_projectionMat(),
+		_viewPosition(),
+		_globalUniformLayout(DefaultGlobalUniformLayout),
+		_frustum(),
+		_samples(),
+		_renderTargets(),
+		_meshDatas(),
+		_shaderVariantDatas(),
+		_shaderDatas(),
+		_materialDatas(),
+		_objectDatas(),
+		_directionalLightDatas(),
+		_pointLightDatas()
 	{}
 
-	RenderView::~RenderView()
+	void RenderView::Setup(
+		const RectInt& viewportRect, 
+		const RectInt& scissorRect, 
+		const Matrix4x4& viewMatrix, 
+		const Matrix4x4& projectionMatrix,
+		const Vector3& viewPosition,
+		const ViewFrustum& frustum,
+		MSAASamples samples, 
+		const std::vector<RenderTarget>&renderTargets)
 	{
-		RenderTargets.Clear();
-		Shaders.clear();
-		Textures.clear();
-		Materials.clear();
-		Meshs.clear();
-		Objects.Clear();
+		_viewportRect = viewportRect;
+		_scissorRect = scissorRect;
+		_viewMat = viewMatrix;
+		_projectionMat = projectionMatrix;
+		_viewPosition = viewPosition;
+		_frustum = frustum;
+		_samples = samples;
+		_renderTargets = renderTargets;
 	}
 
-	void RenderView::AddRenderObject(Ref<Mesh> mesh, uint submeshIndex, Ref<IMaterial> material, const Matrix4x4& modelMatrix)
-	{	
-		if (!mesh.IsValid())
-		{
-			LogError(RenderingService::Get()->GetLogger(), "Mesh is not valid");
-			return;
-		}
-
-		if (submeshIndex >= mesh->GetSubmeshCount())
-		{
-			LogError(RenderingService::Get()->GetLogger(), FormattedString(
-				"Submesh index ({}) is higher than the number of submeshes ({})", 
-				submeshIndex, mesh->GetSubmeshCount()
-			));
-			return;
-		}
-
-		if (!material.IsValid())
-		{
-			LogError(RenderingService::Get()->GetLogger(), "Material is not valid");
-			return;
-		}
-
-		AddMesh(mesh);
-		AddMaterial(material);
-
-		Objects.Construct(mesh->ID, submeshIndex, material->GetID(), modelMatrix);
+	void RenderView::Reset()
+	{
+		_renderTargets.clear();
+		_globalUniformLayout = DefaultGlobalUniformLayout;
+		_meshDatas.clear();
+		_shaderVariantDatas.clear();
+		_shaderDatas.clear();
+		_materialDatas.clear();
+		_objectDatas.clear();
+		_directionalLightDatas.clear();
+		_pointLightDatas.clear();
 	}
 
-	void RenderView::AddShader(Ref<Shader> shader)
+	RenderTarget& RenderView::GetRenderTarget(size_t index)
 	{
-		if (Shaders.contains(shader->ID))
-			return;
+		Assert(index < _renderTargets.size())
 
-		Shaders.try_emplace(shader->ID, shader->ID, shader->GetVersion(), shader->GetGroupTag());
-		ShaderRenderData& shaderData = Shaders.at(shader->ID);
+		return _renderTargets.at(index);
+	}
 
-		for (const Subshader& subshader : shader->GetSubshaders())
+	void RenderView::SetGlobalUniformLayout(const GlobalShaderUniformLayout& layout)
+	{
+		_globalUniformLayout = layout;
+	}
+
+	uint64 RenderView::AddMesh(const Mesh& mesh)
+	{
+		uint64 meshID = mesh.GetID();
+
+		if (!_meshDatas.contains(meshID))
 		{
-			shaderData.Subshaders.try_emplace(subshader.PassName, subshader);
+			_meshDatas.try_emplace(meshID, 
+				meshID, 
+				mesh.GetVersion(), 
+				mesh.GetVertexBuffer(), 
+				mesh.GetVertexCount(), 
+				mesh.GetIndexBuffer(),
+				mesh.GetBounds());
+		}
+
+		return meshID;
+	}
+
+	const MeshData& RenderView::GetMeshData(uint64 key) const
+	{
+		Assert(_meshDatas.contains(key))
+
+		return _meshDatas.at(key);
+	}
+
+	uint64 RenderView::AddShader(const Shader& shader)
+	{
+		uint64 shaderID = shader.GetID();
+
+		if (!_shaderDatas.contains(shaderID))
+		{
+			std::unordered_map<string, uint64> passShaders;
+
+			for (const ShaderVariant& variant : shader.GetShaderVariants())
+			{
+				uint64 variantID = variant.Hash;
+				_shaderVariantDatas.try_emplace(variantID, variantID, shader.GetVersion(), variant);
+
+				passShaders.try_emplace(variant.Name, variantID);
+			}
+
+			_shaderDatas.try_emplace(shaderID, shaderID, shader.GetVersion(), shader.GetGroupTag(), passShaders);
+		}
+
+		return shaderID;
+	}
+
+	const ShaderData& RenderView::GetShaderData(uint64 key) const
+	{
+		Assert(_shaderDatas.contains(key))
+
+		return _shaderDatas.at(key);
+	}
+
+	const ShaderVariantData& RenderView::GetShaderVariantData(uint64 key) const
+	{
+		Assert(_shaderVariantDatas.contains(key))
+
+		return _shaderVariantDatas.at(key);
+	}
+
+	uint64 RenderView::AddMaterial(const MaterialDataProvider& materialData)
+	{
+		uint64 id = materialData.GetMaterialID();
+
+		if (!_materialDatas.contains(id))
+		{
+			SharedRef<Shader> shader = materialData.GetShader();
+			uint64 shaderID = shader ? AddShader(*shader) : InvalidID;
+
+			_materialDatas.try_emplace(id, id, shaderID, materialData.GetUniformData());
+		}
+
+		return id;
+	}
+
+	const MaterialData& RenderView::GetMaterialData(uint64 key) const
+	{
+		Assert(_materialDatas.contains(key))
+
+		return _materialDatas.at(key);
+	}
+
+	uint64 RenderView::AddRenderObject(
+		const Mesh& mesh, 
+		uint32 submeshID, 
+		const Matrix4x4& modelMatrix, 
+		const MaterialDataProvider& material,
+		const RectInt* scissorRect,
+		std::any extraData)
+	{
+		SubMesh submesh;
+		Assert(mesh.TryGetSubmesh(submeshID, submesh))
+		return AddRenderObject(
+			mesh,
+			submesh.Offset, submesh.Count,
+			modelMatrix,
+			submesh.Bounds.Transformed(modelMatrix),
+			material,
+			scissorRect,
+			extraData);
+	}
+
+	uint64 RenderView::AddRenderObject(
+		const Mesh& mesh, 
+		uint32 submeshID, 
+		const Matrix4x4& modelMatrix, 
+		const Shader* shader, 
+		const RectInt* scissorRect, 
+		std::any extraData)
+	{
+		SubMesh submesh;
+		Assert(mesh.TryGetSubmesh(submeshID, submesh))
+		return AddRenderObject(
+			mesh,
+			submesh.Offset, submesh.Count,
+			modelMatrix,
+			submesh.Bounds.Transformed(modelMatrix),
+			shader,
+			scissorRect,
+			extraData);
+	}
+
+	uint64 RenderView::AddRenderObject(
+		const Mesh& mesh, 
+		uint64 indexOffset, 
+		uint64 indexCount, 
+		const Matrix4x4& modelMatrix,
+		const BoundingBox& bounds,
+		const MaterialDataProvider& material, 
+		const RectInt* scissorRect,
+		std::any extraData)
+	{
+		uint64 meshID = AddMesh(mesh);
+		uint64 materialID = AddMaterial(material);
+		uint64 shaderID = _materialDatas.at(materialID).ShaderID;
+
+		uint64 objectID = _objectDatas.size();
+		_objectDatas.emplace_back(
+			objectID,
+			modelMatrix,
+			meshID,
+			indexOffset,
+			indexCount,
+			materialID,
+			shaderID,
+			scissorRect ? *scissorRect : _scissorRect,
+			bounds,
+			extraData);
+
+		return objectID;
+	}
+
+	uint64 RenderView::AddRenderObject(
+		const Mesh& mesh, 
+		uint64 indexOffset, 
+		uint64 indexCount, 
+		const Matrix4x4& modelMatrix, 
+		const BoundingBox& bounds, 
+		const Shader* shader, 
+		const RectInt* scissorRect, 
+		std::any extraData)
+	{
+		uint64 meshID = AddMesh(mesh);
+		uint64 shaderID = shader ? AddShader(*shader) : InvalidID;
+
+		uint64 objectID = _objectDatas.size();
+		_objectDatas.emplace_back(
+			objectID,
+			modelMatrix,
+			meshID,
+			indexOffset,
+			indexCount,
+			InvalidID,
+			shaderID,
+			scissorRect ? *scissorRect : _scissorRect,
+			bounds,
+			extraData);
+
+		return objectID;
+	}
+
+	const ObjectData& RenderView::GetRenderObject(uint64 index) const
+	{
+		Assert(index >= 0)
+		Assert(index < _objectDatas.size())
+
+		return _objectDatas.at(index);
+	}
+
+	void RenderView::AddDirectionalLight(const Vector3& direction, const Color& color, double intensity)
+	{
+		Color c = color.AsLinear();
+		c.A = intensity;
+		_directionalLightDatas.emplace_back(direction, c);
+	}
+
+	void RenderView::AddPointLight(const Vector3& position, const Color& color, double intensity)
+	{
+		Color c = color.AsLinear();
+		c.A = intensity;
+		_pointLightDatas.emplace_back(position, c);
+	}
+
+	std::vector<uint64> RenderView::GetRenderObjectIndices() const
+	{
+		std::vector<uint64> indices(_objectDatas.size());
+
+		for (uint64 i = 0; i < indices.size(); i++)
+			indices.at(i) = i;
+
+		return indices;
+	}
+
+	std::vector<ObjectData> RenderView::GetRenderObjects(std::span<const uint64> objectIndices) const
+	{
+		std::vector<ObjectData> objects;
+
+		for (uint64 i = 0; i < objectIndices.size(); i++)
+			objects.emplace_back(GetRenderObject(objectIndices[i]));
+
+		return objects;
+	}
+
+	void RenderView::FilterOutsideFrustum(std::vector<uint64>& objectIndices) const
+	{
+		FilterOutsideFrustum(_frustum, objectIndices);
+	}
+
+	void RenderView::FilterOutsideFrustum(const ViewFrustum& frustum, std::vector<uint64>& objectIndices) const
+	{
+		auto it = objectIndices.begin();
+
+		while (it != objectIndices.end())
+		{
+			const ObjectData& obj = GetRenderObject(*it);
+
+			if (frustum.IsInside(obj.Bounds))
+			{
+				it++;
+			}
+			else
+			{
+				it = objectIndices.erase(it);
+			}
 		}
 	}
 
-	void RenderView::AddTexture(Ref<Texture> texture)
+	void RenderView::FilterWithTag(std::vector<uint64>& objectIndices, const string& tag) const
 	{
-		if (Textures.contains(texture->ID))
-			return;
-
-		Textures.try_emplace(texture->ID, texture->ID, texture->GetVersion(), texture->GetImage(), texture->GetSampler());
+		std::array<string, 1> tags = { tag };
+		FilterWithTags(objectIndices, tags);
 	}
 
-	void RenderView::AddMaterial(Ref<IMaterial> material)
+	void RenderView::FilterWithTags(std::vector<uint64>& objectIndices, std::span<const string> tags) const
 	{
-		const ResourceID& materialID = material->GetID();
+		auto it = objectIndices.begin();
 
-		if (Materials.contains(materialID))
-			return;
-
-		Ref<Shader> shader = material->GetShader();
-		ResourceID shaderID = shader.IsValid() ? shader->ID : Resource::InvalidID;
-
-		if (shader.IsValid())
-			AddShader(shader);
-
-		const ShaderUniformData& uniformData = material->GetUniformData();
-		Materials.try_emplace(materialID, materialID, material->GetMaterialVersion(), shaderID, uniformData);
-
-		ResourceLibrary* library = Engine::Get()->GetResourceLibrary();
-
-		for (const auto& texKVP : uniformData.Textures)
+		while (it != objectIndices.end())
 		{
-			Ref<Texture> texture = library->GetResource<Texture>(texKVP.second);
+			const ObjectData& obj = GetRenderObject(*it);
 
-			AddTexture(texture);
+			if (obj.ShaderID == InvalidID)
+			{
+				it = objectIndices.erase(it);
+				continue;
+			}
+
+			const ShaderData& shader = GetShaderData(obj.ShaderID);
+
+			if (std::find(tags.begin(), tags.end(), shader.GroupTag) != tags.end())
+			{
+				it++;
+			}
+			else
+			{
+				it = objectIndices.erase(it);
+			}
 		}
 	}
 
-	void RenderView::AddMesh(Ref<Mesh> mesh)
+	void RenderView::FilterWithShaderVariant(std::vector<uint64>& objectIndices, const string& variantName) const
 	{
-		if (Meshs.contains(mesh->ID))
-			return;
+		auto it = objectIndices.begin();
 
-		List<SubmeshData> submeshDatas;
+		while (it != objectIndices.end())
+		{
+			const ObjectData& obj = GetRenderObject(*it);
 
-		for (const auto& submesh : mesh->GetSubmeshes())
-			submeshDatas.Construct(submesh.IndexBufferOffset, submesh.IndexCount);
+			if (obj.ShaderID == InvalidID)
+			{
+				it = objectIndices.erase(it);
+				continue;
+			}
 
-		Meshs.try_emplace(mesh->ID, mesh->ID, mesh->GetVersion(), mesh->GetVertexBuffer(), mesh->GetVertexCount(), mesh->GetIndexBuffer(), submeshDatas);
+			const ShaderData& shader = GetShaderData(obj.ShaderID);
+
+			if (shader.Variants.contains(variantName))
+			{
+				it++;
+			}
+			else
+			{
+				it = objectIndices.erase(it);
+			}
+		}
+	}
+
+	void RenderView::SortByDistance(std::vector<uint64>& objectIndices, RenderObjectSortMode sortMode) const
+	{
+		SortByDistance(objectIndices, _viewPosition, sortMode);
+	}
+
+	void RenderView::SortByDistance(std::vector<uint64>& objectIndices, const Vector3& position, RenderObjectSortMode sortMode) const
+	{
+		std::sort(objectIndices.begin(), objectIndices.end(), [&, position, sortMode](const uint64& a, const uint64& b)
+			{
+				const ObjectData& objA = GetRenderObject(a);
+				const ObjectData& objB = GetRenderObject(b);
+
+				double distA = Vector3::DistanceBetween(position, objA.Bounds.GetCenter());
+				double distB = Vector3::DistanceBetween(position, objB.Bounds.GetCenter());
+
+				switch (sortMode)
+				{
+				case RenderObjectSortMode::BackToFront:
+					return distA > distB;
+				case RenderObjectSortMode::FrontToBack:
+					return distA < distB;
+				default:
+					return true;
+				}
+			});
 	}
 }

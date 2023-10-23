@@ -1,47 +1,107 @@
+#include "Windowpch.h"
 #include "Window.h"
 
+#include "WindowService.h"
 #include <Coco/Core/Engine.h>
-#include "WindowingService.h"
+#include <Coco/Rendering/RenderService.h>
 
 namespace Coco::Windowing
 {
-	Window::Window(Optional<Ref<Window>> parent) : _parent(parent.has_value() ? parent.value() : Ref<Window>())
-	{}
+	const WindowID Window::InvalidID = Math::MaxValue<WindowID>();
+	const uint16 Window::DefaultDPI = 96;
 
-	bool Window::Close() noexcept
+	std::atomic<WindowID> Window::_id;
+
+	Window::Window(const WindowCreateParams& createParams) :
+		ID(_id++),
+		_parentID(createParams.ParentWindow),
+		_presenter()
 	{
-		bool cancelClose = false;
+		if (!Rendering::RenderService::Get())
+			throw std::exception("No RenderService is active");
 
+		_presenter = Rendering::RenderService::Get()->GetDevice().CreatePresenter();
+	}
+
+	Window::~Window()
+	{
 		try
 		{
-			OnClosing.Invoke(this, cancelClose);
+			OnClosed.Invoke();
 		}
 		catch(...)
 		{ }
 
-		if (cancelClose)
-			return false;
+		if (_presenter.IsValid())
+		{
+			Rendering::RenderService::Get()->GetDevice().TryReleasePresenter(_presenter);
+		}
+	}
+
+	void Window::Close()
+	{
+		bool cancel = false;
 
 		try
 		{
-			OnClosed.Invoke(this);
+			OnClosing.Invoke(cancel);
 		}
-		catch (...)
-		{ }
+		catch (const std::exception& ex)
+		{
+			CocoError("Error while invoking Window::OnClosing event: {}", ex.what())
+		}
 
-		WindowingService::Get()->WindowClosed(this);
+		if (!cancel)
+		{
+			Windowing::WindowService::Get()->WindowClosed(*this);
+		}
+	}
 
-		return true;
+	bool Window::HasParent() const
+	{
+		return _parentID != InvalidID;
+	}
+
+	WindowID Window::GetParentID() const
+	{
+		return _parentID;
+	}
+
+	RectInt Window::GetRect(bool clientArea, bool relativeToParent) const
+	{
+		return RectInt(GetPosition(clientArea, relativeToParent), clientArea ? GetClientAreaSize() : GetSize());
+	}
+
+	Ref<Window> Window::GetParentWindow() const
+	{
+		return WindowService::Get()->GetWindow(_parentID);
 	}
 
 	void Window::HandleResized()
 	{
-		// By handling the surface on resize, we can make sure we always have a surface
-		if (!_presenter->IsSurfaceInitialized() && GetIsVisible())
-			SetupPresenterSurface();
+		try
+		{
+			OnResized.Invoke(GetClientAreaSize());
+		}
+		catch(const std::exception& ex)
+		{
+			CocoError("Error while invoking Window::OnResized event: {}", ex.what())
+		}
 
-		_presenter->SetBackbufferSize(GetBackbufferSize());
+		// Lazy initialize surface until we're visible
+		EnsurePresenterSurface();
 
-		OnResized.Invoke(this, GetSize());
+		_presenter->SetFramebufferSize(GetClientAreaSize());
+	}
+
+	void Window::EnsurePresenterSurface()
+	{
+		if (_presenter->SurfaceInitialized())
+			return;
+
+		SharedRef<Rendering::GraphicsPresenterSurface> surface = CreateSurface();
+		_presenter->InitializeSurface(*surface);
+
+		_presenter->SetFramebufferSize(GetClientAreaSize());
 	}
 }

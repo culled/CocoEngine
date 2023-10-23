@@ -1,57 +1,98 @@
+#include "Inputpch.h"
 #include "Keyboard.h"
 
 namespace Coco::Input
 {
+	KeyboardState::KeyboardState() :
+		KeyStates{false},
+		UnicodeKeyPoints()
+	{}
+
+	KeyboardStateChange::KeyboardStateChange(KeyboardKey key, bool isPressed) :
+		Key(key),
+		IsPressed(isPressed),
+		UnicodeKeyPoint()
+	{}
+
+	KeyboardStateChange::KeyboardStateChange(int unicodeKeyPoint) :
+		Key(),
+		IsPressed(false),
+		UnicodeKeyPoint(unicodeKeyPoint)
+	{}
+
+	Keyboard::Keyboard() :
+		_preProcessStateChanges{},
+		_currentState{},
+		_previousState{}
+	{}
+
 	void Keyboard::UpdateKeyState(KeyboardKey key, bool isPressed)
 	{
-		bool& state = _preProcessState.KeyState.at(static_cast<int>(key));
+		bool& currentState = _currentState.KeyStates.at(static_cast<size_t>(key));
 
-		if (state == isPressed)
+		if (currentState == isPressed)
 			return;
 
-		// Save the state change and the current interim state
-		_preProcessStateChanges.Construct(key, isPressed);
-		state = isPressed;
-	}
+		_preProcessStateChanges.emplace_back(key, isPressed);
+		currentState = isPressed;
 
-	bool Keyboard::IsKeyPressed(KeyboardKey key) const noexcept
-	{
-		return _currentState.KeyState.at(static_cast<int>(key));
-	}
-
-	bool Keyboard::WasKeyJustPressed(KeyboardKey key) const noexcept
-	{
-		const int index = static_cast<int>(key);
-		return (_currentState.KeyState.at(index) && !_previousState.KeyState.at(index));
-	}
-
-	bool Keyboard::WasKeyJustReleased(KeyboardKey key) const noexcept
-	{
-		const int index = static_cast<int>(key);
-		return (!_currentState.KeyState.at(index) && _previousState.KeyState.at(index));
-	}
-
-	void Keyboard::ProcessCurrentState()
-	{
-		// Step through each state change since the last tick and fire the proper events
-		for (const auto& newState : _preProcessStateChanges)
+		try
 		{
-			if (newState.IsPressed)
-			{
-				OnKeyPressedEvent.Invoke(newState.Key);
-			}
+			if (isPressed)
+				OnKeyPressed.Invoke(key);
 			else
-			{
-				OnKeyReleasedEvent.Invoke(newState.Key);
-			}
+				OnKeyReleased.Invoke(key);
 		}
-
-		_currentState = _preProcessState;
-		_preProcessStateChanges.Clear();
+		catch(...)
+		{ }
 	}
 
-	void Keyboard::SavePreviousState() noexcept
+	void Keyboard::AddUnicodeKeyEvent(int unicodeCharacter)
+	{
+		_preProcessStateChanges.emplace_back(unicodeCharacter);
+		_currentState.UnicodeKeyPoints.push_back(unicodeCharacter);
+
+		try
+		{
+			OnUnicodeCharacterEntered.Invoke(unicodeCharacter);
+		}
+		catch (...)
+		{ }
+	}
+
+	void Keyboard::ClearAllKeyStates()
+	{
+		for (uint32 i = 0; i < KeyboardState::KeyCount; i++)
+		{
+			if (_currentState.KeyStates.at(i))
+				UpdateKeyState(static_cast<KeyboardKey>(i), false);
+		}
+	}
+
+	bool Keyboard::IsKeyPressed(KeyboardKey key) const
+	{
+		return _currentState.KeyStates.at(static_cast<size_t>(key));
+	}
+
+	bool Keyboard::WasKeyJustPressed(KeyboardKey key) const
+	{
+		const size_t index = static_cast<size_t>(key);
+
+		return _currentState.KeyStates.at(index) && !_previousState.KeyStates.at(index);
+	}
+
+	bool Keyboard::WasKeyJustReleased(KeyboardKey key) const
+	{
+		const size_t index = static_cast<size_t>(key);
+
+		return !_currentState.KeyStates.at(index) && _previousState.KeyStates.at(index);
+	}
+
+	void Keyboard::SavePreviousState()
 	{
 		_previousState = _currentState;
+		_currentState.UnicodeKeyPoints.clear();
+
+		_preProcessStateChanges.clear();
 	}
 }

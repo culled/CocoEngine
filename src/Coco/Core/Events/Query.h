@@ -1,167 +1,186 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-#include <Coco/Core/Types/List.h>
-#include "QueryHandler.h"
+#include <Coco/Core/Corepch.h>
+#include <Coco/Core/Defines.h>
 
 namespace Coco
 {
-	/// @brief A query that can fire to listening handlers
-	/// @tparam ...Args Types of query arguments
-	/// @tparam ReturnType The type that the query returns
-	template<typename ReturnType, typename ... Args>
-	class COCOAPI Query
+	template <typename ValueType, typename ... ArgTypes>
+	class QueryHandler;
+
+	/// @brief A query that can invoke QueryHandlers for a value
+	/// @tparam ValueType The type of queried value
+	/// @tparam ...ArgTypes The types of arguments for the query
+	template<typename ValueType, typename ... ArgTypes>
+	class Query
 	{
 	public:
-		/// @brief The type for a query handler function
-		using HandlerFunctionType = QueryHandler<ReturnType, Args...>::HandlerFunctionType;
+		using HandlerType = QueryHandler<ValueType, ArgTypes...>;
 
-		/// @brief The type for query handlers
-		using HandlerType = QueryHandler<ReturnType, Args...>;
-		
-		/// @brief The type for a query handler ID
-		using HandlerID = uint64_t;
+		friend class HandlerType;
 
 	private:
-		List<SharedRef<HandlerType>> _handlers;
+		std::vector<HandlerType*> _handlers;
 
 	public:
 		Query() = default;
-
-		virtual ~Query()
+		~Query()
 		{
-			_handlers.Clear();
+			std::vector<HandlerType*> tempHandlers(_handlers);
+
+			// Disconnect all handlers
+			for (auto it = tempHandlers.begin(); it != tempHandlers.end(); it++)
+			{
+				if (*it)
+					(*it)->Disconnect();
+			}
 		}
 
-		Query(const Query&) = delete;
-		Query(Query&&) = delete;
-		Query& operator=(const Query&) = delete;
-		Query& operator=(Query&&) = delete;
-
-		/// @brief Adds a query handler for a member function of an object
-		/// @tparam ObjectType The type of object
-		/// @param object The object
-		/// @param function The query handler function
-		/// @return A handler for the query
-		template<typename ObjectType>
-		WeakSharedRef<HandlerType> AddHandler(ObjectType* object, ReturnType(ObjectType::* function)(Args...))
+		/// @brief Invokes this query with the given arguments
+		/// @param value The queried value
+		/// @param ...args The arguments
+		/// @return True if this query was handled
+		bool Invoke(ValueType& value, ArgTypes ... args)
 		{
-			AddHandler(CreateSharedRef<ObjectQueryHandler<ObjectType, ReturnType, Args...>>(object, function));
-			return _handlers.First();
-		}
+			bool handled = false;
+			std::vector<HandlerType*> handlersTemp(_handlers);
 
-		/// @brief Adds a generic query handler function
-		/// @param handlerFunction The query handler function
-		/// @return A handler for the query
-		Ref<HandlerType> AddHandler(const HandlerFunctionType& handlerFunction)
-		{
-			AddHandler(CreateSharedRef<HandlerType>(handlerFunction));
-			return _handlers.First();
-		}
+			for (auto it = handlersTemp.begin(); it != handlersTemp.end(); it++)
+			{
+				HandlerType* handler = *it;
 
-		/// @brief Removes a query handler for a member function of an object
-		/// @tparam ObjectType The type of object
-		/// @param object The object
-		/// @param function The query handler function
-		/// @return True if the handler was found and removed
-		template<typename ObjectType>
-		bool RemoveHandler(ObjectType* object, ReturnType(ObjectType::* function)(Args...)) noexcept
-		{
-			auto it = _handlers.Find([object, function](const SharedRef<HandlerType>& other) noexcept {
-				if (ObjectQueryHandler<ObjectType, ReturnType, Args...>* otherPtr = dynamic_cast<ObjectQueryHandler<ObjectType, ReturnType, Args...>*>(other.Get()))
+				if (handler)
 				{
-					return otherPtr->Equals(object, function);
+					handled = handler->Invoke(value, args...);
+
+					if (handled)
+						break;
 				}
-
-				return false;
-				});
-
-			if (it != _handlers.end())
-			{
-				return _handlers.Remove(it);
 			}
 
-			return false;
-		}
-
-		/// @brief Removes a query handler by its ID
-		/// @param handlerID The ID of the handler
-		/// @return True if the query handler was found and removed
-		bool RemoveHandler(HandlerID handlerID) noexcept
-		{
-			auto it = _handlers.Find([handlerID](const SharedRef<HandlerType>& other) noexcept {
-				return other->ID == handlerID;
-				});
-
-			if (it != _handlers.end())
-				return _handlers.Remove(it);
-
-			return false;
-		}
-
-		/// @brief Removes a query handler
-		/// @param handler The query handler to remove
-		/// @return True if the handler was found and removed
-		bool RemoveHandler(const WeakSharedRef<HandlerType>& handler) noexcept
-		{
-			if (!handler.IsValid())
-				return false;
-
-			WeakSharedRef<HandlerType> handlerCopy(handler);
-			SharedRef<HandlerType> lock = handlerCopy.Lock();
-			return RemoveHandler(lock->ID);
-		}
-
-		/// @brief Invokes this query
-		/// @param value The value that will be modified by the query
-		/// @param ...params The parameters for the query
-		/// @return If the query was handled
-		bool Invoke(ReturnType* value, Args... params)
-		{
-			List<SharedRef<HandlerType>> handlersCopy = _handlers;
-
-			for (const SharedRef<HandlerType>& handler : handlersCopy)
-			{
-				if ((*handler)(value, params...))
-					return true;
-			}
-
-			return false;
+			return handled;
 		}
 
 		/// @brief Gets the number of handlers registered to this query
 		/// @return The number of query handlers
-		uint64_t GetHandlerCount() const
-		{
-			return _handlers.Count();
-		}
-
-		bool operator()(ReturnType* value, Args... params)
-		{
-			return Invoke(value, params...);
-		}
-
-		WeakSharedRef<HandlerType> operator +=(const HandlerFunctionType& handlerFunction)
-		{
-			return AddHandler(handlerFunction);
-		}
-
-		bool operator -=(const HandlerID& handlerID)
-		{
-			return RemoveHandler(handlerID);
-		}
-
-		bool operator -=(const WeakSharedRef<HandlerType>& handler)
-		{
-			return RemoveHandler(handler);
-		}
+		size_t GetHandlerCount() const { return _handlers.size(); }
 
 	private:
-		/// @brief Adds an existing query handler
-		/// @param handler A query handler reference
-		void AddHandler(SharedRef<HandlerType>&& handler)
+		/// @brief Adds a handler to this query
+		/// @param handler The handler
+		void AddHandler(HandlerType& handler)
 		{
-			_handlers.Insert(0, std::forward<SharedRef<HandlerType>>(handler));
+			_handlers.insert(_handlers.begin(), &handler);
+		}
+
+		/// @brief Removes a handler from this query
+		/// @param handler The handler
+		void RemoveHandler(HandlerType& handler)
+		{
+			auto it = std::find(_handlers.begin(), _handlers.end(), &handler);
+
+			if (it != _handlers.end())
+				_handlers.erase(it);
+		}
+	};
+
+	/// @brief A handler for queries
+	/// @tparam ...ValueType The type of queried value
+	/// @tparam ...ArgTypes The types of arguments this handler supports
+	template<typename ValueType, typename ... ArgTypes>
+	class QueryHandler
+	{
+	public:
+		using QueryType = Query<ValueType, ArgTypes...>;
+		friend class QueryType;
+
+	public:
+		using CallbackFunction = std::function<bool(ValueType&, ArgTypes...)>;
+
+	private:
+		QueryType* _query;
+		CallbackFunction _callback;
+
+	public:
+		QueryHandler() :
+			_query(nullptr),
+			_callback(nullptr)
+		{}
+
+		QueryHandler(CallbackFunction callback) :
+			_query(nullptr)
+		{
+			SetCallback(callback);
+		}
+
+		template<typename ObjectType>
+		QueryHandler(ObjectType* instance, bool(ObjectType::* callback)(ValueType&, ArgTypes...)) :
+			_query(nullptr)
+		{
+			SetCallback(instance, callback);
+		}
+
+		~QueryHandler()
+		{
+			Disconnect();
+		}
+
+		/// @brief Connects this handler to a query.
+		/// NOTE: This will disconnect from the current query if one is already connected
+		/// @param source The query
+		void Connect(QueryType& source)
+		{
+			if (_query)
+				Disconnect();
+
+			_query = &source;
+			_query->AddHandler(*this);
+		}
+
+		/// @brief Disconnects from the connected query
+		void Disconnect()
+		{
+			if (_query)
+				_query->RemoveHandler(*this);
+
+			_query = nullptr;
+		}
+
+		/// @brief Sets the callback function that this handler will invoke when the connected query is fired
+		/// @param callback The callback function
+		void SetCallback(CallbackFunction callback)
+		{
+			_callback = callback;
+		}
+
+		/// @brief Sets the callback function that this handler will invoke when the connected query is fired
+		/// @tparam ObjectType The type of object
+		/// @param instance The object instance
+		/// @param callback The callback member function
+		template<typename ObjectType>
+		void SetCallback(ObjectType* instance, bool(ObjectType::* callback)(ValueType&, ArgTypes...))
+		{
+			// HACK: Binding doesn't seem to work in this situation, so just use a lambda
+			_callback = [instance, callback](ValueType& value, ArgTypes&&... args) { return (instance->*callback)(value, std::forward<ArgTypes>(args)...); };
+
+			//_callback = std::bind(callback, instance, std::placeholders::_1);
+		}
+
+		/// @brief Gets if this handler is connected to a query
+		/// @return True if this handler is connected to a query
+		bool IsConnected() const { return _query != nullptr; }
+
+	private:
+		/// @brief Invokes the callback function
+		/// @param value The queried value
+		/// @param ...args The query arguments
+		/// @return True if the query was handled
+		bool Invoke(ValueType& value, ArgTypes ... args)
+		{
+			if (!_callback)
+				return false;
+
+			return _callback(value, args...);
 		}
 	};
 }

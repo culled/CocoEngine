@@ -1,0 +1,39 @@
+#pragma once
+
+#include <Coco/Core/Defines.h>
+#include <Coco/Core/Types/String.h>
+#include "../Graphics/AttachmentFormat.h"
+#include "../Graphics/RenderContext.h"
+#include "../Graphics/RenderView.h"
+
+namespace Coco::Rendering
+{
+	/// @brief Defines a single rendering operation
+	class RenderPass
+	{
+	public:
+		virtual ~RenderPass() = default;
+
+		/// @brief Gets the name of this pass. Used to link to individual render pass shaders
+		/// @return This pass's name
+		virtual const char* GetName() const = 0;
+
+		/// @brief Gets the attachment formats that this pass uses
+		/// @return This pass's attachments
+		virtual std::span<const AttachmentFormat> GetInputAttachments() const = 0;
+
+		/// @brief Gets if this pass supports multisampled anti-aliasing
+		/// @return True if this pass supports MSAA
+		virtual bool SupportsMSAA() const = 0;
+
+		/// @brief Allows preparations before rendering actually commences. Use this to set global values
+		/// @param context The context to use for rendering
+		/// @param renderView The view being rendered
+		virtual void Prepare(RenderContext& context, const RenderView& renderView) = 0;
+
+		/// @brief Executes this render pass
+		/// @param context The context to use for rendering
+		/// @param renderView The view being rendered
+		virtual void Execute(RenderContext& context, const RenderView& renderView) = 0;
+	};
+}

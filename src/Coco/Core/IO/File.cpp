@@ -1,162 +1,224 @@
+#include "Corepch.h"
 #include "File.h"
-#include "FileExceptions.h"
-
-#include <filesystem>
-#include <stdio.h>
-#include <fstream>
 
 namespace Coco
 {
-	File::File(const string& path, FileModeFlags openFlags) :
-		_openFlags(FileModeFlags::None),
-		Path(path)
+	File::File(const FilePath& filePath, FileOpenFlags openFlags) :
+		_filePath(filePath),
+		_openFlags(openFlags),
+		_fileStream(),
+		_size(0),
+		_position(0)
 	{
-		int mode = 0;
+		std::ios_base::openmode mode = 0;
 
-		if (openFlags == FileModeFlags::None)
-			throw FileOpenException("Invalid open mode");
-
-		if ((openFlags & FileModeFlags::Read) == FileModeFlags::Read)
+		if ((openFlags & FileOpenFlags::Read) == FileOpenFlags::Read)
 			mode |= std::ios::in;
 
-		if ((openFlags & FileModeFlags::Write) == FileModeFlags::Write)
+		if ((openFlags & FileOpenFlags::Write) == FileOpenFlags::Write)
 			mode |= std::ios::out;
 
-		if ((openFlags & FileModeFlags::Binary) == FileModeFlags::Binary)
+		if ((openFlags & FileOpenFlags::Text) != FileOpenFlags::Text)
 			mode |= std::ios::binary;
 
-		_handle.open(path, mode);
+		if (mode == 0)
+			throw std::exception("Invalid open mode");
 
-		if (!_handle.is_open())
-			throw FileOpenException(FormattedString("Failed to open file  \"{}\"", path));
+		mode |= std::ios::ate;
 
-		// By default, have all operations start at the beginning of the file
-		_handle.seekg(0, std::ios::beg);
+		_fileStream = std::fstream(filePath._filePath, mode);
 
-		_openFlags = openFlags;
+		if (!_fileStream.is_open())
+		{
+			string err = FormatString("Unable to open file at \"{}\": {}", filePath.ToString(), _fileStream.rdstate());
+			throw std::exception(err.c_str());
+		}
+
+		_size = _fileStream.tellg();
+		_fileStream.seekg(0, std::ios::beg);
 	}
-
-	File::File(File&& other) noexcept :
-		_openFlags(other._openFlags), 
-		Path(other.Path), 
-		_handle(std::move(other._handle))
-	{}
 
 	File::~File()
 	{
-		try
-		{
-			if (_handle.is_open())
-				Close();
-		}
-		catch(...)
-		{ }
+		if (IsOpen())
+			Close();
 	}
 
-	bool File::Exists(const string& path)
+	File File::Create(const FilePath& filePath, FileOpenFlags openFlags)
 	{
-		return std::filesystem::exists(path);
+		if (File::Exists(filePath))
+			throw std::exception("File already exists");
+
+		return File(filePath, openFlags | FileOpenFlags::Write);
 	}
 
-	string File::ReadAllText(const string& path)
+	bool File::Exists(const FilePath& filePath)
 	{
-		File f = Open(path, FileModeFlags::Read);
+		return std::filesystem::exists(filePath._filePath);
+	}
+
+	string File::ReadAllText(const FilePath& filePath)
+	{
+		File f(filePath, FileOpenFlags::Read | FileOpenFlags::Text);
 		string text = f.ReadTextToEnd();
 		f.Close();
+
 		return text;
 	}
 
-	List<char> File::ReadAllBytes(const string& path)
+	std::vector<uint8> File::ReadAllBytes(const FilePath& filePath)
 	{
-		File f = Open(path, FileModeFlags::Read | FileModeFlags::Binary);
-		List<char> bytes = f.ReadToEnd();
+		File f(filePath, FileOpenFlags::Read);
+		std::vector<uint8> bytes = f.ReadToEnd();
 		f.Close();
+
 		return bytes;
 	}
 
-	void File::WriteAllText(const string& path, const string& text)
+	void File::Seek(uint64 position, bool relative)
 	{
-		File f = Open(path, FileModeFlags::Write);
-		f.WriteText(text);
-		f.Close();
+		_fileStream.seekg(position, relative ? std::ios_base::cur : std::ios_base::beg);
+
+		SyncState();
 	}
 
-	void File::WriteAllBytes(const string& path, const List<char>& data)
+	uint8 File::Peek()
 	{
-		File f = Open(path, FileModeFlags::Write | FileModeFlags::Binary);
-		f.Write(data);
-		f.Close();
+		CheckFlags(FileOpenFlags::Read);
+
+		return static_cast<uint8>(_fileStream.peek());
 	}
 
-	List<char> File::ReadToEnd()
+	uint64 File::Read(std::span<uint8> data)
 	{
-		CheckHandle();
+		CheckFlags(FileOpenFlags::Read);
 
-		const std::streampos current = _handle.tellg();
+		if (data.size() == 0)
+			return 0;
 
-		_handle.seekg(0, std::ios::end);
+		char* d = reinterpret_cast<char*>(data.data());
 
-		const uint64_t length = _handle.tellg() - current;
+		_fileStream.read(d, data.size());
+		SyncState();
 
-		_handle.seekg(current);
+		return _fileStream.gcount();
+	}
 
-		return Read(length);
+	void File::PeekLine(string& outText, char lineTerminator)
+	{
+		CheckFlags(FileOpenFlags::Read | FileOpenFlags::Text);
+
+		uint64 p = GetPosition();
+
+		ReadLine(outText, lineTerminator);
+
+		_fileStream.clear();
+		Seek(p, false);
+
+		Assert(GetPosition() == p)
+	}
+
+	string File::ReadText(uint64 maxLength)
+	{
+		CheckFlags(FileOpenFlags::Read | FileOpenFlags::Text);
+
+		if (maxLength == 0)
+			return string();
+
+		string text;
+		text.resize(maxLength);
+
+		_fileStream.read(text.data(), maxLength);
+		SyncState();
+
+		return text;
+	}
+
+	bool File::ReadLine(string& outText, char lineTerminator)
+	{
+		CheckFlags(FileOpenFlags::Read | FileOpenFlags::Text);
+
+		uint64 p = GetPosition();
+		std::getline(_fileStream, outText, lineTerminator);
+		SyncState();
+
+		return GetPosition() - p != 0;
+	}
+
+	void File::Write(std::span<const uint8> data)
+	{
+		CheckFlags(FileOpenFlags::Write);
+
+		const char* d = reinterpret_cast<const char*>(data.data());
+
+		_fileStream.write(d, data.size());
+		SyncState();
+	}
+
+	void File::Flush()
+	{
+		CheckFlags(FileOpenFlags::Write);
+
+		_fileStream.flush();
+	}
+
+	void File::Write(const string& text)
+	{
+		CheckFlags(FileOpenFlags::Write | FileOpenFlags::Text);
+
+		_fileStream.write(text.c_str(), text.length());
+		SyncState();
+	}
+
+	void File::WriteLine(const string& text, char lineTerminator)
+	{
+		Write(text + lineTerminator);
 	}
 
 	string File::ReadTextToEnd()
 	{
-		List<char> data = ReadToEnd();
-		return string(data.Data(), data.Count());
+		CheckFlags(FileOpenFlags::Read | FileOpenFlags::Text);
+		
+		uint64 bytesLeft = GetSize() - GetPosition();
+		return ReadText(bytesLeft);
 	}
 
-	uint64_t File::GetPosition()
+	std::vector<uint8> File::ReadToEnd()
 	{
-		CheckHandle();
+		CheckFlags(FileOpenFlags::Read);
 
-		return _handle.tellg();
+		uint64 bytesLeft = GetSize() - GetPosition();
+		std::vector<uint8> data(bytesLeft);
+		Read(data);
+
+		return data;
 	}
 
-	uint64_t File::GetSize()
+	bool File::IsOpen() const
 	{
-		CheckHandle();
-
-		const std::streampos current = _handle.tellg();
-
-		_handle.seekg(0, std::ios::end);
-		const uint64_t length = _handle.tellg();
-
-		_handle.seekg(current);
-
-		return length;
+		return _fileStream.is_open();
 	}
 
 	void File::Close()
 	{
-		if (!_handle.is_open())
-			return;
-
-		Flush();
-
-		_handle.close();
+		_fileStream.close();
 	}
 
-	std::istream& File::GetReadStream()
+	void File::SyncState()
 	{
-		CheckHandle();
-
-		return _handle;
+		_position = _fileStream.tellg();
 	}
 
-	std::ostream& File::GetWriteStream()
+	void File::CheckFlags(FileOpenFlags flags)
 	{
-		CheckHandle();
+		if (!IsOpen())
+			throw std::exception("File was not opened");
 
-		return _handle;
-	}
-
-	void File::CheckHandle() const
-	{
-		if (!_handle.is_open())
-			throw FileException("File operations require an opened file");
+		if ((_openFlags & flags) != flags)
+		{
+			string err = FormatString("File was not opened in the mode for the given operation: File flags = {}, required flags = {}", 
+				static_cast<int>(_openFlags), static_cast<int>(flags));
+			throw std::exception(err.c_str());
+		}
 	}
 }

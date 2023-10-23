@@ -1,29 +1,60 @@
+#include "Corepch.h"
 #include "FileTypes.h"
 
 namespace Coco
 {
-	FileModeFlags operator&(FileModeFlags a, FileModeFlags b) noexcept
+	FilePath::FilePath() :
+		_filePath()
+	{}
+
+	FilePath::FilePath(const string& filePath) :
+		FilePath(std::filesystem::path(filePath))
+	{}
+
+	FilePath::FilePath(const std::filesystem::path& filePath) :
+		_filePath(filePath)
+	{}
+
+	bool FilePath::IsRelativePath(const string& path)
 	{
-		return static_cast<FileModeFlags>(static_cast<int>(a) & static_cast<int>(b));
+		FilePath p(path);
+		return p.IsRelative();
 	}
 
-	void operator&=(FileModeFlags& a, FileModeFlags b) noexcept
+	string FilePath::GetFileName(bool includeExtension) const
 	{
-		a = static_cast<FileModeFlags>(a & b);
+		if (includeExtension)
+		{
+			return _filePath.filename().string();
+		}
+		else
+		{
+			return _filePath.stem().string();
+		}
 	}
 
-	FileModeFlags operator|(FileModeFlags a, FileModeFlags b) noexcept
+	string FilePath::GetExtension() const
 	{
-		return static_cast<FileModeFlags>(static_cast<int>(a) | static_cast<int>(b));
+		return _filePath.extension().string();
 	}
 
-	void operator|=(FileModeFlags& a, FileModeFlags b) noexcept
+	FilePath FilePath::GetParentDirectory() const
 	{
-		a = static_cast<FileModeFlags>(a | b);
+		return FilePath(_filePath.parent_path());
 	}
 
-	bool operator>(FileModeFlags a, int b) noexcept
+	bool FilePath::IsRelative() const
 	{
-		return static_cast<int>(a) > b;
+		return _filePath.is_relative();
+	}
+
+	FilePath FilePath::GetCurrentWorkingDirectoryPath()
+	{
+		return FilePath(std::filesystem::current_path());
+	}
+
+	string FilePath::ToString() const
+	{
+		return _filePath.string();
 	}
 }

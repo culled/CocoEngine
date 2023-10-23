@@ -3,12 +3,12 @@ Coordinate system: Right-handed
 	- Y-axis = middle finger
 	- Z-axis = thumb
 
-+X = right
-+Y = forward
-+Z = Up
++X = left
++Y = up
++Z = backward
 
 
-	   (Z) (Y)
+	   (Y) (-Z)
 	    |  /
 	    | /
 	    |/
@@ -16,16 +16,13 @@ Coordinate system: Right-handed
 	   /|
 	  / |
 	 /  |
-       (-Y)(-Z)
+       (Z)(-Y)
 
-Positive rotation = turn counter clockwise
+Positive rotation = turn counter-clockwise when looking from the positive to negative direction on the axis
+
+View matrix has camera face -Z, with +Y being up and +X being right
 
 Rotation Matrix:
 	[xx, yx, zx]
 	[xy, yy, zy]
 	[xz, yz, zz]
-
-Projection matrix adjustment:
-	X axis (1, 0, 0) -> (1, 0, 0)
-	Y axis (0, 1, 0) -> (0, 0, 1)
-	Z axis (0, 0, 1) -> (0, -1, 0)

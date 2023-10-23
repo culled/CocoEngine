@@ -1,30 +1,17 @@
 #pragma once
-
-#include <Coco/Core/Resources/Serializers/KeyValueResourceSerializer.h>
-#include "../Texture.h"
+#include <Coco\Core\Resources\ResourceSerializer.h>
 
 namespace Coco::Rendering
 {
-	/// @brief A serializer for texture files (*.ctexture)
-	class TextureSerializer final : public KeyValueResourceSerializer
-	{
-	private:
-		static constexpr const char* s_idVariable = "id";
-		static constexpr const char* s_nameVariable = "name";
-		static constexpr const char* s_imageFileVariable = "imageFile";
-		static constexpr const char* s_usageFlagsVariable = "usageFlags";
-		static constexpr const char* s_filterModeVariable = "filterMode";
-		static constexpr const char* s_repeatModeVariable = "repeatMode";
-		static constexpr const char* s_maxAnisotropyVariable = "maxAnisotropy";
-		static constexpr const char* s_colorSpaceVariable = "colorSpace";
-
-	public:
-		TextureSerializer() = default;
-		~TextureSerializer() final = default;
-
-		DefineSerializerResourceType(Texture)
-
-		string Serialize(ResourceLibrary& library, const Ref<Resource>& resource) final;
-		ManagedRef<Resource> Deserialize(ResourceLibrary& library, const string& data) final;
-	};
+    /// @brief A ResourceSerializer for Texture resources
+    class TextureSerializer :
+        public ResourceSerializer
+    {
+        // Inherited via ResourceSerializer
+        bool SupportsFileExtension(const string& extension) const final;
+        bool SupportsResourceType(const std::type_index& type) const final;
+        const std::type_index GetResourceTypeForExtension(const string& extension) const final;
+        string Serialize(SharedRef<Resource> resource) final;
+        SharedRef<Resource> Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data) final;
+    };
 }

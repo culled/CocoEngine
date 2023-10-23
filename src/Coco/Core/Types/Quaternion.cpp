@@ -1,17 +1,23 @@
+#include "Corepch.h"
 #include "Quaternion.h"
-
-#include "Matrix.h"
 #include "Vector.h"
 
 namespace Coco
 {
-	const Quaternion Quaternion::Identity = Quaternion(0.0, 0.0, 0.0, 1.0);
+	const Quaternion Quaternion::Identity = Quaternion(0, 0, 0, 1);
 
-	Quaternion::Quaternion(double x, double y, double z, double w) noexcept :
-		X(x), Y(y), Z(z), W(w)
+	Quaternion::Quaternion() :
+		Quaternion(0, 0, 0, 1)
 	{}
 
-	Quaternion::Quaternion(const Vector3& axis, double angleRadians, bool normalize) noexcept
+	Quaternion::Quaternion(double x, double y, double z, double w) :
+		X(x),
+		Y(y),
+		Z(z),
+		W(w)
+	{}
+
+	Quaternion::Quaternion(const Vector3& axis, double angleRadians)
 	{
 		const double halfAngle = angleRadians * 0.5;
 		const double s = Math::Sin(halfAngle);
@@ -22,30 +28,65 @@ namespace Coco
 		Y = s * normalizedAxis.Y;
 		Z = s * normalizedAxis.Z;
 		W = c;
-
-		if (normalize)
-			Normalize();
 	}
 
-	Quaternion::Quaternion(const Vector3& eulerAngles, bool normalize) noexcept
+	Quaternion::Quaternion(const Vector3& eulerAngles)
 	{
 		const Vector3 halfAngles = eulerAngles * 0.5;
 
-		// Pitch (X), Roll (Y), Yaw (Z)
-		const double cx = Math::Cos(halfAngles.X);
-		const double sx = Math::Sin(halfAngles.X);
-		const double cy = Math::Cos(halfAngles.Y);
-		const double sy = Math::Sin(halfAngles.Y);
-		const double cz = Math::Cos(halfAngles.Z);
-		const double sz = Math::Sin(halfAngles.Z);
+		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm
+		// Pitch (X), Roll (Z), Yaw (Y) - YXZ order
+		const double c1 = Math::Cos(halfAngles.Y);
+		const double s1 = Math::Sin(halfAngles.Y);
+		const double c2 = Math::Cos(halfAngles.X);
+		const double s2 = Math::Sin(halfAngles.X);
+		const double c3 = Math::Cos(halfAngles.Z);
+		const double s3 = Math::Sin(halfAngles.Z);
 
-		W = (cz * cx * cy) - (sz * sx * sy);
-		X = (cz * sx * cy) - (sz * cx * sy);
-		Y = (sz * sx * cy) + (cz * cx * sy);
-		Z = (cz * sx * sy) + (sz * cx * cy);
+		W = c1 * c2 * c3 - -(s1 * s2) * s3;
+		X = c1 * s2 * c3 + s1 * c2 * s3;
+		Y = -(c1 * s2) * s3 + s1 * c2 * c3;
+		Z = -(s1 * s2) * c3 + c1 * c2 * s3;
 	}
 
-	Quaternion Quaternion::Slerp(const Quaternion& from, const Quaternion& to, double alpha) noexcept
+	Quaternion Quaternion::operator*(const Quaternion& other) const
+	{
+		Quaternion result;
+
+		result.X = X * other.W +
+			Y * other.Z -
+			Z * other.Y +
+			W * other.X;
+
+		result.Y = -X * other.Z +
+			Y * other.W +
+			Z * other.X +
+			W * other.Y;
+
+		result.Z = X * other.Y -
+			Y * other.X +
+			Z * other.W +
+			W * other.Z;
+
+		result.W = -X * other.X -
+			Y * other.Y -
+			Z * other.Z +
+			W * other.W;
+
+		return result;
+	}
+
+	Vector3 Quaternion::operator*(const Vector3& direction) const
+	{
+		// https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion
+		const Vector3 u(X, Y, Z);
+
+		return u * 2.0 * u.Dot(direction) +
+			direction * (W * W - u.GetLengthSquared()) +
+			u.Cross(direction) * 2.0 * W;
+	}
+	
+	Quaternion Quaternion::Slerp(const Quaternion& from, const Quaternion& to, double alpha)
 	{
 		Quaternion out;
 
@@ -93,149 +134,96 @@ namespace Coco
 		return out.Normalized();
 	}
 
-	void Quaternion::Normalize(bool safe) noexcept
+	Quaternion Quaternion::FromToRotation(const Vector3& startDir, const Vector3& endDir)
 	{
-		if (safe &&
-			Math::Approximately(X, 0.0) &&
-			Math::Approximately(Y, 0.0) &&
-			Math::Approximately(Z, 0.0) &&
-			Math::Approximately(W, 0.0))
+		// https://stackoverflow.com/questions/1171849/finding-quaternion-representing-the-rotation-from-one-vector-to-another
+		Vector3 start = startDir.Normalized();
+		Vector3 end = endDir.Normalized();
+
+		double d = start.Dot(end);
+		double k = Math::Sqrt(start.GetLengthSquared() * end.GetLengthSquared());
+
+		if (d / k <= -1.0 + Math::LaxEpsilon)
+		{
+			Vector3 o = start.Orthogonal();
+			return Quaternion(o.X, o.Y, o.Z, 0.0);
+		}
+
+		Vector3 c = start.Cross(end);
+		Quaternion q = Quaternion(c.X, c.Y, c.Z, d + k);
+		q.Normalize();
+		return q;
+	}
+
+	void Quaternion::Normalize(bool safe)
+	{
+		const double l = GetNormal();
+
+		if (safe && Math::Equal(l, 0.0))
 			return;
 
-		const double l = GetNormal();
 		X /= l;
 		Y /= l;
 		Z /= l;
 		W /= l;
 	}
 
-	Quaternion Quaternion::Normalized(bool safe) const noexcept
+	Quaternion Quaternion::Normalized(bool safe) const
 	{
-		Quaternion copy = *this;
+		Quaternion copy(*this);
 		copy.Normalize(safe);
 		return copy;
 	}
 
-	Quaternion Quaternion::Inverted() const noexcept
+	void Quaternion::Invert()
 	{
-		Quaternion inv = Conjugate();
-		inv.Normalize();
-		return inv;
+		X = -X;
+		Y = -Y;
+		Z = -Z;
 	}
 
-	double Quaternion::Dot(const Quaternion& other) const noexcept
+	Vector3 Quaternion::ToEulerAngles() const
 	{
-		return X * other.X +
-			Y * other.Y +
-			Z * other.Z +
-			W * other.W;
-	}
+		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
+	
+		double ww = W * W;
+		double xx = X * X;
+		double yy = Y * Y;
+		double zz = Z * Z;
+		double unit = xx + yy + zz + ww; // If normalised is one, otherwise is correction factor
+		double test = X * W - Y * Z;
 
-	Matrix4x4 Quaternion::ToRotationMatrix() const noexcept
-	{
-		Matrix4x4 mat = Matrix4x4::Identity;
-
-		const Quaternion q = Normalized();
-
-		const double xx = q.X * q.X;
-		const double xy = q.X * q.Y;
-		const double xz = q.X * q.Z;
-		const double xw = q.X * q.W;
-
-		const double yy = q.Y * q.Y;
-		const double yz = q.Y * q.Z;
-		const double yw = q.Y * q.W;
-
-		const double zz = q.Z * q.Z;
-		const double zw = q.Z * q.W;
-
-		// https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
-		mat.Data[Matrix4x4::m11] = 1.0 - 2.0 * (yy + zz);
-		mat.Data[Matrix4x4::m12] = 2.0 * (xy - zw);
-		mat.Data[Matrix4x4::m13] = 2.0 * (xz + yw);
-
-		mat.Data[Matrix4x4::m21] = 2.0 * (xy + zw);
-		mat.Data[Matrix4x4::m22] = 1.0 - 2.0 * (xx + zz);
-		mat.Data[Matrix4x4::m23] = 2.0 * (yz - xw);
-
-		mat.Data[Matrix4x4::m31] = 2.0 * (xz - yw);
-		mat.Data[Matrix4x4::m32] = 2.0 * (yz + xw);
-		mat.Data[Matrix4x4::m33] = 1.0 - 2.0 * (xx + yy);
-
-		return mat;
-	}
-
-	Vector3 Quaternion::ToEulerAngles() const noexcept
-	{
 		Vector3 eulerAngles;
 
-		// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-
-		const double w2 = W * W;
-		const double x2 = X * X;
-		const double y2 = Y * Y;
-		const double z2 = Z * Z;
-		const double unitLength = w2 + x2 + y2 + z2;
-		const double abcd = W * X + Y * Z;
-
-		if (abcd > (0.5 - Math::Epsilon) * unitLength)
+		const double unitTest = 0.5 - Math::Epsilon;
+		if (test > unit * unitTest)
 		{
-			eulerAngles.Z = 2.0 * Math::Atan2(Y, W);
-			eulerAngles.X = Math::PI * 0.5;
-			eulerAngles.Y = 0.0;
+			// Singularity at north pole
+			//eulerAngles.Y = Math::Atan2(2.0 * (Y * W - X * Z), 1.0 - 2.0 * (yy + zz));
+			eulerAngles.Y = Math::Atan2(2.0 * (Y * W - X * Z), xx - yy - zz + ww);
+			eulerAngles.X = Math::HalfPI;
+			eulerAngles.Z = 0.0;
 		}
-		else if (abcd < (-0.5 + Math::Epsilon) * unitLength)
+		else if (test < -unit * unitTest)
 		{
-			eulerAngles.Z = -2.0 * Math::Atan2(Y, W);
-			eulerAngles.X = -Math::PI * 0.5;
-			eulerAngles.Y = 0.0;
+			// Singularity at south pole
+			eulerAngles.Y = Math::Atan2(2.0 * (Y * W - X * Z), xx - yy - zz + ww);
+			eulerAngles.X = -Math::HalfPI;
+			eulerAngles.Z = 0.0;
 		}
 		else
 		{
-			const double adbc = W * Z - X * Y;
-			const double acbd = W * Y - X * Z;
-			eulerAngles.Z = Math::Atan2(2.0 * adbc, 1.0 - 2.0 * (z2 + x2));
-			eulerAngles.X = Math::Asin(2.0 * abcd / unitLength);
-			eulerAngles.Y = Math::Atan2(2.0 * acbd, 1.0 - 2.0 * (y2 + x2));
+			// No singularity
+			eulerAngles.Y = Math::Atan2(2.0 * (X * Z + Y * W), ww - xx - yy + zz);
+			eulerAngles.X = Math::Asin(-2.0 * (Y * Z - W * X));
+			eulerAngles.Z = Math::Atan2(2.0 * (X * Y + W * Z), ww - xx + yy - zz);
 		}
 
 		return eulerAngles;
 	}
 
-	Quaternion Quaternion::operator*(const Quaternion& other) const noexcept
+	string Quaternion::ToString() const
 	{
-		Quaternion result;
-
-		result.X = X * other.W +
-			Y * other.Z -
-			Z * other.Y +
-			W * other.X;
-
-		result.Y = -X * other.Z +
-			Y * other.W +
-			Z * other.X +
-			W * other.Y;
-
-		result.Z = X * other.Y -
-			Y * other.X +
-			Z * other.W +
-			W * other.Z;
-
-		result.W = -X * other.X -
-			Y * other.Y -
-			Z * other.Z +
-			W * other.W;
-
-		return result;
-	}
-
-	Vector3 Quaternion::operator*(const Vector3& direction) const noexcept
-	{
-		// https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion
-		const Vector3 u(X, Y, Z);
-		
-		return u * 2.0 * u.Dot(direction) +
-			direction * (W * W - u.GetLengthSquared()) +
-			u.Cross(direction) * 2.0 * W;
+		return FormatString("{}, {}, {}, {}", W, X, Y, Z);
 	}
 }

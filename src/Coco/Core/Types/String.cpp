@@ -1,30 +1,27 @@
+#include "Corepch.h"
 #include "String.h"
-
-#include <regex>
-#include <codecvt>
 
 namespace Coco
 {
-    string TrimWhitespace(const string & str)
-    {
-        // https://stackoverflow.com/questions/25829143/trim-whitespace-from-a-string
-        std::regex e("^\\s+|\\s+$"); // remove leading and trailing spaces
-        return std::regex_replace(str, e, "");
-    }
+	wstring StringToWideString(const char* str)
+	{
+		size_t wStrSize = strlen(str) + 1;
+		wstring wStr(wStrSize, L'#');
 
-    string WideStringToString(const std::wstring& wideString)
-    {
-        using ConvertType = std::codecvt_utf8<wchar_t>;
-        std::wstring_convert<ConvertType, wchar_t> converter;
+		mbstowcs_s(&wStrSize, wStr.data(), wStrSize, str, wStrSize - 1);
 
-        return converter.to_bytes(wideString);
-    }
+		wStr.resize(wStrSize - 1);
+		return wStr;
+	}
 
-    std::wstring StringToWideString(const string& string)
-    {
-        using ConvertType = std::codecvt_utf8<wchar_t>;
-        std::wstring_convert<ConvertType, wchar_t> converter;
+	string WideStringToString(const wchar_t* wStr)
+	{
+		size_t strSize = wcslen(wStr) + 1;
+		string str(strSize, '#');
 
-        return converter.from_bytes(string);
-    }
+		wcstombs_s(&strSize, str.data(), strSize, wStr, strSize - 1);
+
+		str.resize(strSize - 1);
+		return str;
+	}
 }

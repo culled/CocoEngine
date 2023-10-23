@@ -1,266 +1,244 @@
+#include "Renderpch.h"
 #include "ShaderSerializer.h"
 
-#include <sstream>
-#include <Coco/Core/Types/UUID.h>
+#include "../Shader.h"
+#include "Types/ShaderUniformLayoutSerializer.h"
+
+#include <yaml-cpp/yaml.h>
 
 namespace Coco::Rendering
 {
-	string ShaderSerializer::Serialize(ResourceLibrary& library, const Ref<Resource>& resource)
+	bool ShaderSerializer::SupportsFileExtension(const string& extension) const
 	{
-		if (const Shader* shader = dynamic_cast<const Shader*>(resource.Get()))
-		{
-			std::stringstream stream;
-			KeyValueWriter writer(stream);
-
-			writer.WriteLine("version", "1");
-			writer.WriteLine(s_shaderNameVariable, shader->GetName());
-
-			writer.WriteLine(s_subshaderSection);
-			writer.IncrementIndentLevel();
-
-			for (const Subshader& subshader : shader->GetSubshaders())
-			{
-				writer.WriteLine(subshader.PassName);
-				writer.IncrementIndentLevel();
-
-				writer.WriteLine(s_stagesSection);
-				writer.IncrementIndentLevel();
-				for (const auto& stage : subshader.Stages)
-				{
-					writer.WriteLine(stage.EntryPointName);
-					writer.IncrementIndentLevel();
-					writer.WriteLine(s_stageTypeVariable, ToString(static_cast<int>(stage.Type)));
-					writer.WriteLine(s_stageFileVariable, stage.FilePath);
-					writer.DecrementIndentLevel();
-				}
-				writer.DecrementIndentLevel();
-
-				writer.WriteLine(s_stateSection);
-				writer.IncrementIndentLevel();
-				writer.WriteLine(s_stateTopologyModeVariable, ToString(static_cast<int>(subshader.PipelineState.TopologyMode)));
-				writer.WriteLine(s_stateCullingModeVariable, ToString(static_cast<int>(subshader.PipelineState.CullingMode)));
-				writer.WriteLine(s_stateFillModeVariable, ToString(static_cast<int>(subshader.PipelineState.PolygonFillMode)));
-				writer.WriteLine(s_stateEnableDepthClampingVariable, ToString(subshader.PipelineState.EnableDepthClamping));
-				writer.WriteLine(s_stateDepthTestingModeVariable, ToString(static_cast<int>(subshader.PipelineState.DepthTestingMode)));
-				writer.WriteLine(s_stateEnableDepthWriteVariable, ToString(subshader.PipelineState.EnableDepthWrite));
-				writer.DecrementIndentLevel();
-
-				writer.WriteLine(s_attributesSection);
-				writer.IncrementIndentLevel();
-				for (const ShaderVertexAttribute& attr : subshader.Attributes)
-				{
-					writer.WriteLine(attr.Name);
-
-					writer.IncrementIndentLevel();
-					writer.WriteLine(s_attributeTypeVariable, ToString(static_cast<int>(attr.DataFormat)));
-					writer.DecrementIndentLevel();
-				}
-				writer.DecrementIndentLevel();
-
-				writer.WriteLine(s_descriptorsSection);
-				writer.IncrementIndentLevel();
-				for (const ShaderUniformDescriptor& uniform : subshader.Uniforms)
-				{
-					writer.WriteLine(uniform.Name);
-
-					writer.IncrementIndentLevel();
-					writer.WriteLine(s_descriptorScopeVariable, ToString(static_cast<int>(uniform.Scope)));
-					writer.WriteLine(s_descriptorBindPointVariable, ToString(static_cast<int>(uniform.BindingPoints)));
-					writer.WriteLine(s_descriptorTypeVariable, ToString(static_cast<int>(uniform.Type)));
-					writer.DecrementIndentLevel();
-				}
-				writer.DecrementIndentLevel();
-
-				writer.WriteLine(s_samplersSection);
-				writer.IncrementIndentLevel();
-				for (const ShaderTextureSampler& sampler : subshader.Samplers)
-				{
-					writer.WriteLine(sampler.Name);
-
-					writer.IncrementIndentLevel();
-					writer.WriteLine(s_samplerScopeVariable, ToString(static_cast<int>(sampler.Scope)));
-					writer.WriteLine(s_samplerBindPointVariable, ToString(static_cast<int>(sampler.BindingPoints)));
-					writer.WriteLine(s_samplerDefaultVariable, ToString(static_cast<int>(sampler.DefaultTexture)));
-					writer.DecrementIndentLevel();
-				}
-				writer.DecrementIndentLevel();
-
-				writer.SetIndentLevel(1);
-			}
-
-			writer.Flush();
-			return stream.str();
-		}
-		else
-		{
-			throw InvalidOperationException("Resource was not a shader");
-		}
+		return extension == ".cshader";
 	}
 
-	ManagedRef<Resource> ShaderSerializer::Deserialize(ResourceLibrary& library, const string& data)
+	bool ShaderSerializer::SupportsResourceType(const std::type_index& type) const
 	{
-		string shaderID;
-		string shaderName;
-		string shaderGroup;
-		List<Subshader> subshaders;
-
-		std::stringstream stream(data);
-		KeyValueReader reader(stream);
-
-		while (reader.ReadLine())
-		{
-			if (reader.IsKey("version") && reader.GetValue() != "1")
-				throw InvalidOperationException("Mismatching shader versions");
-			else if (reader.IsKey(s_shaderIDVariable))
-				shaderID = reader.GetValue();
-			else if (reader.IsKey(s_shaderNameVariable))
-				shaderName = reader.GetValue();
-			else if (reader.IsKey(s_shaderGroupVariable))
-				shaderGroup = reader.GetValue();
-			else if (reader.IsKey(s_subshaderSection))
-				ReadSubshaders(reader, subshaders);
-		}
-
-		if (subshaders.Count() == 0)
-			throw InvalidOperationException("Shader file did not have subshaders");
-
-		ManagedRef<Shader> shader = CreateManagedRef<Shader>(UUID(shaderID), shaderName);
-		shader->SetGroupTag(shaderGroup);
-
-		for (const Subshader& subshader : subshaders)
-			shader->AddSubshader(subshader);
-
-		return std::move(shader);
+		return type == typeid(Shader);
 	}
 
-	void ShaderSerializer::ReadSubshaders(KeyValueReader& reader, List<Subshader>& subshaders)
+	const std::type_index ShaderSerializer::GetResourceTypeForExtension(const string& extension) const
 	{
-		// The file position should be at a subshader name
-		while (reader.ReadIfIsIndentLevel(1))
-		{
-			Subshader subshader = {};
-			subshader.PassName = reader.GetKey();
-
-			while (reader.ReadIfIsIndentLevel(2))
-			{
-				if (reader.IsKey(s_stagesSection))
-					ReadSubshaderStages(reader, subshader.Stages);
-				else if (reader.IsKey(s_stateSection))
-					ReadSubshaderState(reader, subshader.PipelineState);
-				else if (reader.IsKey(s_attributesSection))
-					ReadSubshaderAttributes(reader, subshader.Attributes);
-				else if (reader.IsKey(s_descriptorsSection))
-					ReadSubshaderUniforms(reader, subshader.Uniforms);
-				else if (reader.IsKey(s_samplersSection))
-					ReadSubshaderSamplers(reader, subshader.Samplers);
-			}
-
-			subshaders.Add(subshader);
-		}
+		return typeid(Shader);
 	}
 
-	void ShaderSerializer::ReadSubshaderStages(KeyValueReader& reader, List<ShaderStage>& stages)
+	string ShaderSerializer::Serialize(SharedRef<Resource> resource)
 	{
-		while (reader.ReadIfIsIndentLevel(3))
+		SharedRef<Shader> shader = std::dynamic_pointer_cast<Shader>(resource);
+		Assert(shader)
+
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "name" << YAML::Value << shader->GetName();
+		out << YAML::Key << "group tag" << YAML::Value << shader->GetGroupTag();
+		out << YAML::Key << "pass shaders" << YAML::Value << YAML::BeginSeq;
+
+		for (const ShaderVariant& variant : shader->GetShaderVariants())
 		{
-			ShaderStage stage{};
-			stage.EntryPointName = reader.GetKey();
-			
-			while (reader.ReadIfIsIndentLevel(4))
-			{
-				if (reader.IsKey(s_stageTypeVariable))
-					stage.Type = static_cast<ShaderStageType>(reader.GetVariableValueAsInt());
-				else if (reader.IsKey(s_stageFileVariable))
-					stage.FilePath = reader.GetValue();
-			}
-			
-			stages.Add(stage);
+			SerializeShaderVariant(out, variant);
 		}
+
+		out << YAML::EndSeq;
+
+		// HACK: the yaml parser throws an unknown character exception unless we add something to the end
+		out << YAML::EndMap << YAML::Comment("Fix");
+
+		Assert(out.good())
+
+		return string(out.c_str());
 	}
 
-	void ShaderSerializer::ReadSubshaderState(KeyValueReader& reader, GraphicsPipelineState& state)
+	SharedRef<Resource> ShaderSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
 	{
-		while (reader.ReadIfIsIndentLevel(3))
+		YAML::Node shaderNode = YAML::Load(data);
+
+		string name = shaderNode["name"].as<string>();
+		string groupTag = shaderNode["group tag"].as<string>();
+
+		SharedRef<Shader> shader = CreateSharedRef<Shader>(resourceID, name, groupTag);
+
+		YAML::Node passShadersNode = shaderNode["pass shaders"];
+		for (YAML::const_iterator it = passShadersNode.begin(); it != passShadersNode.end(); ++it)
 		{
-			if (reader.IsKey(s_stateTopologyModeVariable))
-				state.TopologyMode = static_cast<TopologyMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsKey(s_stateCullingModeVariable))
-				state.CullingMode = static_cast<CullMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsKey(s_stateFillModeVariable))
-				state.PolygonFillMode = static_cast<PolygonFillMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsKey(s_stateEnableDepthClampingVariable))
-				state.EnableDepthClamping = reader.GetVariableValueAsBool();
-			else if (reader.IsKey(s_stateDepthTestingModeVariable))
-				state.DepthTestingMode = static_cast<DepthTestingMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsKey(s_stateEnableDepthWriteVariable))
-				state.EnableDepthWrite = reader.GetVariableValueAsBool();
+			shader->AddVariant(DeserializeShaderVariant(*it));
 		}
+
+		return shader;
 	}
 
-	void ShaderSerializer::ReadSubshaderAttributes(KeyValueReader& reader, List<ShaderVertexAttribute>& attributes)
+	void ShaderSerializer::SerializeShaderVariant(YAML::Emitter& emitter, const ShaderVariant& variant)
 	{
-		while (reader.ReadIfIsIndentLevel(3))
+		emitter << YAML::BeginMap;
+
+		emitter << YAML::Key << "name" << YAML::Value << variant.Name;
+
+		emitter << YAML::Key << "stages" << YAML::Value << YAML::BeginSeq;
+
+		for (const ShaderStage& stage : variant.Stages)
 		{
-			string name = reader.GetKey();
-			BufferDataFormat type;
+			emitter << YAML::BeginMap;
 
-			while (reader.ReadIfIsIndentLevel(4))
-			{
-				if (reader.IsKey(s_attributeTypeVariable))
-					type = static_cast<BufferDataFormat>(reader.GetVariableValueAsInt());
-			}
+			emitter << YAML::Key << "type" << YAML::Value << static_cast<int>(stage.Type);
+			emitter << YAML::Key << "entry name" << YAML::Value << stage.EntryPointName;
+			emitter << YAML::Key << "file path" << YAML::Value << stage.FilePath;
 
-			attributes.Construct(name, type);
+			emitter << YAML::EndMap;
 		}
+
+		emitter << YAML::EndSeq;
+
+		emitter << YAML::Key << "pipeline state" << YAML::Value << YAML::BeginMap;
+
+		emitter << YAML::Key << "topology" << YAML::Value << static_cast<int>(variant.PipelineState.TopologyMode);
+		emitter << YAML::Key << "cull" << YAML::Value << static_cast<int>(variant.PipelineState.CullingMode);
+		emitter << YAML::Key << "winding" << YAML::Value << static_cast<int>(variant.PipelineState.WindingMode);
+		emitter << YAML::Key << "fill" << YAML::Value << static_cast<int>(variant.PipelineState.PolygonFillMode);
+		emitter << YAML::Key << "depth clamping" << YAML::Value << variant.PipelineState.EnableDepthClamping;
+		emitter << YAML::Key << "depth test" << YAML::Value << static_cast<int>(variant.PipelineState.DepthTestingMode);
+		emitter << YAML::Key << "depth write" << YAML::Value << variant.PipelineState.EnableDepthWrite;
+
+		emitter << YAML::EndMap;
+
+		emitter << YAML::Key << "blend states" << YAML::Value << YAML::BeginSeq;
+
+		for (const BlendState& blendState : variant.AttachmentBlendStates)
+		{
+			emitter << YAML::BeginMap;
+
+			emitter << YAML::Key << "color src factor" << YAML::Value << static_cast<int>(blendState.ColorSourceFactor);
+			emitter << YAML::Key << "color dst factor" << YAML::Value << static_cast<int>(blendState.ColorDestinationFactor);
+			emitter << YAML::Key << "color blend op" << YAML::Value << static_cast<int>(blendState.ColorBlendOperation);
+			emitter << YAML::Key << "alpha src factor" << YAML::Value << static_cast<int>(blendState.AlphaSourceFactor);
+			emitter << YAML::Key << "alpha dst factor" << YAML::Value << static_cast<int>(blendState.AlphaDestinationFactor);
+			emitter << YAML::Key << "alpha blend op" << YAML::Value << static_cast<int>(blendState.AlphaBlendOperation);
+
+			emitter << YAML::EndMap;
+		}
+
+		emitter << YAML::EndSeq;
+
+		emitter << YAML::Key << "vertex attributes" << YAML::Value << YAML::BeginSeq;
+
+		for (const ShaderVertexAttribute& attr : variant.VertexAttributes)
+		{
+			emitter << YAML::BeginMap;
+
+			emitter << YAML::Key << "name" << YAML::Value << attr.Name;
+			emitter << YAML::Key << "type" << YAML::Value << static_cast<int>(attr.Type);
+
+			emitter << YAML::EndMap;
+		}
+
+		emitter << YAML::EndSeq;
+
+		if (variant.GlobalUniforms.Hash != ShaderUniformLayout::EmptyHash)
+		{
+			emitter << YAML::Key << "global layout" << YAML::Value << YAML::BeginMap;
+			ShaderUniformLayoutSerialization::SerializeLayout(emitter, variant.GlobalUniforms);
+			emitter << YAML::EndMap;
+		}
+
+		if (variant.InstanceUniforms.Hash != ShaderUniformLayout::EmptyHash)
+		{
+			emitter << YAML::Key << "instance layout" << YAML::Value << YAML::BeginMap;
+			ShaderUniformLayoutSerialization::SerializeLayout(emitter, variant.InstanceUniforms);
+			emitter << YAML::EndMap;
+		}
+
+		if (variant.DrawUniforms.Hash != ShaderUniformLayout::EmptyHash)
+		{
+			emitter << YAML::Key << "draw layout" << YAML::Value << YAML::BeginMap;
+			ShaderUniformLayoutSerialization::SerializeLayout(emitter, variant.DrawUniforms);
+			emitter << YAML::EndMap;
+		}
+
+		emitter << YAML::EndMap;
 	}
 
-	void ShaderSerializer::ReadSubshaderUniforms(KeyValueReader& reader, List<ShaderUniformDescriptor>& uniforms)
+	ShaderVariant ShaderSerializer::DeserializeShaderVariant(const YAML::Node& baseNode)
 	{
-		while (reader.ReadIfIsIndentLevel(3))
+		string name = baseNode["name"].as<string>();
+
+		std::vector<ShaderStage> stages;
+
+		YAML::Node stagesNode = baseNode["stages"];
+		for (YAML::const_iterator it = stagesNode.begin(); it != stagesNode.end(); ++it)
 		{
-			string name;
-			ShaderDescriptorScope scope;
-			BufferDataFormat type;
-			ShaderStageType bindingPoint;
-
-			name = reader.GetKey();
-
-			while (reader.ReadIfIsIndentLevel(4))
-			{
-				if (reader.IsKey(s_descriptorTypeVariable))
-					type = static_cast<BufferDataFormat>(reader.GetVariableValueAsInt());
-				else if (reader.IsKey(s_descriptorScopeVariable))
-					scope = static_cast<ShaderDescriptorScope>(reader.GetVariableValueAsInt());
-				else if (reader.IsKey(s_descriptorBindPointVariable))
-					bindingPoint = static_cast<ShaderStageType>(reader.GetVariableValueAsInt());
-			}
-
-			uniforms.Construct(name, scope, bindingPoint, type);
+			stages.emplace_back(
+				(*it)["entry name"].as<string>(),
+				static_cast<ShaderStageType>((*it)["type"].as<int>()),
+				(*it)["file path"].as<string>()
+			);
 		}
-	}
 
-	void ShaderSerializer::ReadSubshaderSamplers(KeyValueReader& reader, List<ShaderTextureSampler>& samplers)
-	{
-		while (reader.ReadIfIsIndentLevel(3))
+		YAML::Node pipelineStateNode = baseNode["pipeline state"];
+		GraphicsPipelineState pipelineState{};
+		pipelineState.TopologyMode = static_cast<TopologyMode>(pipelineStateNode["topology"].as<int>());
+		pipelineState.CullingMode = static_cast<CullMode>(pipelineStateNode["cull"].as<int>());
+		pipelineState.WindingMode = static_cast<TriangleWindingMode>(pipelineStateNode["winding"].as<int>());
+		pipelineState.PolygonFillMode = static_cast<PolygonFillMode>(pipelineStateNode["fill"].as<int>());
+		pipelineState.EnableDepthClamping = pipelineStateNode["depth clamping"].as<bool>();
+		pipelineState.DepthTestingMode = static_cast<DepthTestingMode>(pipelineStateNode["depth test"].as<int>());
+		pipelineState.EnableDepthWrite = pipelineStateNode["depth write"].as<bool>();
+
+		std::vector<BlendState> blendStates;
+		YAML::Node blendStatesNode = baseNode["blend states"];
+
+		for (YAML::const_iterator it = blendStatesNode.begin(); it != blendStatesNode.end(); ++it)
 		{
-			string name;
-			ShaderDescriptorScope scope;
-			ShaderStageType bindingPoint;
-			ShaderTextureSampler::DefaultTextureType defaultTexture;
-
-			name = reader.GetKey();
-
-			while (reader.ReadIfIsIndentLevel(4))
-			{
-				if(reader.IsKey(s_samplerScopeVariable))
-					scope = static_cast<ShaderDescriptorScope>(reader.GetVariableValueAsInt());
-				else if (reader.IsKey(s_samplerBindPointVariable))
-					bindingPoint = static_cast<ShaderStageType>(reader.GetVariableValueAsInt());
-				else if (reader.IsKey(s_samplerDefaultVariable))
-					defaultTexture = static_cast<ShaderTextureSampler::DefaultTextureType>(reader.GetVariableValueAsInt());
-			}
-
-			samplers.Construct(name, scope, bindingPoint, defaultTexture);
+			blendStates.emplace_back(
+				static_cast<BlendFactorMode>((*it)["color src factor"].as<int>()),
+				static_cast<BlendFactorMode>((*it)["color dst factor"].as<int>()),
+				static_cast<BlendOperation>((*it)["color blend op"].as<int>()),
+				static_cast<BlendFactorMode>((*it)["alpha src factor"].as<int>()),
+				static_cast<BlendFactorMode>((*it)["alpha dst factor"].as<int>()),
+				static_cast<BlendOperation>((*it)["alpha blend op"].as<int>())
+			);
 		}
+
+		std::vector<ShaderVertexAttribute> vertexAttrs;
+		YAML::Node vertexAttrsNode = baseNode["vertex attributes"];
+
+		for (YAML::const_iterator it = vertexAttrsNode.begin(); it != vertexAttrsNode.end(); ++it)
+		{
+			vertexAttrs.emplace_back(
+				(*it)["name"].as<string>(),
+				static_cast<BufferDataType>((*it)["type"].as<int>())
+			);
+		}
+
+		GlobalShaderUniformLayout globalLayout{};
+
+		if (baseNode["global layout"])
+		{
+			globalLayout = ShaderUniformLayoutSerialization::DeserializeGlobalLayout(baseNode["global layout"]);
+		}
+
+		ShaderUniformLayout instanceLayout{};
+
+		if (baseNode["instance layout"])
+		{
+			instanceLayout = ShaderUniformLayoutSerialization::DeserializeLayout(baseNode["instance layout"]);
+		}
+
+		ShaderUniformLayout drawLayout{};
+
+		if (baseNode["draw layout"])
+		{
+			drawLayout = ShaderUniformLayoutSerialization::DeserializeLayout(baseNode["draw layout"]);
+		}
+
+		return ShaderVariant(
+			name,
+			stages,
+			pipelineState,
+			blendStates,
+			vertexAttrs,
+			globalLayout,
+			instanceLayout,
+			drawLayout
+		);
 	}
 }

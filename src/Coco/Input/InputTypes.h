@@ -2,16 +2,16 @@
 
 namespace Coco::Input
 {
-	/// @brief Mouse buttons
-	enum class MouseButton
-	{
-		Left,
-		Middle,
-		Right,
-		Button3,
-		Button4,
-		Unknown,
-	};
+    /// @brief Mouse buttons
+    enum class MouseButton
+    {
+        Left,
+        Middle,
+        Right,
+        Button3,
+        Button4,
+        Unknown,
+    };
 
     /// @brief Keyboard keys
     enum class KeyboardKey

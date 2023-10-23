@@ -1,51 +1,29 @@
+#include "Corepch.h"
 #include "Application.h"
 
-#include <Coco/Core/Engine.h>
-#include <Coco/Core/Logging/Logger.h>
-#include <Coco/Core/MainLoop/MainLoop.h>
-
-// The factory for creating our main application class. Should be defined using the CreateApplication macro
-extern Coco::ManagedRef<Coco::Application> CreateApplication();
-
+#include "Engine.h"
 namespace Coco
 {
-	Application::Application(const string& name) :
-		Name(name), _logger(CreateManagedRef<Logging::Logger>(name))
+	ApplicationCreateParameters::ApplicationCreateParameters(const string& name, const Coco::Version& version):
+		Name(name), 
+		Version(version),
+		LogSeverity(LogMessageSeverity::Info)
 	{}
+
+	Application::Application(const ApplicationCreateParameters& createParams) :
+		_createParams(createParams),
+		_log(CreateUniqueRef<Log>(createParams.Name, createParams.LogSeverity))
+	{
+		Engine::cGet()->GetLog().CopySinksTo(*_log);
+	}
 
 	Application::~Application()
 	{
-		_logger.Reset();
+		_log.reset();
 	}
 
-	ManagedRef<Application> Application::Create()
+	void Application::Quit(int exitCode)
 	{
-		return CreateApplication();
-	}
-
-	bool Application::Quit() noexcept
-	{
-		bool cancelQuit = false;
-
-		try
-		{
-			OnQuitting.Invoke(cancelQuit);
-		}
-		catch(...)
-		{ }
-
-		if (cancelQuit)
-			return false;
-
-		try
-		{
-			OnQuit.Invoke();
-		}
-		catch(...)
-		{ }
-
-		Engine::Get()->GetMainLoop()->Stop();
-
-		return true;
+		MainLoop::Get()->Stop();
 	}
 }

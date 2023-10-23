@@ -1,79 +1,73 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-
-#include "ResourceTypes.h"
-#include <Coco/Core/Events/Event.h>
-#include <atomic>
-
-#define DeclareResourceType std::type_index GetType() const noexcept override;
-#define DefineResourceType(Type) std::type_index GetType() const noexcept override { return typeid(Type); }
+#include "../Defines.h"
+#include "../Types/Refs.h"
+#include "../Types/String.h"
 
 namespace Coco
 {
-	/// @brief A resource that can be held in a ResourceLibrary
-	class COCOAPI Resource
+	/// @brief An ID for a resource
+	using ResourceID = uint64;
+
+	/// @brief A version for a resource
+	using ResourceVersion = uint64;
+
+	/// @brief Base class for Engine resources
+	class Resource :
+		public std::enable_shared_from_this<Resource>
 	{
+		friend class ResourceLibrary;
+
 	public:
-		/// @brief An invalid ID
-		const static ResourceID InvalidID;
+		/// @brief An invalid resource ID
+		static const ResourceID InvalidID;
 
-		/// @brief The ID of this resource
-		const ResourceID ID;
-
-	protected:
-		ResourceVersion _version = 0;
+	private:
+		ResourceID _id;
+		ResourceVersion _version;
 		string _name;
-		uint64_t _lastTickUsed;
-		string _filePath;
-
-	protected:
-		Resource(const ResourceID& id, const string& name) noexcept;
+		string _contentPath;
 
 	public:
-		virtual ~Resource() noexcept = default;
+		Resource(const ResourceID& id, const string& name);
+		virtual ~Resource() = default;
 
-		/// @brief Gets this resource's version
-		/// @return This resource's version
-		ResourceVersion GetVersion() const noexcept { return _version; }
-
-		/// @brief Gets this resource's name
-		/// @return This resource's name
-		const string& GetName() const noexcept { return _name; }
-
-		/// @brief Sets this resource's name
-		/// @param name The name
-		void SetName(const string& name) noexcept { _name = name; }
-
-		/// @brief Gets this resource's type
+		/// @brief Gets the underlying type of this resource
 		/// @return This resource's type
-		virtual std::type_index GetType() const noexcept = 0;
+		virtual std::type_index GetType() const = 0;
 
-		/// @brief Sets this resource's file path
-		/// @param filePath The file path
-		void SetFilePath(const string& filePath) { _filePath = filePath; }
+		/// @brief Gets the ID of this resource
+		/// @return This resource's ID
+		const ResourceID& GetID() const { return _id; }
 
-		/// @brief Gets the path to the file that this resource is loaded from (if any)
-		/// @return The path to the file that this resource is loaded from, or an empty string if this resource isn't saved to disk
-		const string& GetFilePath() const noexcept { return _filePath; }
+		/// @brief Gets the version of this resource
+		/// @return This resource's version
+		const ResourceVersion& GetVersion() const { return _version; }
 
-		/// @brief Gets if this resource has a file path. This usually means it relates to a file on the disk
-		/// @return True if this resource has a file path
-		bool HasFilePath() const noexcept { return !_filePath.empty(); }
+		/// @brief Sets the name of this resource
+		/// @param name The name
+		void SetName(const string& name);
 
-		/// @brief Gets the last tick that this cached resource was used
-		/// @return The last this that this cached resource was used
-		constexpr uint64_t GetLastTickUsed() const noexcept { return _lastTickUsed; }
+		/// @brief Gets the name of this resource
+		/// @return This resource's name
+		const string& GetName() const { return _name; }
 
-		/// @brief Updates the last tick that this resource was used to the current tick
-		void UpdateTickUsed();
+		/// @brief Gets the content path of this resource, if it is associated with a file
+		/// @return This resource's content path
+		const string& GetContentPath() const { return _contentPath; }
 
 	protected:
-		/// @brief Increments this resource's version number
-		void IncrementVersion() noexcept { _version++; }
+		/// @brief Sets the version of this resource
+		/// @param version The new version
+		void SetVersion(const ResourceVersion& version);
 
-		/// @brief Sets this resource's version number
-		/// @param version The new version number
-		void SetVersion(ResourceVersion version) noexcept { _version = version; }
+		/// @brief Gets a self-reference for this resource
+		/// @tparam DerivedType The derived type
+		/// @return A self-reference for the derived type
+		template<typename DerivedType>
+		SharedRef<DerivedType> GetSelfRef()
+		{
+			return std::static_pointer_cast<DerivedType>(shared_from_this());
+		}
 	};
 }

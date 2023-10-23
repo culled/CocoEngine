@@ -1,29 +1,27 @@
 #pragma once
 
-#include <Coco/Core/API.h>
-
+#include "../Defines.h"
 #include "String.h"
 
 namespace Coco
 {
-	/// @brief Represents a version with a major, minor, and patch number
-	struct COCOAPI Version
+	/// @brief Represents a version with major, minor, and patch numbers
+	struct Version
 	{
 		/// @brief The major version
-		int Major = 0;
+		uint32 Major;
 
 		/// @brief The minor version
-		int Minor = 0;
+		uint32 Minor;
 
 		/// @brief The patch version
-		int Patch = 0;
+		uint32 Patch;
 
-		Version() = default;
-		Version(int major, int minor, int patch) noexcept;
-		virtual ~Version() = default;
+		Version();
+		Version(uint32 major, uint32 minor, uint32 patch);
 
-		/// @brief Gets a string representation of this version
-		/// @return The string representation of this version
-		string ToString() const { return FormattedString("{}.{}.{}", Major, Minor, Patch); }
+		/// @brief Gets the string representation of this version
+		/// @return The string representation
+		string ToString() const;
 	};
 }

@@ -1,45 +1,31 @@
 #pragma once
 
-#include <Coco/Core/API.h>
-
-#include <string>
-#include <format>
+#include "../Corepch.h"
+#include "../Defines.h"
 
 namespace Coco
 {
-	/// @brief A generic string of characters
+	/// @brief A wrapper for std::string
 	using string = std::string;
 
-	/// @brief Creates a string integrating a number of arguments. Ex: FormattedString("{0} {1}", "Hello", "Coco") would output "Hello Coco"
-	/// @tparam ...Args 
-	/// @param str The format for the string
-	/// @param ...args The arguments that correspond to places in the format string
-	/// @return A string
-	template<typename ... Args>
-	string FormattedString(const string str, Args&& ... args)
-	{
-		return std::vformat(str, std::make_format_args(std::forward<Args>(args)...));
-	}
-
-	/// @brief Returns a string with all leading and trailing whitespace removed
-	/// @param str The string to trim
-	/// @return The input string with leading and trailing whitespace removed
-	COCOAPI string TrimWhitespace(const string& str);
-
-	/// @brief Converts a basic type to a string
-	/// @tparam T 
-	/// @param value The value
-	/// @return The value as a string
-	template<typename T>
-	COCOAPI string ToString(const T& value) { return std::to_string(value); }
-
-	/// @brief Converts a wide string to a string
-	/// @param wideString The wide string
-	/// @return A string representation of the wide string
-	COCOAPI string WideStringToString(const std::wstring& wideString);
+	/// @brief A wrapper for std::wstring
+	using wstring = std::wstring;
 
 	/// @brief Converts a string to a wide string
-	/// @param string The string
-	/// @return A wide string representation of the string
-	COCOAPI std::wstring StringToWideString(const string& string);
+	/// @param str The string
+	wstring StringToWideString(const char* str);
+
+	/// @brief Converts a wide string to a string
+	/// @param wStr The wide string
+	string WideStringToString(const wchar_t* wStr);
+
+	/// @brief Formats a string from the given format string and arguments
+	/// @param format The format string
+	/// @param args The arguments to insert into the formatted string
+	/// @return The formatted string
+	template<typename ... Args>
+	string FormatString(const char* format, Args&& ... args)
+	{
+		return std::vformat(format, std::make_format_args(args...));
+	}
 }

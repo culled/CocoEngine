@@ -1,130 +1,59 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-
-#include <Coco/Core/Types/List.h>
-#include "QueryHandler.h"
+#include <Coco/Core/Corepch.h>
+#include <Coco/Core/Defines.h>
 
 namespace Coco
 {
-	/// @brief An event that can fire to listening handlers
-	/// @tparam ...Args The types of event arguments
-	template<typename ... Args>
-	class COCOAPI Event
+	template <typename ... ArgTypes>
+	class EventHandler;
+
+	/// @brief An event that can invoke EventHandlers
+	/// @tparam ...ArgTypes The types of arguments for the event
+	template<typename ... ArgTypes>
+	class Event
 	{
 	public:
-		/// @brief The type for an event handler function
-		using HandlerFunctionType = QueryHandler<bool, Args...>::HandlerFunctionType;
+		using HandlerType = EventHandler<ArgTypes...>;
 
-		/// @brief The type for event handlers
-		using HandlerType = QueryHandler<bool, Args...>;
-
-		/// @brief The type for a event handler ID
-		using HandlerID = uint64_t;
+		friend class HandlerType;
 
 	private:
-		List<SharedRef<HandlerType>> _handlers;
+		std::vector<HandlerType*> _handlers;
 
 	public:
 		Event() = default;
-
-		virtual ~Event()
+		~Event()
 		{
-			_handlers.Clear();
-		}
+			std::vector<HandlerType*> tempHandlers(_handlers);
 
-		Event(const Event&) = delete;
-		Event(Event&&) = delete;
-		Event& operator=(const Event&) = delete;
-		Event& operator=(Event&&) = delete;
-
-		/// @brief Adds an event handler for a member function of an object
-		/// @tparam ObjectType The type of object
-		/// @param object The object
-		/// @param function The event handler function
-		/// @return A handler for the event
-		template<typename ObjectType>
-		WeakSharedRef<HandlerType> AddHandler(ObjectType* object, bool(ObjectType::* function)(Args...))
-		{
-			return AddHandler(CreateSharedRef<ObjectQueryHandler<ObjectType, bool, Args...>>(object, function));
-		}
-
-		/// @brief Adds a generic event handler function
-		/// @param handlerFunction The event handler function
-		/// @return A handler for the event
-		WeakSharedRef<HandlerType> AddHandler(const HandlerFunctionType& handlerFunction)
-		{
-			return AddHandler(CreateSharedRef<HandlerType>(handlerFunction));
-		}
-
-		/// @brief Removes an event handler for a member function of an object
-		/// @tparam ObjectType The type of object
-		/// @param object The object
-		/// @param function The event handler function
-		/// @return True if the handler was found and removed
-		template<typename ObjectType>
-		bool RemoveHandler(ObjectType* object, bool(ObjectType::* function)(Args...)) noexcept
-		{
-			auto it = _handlers.Find([object, function](const SharedRef<HandlerType>& other) noexcept {
-				if (const ObjectQueryHandler<ObjectType, bool, Args...>* otherPtr = dynamic_cast<const ObjectQueryHandler<ObjectType, bool, Args...>*>(other.Get()))
-				{
-					return otherPtr->Equals(object, function);
-				}
-
-				return false;
-				});
-
-			if (it != _handlers.end())
+			// Disconnect all handlers
+			for (auto it = tempHandlers.begin(); it != tempHandlers.end(); it++)
 			{
-				return _handlers.Remove(it);
+				if(*it)
+					(*it)->Disconnect(*this);
 			}
-
-			return false;
 		}
 
-		/// @brief Removes an event handler by its ID
-		/// @param handlerID The ID of the handler
-		/// @return True if the handler was found and removed
-		bool RemoveHandler(HandlerID handlerID) noexcept
-		{
-			auto it = _handlers.Find([handlerID](const SharedRef<HandlerType>& other) noexcept {
-				return other->ID == handlerID;
-				});
-
-			if (it != _handlers.end())
-				return _handlers.Remove(it);
-
-			return false;
-		}
-
-		/// @brief Removes an event handler
-		/// @param handler The handler to remove
-		/// @return True if the handler was found and removed
-		bool RemoveHandler(const WeakSharedRef<HandlerType>& handler) noexcept
-		{
-			if (!handler.IsValid())
-				return false;
-
-			WeakSharedRef<HandlerType> handlerCopy(handler);
-			SharedRef<HandlerType> lock = handlerCopy.Lock();
-			return RemoveHandler(lock->ID);
-		}
-
-		/// @brief Invokes this event
-		/// @param ...params The parameters for the event
+		/// @brief Invokes this event with the given arguments
+		/// @param ...args The arguments
 		/// @return True if this event was handled
-		bool Invoke(Args... params)
+		bool Invoke(ArgTypes ... args)
 		{
-			List<SharedRef<HandlerType>> handlersCopy = _handlers;
-
 			bool handled = false;
+			std::vector<HandlerType*> handlersTemp(_handlers);
 
-			for (SharedRef<HandlerType>& handler : handlersCopy)
+			for (auto it = handlersTemp.begin(); it != handlersTemp.end(); it++)
 			{
-				(*handler.Get())(&handled, params...);
+				HandlerType* handler = *it;
 
-				if (handled)
-					break;
+				if (handler)
+				{
+					handled = handler->Invoke(args...);
+
+					if (handled)
+						break;
+				}
 			}
 
 			return handled;
@@ -132,39 +61,139 @@ namespace Coco
 
 		/// @brief Gets the number of handlers registered to this event
 		/// @return The number of event handlers
-		uint64_t GetHandlerCount() const
+		size_t GetHandlerCount() const { return _handlers.size(); }
+
+	private:
+		/// @brief Adds a handler to this event
+		/// @param handler The handler
+		void AddHandler(HandlerType& handler)
 		{
-			return _handlers.Count();
+			_handlers.insert(_handlers.begin(), &handler);
 		}
 
-		void operator()(Args... params)
+		/// @brief Removes a handler from this event
+		/// @param handler The handler
+		void RemoveHandler(HandlerType& handler)
 		{
-			Invoke(params...);
+			auto it = std::find(_handlers.begin(), _handlers.end(), &handler);
+
+			if (it != _handlers.end())
+				_handlers.erase(it);
+		}
+	};
+
+	/// @brief A handler for events
+	/// @tparam ...ArgTypes The types of arguments this handler supports
+	template<typename ... ArgTypes>
+	class EventHandler
+	{
+	public:
+		using EventType = Event<ArgTypes...>;
+
+		friend class EventType;
+
+	public:
+		using CallbackFunction = std::function<bool(ArgTypes...)>;
+
+	private:
+		std::vector<EventType*> _events;
+		CallbackFunction _callback;
+
+	public:
+		EventHandler() :
+			_events(),
+			_callback(nullptr)
+		{}
+
+		EventHandler(CallbackFunction callback) :
+			_events()
+		{
+			SetCallback(callback);
 		}
 
-		WeakSharedRef<HandlerType> operator +=(const HandlerFunctionType& handlerFunction)
+		template<typename ObjectType>
+		EventHandler(ObjectType* instance, bool(ObjectType::* callback)(ArgTypes...)) :
+			_events()
 		{
-			return AddHandler(handlerFunction);
+			SetCallback(instance, callback);
 		}
 
-		bool operator -=(const HandlerID& handlerID)
+		~EventHandler()
 		{
-			return RemoveHandler(handlerID);
+			DisconnectAll();
 		}
 
-		bool operator -=(const WeakSharedRef<HandlerType>& handler)
+		/// @brief Connects this handler to an event
+		/// @param source The event
+		void Connect(EventType& source)
 		{
-			return RemoveHandler(handler);
+			auto it = std::find(_events.begin(), _events.end(), &source);
+
+			if (it != _events.end())
+				return;
+
+			_events.push_back(&source);
+			source.AddHandler(*this);
 		}
 
-		private:
-			/// @brief Adds an existing event handler
-			/// @param handler A handler reference
-			WeakSharedRef<HandlerType> AddHandler(SharedRef<HandlerType>&& handler)
-			{
-				_handlers.Insert(0, std::forward<SharedRef<HandlerType>>(handler));
-				return _handlers.First();
-			}
+		/// @brief Disconnects this handler from an event
+		/// @param source The event
+		void Disconnect(EventType& source)
+		{
+			auto it = std::find(_events.begin(), _events.end(), &source);
+
+			if (it == _events.end())
+				return;
+
+			source.RemoveHandler(*this);
+			_events.erase(it);
+		}
+
+		/// @brief Disconnects all events from this handler
+		void DisconnectAll()
+		{
+			std::vector<EventType*> tempEvents = _events;
+
+			for (auto it = tempEvents.begin(); it != tempEvents.end(); it++)
+				Disconnect(*(*it));
+		}
+
+		/// @brief Sets the callback function that this handler will invoke when the connected event is fired
+		/// @param callback The callback function
+		void SetCallback(CallbackFunction callback)
+		{
+			_callback = callback;
+		}
+
+		/// @brief Sets the callback function that this handler will invoke when the connected event is fired
+		/// @tparam ObjectType The type of object
+		/// @param instance The object instance
+		/// @param callback The callback member function
+		template<typename ObjectType>
+		void SetCallback(ObjectType* instance, bool(ObjectType::* callback)(ArgTypes...))
+		{
+			_callback = std::bind(callback, instance, std::placeholders::_1);
+		}
+
+		/// @brief Determines if this handler is connected to any events
+		/// @return True if this handler is connected to any events
+		bool IsConnected() const { return _events.size() > 0; }
+
+		/// @brief Determines if this handler is connected to a specific event
+		/// @param source The event
+		/// @return True if this handler is connected to the event
+		bool IsConnectedTo(EventType& source) const { return std::find(_events.begin(), _events.end(), &source) != _events.end(); }
+
+	private:
+		/// @brief Invokes the callback function
+		/// @param ...args The event arguments
+		/// @return True if the event was handled
+		bool Invoke(ArgTypes ... args)
+		{
+			if (!_callback)
+				return false;
+
+			return _callback(args...);
+		}
 	};
 }
-

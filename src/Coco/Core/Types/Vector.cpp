@@ -1,186 +1,43 @@
+#include "Corepch.h"
 #include "Vector.h"
-
-#include "Color.h"
-#include "Array.h"
-
-#include <span>
 
 namespace Coco
 {
-	void ParseIntArray(const string& str, std::span<int> values)
-	{
-		uint64_t currentCharacterIndex = 0;
-		uint64_t fieldIndex = 0;
+	const Vector2 Vector2::Zero = Vector2(0, 0);
+	const Vector2 Vector2::One = Vector2(1, 1);
+	const Vector2 Vector2::Right = Vector2(1, 0);
+	const Vector2 Vector2::Left = Vector2(-1, 0);
+	const Vector2 Vector2::Up = Vector2(0, 1);
+	const Vector2 Vector2::Down = Vector2(0, -1);
 
-		while (currentCharacterIndex < str.length())
-		{
-			if (fieldIndex >= values.size())
-				break;
-
-			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
-
-			if (endIndex == string::npos)
-			{
-				endIndex = str.find_first_of(' ', currentCharacterIndex);
-
-				if(endIndex == string::npos)
-					endIndex = str.length();
-			}
-
-			string part = str.substr(currentCharacterIndex, endIndex);
-			values[fieldIndex] = atoi(part.c_str());
-
-			currentCharacterIndex = endIndex + 1;
-			fieldIndex++;
-		}
-	}
-
-	void ParseDoubleArray(const string& str, std::span<double> values)
-	{
-		uint64_t currentCharacterIndex = 0;
-		uint64_t fieldIndex = 0;
-
-		while (currentCharacterIndex < str.length())
-		{
-			if (fieldIndex >= values.size())
-				break;
-
-			uint64_t endIndex = str.find_first_of(',', currentCharacterIndex);
-
-			if (endIndex == string::npos)
-			{
-				endIndex = str.find_first_of(' ', currentCharacterIndex);
-
-				if (endIndex == string::npos)
-					endIndex = str.length();
-			}
-
-			string part = str.substr(currentCharacterIndex, endIndex - currentCharacterIndex);
-			values[fieldIndex] = atof(part.c_str());
-
-			currentCharacterIndex = endIndex + 1;
-			fieldIndex++;
-		}
-	}
-
-	const Vector2Int Vector2Int::Zero = Vector2Int(0, 0);
-	const Vector2Int Vector2Int::One = Vector2Int(1, 1);
-
-	Vector2Int::Vector2Int(int x, int y) noexcept : X(x), Y(y)
+	Vector2::Vector2() : 
+		Vector2(0, 0)
 	{}
 
-	Vector2Int Vector2Int::Parse(const string& str)
-	{
-		Array<int, 2> values = { 0 };
-
-		ParseIntArray(str, std::span<int>{values});
-
-		return Vector2Int(values[0], values[1]);
-	}
-
-	double Vector2Int::DistanceBetween(const Vector2Int& a, const Vector2Int& b) noexcept
-	{
-		const Vector2Int diff = a - b;
-		return diff.GetLength();
-	}
-
-	Vector2Int::operator Vector2() const noexcept { return Vector2(X, Y); }
-
-	const Vector3Int Vector3Int::Zero = Vector3Int(0, 0, 0);
-	const Vector3Int Vector3Int::One = Vector3Int(1, 1, 1);
-
-	Vector3Int::Vector3Int(int x, int y, int z) noexcept : X(x), Y(y), Z(z)
+	Vector2::Vector2(double x, double y) :
+		X(x),
+		Y(y)
 	{}
 
-	Vector3Int Vector3Int::Parse(const string& str)
+	void Vector2::Normalize(bool safe)
 	{
-		Array<int, 3> values = { 0 };
+		const double length = GetLength();
 
-		ParseIntArray(str, std::span<int>{values});
-
-		return Vector3Int(values[0], values[1], values[2]);
-	}
-
-	double Vector3Int::DistanceBetween(const Vector3Int& a, const Vector3Int& b) noexcept
-	{
-		const Vector3Int diff = a - b;
-		return diff.GetLength();
-	}
-
-	Vector3Int::operator Vector3() const noexcept { return Vector3(X, Y, Z); }
-
-	const Vector4Int Vector4Int::Zero = Vector4Int(0, 0, 0, 0);
-	const Vector4Int Vector4Int::One = Vector4Int(1, 1, 1, 1);
-
-	Vector4Int::Vector4Int(int x, int y, int z, int w) noexcept : X(x), Y(y), Z(z), W(w)
-	{}
-
-	Vector4Int Vector4Int::Parse(const string& str)
-	{
-		Array<int, 4> values = { 0 };
-
-		ParseIntArray(str, std::span<int>{values});
-
-		return Vector4Int(values[0], values[1], values[2], values[3]);
-	}
-
-	double Vector4Int::DistanceBetween(const Vector4Int& a, const Vector4Int& b) noexcept
-	{
-		const Vector4Int diff = a - b;
-		return diff.GetLength();
-	}
-
-	Vector4Int::operator Vector4() const noexcept { return Vector4(X, Y, Z, W); }
-
-	const Vector2 Vector2::Zero = Vector2(0.0, 0.0);
-	const Vector2 Vector2::One = Vector2(1.0, 1.0);
-
-	const Vector2 Vector2::Right = Vector2(1.0, 0.0);
-	const Vector2 Vector2::Left = Vector2(-1.0, 0.0);
-	const Vector2 Vector2::Up = Vector2(0.0, 1.0);
-	const Vector2 Vector2::Down = Vector2(0.0, -1.0);
-
-	Vector2::Vector2(double x, double y) noexcept :
-		X(x), Y(y)
-	{}
-
-	Vector2::Vector2(const Vector3 & vec) noexcept : Vector2(vec.X, vec.Y) {}
-
-	Vector2 Vector2::Parse(const string& str)
-	{
-		Array<double, 2> values = { 0.0 };
-
-		ParseDoubleArray(str, std::span<double>{values});
-
-		return Vector2(values[0], values[1]);
-	}
-
-	double Vector2::DistanceBetween(const Vector2& a, const Vector2& b) noexcept
-	{
-		const Vector2 diff = a - b;
-		return diff.GetLength();
-	}
-
-	void Vector2::Normalize(bool safe) noexcept
-	{
-		if (safe && 
-			Math::Approximately(X, 0.0) && 
-			Math::Approximately(Y, 0.0))
+		if (safe && Math::Equal(length, 0.0))
 			return;
 
-		const double length = GetLength();
 		X /= length;
 		Y /= length;
 	}
 
-	Vector2 Vector2::Normalized(bool safe) const noexcept
+	Vector2 Vector2::Normalized(bool safe) const
 	{
-		Vector2 copy = *this;
+		Vector2 copy(*this);
 		copy.Normalize(safe);
 		return copy;
 	}
 
-	Vector2 Vector2::Project(const Vector2& normal) const noexcept
+	Vector2 Vector2::Project(const Vector2& normal) const
 	{
 		// https://www.youtube.com/watch?v=naaeH1qbjdQ
 		double VdotN = Dot(normal);
@@ -189,7 +46,7 @@ namespace Coco
 		return normal * (VdotN / NdotN);
 	}
 
-	Vector2 Vector2::Reflect(const Vector2& normal) const noexcept
+	Vector2 Vector2::Reflect(const Vector2& normal) const
 	{
 		// https://www.youtube.com/watch?v=naaeH1qbjdQ
 		Vector2 projection = Project(normal);
@@ -197,76 +54,89 @@ namespace Coco
 		return *this - projection * 2.0;
 	}
 
-	Vector2 Vector2::Refract(const Vector2& normal, double ior) const noexcept
+	// TODO: Vector2 refraction
+	//Vector2 Vector2::Refract(const Vector2& normal, double ior) const
+	//{
+	//	// https://stackoverflow.com/questions/29758545/how-to-find-refraction-vector-from-incoming-vector-and-surface-normal
+	//	double cosI = Math::Clamp(-Dot(normal), 0.0, 1.0);
+	//	const double sinT2 = Math::Pow(ior, 2.0) * (1.0 - Math::Pow(cosI, 2.0));
+	//
+	//	if (sinT2 > 1.0)
+	//		return Vector2::Zero;
+	//
+	//	const double cosT = Math::Sqrt(1.0 - sinT2);
+	//	return *this * ior + normal * (ior * cosI - cosT);
+	//}
+
+	string Vector2::ToString() const
 	{
-		// https://stackoverflow.com/questions/29758545/how-to-find-refraction-vector-from-incoming-vector-and-surface-normal
-		double cosI = Math::Clamp(-Dot(normal), 0.0, 1.0);
-		const double sinT2 = Math::Pow(ior, 2.0) * (1.0 - Math::Pow(cosI, 2.0));
-
-		if (sinT2 > 1.0)
-			return Vector2::Zero;
-
-		const double cosT = Math::Sqrt(1.0 - sinT2);
-		return *this * ior + normal * (ior * cosI - cosT);
+		return FormatString("{}, {}", X, Y);
 	}
 
-	Vector2::operator Vector3() const noexcept { return Vector3(X, Y, 0.0); }
-
-	const Vector3 Vector3::Zero = Vector3(0.0, 0.0, 0.0);
-	const Vector3 Vector3::One = Vector3(1.0, 1.0, 1.0);
-
-	const Vector3 Vector3::Right = Vector3(1.0, 0.0, 0.0);
-	const Vector3 Vector3::Left = Vector3(-1.0, 0.0, 0.0);
-	const Vector3 Vector3::Up = Vector3(0.0, 0.0, 1.0);
-	const Vector3 Vector3::Down = Vector3(0.0, 0.0, -1.0);
-	const Vector3 Vector3::Forwards = Vector3(0.0, 1.0, 0.0);
-	const Vector3 Vector3::Backwards = Vector3(0.0, -1.0, 0.0);
-
-	Vector3::Vector3(double x, double y, double z) noexcept :
-		X(x), Y(y), Z(z)
+	const Vector2Int Vector2Int::Zero = Vector2Int(0, 0);
+	const Vector2Int Vector2Int::One = Vector2Int(1, 1);
+	const Vector2Int Vector2Int::Right = Vector2Int(1, 0);
+	const Vector2Int Vector2Int::Left = Vector2Int(-1, 0);
+	const Vector2Int Vector2Int::Up = Vector2Int(0, 1);
+	const Vector2Int Vector2Int::Down = Vector2Int(0, -1);
+	
+	Vector2Int::Vector2Int() : 
+		Vector2Int(0, 0)
 	{}
 
-	Vector3::Vector3(const Vector2 & vec2, double z) noexcept : Vector3(vec2.X, vec2.Y, z) {}
+	Vector2Int::Vector2Int(int x, int y) : 
+		X(x),
+		Y(y)
+	{}
 
-	Vector3::Vector3(const Vector4 & vec4) noexcept : Vector3(vec4.X, vec4.Y, vec4.Z) {}
-
-	Vector3 Vector3::Parse(const string& str)
+	string Vector2Int::ToString() const
 	{
-		Array<double, 3> values = { 0.0 };
-
-		ParseDoubleArray(str, std::span<double>{values});
-
-		return Vector3(values[0], values[1], values[2]);
+		return FormatString("{}, {}", X, Y);
 	}
 
-	double Vector3::DistanceBetween(const Vector3 & a, const Vector3 & b) noexcept
-	{
-		const Vector3 diff = a - b;
-		return diff.GetLength();
-	}
+	const Vector3 Vector3::Zero = Vector3(0, 0, 0);
+	const Vector3 Vector3::One = Vector3(1, 1, 1);
+	const Vector3 Vector3::Right = Vector3(1, 0, 0);
+	const Vector3 Vector3::Left = Vector3(-1, 0, 0);
+	const Vector3 Vector3::Up = Vector3(0, 1, 0);
+	const Vector3 Vector3::Down = Vector3(0, -1, 0);
+	const Vector3 Vector3::Forward = Vector3(0, 0, -1);
+	const Vector3 Vector3::Backward = Vector3(0, 0, 1);
 
-	void Vector3::Normalize(bool safe) noexcept
+	Vector3::Vector3() : 
+		Vector3(0, 0, 0)
+	{}
+
+	Vector3::Vector3(double x, double y, double z) :
+		X(x),
+		Y(y),
+		Z(z)
+	{}
+
+	Vector3::Vector3(const Vector2& vec2, double z) : 
+		Vector3(vec2.X, vec2.Y, 0)
+	{}
+
+	void Vector3::Normalize(bool safe)
 	{
-		if (safe && 
-			Math::Approximately(X, 0.0) && 
-			Math::Approximately(Y, 0.0) && 
-			Math::Approximately(Z, 0.0))
+		const double length = GetLength();
+
+		if (safe && Math::Equal(length, 0.0))
 			return;
 
-		const double length = GetLength();
 		X /= length;
 		Y /= length;
 		Z /= length;
 	}
 
-	Vector3 Vector3::Normalized(bool safe) const noexcept
+	Vector3 Vector3::Normalized(bool safe) const
 	{
-		Vector3 copy = *this;
+		Vector3 copy(*this);
 		copy.Normalize(safe);
 		return copy;
 	}
 
-	Vector3 Vector3::Project(const Vector3& normal) const noexcept
+	Vector3 Vector3::Project(const Vector3& normal) const
 	{
 		// https://www.youtube.com/watch?v=naaeH1qbjdQ
 		double VdotN = Dot(normal);
@@ -275,7 +145,7 @@ namespace Coco
 		return normal * (VdotN / NdotN);
 	}
 
-	Vector3 Vector3::Reflect(const Vector3& normal) const noexcept
+	Vector3 Vector3::Reflect(const Vector3& normal) const
 	{
 		// https://www.youtube.com/watch?v=naaeH1qbjdQ
 		Vector3 projection = Project(normal);
@@ -283,66 +153,127 @@ namespace Coco
 		return *this - projection * 2.0;
 	}
 
-	Vector3 Vector3::Refract(const Vector3& normal, double ior) const noexcept
+	// TODO: Vector3 refraction
+	//Vector3 Vector3::Refract(const Vector3& normal, double ior) const
+	//{
+	//	// https://stackoverflow.com/questions/29758545/how-to-find-refraction-vector-from-incoming-vector-and-surface-normal
+	//	double cosI = Math::Clamp(-Dot(normal), 0.0, 1.0);
+	//	const double sinT2 = Math::Pow(ior, 2.0) * (1.0 - Math::Pow(cosI, 2.0));
+	//
+	//	if (sinT2 > 1.0)
+	//		return Vector3::Zero;
+	//
+	//	const double cosT = Math::Sqrt(1.0 - sinT2);
+	//	return *this * ior + normal * (ior * cosI - cosT);
+	//}
+
+	Vector3 Vector3::Orthogonal() const
 	{
-		// https://stackoverflow.com/questions/29758545/how-to-find-refraction-vector-from-incoming-vector-and-surface-normal
-		double cosI = Math::Clamp(-Dot(normal), 0.0, 1.0);
-		const double sinT2 = Math::Pow(ior, 2.0) * (1.0 - Math::Pow(cosI, 2.0));
+		double x = Math::Abs(X);
+		double y = Math::Abs(Y);
+		double z = Math::Abs(Z);
 
-		if (sinT2 > 1.0)
-			return Vector3::Zero;
-
-		const double cosT = Math::Sqrt(1.0 - sinT2);
-		return *this * ior + normal * (ior * cosI - cosT);
+		Vector3 other = x < y ? (x < z ? Vector3::Right : Vector3::Backward) : (y < z ? Vector3::Up : Vector3::Backward);
+		return Cross(other);
 	}
 
-	Vector3::operator Vector4() const noexcept { return Vector4(X, Y, Z, 0.0); }
+	string Vector3::ToString() const
+	{
+		return FormatString("{}, {}, {}", X, Y, Z);
+	}
 
-	const Vector4 Vector4::Zero = Vector4(0.0, 0.0, 0.0, 0.0);
-	const Vector4 Vector4::One = Vector4(1.0, 1.0, 1.0, 1.0);
+	const Vector3Int Vector3Int::Zero = Vector3Int(0, 0, 0);
+	const Vector3Int Vector3Int::One = Vector3Int(1, 1, 1);
+	const Vector3Int Vector3Int::Right = Vector3Int(1, 0, 0);
+	const Vector3Int Vector3Int::Left = Vector3Int(-1, 0, 0);
+	const Vector3Int Vector3Int::Up = Vector3Int(0, 1, 0);
+	const Vector3Int Vector3Int::Down = Vector3Int(0, -1, 0);
+	const Vector3Int Vector3Int::Forward = Vector3Int(0, 0, -1);
+	const Vector3Int Vector3Int::Backward = Vector3Int(0, 0, 1);
 
-	Vector4::Vector4(double x, double y, double z, double w) noexcept :
-		X(x), Y(y), Z(z), W(w)
+	Vector3Int::Vector3Int() :
+		Vector3Int(0, 0, 0)
 	{}
 
-	Vector4::Vector4(const Vector2& vec2, double z, double w) noexcept : Vector4(vec2.X, vec2.Y, z, w) {}
+	Vector3Int::Vector3Int(int x, int y, int z) :
+		X(x),
+		Y(y),
+		Z(z)
+	{}
 
-	Vector4::Vector4(const Vector3& vec3, double w) noexcept : Vector4(vec3.X, vec3.Y, vec3.Z, w) {}
-
-	Vector4 Vector4::Parse(const string& str)
+	string Vector3Int::ToString() const
 	{
-		Array<double, 4> values = {0.0};
-
-		ParseDoubleArray(str, std::span<double>{values});
-
-		return Vector4(values[0], values[1], values[2], values[3]);
+		return FormatString("{}, {}, {}", X, Y, Z);
 	}
 
-	void Vector4::Normalize(bool safe) noexcept
+	const Vector4 Vector4::Zero = Vector4(0, 0, 0, 0);
+	const Vector4 Vector4::One = Vector4(1, 1, 1, 1);
+
+	Vector4::Vector4() : 
+		Vector4(0, 0, 0, 0)
+	{}
+
+	Vector4::Vector4(double x, double y, double z, double w) :
+		X(x),
+		Y(y),
+		Z(z),
+		W(w)
+	{}
+
+	Vector4::Vector4(const Vector2& vec2, double z, double w) : 
+		Vector4(vec2.X, vec2.Y, 0, 0)
+	{}
+
+	Vector4::Vector4(const Vector3& vec3, double w) :
+		Vector4(vec3.X, vec3.Y, vec3.Z, w)
+	{}
+
+	double Vector4::DistanceBetween(const Vector4& p0, const Vector4& p1)
 	{
-		if (safe && 
-			Math::Approximately(X, 0.0) && 
-			Math::Approximately(Y, 0.0) && 
-			Math::Approximately(Z, 0.0) && 
-			Math::Approximately(W, 0.0))
+		return (p0 - p1).GetLength();
+	}
+
+	void Vector4::Normalize(bool safe)
+	{
+		const double length = GetLength();
+
+		if (safe && Math::Equal(length, 0.0))
 			return;
 
-		const double length = GetLength();
 		X /= length;
 		Y /= length;
 		Z /= length;
 		W /= length;
 	}
 
-	Vector4 Vector4::Normalized(bool safe) const noexcept
+	Vector4 Vector4::Normalized(bool safe) const
 	{
-		Vector4 copy = *this;
+		Vector4 copy(*this);
 		copy.Normalize(safe);
 		return copy;
 	}
 
-	Vector4::operator Color() const noexcept
+	string Vector4::ToString() const
 	{
-		return Color(X, Y, Z, W);
+		return FormatString("{}, {}, {}, {}", X, Y, Z, W);
+	}
+
+	const Vector4Int Vector4Int::Zero = Vector4Int(0, 0, 0, 0);
+	const Vector4Int Vector4Int::One = Vector4Int(1, 1, 1, 1);
+
+	Vector4Int::Vector4Int() :
+		Vector4Int(0, 0, 0, 0)
+	{}
+
+	Vector4Int::Vector4Int(int x, int y, int z, int w) :
+		X(x),
+		Y(y),
+		Z(z),
+		W(w)
+	{}
+
+	string Vector4Int::ToString() const
+	{
+		return FormatString("{}, {}, {}, {}", X, Y, Z, W);
 	}
 }

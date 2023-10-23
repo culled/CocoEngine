@@ -1,84 +1,67 @@
+#include "Renderpch.h"
 #include "TextureSerializer.h"
 
-#include <Coco/Core/IO/File.h>
-#include <Coco/Core/Resources/ResourceLibrary.h>
-#include <Coco/Core/Logging/Logger.h>
-#include <Coco/Core/Types/UUID.h>
+#include "../Texture.h"
+#include "Types/ImageDescriptionSerializer.h"
+#include "Types/ImageSamplerDescriptionSerializer.h"
 
-#include <sstream>
+#include <yaml-cpp/yaml.h>
 
 namespace Coco::Rendering
 {
-	string TextureSerializer::Serialize(ResourceLibrary& library, const Ref<Resource>& resource)
+	bool TextureSerializer::SupportsFileExtension(const string& extension) const
 	{
-		if (const Texture* texture = dynamic_cast<const Texture*>(resource.Get()))
-		{
-			const ImageDescription textureDescription = texture->GetDescription();
-			const ImageSamplerProperties sampler = texture->GetSamplerProperties();
-			
-			std::stringstream stream;
-			KeyValueWriter writer(stream);
-			
-			writer.WriteLine("version", "1");
-			writer.WriteLine(s_nameVariable, texture->GetName());
-			writer.WriteLine(s_imageFileVariable, texture->GetImageFilePath());
-			writer.WriteLine(s_usageFlagsVariable, ToString(static_cast<uint>(textureDescription.UsageFlags)));
-			writer.WriteLine(s_filterModeVariable, ToString(static_cast<uint>(sampler.FilterMode)));
-			writer.WriteLine(s_repeatModeVariable, ToString(static_cast<uint>(sampler.RepeatMode)));
-			writer.WriteLine(s_maxAnisotropyVariable, ToString(sampler.MaxAnisotropy));
-			writer.WriteLine(s_colorSpaceVariable, ToString(static_cast<uint>(textureDescription.ColorSpace)));
-			
-			writer.Flush();
-			return stream.str();
-		}
-		else
-		{
-			throw InvalidOperationException("Resource was not a texture");
-		}
+		return extension == ".ctexture";
 	}
 
-	ManagedRef<Resource> TextureSerializer::Deserialize(ResourceLibrary& library, const string& data)
+	bool TextureSerializer::SupportsResourceType(const std::type_index& type) const
 	{
-		ImageUsageFlags usageFlags = ImageUsageFlags::TransferSource | ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled;
-		ImageFilterMode filterMode = ImageFilterMode::Linear;
-		ImageRepeatMode repeatMode = ImageRepeatMode::Repeat;
-		uint maxAnisotropy = 16;
-		ColorSpace colorSpace = ColorSpace::sRGB;
-		string imageFilePath;
-		string name;
-		string id;
+		return type == typeid(Texture);
+	}
 
-		std::stringstream stream(data);
-		KeyValueReader reader(stream);
+	const std::type_index TextureSerializer::GetResourceTypeForExtension(const string& extension) const
+	{
+		return typeid(Texture);
+	}
 
-		while (reader.ReadLine())
-		{
-			if (reader.IsKey("version") && reader.GetValue() != "1")
-				throw InvalidOperationException("Mismatching texture versions");
-			else if (reader.IsKey(s_idVariable))
-				id = reader.GetValue();
-			else if (reader.IsKey(s_nameVariable))
-				name = reader.GetValue();
-			else if (reader.IsKey(s_imageFileVariable))
-				imageFilePath = reader.GetValue();
-			else if (reader.IsKey(s_usageFlagsVariable))
-				usageFlags = static_cast<ImageUsageFlags>(reader.GetVariableValueAsInt());
-			else if (reader.IsKey(s_filterModeVariable))
-				filterMode = static_cast<ImageFilterMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsKey(s_repeatModeVariable))
-				repeatMode = static_cast<ImageRepeatMode>(reader.GetVariableValueAsInt());
-			else if (reader.IsKey(s_maxAnisotropyVariable))
-				maxAnisotropy = static_cast<uint>(reader.GetVariableValueAsInt());
-			else if (reader.IsKey(s_colorSpaceVariable))
-				colorSpace = static_cast<ColorSpace>(reader.GetVariableValueAsInt());
-		}
+	string TextureSerializer::Serialize(SharedRef<Resource> resource)
+	{
+		SharedRef<Texture> texture = std::dynamic_pointer_cast<Texture>(resource);
+		Assert(texture)
+		Assert(texture->GetImage().IsValid())
+		Assert(texture->GetImageSampler().IsValid())
 
-		if (imageFilePath.empty())
-			LogWarning(library.GetLogger(), "Texture did not have a valid image file");
+		YAML::Emitter out;
+		out << YAML::BeginMap;
 
-		ImageSamplerProperties samplerProperties = ImageSamplerProperties(filterMode, repeatMode, maxAnisotropy);
-		ManagedRef<Texture> texture = CreateManagedRef<Texture>(UUID(id), name, library.GetFullFilePath(imageFilePath), colorSpace, usageFlags, samplerProperties);
+		out << YAML::Key << "name" << YAML::Value << texture->GetName();
+		out << YAML::Key << "image file" << YAML::Value << texture->_imageFilePath;
 
-		return std::move(texture);
+		out << YAML::Key << "image description" << YAML::Value << YAML::BeginMap;
+		ImageDescriptionSerializer::Serialize(out, texture->GetImage()->GetDescription());
+		out << YAML::EndMap;
+
+		out << YAML::Key << "sampler description" << YAML::Value << YAML::BeginMap;
+		ImageSamplerDescriptionSerializer::Serialize(out, texture->GetImageSampler()->GetDescription());
+		out << YAML::EndMap;
+
+		out << YAML::EndMap << YAML::Comment("Fix");
+
+		return string(out.c_str());
+	}
+
+	SharedRef<Resource> TextureSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
+	{
+		YAML::Node baseNode = YAML::Load(data);
+		string name = baseNode["name"].as<string>();
+		string imageFilePath = baseNode["image file"].as<string>();
+
+		YAML::Node imageDescNode = baseNode["image description"];
+		ImageDescription imageDesc = ImageDescriptionSerializer::Deserialize(imageDescNode);
+
+		YAML::Node samplerDescNode = baseNode["sampler description"];
+		ImageSamplerDescription samplerDesc = ImageSamplerDescriptionSerializer::Deserialize(samplerDescNode);
+
+		return CreateSharedRef<Texture>(resourceID, name, imageFilePath, imageDesc.ColorSpace, imageDesc.UsageFlags, samplerDesc);
 	}
 }

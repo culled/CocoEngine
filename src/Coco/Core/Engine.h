@@ -1,93 +1,137 @@
 #pragma once
 
 #include "Core.h"
-#include "ExitCodes.h"
-#include "Types/DateTime.h"
-#include "Types/TimeSpan.h"
-#include "Logging/Logger.h"
-#include "Platform/IEnginePlatform.h"
-#include "Services/EngineServiceManager.h"
-#include "MainLoop/MainLoop.h"
-#include "Resources/ResourceLibrary.h"
 #include "Application.h"
-#include "Types/Singleton.h"
+#include "Platform/EnginePlatformFactory.h"
+#include "MainLoop/MainLoop.h"
+#include "Services/ServiceManager.h"
+#include "IO/EngineFileSystem.h"
+#include "Resources/ResourceLibrary.h"
 
 namespace Coco
 {
-	/// @brief The core engine
-	class COCOAPI Engine : public Singleton<Engine>
+	/// @brief The main engine class
+	class Engine : public Singleton<Engine>
 	{
-		friend class ManagedRef<Engine>;
+	public:
+		/// @brief The process argument for showing the console
+		static const char* sShowConsoleArgument;
+
+		/// @brief The argument for setting the content path
+		static const char* sContentPathArgument;
+
+		/// @brief The default content path
+		static const char* sDefaultContentPath;
 
 	private:
-		DateTime _startTime;
-
-		ExitCode _exitCode = ExitCode::Ok;
-		ManagedRef<Logging::Logger> _logger;
-		Platform::IEnginePlatform* _platform;
-		ManagedRef<Application> _application;
-		ManagedRef<EngineServiceManager> _serviceManager;
-		ManagedRef<MainLoop> _mainLoop;
-		ManagedRef<ResourceLibrary> _resourceLibrary;
-
-	protected:
-		Engine(Platform::IEnginePlatform* platform);
+		UniqueRef<Log> _log;
+		UniqueRef<EnginePlatform> _platform;
+		UniqueRef<MainLoop> _mainLoop;
+		UniqueRef<ServiceManager> _serviceManager;
+		UniqueRef<EngineFileSystem> _fileSystem;
+		UniqueRef<ResourceLibrary> _resourceLibrary;
+		UniqueRef<Application> _app;
+		int _exitCode;
 
 	public:
-		virtual ~Engine();
+		Engine(const EnginePlatformFactory& platformFactory);
+		~Engine();
 
-		Engine() = delete;
-		Engine(const Engine&) = delete;
-		Engine(Engine&&) = delete;
+		/// @brief Gets the version of this engine
+		/// @return The engine version
+		Version GetVersion() const { return Version(0, 0, 1); }
 
-		Engine& operator=(const Engine&) = delete;
-		Engine& operator=(Engine&&) = delete;
+		/// @brief Runs the application and returns the exit code
+		/// @return The exit code
+		int Run();
 
-		/// @brief Called from the main entry to run the engine and client application
-		/// @param platform The platform for the engine to use
-		/// @return The exit code from the engine
-		static ExitCode Run(ManagedRef<Platform::IEnginePlatform> platform);
-
-		/// @brief Gets the engine's logger
-		/// @return The engine's logger
-		Logging::Logger* GetLogger() noexcept { return _logger.Get(); }
-
-		/// @brief Gets the engine's platform
-		/// @return The engine's platform
-		Platform::IEnginePlatform* GetPlatform() noexcept { return _platform; }
-
-		/// @brief Gets the client application
-		/// @return The client application
-		Application* GetApplication() noexcept { return _application.Get(); }
-
-		/// @brief Gets the service manager
-		/// @return The service manager
-		EngineServiceManager* GetServiceManager() noexcept { return _serviceManager.Get(); }
-
-		/// @brief Gets the main loop
-		/// @return The main loop
-		MainLoop* GetMainLoop() noexcept { return _mainLoop.Get(); }
-
-		/// @brief Gets the resource library
-		/// @return The resource library
-		ResourceLibrary* GetResourceLibrary() noexcept { return _resourceLibrary.Get(); }
-
-		/// @brief Sets the exit code for the engine. Will be used unless an error occurs
+		/// @brief Sets the exit code when the engine exits
 		/// @param code The exit code
-		void SetExitCode(ExitCode code) noexcept { _exitCode = code; }
+		void SetExitCode(int code);
 
-		/// @brief Gets the current exit code for the engine
-		/// @return The current exit code
-		ExitCode GetExitCode() const noexcept { return _exitCode; }
+		/// @brief Gets the platform that the engine is running on
+		/// @return The platform
+		EnginePlatform& GetPlatform() { return *_platform; }
 
-		/// @brief Gets the amount of time the engine has been running
-		/// @return The amount of time the engine has been running
-		TimeSpan GetRunningTime() const noexcept;
+		/// @brief Gets the platform that the engine is running on
+		/// @return The platform
+		const EnginePlatform& GetPlatform() const { return *_platform; }
+
+		/// @brief Gets the application that the engine is running
+		/// @return The application
+		Application& GetApp() { return *_app; }
+
+		/// @brief Gets the application that the engine is running
+		/// @return The application
+		const Application& GetApp() const { return *_app; }
+
+		/// @brief Gets the engine's log
+		/// @return The engine's log
+		Log& GetLog() { return *_log; }
+
+		/// @brief Gets the engine's log
+		/// @return The engine's log
+		const Log& GetLog() const { return *_log; }
+
+		/// @brief Gets the engine's main loop
+		/// @return The main loop
+		MainLoop& GetMainLoop() { return *_mainLoop; }
+
+		/// @brief Gets the engine's main loop
+		/// @return The main loop
+		const MainLoop& GetMainLoop() const { return *_mainLoop; }
+
+		/// @brief Gets the engine's service manager
+		/// @return The service manager
+		ServiceManager& GetServiceManager() { return *_serviceManager; }
+
+		/// @brief Gets the engine's service manager
+		/// @return The service manager
+		const ServiceManager& GetServiceManager() const { return *_serviceManager; }
+
+		/// @brief Gets the engine's file system
+		/// @return The file system
+		EngineFileSystem& GetFileSystem() { return *_fileSystem; }
+
+		/// @brief Gets the engine's file system
+		/// @return The file system
+		const EngineFileSystem& GetFileSystem() const { return *_fileSystem; }
+
+		/// @brief Gets the engine's resource library
+		/// @return The resource library
+		ResourceLibrary& GetResourceLibrary() { return *_resourceLibrary; }
+
+		/// @brief Gets the engine's resource library
+		/// @return The resource library
+		const ResourceLibrary& GetResourceLibrary() const { return *_resourceLibrary; }
+
+		/// @brief Causes a crash and rethrows the captured exception.
+		/// NOTE: only works in the catch clause of a try-catch block
+		void CrashWithException();
 
 	private:
-		/// @brief Runs the client application
-		/// @return The return code from the application
-		ExitCode Run();
+		/// @brief Performs setup based on process arguments
+		void SetupFromProcessArguments();
 	};
 }
 
+#ifdef COCO_LOG_TRACE
+#define CocoTrace(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Trace, Message, __VA_ARGS__);
+#else
+#define CocoTrace(Message, ...)
+#endif
+
+#ifdef COCO_LOG_INFO
+#define CocoInfo(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Info, Message, __VA_ARGS__);
+#else
+#define CocoInfo(Message, ...)
+#endif
+
+#ifdef COCO_LOG_WARNING
+#define CocoWarn(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Warning, Message, __VA_ARGS__);
+#else
+#define CocoWarn(Message, ...)
+#endif
+
+#define CocoError(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Error, Message, __VA_ARGS__);
+#define CocoCritical(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Critical, Message, __VA_ARGS__);

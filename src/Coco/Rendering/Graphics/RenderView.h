@@ -1,233 +1,299 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-
-#include <Coco/Core/Resources/Resource.h>
-#include "../RenderTarget.h"
-#include <Coco/Core/Types/Rect.h>
-#include <Coco/Core/Types/Matrix.h>
-#include <Coco/Core/Types/Color.h>
-#include <Coco/Core/Types/Map.h>
-#include <Coco/Core/Types/List.h>
-#include "../ShaderTypes.h"
+#include <Coco/Core/Types/Refs.h>
+#include <Coco/Core/Types/ViewFrustum.h>
+#include "ShaderUniformLayout.h"
+#include "RenderViewTypes.h"
 
 namespace Coco::Rendering
 {
-	class Buffer;
-	class Image;
-	class ImageSampler;
-	class Shader;
 	class Mesh;
-	class IMaterial;
-	class Texture;
+	class Shader;
+	class MaterialDataProvider;
 
-	/// @brief Rendering data for a shader
-	struct ShaderRenderData
+	/// @brief Holds information needed to render a scene
+	class RenderView
 	{
-		/// @brief The ID of the shader
-		ResourceID ID;
+	public:
+		/// @brief An invalid resource ID
+		static constexpr uint64 InvalidID = Math::MaxValue<uint64>();
 
-		/// @brief The version of the shader
-		ResourceVersion Version;
+		/// @brief The default layout for global uniforms
+		static const GlobalShaderUniformLayout DefaultGlobalUniformLayout;
 
-		/// @brief The subshaders that this shader uses
-		UnorderedMap<string, Subshader> Subshaders;
+	private:
+		RectInt _viewportRect;
+		RectInt _scissorRect;
+		Matrix4x4 _viewMat;
+		Matrix4x4 _projectionMat;
+		Vector3 _viewPosition;
+		ViewFrustum _frustum;
+		MSAASamples _samples;
+		std::vector<RenderTarget> _renderTargets;
+		GlobalShaderUniformLayout _globalUniformLayout;
+		std::unordered_map<uint64, MeshData> _meshDatas;
+		std::unordered_map<uint64, ShaderVariantData> _shaderVariantDatas;
+		std::unordered_map<uint64, ShaderData> _shaderDatas;
+		std::unordered_map<uint64, MaterialData> _materialDatas;
+		std::vector<ObjectData> _objectDatas;
+		std::vector<DirectionalLightData> _directionalLightDatas;
+		std::vector<PointLightData> _pointLightDatas;
 
-		/// @brief The group that this shader is related to
-		string GroupTag;
+	public:
+		RenderView();
 
-		ShaderRenderData() :
-			ID(Resource::InvalidID), Version(0), GroupTag{}, Subshaders{}
-		{}
-
-		ShaderRenderData(const ResourceID& id, ResourceVersion version, const string& groupTag) : 
-			ID(id), Version(version), GroupTag(groupTag), Subshaders{}
-		{}
-	};
-
-	/// @brief Rendering data for a texture
-	struct TextureRenderData
-	{
-		/// @brief The ID of the texture
-		ResourceID ID;
-
-		/// @brief The version of the texture
-		ResourceVersion Version;
-
-		/// @brief The image that the texture uses
-		Ref<Image> Image;
-
-		/// @brief The sampler that the texture uses
-		Ref<ImageSampler> Sampler;
-
-		TextureRenderData(const ResourceID& id, ResourceVersion version, const Ref<Rendering::Image>& image, const Ref<ImageSampler>& sampler) : 
-			ID(id), Version(version), Image(image), Sampler(sampler)
-		{}
-	};
-
-	/// @brief Rendering data for a material
-	struct MaterialRenderData
-	{
-		/// @brief The ID of the material
-		ResourceID ID;
-
-		/// @brief The version of the material
-		ResourceVersion Version;
-
-		/// @brief The ID of the shader that this material uses
-		ResourceID ShaderID;
-
-		/// @brief The uniform data of this material
-		ShaderUniformData UniformData;
-
-		MaterialRenderData() :
-			ID(Resource::InvalidID), Version(0), ShaderID(Resource::InvalidID), UniformData{}
-		{}
-
-		MaterialRenderData(const ResourceID& id, ResourceVersion version, const ResourceID& shaderID, const ShaderUniformData& uniformData) :
-			ID(id), Version(version), ShaderID(shaderID), UniformData(uniformData)
-		{}
-	};
-
-	struct SubmeshData
-	{
-		/// @brief The offset of the first index of the index buffer
-		uint64_t FirstIndexOffset;
-
-		/// @brief The number of indices
-		uint64_t IndexCount;
-
-		SubmeshData(uint64_t firstIndexOffset, uint64_t indexCount) :
-			FirstIndexOffset(firstIndexOffset),
-			IndexCount(indexCount)
-		{}
-	};
-
-	/// @brief Rendering data for a mesh
-	struct MeshRenderData
-	{
-		/// @brief The ID of the mesh
-		ResourceID ID;
-
-		/// @brief The version of the mesh
-		ResourceVersion Version;
-
-		/// @brief The vertex buffer that the mesh uses
-		Ref<Buffer> VertexBuffer;
-
-		/// @brief The number of vertices in the vertex buffer
-		uint64_t VertexCount;
-
-		/// @brief The index buffer that the mesh uses
-		Ref<Buffer> IndexBuffer;
-
-		/// @brief The submeshes within this mesh
-		List<SubmeshData> Submeshes;
-		
-		MeshRenderData(
-			const ResourceID& id, 
-			ResourceVersion version, 
-			const Ref<Buffer>& vertexBuffer, 
-			uint64_t vertexCount, 
-			const Ref<Buffer>& indexBuffer, 
-			const List<SubmeshData>& submeshes) :
-			ID(id), 
-			Version(version), 
-			VertexBuffer(vertexBuffer), 
-			VertexCount(vertexCount), 
-			IndexBuffer(indexBuffer),
-			Submeshes(submeshes)
-		{}
-	};
-
-	/// @brief Rendering data for an object
-	struct ObjectRenderData
-	{
-		/// @brief The mesh data that this object uses
-		ResourceID MeshData;
-
-		/// @brief The index of the submesh that this object uses
-		uint SubmeshIndex;
-
-		/// @brief The material data that this object uses
-		ResourceID MaterialData;
-		
-		/// @brief The model matrix for this object
-		Matrix4x4 ModelMatrix;
-
-		ObjectRenderData(const ResourceID& meshData, uint submeshIndex, const ResourceID& materialData, const Matrix4x4& modelMatrix) :
-			MeshData(meshData), SubmeshIndex(submeshIndex), MaterialData(materialData), ModelMatrix(modelMatrix)
-		{}
-	};
-
-	/// @brief Contains all neccessary information to render a scene from a specific view
-	struct COCOAPI RenderView
-	{
-		/// @brief The viewport rectangle
-		const RectInt ViewportRect;
-
-		/// @brief The projection matrix used for rendering
-		const Matrix4x4 Projection;
-
-		/// @brief The projection matrix used for 2D rendering
-		const Matrix4x4 Projection2D;
-
-		/// @brief The view matrix used for rendering
-		const Matrix4x4 View;
-
-		/// @brief The position the view is rendering from
-		const Vector3 ViewPosition;
-
-		/// @brief The render targets used for rendering
-		List<RenderTarget> RenderTargets;
-
-		/// @brief The shaders used for rendering
-		UnorderedMap<ResourceID, ShaderRenderData> Shaders;
-
-		/// @brief The textures used for rendering
-		UnorderedMap<ResourceID, TextureRenderData> Textures;
-
-		/// @brief The materials used for rendering
-		UnorderedMap<ResourceID, MaterialRenderData> Materials;
-
-		/// @brief The meshes used for rendering
-		UnorderedMap<ResourceID, MeshRenderData> Meshs;
-
-		/// @brief The objects being rendered
-		List<ObjectRenderData> Objects;
-
-		RenderView(
-			const RectInt& viewportRect,  
-			const Matrix4x4& projection,
-			const Matrix4x4& projection2D,
-			const Matrix4x4& view, 
+		/// @brief Sets up this RenderView for a new render
+		/// @param viewportRect The viewport rectangle
+		/// @param scissorRect The scissor rectangle
+		/// @param viewMatrix The view matrix
+		/// @param projectionMatrix The projection matrix
+		/// @param viewPosition The view position
+		/// @param frustum The view frustum
+		/// @param samples The number of MSAA samples
+		/// @param renderTargets The render targets
+		void Setup(const RectInt& viewportRect,
+			const RectInt& scissorRect,
+			const Matrix4x4& viewMatrix,
+			const Matrix4x4& projectionMatrix,
 			const Vector3& viewPosition,
-			const List<RenderTarget>& renderTargets
-		) noexcept;
+			const ViewFrustum& frustum,
+			MSAASamples samples,
+			const std::vector<RenderTarget>& renderTargets);
 
-		~RenderView();
+		/// @brief Resets this RenderView
+		void Reset();
+
+		/// @brief Gets the viewport rectangle
+		/// @return The viewport rectangle
+		const RectInt& GetViewportRect() const { return _viewportRect; }
+
+		/// @brief Gets the scissor rectangle (actual part of viewport that is rendered)
+		/// @return The scissor rectangle
+		const RectInt& GetScissorRect() const { return _scissorRect; }
+
+		/// @brief Gets the view matrix
+		/// @return The view matrix
+		const Matrix4x4& GetViewMatrix() const { return _viewMat; }
+
+		/// @brief Gets the projection matrix
+		/// @return The projection matrix
+		const Matrix4x4& GetProjectionMatrix() const { return _projectionMat; }
+
+		/// @brief Gets the view position
+		/// @return The view position
+		const Vector3& GetViewPosition() const { return _viewPosition; }
+
+		/// @brief Gets the view frustum
+		/// @return The view frustum
+		const ViewFrustum& GetViewFrustum() const { return _frustum; }
+
+		/// @brief Gets the number of MSAA samples that should be used for rendering
+		/// @return The MSAA samples
+		MSAASamples GetMSAASamples() const { return _samples; }
+
+		/// @brief Gets the render targets
+		/// @return The render targets
+		std::span<RenderTarget> GetRenderTargets() { return _renderTargets; }
+
+		/// @brief Gets the render targets
+		/// @return The render targets
+		std::span<const RenderTarget> GetRenderTargets() const { return _renderTargets; }
+
+		/// @brief Gets a single render target
+		/// @param index The index of the render target
+		/// @return The render target at the given index
+		RenderTarget& GetRenderTarget(size_t index);
 		
-		/// @brief Adds an object to be rendered
-		/// @param mesh The object's mesh
-		/// @param submeshIndex The index of the submesh to be rendered
-		/// @param material The object's material
-		/// @param modelMatrix The model matrix for the object
-		void AddRenderObject(Ref<Mesh> mesh, uint submeshIndex, Ref<IMaterial> material, const Matrix4x4& modelMatrix);
+		/// @brief Sets the layout of the global uniforms
+		/// @param layout The global uniform layout
+		void SetGlobalUniformLayout(const GlobalShaderUniformLayout& layout);
 
-		/// @brief Adds a shader that will be used for rendering
-		/// @param shader The shader
-		void AddShader(Ref<Shader> shader);
+		/// @brief Gets the global uniform layout
+		/// @return The global uniform layout
+		const GlobalShaderUniformLayout& GetGlobalUniformLayout() const { return _globalUniformLayout; }
 
-		/// @brief Adds a texture that will be used for rendering
-		/// @param texture The texture
-		void AddTexture(Ref<Texture> texture);
-
-		/// @brief Adds a material that will be used for rendering
-		/// @param material The material
-		void AddMaterial(Ref<IMaterial> material);
-
-		/// @brief Adds a mesh that will be used for rendering
+		/// @brief Adds a mesh to this view
 		/// @param mesh The mesh
-		void AddMesh(Ref<Mesh> mesh);
+		/// @return The id of the stored mesh
+		uint64 AddMesh(const Mesh& mesh);
+
+		/// @brief Gets a stored mesh's data
+		/// @param key The mesh's key
+		/// @return The data
+		const MeshData& GetMeshData(uint64 key) const;
+
+		/// @brief Adds a shader to this view
+		/// @param shader The shader
+		/// @return The id of the stored shader
+		uint64 AddShader(const Shader& shader);
+
+		/// @brief Gets a stored shader's data
+		/// @param key The shader's key
+		/// @return The shader data
+		const ShaderData& GetShaderData(uint64 key) const;
+
+		/// @brief Gets a stored shader variant's data
+		/// @param key The shader variant's key
+		/// @return The shader variant data
+		const ShaderVariantData& GetShaderVariantData(uint64 key) const;
+
+		/// @brief Adds material data to this view
+		/// @param materialData The material data
+		/// @return The key to the material data
+		uint64 AddMaterial(const MaterialDataProvider& materialData);
+
+		/// @brief Gets stored material data
+		/// @param key The data's key
+		/// @return The material data
+		const MaterialData& GetMaterialData(uint64 key) const;
+
+		/// @brief Adds an object to be rendered. 
+		/// NOTE: the mesh must have been applied for this to work
+		/// @param mesh The mesh
+		/// @param submeshID The ID of the submesh
+		/// @param modelMatrix The model matrix
+		/// @param material The material
+		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
+		/// @param extraData Extra data for the object
+		/// @return The key to the object
+		uint64 AddRenderObject(
+			const Mesh& mesh, 
+			uint32 submeshID, 
+			const Matrix4x4& modelMatrix, 
+			const MaterialDataProvider& material, 
+			const RectInt* scissorRect = nullptr,
+			std::any extraData = nullptr);
+
+		/// @brief Adds an object to be rendered. 
+		/// NOTE: the mesh must have been applied for this to work
+		/// @param mesh The mesh
+		/// @param submeshID The ID of the submesh
+		/// @param modelMatrix The model matrix
+		/// @param shader The shader, or nullptr for no shader
+		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
+		/// @param extraData Extra data for the object
+		/// @return The key to the object
+		uint64 AddRenderObject(
+			const Mesh& mesh,
+			uint32 submeshID,
+			const Matrix4x4& modelMatrix,
+			const Shader* shader,
+			const RectInt* scissorRect = nullptr,
+			std::any extraData = nullptr);
+
+		/// @brief Adds an object to be rendered. 
+		/// NOTE: the mesh must have been applied for this to work
+		/// @param mesh The mesh
+		/// @param indexOffset The offset of the first index in the mesh's index buffer
+		/// @param indexCount The number of indices to render
+		/// @param modelMatrix The model matrix
+		/// @param bounds The bounds of the object
+		/// @param material The material
+		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
+		/// @param extraData Extra data for the object
+		/// @return The key to the object
+		uint64 AddRenderObject(
+			const Mesh& mesh,
+			uint64 indexOffset,
+			uint64 indexCount,
+			const Matrix4x4& modelMatrix,
+			const BoundingBox& bounds,
+			const MaterialDataProvider& material,
+			const RectInt* scissorRect = nullptr,
+			std::any extraData = nullptr);
+
+		/// @brief Adds an object to be rendered. 
+		/// NOTE: the mesh must have been applied for this to work
+		/// @param mesh The mesh
+		/// @param indexOffset The offset of the first index in the mesh's index buffer 
+		/// @param indexCount The number of indices to render
+		/// @param modelMatrix The model matrix
+		/// @param bounds The bounds of the object
+		/// @param shader The shader to render with, or nullptr for no shader
+		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
+		/// @param extraData Extra data for the object
+		/// @return The key to the object
+		uint64 AddRenderObject(
+			const Mesh& mesh,
+			uint64 indexOffset,
+			uint64 indexCount,
+			const Matrix4x4& modelMatrix,
+			const BoundingBox& bounds,
+			const Shader* shader,
+			const RectInt* scissorRect = nullptr,
+			std::any extraData = nullptr);
+
+		/// @brief Gets all objects to be rendered
+		/// @return The renderable objects
+		const std::vector<ObjectData>& GetRenderObjects() const { return _objectDatas; }
+
+		/// @brief Gets a render object at the given index
+		/// @param index The index of the object
+		/// @return The object
+		const ObjectData& GetRenderObject(uint64 index) const;
+
+		/// @brief Adds a directional light
+		/// @param direction The direction that the light is facing
+		/// @param color The color of the light
+		/// @param intensity The intensity of the light
+		void AddDirectionalLight(const Vector3& direction, const Color& color, double intensity);
+
+		/// @brief Gets all the directional lights
+		/// @return The directional lights
+		std::span<const DirectionalLightData> GetDirectionalLights() const { return _directionalLightDatas; }
+
+		/// @brief Adds a point light
+		/// @param position The position of the light
+		/// @param color The color of the light
+		/// @param intensity The intensity of the light
+		void AddPointLight(const Vector3& position, const Color& color, double intensity);
+
+		/// @brief Gets all the point lights
+		/// @return The point lights
+		std::span<const PointLightData> GetPointLights() const { return _pointLightDatas; }
+
+		/// @brief Gets a vector of all render object indices
+		/// @return A vector of indices for every render object
+		std::vector<uint64> GetRenderObjectIndices() const;
+
+		/// @brief Gets objects according to the given object indices
+		/// @param objectIndices The indices of the objects to get
+		/// @return The render objects
+		std::vector<ObjectData> GetRenderObjects(std::span<const uint64> objectIndices) const;
+
+		/// @brief Filters out object indices that are outside of this view's frustum
+		/// @param objectIndices The object indices
+		void FilterOutsideFrustum(std::vector<uint64>& objectIndices) const;
+
+		/// @brief Filters out object indices that are outside of a frustum
+		/// @param frustum The view frustum
+		/// @param objectIndices The object indices
+		void FilterOutsideFrustum(const ViewFrustum& frustum, std::vector<uint64>& objectIndices) const;
+
+		/// @brief Filters out objects whose shader group tags don't equal the given tag
+		/// @param objectIndices The object indices
+		/// @param tag The shader group tag
+		void FilterWithTag(std::vector<uint64>& objectIndices, const string& tag) const;
+
+		/// @brief Filters out objects whose shader group tags aren't in the list of tags
+		/// @param objectIndices The object indices
+		/// @param tags The shader group tags
+		void FilterWithTags(std::vector<uint64>& objectIndices, std::span<const string> tags) const;
+
+		/// @brief Filters out objects whose shaders do not contain a variant of the given name
+		/// @param objectIndices The object indices
+		/// @param variantName The name of the shader variant
+		void FilterWithShaderVariant(std::vector<uint64>& objectIndices, const string& variantName) const;
+
+		/// @brief Sorts objects by distance from this view's view position
+		/// @param objectIndices The object indices
+		/// @param sortMode The sort mode
+		void SortByDistance(std::vector<uint64>& objectIndices, RenderObjectSortMode sortMode) const;
+
+		/// @brief Sorts objects by distance from a view position 
+		/// @param objectIndices The object indices
+		/// @param position The position to sort relative to
+		/// @param sortMode The sort mode
+		void SortByDistance(std::vector<uint64>& objectIndices, const Vector3& position, RenderObjectSortMode sortMode) const;
 	};
 }

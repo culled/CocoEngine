@@ -1,100 +1,118 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-
-#include <Coco/Core/Events/Event.h>
-#include <Coco/Core/Types/List.h>
+#include "../Renderpch.h"
+#include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Version.h>
-#include <Coco/Core/Resources/ResourceLibrary.h>
 #include "GraphicsDeviceTypes.h"
-#include "../RenderingResource.h"
-#include "Resources/BufferTypes.h"
-
-namespace Coco::Logging
-{
-	class Logger;
-}
+#include "BufferTypes.h"
 
 namespace Coco::Rendering
 {
-	/// @brief A graphics device that can perform rendering-related operations
-	class COCOAPI GraphicsDevice
+	class Buffer;
+	class Image;
+	struct ImageDescription;
+	class ImageSampler;
+	struct ImageSamplerDescription;
+	class GraphicsPresenter;
+	class RenderContext;
+
+	/// @brief A device that can perform graphics operations
+	class GraphicsDevice
 	{
-	protected:
-		/// @brief The list of resources this device manages
-		ManagedRef<ResourceLibrary> _resources;
-
-	protected:
-		GraphicsDevice();
-
 	public:
 		virtual ~GraphicsDevice() = default;
 
-		GraphicsDevice(const GraphicsDevice&) = delete;
-		GraphicsDevice(GraphicsDevice&&) = delete;
-
-		GraphicsDevice& operator=(const GraphicsDevice&) = delete;
-		GraphicsDevice& operator=(GraphicsDevice&&) = delete;
-
-		/// @brief Gets this graphics devices's logger
-		/// @return This graphics platform's logger
-		virtual Logging::Logger* GetLogger() noexcept = 0;
+		/// @brief Pads out an offset to align with a given alignment
+		/// @param originalOffset The original offset
+		/// @param alignment The desired alignment
+		/// @return An adjusted offset that respects the given alignment
+		static constexpr uint64 GetOffsetForAlignment(uint64 originalOffset, uint64 alignment) noexcept
+		{
+			return alignment > 0 ? (originalOffset + alignment - 1) & ~(alignment - 1) : alignment;
+		}
 
 		/// @brief Gets the name of this device
 		/// @return This device's name
-		virtual string GetName() const noexcept = 0;
+		virtual const char* GetName() const = 0;
 
 		/// @brief Gets the type of this device
 		/// @return This device's type
-		virtual GraphicsDeviceType GetType() const noexcept = 0;
+		virtual GraphicsDeviceType GetDeviceType() const = 0;
 
-		/// @brief Gets the version of this device's driver
+		/// @brief Gets the driver version of this device
 		/// @return This device's driver version
-		virtual Version GetDriverVersion() const noexcept = 0;
+		virtual Version GetDriverVersion() const = 0;
 
-		/// @brief Gets the version of this device's API
-		/// @return This device's API version
-		virtual Version GetAPIVersion() const noexcept = 0;
-	
-		/// @brief Gets memory features for the device
-		/// @return The device's memory features
-		virtual const GraphicsDeviceMemoryFeatures& GetMemoryFeatures() const noexcept = 0;
+		/// @brief Gets the api version of this device
+		/// @return This device's api version
+		virtual Version GetAPIVersion() const = 0;
 
-		/// @brief Gets the minimum alignment for a buffer that this device supports
-		/// @return The minimum buffer alignment for this device
-		virtual uint GetMinimumBufferAlignment() const noexcept = 0;
+		/// @brief Gets this device's features
+		/// @return This device's features
+		virtual const GraphicsDeviceFeatures& GetFeatures() const = 0;
 
-		/// @brief Gets the alignment for a type of data in a buffer
+		/// @brief Waits until the device has finished all queued work
+		virtual void WaitForIdle() const = 0;
+
+		/// @brief Gets the alignment for the given type of data
+		/// @param type The type of data
+		/// @return The alignment for the type of data
+		virtual uint8 GetDataTypeAlignment(BufferDataType type) const = 0;
+
+		/// @brief Aligns an offset to align with the alignment of the given type of data
 		/// @param type The data type
-		/// @return The alignment for the given data type
-		virtual uint GetDataTypeAlignment(BufferDataFormat type) const noexcept = 0;
+		/// @param offset The offset to modify
+		virtual void AlignOffset(BufferDataType type, uint64& offset) const = 0;
 
-		/// @brief Aligns an offset for a given type of data
-		/// @param type The data type
-		/// @param offset The offset
-		virtual void AlignOffset(BufferDataFormat type, uint64_t& offset) const noexcept = 0;
+		/// @brief Creates a GraphicsPresenter
+		/// @return The created presenter
+		virtual Ref<GraphicsPresenter> CreatePresenter() = 0;
 
-		/// @brief Blocks until this device has finished all async operations
-		virtual void WaitForIdle() noexcept = 0;
+		/// @brief Invalidates the given presenter if it has no other users than the one providing the presenter
+		/// @param presenter The presenter
+		virtual void TryReleasePresenter(Ref<GraphicsPresenter>& presenter) = 0;
 
-		/// @brief Creates a graphics resource, adds it to this device's list of managed resources, and returns a handle to it
-		/// @tparam ResourceType The type of resource to create
-		/// @tparam ...Args The types of arguments for the resource's constructor
-		/// @param name The name for the resource
-		/// @param ...args The arguments to pass to the resource's constructor
-		/// @return A reference to the resource
-		template<typename ResourceType, typename ... Args>
-		Ref<ResourceType> CreateResource(const string& name, Args&& ... args)
-		{
-			static_assert(std::is_base_of_v<RenderingResource, ResourceType>, "The resource must be derived from RenderingResource");
-		
-			return _resources->CreateResource<ResourceType>(name, std::forward<Args>(args)...);
-		}
+		/// @brief Creates a Buffer
+		/// @param size The size of the buffer, in bytes
+		/// @param usageFlags The usage flags
+		/// @param bind If true, the buffer will be bound after it's created
+		/// @return The created buffer
+		virtual Ref<Buffer> CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind) = 0;
 
-		/// @brief Purges a single resource
-		/// @param resource The resource to purge
-		/// @param forcePurge If true, the resource will be destroyed regardless how many users are using it
-		void PurgeResource(const Ref<Resource>& resource, bool forcePurge = false);
+		/// @brief Invalidates the given buffer if it has no other users than the one providing the buffer
+		/// @param buffer The buffer
+		virtual void TryReleaseBuffer(Ref<Buffer>& buffer) = 0;
+
+		/// @brief Creates an Image
+		/// @param description The image description
+		/// @return The image
+		virtual Ref<Image> CreateImage(const ImageDescription& description) = 0;
+
+		/// @brief Invalidates the given image if it has no other users than the one providing the image
+		/// @param image The image
+		virtual void TryReleaseImage(Ref<Image>& image) = 0;
+
+		/// @brief Creates an ImageSampler
+		/// @param description The sampler description
+		/// @return The image sampler
+		virtual Ref<ImageSampler> CreateImageSampler(const ImageSamplerDescription& description) = 0;
+
+		/// @brief Invalidates the given image sampler if it has no other users than the one providing the image sampler
+		/// @param imageSampler The image sampler
+		virtual void TryReleaseImageSampler(Ref<ImageSampler>& imageSampler) = 0;
+
+		/// @brief Creates a RenderContext
+		/// @return The render context
+		virtual Ref<RenderContext> CreateRenderContext() = 0;
+
+		/// @brief Invalidates the given render context if it has no other users than the one providing the render context
+		/// @param context The render context
+		virtual void TryReleaseRenderContext(Ref<RenderContext>& context) = 0;
+
+		/// @brief Purges any resources that are no longer in use
+		virtual void PurgeUnusedResources() = 0;
+
+		/// @brief Performs any tasks that need to occur before a new frame is drawn
+		virtual void ResetForNewFrame() = 0;
 	};
 }
-

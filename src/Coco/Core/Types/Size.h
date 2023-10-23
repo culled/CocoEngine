@@ -1,120 +1,92 @@
 #pragma once
 
-#include <Coco/Core/API.h>
-
-#include <Coco/Core/Math/Math.h>
+#include "String.h"
+#include "../Math/Math.h"
 
 namespace Coco
 {
-	struct Vector2Int;
 	struct Vector2;
+	struct Vector2Int;
 
-	/// @brief A size with a width and height using integers
-	struct COCOAPI SizeInt
-	{
-		/// @brief A size with zero width and height
-		static const SizeInt Zero;
-
-		/// @brief The width
-		int Width = 0;
-
-		/// @brief The height
-		int Height = 0;
-
-		SizeInt() noexcept = default;
-		SizeInt(int width, int height) noexcept;
-		virtual ~SizeInt() = default;
-
-		/// @brief Parses a SizeInt from a string
-		/// @param str The string
-		/// @return The parsed size
-		static SizeInt Parse(const string& str);
-
-		/// @brief Converts this size to a string
-		/// @return This size as a string
-		string ToString() const { return FormattedString("{}x{}", Width, Height); }
-
-
-		SizeInt operator+(const SizeInt& other) const noexcept { return SizeInt(Width + other.Width, Height + other.Height); }
-		void operator+=(const SizeInt& other) noexcept { Width += other.Width; Height += other.Height; }
-
-		SizeInt operator-(const SizeInt& other) const noexcept { return SizeInt(Width - other.Width, Height - other.Height); }
-		void operator-=(const SizeInt& other) noexcept { Width -= other.Width; Height -= other.Height; }
-
-		SizeInt operator*(const SizeInt& other) const noexcept { return SizeInt(Width * other.Width, Height * other.Height); }
-		void operator*=(const SizeInt& other) noexcept { Width *= other.Width; Height *= other.Height; }
-
-		SizeInt operator*(int scalar) const noexcept { return SizeInt(Width * scalar, Height * scalar); }
-		void operator*=(int scalar) noexcept { Width *= scalar; Height *= scalar; }
-
-		SizeInt operator/(const SizeInt& other) const noexcept { return SizeInt(Width / other.Width, Height / other.Height); }
-		void operator/=(const SizeInt& other) noexcept { Width /= other.Width; Height /= other.Height; }
-
-		SizeInt operator/(int divisor) const noexcept { return SizeInt(Width / divisor, Height / divisor); }
-		void operator/=(int divisor) noexcept { Width /= divisor; Height /= divisor; }
-
-		bool operator==(const SizeInt& other) const noexcept { return Width == other.Width && Height == other.Height; }
-		bool operator!=(const SizeInt& other) const noexcept { return Width != other.Width || Height != other.Height; }
-
-		operator Vector2Int() const noexcept;
-		operator Vector2() const noexcept;
-	};
-
-	/// @brief A size with a width and height using decimals
-	struct COCOAPI Size
+	/// @brief A size that is backed by double values
+	struct Size
 	{
 		/// @brief A size with zero width and height
 		static const Size Zero;
 
 		/// @brief The width
-		double Width = 0;
+		double Width;
 
 		/// @brief The height
-		double Height = 0;
+		double Height;
 
-		Size() noexcept = default;
-		Size(double width, double height) noexcept;
-		virtual ~Size() = default;
+		Size();
+		Size(double width, double height);
 
-		/// @brief Parses a Size from a string
-		/// @param str The string
-		/// @return The parsed size
-		static Size Parse(const string& str);
+		constexpr void operator+=(const Size& other) { Width += other.Width; Height += other.Height; }
+		constexpr void operator-=(const Size& other) { Width -= other.Width; Height -= other.Height; }
 
-		/// @brief Converts this size to a string
-		/// @return This size as a string
-		string ToString() const { return FormattedString("{}x{}", Width, Height); }
+		Size operator+(const Size& other) const { return Size(Width + other.Width, Height + other.Height); }
+		Size operator-(const Size& other) const { return Size(Width - other.Width, Height - other.Height); }
 
-		/// @brief Compares if this size equals another size
+		constexpr void operator*=(double scalar) { Width *= scalar; Height *= scalar; }
+		constexpr void operator/=(double divisor) { Width /= divisor; Height /= divisor; }
+
+		Size operator*(double scalar) const { return Size(Width * scalar, Height * scalar); }
+		Size operator/(double divisor) const { return Size(Width / divisor, Height / divisor); }
+
+		operator Vector2() const;
+
+		/// @brief Determines if this size equals another
 		/// @param other The other size
-		/// @param tolerance The difference tolerance
-		/// @return True if the two sizes are within the tolerance of each other
-		bool Equals(const Size& other, double tolerance = Math::Epsilon) const noexcept
+		/// @param threshold The threshold used to determine equality
+		/// @return True if the given size equals this one
+		constexpr bool Equals(const Size& other, double threshold = Math::Epsilon) const
 		{
-			return Math::Approximately(Width, other.Width, tolerance) && Math::Approximately(Height, other.Height, tolerance);
+			return Math::Approximately(Width, other.Width, threshold) &&
+				Math::Approximately(Height, other.Height, threshold);
 		}
 
-		Size operator+(const Size& other) const noexcept { return Size(Width + other.Width, Height + other.Height); }
-		void operator+=(const Size& other) noexcept { Width += other.Width; Height += other.Height; }
+		/// @brief Gets a string representation of this size
+		/// @return The string representation
+		string ToString() const;
+	};
 
-		Size operator-(const Size& other) const noexcept { return Size(Width - other.Width, Height - other.Height); }
-		void operator-=(const Size& other) noexcept { Width -= other.Width; Height -= other.Height; }
+	/// @brief A size that is backed by int values
+	struct SizeInt
+	{
+		/// @brief A size with zero width and height
+		static const SizeInt Zero;
 
-		Size operator*(const Size& other) const noexcept { return Size(Width * other.Width, Height * other.Height); }
-		void operator*=(const Size& other) noexcept { Width *= other.Width; Height *= other.Height; }
+		/// @brief The width
+		int Width;
 
-		Size operator*(double scalar) const noexcept { return Size(Width * scalar, Height * scalar); }
-		void operator*=(double scalar) noexcept { Width *= scalar; Height *= scalar; }
+		/// @brief The height
+		int Height;
 
-		Size operator/(const Size& other) const noexcept { return Size(Width / other.Width, Height / other.Height); }
-		void operator/=(const Size& other) noexcept { Width /= other.Width; Height /= other.Height; }
+		SizeInt();
+		SizeInt(int width, int height);
 
-		Size operator/(double divisor) const noexcept { return Size(Width / divisor, Height / divisor); }
-		void operator/=(double divisor) noexcept { Width /= divisor; Height /= divisor; }
+		constexpr bool operator==(const SizeInt& other) const { return Width == other.Width && Height == other.Height; }
 
-		bool operator==(const Size& other) const noexcept { return Equals(other); }
-		bool operator!=(const Size& other) const noexcept { return !Equals(other); }
+		constexpr void operator+=(const SizeInt& other) { Width += other.Width; Height += other.Height; }
+		constexpr void operator-=(const SizeInt& other) { Width -= other.Width; Height -= other.Height; }
 
-		operator Vector2() const noexcept;
+		SizeInt operator+(const SizeInt& other) const { return SizeInt(Width + other.Width, Height + other.Height); }
+		SizeInt operator-(const SizeInt& other) const { return SizeInt(Width - other.Width, Height - other.Height); }
+
+		constexpr void operator*=(int scalar) { Width *= scalar; Height *= scalar; }
+		constexpr void operator/=(int divisor) { Width /= divisor; Height /= divisor; }
+
+		SizeInt operator*(int scalar) const { return SizeInt(Width * scalar, Height * scalar); }
+		SizeInt operator/(int divisor) const { return SizeInt(Width / divisor, Height / divisor); }
+
+		operator Size() const { return Size(Width, Height); }
+
+		operator Vector2Int() const;
+
+		/// @brief Gets a string representation of this size
+		/// @return The string representation
+		string ToString() const;
 	};
 }

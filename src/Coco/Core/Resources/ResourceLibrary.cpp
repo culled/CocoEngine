@@ -1,124 +1,142 @@
+#include "Corepch.h"
 #include "ResourceLibrary.h"
 
-#include <Coco/Core/Engine.h>
+#include "../Engine.h"
 
 namespace Coco
 {
-	ResourceLibrary::ResourceLibrary(const string& basePath, uint64_t resourceLifetimeTicks, double purgePeriod) noexcept :
-		BasePath(basePath),
-		_resourceLifetimeTicks(resourceLifetimeTicks)
+	ResourceIDGenerator::ResourceIDGenerator() :
+		Counter{}
+	{}
+
+	ResourceID ResourceIDGenerator::operator()()
 	{
-		_purgeTickListener = Engine::Get()->GetMainLoop()->CreateTickListener(this, &ResourceLibrary::PurgeTick, PurgeTickPriority, purgePeriod);
-		// TODO: Load default serializers
+		return Counter++;
 	}
 
 	ResourceLibrary::~ResourceLibrary()
 	{
-		Engine::Get()->GetMainLoop()->RemoveTickListener(_purgeTickListener);
+		CocoTrace("Freeing {} resource(s)", _resources.size())
+
 		_resources.clear();
-		_serializers.clear();
 	}
 
-	Logging::Logger* ResourceLibrary::GetLogger() noexcept
+	bool ResourceLibrary::GetOrLoad(const string& contentPath, SharedRef<Resource>& outResource)
 	{
-		return Engine::Get()->GetLogger();
-	}
-
-	Ref<Resource> ResourceLibrary::GetResource(const ResourceID& id)
-	{
-		if (!_resources.contains(id))
-			return Ref<Resource>();
-
-		Ref<Resource> resource = _resources.at(id);
-		resource->UpdateTickUsed();
-		return resource;
-	}
-
-	bool ResourceLibrary::HasResource(const ResourceID& id) const
-	{
-		return _resources.contains(id);
-	}
-
-	void ResourceLibrary::PurgeResource(const ResourceID& id, bool forcePurge)
-	{
-		if (!_resources.contains(id))
-			return;
-
-		if(forcePurge || _resources.at(id).GetUseCount() <= 1)
-			_resources.erase(id);
-	}
-	
-	uint64_t ResourceLibrary::PurgeStaleResources()
-	{
-		auto it = _resources.begin();
-		uint64_t purgeCount = 0;
-
-		const uint64_t currentTick = Engine::Get()->GetMainLoop()->GetTickCount();
-		const uint64_t staleTickThreshold = currentTick - Math::Min(currentTick, _resourceLifetimeTicks);
-
-		while (it != _resources.end())
+		auto it = FindResource(contentPath);
+		if (it != _resources.end())
 		{
-			// Only purge resources that haven't been used in a while and have no current users 
-			if (it->second->GetLastTickUsed() < staleTickThreshold && it->second.GetUseCount() == 1)
-			{
-				it = _resources.erase(it);
-				purgeCount++;
-			}
-			else
-			{
-				it++;
-			}
+			outResource = it->second;
+			return true;
 		}
 
-		if (purgeCount > 0)
-			LogTrace(GetLogger(), FormattedString("Library for \"{}\" purged {} unused resources", BasePath, purgeCount));
+		EngineFileSystem& efs = Engine::Get()->GetFileSystem();
 
-		return purgeCount;
+		if (!efs.FileExists(contentPath))
+		{
+			CocoError("File at \"{}\" does not exist", contentPath)
+			return false;
+		}
+
+		std::type_index resourceType = typeid(nullptr);
+		ResourceSerializer* serializer = GetSerializerForFileType(contentPath, resourceType);
+
+		if (!serializer)
+		{
+			CocoError("No serializers support deserializing the file at \"{}\"", contentPath)
+			return false;
+		}
+
+		Assert(resourceType != typeid(nullptr))
+
+		File f = efs.OpenFile(contentPath, FileOpenFlags::Read | FileOpenFlags::Text);
+		string data = f.ReadTextToEnd();
+		f.Close();
+
+		ResourceID id = _idGenerator();
+		it = _resources.try_emplace(id, serializer->Deserialize(resourceType, id, data)).first;
+		
+		SharedRef<Resource>& resource = it->second;
+		resource->_contentPath = contentPath;
+		outResource = resource;
+
+		return true;
 	}
 
-	void ResourceLibrary::PurgeResources()
+	bool ResourceLibrary::Save(const string& contentPath, SharedRef<Resource> resource, bool overwrite)
 	{
-		// Purge individually in-case resources purge each other
-		while (_resources.size() > 0)
+		EngineFileSystem& efs = Engine::Get()->GetFileSystem();
+
+		if (!overwrite && efs.FileExists(contentPath))
 		{
-			_resources.erase(_resources.cbegin());
+			CocoError("Cannot overwrite existing file at \"{}\"", contentPath)
+			return false;
+		}
+
+		std::type_index resourceType = typeid(nullptr);
+		ResourceSerializer* serializer = GetSerializerForFileType(contentPath, resourceType);
+
+		if (!serializer)
+		{
+			CocoError("No serializers support serializing the file at \"{}\"", contentPath)
+			return false;
+		}
+
+		try
+		{
+			string data = serializer->Serialize(resource);
+
+			File f = efs.OpenFile(contentPath, FileOpenFlags::Write | FileOpenFlags::Text);
+			f.Write(data);
+			f.Close();
+
+			resource->_contentPath = contentPath;
+
+			return true;
+		}
+		catch (const std::exception& ex)
+		{
+			CocoError("Error saving \"{}\": {}", contentPath, ex.what())
+			return false;
 		}
 	}
 
-	string ResourceLibrary::SerializeResource(const Ref<Resource>& resource)
+	ResourceSerializer* ResourceLibrary::GetSerializerForResourceType(const std::type_index& type)
 	{
-		return GetSerializerForResourceType(resource->GetType())->Serialize(*this, resource);
-	}
-
-	void ResourceLibrary::Save(const Ref<Resource>& resource, const string& filePath)
-	{
-		const string fullPath = GetFullFilePath(filePath);
-
-		const string data = SerializeResource(resource);
-
-		File::WriteAllText(fullPath, data);
-	}
-
-	IResourceSerializer* ResourceLibrary::GetSerializerForResourceType(std::type_index resourceType)
-	{
-		const auto it = _serializers.find(resourceType);
+		auto it = std::find_if(_serializers.begin(), _serializers.end(), [type](const UniqueRef<ResourceSerializer>& serializer)
+			{
+				return serializer->SupportsResourceType(type);
+			});
 
 		if (it == _serializers.end())
-			throw InvalidOperationException(FormattedString(
-				"A serializer has not been registered for the object type \"{}\"",
-				resourceType.name()
-			));
+			return nullptr;
 
-		return (*it).second.Get();
+		return it->get();
 	}
 
-	ResourceID ResourceLibrary::GetNextResourceID()
+	ResourceSerializer* ResourceLibrary::GetSerializerForFileType(const string& contentPath, std::type_index& outType)
 	{
-		return UUID::CreateV4();
+		FilePath fp(contentPath);
+		string extension = fp.GetExtension();
+
+		auto it = std::find_if(_serializers.begin(), _serializers.end(), [extension](const UniqueRef<ResourceSerializer>& serializer)
+			{
+				return serializer->SupportsFileExtension(extension);
+			});
+
+		if (it == _serializers.end())
+			return nullptr;
+
+		ResourceSerializer* serializer = it->get();
+		outType = serializer->GetResourceTypeForExtension(extension);
+		return serializer;
 	}
 
-	void ResourceLibrary::PurgeTick(double deltaTime)
+	ResourceLibrary::ResourceMap::iterator ResourceLibrary::FindResource(const string& contentPath)
 	{
-		PurgeStaleResources();
+		return std::find_if(_resources.begin(), _resources.end(), [contentPath](const auto& kvp)
+			{
+				return kvp.second->_contentPath == contentPath;
+			});
 	}
 }

@@ -1,222 +1,385 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-
-#include <Coco/Core/Logging/Logger.h>
-#include <Coco/Core/Types/Map.h>
+#include "../Corepch.h"
+#include "../Types/Refs.h"
 #include "Resource.h"
-#include "IResourceSerializer.h"
-#include <atomic>
-#include <Coco/Core/IO/File.h>
-#include <Coco/Core/IO/FilePath.h>
-#include <Coco/Core/MainLoop/MainLoopTickListener.h>
-
-namespace Coco::Logging
-{
-	class Logger;
-}
+#include "ResourceSerializer.h"
 
 namespace Coco
 {
-	/// @brief A library that holds Resources
-	class COCOAPI ResourceLibrary
+	/// @brief An ID generator for a TypedResourceLibrary
+	/// @tparam IDType The type of ID
+	template<typename IDType>
+	struct ResourceLibraryIDGenerator
 	{
-	public:
-		/// @brief An infinite lifetime for resources
-		constexpr static uint64_t MaxLifetime = Math::MaxValue<uint64_t>();
+		virtual ~ResourceLibraryIDGenerator() = default;
 
-		/// @brief A default resource lifetime
-		constexpr static uint64_t DefaultResourceLifetimeTicks = 500;
+		virtual IDType operator()() = 0;
+	};
 
-		constexpr static double DefaultPurgePeriod = 5.0;
+	/// @brief A basic library that owns and manages resources derived from a given type
+	/// @tparam IDType The ID type
+	/// @tparam BaseResourceType The base resource type
+	/// @tparam IDGeneratorType The type of ID generator to use
+	template<typename IDType, typename BaseResourceType, typename IDGeneratorType = ResourceLibraryIDGenerator<IDType>>
+	class OwnedResourceLibrary
+	{
+	protected:
+		using ResourceMap = std::unordered_map<IDType, ManagedRef<BaseResourceType>>;
 
-		constexpr static uint64_t PurgeTickPriority = 10000;
-
-		/// @brief The base path for all relative file paths regarding this library
-		const string BasePath;
+		IDGeneratorType _idGenerator;
+		ResourceMap _resources;
 
 	private:
-		uint64_t _resourceLifetimeTicks;
-		UnorderedMap<ResourceID, ManagedRef<Resource>> _resources;
-		UnorderedMap<std::type_index, ManagedRef<IResourceSerializer>> _serializers;
-		Ref<MainLoopTickListener> _purgeTickListener;
+		bool _isPurgingResources;
 
 	public:
-		ResourceLibrary(const string& basePath = "", uint64_t resourceLifetimeTicks = DefaultResourceLifetimeTicks, double purgePeriod = DefaultPurgePeriod) noexcept;
-		virtual ~ResourceLibrary();
+		OwnedResourceLibrary() :
+			_idGenerator{},
+			_resources{},
+			_isPurgingResources(false)
+		{}
 
-		/// @brief Gets the logger for the resource library
-		/// @return This library's logger
-		Logging::Logger* GetLogger() noexcept;
-
-		/// @brief Gets a full file path from a relative path
-		/// @param relativePath The relative path within this resource library's base path
-		/// @return A full file path
-		string GetFullFilePath(const string& relativePath) const noexcept { return BasePath + relativePath; }
-
-		/// @brief Creates a resource serializer for this library
-		/// @tparam SerializerType The type of serializer
-		/// @tparam ...Args The type of arguments for the serializer's constructor
-		/// @param ...args Arguments to pass to the serializer
-		template<typename SerializerType, typename ... Args>
-		void CreateSerializer(Args&& ... args)
+		virtual ~OwnedResourceLibrary()
 		{
-			static_assert(std::is_base_of_v<IResourceSerializer, SerializerType>, "Only classes derived from IResourceSerializer can be resource serializers");
-
-			ManagedRef<SerializerType> serializer = CreateManagedRef<SerializerType>(std::forward<Args>(args)...);
-			const std::type_index serializerType = serializer->GetResourceType();
-
-			if (_serializers.contains(serializerType))
-			{
-				LogWarning(GetLogger(), FormattedString("A serializer for \"{}\" resource types has already been created", serializerType.name()));
-				return;
-			}
-
-			_serializers.try_emplace(serializerType, std::move(serializer));
+			Clear();
 		}
 
-		/// @brief Creates a resource
+		/// @brief Creates a resource with the given arguments
 		/// @tparam ResourceType The type of resource
-		/// @tparam ...Args The type of arguments to pass to the resource's constructor
-		/// @param name The name of the resource
+		/// @tparam ...Args The types of arguments
 		/// @param ...args The arguments to pass to the resource's constructor
 		/// @return The created resource
 		template<typename ResourceType, typename ... Args>
-		Ref<ResourceType> CreateResource(const string& name, Args&& ... args)
+		Ref<ResourceType> Create(Args&&... args)
 		{
-			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
+			IDType id = _idGenerator();
 
-			ResourceID id = GetNextResourceID();
-
-			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, name, std::forward<Args>(args)...));
-
-			Ref<ResourceType> resource = static_cast<Ref<ResourceType>>(result.first->second);
-			resource->UpdateTickUsed();
-
-			return resource;
+			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, std::forward<Args>(args)...));
+			ManagedRef<BaseResourceType>& rawResource = result.first->second;
+			return Ref<ResourceType>(rawResource);
 		}
 
-		/// @brief Gets a resource with the given ID (if one exists)
-		/// @param id The id of the resource
-		/// @return The resource with the given ID, or an empty reference if no resource exists
-		Ref<Resource> GetResource(const ResourceID& id);
+		/// @brief Checks if a resource with the given ID exists in this library
+		/// @param id The resource ID
+		/// @return True if the resource exists in this library
+		bool Has(const IDType& id) const { return _resources.contains(id); }
 
-		/// @brief Gets a resource with the given ID (if one exists)
+		/// @brief Gets a resource with the given ID.
+		/// NOTE: Check if the resource exists first by calling Has()
 		/// @param id The ID of the resource
-		/// @return The resource with the given ID, or an empty reference if no resource exists
-		template<typename ResourceType>
-		Ref<ResourceType> GetResource(const ResourceID& id)
+		/// @return The resource
+		virtual Ref<BaseResourceType> Get(const IDType& id)
 		{
-			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
-
-			Ref<Resource> resource = GetResource(id);
-
-			if (resource->GetType() != typeid(ResourceType))
-				return Ref<ResourceType>();
-
-			return static_cast<Ref<ResourceType>>(resource);
+			return _resources.at(id);
 		}
 
-		/// @brief Checks if a resource with the given ID exists
-		/// @param id The ID of the resource 
-		/// @return True if the resource exists
-		bool HasResource(const ResourceID& id) const;
+		/// @brief Gets a resource with the given ID.
+		/// NOTE: Check if the resource exists first by calling Has()
+		/// @tparam ResourceType The type of resource to cast to
+		/// @param id The ID of the resource
+		/// @return The resource
+		template<typename ResourceType>
+		Ref<ResourceType> GetAs(const IDType& id)
+		{
+			return static_cast<Ref<ResourceType>>(Get(id));
+		}
+
+		/// @brief Forcibly removes a resource from this library
+		/// @param id The ID of the resource to remove
+		virtual void Remove(const IDType& id)
+		{
+			auto it = _resources.find(id);
+
+			if (it == _resources.end())
+				return;
+
+			_resources.erase(it);
+		}
+
+		/// @brief Clears all resources from this library
+		virtual void Clear()
+		{
+			_isPurgingResources = true;
+			_resources.clear();
+			_isPurgingResources = false;
+		}
 
 		/// @brief Gets the number of resources in this library
 		/// @return The number of resources in this library
-		uint64_t GetResourceCount() const noexcept { return _resources.size(); }
-
-		/// @brief Purges the resource with the given ID. By default, resources are only destroyed if they have no outside users
-		/// @param id The ID of the resource
-		/// @param forcePurge If true, the resource will be destroyed regardless if the number of users using it. Be careful with this as it may invalidate references
-		void PurgeResource(const ResourceID& id, bool forcePurge = false);
-
-		/// @brief Purges any resources that haven't been used in a while and have no outside users
-		/// @return The number of purged resources
-		uint64_t PurgeStaleResources();
-
-		/// @brief Purges all resources
-		void PurgeResources();
-
-		/// @brief Serializes a resource to a string. NOTE: a serializer for the resource type must have been created with this library for this to work
-		/// @param resource The resource
-		/// @return A string representation of the resource
-		string SerializeResource(const Ref<Resource>& resource);
-
-		/// @brief Deserializes a resource from a string. NOTE: a serializer for the resource type must have been created with this library for this to work
-		/// @tparam ResourceType The type of resource to create
-		/// @param data The serialized data
-		/// @return The deserialized resource
-		template<typename ResourceType>
-		Ref<ResourceType> DeserializeResource(const string& data)
+		uint64 GetCount() const
 		{
-			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
-
-			ManagedRef<Resource> rawResource = GetSerializerForResourceType(typeid(ResourceType))->Deserialize(*this, data);
-			auto result = _resources.try_emplace(rawResource->ID, std::move(rawResource));
-
-			Ref<ResourceType> resource = static_cast<Ref<ResourceType>>(result.first->second);
-			resource->UpdateTickUsed();
-
-			return resource;
+			return _resources.size();
 		}
 
-		/// @brief Loads a resource from a file
-		/// @tparam ResourceType The type of resource to load
-		/// @param path The path to the file relative to this library's base path
-		/// @return The loaded resource
-		template<typename ResourceType>
-		Ref<ResourceType> Load(const string& path)
+		/// @brief Purges all resources with no outside references
+		/// @return The number of purged resources
+		virtual uint64 PurgeUnused()
 		{
-			static_assert(std::is_base_of_v<Resource, ResourceType>, "Class is not a Resource");
+			uint64 purgeCount = 0;
 
-			string fullPath = GetFullFilePath(path);
-
-			auto it = std::find_if(_resources.begin(), _resources.end(), [fullPath](const auto& kvp) {
-				return kvp.second->GetFilePath() == fullPath;
-			});
-
-			if (it != _resources.end())
+			if (!_isPurgingResources)
 			{
-				Ref<Resource> resource = it->second;
-				if (resource->GetType() != typeid(ResourceType))
-				{
-					LogError(GetLogger(), FormattedString(
-						"Attempted to load file \"{}\" as {}, but it was already loaded as {}",
-						path,
-						typeid(ResourceType).name(),
-						resource->GetType().name()));
+				_isPurgingResources = true;
 
-					return Ref<ResourceType>();
+				auto it = _resources.begin();
+				while (it != _resources.end())
+				{
+					if (it->second.GetUseCount() == 1)
+					{
+						it = _resources.erase(it);
+						purgeCount++;
+					}
+					else
+					{
+						it++;
+					}
 				}
 
-				return static_cast<Ref<ResourceType>>(resource);
+				_isPurgingResources = false;
 			}
 
-			string text = File::ReadAllText(fullPath);
-			Ref<ResourceType> resource = DeserializeResource<ResourceType>(text);
-			resource->SetFilePath(fullPath);
+			return purgeCount;
+		}
 
-			return resource;
+		/// @brief Removes the given resource if there is only a single outside user
+		/// @param id The ID of the resource
+		void RemoveIfSingleOutsideUser(const IDType& id)
+		{
+			if (_isPurgingResources)
+				return;
+
+			auto it = std::find_if(_resources.begin(), _resources.end(), [id](const auto& kvp)
+				{
+					return kvp.first == id;
+				});
+
+			if (it == _resources.end() || it->second.GetUseCount() > 2)
+				return;
+
+			_resources.erase(it);
+		}
+	};
+
+	/// @brief A basic library that manages shared resources derived from a given type
+	/// @tparam IDType The ID type
+	/// @tparam BaseResourceType The base resource type
+	/// @tparam IDGeneratorType The type of ID generator to use
+	template<typename IDType, typename BaseResourceType, typename IDGeneratorType = ResourceLibraryIDGenerator<IDType>>
+	class SharedResourceLibrary
+	{
+	protected:
+		using ResourceMap = std::unordered_map<IDType, SharedRef<BaseResourceType>>;
+
+		IDGeneratorType _idGenerator;
+		ResourceMap _resources;
+
+	private:
+		bool _isPurgingResources;
+
+	public:
+		SharedResourceLibrary() :
+			_idGenerator{},
+			_resources{},
+			_isPurgingResources(false)
+		{}
+
+		virtual ~SharedResourceLibrary()
+		{
+			Clear();
+		}
+
+		/// @brief Creates a resource with the given arguments
+		/// @tparam ResourceType The type of resource
+		/// @tparam ...Args The types of arguments
+		/// @param ...args The arguments to pass to the resource's constructor
+		/// @return The created resource
+		template<typename ResourceType, typename ... Args>
+		SharedRef<ResourceType> Create(Args&&... args)
+		{
+			IDType id = _idGenerator();
+
+			auto result = _resources.try_emplace(id, CreateSharedRef<ResourceType>(id, std::forward<Args>(args)...));
+			return std::static_pointer_cast<ResourceType>(result.first->second);
+		}
+
+		/// @brief Checks if a resource with the given ID exists in this library
+		/// @param id The resource ID
+		/// @return True if the resource exists in this library
+		bool Has(const IDType& id) const { return _resources.contains(id); }
+
+		/// @brief Gets a resource with the given ID.
+		/// NOTE: Check if the resource exists first by calling Has()
+		/// @param id The ID of the resource
+		/// @return The resource
+		virtual SharedRef<BaseResourceType> Get(const IDType& id)
+		{
+			return _resources.at(id);
+		}
+
+		/// @brief Gets a resource with the given ID.
+		/// NOTE: Check if the resource exists first by calling Has()
+		/// @tparam ResourceType The type of resource to cast to
+		/// @param id The ID of the resource
+		/// @return The resource
+		template<typename ResourceType>
+		SharedRef<ResourceType> GetAs(const IDType& id)
+		{
+			return std::static_pointer_cast<ResourceType>(Get(id));
+		}
+
+		/// @brief Forcibly removes a resource from this library
+		/// @param id The ID of the resource to remove
+		virtual void Remove(const IDType& id)
+		{
+			auto it = _resources.find(id);
+
+			if (it == _resources.end())
+				return;
+
+			_resources.erase(it);
+		}
+
+		/// @brief Clears all resources from this library
+		virtual void Clear()
+		{
+			_isPurgingResources = true;
+			_resources.clear();
+			_isPurgingResources = false;
+		}
+
+		/// @brief Gets the number of resources in this library
+		/// @return The number of resources in this library
+		uint64 GetCount() const
+		{
+			return _resources.size();
+		}
+
+		/// @brief Purges all resources with no outside references
+		/// @return The number of purged resources
+		virtual uint64 PurgeUnused()
+		{
+			uint64 purgeCount = 0;
+
+			if (!_isPurgingResources)
+			{
+				_isPurgingResources = true;
+
+				auto it = _resources.begin();
+				while (it != _resources.end())
+				{
+					if (it->second.use_count() == 1)
+					{
+						it = _resources.erase(it);
+						purgeCount++;
+					}
+					else
+					{
+						it++;
+					}
+				}
+
+				_isPurgingResources = false;
+			}
+
+			return purgeCount;
+		}
+
+		/// @brief Removes the given resource if there is only a single outside user
+		/// @param id The ID of the resource
+		void RemoveIfSingleOutsideUser(const IDType& id)
+		{
+			if (_isPurgingResources)
+				return;
+
+			auto it = std::find_if(_resources.begin(), _resources.end(), [id](const auto& kvp)
+				{
+					return kvp.first == id;
+				});
+
+			if (it == _resources.end() || it->second.use_count() > 2)
+				return;
+
+			_resources.erase(it);
+		}
+	};
+
+	/// @brief A generator for ResourceIDs
+	struct ResourceIDGenerator
+	{
+		std::atomic<ResourceID> Counter;
+
+		ResourceIDGenerator();
+
+		ResourceID operator()();
+	};
+
+	/// @brief A library that holds Resources
+	class ResourceLibrary : public SharedResourceLibrary<ResourceID, Resource, ResourceIDGenerator>
+	{
+	private:
+		std::vector<UniqueRef<ResourceSerializer>> _serializers;
+
+	public:
+		~ResourceLibrary();
+
+		/// @brief Creates a ResourceSerializer for this library
+		/// @tparam SerializerType The type of serializer to create
+		/// @tparam ...Args The types of arguments to pass to the serializer's constructor
+		/// @param ...args The arguments to pass to the serializer's constructor
+		template<typename SerializerType, typename ... Args>
+		void CreateSerializer(Args&& ... args)
+		{
+			_serializers.emplace_back(CreateUniqueRef<SerializerType>(std::forward<Args>(args)...));
+		}
+
+		/// @brief Gets/loads a resource at the given content path
+		/// @param contentPath The path of the resource
+		/// @param outResource Will be set to the loaded resource if successful
+		/// @return True if the resource was loaded/retrieved
+		bool GetOrLoad(const string& contentPath, SharedRef<Resource>& outResource);
+
+		/// @brief Gets/loads a resource at the given content path. Throws if the resource is not derived ResourceType
+		/// @tparam ResourceType The type of resource that should be returned
+		/// @param contentPath The path of the resource
+		/// @return The resource
+		template<typename ResourceType>
+		SharedRef<ResourceType> GetOrLoad(const string& contentPath)
+		{
+			SharedRef<Resource> tempResource;
+			Assert(GetOrLoad(contentPath, tempResource))
+
+			if (SharedRef<ResourceType> resource = std::dynamic_pointer_cast<ResourceType>(tempResource))
+			{
+				return resource;
+			}
+
+			string err = FormatString("Resource was not of type {}", typeid(ResourceType).name());
+			throw std::exception(err.c_str());
 		}
 
 		/// @brief Saves a resource to a file
+		/// @param contentPath The path of the file to save
 		/// @param resource The resource to save
-		/// @param filePath The path of the file relative to this library's base path
-		void Save(const Ref<Resource>& resource, const string& filePath);
+		/// @param overwrite If true, any file at the content path will be overwritten. If false, saving will fail if a file already exists
+		/// @return True if the resource was saved
+		bool Save(const string& contentPath, SharedRef<Resource> resource, bool overwrite);
 
 	private:
-		/// @brief Tries to find a serializer for the given resource type
-		/// @param resourceType The type of the resource
-		/// @return A pointer to the serializer instance
-		IResourceSerializer* GetSerializerForResourceType(std::type_index resourceType);
+		/// @brief Gets a ResourceSerializer that supports the given resource type
+		/// @param type The resource type
+		/// @return A resource serializer, or nullptr if no serializer supports the resource type
+		ResourceSerializer* GetSerializerForResourceType(const std::type_index& type);
 
-		/// @brief Gets the next resource ID to use
-		/// @return The next resource ID
-		ResourceID GetNextResourceID();
+		/// @brief Gets a ResourceSerializer that supports the given file type
+		/// @param contentPath The path to the file
+		/// @param outType Will be set to the resource type if a serializer was found
+		/// @return A resource serializer, or nullptr if no serializer supports the file type
+		ResourceSerializer* GetSerializerForFileType(const string& contentPath, std::type_index& outType);
 
-		/// @brief Handles the purge tick for stale resources
-		/// @param deltaTime The time since the tick was last executed
-		void PurgeTick(double deltaTime);
+		/// @brief Finds a resource with the given content path
+		/// @param contentPath The content path
+		/// @return An iterator to the resource if found, or an iterator at the end of the resource map if not found
+		ResourceMap::iterator FindResource(const string& contentPath);
 	};
 }

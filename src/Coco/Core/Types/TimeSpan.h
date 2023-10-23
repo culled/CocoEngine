@@ -1,119 +1,85 @@
 #pragma once
 
-#include <Coco/Core/API.h>
+#include "../Corepch.h"
+#include "../Defines.h"
+#include "../Math/Math.h"
 
 namespace Coco
 {
-	/// @brief Represents a length of time
-	struct COCOAPI TimeSpan
+	/// @brief Represents a duration of time, with microsecond precision
+	struct TimeSpan
 	{
-	private:
 		/// @brief The number of microseconds in a millisecond
-		static constexpr int64_t MicroSecsPerMillisecond = 1000;
+		static constexpr int64 MicroSecsPerMillisecond = 1000;
 
 		/// @brief The number of microseconds in a second
-		static constexpr int64_t MicroSecsPerSecond = 1000000;
+		static constexpr int64 MicroSecsPerSecond = 1000000;
 
 		/// @brief The number of microseconds in a minute
-		static constexpr int64_t MicroSecsPerMinute = 60000000;
+		static constexpr int64 MicroSecsPerMinute = 60000000;
 
 		/// @brief The number of microseconds in an hour
-		static constexpr int64_t MicroSecsPerHour = 3600000000;
+		static constexpr int64 MicroSecsPerHour = 3600000000;
 
 		/// @brief The number of microseconds in a day
-		static constexpr int64_t MicroSecsPerDay = 86400000000;
+		static constexpr int64 MicroSecsPerDay = 86400000000;
 
-		int64_t _microseconds = 0;
+		/// @brief The number of microseconds
+		int64 Microseconds = 0;
 
-	public:
-		TimeSpan() noexcept = default;
-		TimeSpan(int64_t microseconds) noexcept;
+		TimeSpan();
+		TimeSpan(int64 microseconds);
+
 		virtual ~TimeSpan() = default;
 
 		/// @brief Creates a TimeSpan with the given number of fractional days
 		/// @param days The number of fractional days
 		/// @return A TimeSpan
-		static TimeSpan FromDays(double days) noexcept { return TimeSpan(static_cast<int64_t>(days * MicroSecsPerDay)); }
+		static TimeSpan FromDays(double days) { return TimeSpan(static_cast<int64>(Math::Round(days * MicroSecsPerDay))); }
 
 		/// @brief Creates a TimeSpan with the given number of fractional hours
 		/// @param hours The number of fractional hours
 		/// @return A TimeSpan
-		static TimeSpan FromHours(double hours) noexcept { return TimeSpan(static_cast<int64_t>(hours * MicroSecsPerHour)); }
+		static TimeSpan FromHours(double hours) { return TimeSpan(static_cast<int64>(Math::Round(hours * MicroSecsPerHour))); }
 
 		/// @brief Creates a TimeSpan with the given number of fractional minutes
 		/// @param minutes The number of fractional minutes
-		/// @return A Timespan
-		static TimeSpan FromMinutes(double minutes) noexcept { return TimeSpan(static_cast<int64_t>(minutes * MicroSecsPerMinute)); }
+		/// @return A TimeSpan
+		static TimeSpan FromMinutes(double minutes) { return TimeSpan(static_cast<int64>(Math::Round(minutes * MicroSecsPerMinute))); }
 
 		/// @brief Creates a TimeSpan with the given number of fractional seconds
 		/// @param seconds The number of fractional seconds
 		/// @return A TimeSpan
-		static TimeSpan FromSeconds(double seconds) noexcept { return TimeSpan(static_cast<int64_t>(seconds * MicroSecsPerSecond)); }
+		static TimeSpan FromSeconds(double seconds) { return TimeSpan(static_cast<int64>(Math::Round(seconds * MicroSecsPerSecond))); }
 
 		/// @brief Creates a TimeSpan with the given number of fractional milliseconds
 		/// @param milliseconds The number of fractional milliseconds
 		/// @return A TimeSpan
-		static TimeSpan FromMilliseconds(double milliseconds) noexcept { return TimeSpan(static_cast<int64_t>(milliseconds) * MicroSecsPerMillisecond); }
+		static TimeSpan FromMilliseconds(double milliseconds) { return TimeSpan(static_cast<int64>(Math::Round(milliseconds * MicroSecsPerMillisecond))); }
 
-		/// @brief Gets the number of days in this length of time
+		/// @brief Gets the number of days in this TimeSpan
 		/// @return The number of days
-		int64_t GetDays() const noexcept { return _microseconds / MicroSecsPerDay; }
+		constexpr double GetDays() const { return static_cast<double>(Microseconds) / MicroSecsPerDay; }
 
-		/// @brief Gets the number of hours in this length of time
+		/// @brief Gets the number of hours in this TimeSpan
 		/// @return The number of hours
-		int64_t GetHours() const noexcept { return _microseconds / MicroSecsPerHour % 24; }
+		constexpr double GetHours() const { return static_cast<double>(Microseconds) / MicroSecsPerHour; }
 
-		/// @brief Gets the number of minutes in this length of time
+		/// @brief Gets the number of minutes in this TimeSpan
 		/// @return The number of minutes
-		int64_t GetMinutes() const noexcept { return _microseconds / MicroSecsPerMinute % 60; }
+		constexpr double GetMinutes() const { return static_cast<double>(Microseconds) / MicroSecsPerMinute; }
 
-		/// @brief Gets the number of seconds in this length of time
+		/// @brief Gets the number of seconds in this TimeSpan
 		/// @return The number of seconds
-		int64_t GetSeconds() const noexcept { return _microseconds / MicroSecsPerSecond % 60; }
+		constexpr double GetSeconds() const { return static_cast<double>(Microseconds) / MicroSecsPerSecond; }
 
-		/// @brief Gets the number of milliseconds in this length of time
+		/// @brief Gets the number of milliseconds in this TimeSpan
 		/// @return The number of milliseconds
-		int64_t GetMilliseconds() const noexcept { return _microseconds / MicroSecsPerMillisecond % 1000; }
+		constexpr double GetMilliseconds() const { return static_cast<double>(Microseconds) / MicroSecsPerMillisecond; }
 
-		/// @brief Gets the number of microseconds in this length of time
-		/// @return The number of microseconds
-		int64_t GetMicroseconds() const noexcept { return _microseconds % MicroSecsPerMillisecond; }
-
-		/// @brief Gets the fractional amount of days in this length of time
-		/// @return The fractional amount of days
-		double GetTotalDays() const noexcept { return static_cast<double>(_microseconds) / MicroSecsPerDay; }
-
-		/// @brief Gets the fractional amount of hours in this length of time
-		/// @return The fractional amount of hours
-		double GetTotalHours() const noexcept { return static_cast<double>(_microseconds) / MicroSecsPerHour; }
-
-		/// @brief Gets the fractional amount of minutes in this length of time
-		/// @return The fractional amount of minutes
-		double GetTotalMinutes() const noexcept { return static_cast<double>(_microseconds) / MicroSecsPerMinute; }
-
-		/// @brief Gets the fractional amount of seconds in this length of time
-		/// @return The fractional amount of seconds
-		double GetTotalSeconds() const noexcept { return static_cast<double>(_microseconds) / MicroSecsPerSecond; }
-
-		/// @brief Gets the fractional amount of milliseconds in this length of time
-		/// @return The fractional amount of milliseconds
-		double GetTotalMilliseconds() const noexcept { return static_cast<double>(_microseconds) / MicroSecsPerMillisecond; }
-
-		/// @brief Gets the number of microseconds in this length of time
-		/// @return The number of microseconds
-		int64_t GetTotalMicroseconds() const noexcept { return _microseconds; }
-
-		TimeSpan operator+(const TimeSpan& other) const noexcept { return TimeSpan(_microseconds + other._microseconds); }
-		TimeSpan operator-(const TimeSpan& other) const noexcept { return TimeSpan(_microseconds - other._microseconds); }
-		void operator+=(const TimeSpan& other) noexcept { _microseconds += other._microseconds; }
-		void operator-=(const TimeSpan& other) noexcept { _microseconds -= other._microseconds; }
-
-		bool operator<(const TimeSpan& other) noexcept { return _microseconds < other._microseconds; }
-		bool operator<=(const TimeSpan& other) noexcept { return _microseconds <= other._microseconds; }
-		bool operator>(const TimeSpan& other) noexcept { return _microseconds > other._microseconds; }
-		bool operator>=(const TimeSpan& other) noexcept { return _microseconds >= other._microseconds; }
-		bool operator==(const TimeSpan& other) noexcept { return _microseconds == other._microseconds; }
-		bool operator!=(const TimeSpan& other) noexcept { return _microseconds != other._microseconds; }
+		TimeSpan operator+(const TimeSpan& other) { return TimeSpan(Microseconds + other.Microseconds); }
+		TimeSpan operator-(const TimeSpan& other) { return TimeSpan(Microseconds - other.Microseconds); }
+		void operator+=(const TimeSpan& other) { Microseconds += other.Microseconds; }
+		void operator-=(const TimeSpan& other) { Microseconds -= other.Microseconds; }
 	};
 }
-

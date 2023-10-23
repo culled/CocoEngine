@@ -1,46 +1,43 @@
 #pragma once
-
-#include <Coco/Core/Resources/Serializers/KeyValueResourceSerializer.h>
-
-#include <Coco/Core/Types/Map.h>
-#include "../Material.h"
-
-namespace Coco
-{
-	struct Vector4;
-}
+#include <Coco\Core\Resources\ResourceSerializer.h>
 
 namespace Coco::Rendering
 {
-	/// @brief A serializer for material files (*.cmaterial)
-	class MaterialSerializer final : public KeyValueResourceSerializer
-	{
-	private:
-		static constexpr const char* s_materialIDVariable = "id";
-		static constexpr const char* s_materialNameVariable = "name";
-		static constexpr const char* s_materialShaderVariable = "shader";
-		static constexpr const char* s_uniformsSection = "uniforms";
-		static constexpr const char* s_uniformsTypeVariable = "type";
-		static constexpr const char* s_uniformsValueVariable = "value";
-		static constexpr int s_textureType = 10;
+    class Material;
+    class MaterialInstance;
 
-	public:
-		MaterialSerializer() = default;
-		~MaterialSerializer() final = default;
+    /// @brief A serializer for Material and MaterialInstance resources
+    class MaterialSerializer :
+        public ResourceSerializer
+    {
+        // Inherited via ResourceSerializer
+        bool SupportsFileExtension(const string& extension) const final;
+        bool SupportsResourceType(const std::type_index& type) const final;
+        const std::type_index GetResourceTypeForExtension(const string& extension) const final;
+        string Serialize(SharedRef<Resource> resource) final;
+        SharedRef<Resource> Deserialize(const std::type_index& resourceType, const ResourceID& resourceID, const string& data) final;
 
-		DefineSerializerResourceType(Material)
+    private:
+        /// @brief Serializes a Material
+        /// @param material The material
+        /// @return The serialized data
+        string SerializeMaterial(const Material& material);
 
-		string Serialize(ResourceLibrary& library, const Ref<Resource>& resource) final;
-		ManagedRef<Resource> Deserialize(ResourceLibrary& library, const string& data) final;
+        /// @brief Deserializes a Material
+        /// @param resourceID The ID for the resource
+        /// @param data The serialized data
+        /// @return The deserialized resource
+        SharedRef<Resource> DeserializeMaterial(const ResourceID& resourceID, const string& data);
 
-	private:
-		/// @brief Reads the properties section for a material
-		/// @param reader The reader
-		/// @param library The resource library
-		/// @param uniforms Will be filled with uniforms
-		void ReadUniformsSection(
-			KeyValueReader& reader, 
-			ResourceLibrary& library,
-			ShaderUniformData& uniforms);
-	};
+        /// @brief Serializes a MaterialInstance
+        /// @param material The material
+        /// @return The serialized data
+        string SerializeMaterialInstance(const MaterialInstance& material);
+
+        /// @brief Deserializes a MaterialInstance
+        /// @param resourceID The ID for the resource
+        /// @param data The serialized data
+        /// @return The deserialized resource
+        SharedRef<Resource> DeserializeMaterialInstance(const ResourceID& resourceID, const string& data);
+    };
 }

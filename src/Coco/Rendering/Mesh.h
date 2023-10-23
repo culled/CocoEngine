@@ -1,153 +1,126 @@
 #pragma once
 
-#include "RenderingResource.h"
-
-#include <Coco/Core/Types/List.h>
-#include <Coco/Core/Types/Vector.h>
-#include <Coco/Core/Types/Optional.h>
-#include "Graphics/Resources/Buffer.h"
-#include "RenderingExceptions.h"
+#include "RendererResource.h"
+#include <Coco/Core/Types/Refs.h>
+#include "MeshTypes.h"
+#include "Graphics/Buffer.h"
+#include <Coco/Core/Types/BoundingBox.h>
 
 namespace Coco::Rendering
 {
-	struct VertexData
+	/// @brief A region in a mesh's index buffer
+	struct SubMesh
 	{
-		Vector3 Position = Vector3::Zero;
-		Optional<Vector3> Normal;
-		Optional<Vector2> UV0;
-		Optional<Vector4> Color;
-		Optional<Vector4> Tangent;
+		/// @brief The offset of the first index in the buffer
+		uint64 Offset;
 
-		VertexData() = default;
-		VertexData(const Vector3& position);
-		VertexData(const Vector3& position, const Vector3& normal);
-		VertexData(const Vector3& position, const Vector3& normal, const Vector2& uv);
+		/// @brief The number of indices in the buffer
+		uint64 Count;
+
+		/// @brief The bounds that this submesh fits into
+		BoundingBox Bounds;
+
+		SubMesh();
+		SubMesh(uint64 offset, uint64 count, const BoundingBox& bounds);
 	};
 
-	struct Submesh
+	/// @brief Defines geometry data used for rendering
+	class Mesh : public RendererResource
 	{
-		List<uint32_t> Indices;
-		uint32_t IndexBufferOffset;
-		uint32_t IndexCount;
+		friend class MeshSerializer;
 
-		Submesh() :
-			Indices{}, IndexBufferOffset(0), IndexCount(0)
-		{}
-	};
-
-	/// @brief Holds vertex and index data for rendering geometry
-	class COCOAPI Mesh : public RenderingResource
-	{
 	private:
 		Ref<Buffer> _vertexBuffer;
 		Ref<Buffer> _indexBuffer;
-
-		List<VertexData> _vertexData;
-		List<Submesh> _submeshes;
-
-		uint64_t _vertexCount = 0;
-		uint64_t _indexCount = 0;
-
-		bool _isDirty = false;
+		VertexDataFormat _vertexFormat;
+		std::vector<VertexData> _vertices;
+		std::unordered_map<uint32, std::vector<uint32>> _indices;
+		std::unordered_map<uint32, SubMesh> _submeshes;
+		uint64 _vertexCount;
+		uint64 _indexCount;
+		bool _isDynamic;
+		bool _keepLocalData;
+		bool _isDirty;
+		void* _lockedVertexMemory;
+		void* _lockedIndexMemory;
+		BoundingBox _meshBounds;
 
 	public:
-		Mesh(const ResourceID& id, const string& name);
-		~Mesh() override;
+		Mesh(const ResourceID& id, const string& name, bool keepLocalData = false, bool isDynamic = false);
+		~Mesh();
 
-		DefineResourceType(Mesh)
+		std::type_index GetType() const final { return typeid(Mesh); }
 
-		/// @brief Calculates normals for vertices
-		/// @param vertices The vertices 
-		/// @param indices The vertex indices
-		static void CalculateNormals(List<VertexData>& vertices, const List<uint32_t> indices);
-
-		/// @brief Calculates tangents for vertices
+		/// @brief Sets the vertices of this mesh
+		/// @param format The format of the vertex data
 		/// @param vertices The vertices
-		/// @param indices The vertex indices
-		/// @return True if tangents were calculated successfully
-		static bool CalculateTangents(List<VertexData>& vertices, const List<uint32_t> indices);
+		void SetVertices(const VertexDataFormat& format, std::span<const VertexData> vertices);
+		/// @brief Sets the indices of this mesh
+		/// @param indices The indices
+		/// @param submeshID The id of the submesh that these indices reference
+		void SetIndices(std::span<const uint32> indices, uint32 submeshID);
 
-		/// @brief Sets vertex data for this mesh. NOTE: this will define the number of vertices this mesh has
-		/// @param vertices The list of vertices
-		void SetVertexData(const List<VertexData>& vertices);
+		/// @brief Uploads any pending changes to the GPU
+		/// @return True if the apply was successful
+		bool Apply();
 
-		/// @brief Sets vertex positions for this mesh. NOTE: this will define the number of vertices this mesh has
-		/// @param positions The list of vertex positions
-		void SetPositions(const List<Vector3>& positions);
+		/// @brief Gets the vertices of this mesh
+		/// @return The mesh vertices
+		std::span<const VertexData> GetVertices() const { return _vertices; }
 
-		/// @brief Sets the normals for the mesh
-		/// @param normals The list of normals
-		void SetNormals(const List<Vector3>& normals);
+		/// @brief Gets the indices of this mesh
+		/// @return The mesh indices
+		const std::unordered_map<uint32, std::vector<uint32>>& GetIndices() const { return _indices; }
 
-		/// @brief Sets the uvs for the mesh
-		/// @param uvs The list of UV coordinates
-		void SetUVs(const List<Vector2>& uvs);
+		/// @brief Gets the format of this mesh's vertex data
+		/// @return The format of the vertex data
+		const VertexDataFormat& GetVertexFormat() const { return _vertexFormat; }
 
-		/// @brief Sets the colors for the mesh
-		/// @param colors The list of colors
-		void SetColors(const List<Vector4>& colors);
+		/// @brief Gets the number of vertices this mesh has
+		/// @return The number of vertices
+		uint64 GetVertexCount() const { return _vertexCount; }
 
-		/// @brief Sets the tangents for the mesh
-		/// @param colors The list of tangents
-		void SetTangents(const List<Vector4>& tangents);
-
-		/// @brief Sets the indices for this mesh. NOTE: must be a multiple of 3
-		/// @param indices The list of vertex indices
-		/// @param submeshIndex The index of the submesh that will draw these triangles
-		void SetIndices(const List<uint32_t>& indices, uint submeshIndex);
-
-		/// @brief Ensures this mesh have vertex data for the specified channels
-		/// @param normal If true, default normal data will be added for this mesh
-		/// @param uv If true, default uv data will be added for this mesh
-		/// @param color If true, default color data will be added for this mesh
-		/// @param tangent If true, default tangent data will be added for this mesh
-		void EnsureChannels(bool normal, bool uv, bool color, bool tangent);
-
-		/// @brief Gets if this mesh has changes that haven't been uploaded to the GPU
-		/// @return True if this mesh has changes that haven't been uploaded to the GPU
-		bool GetIsDirty() const noexcept { return _isDirty; }
-
-		/// @brief Uploads any pending changes of this mesh's data to the GPU
-		/// @param deleteLocalData If true, the local mesh data will be cleared and will solely live on the GPU
-		/// @return True if the data was uploaded successfully
-		bool UploadData(bool deleteLocalData = true);
+		/// @brief Gets the number of indices this mesh has
+		/// @return The number of indices
+		uint64 GetIndexCount() const { return _indexCount; }
 
 		/// @brief Gets this mesh's vertex buffer
 		/// @return The vertex buffer
-		Ref<Buffer> GetVertexBuffer() noexcept { return _vertexBuffer; }
+		Ref<Buffer> GetVertexBuffer() const { return _vertexBuffer; }
 
 		/// @brief Gets this mesh's index buffer
 		/// @return The index buffer
-		Ref<Buffer> GetIndexBuffer() noexcept { return _indexBuffer; }
+		Ref<Buffer> GetIndexBuffer() const { return _indexBuffer; }
 
-		/// @brief Gets the number of vertices in this mesh
-		/// @return The number of vertices
-		constexpr uint64_t GetVertexCount() const noexcept { return _vertexCount; }
+		/// @brief Gets the bounds that this entire mesh fits in
+		/// @return The bounds of this mesh
+		const BoundingBox& GetBounds() const { return _meshBounds; }
 
-		/// @brief Gets the number of indices in the mesh
-		/// @return The number of vertex indices
-		constexpr uint64_t GetIndexCount() const noexcept { return _indexCount; }
+		/// @brief Clears all submeshes and their index data from this mesh
+		void ClearSubmeshes();
 
-		/// @brief Gets the number of submeshes in this mesh
-		/// @return The number of submeshes
-		uint64_t GetSubmeshCount() const { return _submeshes.Count(); }
+		/// @brief Gets data for a given submesh.
+		/// NOTE: this is only valid after this mesh has been applied
+		/// @param submeshID The ID of the submesh
+		/// @param outSubmesh Will be set the the submesh data if found
+		/// @return True if a submesh with the given ID was found
+		bool TryGetSubmesh(uint32 submeshID, SubMesh& outSubmesh) const;
 
-		/// @brief Gets the submeshes that make up this mesh
-		/// @return A list of submeshes
-		List<Submesh> GetSubmeshes() const { return _submeshes; }
+		/// @brief Gets all submeshes.
+		/// NOTE: this is only valid after this mesh has been applied
+		/// @return All submeshes and their ids
+		const std::unordered_map<uint32, SubMesh>& GetSubmeshes() const { return _submeshes; }
 
-		/// @brief Calculates normals based on the current vertex data. NOTE: vertex positions and indices must have been set first!
-		void CalculateNormals();
-
-		/// @brief Calculates tangents based on the current vertex data. NOTE: vertex positions, normals and indices must have been set first!
-		/// @return True if the tangents were calculated successfully
-		bool CalculateTangents();
+		/// @brief Calculates this mesh's submeshes
+		void CalculateSubmeshes();
 
 	private:
-		void UploadVertexBufferData(Ref<Buffer> stagingBuffer, bool deleteVertexData);
-		void UploadIndexBufferData(Ref<Buffer> stagingBuffer, bool deleteSubmeshIndices);
+		/// @brief Calculates the bounds of a submesh
+		/// @param submeshID The ID of the submesh
+		/// @return The bounds of the submesh
+		BoundingBox CalculateSubmeshBounds(uint32 submeshID);
 
-		/// @brief Marks this mesh as dirty and needing a re-upload of data
-		void MarkDirty() noexcept;
+		/// @brief Marks this mesh as needing updates
+		void MarkDirty();
 	};
 }

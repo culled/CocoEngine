@@ -1,0 +1,48 @@
+#pragma once
+#include <Coco/Rendering/Providers/RenderViewProvider.h>
+#include <Coco/Core/Types/Transform.h>
+#include <Coco/Rendering/Graphics/AttachmentCache.h>
+#include <Coco/Core/MainLoop/TickListener.h>
+#include <Coco/Input/Mouse.h>
+#include <Coco/Input/Keyboard.h>
+#include <Coco/Core/Events/Event.h>
+
+using namespace Coco;
+using namespace Coco::Rendering;
+
+class RenderViewProvider3D :
+    public RenderViewProvider
+{
+private:
+	AttachmentCache& _attachmentCache;
+	Color _clearColor;
+	MSAASamples _msaaSamples;
+	Transform3D _cameraTransform;
+	double _mouseSensitivity;
+	ManagedRef<TickListener> _tickListener;
+	Vector3 _moveInput;
+	bool _isLooking;
+
+	EventHandler<const Input::MouseStateChange&> _mouseStateChangedHandler;
+	EventHandler<const Input::KeyboardStateChange&> _keyboardStateChangedHandler;
+
+public:
+	RenderViewProvider3D(AttachmentCache& attachmentCache);
+	~RenderViewProvider3D();
+
+	void SetupRenderView(
+		RenderView& renderView,
+		const CompiledRenderPipeline& pipeline,
+		uint64 rendererID,
+		const SizeInt& backbufferSize,
+		std::span<Ref<Image>> backbuffers) final;
+
+	void SetMSAASamples(MSAASamples samples);
+	MSAASamples GetMSAASamples() const { return _msaaSamples; }
+
+private:
+	void Tick(const TickInfo& tickInfo);
+	bool OnMouseStateUpdate(const Input::MouseStateChange& state);
+	bool OnKeyboardStateUpdate(const Input::KeyboardStateChange& state);
+};
+

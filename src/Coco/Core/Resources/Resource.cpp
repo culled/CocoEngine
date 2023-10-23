@@ -1,16 +1,25 @@
+#include "Corepch.h"
 #include "Resource.h"
-#include <Coco/Core/Engine.h>
+#include "../Math/Math.h"
 
 namespace Coco
 {
-	const UUID Resource::InvalidID = UUID::Nil;
+	const ResourceID Resource::InvalidID = Math::MaxValue<ResourceID>();
 
-	Resource::Resource(const ResourceID& id, const string& name) noexcept :
-		ID(id), _name(name), _lastTickUsed(0)
+	Resource::Resource(const ResourceID& id, const string& name) :
+		_id(id),
+		_name(name),
+		_version(0),
+		_contentPath()
 	{}
 
-	void Resource::UpdateTickUsed()
+	void Resource::SetName(const string& name)
 	{
-		_lastTickUsed = Engine::Get()->GetMainLoop()->GetTickCount();
+		_name = name;
+	}
+
+	void Resource::SetVersion(const ResourceVersion& version)
+	{
+		_version = version;
 	}
 }

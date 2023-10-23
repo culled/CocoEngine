@@ -1,237 +1,18 @@
 #pragma once
 
-#include <Coco/Core/API.h>
-
-#include <Coco/Core/Math/Math.h>
+#include "../Defines.h"
 #include "String.h"
+#include "../Math/Math.h"
 
 namespace Coco
 {
-	struct Vector2;
-	struct Vector3;
-	struct Vector4;
-	struct Color;
-
-	/// @brief Represents a 2D vector using integer coordinates
-	struct COCOAPI Vector2Int
-	{
-		/// @brief A zero vector (0, 0)
-		static const Vector2Int Zero;
-
-		/// @brief A vector with 1 for each axis (1, 1)
-		static const Vector2Int One;
-
-		/// @brief The X component
-		int X = 0;
-		
-		/// @brief The Y component
-		int Y = 0;
-
-		Vector2Int() noexcept = default;
-		Vector2Int(int x, int y) noexcept;
-		virtual ~Vector2Int() = default;
-
-		/// @brief Parses a Vector2Int from a string
-		/// @param str The string
-		/// @return The parsed Vector2Int
-		static Vector2Int Parse(const string& str);
-
-		/// @brief Returns the distance between two vectors
-		/// @param a The first vector
-		/// @param b The second vector
-		/// @return The distance between the vectors
-		static double DistanceBetween(const Vector2Int& a, const Vector2Int& b) noexcept;
-
-		/// @brief Gets the squared length of this vector
-		/// @return The squared length
-		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y; }
-
-		/// @brief Gets the length of this vector
-		/// @return The length
-		double GetLength() const noexcept { return Math::Sqrt(GetLengthSquared()); }
-
-		/// @brief Converts this vector to a string
-		/// @return This vector as a string
-		string ToString() const { return FormattedString("{}, {}", X, Y); }
-
-		Vector2Int operator+(const Vector2Int& other) const noexcept { return Vector2Int(X + other.X, Y + other.Y); }
-		void operator+=(const Vector2Int& other) noexcept { X += other.X; Y += other.Y; }
-
-		Vector2Int operator-(const Vector2Int& other) const noexcept { return Vector2Int(X - other.X, Y - other.Y); }
-		void operator-=(const Vector2Int& other) noexcept { X -= other.X; Y -= other.Y; }
-
-		Vector2Int operator*(const Vector2Int& other) const noexcept { return Vector2Int(X * other.X, Y * other.Y); }
-		void operator*=(const Vector2Int& other) noexcept { X *= other.X; Y *= other.Y; }
-
-		Vector2Int operator*(int scalar) const noexcept { return Vector2Int(X * scalar, Y * scalar); }
-		void operator*=(int scalar) noexcept { X *= scalar; Y *= scalar; }
-
-		Vector2Int operator/(const Vector2Int& other) const noexcept { return Vector2Int(X / other.X, Y / other.Y); }
-		void operator/=(const Vector2Int& other) noexcept { X /= other.X; Y /= other.Y; }
-
-		Vector2Int operator/(int divisor) const noexcept { return Vector2Int(X / divisor, Y / divisor); }
-		void operator/=(int divisor) noexcept { X /= divisor; Y /= divisor; }
-
-		Vector2Int operator-() const noexcept { return Vector2Int(-X, -Y); }
-
-		bool operator==(const Vector2Int& other) const noexcept { return X == other.X && Y == other.Y; }
-		bool operator!= (const Vector2Int& other) const noexcept { return X != other.X || Y != other.Y; }
-
-		operator Vector2() const noexcept;
-	};
-
-	/// @brief Represents a 3D vector using integer coordinates
-	struct COCOAPI Vector3Int
-	{
-		/// @brief A zero vector (0, 0, 0)
-		static const Vector3Int Zero;
-
-		/// @brief A vector with 1 for each axis (1, 1, 1)
-		static const Vector3Int One;
-
-		/// @brief The X component
-		int X = 0;
-
-		/// @brief The Y component
-		int Y = 0;
-
-		/// @brief The Z component
-		int Z = 0;
-
-		Vector3Int() noexcept = default;
-		Vector3Int(int x, int y, int z) noexcept;
-		virtual ~Vector3Int() = default;
-
-		/// @brief Parses a Vector3Int from a string
-		/// @param str The string
-		/// @return The parsed Vector3Int
-		static Vector3Int Parse(const string& str);
-
-		/// @brief Returns the distance between two vectors
-		/// @param a The first vector
-		/// @param b The second vector
-		/// @return The distance between the vectors
-		static double DistanceBetween(const Vector3Int& a, const Vector3Int& b) noexcept;
-
-		/// @brief Gets the squared length of this vector
-		/// @return The squared length
-		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z; }
-
-		/// @brief Gets the length of this vector
-		/// @return The length
-		double GetLength() const noexcept { return Math::Sqrt(GetLengthSquared()); }
-
-		/// @brief Converts this vector to a string
-		/// @return This vector as a string
-		string ToString() const { return FormattedString("{}, {}, {}", X, Y, Z); }
-
-		Vector3Int operator+(const Vector3Int& other) const noexcept { return Vector3Int(X + other.X, Y + other.Y, Z + other.Z); }
-		void operator+=(const Vector3Int& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; }
-
-		Vector3Int operator-(const Vector3Int& other) const noexcept { return Vector3Int(X - other.X, Y - other.Y, Z - other.Z); }
-		void operator-=(const Vector3Int& other) noexcept { X -= other.X; Y -= other.Y; Z -= other.Z; }
-
-		Vector3Int operator*(const Vector3Int& other) const noexcept { return Vector3Int(X * other.X, Y * other.Y, Z * other.Z); }
-		void operator*=(const Vector3Int& other) noexcept { X *= other.X; Y *= other.Y; Z *= other.Z; }
-
-		Vector3Int operator*(int scalar) const noexcept { return Vector3Int(X * scalar, Y * scalar, Z * scalar); }
-		void operator*=(int scalar) noexcept { X *= scalar; Y *= scalar; Z *= scalar; }
-
-		Vector3Int operator/(const Vector3Int& other) const noexcept { return Vector3Int(X / other.X, Y / other.Y, Z / other.Z); }
-		void operator/=(const Vector3Int& other) noexcept { X /= other.X; Y /= other.Y; Z /= other.Z; }
-
-		Vector3Int operator/(int divisor) const noexcept { return Vector3Int(X / divisor, Y / divisor, Z / divisor); }
-		void operator/=(int divisor) noexcept { X /= divisor; Y /= divisor; Z /= divisor; }
-
-		Vector3Int operator-() const noexcept { return Vector3Int(-X, -Y, -Z); }
-
-		bool operator==(const Vector3Int& other) const noexcept { return X == other.X && Y == other.Y && Z == other.Z; }
-		bool operator!= (const Vector3Int& other) const noexcept { return X != other.X || Y != other.Y || Z != other.Z; }
-
-		operator Vector3() const noexcept;
-	};
-
-	/// @brief Represents a 4D vector using integer coordinates
-	struct COCOAPI Vector4Int
-	{
-		/// @brief A zero vector (0, 0, 0, 0)
-		static const Vector4Int Zero;
-
-		/// @brief A vector with 1 for each axis (1, 1, 1, 1)
-		static const Vector4Int One;
-
-		/// @brief The X component
-		int X = 0;
-
-		/// @brief The Y component
-		int Y = 0;
-
-		/// @brief The Z component
-		int Z = 0;
-
-		/// @brief The W component
-		int W = 0;
-
-		Vector4Int() noexcept = default;
-		Vector4Int(int x, int y, int z, int w) noexcept;
-		virtual ~Vector4Int() = default;
-
-		/// @brief Parses a Vector4Int from a string
-		/// @param str The string
-		/// @return The parsed Vector4Int
-		static Vector4Int Parse(const string& str);
-
-		/// @brief Returns the distance between two vectors
-		/// @param a The first vector
-		/// @param b The second vector
-		/// @return The distance between the vectors
-		static double DistanceBetween(const Vector4Int& a, const Vector4Int& b) noexcept;
-
-		/// @brief Gets the squared length of this vector
-		/// @return The squared length
-		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z + W * W; }
-
-		/// @brief Gets the length of this vector
-		/// @return The length
-		double GetLength() const noexcept { return Math::Sqrt(GetLengthSquared()); }
-
-		/// @brief Converts this vector to a string
-		/// @return This vector as a string
-		string ToString() const { return FormattedString("{}, {}, {}, {}", X, Y, Z, W); }
-
-		Vector4Int operator+(const Vector4Int& other) const noexcept { return Vector4Int(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
-		void operator+=(const Vector4Int& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; W += other.W; }
-
-		Vector4Int operator-(const Vector4Int& other) const noexcept { return Vector4Int(X - other.X, Y - other.Y, Z - other.Z, W - other.W); }
-		void operator-=(const Vector4Int& other) noexcept { X -= other.X; Y -= other.Y; Z -= other.Z; W -= other.W; }
-
-		Vector4Int operator*(const Vector4Int& other) const noexcept { return Vector4Int(X * other.X, Y * other.Y, Z * other.Z, W * other.W); }
-		void operator*=(const Vector4Int& other) noexcept { X *= other.X; Y *= other.Y; Z *= other.Z; W *= other.W; }
-
-		Vector4Int operator*(int scalar) const noexcept { return Vector4Int(X * scalar, Y * scalar, Z * scalar, W * scalar); }
-		void operator*=(int scalar) noexcept { X *= scalar; Y *= scalar; Z *= scalar; W *= scalar; }
-
-		Vector4Int operator/(const Vector4Int& other) const noexcept { return Vector4Int(X / other.X, Y / other.Y, Z / other.Z, W / other.W); }
-		void operator/=(const Vector4Int& other) noexcept { X /= other.X; Y /= other.Y; Z /= other.Z; W /= other.W; }
-
-		Vector4Int operator/(int divisor) const noexcept { return Vector4Int(X / divisor, Y / divisor, Z / divisor, W / divisor); }
-		void operator/=(int divisor) noexcept { X /= divisor; Y /= divisor; Z /= divisor; W /= divisor; }
-
-		Vector4Int operator-() const noexcept { return Vector4Int(-X, -Y, -Z, -W); }
-
-		bool operator==(const Vector4Int& other) const noexcept { return X == other.X && Y == other.Y && Z == other.Z && W == other.W; }
-		bool operator!= (const Vector4Int& other) const noexcept { return X != other.X || Y != other.Y || Z != other.Z || W != other.W; }
-
-		operator Vector4() const noexcept;
-	};
-
 	/// @brief Represents a 2D vector using decimal coordinates
-	struct COCOAPI Vector2
+	struct Vector2
 	{
-		/// @brief A zero vector (0, 0)
+		/// @brief A zero-vector (0, 0)
 		static const Vector2 Zero;
 
-		/// @brief A vector with 1 for each axis (1, 1)
+		/// @brief A vector with one in each axis (1, 1)
 		static const Vector2 One;
 
 		/// @brief A vector pointing to the right (1, 0)
@@ -240,114 +21,181 @@ namespace Coco
 		/// @brief A vector pointing to the left (-1, 0)
 		static const Vector2 Left;
 
-		/// @brief A vector pointing up (0, 1)
+		/// @brief A vector pointing upwards (0, 1)
 		static const Vector2 Up;
 
-		/// @brief A vector pointing down (0, -1)
+		/// @brief A vector pointing downwards (0, -1)
 		static const Vector2 Down;
 
-		/// @brief The X component
-		double X = 0.0;
+		/// @brief The x value
+		double X;
 
-		/// @brief The Y component
-		double Y = 0.0;
+		/// @brief The y value
+		double Y;
 
-		Vector2() = default;
-		Vector2(double x, double y) noexcept;
-		Vector2(const Vector3& vec) noexcept;
-		virtual ~Vector2() = default;
+		Vector2();
+		Vector2(double x, double y);
 
-		/// @brief Parses a Vector2 from a string
-		/// @param str The string
-		/// @return The parsed Vector2
-		static Vector2 Parse(const string& str);
+		Vector2 operator+(const Vector2& other) const { return Vector2(X + other.X, Y + other.Y); }
+		Vector2 operator-(const Vector2& other) const { return Vector2(X - other.X, Y - other.Y); }
 
-		/// @brief Returns the distance between two vectors
-		/// @param a The first vector
-		/// @param b The second vector
-		/// @return The distance between the vectors
-		static double DistanceBetween(const Vector2& a, const Vector2& b) noexcept;
+		constexpr void operator+=(const Vector2& other) { X += other.X; Y += other.Y; }
+		constexpr void operator-=(const Vector2& other) { X -= other.X; Y -= other.Y; }
 
-		/// @brief Calculates the dot product of A and B
-		/// @param a The first vector
-		/// @param b The second vector
-		/// @return The dot product
-		static double Dot(const Vector2& a, const Vector2& b) noexcept { return a.Dot(b); }
+		Vector2 operator*(double scalar) const { return Vector2(X * scalar, Y * scalar); }
+		Vector2 operator/(double divisor) const { return Vector2(X / divisor, Y / divisor); }
+
+		constexpr void operator*=(double scalar) { X *= scalar; Y *= scalar; }
+		constexpr void operator/=(double divisor) { X /= divisor; Y /= divisor; }
+
+		Vector2 operator*(const Vector2& other) const { return Vector2(X * other.X, Y * other.Y); }
+		Vector2 operator/(const Vector2& other) const { return Vector2(X / other.X, Y / other.Y); }
+
+		constexpr void operator*=(const Vector2& other) { X *= other.X; Y *= other.Y; }
+		constexpr void operator/=(const Vector2& other) { X /= other.X; Y /= other.Y; }
+
+		Vector2 operator-() const { return Vector2(-X, -Y); }
+
+		/// @brief Returns the distance between two points
+		/// @param p0 The first point
+		/// @param p1 The second point
+		/// @return The distance between the points
+		static double DistanceBetween(const Vector2& p0, const Vector2& p1) { return(p0 - p1).GetLength(); }
+
+		/// @brief Determines if this vector equals another
+		/// @param other The other vector
+		/// @param threshold The difference tolerance
+		/// @return True if the two vectors are equal
+		constexpr bool Equals(const Vector2& other, double threshold = Math::LaxEpsilon) const
+		{
+			return Math::Approximately(X, other.X, threshold) &&
+				Math::Approximately(Y, other.Y, threshold);
+		}
 
 		/// @brief Gets the squared length of this vector
 		/// @return The squared length
-		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y; }
+		constexpr double GetLengthSquared() const { return X * X + Y * Y; }
 
 		/// @brief Gets the length of this vector
 		/// @return The length
-		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y); }
+		double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
 
 		/// @brief Normalizes this vector
 		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
-		void Normalize(bool safe = true) noexcept;
+		void Normalize(bool safe = true);
 
 		/// @brief Gets a normalized copy of this vector
 		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
 		/// @return A normalized copy of this vector
-		Vector2 Normalized(bool safe = true) const noexcept;
-
-		/// @brief Compares if this vector equals another vector
-		/// @param other The other vector
-		/// @param tolerance The difference tolerance
-		/// @return True if the two vectors are within the tolerance of each other
-		bool Equals(const Vector2& other, double tolerance = Math::Epsilon) const noexcept 
-		{ return Math::Approximately(X, other.X, tolerance) && Math::Approximately(Y, other.Y, tolerance); }
+		Vector2 Normalized(bool safe = true) const;
 
 		/// @brief Calculates the dot product of this vector with another vector
 		/// @param other The other vector
 		/// @return The dot product of this vector and the other vector
-		double Dot(const Vector2& other) const noexcept { return X * other.X + Y * other.Y; }
+		double Dot(const Vector2& other) const { return X * other.X + Y * other.Y; }
 
 		/// @brief Projects this vector along a normal vector.
 		/// @param normal The normal vector
 		/// @return The projected vector
-		Vector2 Project(const Vector2& normal) const noexcept;
+		Vector2 Project(const Vector2& normal) const;
 
 		/// @brief Calculates this vector reflected on a plane with the given normal
 		/// @param normal The normal vector
 		/// @return The reflection vector
-		Vector2 Reflect(const Vector2& normal) const noexcept;
+		Vector2 Reflect(const Vector2& normal) const;
 
 		/// @brief Calculates this vector refracted through a plane with the given normal
 		/// @param normal The normal vector
 		/// @param ior The index of refraction
 		/// @return The refraction vector
-		Vector2 Refract(const Vector2& normal, double ior) const noexcept;
+		//Vector2 Refract(const Vector2& normal, double ior) const;
 
-		/// @brief Converts this vector to a string
+		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
-		string ToString() const { return FormattedString("{}, {}", X, Y); }
+		string ToString() const;
+	};
 
-		Vector2 operator+(const Vector2& other) const noexcept { return Vector2(X + other.X, Y + other.Y); }
-		void operator+=(const Vector2& other) noexcept { X += other.X; Y += other.Y; }
+	/// @brief Represents a 2D vector using integer coordinates
+	struct Vector2Int
+	{
+		/// @brief A zero-vector (0, 0)
+		static const Vector2Int Zero;
 
-		Vector2 operator-(const Vector2& other) const noexcept { return Vector2(X - other.X, Y - other.Y); }
-		void operator-=(const Vector2& other) noexcept { X -= other.X; Y -= other.Y; }
+		/// @brief A vector with one in each axis (1, 1)
+		static const Vector2Int One;
 
-		Vector2 operator*(const Vector2& other) const noexcept { return Vector2(X * other.X, Y * other.Y); }
-		void operator*=(const Vector2& other) noexcept { X *= other.X; Y *= other.Y; }
+		/// @brief A vector pointing to the right (1, 0)
+		static const Vector2Int Right;
 
-		Vector2 operator*(double scalar) const noexcept { return Vector2(X * scalar, Y * scalar); }
-		void operator*=(double scalar) noexcept { X *= scalar; Y *= scalar; }
+		/// @brief A vector pointing to the left (-1, 0)
+		static const Vector2Int Left;
 
-		Vector2 operator/(double divisor) const noexcept { return Vector2(X / divisor, Y / divisor); }
-		void operator/=(double divisor) noexcept { X /= divisor; Y /= divisor; }
+		/// @brief A vector pointing upwards (0, 1)
+		static const Vector2Int Up;
 
-		Vector2 operator-() const noexcept { return Vector2(-X, -Y); }
+		/// @brief A vector pointing downwards (0, -1)
+		static const Vector2Int Down;
 
-		operator Vector3() const noexcept;
+		/// @brief The x value
+		int X;
 
-		bool operator==(const Vector2& other) noexcept { return Equals(other); }
-		bool operator!=(const Vector2& other) noexcept { return !Equals(other); }
+		/// @brief The y value
+		int Y;
+
+		Vector2Int();
+		Vector2Int(int x, int y);
+
+		Vector2Int operator+(const Vector2Int& other) const { return Vector2Int(X + other.X, Y + other.Y); }
+		Vector2Int operator-(const Vector2Int& other) const { return Vector2Int(X - other.X, Y - other.Y); }
+
+		constexpr void operator+=(const Vector2Int& other) { X += other.X; Y += other.Y; }
+		constexpr void operator-=(const Vector2Int& other) { X -= other.X; Y -= other.Y; }
+
+		Vector2Int operator*(int scalar) const { return Vector2Int(X * scalar, Y * scalar); }
+		Vector2Int operator/(int divisor) const { return Vector2Int(X / divisor, Y / divisor); }
+
+		constexpr void operator*=(int scalar) { X *= scalar; Y *= scalar; }
+		constexpr void operator/=(int divisor) { X /= divisor; Y /= divisor; }
+
+		Vector2Int operator*(const Vector2Int& other) const { return Vector2Int(X * other.X, Y * other.Y); }
+		Vector2Int operator/(const Vector2Int& other) const { return Vector2Int(X / other.X, Y / other.Y); }
+
+		constexpr void operator*=(const Vector2Int& other) { X *= other.X; Y *= other.Y; }
+		constexpr void operator/=(const Vector2Int& other) { X /= other.X; Y /= other.Y; }
+
+		constexpr bool operator==(const Vector2Int& other) const { return Equals(other); }
+		constexpr bool operator!=(const Vector2Int& other) const { return !Equals(other); }
+
+		Vector2Int operator-() const { return Vector2Int(-X, -Y); }
+
+		operator Vector2() const { return Vector2(X, Y); }
+
+		/// @brief Returns the distance between two points
+		/// @param p0 The first point
+		/// @param p1 The second point
+		/// @return The distance between the points
+		static double DistanceBetween(const Vector2Int& p0, const Vector2Int& p1) { return(p0 - p1).GetLength(); }
+
+		/// @brief Determines if this vector equals another
+		/// @param other The other vector
+		/// @return True if the two vectors are equal
+		constexpr bool Equals(const Vector2Int& other) const { return X == other.X && Y == other.Y; }
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr int GetLengthSquared() const { return X * X + Y * Y; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
+
+		/// @brief Gets the string representation of this vector
+		/// @return This vector as a string
+		string ToString() const;
 	};
 
 	/// @brief Represents a 3D vector using decimal coordinates
-	struct COCOAPI Vector3
+	struct Vector3
 	{
 		/// @brief A zero vector (0, 0, 0)
 		static const Vector3 Zero;
@@ -361,140 +209,224 @@ namespace Coco
 		/// @brief A vector pointing to the left (-1, 0, 0)
 		static const Vector3 Left;
 
-		/// @brief A vector pointing up (0, 0, 1)
+		/// @brief A vector pointing up (0, 1, 0)
 		static const Vector3 Up;
 
-		/// @brief A vector pointing down (0, 0, -1)
+		/// @brief A vector pointing down (0, -1, 0)
 		static const Vector3 Down;
 
-		/// @brief A vector pointing forward (0, 1, 0)
-		static const Vector3 Forwards;
+		/// @brief A vector pointing forward (0, 0, -1)
+		static const Vector3 Forward;
 
-		/// @brief A vector pointing backward (0, -1, 0)
-		static const Vector3 Backwards;
+		/// @brief A vector pointing backward (0, 0, 1)
+		static const Vector3 Backward;
 
 		/// @brief The X component
-		double X = 0.0;
+		double X;
 
 		/// @brief The Y component
-		double Y = 0.0;
+		double Y;
 
 		/// @brief The Z component
-		double Z = 0.0;
+		double Z;
 
-		Vector3() = default;
-		Vector3(double x, double y, double z) noexcept;
-		Vector3(const Vector2& vec2, double z = 0.0) noexcept;
-		Vector3(const Vector4& vec4) noexcept;
-		virtual ~Vector3() = default;
+		Vector3();
+		Vector3(double x, double y, double z);
+		Vector3(const Vector2& vec2, double z = 0.0);
 
-		/// @brief Parses a Vector3 from a string
-		/// @param str The string
-		/// @return The parsed Vector3
-		static Vector3 Parse(const string& str);
+		Vector3 operator+(const Vector3& other) const { return Vector3(X + other.X, Y + other.Y, Z + other.Z); }
+		Vector3 operator-(const Vector3& other) const { return Vector3(X - other.X, Y - other.Y, Z - other.Z); }
 
-		/// @brief Returns the distance between two vectors
-		/// @param a The first vector
-		/// @param b The second vector
-		/// @return The distance between the vectors
-		static double DistanceBetween(const Vector3& a, const Vector3& b) noexcept;
+		constexpr void operator+=(const Vector3& other) { X += other.X; Y += other.Y; Z += other.Z; }
+		constexpr void operator-=(const Vector3& other) { X -= other.X; Y -= other.Y; Z -= other.Z; }
 
-		/// @brief Calculates the dot product of A and B
-		/// @param a The first vector
-		/// @param b The second vector
-		/// @return The dot product
-		static double Dot(const Vector3& a, const Vector3& b) noexcept { return a.Dot(b); }
+		Vector3 operator*(const Vector3& other) const { return Vector3(X * other.X, Y * other.Y, Z * other.Z); }
+		Vector3 operator*(double scalar) const { return Vector3(X * scalar, Y * scalar, Z * scalar); }
 
-		/// @brief Calculates the cross product of A and B. The resulting vector is orthogonal to both vectors
-		/// @param a The first vector
-		/// @param b The second vector
-		/// @return The cross product
-		static Vector3 Cross(const Vector3& a, const Vector3& b) noexcept { return a.Cross(b); }
+		constexpr void operator*=(const Vector3& other) { X *= other.X; Y *= other.Y; Z *= other.Z; }
+		constexpr void operator*=(double scalar) { X *= scalar; Y *= scalar; Z *= scalar; }
 
-		/// @brief Gets the squared length of this vector
-		/// @return The squared length
-		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z; }
+		Vector3 operator/(const Vector3& other) const { return Vector3(X / other.X, Y / other.Y, Z / other.Z); }
+		Vector3 operator/(double divisor) const { return Vector3(X / divisor, Y / divisor, Z / divisor); }
 
-		/// @brief Gets the length of this vector
-		/// @return The length
-		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y + Z * Z); }
+		constexpr void operator/=(const Vector3& other) { X /= other.X; Y /= other.Y; Z /= other.Z; }
+		constexpr void operator/=(double divisor) { X /= divisor; Y /= divisor; Z /= divisor; }
 
-		/// @brief Normalizes this vector
-		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
-		void Normalize(bool safe = true) noexcept;
+		Vector3 operator-() const { return Vector3(-X, -Y, -Z); }
 
-		/// @brief Gets a normalized copy of this vector
-		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
-		/// @return A normalized copy of this vector
-		Vector3 Normalized(bool safe = true) const noexcept;
+		/// @brief Returns the distance between two points
+		/// @param p0 The first point
+		/// @param p1 The second point
+		/// @return The distance between the point
+		static double DistanceBetween(const Vector3& p0, const Vector3& p1) { return(p0 - p1).GetLength(); }
 
 		/// @brief Compares if this vector equals another vector
 		/// @param other The other vector
 		/// @param tolerance The difference tolerance
 		/// @return True if the two vectors are within the tolerance of each other
-		bool Equals(const Vector3& other, double tolerance = Math::Epsilon) const noexcept
+		constexpr bool Equals(const Vector3& other, double tolerance = Math::LaxEpsilon) const
 		{
-			return Math::Approximately(X, other.X, tolerance) && Math::Approximately(Y, other.Y, tolerance) && Math::Approximately(Z, other.Z, tolerance);
+			return Math::Approximately(X, other.X, tolerance) &&
+				Math::Approximately(Y, other.Y, tolerance) &&
+				Math::Approximately(Z, other.Z, tolerance);
 		}
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr double GetLengthSquared() const { return X * X + Y * Y + Z * Z; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		double GetLength() const { return Math::Sqrt(X * X + Y * Y + Z * Z); }
+
+		/// @brief Normalizes this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		void Normalize(bool safe = true);
+
+		/// @brief Gets a normalized copy of this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		/// @return A normalized copy of this vector
+		Vector3 Normalized(bool safe = true) const;
 
 		/// @brief Calculates the dot product of this vector with another vector
 		/// @param other The other vector
 		/// @return The dot product of this vector and the other vector
-		double Dot(const Vector3& other) const noexcept { return X * other.X + Y * other.Y + Z * other.Z; }
+		constexpr double Dot(const Vector3& other) const { return X * other.X + Y * other.Y + Z * other.Z; }
 
 		/// @brief Calculates the cross product of this vector with another vector. The resulting vector is orthogonal to both vectors
 		/// @param other The other vector
 		/// @return The cross product
-		Vector3 Cross(const Vector3& other) const noexcept { return Vector3( Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X); }
+		Vector3 Cross(const Vector3& other) const 
+		{ 
+			return Vector3(
+				Y * other.Z - Z * other.Y, 
+				Z * other.X - X * other.Z, 
+				X * other.Y - Y * other.X); 
+		}
 
 		/// @brief Projects this vector along a normal vector.
 		/// @param normal The normal vector
 		/// @return The projected vector
-		Vector3 Project(const Vector3& normal) const noexcept;
+		Vector3 Project(const Vector3& normal) const;
 
 		/// @brief Calculates this vector reflected on a plane with the given normal
 		/// @param normal The normal vector
 		/// @return The reflection vector
-		Vector3 Reflect(const Vector3& normal) const noexcept;
+		Vector3 Reflect(const Vector3& normal) const;
+
+		/// @brief Calculates a vector that is orthogonal to this vector
+		/// @return An orthogonal vector
+		Vector3 Orthogonal() const;
 
 		/// @brief Calculates this vector refracted through a plane with the given normal
 		/// @param normal The normal vector
 		/// @param ior The index of refraction
 		/// @return The refraction vector
-		Vector3 Refract(const Vector3& normal, double ior) const noexcept;
+		//Vector3 Refract(const Vector3& normal, double ior) const;
 
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
-		string ToString() const { return FormattedString("{}, {}, {}", X, Y, Z); }
+		string ToString() const;
 
-		Vector3 operator+(const Vector3& other) const noexcept { return Vector3(X + other.X, Y + other.Y, Z + other.Z); }
-		void operator+=(const Vector3& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; }
+		/// @brief Converts this vector to a Vector2
+		/// @return A Vector2
+		Vector2 XY() const { return Vector2(X, Y); }
+	};
 
-		Vector3 operator-(const Vector3& other) const noexcept { return Vector3(X - other.X, Y - other.Y, Z - other.Z); }
-		void operator-=(const Vector3& other) noexcept { X -= other.X; Y -= other.Y; Z -= other.Z; }
+	/// @brief Represents a 3D vector using integer coordinates
+	struct Vector3Int
+	{
+		/// @brief A zero-vector (0, 0, 0)
+		static const Vector3Int Zero;
 
-		Vector3 operator*(const Vector3& other) const noexcept { return Vector3(X * other.X, Y * other.Y, Z * other.Z); }
-		void operator*=(const Vector3& other) noexcept { X *= other.X; Y *= other.Y; Z *= other.Z; }
+		/// @brief A vector with one in each axis (1, 1, 1)
+		static const Vector3Int One;
 
-		Vector3 operator*(double scalar) const noexcept { return Vector3(X * scalar, Y * scalar, Z * scalar); }
-		void operator*=(double scalar) noexcept { X *= scalar; Y *= scalar; Z *= scalar; }
+		/// @brief A vector pointing to the right (1, 0, 0)
+		static const Vector3Int Right;
 
-		Vector3 operator/(const Vector3& other) const noexcept { return Vector3(X / other.X, Y / other.Y, Z / other.Z); }
-		void operator/=(const Vector3& other) noexcept { X /= other.X; Y /= other.Y; Z /= other.Z; }
+		/// @brief A vector pointing to the left (-1, 0, 0)
+		static const Vector3Int Left;
 
-		Vector3 operator/(double divisor) const noexcept { return Vector3(X / divisor, Y / divisor, Z / divisor); }
-		void operator/=(double divisor) noexcept { X /= divisor; Y /= divisor; Z /= divisor; }
+		/// @brief A vector pointing upwards (0, 1, 0)
+		static const Vector3Int Up;
 
-		Vector3 operator-() const noexcept { return Vector3(-X, -Y, -Z); }
+		/// @brief A vector pointing downwards (0, -1, 0)
+		static const Vector3Int Down;
 
-		operator Vector4() const noexcept;
+		/// @brief A vector pointing forward (0, 0, -1)
+		static const Vector3Int Forward;
 
-		bool operator==(const Vector3& other) noexcept { return Equals(other); }
-		bool operator!=(const Vector3& other) noexcept { return !Equals(other); }
+		/// @brief A vector pointing backwards (0, 0, 1)
+		static const Vector3Int Backward;
+
+		/// @brief The x value
+		int X;
+
+		/// @brief The y value
+		int Y;
+
+		/// @brief The z value
+		int Z;
+
+		Vector3Int();
+		Vector3Int(int x, int y, int z);
+
+		Vector3Int operator+(const Vector3Int& other) const { return Vector3Int(X + other.X, Y + other.Y, Z + other.Z); }
+		Vector3Int operator-(const Vector3Int& other) const { return Vector3Int(X - other.X, Y - other.Y, Z - other.Z); }
+
+		constexpr void operator+=(const Vector3Int& other) { X += other.X; Y += other.Y; Z += other.Z; }
+		constexpr void operator-=(const Vector3Int& other) { X -= other.X; Y -= other.Y; Z -= other.Z; }
+
+		Vector3Int operator*(int scalar) const { return Vector3Int(X * scalar, Y * scalar, Z * scalar); }
+		Vector3Int operator/(int divisor) const { return Vector3Int(X / divisor, Y / divisor, Z / divisor); }
+
+		constexpr void operator*=(int scalar) { X *= scalar; Y *= scalar; Z *= scalar; }
+		constexpr void operator/=(int divisor) { X /= divisor; Y /= divisor; Z /= divisor; }
+
+		Vector3Int operator*(const Vector3Int& other) const { return Vector3Int(X * other.X, Y * other.Y, Z * other.Z); }
+		Vector3Int operator/(const Vector3Int& other) const { return Vector3Int(X / other.X, Y / other.Y, Z / other.Z); }
+
+		constexpr void operator*=(const Vector3Int& other) { X *= other.X; Y *= other.Y; Z *= other.Z; }
+		constexpr void operator/=(const Vector3Int& other) { X /= other.X; Y /= other.Y; Z /= other.Z; }
+
+		constexpr bool operator==(const Vector3Int& other) const { return Equals(other); }
+		constexpr bool operator!=(const Vector3Int& other) const { return !Equals(other); }
+
+		Vector3Int operator-() const { return Vector3Int(-X, -Y, -Z); }
+
+		operator Vector3() const { return Vector3(X, Y, Z); }
+
+		/// @brief Returns the distance between two points
+		/// @param p0 The first point
+		/// @param p1 The second point
+		/// @return The distance between the points
+		static double DistanceBetween(const Vector3Int& p0, const Vector3Int& p1) { return (p0 - p1).GetLength(); }
+
+		/// @brief Determines if this vector equals another
+		/// @param other The other vector
+		/// @return True if the two vectors are equal
+		constexpr bool Equals(const Vector3Int& other) const { return X == other.X && Y == other.Y && Z == other.Z; }
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr int GetLengthSquared() const { return X * X + Y * Y + Z * Z; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
+
+		/// @brief Gets the string representation of this vector
+		/// @return This vector as a string
+		string ToString() const;
+
+		/// @brief Converts this vector to a Vector2Int
+		/// @return A Vector2Int
+		Vector2Int XY() const { return Vector2Int(X, Y); }
 	};
 
 	/// @brief Represents a 4D vector using decimal coordinates
-	struct COCOAPI Vector4
+	struct Vector4
 	{
 		/// @brief A zero vector (0, 0, 0, 0)
 		static const Vector4 Zero;
@@ -503,95 +435,173 @@ namespace Coco
 		static const Vector4 One;
 
 		/// @brief The X component
-		double X = 0.0;
+		double X;
 
 		/// @brief The Y component
-		double Y = 0.0;
+		double Y;
 
 		/// @brief The Z component
-		double Z = 0.0;
+		double Z;
 
 		/// @brief The W component
-		double W = 0.0;
+		double W;
 
-		Vector4() = default;
-		Vector4(double x, double y, double z, double w) noexcept;
-		Vector4(const Vector2& vec2, double z = 0.0, double w = 0.0) noexcept;
-		Vector4(const Vector3& vec3, double w = 0.0) noexcept;
-		virtual ~Vector4() = default;
-		
-		/// @brief Parses a Vector4 from a string
-		/// @param str The string
-		/// @return The parsed Vector4
-		static Vector4 Parse(const string& str);
+		Vector4();
+		Vector4(double x, double y, double z, double w);
+		Vector4(const Vector2& vec2, double z = 0.0, double w = 0.0);
+		Vector4(const Vector3& vec3, double w = 0.0);
 
-		/// @brief Calculates the dot product of A and B
-		/// @param a The first vector
-		/// @param b The second vector
-		/// @return The dot product
-		static double Dot(const Vector4& a, const Vector4& b) noexcept { return a.Dot(b); }
+		Vector4 operator+(const Vector4& other) const { return Vector4(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
+		Vector4 operator-(const Vector4& other) const { return Vector4(X - other.X, Y - other.Y, Z - other.Z, W - other.W); }
 
-		/// @brief Gets the squared length of this vector
-		/// @return The squared length
-		constexpr double GetLengthSquared() const noexcept { return X * X + Y * Y + Z * Z + W * W; }
+		void operator+=(const Vector4& other) { X += other.X; Y += other.Y; Z += other.Z; W += other.W; }
+		void operator-=(const Vector4& other) { X -= other.X; Y -= other.Y; Z -= other.Z; W -= other.W; }
 
-		/// @brief Gets the length of this vector
-		/// @return The length
-		double GetLength() const noexcept { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
+		Vector4 operator*(const Vector4& other) const { return Vector4(X * other.X, Y * other.Y, Z * other.Z, W * other.W); }
+		Vector4 operator*(double scalar) const { return Vector4(X * scalar, Y * scalar, Z * scalar, W * scalar); }
 
-		/// @brief Normalizes this vector
-		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
-		void Normalize(bool safe = true) noexcept;
+		void operator*=(const Vector4& other) { X *= other.X; Y *= other.Y; Z *= other.Z; W *= other.W; }
+		void operator*=(double scalar) { X *= scalar; Y *= scalar; Z *= scalar; W *= scalar; }
 
-		/// @brief Gets a normalized copy of this vector
-		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
-		/// @return A normalized copy of this vector
-		Vector4 Normalized(bool safe = true) const noexcept;
+		Vector4 operator/(const Vector4& other) const { return Vector4(X / other.X, Y / other.Y, Z / other.Z, W / other.W); }
+		Vector4 operator/(double divisor) const { return Vector4(X / divisor, Y / divisor, Z / divisor, W / divisor); }
+
+		void operator/=(const Vector4& other) { X /= other.X; Y /= other.Y; Z /= other.Z; W /= other.W; }
+		void operator/=(double divisor) { X /= divisor; Y /= divisor; Z /= divisor; W /= divisor; }
+
+		Vector4 operator-() const { return Vector4(-X, -Y, -Z, -W); }
+
+		/// @brief Returns the distance between two points
+		/// @param p0 The first point
+		/// @param p1 The second point
+		/// @return The distance between the point
+		static double DistanceBetween(const Vector4& p0, const Vector4& p1);
 
 		/// @brief Compares if this vector equals another vector
 		/// @param other The other vector
 		/// @param tolerance The difference tolerance
 		/// @return True if the two vectors are within the tolerance of each other
-		bool Equals(const Vector4& other, double tolerance = Math::Epsilon) const noexcept
+		constexpr bool Equals(const Vector4& other, double tolerance = Math::LaxEpsilon) const
 		{
-			return Math::Approximately(X, other.X, tolerance) && 
-				Math::Approximately(Y, other.Y, tolerance) && 
-				Math::Approximately(Z, other.Z, tolerance) && 
+			return Math::Approximately(X, other.X, tolerance) &&
+				Math::Approximately(Y, other.Y, tolerance) &&
+				Math::Approximately(Z, other.Z, tolerance) &&
 				Math::Approximately(W, other.W, tolerance);
 		}
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr double GetLengthSquared() const { return X * X + Y * Y + Z * Z + W * W; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		double GetLength() const { return Math::Sqrt(X * X + Y * Y + Z * Z + W * W); }
+
+		/// @brief Normalizes this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		void Normalize(bool safe = true);
+
+		/// @brief Gets a normalized copy of this vector
+		/// @param safe If true, a check will be done to ensure the vector has a non-zero length
+		/// @return A normalized copy of this vector
+		Vector4 Normalized(bool safe = true) const;
 
 		/// @brief Calculates the dot product of this vector with another vector
 		/// @param other The other vector
 		/// @return The dot product of this vector and the other vector
-		double Dot(const Vector4& other) const noexcept { return X * other.X + Y * other.Y + Z * other.Z + W * other.W; }
+		constexpr double Dot(const Vector4& other) const { return X * other.X + Y * other.Y + Z * other.Z + W * other.W; }
 
 		/// @brief Converts this vector to a string
 		/// @return This vector as a string
-		string ToString() const { return FormattedString("{}, {}, {}, {}", X, Y, Z, W); }
+		string ToString() const;
 
-		Vector4 operator+(const Vector4& other) const noexcept { return Vector4(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
-		void operator+=(const Vector4& other) noexcept { X += other.X; Y += other.Y; Z += other.Z; W += other.W; }
+		/// @brief Converts this vector to a Vector2
+		/// @return A Vector2
+		Vector2 XY() const { return Vector2(X, Y); }
 
-		Vector4 operator-(const Vector4& other) const noexcept { return Vector4(X - other.X, Y - other.Y, Z - other.Z, W - other.W); }
-		void operator-=(const Vector4& other) noexcept { X -= other.X; Y -= other.Y; Z -= other.Z; W -= other.W; }
+		/// @brief Converts this vector to a Vector3
+		/// @return A Vector3
+		Vector3 XYZ() const { return Vector3(X, Y, Z); }
+	};
 
-		Vector4 operator*(const Vector4& other) const noexcept { return Vector4(X * other.X, Y * other.Y, Z * other.Z, W * other.W); }
-		void operator*=(const Vector4& other) noexcept { X *= other.X; Y *= other.Y; Z *= other.Z; W *= other.W; }
+	/// @brief Represents a 4D vector using integer coordinates
+	struct Vector4Int
+	{
+		/// @brief A zero-vector (0, 0, 0, 0)
+		static const Vector4Int Zero;
 
-		Vector4 operator*(double scalar) const noexcept { return Vector4(X * scalar, Y * scalar, Z * scalar, W * scalar); }
-		void operator*=(double scalar) noexcept { X *= scalar; Y *= scalar; Z *= scalar; W *= scalar; }
+		/// @brief A vector with one in each axis (1, 1, 1, 1)
+		static const Vector4Int One;
 
-		Vector4 operator/(const Vector4& other) const noexcept { return Vector4(X / other.X, Y / other.Y, Z / other.Z, W / other.W); }
-		void operator/=(const Vector4& other) noexcept { X /= other.X; Y /= other.Y; Z /= other.Z; W /= other.W; }
+		/// @brief The x value
+		int X;
 
-		Vector4 operator/(double divisor) const noexcept { return Vector4(X / divisor, Y / divisor, Z / divisor, W / divisor); }
-		void operator/=(double divisor) noexcept { X /= divisor; Y /= divisor; Z /= divisor; W /= divisor; }
+		/// @brief The y value
+		int Y;
 
-		Vector4 operator-() const noexcept { return Vector4(-X, -Y, -Z, -W); }
+		/// @brief The z value
+		int Z;
 
-		bool operator==(const Vector4& other) noexcept { return Equals(other); }
-		bool operator!=(const Vector4& other) noexcept { return !Equals(other); }
+		/// @brief The w value
+		int W;
 
-		operator Color() const noexcept;
+		Vector4Int();
+		Vector4Int(int x, int y, int z, int w);
+
+		Vector4Int operator+(const Vector4Int& other) const { return Vector4Int(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
+		Vector4Int operator-(const Vector4Int& other) const { return Vector4Int(X - other.X, Y - other.Y, Z - other.Z, W - other.W); }
+
+		constexpr void operator+=(const Vector4Int& other) { X += other.X; Y += other.Y; Z += other.Z; W += other.W; }
+		constexpr void operator-=(const Vector4Int& other) { X -= other.X; Y -= other.Y; Z -= other.Z; W -= other.W; }
+
+		Vector4Int operator*(int scalar) const { return Vector4Int(X * scalar, Y * scalar, Z * scalar, W * scalar); }
+		Vector4Int operator/(int divisor) const { return Vector4Int(X / divisor, Y / divisor, Z / divisor, W / divisor); }
+
+		constexpr void operator*=(int scalar) { X *= scalar; Y *= scalar; Z *= scalar; W *= scalar; }
+		constexpr void operator/=(int divisor) { X /= divisor; Y /= divisor; Z /= divisor; W /= divisor; }
+
+		Vector4Int operator*(const Vector4Int& other) const { return Vector4Int(X * other.X, Y * other.Y, Z * other.Z, W * other.W); }
+		Vector4Int operator/(const Vector4Int& other) const { return Vector4Int(X / other.X, Y / other.Y, Z / other.Z, W / other.W); }
+
+		constexpr void operator*=(const Vector4Int& other) { X *= other.X; Y *= other.Y; Z *= other.Z; W *= other.W; }
+		constexpr void operator/=(const Vector4Int& other) { X /= other.X; Y /= other.Y; Z /= other.Z; W /= other.W; }
+
+		constexpr bool operator==(const Vector4Int& other) const { return Equals(other); }
+		constexpr bool operator!=(const Vector4Int& other) const { return !Equals(other); }
+
+		Vector4Int operator-() const { return Vector4Int(-X, -Y, -Z, -W); }
+
+		operator Vector4() const { return Vector4(X, Y, Z, W); }
+
+		/// @brief Returns the distance between two points
+		/// @param p0 The first point
+		/// @param p1 The second point
+		/// @return The distance between the points
+		static double DistanceBetween(const Vector4Int& p0, const Vector4Int& p1) { return (p0 - p1).GetLength(); }
+
+		/// @brief Determines if this vector equals another
+		/// @param other The other vector
+		/// @return True if the two vectors are equal
+		constexpr bool Equals(const Vector4Int& other) const { return X == other.X && Y == other.Y && Z == other.Z && W == other.W; }
+
+		/// @brief Gets the squared length of this vector
+		/// @return The squared length
+		constexpr int GetLengthSquared() const { return X * X + Y * Y + Z * Z + W * W; }
+
+		/// @brief Gets the length of this vector
+		/// @return The length
+		double GetLength() const { return Math::Sqrt(GetLengthSquared()); }
+
+		/// @brief Gets the string representation of this vector
+		/// @return This vector as a string
+		string ToString() const;
+
+		/// @brief Converts this vector to a Vector2Int
+		/// @return A Vector2Int
+		Vector2Int XY() const { return Vector2Int(X, Y); }
+
+		/// @brief Converts this vector to a Vector3Int
+		/// @return A Vector3Int
+		Vector3Int XYZ() const { return Vector3Int(X, Y, Z); }
 	};
 }

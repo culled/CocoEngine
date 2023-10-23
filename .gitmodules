@@ -4,3 +4,15 @@
 [submodule "src/Vendor/uuid_v4"]
 	path = src/Vendor/uuid_v4
 	url = https://github.com/crashoz/uuid_v4.git
+[submodule "src/Vendor/imgui"]
+	path = src/Vendor/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "src/Vendor/yaml-cpp"]
+	path = src/Vendor/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "src/Vendor/entt"]
+	path = src/Vendor/entt
+	url = https://github.com/skypjack/entt.git
+[submodule "src/Vendor/imguizmo"]
+	path = src/Vendor/imguizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git

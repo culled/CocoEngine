@@ -1,187 +1,236 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
+#include "../Corepch.h"
+#include "../Defines.h"
 
-#include <type_traits>
-#include <algorithm>
-
-namespace Coco
+namespace Coco::Math
 {
-	/// @brief A math function library
-	class COCOAPI Math
+	constexpr double PI = std::numbers::pi;
+	constexpr double HalfPI = PI / 2.0;
+	constexpr double InvPI = std::numbers::inv_pi;
+	constexpr double Sqrt2 = std::numbers::sqrt2;
+	constexpr double Deg2RadMultiplier = PI / 180.0;
+	constexpr double Rad2DegMultiplier = 180.0 / PI;
+
+	/// @brief Gets the maximum of two values
+	/// @tparam ValueType The type of values
+	/// @param a The first value
+	/// @param b The second value
+	/// @return The greater of the two values
+	template<typename ValueType>
+	constexpr const ValueType& Max(const ValueType& a, const ValueType& b) { return std::max<ValueType>(a, b); }
+
+	/// @brief Gets the minimum of two values
+	/// @tparam ValueType The type of values
+	/// @param a The first value
+	/// @param b The second value
+	/// @return The lesser of the two values
+	template<typename ValueType>
+	constexpr const ValueType& Min(const ValueType& a, const ValueType& b) { return std::min<ValueType>(a, b); }
+
+	/// @brief Clamps a value between a minimum and a maximum
+	/// @tparam ValueType The type of values
+	/// @param v The value
+	/// @param min The minimum value
+	/// @param max The maximum value
+	/// @return The clamped value
+	template<typename ValueType>
+	constexpr const ValueType& Clamp(const ValueType& v, const ValueType& min, const ValueType& max) { return std::clamp<ValueType>(v, min, max); }
+
+	/// @brief Rounds a value to the nearest whole number
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The rounded value
+	template<typename ValueType>
+	constexpr ValueType Round(const ValueType& v) { return std::round(v); }
+
+	/// @brief Gets the maximum value that a type can hold
+	/// @tparam ValueType The type of value
+	template<typename ValueType>
+	constexpr auto MaxValue = std::numeric_limits<ValueType>::max;
+
+	/// @brief Gets the smallest discernable value of a type
+	/// @tparam ValueType The type of value
+	template<typename ValueType>
+	constexpr auto EpsilonValue = std::numeric_limits<ValueType>::epsilon;
+
+	/// @brief The smallest discernable value of a double 
+	constexpr double Epsilon = EpsilonValue<double>();
+
+	/// @brief A small double value
+	constexpr double LaxEpsilon = 0.000001;
+
+	/// @brief The smallest discernable value of a float 
+	constexpr float EpsilonF = EpsilonValue<float>();
+
+	/// @brief A small float value
+	constexpr float LaxEpsilonF = 0.000001f;
+
+	/// @brief Gets the absolute value of a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The absolute value
+	template<typename ValueType>
+	ValueType Abs(const ValueType& v) { return std::abs(v); }
+
+	/// @brief Raises the given base by the exponent
+	/// @tparam ValueType The type of value
+	/// @param base The base
+	/// @param exp The exponent
+	/// @return The base raised to the power of the exponent
+	template<typename ValueType>
+	ValueType Pow(const ValueType& base, const ValueType& exp) { return std::pow(base, exp); }
+
+	/// @brief Gets the square root of a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The square root
+	template<typename ValueType>
+	double Sqrt(const ValueType& v) { return std::sqrt(v); }
+
+	/// @brief Gets the floor of a value (truncated to the nearest whole number)
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The floored value 
+	template<typename ValueType>
+	double Floor(const ValueType& v) { return std::floor(v); }
+
+	/// @brief Gets the ceiling of a value (Floor(v) + 1)
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The raised value
+	template<typename ValueType>
+	double Ceiling(const ValueType& v) { return std::ceil(v); }
+
+	/// @brief Gets the base-e logarithm for a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The logarithm
+	template<typename ValueType>
+	double Log(const ValueType& v) { return std::log(v); }
+
+	/// @brief Gets the base-10 logarithm for a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The logarithm
+	template<typename ValueType>
+	double Log10(const ValueType& v) { return std::log10(v); }
+
+	/// @brief Gets the base-2 logarithm for a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The logarithm
+	template<typename ValueType>
+	double Log2(const ValueType& v) { return std::log2(v); }
+
+	/// @brief Tests if two decimal values are within range of each other
+	/// @tparam ValueType The type of value
+	/// @param a The first number
+	/// @param b The second number
+	/// @param threshold The threshold that the two numbers must be within range of each other.
+	/// @return True if the two numbers are within the threshold of each other
+	template<typename ValueType>
+	constexpr bool Approximately(const ValueType& a, const ValueType& b, const ValueType& threshold)
 	{
-	public:
-		static constexpr double PI = 3.1415926535897932384626433832795;
-		static constexpr double DoublePI = PI * 2.0;
-		static constexpr double HalfPI = PI * 0.5;
-		static constexpr double QuarterPI = PI * 0.25;
-		static constexpr double OneOverPI = 1.0 / PI;
-		static constexpr double OneOverDoublePI = 1.0 / DoublePI;
-		static constexpr double SqrtTwo = 1.4142135623730950488016887242097;
-		static constexpr double SqrtThree = 1.7320508075688772935274463415059;
-		static constexpr double SqrtOneOverTwo = 0.70710678118654752440084436210485;
-		static constexpr double SqrtOneOverThree = 0.57735026918962576450914878050196;
-		static constexpr double Deg2RadMultiplier = PI / 180.0;
-		static constexpr double Rad2DegMultiplier = 180.0 / PI;
+		return Abs(a - b) <= threshold * Max(Abs(a), Abs(b));
+	}
 
-		static constexpr double SecondsToMillisecondsMultiplier = 1000.0;
-		static constexpr double MillisecondsToSecondsMultiplier = 1.0 / SecondsToMillisecondsMultiplier;
+	/// @brief Tests two decimal types for equality
+	/// @tparam ValueType The type
+	/// @param a The first number
+	/// @param b The second number
+	/// @return True if the two are equal within an acceptable error of each other
+	template<typename ValueType>
+	constexpr bool Equal(const ValueType& a, const ValueType& b) { return Approximately(a, b, EpsilonValue<ValueType>() * 2.0); }
 
-		static constexpr double Infinity = std::numeric_limits<double>::max();
-		static constexpr double Epsilon = std::numeric_limits<double>::epsilon();
+	/// @brief Combines hashes using a seed
+	/// @param seed The seed to use when combining
+	/// @return The combined hash
+	constexpr uint64 CombineHashes(uint64 seed) { return seed; }
 
-	public:
-		/// @brief Converts degrees to radians
-		/// @param degrees The degrees
-		/// @return The equivalent angle in radians
-		static constexpr double Deg2Rad(double degrees) noexcept { return degrees * Deg2RadMultiplier; }
+	/// @brief Combines hashes using a seed
+	/// @tparam ...Hashes The types of hashes
+	/// @param seed The seed to use when combining
+	/// @param value The first hash
+	/// @param ...hashes The remaining hashes
+	/// @return The combined hash
+	template<typename ... Hashes>
+	constexpr uint64 CombineHashes(uint64 seed, uint64 value, Hashes... hashes)
+	{
+		// https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
+		std::hash<uint64> hasher;
+		seed ^= hasher(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		return CombineHashes(seed, hashes...);
+	}
 
-		/// @brief Converts radians to degrees
-		/// @param radians The radians
-		/// @return The equivalent angle in degrees
-		static constexpr double Rad2Deg(double radians) noexcept { return radians * Rad2DegMultiplier; }
+	/// @brief Calculates the cosine of a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The cosine of the value
+	template<typename ValueType>
+	double Cos(const ValueType& v) { return std::cos(v); }
 
-		/// @brief Calculates the sine of an angle
-		/// @param x The angle (in radians)
-		/// @return The sine value
-		static double Sin(double x) noexcept { return sin(x); }
+	/// @brief Calculates the arc-cosine of a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The arc-cosine of the value
+	template<typename ValueType>
+	double Acos(const ValueType& v) { return std::acos(v); }
 
-		/// @brief Calculates the cosine of an angle
-		/// @param x The angle (in radians)
-		/// @return The cosine value
-		static double Cos(double x) noexcept { return cos(x); }
+	/// @brief Calculates the sine of a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The sine of the value
+	template<typename ValueType>
+	double Sin(const ValueType& v) { return std::sin(v); }
 
-		/// @brief Calculates the tangent of an angle
-		/// @param x The angle (in radians)
-		/// @return The tangent value
-		static double Tan(double x) noexcept { return tan(x); }
+	/// @brief Calculates the arc-sine of a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The arc-sine of the value
+	template<typename ValueType>
+	double Asin(const ValueType& v) { return std::asin(v); }
 
-		/// @brief Calculates the arc-sine of a number
-		/// @param x The ratio between the opposite and adjacent side lengths
-		/// @return The angle (in radians)
-		static double Asin(double x) noexcept { return asin(x); }
+	/// @brief Calculates the tangent of a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The tangent of the value
+	template<typename ValueType>
+	double Tan(const ValueType& v) { return std::tan(v); }
 
-		/// @brief Calculates the arc-cosine of a number
-		/// @param x The ratio between the adjacent and hypotenuse side lengths
-		/// @return The angle (in radians)
-		static double Acos(double x) noexcept { return acos(x); }
+	/// @brief Calculates the arc-tangent of a value
+	/// @tparam ValueType The type of value
+	/// @param v The value
+	/// @return The arc-tangent of the value
+	template<typename ValueType>
+	double Atan(const ValueType& v) { return std::atan(v); }
 
-		/// @brief Calculates the arc-tangent of a number
-		/// @param x The ratio between the opposite and hypotenuse side lengths
-		/// @return The angle (in radians)
-		static double Atan(double x) noexcept { return atan(x); }
+	/// @brief Calcualates the atan2 value of an (x, y) coordinate
+	/// @tparam ValueType The type of value
+	/// @param y The Y value
+	/// @param x The X value
+	/// @return The angle
+	template<typename ValueType>
+	double Atan2(const ValueType& y, const ValueType& x) { return std::atan2(y, x); }
 
-		/// @brief Calculates the arc-tangent of an (x,y) vector
-		/// @param x The x value
-		/// @param y The y value
-		/// @return The angle (in radians) from the x-axis
-		static double Atan2(double x, double y) noexcept { return atan2(x, y); }
+	/// @brief Converts degrees to radians
+	/// @tparam ValueType The value type
+	/// @param deg The degrees
+	/// @return The converted radians
+	template<typename ValueType>
+	constexpr double DegToRad(const ValueType& deg) { return deg * Deg2RadMultiplier; }
 
-		/// @brief Calculates the square root of a number
-		/// @param x The number
-		/// @return The square root of the number
-		static double Sqrt(double x) noexcept { return sqrt(x); }
+	/// @brief Converts radians to degrees
+	/// @tparam ValueType The value type
+	/// @param rad The radians
+	/// @return The converted degrees
+	template<typename ValueType>
+	constexpr double RadToDeg(const ValueType& rad) { return rad * Rad2DegMultiplier; }
 
-		/// @brief Calculates the absolute value of an number
-		/// @tparam T 
-		/// @param x The number
-		/// @return The absolute value of the number
-		template<typename T>
-		static T Abs(const T x) noexcept { return abs(x); }
-
-		/// @brief Determines if the given number is a power of two
-		/// @param x The number
-		/// @return True if the number is a power of two
-		static constexpr bool IsPowerOfTwo(uint64_t x) noexcept { return (x != 0) && ((x & (x - 1)) == 0); }
-
-		/// @brief Compares if two numbers values are within a tolerance of each other. Use this instead of "a == b" to compare decimal numbers due to rounding errors
-		/// @tparam T 
-		/// @param a The first number
-		/// @param b The second number
-		/// @param tolerance The acceptable error between the two values
-		/// @return True if the numbers are within error of each other
-		template<typename T>
-		static bool Approximately(const T a, const T b, const T tolerance = Math::Epsilon) noexcept { return Abs(a - b) <= tolerance; }
-
-		/// @brief Returns the greater of two numbers
-		/// @tparam T 
-		/// @param a The first number
-		/// @param b The second number
-		/// @return The greater of the two numbers
-		template<typename T>
-		static constexpr T Max(T a, T b) noexcept { return std::max(a, b); }
-
-		/// @brief Returns the smaller of two numbers
-		/// @tparam T 
-		/// @param a The first number
-		/// @param b The second number
-		/// @return The smaller of the two numbers
-		template<typename T>
-		static constexpr T Min(T a, T b) noexcept { return std::min(a, b); }
-
-		/// @brief Clamps a number between a minimum and a maximum
-		/// @tparam T 
-		/// @param x The number 
-		/// @param minimum The minimum
-		/// @param maximum The maximum
-		/// @return The number clamped in the range [minimum, maximum]
-		template<typename T>
-		static constexpr T Clamp(T x, T minimum, T maximum) noexcept { return std::clamp(x, minimum, maximum); }
-
-		/// @brief Rounds a number to the closest non-decimal value
-		/// @tparam T 
-		/// @param x The number 
-		/// @return The rounded number
-		template<typename T>
-		static T Round(T x) noexcept { return round(x); }
-
-		/// @brief Rounds a number to the closest integer
-		/// @tparam T 
-		/// @param x The number 
-		/// @return The number rounded to an integer
-		template<typename T>
-		static int RoundToInt(T x) noexcept { return static_cast<int>(Round(x)); }
-
-		/// @brief Gets the largest value of a type
-		/// @tparam T 
-		/// @return The largest value of the type
-		template<typename T>
-		static constexpr T MaxValue() noexcept { return std::numeric_limits<T>::max(); }
-
-		/// @brief Gets the smallest value of a type
-		/// @tparam T 
-		/// @return The smallest value of the type
-		template<typename T>
-		static constexpr T MinValue() noexcept { return std::numeric_limits<T>::min(); }
-
-		/// @brief Raises a base to the power of an exponent
-		/// @tparam T 
-		/// @param base The base number
-		/// @param exponent The exponent
-		/// @return The base raised by the exponent
-		template<typename T>
-		static constexpr T Pow(T base, T exponent) noexcept { return std::pow(base, exponent); }
-
-		/// @brief Combines hashes using a seed
-		/// @tparam T 
-		/// @tparam ...Hashes 
-		/// @param seed The seed to use when combining
-		/// @param value The first hash
-		/// @param ...hashes The remaining hashes
-		/// @return The combined hash
-		template<typename ... Hashes>
-		static constexpr uint64_t CombineHashes(uint64_t seed, uint64_t value, Hashes... hashes)
-		{
-			// https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
-			std::hash<uint64_t> hasher;
-			seed ^= hasher(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-			return CombineHashes(seed, hashes...);
-		}
-
-		private:
-			/// @brief Combines hashes using a seed
-			/// @param seed The seed to use when combining
-			/// @return The combined hash
-			static constexpr uint64_t CombineHashes(uint64_t seed) { return seed; }
-	};
+	/// @brief Determines the sign of a number
+	/// @tparam ValueType The value type
+	/// @param v The value
+	/// @return 1 if the given number is positive, else -1
+	template<typename ValueType>
+	int Sign(const ValueType& v) { return std::signbit(v) ? -1 : 1; }
 }

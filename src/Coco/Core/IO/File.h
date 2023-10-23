@@ -1,91 +1,86 @@
 #pragma once
 
-#include <Coco/Core/Core.h>
-#include <Coco/Core/Types/List.h>
-#include "FileTypes.h"
 #include "Stream.h"
-
-#include <fstream>
+#include "BinaryStream.h"
+#include "TextStream.h"
+#include "FileTypes.h"
 
 namespace Coco
 {
 	/// @brief A file that can read and write data
-	class COCOAPI File : public StreamReader, public StreamWriter
+	class File : public InputTextStream, public OutputTextStream, public InputBinaryStream, public OutputBinaryStream
 	{
-	public:
-		/// @brief The path of the file
-		const string Path;
-
 	private:
-		FileModeFlags _openFlags;
-		std::fstream _handle;
+		FilePath _filePath;
+		std::fstream _fileStream;
+		uint64 _size;
+		uint64 _position;
+		FileOpenFlags _openFlags;
 
 	public:
-		File(const string& path, FileModeFlags openFlags);
-		File(File&&) noexcept;
+		File(const FilePath& filePath, FileOpenFlags openFlags);
 
-		File() = delete;
-		File(const File&) = delete;
-		File& operator=(const File&) = delete;
-		File& operator=(File&&) = delete;
+		~File();
 
-		virtual ~File();
+		/// @brief Creates a file at the given path. Throws an error if the file already exists
+		/// @param filePath The path for the file
+		/// @param openFlags The flags to open the file with. FileOpenFlags::Write is included by default
+		/// @return The created file
+		static File Create(const FilePath& filePath, FileOpenFlags openFlags);
 
-		/// @brief Checks if a file exists
-		/// @param path The path of the file
-		/// @return True if the file exists
-		static bool Exists(const string& path);
+		/// @brief Checks if a file exists at the given path
+		/// @param filePath The path to a file
+		/// @return True if a file exists
+		static bool Exists(const FilePath& filePath);
 
-		/// @brief Opens a file
-		/// @param path The file to open
-		/// @param openModeFlags Flags to open the file with
-		/// @return The opened file
-		static File Open(const string& path, FileModeFlags openModeFlags) { return File(path, openModeFlags); }
+		/// @brief Reads a file as text
+		/// @param filePath The path of the file
+		/// @return The file as text
+		static string ReadAllText(const FilePath& filePath);
 
-		/// @brief Reads a file's contents as text
-		/// @param path The file to read
-		/// @return The contents of the file as text
-		static string ReadAllText(const string& path);
+		/// @brief Reads a file as binary data
+		/// @param filePath The path of the file
+		/// @return The file as binary data
+		static std::vector<uint8> ReadAllBytes(const FilePath& filePath);
 
-		/// @brief Reads a file's contents as binary data
-		/// @param path The file to read
-		/// @return The contents of the file as binary data
-		static List<char> ReadAllBytes(const string& path);
+		uint64 GetPosition() const final { return _position; }
+		void Seek(uint64 position, bool relative) final;
+		uint8 Peek() final;
+		uint64 Read(std::span<uint8> data) final;
+		char PeekChar() final { return static_cast<char>(Peek()); }
+		void PeekLine(string& outText, char lineTerminator) final;
+		string ReadText(uint64 maxLength) final;
+		bool ReadLine(string& outText, char lineTerminator) final;
+		void Write(std::span<const uint8> data) final;
+		void Flush() final;
+		void Write(const string& text) final;
+		void WriteLine(const string& text, char lineTerminator) final;
 
-		/// @brief Writes text to a file
-		/// @param path The file to write to
-		/// @param text The text to write
-		static void WriteAllText(const string& path, const string& text);
-
-		/// @brief Writes binary data to a file
-		/// @param path The file to write to
-		/// @param data The binary data to write
-		static void WriteAllBytes(const string& path, const List<char>& data);
-
-		uint64_t GetPosition() final;
-		bool IsValid() const final { return _handle.is_open(); }
-
-		/// @brief Reads the remaining bytes in this file
-		/// @return The remaining bytes in this file
-		List<char> ReadToEnd();
-
-		/// @brief Reads the remaining text in this file
-		/// @return The remaining text in this file
+		/// @brief Reads from the current stream position to the end of the file as text
+		/// @return The text
 		string ReadTextToEnd();
 
-		/// @brief Gets the size of this file
-		/// @return The file size (in bytes)
-		uint64_t GetSize();
+		/// @brief Reads from the current stream position to the end of the file as bytes
+		/// @return The data
+		std::vector<uint8> ReadToEnd();
+
+		/// @brief Gets the size of this file, in bytes
+		/// @return The file size
+		uint64 GetSize() const { return _size; }
+
+		/// @brief Determines if this file is open
+		/// @return True if this file is open
+		bool IsOpen() const;
 
 		/// @brief Closes this file
 		void Close();
 
-	protected:
-		std::istream& GetReadStream() final;
-		std::ostream& GetWriteStream() final;
-
 	private:
-		/// @brief Checks if the internal file handle is valid
-		void CheckHandle() const;
+		/// @brief Synchronises this file's state with the underlying file state
+		void SyncState();
+
+		/// @brief Checks if this file is open and valid for the given flags
+		/// @param flags The flags to check for
+		void CheckFlags(FileOpenFlags flags);
 	};
 }

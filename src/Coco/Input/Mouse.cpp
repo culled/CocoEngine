@@ -1,125 +1,165 @@
+#include "Inputpch.h"
 #include "Mouse.h"
 
 namespace Coco::Input
 {
-	MouseStateChange MouseStateChange::MoveStateChange(const Vector2Int& newPosition, const Vector2Int& delta) noexcept
+	MouseState::MouseState() :
+		ButtonStates{false},
+		Position(Vector2Int::Zero),
+		MoveDelta(Vector2Int::Zero),
+		ScrollDelta(Vector2Int::Zero)
+	{}
+
+	MouseStateChange::MouseStateChange() :
+		Button(),
+		IsButtonPressed(false),
+		Position(),
+		MoveDelta(),
+		ScrollDelta()
+	{}
+
+	MouseStateChange MouseStateChange::PositionStateChange(const Vector2Int& newPosition)
 	{
-		MouseStateChange state = {};
-		state.Position = newPosition;
-		state.MoveDelta = delta;
-		return state;
+		MouseStateChange stateChange{};
+		stateChange.Position = newPosition;
+		return stateChange;
 	}
 
-	MouseStateChange MouseStateChange::ScrollStateChange(const Vector2Int& scrollDelta) noexcept
+	MouseStateChange MouseStateChange::MoveDeltaStateChange(const Vector2Int& delta)
 	{
-		MouseStateChange state = {};
-		state.ScrollDelta = scrollDelta;
-		return state;
+		MouseStateChange stateChange{};
+		stateChange.MoveDelta = delta;
+		return stateChange;
 	}
 
-	MouseStateChange MouseStateChange::ButtonStateChange(MouseButton button, bool isPressed) noexcept
+	MouseStateChange MouseStateChange::ScrollStateChange(const Vector2Int& scrollDelta)
 	{
-		MouseStateChange state = {};
-		state.Button = button;
-		state.IsButtonPressed = isPressed;
-		return state;
+		MouseStateChange stateChange{};
+		stateChange.ScrollDelta = scrollDelta;
+		return stateChange;
 	}
+
+	MouseStateChange MouseStateChange::ButtonStateChange(MouseButton button, bool isPressed)
+	{
+		MouseStateChange stateChange{};
+		stateChange.Button = button;
+		stateChange.IsButtonPressed = isPressed;
+		return stateChange;
+	}
+
+	Mouse::Mouse() :
+		_preProcessStateChanges(),
+		_currentState{},
+		_previousState{},
+		_isFirstState(true)
+	{}
 
 	void Mouse::UpdateButtonState(MouseButton button, bool isPressed)
 	{
-		bool& state = _preProcessState.ButtonStates.at(static_cast<int>(button));
-		if (state == isPressed)
+		bool& currentState = _currentState.ButtonStates.at(static_cast<size_t>(button));
+
+		if (currentState == isPressed)
 			return;
 
-		_preProcessStateChanges.Add(MouseStateChange::ButtonStateChange(button, isPressed));
-		state = isPressed;
+		_preProcessStateChanges.push_back(MouseStateChange::ButtonStateChange(button, isPressed));
+		currentState = isPressed;
+
+		try
+		{
+			if (isPressed)
+				OnButtonPressed.Invoke(button);
+			else
+				OnButtonReleased.Invoke(button);
+		}
+		catch(...)
+		{}
 	}
 
 	void Mouse::UpdatePositionState(const Vector2Int& newPosition)
 	{
-		if (_preProcessState.Position == newPosition)
+		Vector2Int& currentPos = _currentState.Position;
+
+		if (currentPos.Equals(newPosition))
 			return;
 
-		_preProcessStateChanges.Add(MouseStateChange::MoveStateChange(newPosition, newPosition - _preProcessState.Position));
-		_preProcessState.Position = newPosition;
+		_preProcessStateChanges.push_back(MouseStateChange::PositionStateChange(newPosition));
+		currentPos = newPosition;
+
+		try
+		{
+			OnPositionChanged.Invoke(newPosition);
+		}
+		catch (...)
+		{}
+	}
+
+	void Mouse::UpdateMoveDeltaState(const Vector2Int& moveDelta)
+	{
+		_preProcessStateChanges.push_back(MouseStateChange::MoveDeltaStateChange(moveDelta));
+		_currentState.MoveDelta = moveDelta;
+
+		try
+		{
+			OnMoved.Invoke(moveDelta);
+		}
+		catch (...)
+		{}
 	}
 
 	void Mouse::UpdateScrollState(const Vector2Int& scrollDelta)
 	{
-		if (scrollDelta == Vector2Int::Zero)
+		Vector2Int& currentDelta = _currentState.ScrollDelta;
+
+		if (currentDelta.Equals(scrollDelta))
 			return;
 
-		_preProcessStateChanges.Add(MouseStateChange::ScrollStateChange(scrollDelta));
-	}
+		_preProcessStateChanges.push_back(MouseStateChange::ScrollStateChange(scrollDelta));
+		currentDelta = scrollDelta;
 
-	void Mouse::DoubleClicked(MouseButton button)
-	{
-		OnDoubleClicked.Invoke(button);
-	}
-
-	bool Mouse::IsButtonPressed(MouseButton button) const noexcept
-	{
-		return _currentState.ButtonStates.at(static_cast<int>(button));
-	}
-
-	bool Mouse::WasButtonJustPressed(MouseButton button) const noexcept
-	{
-		const int index = static_cast<int>(button);
-		return (_currentState.ButtonStates.at(index) && !_previousState.ButtonStates.at(index));
-	}
-
-	bool Mouse::WasButtonJustReleased(MouseButton button) const noexcept
-	{
-		const int index = static_cast<int>(button);
-		return (!_currentState.ButtonStates.at(index) && _previousState.ButtonStates.at(index));
-	}
-
-	void Mouse::ProcessCurrentState()
-	{
-		if (_isFirstState)
+		try
 		{
-			// Set the previous state to the current to prevent large deltas on the first frame
-			_previousState = _preProcessState;
+			OnScrolled.Invoke(scrollDelta);
 		}
-		else
-		{
-			// Step through each state change since the last tick and fire the proper events
-			for (const auto& newState : _preProcessStateChanges)
-			{
-				if (newState.Button.has_value())
-				{
-					if (newState.IsButtonPressed)
-					{
-						OnButtonPressed.Invoke(newState.Button.value());
-					}
-					else
-					{
-						OnButtonReleased.Invoke(newState.Button.value());
-					}
-				}
-				else if (newState.Position.has_value())
-				{
-					OnMoved.Invoke(newState.Position.value(), newState.MoveDelta);
-				}
-				else if (newState.ScrollDelta.has_value())
-				{
-					OnScrolled.Invoke(newState.ScrollDelta.value());
-
-					// Make sure we preserve a scroll for the tick (else GetScrollWheelDelta() will always be 0) 
-					_preProcessState.ScrollDelta = newState.ScrollDelta.value();
-				}
-			}
-		}
-
-		_currentState = _preProcessState;
-		_preProcessStateChanges.Clear();
-		_isFirstState = false;
+		catch (...)
+		{}
 	}
 
-	void Mouse::SavePreviousState() noexcept
+	void Mouse::ClearAllButtonStates()
+	{
+		for (uint8 i = 0; i < MouseState::ButtonCount; i++)
+		{
+			if (_currentState.ButtonStates.at(i))
+				UpdateButtonState(static_cast<MouseButton>(i), false);
+		}
+	}
+
+	bool Mouse::IsButtonPressed(MouseButton button) const
+	{
+		return _currentState.ButtonStates.at(static_cast<size_t>(button));
+	}
+
+	bool Mouse::WasButtonJustPressed(MouseButton button) const
+	{
+		const size_t index = static_cast<size_t>(button);
+
+		return _currentState.ButtonStates.at(index) && !_previousState.ButtonStates.at(index);
+	}
+
+	bool Mouse::WasButtonJustReleased(MouseButton button) const
+	{
+		const size_t index = static_cast<size_t>(button);
+
+		return !_currentState.ButtonStates.at(index) && _previousState.ButtonStates.at(index);
+	}
+
+	void Mouse::SavePreviousState()
 	{
 		_previousState = _currentState;
+
+		// Reset deltas since we don't have an explicit "stopped" state change
+		_currentState.MoveDelta = Vector2Int::Zero;
 		_currentState.ScrollDelta = Vector2Int::Zero;
-		_preProcessState = _currentState;
+
+		_preProcessStateChanges.clear();
 	}
 }

@@ -1,508 +1,250 @@
+#include "Renderpch.h"
 #include "Material.h"
-
-#include "RenderingUtilities.h"
-#include "RenderingService.h"
-#include "Graphics/GraphicsDevice.h"
 
 namespace Coco::Rendering
 {
-	Material::Material(const ResourceID& id, const string& name) : RenderingResource(id, name)
+	Material::Material(const ResourceID& id, const string& name) :
+		Material(id, name, nullptr)
 	{}
 
-	Material::Material(const ResourceID& id, const string& name, Ref<Shader> shader) : RenderingResource(id, name),
-		_shader(shader), _uniformData{}
+	Material::Material(const ResourceID& id, const string& name, SharedRef<Shader> shader) :
+		RendererResource(id, name),
+		_shader(shader),
+		_uniformData(0)
 	{}
 
-	Material::~Material()
-	{}
-
-	void Material::SetUniformData(const ShaderUniformData& uniformData)
+	void Material::SetShader(SharedRef<Shader> shader)
 	{
-		_uniformData.Merge(uniformData, true);
-		IncrementVersion();
-	}
-
-	ShaderUniformData Material::GetUniformData() const
-	{
-		ShaderUniformData data(_uniformData);
-		data.ID = ID;
-		data.Version = GetMaterialVersion();
-
-		return data;
-	}
-
-	void Material::SetShader(Ref<Shader> shader)
-	{
-		if (shader == _shader)
-			return;
-
 		_shader = shader;
 		IncrementVersion();
 	}
 
-	void Material::SetInt(const string& name, int32_t value)
+	void Material::SetFloat(const char* name, float value)
 	{
-		_uniformData.Ints[name] = value;
-		this->IncrementVersion();
+		_uniformData.Floats[ShaderUniformData::MakeKey(name)] = value;
+
+		IncrementVersion();
 	}
 
-	int32_t Material::GetInt(const string& name) const
+	float Material::GetFloat(const char* name) const
 	{
-		const auto it = _uniformData.Ints.find(name);
+		auto it = _uniformData.Floats.find(ShaderUniformData::MakeKey(name));
 
-		if (it != _uniformData.Ints.end())
-		{
-			return (*it).second;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-
-	void Material::SetVector2Int(const string& name, const Vector2Int& value)
-	{
-		_uniformData.Vector2Ints[name] = value;
-		this->IncrementVersion();
-	}
-
-	Vector2Int Material::GetVector2Int(const string& name) const
-	{
-		const auto it = _uniformData.Vector2Ints.find(name);
-
-		if (it != _uniformData.Vector2Ints.end())
-		{
-			return (*it).second;
-		}
-		else
-		{
-			return Vector2Int::Zero;
-		}
-	}
-
-	void Material::SetVector3Int(const string& name, const Vector3Int& value)
-	{
-		_uniformData.Vector3Ints[name] = value;
-		this->IncrementVersion();
-	}
-
-	Vector3Int Material::GetVector3Int(const string& name) const
-	{
-		const auto it = _uniformData.Vector3Ints.find(name);
-
-		if (it != _uniformData.Vector3Ints.end())
-		{
-			return (*it).second;
-		}
-		else
-		{
-			return Vector3Int::Zero;
-		}
-	}
-
-	void Material::SetVector4Int(const string& name, const Vector4Int& value)
-	{
-		_uniformData.Vector4Ints[name] = value;
-		this->IncrementVersion();
-	}
-
-	Vector4Int Material::GetVector4Int(const string& name) const
-	{
-		const auto it = _uniformData.Vector4Ints.find(name);
-
-		if (it != _uniformData.Vector4Ints.end())
-		{
-			return (*it).second;
-		}
-		else
-		{
-			return Vector4Int::Zero;
-		}
-	}
-
-	void Material::SetFloat(const string& name, float value)
-	{
-		_uniformData.Floats[name] = value;
-		this->IncrementVersion();
-	}
-
-	float Material::GetFloat(const string& name) const
-	{
-		const auto it = _uniformData.Floats.find(name);
-
-		if (it != _uniformData.Floats.end())
-		{
-			return (*it).second;
-		}
-		else
-		{
+		if(it == _uniformData.Floats.end())
 			return 0.0f;
-		}
+
+		return it->second;
 	}
 
-	void Material::SetVector2(const string& name, const Vector2& value)
+	void Material::SetFloat2(const char* name, const Vector2& value)
 	{
-		_uniformData.Vector2s[name] = value;
-		this->IncrementVersion();
+		_uniformData.Float2s[ShaderUniformData::MakeKey(name)] = ShaderUniformData::ToFloat2(value);
+
+		IncrementVersion();
 	}
 
-	Vector2 Material::GetVector2(const string& name) const
+	Vector2 Material::GetFloat2(const char* name) const
 	{
-		const auto it = _uniformData.Vector2s.find(name);
+		auto it = _uniformData.Float2s.find(ShaderUniformData::MakeKey(name));
 
-		if (it != _uniformData.Vector2s.end())
-		{
-			return (*it).second;
-		}
-		else
-		{
+		if (it == _uniformData.Float2s.end())
 			return Vector2::Zero;
-		}
+
+		const ShaderUniformData::float2& v = it->second;
+		return Vector2(v[0], v[1]);
 	}
 
-	void Material::SetVector3(const string& name, const Vector3& value)
+	void Material::SetFloat3(const char* name, const Vector3& value)
 	{
-		_uniformData.Vector3s[name] = value;
-		this->IncrementVersion();
+		_uniformData.Float3s[ShaderUniformData::MakeKey(name)] = ShaderUniformData::ToFloat3(value);
+
+		IncrementVersion();
 	}
 
-	Vector3 Material::GetVector3(const string& name) const
+	Vector3 Material::GetFloat3(const char* name) const
 	{
-		const auto it = _uniformData.Vector3s.find(name);
+		auto it = _uniformData.Float3s.find(ShaderUniformData::MakeKey(name));
 
-		if (it != _uniformData.Vector3s.end())
-		{
-			return (*it).second;
-		}
-		else
-		{
+		if (it == _uniformData.Float3s.end())
 			return Vector3::Zero;
-		}
+
+		const ShaderUniformData::float3& v = it->second;
+		return Vector3(v[0], v[1], v[2]);
 	}
 
-	void Material::SetVector4(const string& name, const Vector4& value)
+	void Material::SetFloat4(const char* name, const Vector4& value)
 	{
-		_uniformData.Vector4s[name] = value;
-		this->IncrementVersion();
+		_uniformData.Float4s[ShaderUniformData::MakeKey(name)] = ShaderUniformData::ToFloat4(value);
+
+		IncrementVersion();
 	}
 
-	Vector4 Material::GetVector4(const string& name) const
+	void Material::SetFloat4(const char* name, const Color& value, bool asLinear)
 	{
-		const auto it = _uniformData.Vector4s.find(name);
+		Color c = asLinear ? value.AsLinear() : value.AsGamma();
+		SetFloat4(name, Vector4(c.R, c.G, c.B, c.A));
+	}
 
-		if (it != _uniformData.Vector4s.end())
-		{
-			return (*it).second;
-		}
-		else
-		{
+	Vector4 Material::GetFloat4(const char* name) const
+	{
+		auto it = _uniformData.Float4s.find(ShaderUniformData::MakeKey(name));
+
+		if (it == _uniformData.Float4s.end())
 			return Vector4::Zero;
-		}
+
+		const ShaderUniformData::float4& v = it->second;
+		return Vector4(v[0], v[1], v[2], v[3]);
 	}
 
-	void Material::SetColor(const string& name, const Color& value)
+	void Material::SetMatrix4x4(const char* name, const Matrix4x4& value)
 	{
-		_uniformData.Colors[name] = value;
-		this->IncrementVersion();
+		_uniformData.Mat4x4s[ShaderUniformData::MakeKey(name)] = ShaderUniformData::ToMat4x4(value);
+
+		IncrementVersion();
 	}
 
-	Color Material::GetColor(const string name) const
+	Matrix4x4 Material::GetMatrix4x4(const char* name) const
 	{
-		const auto it = _uniformData.Colors.find(name);
+		auto it = _uniformData.Mat4x4s.find(ShaderUniformData::MakeKey(name));
 
-		if (it != _uniformData.Colors.end())
+		if (it == _uniformData.Mat4x4s.end())
+			return Matrix4x4();
+
+		const ShaderUniformData::Mat4x4& v = it->second;
+		Matrix4x4 mat;
+
+		for (uint8 i = 0; i < Matrix4x4::CellCount; i++)
 		{
-			return (*it).second;
+			mat.Data[i] = v[i];
+		}
+
+		return mat;
+	}
+
+	void Material::SetInt(const char* name, int32 value)
+	{
+		_uniformData.Ints[ShaderUniformData::MakeKey(name)] = value;
+
+		IncrementVersion();
+	}
+
+	int32 Material::GetInt(const char* name) const
+	{
+		auto it = _uniformData.Ints.find(ShaderUniformData::MakeKey(name));
+
+		if (it == _uniformData.Ints.end())
+			return 0;
+
+		return it->second;
+	}
+
+	void Material::SetInt2(const char* name, const Vector2Int& value)
+	{
+		_uniformData.Int2s[ShaderUniformData::MakeKey(name)] = ShaderUniformData::ToInt2(value);
+
+		IncrementVersion();
+	}
+
+	Vector2Int Material::GetInt2(const char* name) const
+	{
+		auto it = _uniformData.Int2s.find(ShaderUniformData::MakeKey(name));
+
+		if (it == _uniformData.Int2s.end())
+			return Vector2Int::Zero;
+
+		const ShaderUniformData::int2& v = it->second;
+		return Vector2Int(v[0], v[1]);
+	}
+
+	void Material::SetInt3(const char* name, const Vector3Int& value)
+	{
+		_uniformData.Int3s[ShaderUniformData::MakeKey(name)] = ShaderUniformData::ToInt3(value);
+
+		IncrementVersion();
+	}
+
+	Vector3Int Material::GetInt3(const char* name) const
+	{
+		auto it = _uniformData.Int3s.find(ShaderUniformData::MakeKey(name));
+
+		if (it == _uniformData.Int3s.end())
+			return Vector3Int::Zero;
+
+		const ShaderUniformData::int3& v = it->second;
+		return Vector3Int(v[0], v[1], v[2]);
+	}
+
+	void Material::SetInt4(const char* name, const Vector4Int& value)
+	{
+		_uniformData.Int4s[ShaderUniformData::MakeKey(name)] = ShaderUniformData::ToInt4(value);
+
+		IncrementVersion();
+	}
+
+	Vector4Int Material::GetInt4(const char* name) const
+	{
+		auto it = _uniformData.Int4s.find(ShaderUniformData::MakeKey(name));
+
+		if (it == _uniformData.Int4s.end())
+			return Vector4Int::Zero;
+
+		const ShaderUniformData::int4& v = it->second;
+		return Vector4Int(v[0], v[1], v[2], v[3]);
+	}
+
+	void Material::SetBool(const char* name, bool value)
+	{
+		_uniformData.Bools[ShaderUniformData::MakeKey(name)] = value;
+
+		IncrementVersion();
+	}
+
+	bool Material::GetBool(const char* name) const
+	{
+		auto it = _uniformData.Bools.find(ShaderUniformData::MakeKey(name));
+
+		if (it == _uniformData.Bools.end())
+			return false;
+
+		return it->second == 1;
+	}
+
+	void Material::SetTexture(const char* name, SharedRef<Texture> texture)
+	{
+		ShaderUniformData::UniformKey key = ShaderUniformData::MakeKey(name);
+
+		if (texture)
+		{
+			_textures[key] = texture;
+			_uniformData.Textures[key] = ShaderUniformData::ToTextureSampler(texture->GetImage(), texture->GetImageSampler());
 		}
 		else
 		{
-			return Color::Black;
+			auto textureIt = _textures.find(key);
+			if (textureIt != _textures.end())
+				_textures.erase(textureIt);
+
+			auto uniformIt = _uniformData.Textures.find(key);
+			if (uniformIt != _uniformData.Textures.end())
+				_uniformData.Textures.erase(uniformIt);
 		}
-	}
 
-	void Material::SetTexture(const string& name, Ref<Texture> texture)
-	{
-		_uniformData.Textures[name] = texture->ID;
-		this->IncrementVersion();
-	}
-
-	ResourceID Material::GetTexture(const string& name) const
-	{
-		const auto it = _uniformData.Textures.find(name);
-
-		if (it != _uniformData.Textures.cend())
-		{
-			return (*it).second;
-		}
-		else
-		{
-			return Resource::InvalidID;
-		}
-	}
-
-	MaterialInstance::MaterialInstance(const ResourceID& id, const string& name, Ref<Material> baseMaterial) :
-		RenderingResource(id, name),
-		_baseMaterial(baseMaterial)
-	{}
-
-	ResourceVersion MaterialInstance::GetMaterialVersion() const
-	{
-		return GetVersion() + _baseMaterial->GetMaterialVersion();
-	}
-
-	void MaterialInstance::SetUniformData(const ShaderUniformData& uniformData)
-	{
-		_uniformData = uniformData;
 		IncrementVersion();
 	}
 
-	ShaderUniformData MaterialInstance::GetUniformData() const
+	SharedRef<Texture> Material::GetTexture(const char* name) const
 	{
-		ShaderUniformData data(_baseMaterial->GetUniformData());
-		data.ID = ID;
-		data.Version = GetMaterialVersion();
-		data.Merge(_uniformData, true);
+		auto it = _textures.find(ShaderUniformData::MakeKey(name));
 
-		return data;
+		if (it == _textures.end())
+			return nullptr;
+
+		return it->second;
 	}
 
-	void MaterialInstance::SetInt(const string& name, int32_t value)
+	void Material::IncrementVersion()
 	{
-		_uniformData.Ints[name] = value;
-		IncrementVersion();
-	}
-
-	int32_t MaterialInstance::GetInt(const string& name) const
-	{
-		if (_uniformData.Ints.contains(name))
-			return _uniformData.Ints.at(name);
-
-		return _baseMaterial->GetInt(name);
-	}
-
-	UnorderedMap<string, int32_t> MaterialInstance::GetIntProperties() const noexcept
-	{
-		UnorderedMap<string, int32_t> props(_baseMaterial->GetIntProperties());
-
-		for (const auto& kvp : _uniformData.Ints)
-			props[kvp.first] = kvp.second;
-
-		return props;
-	}
-
-	void MaterialInstance::SetVector2Int(const string& name, const Vector2Int& value)
-	{
-		_uniformData.Vector2Ints[name] = value;
-		IncrementVersion();
-	}
-
-	Vector2Int MaterialInstance::GetVector2Int(const string& name) const
-	{
-		if (_uniformData.Vector2Ints.contains(name))
-			return _uniformData.Vector2Ints.at(name);
-
-		return _baseMaterial->GetVector2Int(name);
-	}
-
-	UnorderedMap<string, Vector2Int> MaterialInstance::GetVector2IntProperties() const noexcept
-	{
-		UnorderedMap<string, Vector2Int> props(_baseMaterial->GetVector2IntProperties());
-
-		for (const auto& kvp : _uniformData.Vector2Ints)
-			props[kvp.first] = kvp.second;
-
-		return props;
-	}
-
-	void MaterialInstance::SetVector3Int(const string& name, const Vector3Int& value)
-	{
-		_uniformData.Vector3Ints[name] = value;
-		IncrementVersion();
-	}
-
-	Vector3Int MaterialInstance::GetVector3Int(const string& name) const
-	{
-		if (_uniformData.Vector3Ints.contains(name))
-			return _uniformData.Vector3Ints.at(name);
-
-		return _baseMaterial->GetVector3Int(name);
-	}
-
-	UnorderedMap<string, Vector3Int> MaterialInstance::GetVector3IntProperties() const noexcept
-	{
-		UnorderedMap<string, Vector3Int> props(_baseMaterial->GetVector3IntProperties());
-
-		for (const auto& kvp : _uniformData.Vector3Ints)
-			props[kvp.first] = kvp.second;
-
-		return props;
-	}
-
-	void MaterialInstance::SetVector4Int(const string& name, const Vector4Int& value)
-	{
-		_uniformData.Vector4Ints[name] = value;
-		IncrementVersion();
-	}
-
-	Vector4Int MaterialInstance::GetVector4Int(const string& name) const
-	{
-		if (_uniformData.Vector4Ints.contains(name))
-			return _uniformData.Vector4Ints.at(name);
-
-		return _baseMaterial->GetVector4Int(name);
-	}
-
-	UnorderedMap<string, Vector4Int> MaterialInstance::GetVector4IntProperties() const noexcept
-	{
-		UnorderedMap<string, Vector4Int> props(_baseMaterial->GetVector4IntProperties());
-
-		for (const auto& kvp : _uniformData.Vector4Ints)
-			props[kvp.first] = kvp.second;
-
-		return props;
-	}
-
-	void MaterialInstance::SetFloat(const string& name, float value)
-	{
-		_uniformData.Floats[name] = value;
-		IncrementVersion();
-	}
-
-	float MaterialInstance::GetFloat(const string& name) const
-	{
-		if (_uniformData.Floats.contains(name))
-			return _uniformData.Floats.at(name);
-
-		return _baseMaterial->GetFloat(name);
-	}
-
-	UnorderedMap<string, float> MaterialInstance::GetFloatProperties() const noexcept
-	{
-		UnorderedMap<string, float> props(_baseMaterial->GetFloatProperties());
-
-		for (const auto& kvp : _uniformData.Floats)
-			props[kvp.first] = kvp.second;
-
-		return props;
-	}
-
-	void MaterialInstance::SetVector2(const string& name, const Vector2& value)
-	{
-		_uniformData.Vector2s[name] = value;
-		IncrementVersion();
-	}
-
-	Vector2 MaterialInstance::GetVector2(const string& name) const
-	{
-		if (_uniformData.Vector2s.contains(name))
-			return _uniformData.Vector2s.at(name);
-
-		return _baseMaterial->GetVector2(name);
-	}
-
-	UnorderedMap<string, Vector2> MaterialInstance::GetVector2Properties() const noexcept
-	{
-		UnorderedMap<string, Vector2> props(_baseMaterial->GetVector2Properties());
-
-		for (const auto& kvp : _uniformData.Vector2s)
-			props[kvp.first] = kvp.second;
-
-		return props;
-	}
-
-	void MaterialInstance::SetVector3(const string& name, const Vector3& value)
-	{
-		_uniformData.Vector3s[name] = value;
-		IncrementVersion();
-	}
-
-	Vector3 MaterialInstance::GetVector3(const string& name) const
-	{
-		if (_uniformData.Vector3s.contains(name))
-			return _uniformData.Vector3s.at(name);
-
-		return _baseMaterial->GetVector3(name);
-	}
-
-	UnorderedMap<string, Vector3> MaterialInstance::GetVector3Properties() const noexcept
-	{
-		UnorderedMap<string, Vector3> props(_baseMaterial->GetVector3Properties());
-
-		for (const auto& kvp : _uniformData.Vector3s)
-			props[kvp.first] = kvp.second;
-
-		return props;
-	}
-
-	void MaterialInstance::SetVector4(const string& name, const Vector4& value)
-	{
-		_uniformData.Vector4s[name] = value;
-		IncrementVersion();
-	}
-
-	Vector4 MaterialInstance::GetVector4(const string& name) const
-	{
-		if (_uniformData.Vector4s.contains(name))
-			return _uniformData.Vector4s.at(name);
-
-		return _baseMaterial->GetVector4(name);
-	}
-
-	UnorderedMap<string, Vector4> MaterialInstance::GetVector4Properties() const noexcept
-	{
-		UnorderedMap<string, Vector4> props(_baseMaterial->GetVector4Properties());
-
-		for (const auto& kvp : _uniformData.Vector4s)
-			props[kvp.first] = kvp.second;
-
-		return props;
-	}
-
-	void MaterialInstance::SetColor(const string& name, const Color& value)
-	{
-		_uniformData.Colors[name] = value;
-		IncrementVersion();
-	}
-
-	Color MaterialInstance::GetColor(const string name) const
-	{
-		if (_uniformData.Colors.contains(name))
-			return _uniformData.Colors.at(name);
-
-		return _baseMaterial->GetColor(name);
-	}
-
-	UnorderedMap<string, Color> MaterialInstance::GetColorProperties() const noexcept
-	{
-		UnorderedMap<string, Color> props(_baseMaterial->GetColorProperties());
-
-		for (const auto& kvp : _uniformData.Colors)
-			props[kvp.first] = kvp.second;
-
-		return props;
-	}
-
-	void MaterialInstance::SetTexture(const string& name, Ref<Texture> texture)
-	{
-		_uniformData.Textures[name] = texture->ID;
-		IncrementVersion();
-	}
-
-	ResourceID MaterialInstance::GetTexture(const string& name) const
-	{
-		if (_uniformData.Textures.contains(name))
-			return _uniformData.Textures.at(name);
-
-		return _baseMaterial->GetTexture(name);
-	}
-
-	UnorderedMap<string, ResourceID> MaterialInstance::GetTextureProperties() const noexcept
-	{
-		UnorderedMap<string, ResourceID> props(_baseMaterial->GetTextureProperties());
-
-		for (const auto& kvp : _uniformData.Textures)
-			props[kvp.first] = kvp.second;
-
-		return props;
+		_uniformData.Version++;
+		SetVersion(_uniformData.Version);
 	}
 }
