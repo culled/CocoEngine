@@ -51,23 +51,6 @@ namespace Coco
 		/// @return True if the given path is a relative path
 		static bool IsRelativePath(const string& path);
 
-		/// @brief Gets the name of the file for this path
-		/// @param includeExtension If true, the extension will be included as part of the file name
-		/// @return The file name
-		string GetFileName(bool includeExtension) const;
-
-		/// @brief Gets the extension of this file, including the "."
-		/// @return The file extension
-		string GetExtension() const;
-
-		/// @brief Gets the path of the directory that contains this file/directory
-		/// @return The parent directory path
-		FilePath GetParentDirectory() const;
-
-		/// @brief Determines if this file path represents a relative file path
-		/// @return True if this file path represents a relative file path
-		bool IsRelative() const;
-
 		/// @brief Combines multiple individual elements into a path
 		/// @tparam ...Args The types of arguments
 		/// @param base The base path
@@ -85,9 +68,32 @@ namespace Coco
 		/// @return The current working directory path
 		static FilePath GetCurrentWorkingDirectoryPath();
 
+		/// @brief Gets the name of the file for this path
+		/// @param includeExtension If true, the extension will be included as part of the file name
+		/// @return The file name
+		string GetFileName(bool includeExtension) const;
+
+		/// @brief Gets the extension of this file, including the "."
+		/// @return The file extension
+		string GetExtension() const;
+
+		/// @brief Gets the path of the directory that contains this file/directory
+		/// @return The parent directory path
+		FilePath GetParentDirectory() const;
+
+		/// @brief Determines if this file path represents a relative file path
+		/// @return True if this file path represents a relative file path
+		bool IsRelative() const;
+
+		/// @brief Determines if this path points to a directory
+		/// @return True if this path points to a directory
+		bool IsDirectory() const;
+
 		/// @brief Gets this path as a string
 		/// @return This path as a string
 		string ToString() const;
+
+		operator std::filesystem::path() const { return _filePath; }
 
 	private:
 		/// @brief Overloads the CombineToPath for a single path

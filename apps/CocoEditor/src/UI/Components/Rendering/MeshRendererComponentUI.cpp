@@ -18,6 +18,14 @@ namespace Coco
 
 		ImGui::Text("Mesh Path: %s", renderer.Mesh ? renderer.Mesh->GetContentPath().c_str() : "");
 
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(".cmesh"))
+			{
+				ImGui::EndDragDropTarget();
+			}
+		}
+
 		for (const auto& it : renderer.Materials)
 		{
 			SharedRef<Resource> materialResource = std::dynamic_pointer_cast<Resource>(it.second);

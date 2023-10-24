@@ -64,8 +64,10 @@ namespace Coco
 		if (_viewport)
 			CloseViewportPanel();
 
-		_scenePanel.reset();
 		_mainWindow.Invalidate();
+		_scenePanel.reset();
+		_inspectorPanel.reset();
+		_contentPanel.reset();
 		_fontData.clear();
 	}
 
@@ -124,6 +126,7 @@ namespace Coco
 		_viewport = CreateViewportPanel();
 		_scenePanel = CreateUniqueRef<SceneHierarchyPanel>(_mainScene);
 		_inspectorPanel = CreateUniqueRef<InspectorPanel>();
+		_contentPanel = CreateUniqueRef<ContentPanel>();
 	}
 
 	void EditorApplication::CreateMainScene()
@@ -236,6 +239,7 @@ namespace Coco
 		_inspectorPanel->Update(tickInfo);
 		_scenePanel->Update(tickInfo);
 		_viewport->Update(tickInfo);
+		_contentPanel->Update(tickInfo);
 
 		ImGui::End();
 	}

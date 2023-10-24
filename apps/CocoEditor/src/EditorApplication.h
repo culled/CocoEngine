@@ -12,6 +12,7 @@
 #include "Panels/ViewportPanel.h"
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/InspectorPanel.h"
+#include "Panels/ContentPanel.h"
 
 // TEMPORARY
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
@@ -36,6 +37,8 @@ namespace Coco
         UniqueRef<ViewportPanel> _viewport;
         UniqueRef<SceneHierarchyPanel> _scenePanel;
         UniqueRef<InspectorPanel> _inspectorPanel;
+        UniqueRef<ContentPanel> _contentPanel;
+
         EventHandler<const ViewportPanel&> _viewportClosedHandler;
         
         // TEMPORARY
