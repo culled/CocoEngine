@@ -24,10 +24,10 @@ namespace Coco::ECS
 		public RenderViewProvider
 	{
 	private:
-		const Entity& _entity;
+		Entity _entity;
 
 	public:
-		CameraRenderViewProvider(const Entity& camera);
+		CameraRenderViewProvider(Entity& camera);
 
 		// Inherited via RenderViewProvider
 		void SetupRenderView(
@@ -48,6 +48,6 @@ namespace Coco::ECS
 		/// @param camera The entity with at least a CameraComponent
 		/// @param framebuffers The framebuffers to render to
 		/// @param pipeline The pipeline to use while rendering
-		static void Render(const Entity& camera, std::span<Ref<Image>> framebuffers, RenderPipeline& pipeline);
+		static void Render(Entity& camera, std::span<Ref<Image>> framebuffers, RenderPipeline& pipeline);
 	};
 }

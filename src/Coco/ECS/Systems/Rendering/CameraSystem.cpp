@@ -4,12 +4,13 @@
 #include "../../Components/Rendering/CameraComponent.h"
 #include "../../Components/Transform3DComponent.h"
 #include "SceneRenderProvider.h"
+#include "../TransformSystem.h"
 
 #include <Coco/Rendering/RenderService.h>
 
 namespace Coco::ECS
 {
-	CameraRenderViewProvider::CameraRenderViewProvider(const Entity& camera) :
+	CameraRenderViewProvider::CameraRenderViewProvider(Entity& camera) :
 		_entity(camera)
 	{}
 
@@ -30,6 +31,8 @@ namespace Coco::ECS
 
 		if (_entity.HasComponent<Transform3DComponent>())
 		{
+			TransformSystem::UpdateTransform3D(_entity);
+
 			const Transform3DComponent& cameraTransform = _entity.GetComponent<const Transform3DComponent>();
 			Vector3 s;
 			Quaternion r;
@@ -62,7 +65,7 @@ namespace Coco::ECS
 		);
 	}
 
-	void CameraSystem::Render(const Entity& camera, std::span<Ref<Image>> framebuffers, RenderPipeline& pipeline)
+	void CameraSystem::Render(Entity& camera, std::span<Ref<Image>> framebuffers, RenderPipeline& pipeline)
 	{
 		if (!camera.HasComponent<CameraComponent>())
 			return;
