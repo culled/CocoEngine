@@ -158,8 +158,8 @@ namespace Coco::Rendering
 			for (int z = 0; z < squares; z++)
 			{
 				Vector3 x0z0(x * squareScale + offset, 0, z * squareScale + offset);
-				Vector3 x1z0((x + 1) * squareScale + offset, 0, x0z0.Z);
-				Vector3 x0z1(x0z0.X, 0, (z + 1) * squareScale + offset);
+				Vector3 x1z0((static_cast<double>(x) + 1) * squareScale + offset, 0, x0z0.Z);
+				Vector3 x0z1(x0z0.X, 0, (static_cast<double>(z) + 1) * squareScale + offset);
 				Vector3 x1z1(x1z0.X, 0, x0z1.Z);
 
 				x0z0 = rotation * x0z0 + position;

@@ -35,8 +35,8 @@ namespace Coco
 		Event<const ViewportPanel&> OnClosed;
 
 	private:
-		static const double _sMinMoveSpeed;
-		static const double _sMaxMoveSpeed;
+		static const float _sMinMoveSpeed;
+		static const float _sMaxMoveSpeed;
 		static const double _sCameraPreviewSizePercentage;
 
 		SelectionContext& _selection;
@@ -48,9 +48,9 @@ namespace Coco
 		Transform3D _cameraTransform;
 		ECS::CameraComponent _cameraComponent;
 
-		double _lookSensitivity;
-		double _moveSpeed;
-		double _panSpeed;
+		float _lookSensitivity;
+		float _moveSpeed;
+		float _panSpeed;
 		std::array<bool, 2> _invertPan;
 		double _scrollDistance;
 		bool _isNavigating;
@@ -60,9 +60,10 @@ namespace Coco
 		bool _showCameraPreview;
 		bool _previewCameraFullscreen;
 		bool _drawGrid;
-		double _gridScale;
+		float _gridScale;
 		int _gridSquares;
 		bool _enableSnap;
+		float _moveSnapIncrement;
 		float _rotationSnapIncrement;
 		float _scaleSnapIncrement;
 		SizeInt _cameraPreviewSize;

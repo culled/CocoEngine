@@ -18,8 +18,8 @@
 
 namespace Coco
 {
-	const double ViewportPanel::_sMinMoveSpeed = 0.01;
-	const double ViewportPanel::_sMaxMoveSpeed = 100;
+	const float ViewportPanel::_sMinMoveSpeed = 0.01f;
+	const float ViewportPanel::_sMaxMoveSpeed = 100;
 	const double ViewportPanel::_sCameraPreviewSizePercentage = 0.15;
 
 	ViewportPanel::ViewportPanel(const char* name, SharedRef<Scene> scene) :
@@ -28,9 +28,9 @@ namespace Coco
 		_collapsed(true),
 		_currentScene(scene),
 		_sampleCount(MSAASamples::One),
-		_cameraTransform(Vector3(0.0, 0.0, 1.0), Quaternion::Identity, Vector3::One),
+		_cameraTransform(Vector3(-2.0, 1.5, 2.0), Quaternion(Vector3(Math::DegToRad(-30), Math::DegToRad(-45), 0)), Vector3::One),
 		_cameraComponent(),
-		_lookSensitivity(0.005),
+		_lookSensitivity(0.5f),
 		_moveSpeed(2.0),
 		_panSpeed(2.0),
 		_invertPan{false},
@@ -45,6 +45,7 @@ namespace Coco
 		_gridScale(1.0),
 		_gridSquares(10),
 		_enableSnap(false),
+		_moveSnapIncrement(0.5f),
 		_rotationSnapIncrement(45.f),
 		_scaleSnapIncrement(0.5f),
 		_cameraPreviewTexture(),
@@ -53,6 +54,7 @@ namespace Coco
 		_currentTransformOperation(ImGuizmo::OPERATION::TRANSLATE)
 	{
 		_cameraComponent.ClearColor = Color(0.1, 0.1, 0.1, 1.0);
+		_cameraComponent.PerspectiveFOV = Math::DegToRad(80);
 	}
 
 	ViewportPanel::~ViewportPanel()
@@ -200,6 +202,8 @@ namespace Coco
 
 			_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(operationV);
 
+			ImGui::Separator();
+
 			int modeV = static_cast<int>(_currentTransformMode);
 
 			ImGui::RadioButton("Global", &modeV, 1);
@@ -207,41 +211,35 @@ namespace Coco
 
 			_currentTransformMode = static_cast<ImGuizmo::MODE>(modeV);
 
+			ImGui::Separator();
+
 			ImGui::Checkbox("Snap", &_enableSnap);
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.f, 10.f));
 
 			if (ImGui::BeginMenu("Snap Settings"))
 			{
-				ImGui::DragFloat("Rotation Increment", &_rotationSnapIncrement, 1.f, 0.f, 180.f);
-				ImGui::DragFloat("Scale Increment", &_scaleSnapIncrement, 0.1f);
+				ImGui::DragFloat("Move Increment", &_moveSnapIncrement, 0.1f, 0.001f);
+				ImGui::DragFloat("Rotation Increment", &_rotationSnapIncrement, 1.f, 0.001f, 180.f);
+				ImGui::DragFloat("Scale Increment", &_scaleSnapIncrement, 0.1f, 0.001f);
 
 				ImGui::EndMenu();
 			}
+
+			ImGui::Separator();
 
 			if (ImGui::BeginMenu("View"))
 			{
 				ImGui::SeparatorText("Editor Camera Properties");
 
-				float lookSpeed = static_cast<float>(_lookSensitivity * 100.0);
-				if (ImGui::DragFloat("Mouse Sensitivity", &lookSpeed, 0.1f))
-				{
-					_lookSensitivity = lookSpeed / 100.0;
-				}
-
-				float moveSpeed = static_cast<float>(_moveSpeed);
-				if (ImGui::DragFloat("Move Speed", &moveSpeed, 0.1f))
-				{
-					_moveSpeed = moveSpeed;
-				}
-
-				float panSpeed = static_cast<float>(_panSpeed);
-				if (ImGui::DragFloat("Pan Speed", &panSpeed, 0.1f))
-				{
-					_panSpeed = panSpeed;
-				}
+				ImGui::DragFloat("Mouse Sensitivity", &_lookSensitivity, 0.1f);
+				ImGui::DragFloat("Move Speed", &_moveSpeed, 0.1f, _sMinMoveSpeed, _sMaxMoveSpeed);
+				ImGui::DragFloat("Pan Speed", &_panSpeed, 0.1f);
 
 				ImGui::Checkbox("Invert Pan X", &_invertPan.at(0));
+
+				ImGui::SameLine();
+
 				ImGui::Checkbox("Invert Pan Y", &_invertPan.at(1));
 
 				float fov = static_cast<float>(Math::RadToDeg(_cameraComponent.PerspectiveFOV));
@@ -261,10 +259,7 @@ namespace Coco
 				ImGui::SeparatorText("Grid Properties");
 
 				ImGui::Checkbox("Show Grid", &_drawGrid);
-				float gridScale = static_cast<float>(_gridScale);
-				if (ImGui::DragFloat("Grid Scale", &gridScale, 0.1f))
-					_gridScale = gridScale;
-
+				ImGui::DragFloat("Grid Scale", &_gridScale, 0.1f);
 				ImGui::DragInt("Grid Squares", &_gridSquares, 1.f, 1);
 
 				ImGui::EndMenu();
@@ -455,14 +450,14 @@ namespace Coco
 			if (shouldFly)
 			{
 				Vector3 eulerAngles = _cameraTransform.LocalRotation.ToEulerAngles();
-				eulerAngles.X = Math::Clamp(eulerAngles.X - mouseDelta.Y * _lookSensitivity, Math::DegToRad(-90.0), Math::DegToRad(90.0));
-				eulerAngles.Y -= mouseDelta.X * _lookSensitivity;
+				eulerAngles.X = Math::Clamp(eulerAngles.X - mouseDelta.Y * _lookSensitivity * 0.01, Math::DegToRad(-90.0), Math::DegToRad(90.0));
+				eulerAngles.Y -= mouseDelta.X * _lookSensitivity * 0.01;
 
 				_cameraTransform.LocalRotation = Quaternion(eulerAngles);
 
 				if (scrollDelta != 0)
 				{
-					_moveSpeed = Math::Clamp(_moveSpeed + (_moveSpeed * scrollDelta * 0.2), _sMinMoveSpeed, _sMaxMoveSpeed);
+					_moveSpeed = Math::Clamp(_moveSpeed + (_moveSpeed * scrollDelta * 0.2f), _sMinMoveSpeed, _sMaxMoveSpeed);
 				}
 
 				Vector3 velocity = Vector3::Zero;
@@ -537,7 +532,7 @@ namespace Coco
 			switch (_currentTransformOperation)
 			{
 			case ImGuizmo::OPERATION::TRANSLATE:
-				snapIncrement = static_cast<float>(_gridScale);
+				snapIncrement = _moveSnapIncrement;
 				break;
 			case ImGuizmo::OPERATION::ROTATE:
 				snapIncrement = _rotationSnapIncrement;
