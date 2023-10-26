@@ -234,16 +234,14 @@ namespace Coco
 
 				ImGui::DragFloat("Mouse Sensitivity", &_lookSensitivity, 0.1f);
 				ImGui::DragFloat("Move Speed", &_moveSpeed, 0.1f, _sMinMoveSpeed, _sMaxMoveSpeed);
+
 				ImGui::DragFloat("Pan Speed", &_panSpeed, 0.1f);
-
 				ImGui::Checkbox("Invert Pan X", &_invertPan.at(0));
-
 				ImGui::SameLine();
-
 				ImGui::Checkbox("Invert Pan Y", &_invertPan.at(1));
 
 				float fov = static_cast<float>(Math::RadToDeg(_cameraComponent.PerspectiveFOV));
-				if (ImGui::DragFloat("FOV", &fov, 0.1f, 0.01f, 180.f))
+				if (ImGui::DragFloat("Field of View", &fov, 0.1f, 0.01f, 180.f))
 				{
 					_cameraComponent.PerspectiveFOV = Math::DegToRad(fov);
 				}
