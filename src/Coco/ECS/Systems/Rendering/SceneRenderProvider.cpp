@@ -20,6 +20,7 @@ namespace Coco::ECS
 		Assert(_scene != nullptr)
 
 		auto view = SceneView<Transform3DComponent, MeshRendererComponent>(_scene);
+		const ViewFrustum& viewFrustum = renderView.GetViewFrustum();
 
 		for (Entity& e : view)
 		{
@@ -33,7 +34,10 @@ namespace Coco::ECS
 
 			for (const auto& kvp : renderer.Mesh->GetSubmeshes())
 			{
-				if (!renderer.Materials.contains(kvp.first))
+				BoundingBox b = kvp.second.Bounds.Transformed(transform.Transform.GlobalTransform);
+
+				// Skip meshes outside our frustum or that don't have a material
+				if (!viewFrustum.IsInside(b) || !renderer.Materials.contains(kvp.first))
 					continue;
 
 				renderView.AddRenderObject(
@@ -41,7 +45,8 @@ namespace Coco::ECS
 					*renderer.Mesh,
 					kvp.first,
 					transform.Transform.GlobalTransform,
-					*renderer.Materials.at(kvp.first));
+					*renderer.Materials.at(kvp.first),
+					&b);
 			}
 		}
 	}

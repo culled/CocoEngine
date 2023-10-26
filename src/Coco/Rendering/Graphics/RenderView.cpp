@@ -171,6 +171,7 @@ namespace Coco::Rendering
 		uint32 submeshID, 
 		const Matrix4x4& modelMatrix, 
 		const MaterialDataProvider& material,
+		const BoundingBox* boundsOverride,
 		const RectInt* scissorRect,
 		std::any extraData)
 	{
@@ -181,7 +182,7 @@ namespace Coco::Rendering
 			mesh,
 			submesh.Offset, submesh.Count,
 			modelMatrix,
-			submesh.Bounds.Transformed(modelMatrix),
+			boundsOverride ? *boundsOverride : submesh.Bounds.Transformed(modelMatrix),
 			material,
 			scissorRect,
 			extraData);
@@ -192,7 +193,8 @@ namespace Coco::Rendering
 		const Mesh& mesh, 
 		uint32 submeshID, 
 		const Matrix4x4& modelMatrix, 
-		const Shader* shader, 
+		const Shader* shader,
+		const BoundingBox* boundsOverride,
 		const RectInt* scissorRect, 
 		std::any extraData)
 	{
@@ -203,7 +205,7 @@ namespace Coco::Rendering
 			mesh,
 			submesh.Offset, submesh.Count,
 			modelMatrix,
-			submesh.Bounds.Transformed(modelMatrix),
+			boundsOverride ? *boundsOverride : submesh.Bounds.Transformed(modelMatrix),
 			shader,
 			scissorRect,
 			extraData);

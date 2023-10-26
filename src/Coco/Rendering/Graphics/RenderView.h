@@ -154,6 +154,7 @@ namespace Coco::Rendering
 		/// @param submeshID The ID of the submesh
 		/// @param modelMatrix The model matrix
 		/// @param material The material
+		/// @param boundsOverride The global bounding box for the object, or nullptr to auto-calculate the global bounding box
 		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
 		/// @param extraData Extra data for the object
 		/// @return The key to the object
@@ -163,6 +164,7 @@ namespace Coco::Rendering
 			uint32 submeshID, 
 			const Matrix4x4& modelMatrix, 
 			const MaterialDataProvider& material, 
+			const BoundingBox* boundsOverride = nullptr,
 			const RectInt* scissorRect = nullptr,
 			std::any extraData = nullptr);
 
@@ -173,6 +175,7 @@ namespace Coco::Rendering
 		/// @param submeshID The ID of the submesh
 		/// @param modelMatrix The model matrix
 		/// @param shader The shader, or nullptr for no shader
+		/// @param boundsOverride The global bounding box for the object, or nullptr to auto-calculate the global bounding box
 		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
 		/// @param extraData Extra data for the object
 		/// @return The key to the object
@@ -182,6 +185,7 @@ namespace Coco::Rendering
 			uint32 submeshID,
 			const Matrix4x4& modelMatrix,
 			const Shader* shader,
+			const BoundingBox* boundsOverride = nullptr,
 			const RectInt* scissorRect = nullptr,
 			std::any extraData = nullptr);
 
