@@ -32,8 +32,10 @@ namespace Coco
 		_cameraComponent(),
 		_lookSensitivity(0.005),
 		_moveSpeed(2.0),
+		_panSpeed(2.0),
+		_invertPan{false},
 		_scrollDistance(0.2),
-		_isFlying(false),
+		_isNavigating(false),
 		_isMouseHoveringGizmo(false),
 		_isMouseHovering(false),
 		_isFocused(false),
@@ -233,6 +235,15 @@ namespace Coco
 					_moveSpeed = moveSpeed;
 				}
 
+				float panSpeed = static_cast<float>(_panSpeed);
+				if (ImGui::DragFloat("Pan Speed", &panSpeed, 0.1f))
+				{
+					_panSpeed = panSpeed;
+				}
+
+				ImGui::Checkbox("Invert Pan X", &_invertPan.at(0));
+				ImGui::Checkbox("Invert Pan Y", &_invertPan.at(1));
+
 				float fov = static_cast<float>(Math::RadToDeg(_cameraComponent.PerspectiveFOV));
 				if (ImGui::DragFloat("FOV", &fov, 0.1f, 0.01f, 180.f))
 				{
@@ -376,12 +387,16 @@ namespace Coco
 		InputService& input = *InputService::Get();
 		Mouse& mouse = input.GetMouse();
 		Keyboard& keyboard = input.GetKeyboard();
-		int scrollDelta = mouse.GetScrollWheelDelta().Y;
 
-		if (scrollDelta != 0)
+		if (!_isNavigating)
 		{
-			_cameraTransform.TranslateGlobal(_cameraTransform.GetGlobalBackward() * (scrollDelta * _scrollDistance));
-			_cameraTransform.Recalculate();
+			int scrollDelta = mouse.GetScrollWheelDelta().Y;
+
+			if (scrollDelta != 0)
+			{
+				_cameraTransform.TranslateGlobal(_cameraTransform.GetGlobalBackward() * (scrollDelta * _scrollDistance));
+				_cameraTransform.Recalculate();
+			}
 		}
 
 		if (keyboard.WasKeyJustPressed(KeyboardKey::D1))
@@ -411,60 +426,80 @@ namespace Coco
 
 		Window* viewportWindow = reinterpret_cast<Window*>(ImGui::GetWindowViewport()->PlatformHandle);
 
-		if (_isFlying && !mouse.IsButtonPressed(MouseButton::Right))
+		bool shouldNavigate = mouse.IsButtonPressed(MouseButton::Right) || mouse.IsButtonPressed(MouseButton::Middle);
+
+		if (_isNavigating && !shouldNavigate)
 		{
 			viewportWindow->SetCursorConfineMode(CursorConfineMode::None);
 			viewportWindow->SetCursorVisibility(true);
-			_isFlying = false;
+			_isNavigating = false;
 			return;
 		}
-		else if (mouse.WasButtonJustPressed(MouseButton::Right) && _isMouseHovering && !_previewCameraFullscreen)
+		else if (shouldNavigate && _isMouseHovering && !_previewCameraFullscreen)
 		{
-			_isFlying = true;
+			_isNavigating = true;
 		}
 
 		int scrollDelta = mouse.GetScrollWheelDelta().Y;
 		Keyboard& keyboard = input.GetKeyboard();
 
-		if (_isFlying)
+		if (_isNavigating)
 		{
 			viewportWindow->SetCursorConfineMode(CursorConfineMode::LockedInPlace);
 			viewportWindow->SetCursorVisibility(false);
 
+			bool shouldFly = mouse.IsButtonPressed(MouseButton::Right);
+
 			Vector2Int mouseDelta = mouse.GetMoveDelta();
-			Vector3 eulerAngles = _cameraTransform.LocalRotation.ToEulerAngles();
-			eulerAngles.X = Math::Clamp(eulerAngles.X - mouseDelta.Y * _lookSensitivity, Math::DegToRad(-90.0), Math::DegToRad(90.0));
-			eulerAngles.Y -= mouseDelta.X * _lookSensitivity;
 
-			_cameraTransform.LocalRotation = Quaternion(eulerAngles);
-
-			if (scrollDelta != 0)
+			if (shouldFly)
 			{
-				_moveSpeed = Math::Clamp(_moveSpeed + (_moveSpeed * scrollDelta * 0.2), _sMinMoveSpeed, _sMaxMoveSpeed);
+				Vector3 eulerAngles = _cameraTransform.LocalRotation.ToEulerAngles();
+				eulerAngles.X = Math::Clamp(eulerAngles.X - mouseDelta.Y * _lookSensitivity, Math::DegToRad(-90.0), Math::DegToRad(90.0));
+				eulerAngles.Y -= mouseDelta.X * _lookSensitivity;
+
+				_cameraTransform.LocalRotation = Quaternion(eulerAngles);
+
+				if (scrollDelta != 0)
+				{
+					_moveSpeed = Math::Clamp(_moveSpeed + (_moveSpeed * scrollDelta * 0.2), _sMinMoveSpeed, _sMaxMoveSpeed);
+				}
+
+				Vector3 velocity = Vector3::Zero;
+
+				if (keyboard.IsKeyPressed(KeyboardKey::W))
+					velocity += Vector3::Forward;
+
+				if (keyboard.IsKeyPressed(KeyboardKey::S))
+					velocity += Vector3::Backward;
+
+				if (keyboard.IsKeyPressed(KeyboardKey::D))
+					velocity += Vector3::Right;
+
+				if (keyboard.IsKeyPressed(KeyboardKey::A))
+					velocity += Vector3::Left;
+
+				if (keyboard.IsKeyPressed(KeyboardKey::E))
+					velocity += Vector3::Up;
+
+				if (keyboard.IsKeyPressed(KeyboardKey::Q))
+					velocity += Vector3::Down;
+
+				velocity = _cameraTransform.LocalRotation * velocity;
+				_cameraTransform.TranslateLocal(velocity * (tickInfo.DeltaTime * _moveSpeed));
+			}
+			else
+			{
+				Vector3 pan(-mouseDelta.X, mouseDelta.Y, 0.0);
+				if (_invertPan.at(0))
+					pan.X = -pan.X;
+
+				if (_invertPan.at(1))
+					pan.Y = -pan.Y;
+
+				_cameraTransform.TranslateLocal(_cameraTransform.LocalRotation * (pan * (_panSpeed * 0.01)));
 			}
 
-			Vector3 velocity = Vector3::Zero;
-
-			if (keyboard.IsKeyPressed(KeyboardKey::W))
-				velocity += Vector3::Forward;
-
-			if (keyboard.IsKeyPressed(KeyboardKey::S))
-				velocity += Vector3::Backward;
-
-			if (keyboard.IsKeyPressed(KeyboardKey::D))
-				velocity += Vector3::Right;
-
-			if (keyboard.IsKeyPressed(KeyboardKey::A))
-				velocity += Vector3::Left;
-
-			if (keyboard.IsKeyPressed(KeyboardKey::E))
-				velocity += Vector3::Up;
-
-			if (keyboard.IsKeyPressed(KeyboardKey::Q))
-				velocity += Vector3::Down;
-
-			velocity = _cameraTransform.LocalRotation * velocity;
-			_cameraTransform.TranslateLocal(velocity * (tickInfo.DeltaTime * _moveSpeed));
 			_cameraTransform.Recalculate();
 
 			ShowCameraStatsWindow();

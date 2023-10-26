@@ -50,8 +50,10 @@ namespace Coco
 
 		double _lookSensitivity;
 		double _moveSpeed;
+		double _panSpeed;
+		std::array<bool, 2> _invertPan;
 		double _scrollDistance;
-		bool _isFlying;
+		bool _isNavigating;
 		bool _isMouseHovering;
 		bool _isMouseHoveringGizmo;
 		bool _isFocused;
