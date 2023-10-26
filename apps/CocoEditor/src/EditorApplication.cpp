@@ -12,6 +12,7 @@
 
 // TEMPORARY
 #include <Coco/Rendering/Resources/BuiltInPipeline.h>
+#include "Rendering/PickingRenderPass.h"
 #include <Coco/Rendering/Mesh.h>
 #include <Coco/Rendering/Material.h>
 #include <Coco/Rendering/MeshUtilities.h>
@@ -24,6 +25,11 @@
 // TEMPORARY
 
 using namespace Coco::ECS;
+
+// Current framebuffer layout:
+// 0 - main color
+// 1 - depth
+// 2 - frame picking
 
 namespace Coco
 {
@@ -51,6 +57,9 @@ namespace Coco
 		MainLoop& loop = Engine::Get()->GetMainLoop();
 		loop.AddListener(_updateTickListener);
 		loop.AddListener(_renderTickListener);
+
+		std::vector<uint8> bindings = { 2, 1 };
+		_pipeline->AddRenderPass(CreateSharedRef<PickingRenderPass>(), bindings);
 	}
 
 	EditorApplication::~EditorApplication()
@@ -160,10 +169,29 @@ namespace Coco
 
 			mesh->Apply();
 
-			GraphicsPipelineState pipelineState{};
-
 			SharedRef<Shader> shader = resourceLibrary.Create<Shader>("UnlitShader", "");
 			shader->AddVariant(BuiltInShaders::UnlitVariant);
+			shader->AddVariant(ShaderVariant(
+				PickingRenderPass::sName,
+				{
+					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Picking.vert.spv"),
+					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Picking.frag.spv"),
+				},
+				GraphicsPipelineState(),
+				{
+					BlendState::Opaque
+				},
+				BuiltInShaders::UnlitVariant.VertexAttributes,
+				GlobalShaderUniformLayout(),
+				ShaderUniformLayout(),
+				ShaderUniformLayout(
+					{
+						ShaderDataUniform("ModelMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
+						ShaderDataUniform("ID", ShaderStageFlags::Vertex, BufferDataType::Int)
+					},
+					{}
+				)
+			));
 
 			resourceLibrary.Save("shaders/built-in/Unlit.cshader", shader, true);
 

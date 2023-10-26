@@ -122,8 +122,8 @@ void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
 	_boxTransform.LocalRotation = Quaternion(Vector3(Math::Sin(t), Math::Cos(t * 0.8 + 20.0), Math::Sin(t * 1.2 - 30.0)));
 	_boxTransform.Recalculate();
 
-	renderView.AddRenderObject(*_mesh, 0, Matrix4x4::Identity, *_material);
-	renderView.AddRenderObject(*_boxMesh, 0, _boxTransform.GlobalTransform, *_material);
+	renderView.AddRenderObject(0, *_mesh, 0, Matrix4x4::Identity, *_material);
+	renderView.AddRenderObject(0, *_boxMesh, 0, _boxTransform.GlobalTransform, *_material);
 
 	GizmoRender* gizmo = GizmoRender::Get();
 

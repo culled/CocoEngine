@@ -15,6 +15,7 @@ namespace Coco::Rendering
 		switch (format)
 		{
 		case ImagePixelFormat::RGBA8:
+		case ImagePixelFormat::R32_Int:
 			return 4;
 		case ImagePixelFormat::Depth32_Stencil8:
 			return 5;
@@ -31,6 +32,8 @@ namespace Coco::Rendering
 			return 4;
 		case ImagePixelFormat::Depth32_Stencil8:
 			return 2;
+		case ImagePixelFormat::R32_Int:
+			return 1;
 		default:
 			return 0;
 		}

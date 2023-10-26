@@ -33,6 +33,7 @@ namespace Coco
 		_moveSpeed(2.0),
 		_scrollDistance(0.2),
 		_isFlying(false),
+		_isMouseHoveringGizmo(false),
 		_isMouseHovering(false),
 		_isFocused(false),
 		_showCameraPreview(false),
@@ -65,6 +66,9 @@ namespace Coco
 
 		std::vector<RenderTarget> rts = RenderService::Get()->GetAttachmentCache().CreateRenderTargets(pipeline, rendererID, backbufferSize, _sampleCount, backbuffers);
 		RenderTarget::SetClearValues(rts, _cameraComponent.ClearColor, 1.0, 0);
+
+		// Set the picking image clear value
+		rts.back().ClearValue = Vector4(-1, -1, -1, -1);
 
 		renderView.Setup(
 			viewport, viewport,
@@ -147,11 +151,17 @@ namespace Coco
 
 				ImGui::EndMenuBar();
 			}
+		
+			if (!ImGui::IsAnyItemActive() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !_isMouseHoveringGizmo)
+			{
+				PickEntity();
+			}
 
 			UpdateWindowSettings();
 
 			SizeInt viewportSize = _viewportRect.GetSize();
 			EnsureTexture(viewportSize, _viewportTexture);
+			EnsurePickingTexture(viewportSize);
 			ImGui::Image(_viewportTexture.Get(), ImVec2(static_cast<float>(viewportSize.Width), static_cast<float>(viewportSize.Height)));
 
 			UpdateCamera(tickInfo);
@@ -159,6 +169,10 @@ namespace Coco
 			if (_selection.HasSelectedEntity())
 			{
 				DrawSelectedEntity();
+			}
+			else
+			{
+				_isMouseHoveringGizmo = false;
 			}
 
 			if (!_showCameraPreview)
@@ -183,7 +197,7 @@ namespace Coco
 		if (_collapsed)
 			return;
 
-		std::array<Ref<Image>, 1> viewportImages = { _viewportTexture->GetImage() };
+		std::array<Ref<Image>, 2> viewportImages = { _viewportTexture->GetImage(), _viewportPickingTexture->GetImage()};
 
 		if (_showCameraPreview)
 		{
@@ -237,6 +251,38 @@ namespace Coco
 				ImagePixelFormat::RGBA8,
 				ImageColorSpace::sRGB,
 				ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled,
+				false,
+				_sampleCount),
+			ImageSamplerDescription::LinearClamp);
+	}
+
+	void ViewportPanel::EnsurePickingTexture(const SizeInt& size)
+	{
+		bool recreate = false;
+
+		if (!_viewportPickingTexture.IsValid())
+		{
+			recreate = true;
+		}
+		else
+		{
+			ImageDescription desc = _viewportPickingTexture->GetImage()->GetDescription();
+
+			if (desc.Width != size.Width || desc.Height != size.Height)
+				recreate = true;
+		}
+
+		if (!recreate)
+			return;
+
+		_viewportPickingTexture = CreateManagedRef<Texture>(
+			0,
+			"Viewport Picking Texture",
+			ImageDescription(
+				size.Width, size.Height,
+				ImagePixelFormat::R32_Int,
+				ImageColorSpace::Linear,
+				ImageUsageFlags::RenderTarget | ImageUsageFlags::HostVisible,
 				false,
 				_sampleCount),
 			ImageSamplerDescription::LinearClamp);
@@ -412,7 +458,7 @@ namespace Coco
 			Transform3DComponent& transformComp = e.GetComponent<Transform3DComponent>();
 			Transform3D& transform = transformComp.Transform;
 			std::array<float, Matrix4x4::CellCount> model = transform.GlobalTransform.AsFloatArray();
-
+			
 			if (ImGuizmo::Manipulate(
 				cameraView.data(),
 				cameraProjection.data(),
@@ -434,6 +480,14 @@ namespace Coco
 
 				TransformSystem::MarkTransform3DDirty(e);
 			}
+
+			_isMouseHoveringGizmo = ImGuizmo::IsOver();
+
+			ImGuizmo::Enable(true);
+		}
+		else
+		{
+			_isMouseHoveringGizmo = false;
 		}
 	}
 
@@ -491,5 +545,32 @@ namespace Coco
 
 		ImGui::EndChild();
 		ImGui::PopStyleVar();
+	}
+
+	void ViewportPanel::PickEntity()
+	{
+		ImVec2 mousePos = ImGui::GetMousePos();
+		Vector2Int viewportMousePos(
+			static_cast<int>(mousePos.x),
+			static_cast<int>(mousePos.y)
+		);
+
+		if (!_viewportRect.Intersects(viewportMousePos))
+			return;
+
+		viewportMousePos.X -= _viewportRect.GetLeft();
+		viewportMousePos.Y -= _viewportRect.GetBottom();
+
+		int id = _viewportPickingTexture->ReadPixel<int>(viewportMousePos);
+
+		Entity selectedEntity;
+		if (id < 0 || !_currentScene->TryGetEntity(static_cast<EntityID>(id), selectedEntity))
+		{
+			_selection.ClearSelectedEntity();
+			return;
+		}
+		
+		_selection.SetSelectedEntity(selectedEntity);
+		ImGuizmo::Enable(false);
 	}
 }

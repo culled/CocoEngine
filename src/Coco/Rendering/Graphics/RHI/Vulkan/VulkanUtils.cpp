@@ -36,6 +36,8 @@ namespace Coco::Rendering::Vulkan
 		{
 		case ImagePixelFormat::RGBA8:
 			return colorSpace == ImageColorSpace::sRGB ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+		case ImagePixelFormat::R32_Int:
+			return VK_FORMAT_R32_SINT;
 		case ImagePixelFormat::Depth32_Stencil8:
 			return VK_FORMAT_D32_SFLOAT_S8_UINT;
 		default:
@@ -50,6 +52,8 @@ namespace Coco::Rendering::Vulkan
 		case VK_FORMAT_R8G8B8A8_SRGB:
 		case VK_FORMAT_R8G8B8A8_UNORM:
 			return ImagePixelFormat::RGBA8;
+		case VK_FORMAT_R32_SINT:
+			return ImagePixelFormat::R32_Int;
 		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			return ImagePixelFormat::Depth32_Stencil8;
 		default:
@@ -64,6 +68,7 @@ namespace Coco::Rendering::Vulkan
 		case VK_FORMAT_R8G8B8A8_SRGB:
 			return ImageColorSpace::sRGB;
 		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_R32_SINT:
 		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			return ImageColorSpace::Linear;
 		default:
@@ -476,6 +481,39 @@ namespace Coco::Rendering::Vulkan
 		case MipMapFilterMode::Nearest:
 		default:
 			return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+		}
+	}
+
+	void SetClearValue(const Vector4& clearValue, ImagePixelFormat pixelFormat, VkClearValue& outClearValue)
+	{
+		if (IsDepthFormat(pixelFormat) || IsStencilFormat(pixelFormat))
+		{
+			outClearValue.depthStencil.depth = static_cast<float>(clearValue.X);
+			outClearValue.depthStencil.stencil = static_cast<uint32>(Math::Round(clearValue.Y));
+		}
+		else
+		{
+			switch (pixelFormat)
+			{
+			case ImagePixelFormat::RGBA8:
+			{
+				outClearValue.color.float32[0] = static_cast<float>(clearValue.X);
+				outClearValue.color.float32[1] = static_cast<float>(clearValue.Y);
+				outClearValue.color.float32[2] = static_cast<float>(clearValue.Z);
+				outClearValue.color.float32[3] = static_cast<float>(clearValue.W);
+				break;
+			}
+			case ImagePixelFormat::R32_Int:
+			{
+				outClearValue.color.int32[0] = static_cast<int32>(clearValue.X);
+				outClearValue.color.int32[1] = static_cast<int32>(clearValue.Y);
+				outClearValue.color.int32[2] = static_cast<int32>(clearValue.Z);
+				outClearValue.color.int32[3] = static_cast<int32>(clearValue.W);
+				break;
+			}
+			default:
+				break;
+			}
 		}
 	}
 }

@@ -31,7 +31,7 @@ namespace Coco
 			}
 
 			// Left click over a black space
-			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered())
 			{
 				_selection.ClearSelectedEntity();
 			}

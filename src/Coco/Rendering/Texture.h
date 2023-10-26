@@ -54,6 +54,34 @@ namespace Coco::Rendering
 		/// @param pixelDataSize The size of the pixel data
 		void SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize);
 
+		/// @brief Sets the pixels of this texture
+		/// @tparam DataType The type of pixel data
+		/// @param offset The offset in the image buffer 
+		/// @param data The pixel data
+		template<typename DataType>
+		void SetPixels(uint64 offset, std::span<const DataType> data)
+		{
+			SetPixels(offset, data.data(), data.size() * sizeof(DataType));
+		}
+
+		/// @brief Reads the pixel at the given position
+		/// @param pixelCoordinate The pixel coordinate
+		/// @param outData The destination for the pixel data copy. This should match the expected pixel data type
+		/// @param dataSize The size of the outData structure
+		void ReadPixel(const Vector2Int& pixelCoordinate, void* outData, size_t dataSize);
+
+		/// @brief Gets the value of a pixel at the given position 
+		/// @tparam DataType The type of pixel data
+		/// @param pixelCoords The coordinates of the pixel
+		/// @return The pixel value
+		template<typename DataType>
+		DataType ReadPixel(const Vector2Int& pixelCoords)
+		{
+			DataType r{};
+			ReadPixel(pixelCoords, &r, sizeof(DataType));
+			return r;
+		}
+
 		/// @brief Reload this texture's image from the image file
 		void ReloadImage();
 

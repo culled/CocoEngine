@@ -62,7 +62,7 @@ namespace Coco::Rendering
 		WindingMode(TriangleWindingMode::Clockwise),
 		PolygonFillMode(PolygonFillMode::Fill),
 		EnableDepthClamping(false),
-		DepthTestingMode(DepthTestingMode::LessThan),
+		DepthTestingMode(DepthTestingMode::LessThanOrEqual),
 		EnableDepthWrite(true)
 	{}
 

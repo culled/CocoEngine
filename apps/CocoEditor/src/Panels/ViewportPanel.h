@@ -53,6 +53,7 @@ namespace Coco
 		double _scrollDistance;
 		bool _isFlying;
 		bool _isMouseHovering;
+		bool _isMouseHoveringGizmo;
 		bool _isFocused;
 		bool _showCameraPreview;
 		bool _previewCameraFullscreen;
@@ -63,6 +64,7 @@ namespace Coco
 
 		ManagedRef<Texture> _cameraPreviewTexture;
 		ManagedRef<Texture> _viewportTexture;
+		ManagedRef<Texture> _viewportPickingTexture;
 
 	public:
 		ViewportPanel(const char* name, SharedRef<Scene> scene);
@@ -83,6 +85,7 @@ namespace Coco
 
 	private:
 		void EnsureTexture(const SizeInt& size, ManagedRef<Texture>& texture);
+		void EnsurePickingTexture(const SizeInt& size);
 
 		void UpdateWindowSettings();
 		void UpdateCamera(const TickInfo& tickInfo);
@@ -92,5 +95,7 @@ namespace Coco
 		void ShowCameraStatsWindow();
 
 		void ShowCameraPreview();
+
+		void PickEntity();
 	};
 }

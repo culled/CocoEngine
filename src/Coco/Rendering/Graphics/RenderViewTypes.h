@@ -138,8 +138,11 @@ namespace Coco::Rendering
 	/// @brief Data for an object to render
 	struct ObjectData
 	{
-		/// @brief The object ID
+		/// @brief The render object ID
 		uint64 ID;
+
+		/// @brief The ID of the original object
+		uint64 ObjectID;
 
 		/// @brief The model matrix to render with
 		Matrix4x4 ModelMatrix;
@@ -170,6 +173,7 @@ namespace Coco::Rendering
 
 		ObjectData(
 			uint64 id,
+			uint64 objectID,
 			const Matrix4x4& modelMatrix,
 			uint64 meshID,
 			uint64 indexOffset,

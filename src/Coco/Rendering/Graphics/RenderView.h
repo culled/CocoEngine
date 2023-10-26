@@ -149,6 +149,7 @@ namespace Coco::Rendering
 
 		/// @brief Adds an object to be rendered. 
 		/// NOTE: the mesh must have been applied for this to work
+		/// @param objectID The id of the object
 		/// @param mesh The mesh
 		/// @param submeshID The ID of the submesh
 		/// @param modelMatrix The model matrix
@@ -157,6 +158,7 @@ namespace Coco::Rendering
 		/// @param extraData Extra data for the object
 		/// @return The key to the object
 		uint64 AddRenderObject(
+			uint64 objectID,
 			const Mesh& mesh, 
 			uint32 submeshID, 
 			const Matrix4x4& modelMatrix, 
@@ -166,6 +168,7 @@ namespace Coco::Rendering
 
 		/// @brief Adds an object to be rendered. 
 		/// NOTE: the mesh must have been applied for this to work
+		/// @param objectID The id of the object
 		/// @param mesh The mesh
 		/// @param submeshID The ID of the submesh
 		/// @param modelMatrix The model matrix
@@ -174,6 +177,7 @@ namespace Coco::Rendering
 		/// @param extraData Extra data for the object
 		/// @return The key to the object
 		uint64 AddRenderObject(
+			uint64 objectID,
 			const Mesh& mesh,
 			uint32 submeshID,
 			const Matrix4x4& modelMatrix,
@@ -183,6 +187,7 @@ namespace Coco::Rendering
 
 		/// @brief Adds an object to be rendered. 
 		/// NOTE: the mesh must have been applied for this to work
+		/// @param objectID The id of the object
 		/// @param mesh The mesh
 		/// @param indexOffset The offset of the first index in the mesh's index buffer
 		/// @param indexCount The number of indices to render
@@ -193,6 +198,7 @@ namespace Coco::Rendering
 		/// @param extraData Extra data for the object
 		/// @return The key to the object
 		uint64 AddRenderObject(
+			uint64 objectID,
 			const Mesh& mesh,
 			uint64 indexOffset,
 			uint64 indexCount,
@@ -204,6 +210,7 @@ namespace Coco::Rendering
 
 		/// @brief Adds an object to be rendered. 
 		/// NOTE: the mesh must have been applied for this to work
+		/// @param objectID The id of the object
 		/// @param mesh The mesh
 		/// @param indexOffset The offset of the first index in the mesh's index buffer 
 		/// @param indexCount The number of indices to render
@@ -214,6 +221,7 @@ namespace Coco::Rendering
 		/// @param extraData Extra data for the object
 		/// @return The key to the object
 		uint64 AddRenderObject(
+			uint64 objectID,
 			const Mesh& mesh,
 			uint64 indexOffset,
 			uint64 indexCount,

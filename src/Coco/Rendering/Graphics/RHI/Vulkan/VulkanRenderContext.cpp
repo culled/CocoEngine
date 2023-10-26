@@ -285,25 +285,8 @@ namespace Coco::Rendering::Vulkan
 			// Set clear clear color for each render target
 			for (size_t i = 0; i < clearValues.size(); i++)
 			{
-				const RenderTarget& rt = rts[i];
 				const AttachmentFormat& attachment = _renderOperation->Pipeline.InputAttachments.at(i);
-				VkClearValue& clearValue = clearValues.at(i);
-
-				if (IsDepthFormat(attachment.PixelFormat) || IsStencilFormat(attachment.PixelFormat))
-				{
-					clearValue.depthStencil.depth = static_cast<float>(rt.ClearValue.X);
-					clearValue.depthStencil.stencil = static_cast<uint32>(Math::Round(rt.ClearValue.Y));
-				}
-				else
-				{
-					clearValues[i].color =
-					{
-						static_cast<float>(rt.ClearValue.X),
-						static_cast<float>(rt.ClearValue.Y),
-						static_cast<float>(rt.ClearValue.Z),
-						static_cast<float>(rt.ClearValue.W)
-					};
-				}
+				SetClearValue(rts[i].ClearValue, attachment.PixelFormat, clearValues.at(i));
 			}
 
 			// Add any resolve attachments
@@ -479,7 +462,7 @@ namespace Coco::Rendering::Vulkan
 	void VulkanRenderContext::AddPostRenderPassImageTransitions(VkImageLayout currentLayout, VulkanImage& image)
 	{
 		// Since Vulkan automatically transitions layouts between passes, update the image's layout to match the layouts of the attachments
-		image._currentLayout = currentLayout;
+		image._imageData.CurrentLayout = currentLayout;
 
 		const ImageDescription imageDesc = image.GetDescription();
 

@@ -166,6 +166,7 @@ namespace Coco::Rendering
 	}
 
 	uint64 RenderView::AddRenderObject(
+		uint64 objectID,
 		const Mesh& mesh, 
 		uint32 submeshID, 
 		const Matrix4x4& modelMatrix, 
@@ -176,6 +177,7 @@ namespace Coco::Rendering
 		SubMesh submesh;
 		Assert(mesh.TryGetSubmesh(submeshID, submesh))
 		return AddRenderObject(
+			objectID,
 			mesh,
 			submesh.Offset, submesh.Count,
 			modelMatrix,
@@ -186,6 +188,7 @@ namespace Coco::Rendering
 	}
 
 	uint64 RenderView::AddRenderObject(
+		uint64 objectID,
 		const Mesh& mesh, 
 		uint32 submeshID, 
 		const Matrix4x4& modelMatrix, 
@@ -196,6 +199,7 @@ namespace Coco::Rendering
 		SubMesh submesh;
 		Assert(mesh.TryGetSubmesh(submeshID, submesh))
 		return AddRenderObject(
+			objectID,
 			mesh,
 			submesh.Offset, submesh.Count,
 			modelMatrix,
@@ -206,6 +210,7 @@ namespace Coco::Rendering
 	}
 
 	uint64 RenderView::AddRenderObject(
+		uint64 objectID,
 		const Mesh& mesh, 
 		uint64 indexOffset, 
 		uint64 indexCount, 
@@ -219,8 +224,9 @@ namespace Coco::Rendering
 		uint64 materialID = AddMaterial(material);
 		uint64 shaderID = _materialDatas.at(materialID).ShaderID;
 
-		uint64 objectID = _objectDatas.size();
+		uint64 renderID = _objectDatas.size();
 		_objectDatas.emplace_back(
+			renderID,
 			objectID,
 			modelMatrix,
 			meshID,
@@ -232,10 +238,11 @@ namespace Coco::Rendering
 			bounds,
 			extraData);
 
-		return objectID;
+		return renderID;
 	}
 
 	uint64 RenderView::AddRenderObject(
+		uint64 objectID,
 		const Mesh& mesh, 
 		uint64 indexOffset, 
 		uint64 indexCount, 
@@ -248,8 +255,9 @@ namespace Coco::Rendering
 		uint64 meshID = AddMesh(mesh);
 		uint64 shaderID = shader ? AddShader(*shader) : InvalidID;
 
-		uint64 objectID = _objectDatas.size();
+		uint64 renderID = _objectDatas.size();
 		_objectDatas.emplace_back(
+			renderID,
 			objectID,
 			modelMatrix,
 			meshID,
@@ -261,7 +269,7 @@ namespace Coco::Rendering
 			bounds,
 			extraData);
 
-		return objectID;
+		return renderID;
 	}
 
 	const ObjectData& RenderView::GetRenderObject(uint64 index) const

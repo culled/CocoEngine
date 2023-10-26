@@ -15,7 +15,7 @@ pass shaders:
       winding: 0
       fill: 2
       depth clamping: false
-      depth test: 1
+      depth test: 2
       depth write: true
     blend states:
       - color src factor: 1
@@ -43,5 +43,43 @@ pass shaders:
         - name: ModelMatrix
           binding points: 1
           type: 4
+      texture uniforms:
+        []
+  - name: picking
+    stages:
+      - type: 0
+        entry name: main
+        file path: shaders/built-in/Picking.vert.spv
+      - type: 3
+        entry name: main
+        file path: shaders/built-in/Picking.frag.spv
+    pipeline state:
+      topology: 3
+      cull: 1
+      winding: 0
+      fill: 2
+      depth clamping: false
+      depth test: 2
+      depth write: true
+    blend states:
+      - color src factor: 1
+        color dst factor: 0
+        color blend op: 0
+        alpha src factor: 1
+        alpha dst factor: 1
+        alpha blend op: 0
+    vertex attributes:
+      - name: Position
+        type: 2
+      - name: UV
+        type: 1
+    draw layout:
+      data uniforms:
+        - name: ModelMatrix
+          binding points: 1
+          type: 4
+        - name: ID
+          binding points: 1
+          type: 5
       texture uniforms:
         []  # Fix

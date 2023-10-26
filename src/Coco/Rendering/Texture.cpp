@@ -66,6 +66,11 @@ namespace Coco::Rendering
 		_image->SetPixels(offset, pixelData, pixelDataSize);
 	}
 
+	void Texture::ReadPixel(const Vector2Int& pixelCoordinate, void* outData, size_t dataSize)
+	{
+		_image->ReadPixel(pixelCoordinate, outData, dataSize);
+	}
+
 	void Texture::ReloadImage()
 	{
 		Assert(_image.IsValid())

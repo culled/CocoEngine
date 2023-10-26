@@ -85,6 +85,7 @@ namespace Coco::Rendering
 
 	ObjectData::ObjectData(
 		uint64 id,
+		uint64 objectID,
 		const Matrix4x4& modelMatrix,
 		uint64 meshID,
 		uint64 indexOffset,
@@ -95,6 +96,7 @@ namespace Coco::Rendering
 		const BoundingBox& bounds,
 		std::any extraData) :
 		ID(id),
+		ObjectID(objectID),
 		ModelMatrix(modelMatrix),
 		MeshID(meshID),
 		IndexOffset(indexOffset),

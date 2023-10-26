@@ -221,6 +221,7 @@ namespace Coco::ImGuiCoco
 
                     Texture* tex = reinterpret_cast<Texture*>(cmd.GetTexID());
                     renderView.AddRenderObject(
+                        _currentlyRenderingViewport->ID,
                         *mesh,
                         cmd.IdxOffset + indexOffset,
                         cmd.ElemCount,

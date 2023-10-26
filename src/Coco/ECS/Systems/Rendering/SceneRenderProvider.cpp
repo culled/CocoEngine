@@ -37,6 +37,7 @@ namespace Coco::ECS
 					continue;
 
 				renderView.AddRenderObject(
+					e.GetID(),
 					*renderer.Mesh,
 					kvp.first,
 					transform.Transform.GlobalTransform,

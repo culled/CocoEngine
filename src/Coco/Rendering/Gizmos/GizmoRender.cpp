@@ -82,6 +82,7 @@ namespace Coco::Rendering
 		for (const GizmoDrawCall& dc : _drawCalls)
 		{
 			renderView.AddRenderObject(
+				0,
 				*_mesh,
 				dc.FirstIndexOffset,
 				dc.IndexCount,

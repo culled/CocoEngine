@@ -110,7 +110,7 @@ namespace Coco::Rendering
 					if (!pipelineAttachment.has_value())
 					{
 						pipelineAttachment = passAttachments[passAttachmentIndex];
-						clearAttachments.at(passAttachmentIndex) = pipelineAttachment->ClearMode != AttachmentClearMode::Never;
+						clearAttachments.at(pipelineAttachmentIndex) = pipelineAttachment->ClearMode != AttachmentClearMode::Never;
 					}
 				}
 

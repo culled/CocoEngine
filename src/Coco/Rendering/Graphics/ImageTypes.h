@@ -11,6 +11,9 @@ namespace Coco::Rendering
 		/// @brief R, G, B, and A channels, each storing 8 bits
 		RGBA8,
 
+		/// @brief R channel storing a plain, 32-bit integer
+		R32_Int,
+
 		/// @brief 32 bit depth channel with an 8 bit stencil channel
 		Depth32_Stencil8,
 
@@ -74,10 +77,12 @@ namespace Coco::Rendering
 		Sampled = 1 << 2,
 		RenderTarget = 1 << 3,
 		Presented = 1 << 4,
+		HostVisible = 1 << 5,
 	};
 
 	constexpr ImageUsageFlags operator|(ImageUsageFlags a, ImageUsageFlags b) { return static_cast<ImageUsageFlags>(static_cast<int>(a) | static_cast<int>(b)); }
 	constexpr ImageUsageFlags operator&(ImageUsageFlags a, ImageUsageFlags b) { return static_cast<ImageUsageFlags>(static_cast<int>(a) & static_cast<int>(b)); }
+	constexpr ImageUsageFlags operator~(ImageUsageFlags a) { return static_cast<ImageUsageFlags>(~static_cast<int>(a)); }
 
 	constexpr void operator|=(ImageUsageFlags& a, ImageUsageFlags b) { a = a | b; }
 	constexpr void operator&=(ImageUsageFlags& a, ImageUsageFlags b) { a = a & b; }

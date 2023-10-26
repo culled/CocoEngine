@@ -52,5 +52,5 @@ void SceneDataProvider2D::GatherSceneData(RenderView& renderView)
 	_transform.RotateGlobal(MainLoop::cGet()->GetCurrentTick().DeltaTime);
 	_transform.Recalculate();
 
-	renderView.AddRenderObject(*_mesh, 0, _transform.GlobalTransform, *_material);
+	renderView.AddRenderObject(0, *_mesh, 0, _transform.GlobalTransform, *_material);
 }

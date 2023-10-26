@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Types/Version.h>
+#include <Coco/Core/Types/Vector.h>
 #include "../../GraphicsDeviceTypes.h"
 #include "../../GraphicsPipelineTypes.h"
 #include "../../BufferTypes.h"
@@ -153,4 +154,10 @@ namespace Coco::Rendering::Vulkan
 	/// @param mode The filter mode
 	/// @return The VkSamplerMipmapMode
 	VkSamplerMipmapMode ToVkSamplerMipmapMode(MipMapFilterMode mode);
+
+	/// @brief Sets the clear value base on the pixel format
+	/// @param clearValue The clear value
+	/// @param pixelFormat The pixel format
+	/// @param outClearValue Will be set to the clear value
+	void SetClearValue(const Vector4& clearValue, ImagePixelFormat pixelFormat, VkClearValue& outClearValue);
 }
