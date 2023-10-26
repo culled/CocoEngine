@@ -39,7 +39,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanShaderUniformData::VulkanShaderUniformData(const VulkanShaderVariant& shader) :
 		CachedVulkanResource(MakeKey(shader)),
-		_version(0),
+		_version(Math::MaxValue<uint64>()),
 		_uniformBuffers{},
 		_pools{},
 		_poolCreateInfo{},
@@ -62,7 +62,7 @@ namespace Coco::Rendering::Vulkan
 
 	bool VulkanShaderUniformData::NeedsUpdate(const VulkanShaderVariant& shader) const
 	{
-		return _version != shader.GetVersion() || _pools.size() == 0;
+		return _version != shader.GetVersion();
 	}
 
 	void VulkanShaderUniformData::Update(const VulkanShaderVariant& shader)
@@ -186,7 +186,7 @@ namespace Coco::Rendering::Vulkan
 
 		const ShaderVariant& variant = shader.GetVariant();
 
-		if (variant.DrawUniforms.GetUniformDataSize(_device) > 0)
+		if (variant.DrawUniforms.DataUniforms.size() > 0)
 		{
 			std::vector<uint8> pushConstantData = variant.DrawUniforms.GetBufferFriendlyData(_device, uniformData);
 			VkShaderStageFlags stageFlags = VK_SHADER_STAGE_ALL;

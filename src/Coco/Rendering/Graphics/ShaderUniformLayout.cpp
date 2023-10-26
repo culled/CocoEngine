@@ -96,6 +96,10 @@ namespace Coco::Rendering
 	std::vector<uint8> ShaderUniformLayout::GetBufferFriendlyData(const GraphicsDevice& device, const ShaderUniformData& data) const
 	{
 		std::vector<uint8> bufferData;
+		
+		// TODO: better way to estimate data size?
+		bufferData.reserve(DataUniforms.size() * BufferIntSize * 32);
+
 		uint64 offset = 0;
 
 		for (const ShaderDataUniform& uniform : DataUniforms)
