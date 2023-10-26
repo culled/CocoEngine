@@ -11,6 +11,7 @@
 #include <Coco/ECS/Components/Transform3DComponent.h>
 #include "../UI/ComponentUI.h"
 #include <Coco/ECS/Systems/TransformSystem.h>
+#include <Coco/Rendering/Gizmos/GizmoRender.h>
 
 #include <imgui.h>
 #include <ImGuizmo.h>
@@ -38,8 +39,15 @@ namespace Coco
 		_isFocused(false),
 		_showCameraPreview(false),
 		_previewCameraFullscreen(false),
+		_drawGrid(true),
+		_gridScale(1.0),
+		_gridSquares(10),
+		_enableSnap(false),
+		_rotationSnapIncrement(45.f),
+		_scaleSnapIncrement(0.5f),
 		_cameraPreviewTexture(),
 		_cameraPreviewSize(),
+		_currentTransformMode(ImGuizmo::MODE::LOCAL),
 		_currentTransformOperation(ImGuizmo::OPERATION::TRANSLATE)
 	{
 		_cameraComponent.ClearColor = Color(0.1, 0.1, 0.1, 1.0);
@@ -103,7 +111,15 @@ namespace Coco
 				PickEntity();
 			}
 
+			if (ImGui::IsKeyPressed(ImGuiKey_ModCtrl, false) || ImGui::IsKeyReleased(ImGuiKey_ModCtrl))
+			{
+				_enableSnap = !_enableSnap;
+			}
+
 			UpdateWindowSettings();
+
+			if(_isMouseHovering)
+				HandleShortcuts();
 
 			DrawViewportImage();
 
@@ -117,6 +133,9 @@ namespace Coco
 			{
 				_isMouseHoveringGizmo = false;
 			}
+
+			if (_drawGrid)
+				DrawGrid();
 
 			if (!_showCameraPreview)
 				_previewCameraFullscreen = false;
@@ -171,38 +190,48 @@ namespace Coco
 	{
 		if (ImGui::BeginMenuBar())
 		{
-			bool translate = _currentTransformOperation & ImGuizmo::OPERATION::TRANSLATE;
-			if (ImGui::Checkbox("Translate", &translate))
-			{
-				if (translate)
-					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::TRANSLATE;
-				else
-					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::TRANSLATE);
-			}
+			int operationV = static_cast<int>(_currentTransformOperation);
 
-			bool rotate = _currentTransformOperation & ImGuizmo::OPERATION::ROTATE;
-			if (ImGui::Checkbox("Rotate", &rotate))
-			{
-				if (rotate)
-					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::ROTATE;
-				else
-					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::ROTATE);
-			}
+			ImGui::RadioButton("Translate", &operationV, 7);
+			ImGui::RadioButton("Rotate", &operationV, 120);
+			ImGui::RadioButton("Scale", &operationV, 896);
 
-			bool scale = _currentTransformOperation & ImGuizmo::OPERATION::SCALE;
-			if (ImGui::Checkbox("Scale", &scale))
-			{
-				if (scale)
-					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::SCALE;
-				else
-					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::SCALE);
-			}
+			_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(operationV);
+
+			int modeV = static_cast<int>(_currentTransformMode);
+
+			ImGui::RadioButton("Global", &modeV, 1);
+			ImGui::RadioButton("Local", &modeV, 0);
+
+			_currentTransformMode = static_cast<ImGuizmo::MODE>(modeV);
+
+			ImGui::Checkbox("Snap", &_enableSnap);
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.f, 10.f));
+
+			if (ImGui::BeginMenu("Snap Settings"))
+			{
+				ImGui::DragFloat("Rotation Increment", &_rotationSnapIncrement, 1.f, 0.f, 180.f);
+				ImGui::DragFloat("Scale Increment", &_scaleSnapIncrement, 0.1f);
+
+				ImGui::EndMenu();
+			}
 
 			if (ImGui::BeginMenu("View"))
 			{
 				ImGui::SeparatorText("Editor Camera Properties");
+
+				float lookSpeed = static_cast<float>(_lookSensitivity * 100.0);
+				if (ImGui::DragFloat("Mouse Sensitivity", &lookSpeed, 0.1f))
+				{
+					_lookSensitivity = lookSpeed / 100.0;
+				}
+
+				float moveSpeed = static_cast<float>(_moveSpeed);
+				if (ImGui::DragFloat("Move Speed", &moveSpeed, 0.1f))
+				{
+					_moveSpeed = moveSpeed;
+				}
 
 				float fov = static_cast<float>(Math::RadToDeg(_cameraComponent.PerspectiveFOV));
 				if (ImGui::DragFloat("FOV", &fov, 0.1f, 0.01f, 180.f))
@@ -217,6 +246,15 @@ namespace Coco
 					_cameraComponent.PerspectiveNearClip = near;
 					_cameraComponent.PerspectiveFarClip = far;
 				}
+
+				ImGui::SeparatorText("Grid Properties");
+
+				ImGui::Checkbox("Show Grid", &_drawGrid);
+				float gridScale = static_cast<float>(_gridScale);
+				if (ImGui::DragFloat("Grid Scale", &gridScale, 0.1f))
+					_gridScale = gridScale;
+
+				ImGui::DragInt("Grid Squares", &_gridSquares, 1.f, 1);
 
 				ImGui::EndMenu();
 			}
@@ -233,6 +271,13 @@ namespace Coco
 		EnsureTexture(viewportSize, _viewportTexture);
 		EnsurePickingTexture(viewportSize);
 		ImGui::Image(_viewportTexture.Get(), ImVec2(static_cast<float>(viewportSize.Width), static_cast<float>(viewportSize.Height)));
+	}
+
+	void ViewportPanel::DrawGrid()
+	{
+		Vector3 gridPos(Math::Round(_cameraTransform.LocalPosition.X), 0.0, Math::Round(_cameraTransform.LocalPosition.Z));
+
+		GizmoRender::Get()->DrawGrid(gridPos, Quaternion::Identity, _gridScale * _gridSquares, _gridSquares, Color::MidGrey);
 	}
 
 	void ViewportPanel::EnsureTexture(const SizeInt& size, ManagedRef<Texture>& texture)
@@ -324,6 +369,37 @@ namespace Coco
 			static_cast<uint32>(size.y * _sCameraPreviewSizePercentage));
 	}
 
+	void ViewportPanel::HandleShortcuts()
+	{
+		using namespace Coco::Input;
+
+		InputService& input = *InputService::Get();
+		Mouse& mouse = input.GetMouse();
+		Keyboard& keyboard = input.GetKeyboard();
+		int scrollDelta = mouse.GetScrollWheelDelta().Y;
+
+		if (scrollDelta != 0)
+		{
+			_cameraTransform.TranslateGlobal(_cameraTransform.GetGlobalBackward() * (scrollDelta * _scrollDistance));
+			_cameraTransform.Recalculate();
+		}
+
+		if (keyboard.WasKeyJustPressed(KeyboardKey::D1))
+		{
+			_currentTransformOperation = ImGuizmo::OPERATION::TRANSLATE;
+		}
+
+		if (keyboard.WasKeyJustPressed(KeyboardKey::D2))
+		{
+			_currentTransformOperation = ImGuizmo::OPERATION::ROTATE;
+		}
+
+		if (keyboard.WasKeyJustPressed(KeyboardKey::D3))
+		{
+			_currentTransformOperation = ImGuizmo::OPERATION::SCALE;
+		}
+	}
+
 	void ViewportPanel::UpdateCamera(const TickInfo& tickInfo)
 	{
 		using namespace Coco::Input;
@@ -393,55 +469,6 @@ namespace Coco
 
 			ShowCameraStatsWindow();
 		}
-		else if (_isMouseHovering)
-		{
-			if (scrollDelta != 0)
-			{
-				_cameraTransform.TranslateGlobal(_cameraTransform.GetGlobalBackward() * (scrollDelta * _scrollDistance));
-				_cameraTransform.Recalculate();
-			}
-
-			if (keyboard.WasKeyJustPressed(KeyboardKey::Q))
-			{
-				_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(0);
-			}
-
-			if (keyboard.WasKeyJustPressed(KeyboardKey::W))
-			{
-				if (_currentTransformOperation & ImGuizmo::OPERATION::TRANSLATE)
-				{
-					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::TRANSLATE);
-				}
-				else
-				{
-					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::TRANSLATE;
-				}
-			}
-
-			if (keyboard.WasKeyJustPressed(KeyboardKey::E))
-			{
-				if (_currentTransformOperation & ImGuizmo::OPERATION::ROTATE)
-				{
-					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::ROTATE);
-				}
-				else
-				{
-					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::ROTATE;
-				}
-			}
-
-			if (keyboard.WasKeyJustPressed(KeyboardKey::R))
-			{
-				if (_currentTransformOperation & ImGuizmo::OPERATION::SCALE)
-				{
-					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::SCALE);
-				}
-				else
-				{
-					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::SCALE;
-				}
-			}
-		}
 	}
 
 	void ViewportPanel::DrawSelectedEntity()
@@ -469,13 +496,38 @@ namespace Coco
 			Transform3DComponent& transformComp = e.GetComponent<Transform3DComponent>();
 			Transform3D& transform = transformComp.Transform;
 			std::array<float, Matrix4x4::CellCount> model = transform.GlobalTransform.AsFloatArray();
+
+			float snapIncrement = 0.f;
+
+			switch (_currentTransformOperation)
+			{
+			case ImGuizmo::OPERATION::TRANSLATE:
+				snapIncrement = static_cast<float>(_gridScale);
+				break;
+			case ImGuizmo::OPERATION::ROTATE:
+				snapIncrement = _rotationSnapIncrement;
+				break;
+			case ImGuizmo::OPERATION::SCALE:
+				snapIncrement = _scaleSnapIncrement;
+				break;
+			default:
+				break;
+			}
+
+			std::array<float, 3> snapValues = { 
+				snapIncrement, 
+				snapIncrement, 
+				snapIncrement,
+			};
 			
 			if (ImGuizmo::Manipulate(
 				cameraView.data(),
 				cameraProjection.data(),
 				_currentTransformOperation,
-				ImGuizmo::MODE::LOCAL,
-				model.data()))
+				_currentTransformMode,
+				model.data(),
+				nullptr,
+				_enableSnap ? snapValues.data() : nullptr))
 			{
 				Matrix4x4 transformed;
 				for (size_t i = 0; i < Matrix4x4::CellCount; i++)

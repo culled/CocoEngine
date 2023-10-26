@@ -57,9 +57,16 @@ namespace Coco
 		bool _isFocused;
 		bool _showCameraPreview;
 		bool _previewCameraFullscreen;
+		bool _drawGrid;
+		double _gridScale;
+		int _gridSquares;
+		bool _enableSnap;
+		float _rotationSnapIncrement;
+		float _scaleSnapIncrement;
 		SizeInt _cameraPreviewSize;
 		RectInt _viewportRect;
 
+		ImGuizmo::MODE _currentTransformMode;
 		ImGuizmo::OPERATION _currentTransformOperation;
 
 		ManagedRef<Texture> _cameraPreviewTexture;
@@ -86,11 +93,13 @@ namespace Coco
 	private:
 		void DrawMenu();
 		void DrawViewportImage();
+		void DrawGrid();
 
 		void EnsureTexture(const SizeInt& size, ManagedRef<Texture>& texture);
 		void EnsurePickingTexture(const SizeInt& size);
 
 		void UpdateWindowSettings();
+		void HandleShortcuts();
 		void UpdateCamera(const TickInfo& tickInfo);
 
 		void DrawSelectedEntity();
