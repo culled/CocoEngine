@@ -524,8 +524,6 @@ namespace Coco::Platforms::Win32
 			{
 				bool focused = message == WM_SETFOCUS;
 
-				CocoInfo("Window {} focus: {}", ID, focused)
-
 				UpdateCursorConfineState(focused);
 
 				try
