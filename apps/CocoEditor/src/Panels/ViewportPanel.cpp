@@ -95,63 +95,9 @@ namespace Coco
 		//if (ImGui::Begin(_name.c_str(), &open) && open)
 		if (ImGui::Begin(_name.c_str(), nullptr, ImGuiWindowFlags_MenuBar))
 		{
-			if (ImGui::BeginMenuBar())
-			{
-				bool translate = _currentTransformOperation & ImGuizmo::OPERATION::TRANSLATE;
-				if (ImGui::Checkbox("Translate", &translate))
-				{
-					if (translate)
-						_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::TRANSLATE;
-					else
-						_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::TRANSLATE);
-				}
-
-				bool rotate = _currentTransformOperation & ImGuizmo::OPERATION::ROTATE;
-				if (ImGui::Checkbox("Rotate", &rotate))
-				{
-					if (rotate)
-						_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::ROTATE;
-					else
-						_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::ROTATE);
-				}
-
-				bool scale = _currentTransformOperation & ImGuizmo::OPERATION::SCALE;
-				if (ImGui::Checkbox("Scale", &scale))
-				{
-					if (scale)
-						_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::SCALE;
-					else
-						_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::SCALE);
-				}
-
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.f, 10.f));
-
-				if (ImGui::BeginMenu("View"))
-				{
-					ImGui::SeparatorText("Editor Camera Properties");
-
-					float fov = static_cast<float>(Math::RadToDeg(_cameraComponent.PerspectiveFOV));
-					if (ImGui::DragFloat("FOV", &fov, 0.1f, 0.01f, 180.f))
-					{
-						_cameraComponent.PerspectiveFOV = Math::DegToRad(fov);
-					}
-
-					float near = static_cast<float>(_cameraComponent.PerspectiveNearClip);
-					float far = static_cast<float>(_cameraComponent.PerspectiveFarClip);
-					if (ImGui::DragFloatRange2("Clipping Distance", &near, &far, 0.1f, Math::EpsilonF))
-					{
-						_cameraComponent.PerspectiveNearClip = near;
-						_cameraComponent.PerspectiveFarClip = far;
-					}
-
-					ImGui::EndMenu();
-				}
-
-				ImGui::PopStyleVar();
-
-				ImGui::EndMenuBar();
-			}
+			DrawMenu();
 		
+			// Perform picking before our texture is possibly resized
 			if (!ImGui::IsAnyItemActive() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !_isMouseHoveringGizmo)
 			{
 				PickEntity();
@@ -159,10 +105,7 @@ namespace Coco
 
 			UpdateWindowSettings();
 
-			SizeInt viewportSize = _viewportRect.GetSize();
-			EnsureTexture(viewportSize, _viewportTexture);
-			EnsurePickingTexture(viewportSize);
-			ImGui::Image(_viewportTexture.Get(), ImVec2(static_cast<float>(viewportSize.Width), static_cast<float>(viewportSize.Height)));
+			DrawViewportImage();
 
 			UpdateCamera(tickInfo);
 
@@ -222,6 +165,74 @@ namespace Coco
 			std::array<SceneDataProvider*, 1> sceneProviders = { &sceneProvider };
 			RenderService::Get()->Render(0, viewportImages, pipeline, *this, sceneProviders);
 		}
+	}
+
+	void ViewportPanel::DrawMenu()
+	{
+		if (ImGui::BeginMenuBar())
+		{
+			bool translate = _currentTransformOperation & ImGuizmo::OPERATION::TRANSLATE;
+			if (ImGui::Checkbox("Translate", &translate))
+			{
+				if (translate)
+					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::TRANSLATE;
+				else
+					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::TRANSLATE);
+			}
+
+			bool rotate = _currentTransformOperation & ImGuizmo::OPERATION::ROTATE;
+			if (ImGui::Checkbox("Rotate", &rotate))
+			{
+				if (rotate)
+					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::ROTATE;
+				else
+					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::ROTATE);
+			}
+
+			bool scale = _currentTransformOperation & ImGuizmo::OPERATION::SCALE;
+			if (ImGui::Checkbox("Scale", &scale))
+			{
+				if (scale)
+					_currentTransformOperation = _currentTransformOperation | ImGuizmo::OPERATION::SCALE;
+				else
+					_currentTransformOperation = static_cast<ImGuizmo::OPERATION>(_currentTransformOperation & ~ImGuizmo::OPERATION::SCALE);
+			}
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.f, 10.f));
+
+			if (ImGui::BeginMenu("View"))
+			{
+				ImGui::SeparatorText("Editor Camera Properties");
+
+				float fov = static_cast<float>(Math::RadToDeg(_cameraComponent.PerspectiveFOV));
+				if (ImGui::DragFloat("FOV", &fov, 0.1f, 0.01f, 180.f))
+				{
+					_cameraComponent.PerspectiveFOV = Math::DegToRad(fov);
+				}
+
+				float near = static_cast<float>(_cameraComponent.PerspectiveNearClip);
+				float far = static_cast<float>(_cameraComponent.PerspectiveFarClip);
+				if (ImGui::DragFloatRange2("Clipping Distance", &near, &far, 0.1f, Math::EpsilonF))
+				{
+					_cameraComponent.PerspectiveNearClip = near;
+					_cameraComponent.PerspectiveFarClip = far;
+				}
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::PopStyleVar();
+
+			ImGui::EndMenuBar();
+		}
+	}
+
+	void ViewportPanel::DrawViewportImage()
+	{
+		SizeInt viewportSize = _viewportRect.GetSize();
+		EnsureTexture(viewportSize, _viewportTexture);
+		EnsurePickingTexture(viewportSize);
+		ImGui::Image(_viewportTexture.Get(), ImVec2(static_cast<float>(viewportSize.Width), static_cast<float>(viewportSize.Height)));
 	}
 
 	void ViewportPanel::EnsureTexture(const SizeInt& size, ManagedRef<Texture>& texture)

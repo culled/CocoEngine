@@ -84,6 +84,9 @@ namespace Coco
 		void Render(RenderPipeline& pipeline);
 
 	private:
+		void DrawMenu();
+		void DrawViewportImage();
+
 		void EnsureTexture(const SizeInt& size, ManagedRef<Texture>& texture);
 		void EnsurePickingTexture(const SizeInt& size);
 
