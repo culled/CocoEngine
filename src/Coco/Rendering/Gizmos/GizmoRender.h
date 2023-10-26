@@ -108,6 +108,14 @@ namespace Coco::Rendering
 		/// @param color The color of the frustum
 		void DrawFrustum(const ViewFrustum& frustum, const Color& color);
 
+		/// @brief Draws a wire grid
+		/// @param position The position of the grid center
+		/// @param rotation The rotation of the grid
+		/// @param size The total size of the grid
+		/// @param squares The number of squares along each side of the grid
+		/// @param color The color of the grid
+		void DrawGrid(const Vector3& position, const Quaternion& rotation, double size, int squares, const Color& color);
+
 	private:
 		/// @brief Sets up the debug mesh
 		void SetupMesh();

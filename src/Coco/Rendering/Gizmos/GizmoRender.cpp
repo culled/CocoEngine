@@ -148,6 +148,41 @@ namespace Coco::Rendering
 		DrawLine3D(frustum.CornerPoints[ViewFrustum::NBR], frustum.CornerPoints[ViewFrustum::FBR], color);
 	}
 
+	void GizmoRender::DrawGrid(const Vector3& position, const Quaternion& rotation, double size, int squares, const Color& color)
+	{
+		double squareScale = size / squares;
+		double offset = -size * 0.5;
+
+		for(int x = 0; x < squares; x++)
+		{
+			for (int z = 0; z < squares; z++)
+			{
+				Vector3 x0z0(x * squareScale + offset, 0, z * squareScale + offset);
+				Vector3 x1z0((x + 1) * squareScale + offset, 0, x0z0.Z);
+				Vector3 x0z1(x0z0.X, 0, (z + 1) * squareScale + offset);
+				Vector3 x1z1(x1z0.X, 0, x0z1.Z);
+
+				x0z0 = rotation * x0z0 + position;
+				x1z0 = rotation * x1z0 + position;
+				x0z1 = rotation * x0z1 + position;
+				x1z1 = rotation * x1z1 + position;
+
+				DrawLine3D(x0z0, x1z0, color);
+				DrawLine3D(x0z0, x0z1, color);
+
+				if (z == squares - 1)
+				{
+					DrawLine3D(x0z1, x1z1, color);
+				}
+
+				if (x == squares - 1)
+				{
+					DrawLine3D(x1z0, x1z1, color);
+				}
+			}
+		}
+	}
+
 	void GizmoRender::SetupMesh()
 	{
 		std::vector<VertexData> verts;
