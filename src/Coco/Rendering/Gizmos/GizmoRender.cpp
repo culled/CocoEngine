@@ -153,33 +153,26 @@ namespace Coco::Rendering
 		double squareScale = size / squares;
 		double offset = -size * 0.5;
 
-		for(int x = 0; x < squares; x++)
+		for (int x = 0; x <= squares; x++)
 		{
-			for (int z = 0; z < squares; z++)
-			{
-				Vector3 x0z0(x * squareScale + offset, 0, z * squareScale + offset);
-				Vector3 x1z0((static_cast<double>(x) + 1) * squareScale + offset, 0, x0z0.Z);
-				Vector3 x0z1(x0z0.X, 0, (static_cast<double>(z) + 1) * squareScale + offset);
-				Vector3 x1z1(x1z0.X, 0, x0z1.Z);
+			Vector3 start(x * squareScale + offset, 0, offset);
+			Vector3 end(start.X, 0, start.Z + size);
 
-				x0z0 = rotation * x0z0 + position;
-				x1z0 = rotation * x1z0 + position;
-				x0z1 = rotation * x0z1 + position;
-				x1z1 = rotation * x1z1 + position;
+			start = rotation * start + position;
+			end = rotation * end + position;
 
-				DrawLine3D(x0z0, x1z0, color);
-				DrawLine3D(x0z0, x0z1, color);
+			DrawLine3D(start, end, color);
+		}
 
-				if (z == squares - 1)
-				{
-					DrawLine3D(x0z1, x1z1, color);
-				}
-
-				if (x == squares - 1)
-				{
-					DrawLine3D(x1z0, x1z1, color);
-				}
-			}
+		for (int z = 0; z <= squares; z++)
+		{
+			Vector3 start(offset, 0, z * squareScale + offset);
+			Vector3 end(start.X + size, 0, start.Z);
+		
+			start = rotation * start + position;
+			end = rotation * end + position;
+		
+			DrawLine3D(start, end, color);
 		}
 	}
 
