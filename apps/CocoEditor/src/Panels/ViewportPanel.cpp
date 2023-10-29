@@ -249,6 +249,21 @@ namespace Coco
 				ImGui::SameLine();
 				ImGui::Checkbox("Invert Pan Y", &_invertPan.at(1));
 
+				std::array<const char*, 4> msaaTexts = { "One", "Two", "Four", "Eight" };
+
+				if (ImGui::BeginCombo("MSAA samples", msaaTexts[static_cast<int>(_sampleCount)]))
+				{
+					for (int i = 0; i < 4; i++)
+					{
+						MSAASamples s = static_cast<MSAASamples>(i);
+						if (ImGui::Selectable(msaaTexts[i], _sampleCount == s))
+							_sampleCount = s;
+
+					}
+
+					ImGui::EndCombo();
+				}
+
 				float fov = static_cast<float>(Math::RadToDeg(_cameraComponent.PerspectiveFOV));
 				if (ImGui::DragFloat("Field of View", &fov, 0.1f, 0.01f, 180.f))
 				{
