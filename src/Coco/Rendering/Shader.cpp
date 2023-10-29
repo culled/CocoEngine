@@ -31,15 +31,13 @@ namespace Coco::Rendering
 
 	bool Shader::TryGetShaderVariant(const char* variantName, const ShaderVariant*& outShaderVariant) const
 	{
-		for (const ShaderVariant& variant : _variants)
-		{
-			if (variant.Name == variantName)
-			{
-				outShaderVariant = &variant;
-				return true;
-			}
-		}
+		auto it = std::find_if(_variants.begin(), _variants.end(), [variantName](const ShaderVariant& variant) { return variant.Name == variantName; });
 
-		return false;
+		if (it == _variants.end())
+			return false;
+
+		outShaderVariant = &(*it);
+
+		return true;
 	}
 }

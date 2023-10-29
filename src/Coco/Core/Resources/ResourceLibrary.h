@@ -42,7 +42,7 @@ namespace Coco
 
 		virtual ~OwnedResourceLibrary()
 		{
-			Clear();
+			this->Clear();
 		}
 
 		/// @brief Creates a resource with the given arguments
@@ -186,7 +186,7 @@ namespace Coco
 
 		virtual ~SharedResourceLibrary()
 		{
-			Clear();
+			this->Clear();
 		}
 
 		/// @brief Creates a resource with the given arguments

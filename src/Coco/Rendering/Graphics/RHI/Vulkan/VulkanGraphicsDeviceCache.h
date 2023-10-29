@@ -34,7 +34,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param samples The number of MSAA samples
 		/// @param resolveAttachmentIndices Indices of attachments in the pipeline that need to be resolved
 		/// @return A render pass
-		VulkanRenderPass& GetOrCreateRenderPass(CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices);
+		VulkanRenderPass& GetOrCreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices);
 
 		/// @brief Gets/creates a VulkanShaderVariant 
 		/// @param variantData The shader data
@@ -63,11 +63,6 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Purges all stale resources
 		void PurgeStaleResources();
-
-	private:
-		/// @brief The tick callback
-		/// @param currentTick Info about the current tick
-		void TickCallback(const TickInfo& currentTick);
 	};
 }
 

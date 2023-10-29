@@ -150,7 +150,7 @@ namespace Coco::Rendering::Vulkan
 
 		// Map the image's data
 		uint8* data = nullptr;
-		vkMapMemory(_device.GetDevice(), _hostImageData.Memory, 0, VK_WHOLE_SIZE, 0, (void**)&data);
+		vkMapMemory(_device.GetDevice(), _hostImageData.Memory, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data));
 		data += subResourceLayout.offset;
 
 		// Get the index of the pixel in the data
@@ -164,7 +164,7 @@ namespace Coco::Rendering::Vulkan
 		vkUnmapMemory(_device.GetDevice(), _hostImageData.Memory);
 	}
 
-	void VulkanImage::TransitionLayout(VulkanCommandBuffer& commandBuffer, VkImageLayout to)
+	void VulkanImage::TransitionLayout(const VulkanCommandBuffer& commandBuffer, VkImageLayout to)
 	{
 		TransitionLayout(commandBuffer, to, _imageData);
 	}
@@ -279,7 +279,7 @@ namespace Coco::Rendering::Vulkan
 		AssertVkSuccess(vkCreateImageView(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_nativeView));
 	}
 
-	void VulkanImage::CopyFromBuffer(VulkanCommandBuffer& commandBuffer, VulkanBuffer& source)
+	void VulkanImage::CopyFromBuffer(const VulkanCommandBuffer& commandBuffer, const VulkanBuffer& source)
 	{
 		VkBufferImageCopy region{};
 		region.bufferOffset = 0;
@@ -298,12 +298,12 @@ namespace Coco::Rendering::Vulkan
 		vkCmdCopyBufferToImage(commandBuffer.GetCmdBuffer(), source.GetBuffer(), _imageData.Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 	}
 
-	void VulkanImage::TransitionLayout(VulkanCommandBuffer& commandBuffer, VkImageLayout to, VulkanImageData& imageData)
+	void VulkanImage::TransitionLayout(const VulkanCommandBuffer& commandBuffer, VkImageLayout to, VulkanImageData& imageData)
 	{
 		if (imageData.CurrentLayout == to || to == VK_IMAGE_LAYOUT_UNDEFINED)
 			return;
 
-		DeviceQueue* graphicsQueue = _device.GetQueue(DeviceQueue::Type::Graphics);
+		const DeviceQueue* graphicsQueue = _device.GetQueue(DeviceQueue::Type::Graphics);
 		if (!graphicsQueue)
 			throw std::exception("Device needs a graphics queue to transition image layouts");
 
@@ -497,7 +497,7 @@ namespace Coco::Rendering::Vulkan
 		queue->Pool.Free(*buffer);
 	}
 	
-	void VulkanImage::GenerateMipMaps(VulkanCommandBuffer& commandBuffer)
+	void VulkanImage::GenerateMipMaps(const VulkanCommandBuffer& commandBuffer)
 	{
 		if (_imageData.CurrentLayout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 			TransitionLayout(commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);

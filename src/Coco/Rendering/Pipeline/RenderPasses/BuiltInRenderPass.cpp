@@ -9,8 +9,8 @@ namespace Coco::Rendering
 	const string BuiltInRenderPass::sGroupTag = "";
 
 	const std::array<AttachmentFormat, 2> BuiltInRenderPass::_sAttachments = {
-		AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::ClearOnFirstUse),
-		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::ClearOnFirstUse)
+		AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::Clear, true),
+		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::Clear, true)
 	};
 
 	BuiltInRenderPass::BuiltInRenderPass(bool useFrustumCulling) :

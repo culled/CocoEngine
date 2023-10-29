@@ -51,64 +51,21 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	_boxMesh->SetIndices(indices, 0);
 	_boxMesh->Apply();
 	
-	GraphicsPipelineState pipelineState{};
-
-	const EngineFileSystem& fs = Engine::Get()->GetFileSystem();
-
-	const char* shaderFilePath = "shaders/built-in/Lit.cshader";
-	if (fs.FileExists(shaderFilePath))
-	{
-		_shader = resourceLibrary.GetOrLoad<Shader>(shaderFilePath);
-	}
-	else
-	{
-		_shader = resourceLibrary.Create<Shader>("Shader", "");
-		_shader->AddVariant(BuiltInShaders::LitVariant);
-
-		resourceLibrary.Save(shaderFilePath, _shader, true);
-	}
+	_shader = resourceLibrary.Create<Shader>("Lit Shader", "");
+	_shader->AddVariant(BuiltInShaders::LitVariant);
 
 	ImageSamplerDescription sampler = ImageSamplerDescription::LinearRepeat;
 	sampler.LODBias = -1.0;
 	sampler.MaxAnisotropy = 16;
 
-	const char* colorTexFilePath = "textures/LargeBlocks.ctexture";
-	if (fs.FileExists(colorTexFilePath))
-	{
-		_texture = resourceLibrary.GetOrLoad<Texture>(colorTexFilePath);
-	}
-	else
-	{
-		_texture = resourceLibrary.Create<Texture>("LargeBlocks", "assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
-		resourceLibrary.Save(colorTexFilePath, _texture, true);
-	}
+	_texture = resourceLibrary.Create<Texture>("LargeBlocks", "assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
+	_normalTexture = resourceLibrary.Create<Texture>("LargeBlocks_N", "assets/textures/LargeBlocks_N.png", ImageColorSpace::Linear, ImageUsageFlags::Sampled, sampler);
 
-	const char* normalTexFilePath = "textures/LargeBlocks_N.ctexture";
-	if (fs.FileExists(normalTexFilePath))
-	{
-		_normalTexture = resourceLibrary.GetOrLoad<Texture>(normalTexFilePath);
-	}
-	else
-	{
-		_normalTexture = resourceLibrary.Create<Texture>("LargeBlocks_N", "assets/textures/LargeBlocks_N.png", ImageColorSpace::Linear, ImageUsageFlags::Sampled, sampler);
-		resourceLibrary.Save(normalTexFilePath, _normalTexture, true);
-	}
-
-	const char* materialFilePath = "materials/LargeBlocks.cmaterial";
-	if (fs.FileExists(materialFilePath))
-	{
-		_material = resourceLibrary.GetOrLoad<Material>(materialFilePath);
-	}
-	else
-	{
-		_material = resourceLibrary.Create<Material>("Material", _shader);
-		_material->SetShader(_shader);
-		_material->SetFloat4("AlbedoTintColor", Color::White);
-		_material->SetTexture("AlbedoTexture", _texture);
-		_material->SetTexture("NormalTexture", _normalTexture);
-
-		resourceLibrary.Save(materialFilePath, _material, true);
-	}
+	_material = resourceLibrary.Create<Material>("Material", _shader);
+	_material->SetShader(_shader);
+	_material->SetFloat4("AlbedoTintColor", Color::White);
+	_material->SetTexture("AlbedoTexture", _texture);
+	_material->SetTexture("NormalTexture", _normalTexture);
 }
 
 void SceneDataProvider3D::SetDrawBounds(bool drawBounds)

@@ -27,7 +27,6 @@ namespace Coco::ECS
 		Matrix4x4 view;
 		Vector3 viewPosition;
 		ViewFrustum frustum;
-		MSAASamples sampleCount = pipeline.SupportsMSAA ? camera.SampleCount : MSAASamples::One;
 
 		if (_entity.HasComponent<Transform3DComponent>())
 		{
@@ -51,7 +50,7 @@ namespace Coco::ECS
 
 		RectInt viewport(Vector2Int::Zero, backbufferSize);
 
-		std::vector<RenderTarget> rts = RenderService::Get()->GetAttachmentCache().CreateRenderTargets(pipeline, rendererID, backbufferSize, sampleCount, backbuffers);
+		std::vector<RenderTarget> rts = RenderService::Get()->GetAttachmentCache().CreateRenderTargets(pipeline, rendererID, backbufferSize, camera.SampleCount, backbuffers);
 		RenderTarget::SetClearValues(rts, camera.ClearColor, 1.0, 0);
 
 		renderView.Setup(
@@ -60,7 +59,7 @@ namespace Coco::ECS
 			projection,
 			viewPosition,
 			frustum,
-			sampleCount,
+			camera.SampleCount,
 			rts
 		);
 	}

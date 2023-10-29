@@ -317,11 +317,13 @@ namespace Coco::Platforms::Win32
 		try
 		{
 			std::span<LPWSTR> args(rawArguments, numArgs);
-
-			for (auto it : args)
-			{
-				_processArguments.push_back(WideStringToString(it));
-			}
+			std::transform(args.begin(), args.end(),
+				std::back_inserter(_processArguments),
+				[](LPWSTR str) 
+				{ 
+					return WideStringToString(str); 
+				}
+			);
 		}
 		catch (...)
 		{

@@ -29,7 +29,7 @@ namespace Coco
 		ListIterator it;
 
 		// Find the first free node that is big enough for the required size
-		for (it = _freeNodes.begin(); it != _freeNodes.end(); it++)
+		for (it = _freeNodes.begin(); it != _freeNodes.end(); ++it)
 		{
 			if (it->Size >= requiredSize)
 				break;
@@ -44,7 +44,7 @@ namespace Coco
 		}
 
 		// Split the free node if there will be leftover memory
-		if (it->Size - requiredSize >= 0)
+		if (it->Size - requiredSize > 0)
 		{
 			_freeNodes.emplace_after(it, it->Offset + requiredSize, it->Size - requiredSize);
 			outBlock.Size = requiredSize;
@@ -71,7 +71,7 @@ namespace Coco
 		ListIterator afterIt;
 
 		// Find the free nodes before and after the free space
-		for (afterIt = _freeNodes.begin(); afterIt != _freeNodes.end(); afterIt++)
+		for (afterIt = _freeNodes.begin(); afterIt != _freeNodes.end(); ++afterIt)
 		{
 			if (afterIt->Offset > block.Offset)
 				break;
@@ -105,12 +105,7 @@ namespace Coco
 
 	uint64 Freelist::GetFreeSpace() const
 	{
-		uint64 freeSpace = 0;
-
-		for (const FreelistNode& node : _freeNodes)
-			freeSpace += node.Size;
-
-		return freeSpace;
+		return std::accumulate(_freeNodes.begin(), _freeNodes.end(), static_cast<uint64>(0), [](uint64 freeSpace, const FreelistNode& node) { return node.Size + freeSpace; });
 	}
 
 	void Freelist::Resize(uint64 newSize)

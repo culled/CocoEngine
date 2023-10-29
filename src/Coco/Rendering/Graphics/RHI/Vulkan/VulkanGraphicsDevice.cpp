@@ -47,7 +47,8 @@ namespace Coco::Rendering::Vulkan
 		_computeQueue(nullptr),
 		_presentQueue(nullptr),
 		_cache(CreateUniqueRef<VulkanGraphicsDeviceCache>()),
-		_resources{}
+		_resources{},
+		_lastPurgeTime(0.0)
 	{
 		GetPhysicalDeviceProperties();
 		CreateLogicalDevice(createParams);
@@ -144,8 +145,8 @@ namespace Coco::Rendering::Vulkan
 		if (!presenter.IsValid())
 			return;
 
-		VulkanGraphicsPresenter* vulkanPresenter = static_cast<VulkanGraphicsPresenter*>(presenter.Get());
-		_resources.RemoveIfSingleOutsideUser(vulkanPresenter->ID);
+		const VulkanGraphicsPresenter& vulkanPresenter = static_cast<const VulkanGraphicsPresenter&>(*presenter);
+		_resources.RemoveIfSingleOutsideUser(vulkanPresenter.ID);
 	}
 
 	Ref<Buffer> VulkanGraphicsDevice::CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind)
@@ -158,8 +159,8 @@ namespace Coco::Rendering::Vulkan
 		if (!buffer.IsValid())
 			return;
 
-		VulkanBuffer* vulkanBuffer = static_cast<VulkanBuffer*>(buffer.Get());
-		_resources.RemoveIfSingleOutsideUser(vulkanBuffer->ID);
+		const VulkanBuffer& vulkanBuffer = static_cast<const VulkanBuffer&>(*buffer);
+		_resources.RemoveIfSingleOutsideUser(vulkanBuffer.ID);
 	}
 
 	Ref<Image> VulkanGraphicsDevice::CreateImage(const ImageDescription& description)
@@ -172,8 +173,8 @@ namespace Coco::Rendering::Vulkan
 		if (!image.IsValid())
 			return;
 
-		VulkanImage* vulkanImage = static_cast<VulkanImage*>(image.Get());
-		_resources.RemoveIfSingleOutsideUser(vulkanImage->ID);
+		const VulkanImage& vulkanImage = static_cast<const VulkanImage&>(*image);
+		_resources.RemoveIfSingleOutsideUser(vulkanImage.ID);
 	}
 
 	Ref<ImageSampler> VulkanGraphicsDevice::CreateImageSampler(const ImageSamplerDescription& description)
@@ -186,8 +187,8 @@ namespace Coco::Rendering::Vulkan
 		if (!imageSampler.IsValid())
 			return;
 
-		VulkanImageSampler* vulkanImageSampler = static_cast<VulkanImageSampler*>(imageSampler.Get());
-		_resources.RemoveIfSingleOutsideUser(vulkanImageSampler->ID);
+		const VulkanImageSampler& vulkanImageSampler = static_cast<const VulkanImageSampler&>(*imageSampler);
+		_resources.RemoveIfSingleOutsideUser(vulkanImageSampler.ID);
 	}
 
 	Ref<RenderContext> VulkanGraphicsDevice::CreateRenderContext()
@@ -200,8 +201,8 @@ namespace Coco::Rendering::Vulkan
 		if (!context.IsValid())
 			return;
 
-		VulkanRenderContext* vulkanContext = static_cast<VulkanRenderContext*>(context.Get());
-		_resources.RemoveIfSingleOutsideUser(vulkanContext->ID);
+		const VulkanRenderContext& vulkanContext = static_cast<const VulkanRenderContext&>(*context);
+		_resources.RemoveIfSingleOutsideUser(vulkanContext.ID);
 	}
 
 	void VulkanGraphicsDevice::ResetForNewFrame()
@@ -426,19 +427,12 @@ namespace Coco::Rendering::Vulkan
 
 		for (const string& requiredExtension : requiredExtensions)
 		{
-			bool found = false;
-
-			for (const VkExtensionProperties& properties : deviceExtensions)
-			{
-				if (strcmp(&properties.extensionName[0], requiredExtension.c_str()) == 0)
+			if (!std::any_of(deviceExtensions.begin(), deviceExtensions.end(),
+				[requiredExtension, score](const VkExtensionProperties& properties)
 				{
-					score++;
-					found = true;
-					break;
+					return strcmp(&properties.extensionName[0], requiredExtension.c_str()) == 0;
 				}
-			}
-
-			if (!found)
+			))
 			{
 				isMissingCriticalRequirement = true;
 				break;
@@ -456,11 +450,12 @@ namespace Coco::Rendering::Vulkan
 		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
 		std::vector<PhysicalDeviceRanking> deviceRankings;
+		deviceRankings.reserve(devices.size());
 
-		for (const VkPhysicalDevice& device : devices)
-		{
-			deviceRankings.emplace_back(device, CalculateDeviceScore(device, createParams));
-		}
+		std::transform(devices.begin(), devices.end(),
+			std::back_inserter(deviceRankings),
+			[createParams](const VkPhysicalDevice& device) { return PhysicalDeviceRanking(device, CalculateDeviceScore(device, createParams)); }
+		);
 
 		std::sort(deviceRankings.begin(), deviceRankings.end(), [](const PhysicalDeviceRanking& a, const PhysicalDeviceRanking& b) {
 			return a.Score > b.Score;

@@ -7,9 +7,10 @@ namespace Coco::Rendering
 {
 	std::hash<RenderPipeline*> _pipelineHasher;
 
-	RenderPipeline::RenderPipeline() :
+	RenderPipeline::RenderPipeline(const ResourceID& id, const string& name) :
+		Resource(id, name),
 		_renderPasses{},
-		_compiledPipeline(_pipelineHasher(this)),
+		_compiledPipeline(id),
 		_isDirty(true)
 	{}
 
@@ -66,9 +67,7 @@ namespace Coco::Rendering
 		try
 		{
 			std::vector<RenderPassBinding> bindings;
-			std::vector<std::optional<AttachmentFormat>> inputAttachments;
-			std::vector<bool> clearAttachments;
-			bool supportsMSAA = true;
+			_compiledPipeline.Attachments.clear();
 
 			for (const RenderPassBinding& binding : _renderPasses)
 			{
@@ -77,19 +76,17 @@ namespace Coco::Rendering
 
 				std::span<const AttachmentFormat> passAttachments = binding.Pass->GetInputAttachments();
 
-				if (!binding.Pass->SupportsMSAA())
-					supportsMSAA = false;
-
 				for (const auto& kvp : binding.PipelineToPassIndexMapping)
 				{
 					const uint8 pipelineAttachmentIndex = kvp.first;
 					const uint8 passAttachmentIndex = kvp.second;
+					const AttachmentFormat& passAttachment = passAttachments[passAttachmentIndex];
 
-					if (pipelineAttachmentIndex < inputAttachments.size())
+					if (pipelineAttachmentIndex < _compiledPipeline.Attachments.size())
 					{
-						const std::optional<AttachmentFormat>& pipelineAttachment = inputAttachments.at(pipelineAttachmentIndex);
+						const CompiledPipelineAttachment& pipelineAttachment = _compiledPipeline.Attachments.at(pipelineAttachmentIndex);
 
-						if (pipelineAttachment.has_value() && !pipelineAttachment->IsCompatible(passAttachments[passAttachmentIndex]))
+						if (!pipelineAttachment.IsCompatible(passAttachment))
 						{
 							string err = FormatString(
 								"Error compiling RenderPipeline: Attachment {} on RenderPass is incompatible with previously defined RenderPipeline attachment {}",
@@ -101,25 +98,32 @@ namespace Coco::Rendering
 					}
 					else
 					{
-						inputAttachments.resize(static_cast<size_t>(pipelineAttachmentIndex) + 1);
-						clearAttachments.resize(inputAttachments.size());
+						_compiledPipeline.Attachments.resize(static_cast<size_t>(pipelineAttachmentIndex) + 1);
 					}
 
-					std::optional<AttachmentFormat>& pipelineAttachment = inputAttachments.at(pipelineAttachmentIndex);
+					CompiledPipelineAttachment& pipelineAttachment = _compiledPipeline.Attachments.at(pipelineAttachmentIndex);
 
-					if (!pipelineAttachment.has_value())
+					if (pipelineAttachment == CompiledPipelineAttachment::Empty)
 					{
-						pipelineAttachment = passAttachments[passAttachmentIndex];
-						clearAttachments.at(pipelineAttachmentIndex) = pipelineAttachment->ClearMode != AttachmentClearMode::Never;
+						pipelineAttachment = CompiledPipelineAttachment(passAttachment);
+					}
+					else
+					{
+						if (passAttachment.ClearMode != AttachmentClearMode::Clear)
+							pipelineAttachment.Clear = false;
+
+						if (passAttachment.PreserveAfterRender)
+							pipelineAttachment.PreserveAfterRender = true;
 					}
 				}
 
 				bindings.push_back(binding);
 			}
 
-			bool missingAttachments = std::any_of(inputAttachments.begin(), inputAttachments.end(), [](const std::optional<AttachmentFormat>& attachment)
+			bool missingAttachments = std::any_of(_compiledPipeline.Attachments.begin(), _compiledPipeline.Attachments.end(), 
+				[](const CompiledPipelineAttachment& attachment)
 				{
-					return !attachment.has_value();
+					return attachment == CompiledPipelineAttachment::Empty;
 				});
 
 			if (missingAttachments)
@@ -129,18 +133,6 @@ namespace Coco::Rendering
 
 			_compiledPipeline.Version++;
 			_compiledPipeline.RenderPasses = std::move(bindings);
-			_compiledPipeline.ClearAttachments = std::move(clearAttachments);
-			_compiledPipeline.SupportsMSAA = supportsMSAA;
-
-			_compiledPipeline.InputAttachments.clear();
-			std::transform(
-				inputAttachments.begin(), 
-				inputAttachments.end(), 
-				std::back_inserter(_compiledPipeline.InputAttachments),
-				[](std::optional<AttachmentFormat>& attachment)
-				{
-					return attachment.value();
-				});
 
 			_isDirty = false;
 			return true;

@@ -157,7 +157,7 @@ namespace Coco::Rendering::Vulkan
 
 		_instanceSets.try_emplace(instanceID, set);
 
-		if (dataSize > 0)
+		if (needsUpdate && dataSize > 0)
 		{
 			UniformDataBuffer& buffer = *data.Buffer;
 
@@ -234,7 +234,7 @@ namespace Coco::Rendering::Vulkan
 			if (freeBuffer->Buffer->Allocate(requiredSize, data.AllocatedBlock))
 				break;
 
-			freeBuffer++;
+			++freeBuffer;
 		}
 
 		if (freeBuffer == _uniformBuffers.end())
@@ -248,7 +248,7 @@ namespace Coco::Rendering::Vulkan
 				)
 			);
 			freeBuffer = _uniformBuffers.end();
-			freeBuffer--;
+			--freeBuffer;
 
 			Assert(freeBuffer->Buffer->Allocate(requiredSize, data.AllocatedBlock));
 		}
@@ -325,13 +325,13 @@ namespace Coco::Rendering::Vulkan
 
 			if (poolResult == VK_ERROR_OUT_OF_POOL_MEMORY)
 			{
-				it++;
+				++it;
 
 				if (it == _pools.end())
 				{
 					CreateDescriptorPool();
 					it = _pools.end();
-					it--;
+					--it;
 				}
 			}
 			else
@@ -394,20 +394,20 @@ namespace Coco::Rendering::Vulkan
 
 			if(!image.IsValid())
 			{
-				RenderService* rendering = RenderService::Get();
+				const RenderService& rendering = *RenderService::Get();
 				SharedRef<Texture> defaultTexture;
 
 				switch (textureSampler.DefaultTexture)
 				{
 				case ShaderTextureUniform::DefaultTextureType::White:
-					defaultTexture = rendering->GetDefaultDiffuseTexture();
+					defaultTexture = rendering.GetDefaultDiffuseTexture();
 					break;
 				case ShaderTextureUniform::DefaultTextureType::Normal:
-					defaultTexture = rendering->GetDefaultNormalTexture();
+					defaultTexture = rendering.GetDefaultNormalTexture();
 					break;
 				case ShaderTextureUniform::DefaultTextureType::Checker:
 				default:
-					defaultTexture = rendering->GetDefaultCheckerTexture();
+					defaultTexture = rendering.GetDefaultCheckerTexture();
 					break;
 				}
 

@@ -19,8 +19,8 @@ const BufferDataLayout RenderPass3D::sLightingBufferLayout = BufferDataLayout({
 
 RenderPass3D::RenderPass3D() :
     _attachments({
-        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::ClearOnFirstUse),
-        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::ClearOnFirstUse),
+        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::Clear, true),
+        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::Clear, true),
         })
 {}
 

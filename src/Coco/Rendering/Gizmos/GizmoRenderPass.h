@@ -18,7 +18,6 @@ namespace Coco::Rendering
         // Inherited via RenderPass
         const char* GetName() const final { return sPassName; }
         std::span<const AttachmentFormat> GetInputAttachments() const final { return _sAttachments; }
-        bool SupportsMSAA() const { return true; }
         void Prepare(RenderContext& context, const RenderView& renderView) final;
         void Execute(RenderContext& context, const RenderView& renderView) final;
     };

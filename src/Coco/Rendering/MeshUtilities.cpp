@@ -582,10 +582,7 @@ namespace Coco::Rendering
 			v2 -= normal * v2.Dot(normal);
 
 			double handedness = ((t1.X * t2.Y - t1.Y * t2.X) < 0.0) ? -1.0 : 1.0;
-
 			Vector3 s = ((v1 * t2.Y - v2 * t1.Y) * handedness).Normalized();
-
-			double angle = Math::Acos(v1.Dot(v2) / (v1.GetLength() * v2.GetLength()));
 
 			Vector4 tangent4(s, handedness);
 

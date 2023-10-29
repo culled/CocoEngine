@@ -8,7 +8,7 @@
 
 namespace Coco::Rendering
 {
-	ContextRenderOperation::ContextRenderOperation(CompiledRenderPipeline& pipeline) :
+	ContextRenderOperation::ContextRenderOperation(const CompiledRenderPipeline& pipeline) :
 		Pipeline(pipeline),
 		CurrentPassIndex(0)
 	{
@@ -318,7 +318,7 @@ namespace Coco::Rendering
 		UniformChanged(scope, key);
 	}
 
-	bool RenderContext::Begin(CompiledRenderPipeline& pipeline)
+	bool RenderContext::Begin(const CompiledRenderPipeline& pipeline)
 	{
 		Assert(_renderView != nullptr)
 
@@ -358,8 +358,7 @@ namespace Coco::Rendering
 		Assert(_renderOperation.has_value())
 
 		EndImpl();
-
-		double time = Engine::cGet()->GetPlatform().GetSeconds();
+		
 		_stats.PassExecutionTime[_renderOperation->GetCurrentPass().Pass->GetName()] = _currentPassStopwatch.Stop();
 		_stats.TotalExecutionTime = _executionStopwatch.Stop();
 

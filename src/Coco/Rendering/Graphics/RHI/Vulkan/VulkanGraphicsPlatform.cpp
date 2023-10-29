@@ -105,15 +105,8 @@ namespace Coco::Rendering::Vulkan
 		std::vector<VkLayerProperties> availableLayers(layerCount);
 		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-		for (const VkLayerProperties& layerProperties : availableLayers)
-		{
-			if (strcmp(_sDebugValidationLayerName, layerProperties.layerName) == 0)
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return std::any_of(availableLayers.begin(), availableLayers.end(), 
+			[](const VkLayerProperties& layerProperties) { return strcmp(_sDebugValidationLayerName, layerProperties.layerName) == 0; });
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
@@ -122,7 +115,7 @@ namespace Coco::Rendering::Vulkan
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData) {
 
-		static const char* messageFormat = "Validation layer message:\n\t{}";
+		const char* messageFormat = "Validation layer message:\n\t{}";
 
 		switch (messageSeverity)
 		{
@@ -224,14 +217,10 @@ namespace Coco::Rendering::Vulkan
 			throw std::exception("Platform is not a RenderingPlatform");
 		}
 
-		for (const auto& ext : createParams.RenderingExtensions)
-		{
-			extensions.push_back(ext);
-		}
+		std::copy(createParams.RenderingExtensions.begin(), createParams.RenderingExtensions.end(), std::back_inserter(extensions));
 
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
 
-#if _DEBUG
 		if (_usingValidationLayers && CheckValidationLayerSupport())
 		{
 			_usingValidationLayers = true;
@@ -244,7 +233,6 @@ namespace Coco::Rendering::Vulkan
 		{
 			CocoWarn("Validation layers are not supported")
 		}
-#endif
 
 		VkInstanceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;

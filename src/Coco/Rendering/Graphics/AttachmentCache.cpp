@@ -26,7 +26,7 @@ namespace Coco::Rendering
 		MSAASamples msaaSamples, 
 		std::span<Ref<Image>> backbuffers)
 	{
-		const std::vector<AttachmentFormat>& attachmentFormats = pipeline.InputAttachments;
+		const std::vector<CompiledPipelineAttachment>& attachmentFormats = pipeline.Attachments;
 
 		uint64 pipelineID = PipelineImageCache::MakeKey(pipeline, rendererID);
 
@@ -49,17 +49,13 @@ namespace Coco::Rendering
 		if (!rendering)
 			throw std::exception("No active RenderService found");
 
-		std::vector<RenderTarget> rts(pipeline.InputAttachments.size());
+		std::vector<RenderTarget> rts(pipeline.Attachments.size());
 		std::vector<bool> backbuffersMatched(backbuffers.size());
-
-		if (pipeline.SupportsMSAA)
-			msaaSamples = static_cast<MSAASamples>(Math::Min(msaaSamples, rendering->GetDevice().GetFeatures().MaximumMSAASamples));
-		else
-			msaaSamples = MSAASamples::One;
+		msaaSamples = static_cast<MSAASamples>(Math::Min(msaaSamples, rendering->GetDevice().GetFeatures().MaximumMSAASamples));
 
 		for (uint8 i = 0; i < rts.size(); i++)
 		{
-			const AttachmentFormat& attachmentFormat = attachmentFormats.at(i);
+			const CompiledPipelineAttachment& attachmentFormat = attachmentFormats.at(i);
 			bool foundMainMatch = false;
 
 			// Look for an unmatched backbuffer that matches the attachment format
@@ -68,9 +64,12 @@ namespace Coco::Rendering
 				if (backbuffersMatched.at(b))
 					continue;
 
-				if (attachmentFormat.IsCompatible(backbuffers[b]->GetDescription()))
+				Ref<Image>& backbufferImage = backbuffers[b];
+				const ImageDescription& backbufferDesc = backbufferImage->GetDescription();
+
+				if (attachmentFormat.IsCompatible(backbufferDesc))
 				{
-					if (msaaSamples == MSAASamples::One)
+					if (msaaSamples == backbufferDesc.SampleCount)
 					{
 						rts.at(i).MainImage = backbuffers[b];
 						foundMainMatch = true;
@@ -98,7 +97,7 @@ namespace Coco::Rendering
 		PipelineImageCache& imageCache, 
 		const SizeInt& size, 
 		MSAASamples msaaSamples,
-		const AttachmentFormat& attachmentFormat, 
+		const CompiledPipelineAttachment& attachmentFormat, 
 		uint8 attachmentIndex)
 	{
 		std::unordered_map<uint8, Ref<Image>>& map = imageCache.Images;
@@ -132,7 +131,7 @@ namespace Coco::Rendering
 			size.Width, size.Height,
 			attachmentFormat.PixelFormat,
 			attachmentFormat.ColorSpace,
-			ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination | ImageUsageFlags::TransferDestination,
+			ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination | ImageUsageFlags::TransferSource,
 			false,
 			msaaSamples
 		);

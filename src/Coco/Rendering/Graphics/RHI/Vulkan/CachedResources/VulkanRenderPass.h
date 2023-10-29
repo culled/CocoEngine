@@ -6,6 +6,7 @@
 namespace Coco::Rendering
 {
 	struct CompiledRenderPipeline;
+	struct CompiledPipelineAttachment;
 }
 
 namespace Coco::Rendering::Vulkan
@@ -14,13 +15,13 @@ namespace Coco::Rendering::Vulkan
 	struct VulkanSubpassInfo
 	{
 		/// @brief The color attachment descriptions
-		std::vector<AttachmentFormat> ColorAttachments;
+		std::vector<CompiledPipelineAttachment> ColorAttachments;
 
 		/// @brief The color attachment references
 		std::vector<VkAttachmentReference> ColorAttachmentReferences;
 
 		/// @brief The depth-stencil attachment description
-		std::optional<AttachmentFormat> DepthStencilAttachment;
+		std::optional<CompiledPipelineAttachment> DepthStencilAttachment;
 
 		/// @brief The depth-stencil attachment reference
 		std::optional<VkAttachmentReference> DepthStencilAttachmentReference;
@@ -87,11 +88,10 @@ namespace Coco::Rendering::Vulkan
 		void Update(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices);
 
 	private:
-		/// @brief Adjusts the given MSAA samples to fit the device and pipeline requirements
-		/// @param pipeline The pipeline
+		/// @brief Adjusts the given MSAA samples to fit the device parameters
 		/// @param samples The samples
 		/// @return The adjusted samples
-		MSAASamples GetAdjustedSamples(const CompiledRenderPipeline& pipeline, MSAASamples samples) const;
+		MSAASamples GetAdjustedSamples(MSAASamples samples) const;
 
 		/// @brief Creates the render pass objects
 		/// @param pipeline The pipeline to use

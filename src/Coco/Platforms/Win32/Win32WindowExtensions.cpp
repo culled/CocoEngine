@@ -117,28 +117,28 @@ namespace Coco::Platforms::Win32
 
 	string Win32WindowExtensions::ShowOpenFileDialog(const std::vector<std::pair<const char*, const char*>>& filters)
 	{
-		Windowing::WindowService* windowing = Windowing::WindowService::Get();
+		const Windowing::WindowService* windowing = Windowing::WindowService::cGet();
 		Assert(windowing)
 
 		Ref<Window> mainWindow = windowing->GetMainWindow();
 		Assert(mainWindow.IsValid())
 
-		Win32Window* win32Window = static_cast<Win32Window*>(mainWindow.Get());
+		const Win32Window& win32Window = static_cast<const Win32Window&>(*mainWindow);
 
-		return ShowDialog(CLSID_FileOpenDialog, FOS_FILEMUSTEXIST | FOS_NOCHANGEDIR | FOS_PATHMUSTEXIST, win32Window->_handle, filters);
+		return ShowDialog(CLSID_FileOpenDialog, FOS_FILEMUSTEXIST | FOS_NOCHANGEDIR | FOS_PATHMUSTEXIST, win32Window._handle, filters);
 	}
 
 	string Win32WindowExtensions::ShowSaveFileDialog(const std::vector<std::pair<const char*, const char*>>& filters)
 	{
-		Windowing::WindowService* windowing = Windowing::WindowService::Get();
+		const Windowing::WindowService* windowing = Windowing::WindowService::cGet();
 		Assert(windowing)
 
 		Ref<Window> mainWindow = windowing->GetMainWindow();
 		Assert(mainWindow.IsValid())
 
-		Win32Window* win32Window = static_cast<Win32Window*>(mainWindow.Get());
+			const Win32Window& win32Window = static_cast<const Win32Window&>(*mainWindow);
 
-		return ShowDialog(CLSID_FileSaveDialog, FOS_FILEMUSTEXIST | FOS_NOCHANGEDIR | FOS_PATHMUSTEXIST, win32Window->_handle, filters);
+		return ShowDialog(CLSID_FileSaveDialog, FOS_FILEMUSTEXIST | FOS_NOCHANGEDIR | FOS_PATHMUSTEXIST, win32Window._handle, filters);
 	}
 
 #ifdef COCO_RENDERING_VULKAN

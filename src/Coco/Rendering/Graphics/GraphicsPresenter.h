@@ -29,12 +29,17 @@ namespace Coco::Rendering
 		virtual bool SurfaceInitialized() const = 0;
 
 		/// @brief Prepares this presenter for rendering
-		/// @param outContext The RenderContext to use for rendering
+		/// @param imageReadySemaphore The semaphore to signal once the backbuffer image is ready for rendering
 		/// @param outBackbuffer The image that can be used for rendering to
 		/// @return True if preparations were successful
-		virtual bool PrepareForRender(Ref<RenderContext>& outContext, Ref<Image>& outBackbuffer) = 0;
+		virtual bool PrepareForRender(Ref<GraphicsSemaphore> imageReadySemaphore, Ref<Image>& outBackbuffer) = 0;
 
-		/// @brief Queues the previously prepared RenderContext for presentation
+		/// @brief Gets the backbuffer that was prepared from the last call to PrepareForRender().
+		/// NOTE: only valid between PrepareForRender() and Present() calls
+		/// @return The prepared backbuffer image
+		virtual Ref<Image> GetPreparedBackbuffer() = 0;
+
+		/// @brief Queues this presenter for presentation, waiting on the given semaphore
 		/// @param frameCompletedSemaphore The semaphore to wait on before presenting the image
 		/// @return True if the presentation was queued successfully
 		virtual bool Present(Ref<GraphicsSemaphore> frameCompletedSemaphore) = 0;
@@ -54,13 +59,5 @@ namespace Coco::Rendering
 		/// @brief Gets this presenter's framebuffer size
 		/// @return The framebuffer size
 		virtual SizeInt GetFramebufferSize() const = 0;
-
-		/// @brief Sets the maximum number of frames that can be queued to present at once
-		/// @param maxFramesInFlight The maximum number of queued frames
-		virtual void SetMaximumFramesInFlight(uint8 maxFramesInFlight) = 0;
-
-		/// @brief Gets the maximum number of frames that can be queued to present at once
-		/// @return The maximum frames in flight
-		virtual uint8 GetMaximumFramesInFlight() const = 0;
 	};
 }

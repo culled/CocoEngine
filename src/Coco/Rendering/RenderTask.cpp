@@ -5,20 +5,10 @@
 
 namespace Coco::Rendering
 {
-	RenderTask::RenderTask() :
-		RendererID(Math::MaxValue<uint64>()),
-		RenderCompletedSemaphore(),
-		RenderCompletedFence()
-	{}
-
-	RenderTask::RenderTask(
-		uint64 rendererID, 
-		const RenderContextRenderStats& stats, 
-		Ref<GraphicsSemaphore> renderCompletedSemaphore, 
-		Ref<GraphicsFence> renderCompletedFence) :
+	RenderTask::RenderTask(uint64 id, uint64 rendererID, SharedRef<RenderView> view, uint64 pipelineID) :
+		ID(id),
 		RendererID(rendererID),
-		RenderStats(stats),
-		RenderCompletedSemaphore(renderCompletedSemaphore),
-		RenderCompletedFence(renderCompletedFence)
+		View(view),
+		PipelineID(pipelineID)
 	{}
 }

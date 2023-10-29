@@ -79,7 +79,7 @@ namespace Coco::ImGuiCoco
 		SharedRef<Texture> _texture;
 		std::unordered_map<uint64, SharedRef<Mesh>> _viewportMeshes;
 		SharedRef<ImGuiRenderPass> _renderPass;
-		UniqueRef<Rendering::RenderPipeline> _renderPipeline;
+		SharedRef<Rendering::RenderPipeline> _renderPipeline;
 		ImGuiViewport* _currentlyRenderingViewport;
 
 	public:

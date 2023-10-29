@@ -92,7 +92,7 @@ namespace Coco
 			//	preProcessPlatformTime = platform.GetSeconds();
 
 			// TODO: non-absolute timing with long message loops
-			double currentPlatformTime = platform.GetSeconds();
+			currentPlatformTime = platform.GetSeconds();
 			double timeDelta = currentPlatformTime - lastTickPlatformTime;
 
 			_currentTick.UnscaledDeltaTime = timeDelta;

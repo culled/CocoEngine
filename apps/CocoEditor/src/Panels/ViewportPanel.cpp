@@ -27,7 +27,7 @@ namespace Coco
 		_selection(EditorApplication::Get()->GetSelection()),
 		_collapsed(true),
 		_currentScene(scene),
-		_sampleCount(MSAASamples::One),
+		_sampleCount(MSAASamples::Four),
 		_cameraTransform(Vector3(-2.0, 1.5, 2.0), Quaternion(Vector3(Math::DegToRad(-30), Math::DegToRad(-45), 0)), Vector3::One),
 		_cameraComponent(),
 		_lookSensitivity(0.5f),
@@ -312,7 +312,7 @@ namespace Coco
 				ImageColorSpace::sRGB,
 				ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled,
 				false,
-				_sampleCount),
+				MSAASamples::One),
 			ImageSamplerDescription::LinearClamp);
 	}
 
@@ -344,7 +344,7 @@ namespace Coco
 				ImageColorSpace::Linear,
 				ImageUsageFlags::RenderTarget | ImageUsageFlags::HostVisible,
 				false,
-				_sampleCount),
+				MSAASamples::One),
 			ImageSamplerDescription::LinearClamp);
 	}
 

@@ -49,33 +49,35 @@ namespace Coco::Rendering
 
 	void ShaderVariant::CalculateHash()
 	{
-		uint64 stageHash = 0;
-		for (const ShaderStage& stage : Stages)
-		{
-			stageHash = Math::CombineHashes(
-				stageHash,
-				_sStringHasher(stage.EntryPointName),
-				static_cast<uint64>(stage.Type),
-				_sStringHasher(stage.FilePath)
-			);
-		}
+		uint64 stageHash = std::accumulate(Stages.begin(), Stages.end(), static_cast<uint64>(0), 
+			[](uint64 hash, const ShaderStage& stage) 
+			{
+				return Math::CombineHashes(
+					hash,
+					_sStringHasher(stage.EntryPointName),
+					static_cast<uint64>(stage.Type),
+					_sStringHasher(stage.FilePath)
+				);
+			});
 
-		uint64 attrHash = 0;
-		for (const ShaderVertexAttribute& attr : VertexAttributes)
-		{
-			attrHash = Math::CombineHashes(
-				attrHash,
-				_sStringHasher(attr.Name),
-				attr.Offset,
-				static_cast<uint64>(attr.Type)
-			);
-		}
+		uint64 attrHash = std::accumulate(VertexAttributes.begin(), VertexAttributes.end(), static_cast<uint64>(0), 
+			[](uint64 hash, const ShaderVertexAttribute& attr)
+			{
+				return Math::CombineHashes(
+					hash,
+					_sStringHasher(attr.Name),
+					attr.Offset,
+					static_cast<uint64>(attr.Type)
+				);
+			}
+		);
 
-		uint64 blendHash = 0;
-		for (const BlendState& state : AttachmentBlendStates)
-		{
-			blendHash = Math::CombineHashes(blendHash, state.GetHash());
-		}
+		uint64 blendHash = std::accumulate(AttachmentBlendStates.begin(), AttachmentBlendStates.end(), static_cast<uint64>(0),
+			[](uint64 hash, const BlendState& state)
+			{
+				return Math::CombineHashes(hash, state.GetHash());
+			}
+		);
 
 		Hash = Math::CombineHashes(
 			_sStringHasher(Name), 

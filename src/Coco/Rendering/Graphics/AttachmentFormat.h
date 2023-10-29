@@ -4,10 +4,14 @@
 
 namespace Coco::Rendering
 {
+	/// @brief Clear modes for an attachment
 	enum class AttachmentClearMode
 	{
+		/// @brief The attachment should not be cleared
 		Never,
-		ClearOnFirstUse
+
+		/// @brief The attachment should be cleared
+		Clear
 	};
 
 	/// @brief A format for a rendering attachment
@@ -22,17 +26,15 @@ namespace Coco::Rendering
 		/// @brief The clear mode for this attachment
 		AttachmentClearMode ClearMode;
 
+		/// @brief If true, this attachment's data will be preserved for subsequent renders
+		bool PreserveAfterRender;
+
 		AttachmentFormat();
-		AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, AttachmentClearMode clearMode);
+		AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, AttachmentClearMode clearMode, bool preserveAfterRender);
 
 		/// @brief Determines if this AttachmentFormat is compatible with another
 		/// @param other The other format
 		/// @return True if the two formats are compatible
 		bool IsCompatible(const AttachmentFormat& other) const;
-
-		/// @brief Determines if this AttachmentFormat is compatible with an image description
-		/// @param description The image description
-		/// @return True if the image description is compatible with this attachment format
-		bool IsCompatible(const ImageDescription& description) const;
 	};
 }

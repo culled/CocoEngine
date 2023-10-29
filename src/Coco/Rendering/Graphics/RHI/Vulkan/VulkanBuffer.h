@@ -61,7 +61,7 @@ namespace Coco::Rendering::Vulkan
         /// @param destination The destination buffer
         /// @param destinationOffset The offset in the destintation buffer to start copying to, in bytes
         /// @param size The number of bytes to copy
-        void CopyBuffer(const VkBuffer& source, uint64 sourceOffset, VkBuffer& destination, uint64 destinationOffset, uint64 size);
+        void CopyBuffer(const VkBuffer& source, uint64 sourceOffset, const VkBuffer& destination, uint64 destinationOffset, uint64 size);
 
         /// @brief Binds a buffer to memory
         /// @param buffer The buffer

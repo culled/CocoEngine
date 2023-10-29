@@ -1,13 +1,15 @@
 #pragma once
 
 #include "../Renderpch.h"
+#include <Coco/Core/Resources/Resource.h>
 #include "RenderPassBinding.h"
 #include "CompiledRenderPipeline.h"
 
 namespace Coco::Rendering
 {
 	/// @brief Defines a set of RenderPasses for rendering
-	class RenderPipeline
+	class RenderPipeline : 
+		public Resource
 	{
 	private:
 		std::vector<RenderPassBinding> _renderPasses;
@@ -15,8 +17,10 @@ namespace Coco::Rendering
 		bool _isDirty;
 
 	public:
-		RenderPipeline();
+		RenderPipeline(const ResourceID& id, const string& name);
 		~RenderPipeline();
+
+		std::type_index GetType() const final { return typeid(RenderPipeline); }
 
 		/// @brief Adds a RenderPass to this pipeline
 		/// @param renderPass The pass

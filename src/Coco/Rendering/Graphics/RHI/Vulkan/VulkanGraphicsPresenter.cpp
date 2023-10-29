@@ -24,24 +24,22 @@ namespace Coco::Rendering::Vulkan
 		_isSwapchainDirty(true),
 		_framebufferSize(SizeInt::Zero),
 		_vSyncMode(VSyncMode::EveryVBlank),
-		_maxFramesInFlight(1),
 		_backbufferDescription{},
 		_backbuffers{},
-		_renderContexts{},
 		_currentBackbufferIndex{},
 		_swapchain(nullptr),
-		_surface(nullptr)
+		_surface(nullptr),
+		_handleFramesInFlightChanged(this, &VulkanGraphicsPresenter::HandleFramesInFlightChanged)
 	{
+		_handleFramesInFlightChanged.Connect(RenderService::Get()->OnMaxFramesInFlightChanged);
 		CocoTrace("Create VulkanGraphicsPresenter")
 	}
 
 	VulkanGraphicsPresenter::~VulkanGraphicsPresenter()
 	{
+		_handleFramesInFlightChanged.DisconnectAll();
+
 		_device.WaitForIdle();
-
-		CocoTrace("Destroying {} VulkanRenderContext(s)", _renderContexts.size())
-
-		_renderContexts.clear();
 
 		DestroySwapchainObjects();
 
@@ -79,7 +77,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	bool VulkanGraphicsPresenter::PrepareForRender(Ref<RenderContext>& outContext, Ref<Image>& outBackbuffer)
+	bool VulkanGraphicsPresenter::PrepareForRender(Ref<GraphicsSemaphore> imageReadySemaphore, Ref<Image>& outBackbuffer)
 	{
 		if (!EnsureSwapchain())
 		{
@@ -87,12 +85,9 @@ namespace Coco::Rendering::Vulkan
 			return false;
 		}
 
-		Ref<VulkanRenderContext> context = GetReadyRenderContext();
-
 		if (!_currentBackbufferIndex.has_value())
 		{
-			Ref<VulkanGraphicsSemaphore> renderStartSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(context->GetRenderStartSemaphore());
-			context->AddWaitOnSemaphore(renderStartSemaphore);
+			Ref<VulkanGraphicsSemaphore> renderStartSemaphore = static_cast<Ref<VulkanGraphicsSemaphore>>(imageReadySemaphore);
 
 			uint32 imageIndex;
 			VkResult result = vkAcquireNextImageKHR(
@@ -122,10 +117,14 @@ namespace Coco::Rendering::Vulkan
 			_currentBackbufferIndex = imageIndex;
 		}
 
-		outContext = context;
 		outBackbuffer = _backbuffers.at(_currentBackbufferIndex.value());
 
 		return true;
+	}
+
+	Ref<Image> VulkanGraphicsPresenter::GetPreparedBackbuffer()
+	{
+		return _currentBackbufferIndex.has_value() ? _backbuffers.at(_currentBackbufferIndex.value()) : Ref<Image>();
 	}
 
 	bool VulkanGraphicsPresenter::Present(Ref<GraphicsSemaphore> frameCompletedSemaphore)
@@ -191,38 +190,29 @@ namespace Coco::Rendering::Vulkan
 		MarkDirty();
 	}
 
-	void VulkanGraphicsPresenter::SetMaximumFramesInFlight(uint8 maxFramesInFlight)
-	{
-		if (maxFramesInFlight == _maxFramesInFlight)
-			return;
-
-		_maxFramesInFlight = Math::Max(maxFramesInFlight, static_cast<uint8>(1));
-		MarkDirty();
-	}
-
 	VkPresentModeKHR PickPresentMode(VSyncMode preferredVSyncMode, const SwapchainSupportDetails& supportDetails) noexcept
 	{
 		const VkPresentModeKHR preferredPresentMode = ToVkPresentMode(preferredVSyncMode);
 
-		for (const VkPresentModeKHR& mode : supportDetails.PresentModes)
-		{
-			if (mode == preferredPresentMode)
-				return mode;
-		}
+		auto it = std::find_if(supportDetails.PresentModes.begin(), supportDetails.PresentModes.end(),
+			[preferredPresentMode](const VkPresentModeKHR& mode) { return mode == preferredPresentMode; });
 
-		return supportDetails.PresentModes[0];
+		return it != supportDetails.PresentModes.end() ? *it : supportDetails.PresentModes[0];
 	}
 
 	VkSurfaceFormatKHR PickSurfaceFormat(const SwapchainSupportDetails& supportDetails) noexcept
 	{
-		for (const VkSurfaceFormatKHR& format : supportDetails.SurfaceFormats)
-		{
-			// TODO: configuable?
-			if (GetPixelFormat(format.format) == ImagePixelFormat::RGBA8 && 
-				GetColorSpace(format.format) == ImageColorSpace::sRGB &&
-				ToImageColorSpace(format.colorSpace) == ImageColorSpace::sRGB)
-				return format;
-		}
+		auto it = std::find_if(supportDetails.SurfaceFormats.begin(), supportDetails.SurfaceFormats.end(),
+			[](const VkSurfaceFormatKHR& format) 
+			{ 
+				// TODO: configuable?
+				return GetPixelFormat(format.format) == ImagePixelFormat::RGBA8 &&
+					GetColorSpace(format.format) == ImageColorSpace::sRGB &&
+					ToImageColorSpace(format.colorSpace) == ImageColorSpace::sRGB; 
+			});
+
+		if (it != supportDetails.SurfaceFormats.end())
+			return *it;
 
 		CocoWarn("No matching surface format found. Falling back to first supported format")
 		return supportDetails.SurfaceFormats.front();
@@ -245,9 +235,9 @@ namespace Coco::Rendering::Vulkan
 		return extent;
 	}
 
-	uint32_t PickBackbufferCount(uint8 preferredCount, const SwapchainSupportDetails& supportDetails) noexcept
+	uint32_t PickBackbufferCount(uint32 preferredCount, const SwapchainSupportDetails& supportDetails) noexcept
 	{
-		uint32_t imageCount = Math::Max(static_cast<uint32_t>(preferredCount), supportDetails.SurfaceCapabilities.minImageCount);
+		uint32_t imageCount = Math::Max(preferredCount, supportDetails.SurfaceCapabilities.minImageCount);
 
 		if (supportDetails.SurfaceCapabilities.maxImageCount > 0)
 			imageCount = Math::Min(imageCount, supportDetails.SurfaceCapabilities.maxImageCount);
@@ -321,7 +311,7 @@ namespace Coco::Rendering::Vulkan
 		VkExtent2D extent = PickBackbufferExtent(_framebufferSize, swapchainSupport);
 
 		// TODO: configure backbuffer count based on desired vsync mode
-		uint8 framebufferCount = _maxFramesInFlight + 1;
+		uint32 framebufferCount = RenderService::cGet()->GetMaxFramesInFlight() + 1;
 		uint32 imageCount = PickBackbufferCount(framebufferCount, swapchainSupport);
 
 		std::vector<uint32_t> queueFamilyIndices;
@@ -413,7 +403,6 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		_vSyncMode = ToVSyncMode(presentMode);
-		_maxFramesInFlight = static_cast<uint8>(_backbuffers.size()) - 1;
 		_isSwapchainDirty = false;
 
 		CocoTrace("Created Vulkan swapchain with {} backbuffers at {}", _backbuffers.size(), _framebufferSize.ToString())
@@ -433,44 +422,10 @@ namespace Coco::Rendering::Vulkan
 		_isSwapchainDirty = true;
 	}
 
-	Ref<VulkanRenderContext> VulkanGraphicsPresenter::GetReadyRenderContext()
+	bool VulkanGraphicsPresenter::HandleFramesInFlightChanged(uint32 framesInFlight)
 	{
-		int earliestContextIndex = -1;
-		double earliestTime = -1.0;
+		MarkDirty();
 
-		for (int i = 0; i < _renderContexts.size(); i++)
-		{
-			ManagedRef<VulkanRenderContext>& context = _renderContexts.at(i);
-
-			if (context->CheckForRenderingComplete())
-			{
-				context->Reset();
-				return context;
-			}
-			
-			// Save this context if it started rendering the earliest
-			double renderTime = context->GetLastRenderStartTime();
-			if(earliestContextIndex == -1 || renderTime < earliestTime)
-			{
-				earliestContextIndex = i;
-				earliestTime = renderTime;
-			}
-		}
-
-		if (_renderContexts.size() == 0 || _renderContexts.size() < _maxFramesInFlight)
-		{
-			ManagedRef<VulkanRenderContext>& context = _renderContexts.emplace_back(CreateManagedRef<VulkanRenderContext>(ID));
-
-			CocoTrace("Created VulkanRenderContext for VulkanGraphicsPresenter")
-
-			return context;
-		}
-		else
-		{
-			ManagedRef<VulkanRenderContext>& context = _renderContexts.at(earliestContextIndex);
-			context->WaitForRenderingToComplete();
-			context->Reset();
-			return context;
-		}
+		return false;
 	}
 }

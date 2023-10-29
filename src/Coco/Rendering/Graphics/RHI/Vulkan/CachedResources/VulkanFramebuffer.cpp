@@ -54,10 +54,12 @@ namespace Coco::Rendering::Vulkan
 		framebufferInfo.layers = 1;
 
 		std::vector<VkImageView> imageViews;
-		for (const VulkanImage* image : attachmentImages)
-		{
-			imageViews.push_back(image->GetNativeView());
-		}
+		imageViews.reserve(attachmentImages.size());
+
+		std::transform(attachmentImages.begin(), attachmentImages.end(),
+			std::back_inserter(imageViews),
+			[](const VulkanImage* image) { return image->GetNativeView(); }
+		);
 
 		framebufferInfo.attachmentCount = static_cast<uint32_t>(imageViews.size());
 		framebufferInfo.pAttachments = imageViews.data();

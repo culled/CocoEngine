@@ -70,8 +70,8 @@ namespace Coco::Platforms::Win32
 		// Set position relative to initial display (if given)
 		if (createParams.DisplayIndex.has_value())
 		{
-			Windowing::WindowService* windowService = Windowing::WindowService::Get();
-			std::vector<DisplayInfo> displays = windowService->GetDisplays();
+			const Windowing::WindowService& windowService = *Windowing::WindowService::cGet();
+			std::vector<DisplayInfo> displays = windowService.GetDisplays();
 
 			if (createParams.DisplayIndex.value() < displays.size())
 			{
@@ -92,8 +92,8 @@ namespace Coco::Platforms::Win32
 		HWND _parentWindowHandle = NULL;
 		if (createParams.ParentWindow != Window::InvalidID)
 		{
-			Win32Window* parentWindow = static_cast<Win32Window*>(GetParentWindow().Get());
-			_parentWindowHandle = parentWindow->_handle;
+			const Win32Window& parentWindow = static_cast<const Win32Window&>(*GetParentWindow());
+			_parentWindowHandle = parentWindow._handle;
 
 			if (!createParams.DisplayIndex.has_value())
 			{
@@ -810,7 +810,7 @@ namespace Coco::Platforms::Win32
 
 			GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
 
-			RAWINPUT* raw = (RAWINPUT*)lpb;
+			RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(lpb);
 
 			if (raw->header.dwType == RIM_TYPEMOUSE)
 			{

@@ -9,8 +9,8 @@ namespace Coco
 	const string PickingRenderPass::sName = "picking";
 
 	std::vector<AttachmentFormat> PickingRenderPass::_sAttachments = {
-		AttachmentFormat(ImagePixelFormat::R32_Int, ImageColorSpace::Linear, AttachmentClearMode::ClearOnFirstUse),
-		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::ClearOnFirstUse)
+		AttachmentFormat(ImagePixelFormat::R32_Int, ImageColorSpace::Linear, AttachmentClearMode::Clear, true),
+		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::Clear, false)
 	};
 
 	void PickingRenderPass::Prepare(RenderContext& context, const RenderView& renderView)

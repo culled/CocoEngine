@@ -193,20 +193,20 @@ namespace Coco::Rendering::Vulkan
 
 			if (!image.IsValid())
 			{
-				RenderService* rendering = RenderService::Get();
+				const RenderService& rendering = *RenderService::cGet();
 				SharedRef<Texture> defaultTexture;
 
 				switch (textureSampler.DefaultTexture)
 				{
 				case ShaderTextureUniform::DefaultTextureType::White:
-					defaultTexture = rendering->GetDefaultDiffuseTexture();
+					defaultTexture = rendering.GetDefaultDiffuseTexture();
 					break;
 				case ShaderTextureUniform::DefaultTextureType::Normal:
-					defaultTexture = rendering->GetDefaultNormalTexture();
+					defaultTexture = rendering.GetDefaultNormalTexture();
 					break;
 				case ShaderTextureUniform::DefaultTextureType::Checker:
 				default:
-					defaultTexture = rendering->GetDefaultCheckerTexture();
+					defaultTexture = rendering.GetDefaultCheckerTexture();
 					break;
 				}
 

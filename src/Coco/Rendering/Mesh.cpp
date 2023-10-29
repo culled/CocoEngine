@@ -77,11 +77,7 @@ namespace Coco::Rendering
 		submeshIndices.resize(indices.size());
 		Assert(memcpy_s(submeshIndices.data(), submeshIndices.size() * sizeof(uint32), indices.data(), indices.size() * sizeof(uint32)) == 0)
 
-		_indexCount = 0;
-		for (const auto& kvp : _indices)
-		{
-			_indexCount += kvp.second.size();
-		}
+		_indexCount = std::accumulate(_indices.begin(), _indices.end(), static_cast<uint64>(0), [](uint64 count, const auto& kvp) { return count + kvp.second.size(); });
 
 		MarkDirty();
 	}
@@ -107,9 +103,8 @@ namespace Coco::Rendering
 			if (_indices.size() == 0)
 				throw std::exception("No index data has been set");
 
-			for (const auto& kvp : _indices)
-				if (kvp.second.size() == 0)
-					throw std::exception("Submesh index list was empty");
+			if (std::any_of(_indices.begin(), _indices.end(), [](const auto& kvp) { return kvp.second.size() == 0; }))
+				throw std::exception("Submesh index list was empty");
 
 			// Gather vertex data
 			std::vector<uint8> vertexBufferData = GetVertexData(_vertexFormat, _vertices);

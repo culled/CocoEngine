@@ -34,9 +34,11 @@ namespace Coco::Rendering::Vulkan
 	std::vector<VulkanDescriptorSetLayout> VulkanShaderVariant::GetDescriptorSetLayouts() const
 	{
 		std::vector<VulkanDescriptorSetLayout> layouts;
+		layouts.reserve(_layouts.size());
 
-		for (const auto& kvp : _layouts)
-			layouts.push_back(kvp.second);
+		std::transform(_layouts.begin(), _layouts.end(),
+			std::back_inserter(layouts),
+			[](const auto& kvp) { return kvp.second; });
 
 		return layouts;
 	}
@@ -72,7 +74,7 @@ namespace Coco::Rendering::Vulkan
 			return std::vector<VkPushConstantRange>();
 		}
 
-		const std::vector<ShaderDataUniform>& drawUniforms = _variant.DrawUniforms.DataUniforms;
+		//const std::vector<ShaderDataUniform>& drawUniforms = _variant.DrawUniforms.DataUniforms;
 
 		VkPushConstantRange range{};
 		range.offset = 0;

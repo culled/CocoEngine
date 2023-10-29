@@ -366,3 +366,6 @@ misc/
 
 # ImGui config
 **/[Ii]mgui.ini*
+
+# Static analysis
+cpp-check/

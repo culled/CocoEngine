@@ -27,27 +27,27 @@ namespace Coco::Rendering
 
 	void ShaderUniformLayout::CalculateHash()
 	{
-		uint64 dataUniformHash = 0;
-		for (const ShaderDataUniform& u : DataUniforms)
-		{
-			dataUniformHash = Math::CombineHashes(
-				dataUniformHash,
-				u.Key,
-				static_cast<uint64>(u.BindingPoints),
-				static_cast<uint64>(u.Type)
-			);
-		}
+		uint64 dataUniformHash = std::accumulate(DataUniforms.begin(), DataUniforms.end(), static_cast<uint64>(0), [](uint64 hash, const ShaderDataUniform& u)
+			{
+				return Math::CombineHashes(
+					hash,
+					u.Key,
+					static_cast<uint64>(u.BindingPoints),
+					static_cast<uint64>(u.Type)
+				);
+			}
+		);
 
-		uint64 textureUniformHash = 0;
-		for (const ShaderTextureUniform& u : TextureUniforms)
-		{
-			textureUniformHash = Math::CombineHashes(
-				textureUniformHash,
-				u.Key,
-				static_cast<uint64>(u.BindingPoints),
-				static_cast<uint64>(u.DefaultTexture)
-			);
-		}
+		uint64 textureUniformHash = std::accumulate(TextureUniforms.begin(), TextureUniforms.end(), static_cast<uint64>(0), [](uint64 hash, const ShaderTextureUniform& u)
+			{
+				return Math::CombineHashes(
+					hash,
+					u.Key,
+					static_cast<uint64>(u.BindingPoints),
+					static_cast<uint64>(u.DefaultTexture)
+				);
+			}
+		);
 
 		Hash = Math::CombineHashes(dataUniformHash, textureUniformHash);
 	}
@@ -59,22 +59,20 @@ namespace Coco::Rendering
 
 	ShaderStageFlags ShaderUniformLayout::GetDataUniformBindStages() const
 	{
-		ShaderStageFlags flags = ShaderStageFlags::None;
-
-		for (const ShaderDataUniform& u : DataUniforms)
-			flags |= u.BindingPoints;
-
-		return flags;
+		return std::accumulate(DataUniforms.begin(), DataUniforms.end(), ShaderStageFlags::None, [](ShaderStageFlags f, const ShaderDataUniform& u)
+			{
+				return f | u.BindingPoints;
+			}
+		);
 	}
 
 	ShaderStageFlags ShaderUniformLayout::GetTextureUniformBindStages() const
 	{
-		ShaderStageFlags flags = ShaderStageFlags::None;
-
-		for (const ShaderTextureUniform& u : TextureUniforms)
-			flags |= u.BindingPoints;
-
-		return flags;
+		return std::accumulate(TextureUniforms.begin(), TextureUniforms.end(), ShaderStageFlags::None, [](ShaderStageFlags f, const ShaderTextureUniform& u)
+			{
+				return f | u.BindingPoints;
+			}
+		);
 	}
 
 	uint64 ShaderUniformLayout::GetUniformDataSize(const GraphicsDevice& device) const
@@ -105,7 +103,6 @@ namespace Coco::Rendering
 		for (const ShaderDataUniform& uniform : DataUniforms)
 		{
 			const uint8 dataSize = GetDataTypeSize(uniform.Type);
-			uint64 preAlignOffset = offset;
 			device.AlignOffset(uniform.Type, offset);
 
 			bufferData.resize(offset + dataSize);
@@ -248,16 +245,16 @@ namespace Coco::Rendering
 	{
 		ShaderUniformLayout::CalculateHash();
 
-		uint64 bufferUniformHash = 0;
-		for (const ShaderBufferUniform& u : BufferUniforms)
-		{
-			bufferUniformHash = Math::CombineHashes(
-				bufferUniformHash,
-				u.Key,
-				static_cast<uint64>(u.BindingPoints),
-				static_cast<uint64>(u.Size)
-			);
-		}
+		uint64 bufferUniformHash = std::accumulate(BufferUniforms.begin(), BufferUniforms.end(), static_cast<uint64>(0), [](uint64 hash, const ShaderBufferUniform& u)
+			{
+				return Math::CombineHashes(
+					hash,
+					u.Key,
+					static_cast<uint64>(u.BindingPoints),
+					static_cast<uint64>(u.Size)
+				);
+			}
+		);
 
 		Hash = Math::CombineHashes(Hash, bufferUniformHash);
 	}
@@ -269,11 +266,10 @@ namespace Coco::Rendering
 
 	ShaderStageFlags GlobalShaderUniformLayout::GetBufferUniformBindStages() const
 	{
-		ShaderStageFlags flags = ShaderStageFlags::None;
-
-		for (const ShaderBufferUniform& u : BufferUniforms)
-			flags |= u.BindingPoints;
-
-		return flags;
+		return std::accumulate(BufferUniforms.begin(), BufferUniforms.end(), ShaderStageFlags::None, [](ShaderStageFlags f, const ShaderBufferUniform& u)
+			{
+				return f | u.BindingPoints;
+			}
+		);
 	}
 }

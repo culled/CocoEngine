@@ -386,26 +386,27 @@ namespace Coco
 		cx /= outScale.X;
 
 		// Compute XY shear and make the Y column orthogonal to the X column
-		Vector3 skew(0.0, 0.0, cx.Dot(cy));
-		cy += cx * -skew.Z;
+		//Vector3 skew(0.0, 0.0, cx.Dot(cy));
+		double skewZ = cx.Dot(cy);
+		cy += cx * -skewZ;
 
 		// Get the Y scale and normalize the Y column
 		outScale.Y = cy.GetLength();
 		cy /= outScale.Y;
-		skew.Z /= outScale.Y;
+		//skew.Z /= outScale.Y;
 
 		// Compute the XZ and YZ shears and make the Z column orthogonal to the X and Y columns	
-		skew.Y = cx.Dot(cz);
-		cz += cx * -skew.Y;
+		//skew.Y = cx.Dot(cz);
+		cz += cx * -cx.Dot(cz);
 
-		skew.X = cy.Dot(cz);
-		cz += cy * -skew.X;
+		//skew.X = cy.Dot(cz);
+		cz += cy * -cy.Dot(cz);
 
 		// Get the Z scale and normalize the Z column
 		outScale.Z = cz.GetLength();
 		cz /= outScale.Z;
-		skew.X /= outScale.Z;
-		skew.Y /= outScale.Z;
+		//skew.X /= outScale.Z;
+		//skew.Y /= outScale.Z;
 
 		// Now we can create an orthonormal rotation matrix
 		Matrix4x4 rotation({

@@ -20,6 +20,8 @@ SandboxApp::SandboxApp() :
 	_tickListener(CreateManagedRef<TickListener>(this, &SandboxApp::Tick, 0)),
 	_attachmentCache(CreateUniqueRef<AttachmentCache>())
 {
+	//Engine::Get()->GetLog().SetMinimumSeverity(LogMessageSeverity::Trace);
+
 	MainLoop::Get()->AddListener(_tickListener);
 	//MainLoop::Get()->SetTargetTicksPerSecond(144);
 
@@ -46,7 +48,6 @@ SandboxApp::SandboxApp() :
 		WindowCreateParams windowCreateParams("Sandbox", SizeInt(1280, 720));
 		Ref<Window> win = windowing.CreateWindow(windowCreateParams);
 		//win->GetPresenter()->SetVSync(Rendering::VSyncMode::Immediate);
-		//win->GetPresenter()->SetMaximumFramesInFlight(2);
 		win->Show();
 	}
 
@@ -55,7 +56,9 @@ SandboxApp::SandboxApp() :
 		services->CreateService<ImGuiService>(true);
 	}
 
-	_pipeline3D = CreateSharedRef<Rendering::RenderPipeline>();
+	ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
+
+	_pipeline3D = resources.Create<Rendering::RenderPipeline>("3D Pipeline");
 
 	{
 		std::array<uint8, 2> bindings = { 0, 1 };
@@ -68,7 +71,7 @@ SandboxApp::SandboxApp() :
 	_renderViewProvider3D = CreateUniqueRef<RenderViewProvider3D>(*_attachmentCache);
 	_sceneDataProvider3D = CreateUniqueRef<SceneDataProvider3D>();
 
-	_pipeline2D = CreateSharedRef<Rendering::RenderPipeline>();
+	_pipeline2D = resources.Create<Rendering::RenderPipeline>("2D Pipeline");
 
 	{
 		std::array<uint8, 1> bindings = { 0 };

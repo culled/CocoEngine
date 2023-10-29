@@ -107,10 +107,10 @@ namespace Coco::Windowing
 	std::vector<Ref<Window>> WindowService::GetVisibleWindows() const
 	{
 		std::vector<Ref<Window>> visibleWindows;
-
-		for (const auto& window : _windows)
-			if (window->IsVisible())
-				visibleWindows.push_back(window);
+		std::copy_if(_windows.begin(), _windows.end(), 
+			std::back_inserter(visibleWindows), 
+			[](const ManagedRef<Window>& window) { return window->IsVisible(); }
+		);
 
 		return visibleWindows;
 	}

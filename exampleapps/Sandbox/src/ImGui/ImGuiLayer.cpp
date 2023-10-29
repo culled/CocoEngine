@@ -46,6 +46,13 @@ void ImGuiLayer::Draw()
 		windowPresenter->SetVSync(isVsync ? VSyncMode::EveryVBlank : VSyncMode::Immediate);
 	}
 
+	Rendering::RenderService& rendering = *Rendering::RenderService::Get();
+	int maxFramesInFlight = static_cast<int>(rendering.GetMaxFramesInFlight());
+	if (ImGui::DragInt("Frames in Flight", &maxFramesInFlight, 0.1f, 1, 50))
+	{
+		rendering.SetMaxFramesInFlight(static_cast<uint32>(maxFramesInFlight));
+	}
+
 	bool drawBounds = _sceneProvider3D.GetDrawBounds();
 	if (ImGui::Checkbox("Draw Bounds", &drawBounds))
 	{
@@ -73,16 +80,16 @@ void ImGuiLayer::DrawPostRender()
 	if (ImGui::TreeNode("Rendering Info"))
 	{
 		Rendering::RenderService* rs = Rendering::RenderService::Get();
-		const Rendering::RenderStats& renderStats = rs->GetRenderStats();
-		ImGui::Text("%i vertices", renderStats.VertexCount);
-		ImGui::Text("%i triangles", renderStats.TrianglesDrawn);
-		ImGui::Text("%i draw call(s)", renderStats.DrawCalls);
-		ImGui::Text("Total render time: %.3fms", renderStats.TotalExecutionTime.GetMilliseconds());
-		ImGui::Text("Render wait time: %.3fms", renderStats.RenderSyncWait.GetMilliseconds());
+		const Rendering::FrameRenderStats& frs = rs->GetLastFrameRenderStats();
+
+		ImGui::Text("%i vertices", frs.VertexCount);
+		ImGui::Text("%i triangles", frs.TrianglesDrawn);
+		ImGui::Text("%i draw call(s)", frs.DrawCalls);
+		ImGui::Text("Total render time: %.3fms", frs.TotalExecutionTime.GetMilliseconds());
+		ImGui::Text("Render wait time: %.3fms", frs.RenderSyncWait.GetMilliseconds());
 
 		size_t renderIndex = 0;
-
-		for (const auto& stats : rs->GetIndividualRenderStats())
+		for (const auto& stats : frs.ContextStats)
 		{
 			if (ImGui::TreeNode(reinterpret_cast<void*>(renderIndex), "Render %i", renderIndex))
 			{
@@ -90,20 +97,20 @@ void ImGuiLayer::DrawPostRender()
 				ImGui::Text("%i triangles", stats.TrianglesDrawn);
 				ImGui::Text("%i draw call(s)", stats.DrawCalls);
 				ImGui::Text("Render time: %.3fms", stats.TotalExecutionTime.GetMilliseconds());
-
+		
 				if (ImGui::TreeNode("Pass Execution"))
 				{
 					for (const auto& kvp : stats.PassExecutionTime)
 					{
 						ImGui::Text("%s: %.3fms", kvp.first.c_str(), kvp.second.GetMilliseconds());
 					}
-
+		
 					ImGui::TreePop();
 				}
-
+		
 				ImGui::TreePop();
 			}
-
+		
 			renderIndex++;
 		}
 

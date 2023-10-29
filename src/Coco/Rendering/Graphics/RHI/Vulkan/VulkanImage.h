@@ -64,7 +64,7 @@ namespace Coco::Rendering::Vulkan
         /// @brief Transitions this image to a new layout
         /// @param commandBuffer The command buffer to use
         /// @param to The layout to transition to
-        void TransitionLayout(VulkanCommandBuffer& commandBuffer, VkImageLayout to);
+        void TransitionLayout(const VulkanCommandBuffer& commandBuffer, VkImageLayout to);
 
     private:
         /// @brief Creates the image from the set description
@@ -82,13 +82,13 @@ namespace Coco::Rendering::Vulkan
         /// @brief Copies pixel data into this image from a buffer
         /// @param commandBuffer The command buffer
         /// @param source The source buffer
-        void CopyFromBuffer(VulkanCommandBuffer& commandBuffer, VulkanBuffer& source);
+        void CopyFromBuffer(const VulkanCommandBuffer& commandBuffer, const VulkanBuffer& source);
 
         /// @brief Transitions an image to a new layout
         /// @param commandBuffer The command buffer to use
         /// @param to The layout to transition to
         /// @param imageData The image to transition
-        void TransitionLayout(VulkanCommandBuffer& commandBuffer, VkImageLayout to, VulkanImageData& imageData);
+        void TransitionLayout(const VulkanCommandBuffer& commandBuffer, VkImageLayout to, VulkanImageData& imageData);
 
         /// @brief Copies an image to the destination image
         /// @param src The source image
@@ -99,6 +99,6 @@ namespace Coco::Rendering::Vulkan
 
         /// @brief Generates mip maps from the base image
         /// @param commandBuffer The command buffer
-        void GenerateMipMaps(VulkanCommandBuffer& commandBuffer);
+        void GenerateMipMaps(const VulkanCommandBuffer& commandBuffer);
     };
 }

@@ -11,6 +11,7 @@
 #include <cmath>
 #include <type_traits>
 #include <numbers>
+#include <numeric>
 
 #include <span>
 #include <array>

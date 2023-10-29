@@ -17,7 +17,7 @@ namespace Coco::Rendering::Vulkan
 		_renderPasses.clear();
 	}
 
-	VulkanRenderPass& VulkanGraphicsDeviceCache::GetOrCreateRenderPass(CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices)
+	VulkanRenderPass& VulkanGraphicsDeviceCache::GetOrCreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices)
 	{
 		GraphicsDeviceResourceID key = VulkanRenderPass::MakeKey(pipeline, samples);
 
@@ -194,10 +194,5 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		_lastPurgeTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-	}
-
-	void VulkanGraphicsDeviceCache::TickCallback(const TickInfo& currentTick)
-	{
-		PurgeStaleResources();
 	}
 }

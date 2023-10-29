@@ -17,7 +17,6 @@ namespace Coco
         // Inherited via RenderPass
         const char* GetName() const override { return sName.c_str(); }
         std::span<const Rendering::AttachmentFormat> GetInputAttachments() const override { return _sAttachments; }
-        bool SupportsMSAA() const override { return true; }
         void Prepare(Rendering::RenderContext& context, const Rendering::RenderView& renderView) override;
         void Execute(Rendering::RenderContext& context, const Rendering::RenderView& renderView) override;
     };

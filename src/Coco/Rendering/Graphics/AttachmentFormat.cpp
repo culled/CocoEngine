@@ -4,23 +4,19 @@
 namespace Coco::Rendering
 {
     AttachmentFormat::AttachmentFormat() : 
-        AttachmentFormat(ImagePixelFormat::Unknown, ImageColorSpace::Unknown, AttachmentClearMode::Never)
+        AttachmentFormat(ImagePixelFormat::Unknown, ImageColorSpace::Unknown, AttachmentClearMode::Never, false)
     {}
 
-    AttachmentFormat::AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, AttachmentClearMode clearMode) :
+    AttachmentFormat::AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, AttachmentClearMode clearMode, bool preserveAfterRender) :
         PixelFormat(pixelFormat),
         ColorSpace(colorSpace),
-        ClearMode(clearMode)
+        ClearMode(clearMode),
+        PreserveAfterRender(preserveAfterRender)
     {}
 
     bool AttachmentFormat::IsCompatible(const AttachmentFormat& other) const
     {
-        return AreCompatible(PixelFormat, other.PixelFormat);
-    }
-
-    bool AttachmentFormat::IsCompatible(const ImageDescription& description) const
-    {
-        return PixelFormat == description.PixelFormat &&
-            ColorSpace == description.ColorSpace;
+        return AreCompatible(PixelFormat, other.PixelFormat) &&
+            ColorSpace == other.ColorSpace;
     }
 }

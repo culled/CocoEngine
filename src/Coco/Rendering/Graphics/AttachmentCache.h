@@ -9,6 +9,7 @@
 namespace Coco::Rendering
 {
 	struct CompiledRenderPipeline;
+	struct CompiledPipelineAttachment;
 	struct RenderTarget;
 	struct AttachmentFormat;
 	class Image;
@@ -62,7 +63,7 @@ namespace Coco::Rendering
 			PipelineImageCache& imageCache, 
 			const SizeInt& size,
 			MSAASamples msaaSamples,
-			const AttachmentFormat& attachmentFormat,
+			const CompiledPipelineAttachment& attachmentFormat,
 			uint8 attachmentIndex);
 	};
 }

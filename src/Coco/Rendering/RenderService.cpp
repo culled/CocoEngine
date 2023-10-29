@@ -14,27 +14,20 @@
 
 namespace Coco::Rendering
 {
-	RenderServiceRenderTask::RenderServiceRenderTask(Ref<RenderContext> context) :
-		RenderServiceRenderTask(context, Ref<GraphicsPresenter>())
-	{}
-
-	RenderServiceRenderTask::RenderServiceRenderTask(Ref<RenderContext> context, Ref<GraphicsPresenter> presenter) :
-		Context(std::move(context)),
-		Presenter(presenter)
-	{}
-
 	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory, bool includeGizmoRendering) :
 		_earlyTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleEarlyTick, sEarlyTickPriority)),
 		_lateTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
-		_renderTasks{},
 		_gizmoRender(nullptr),
 		_renderGizmos(false),
-		_renderView(),
 		_attachmentCache(),
-		_renderContextCache()
+		_currentFrameTasks(0),
+		_maxFramesInFlight(1),
+		_renderViewPool(),
+		_platform(platformFactory.Create())
 	{
-		_platform = platformFactory.Create();
 		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
+
+		_contextPool = CreateUniqueRef<RenderContextPool>(*_device, 20);
 
 		if (includeGizmoRendering)
 		{
@@ -63,15 +56,12 @@ namespace Coco::Rendering
 	{
 		//MainLoop::Get()->RemoveListener(_earlyTickListener);
 		MainLoop::Get()->RemoveListener(_lateTickListener);
-		_renderTasks.clear();
-
-		_renderContextCache.clear();
-		_individualRenderStats.clear();
 
 		_defaultDiffuseTexture.reset();
 		_defaultNormalTexture.reset();
 		_defaultCheckerTexture.reset();
 
+		_contextPool.reset();
 		_gizmoRender.reset();
 		_device.reset();
 		_platform.reset();
@@ -83,9 +73,7 @@ namespace Coco::Rendering
 		Ref<GraphicsPresenter> presenter,
 		RenderPipeline& pipeline, 
 		RenderViewProvider& renderViewProvider, 
-		std::span<SceneDataProvider*> sceneDataProviders,
-		std::optional<RenderTask> dependsOn,
-		RenderTask* outTask)
+		std::span<SceneDataProvider*> sceneDataProviders)
 	{
 		if (!presenter.IsValid())
 		{
@@ -102,35 +90,33 @@ namespace Coco::Rendering
 			return false;
 		}
 
-		CompiledRenderPipeline compiledPipeline = pipeline.GetCompiledPipeline();
-
-		// Get the context used for rendering from the presenter
-		Ref<RenderContext> context;
 		Ref<Image> backbuffer;
-		Stopwatch presenterPrepareTime(true);
-		if (!presenter->PrepareForRender(context, backbuffer))
+
+		if (!_currentFrameTasks.HasPresenter(presenter))
 		{
-			CocoError("Failed to prepare presenter for rendering")
-			return false;
+			// Get the context used for rendering from the presenter
+			Stopwatch syncStopwatch(true);
+			Ref<RenderContext> context = _contextPool->Get(false);
+			if (!presenter->PrepareForRender(context->GetRenderStartSemaphore(), backbuffer))
+			{
+				CocoError("Failed to prepare presenter for rendering")
+				return false;
+			}
+
+			context->AddWaitOnSemaphore(context->GetRenderStartSemaphore());
+
+			_currentFrameTasks.AddPresenter(presenter, context, syncStopwatch.Stop());
+		}
+		else
+		{
+			backbuffer = presenter->GetPreparedBackbuffer();
 		}
 
-		_stats.RenderSyncWait += presenterPrepareTime.Stop();
-
+		const CompiledRenderPipeline& compiledPipeline = pipeline.GetCompiledPipeline();
 		std::array<Ref<Image>, 1> backbuffers{ backbuffer };
-		uint64 rendererID = presenter->GetID();
+		SharedRef<RenderView> renderView = GetRenderView(presenter->GetID(), backbuffers, presenter->GetFramebufferSize(), compiledPipeline, renderViewProvider, sceneDataProviders);
 
-		bool success = Render(
-			rendererID, 
-			compiledPipeline, 
-			backbuffers, 
-			presenter->GetFramebufferSize(), 
-			context, 
-			renderViewProvider, 
-			sceneDataProviders, 
-			dependsOn, 
-			outTask);
-		_renderTasks[rendererID].emplace_back(context, presenter);
-		return success;
+		return _currentFrameTasks.QueueTask(presenter, renderView, compiledPipeline);
 	}
 
 	bool RenderService::Render(
@@ -138,9 +124,7 @@ namespace Coco::Rendering
 		std::span<Ref<Image>> framebuffers, 
 		RenderPipeline& pipeline,
 		RenderViewProvider& renderViewProvider, 
-		std::span<SceneDataProvider*> sceneDataProviders, 
-		std::optional<RenderTask> dependsOn,
-		RenderTask* outTask)
+		std::span<SceneDataProvider*> sceneDataProviders)
 	{
 		if (framebuffers.size() == 0)
 		{
@@ -180,89 +164,10 @@ namespace Coco::Rendering
 			return false;
 		}
 
-		CompiledRenderPipeline compiledPipeline = pipeline.GetCompiledPipeline();
-		Ref<RenderContext> context = GetReadyRenderContext();
+		const CompiledRenderPipeline& compiledPipeline = pipeline.GetCompiledPipeline();
+		SharedRef<RenderView> renderView = GetRenderView(rendererID, framebuffers, framebufferSize, compiledPipeline, renderViewProvider, sceneDataProviders);
 
-		bool success = Render(rendererID, compiledPipeline, framebuffers, framebufferSize, context, renderViewProvider, sceneDataProviders, dependsOn, outTask);
-		_renderTasks[rendererID].emplace_back(context);
-		_orphanedRenderContexts.push_back(context);
-		return success;
-	}
-
-	bool RenderService::Render(
-		uint64 rendererID, 
-		CompiledRenderPipeline& compiledPipeline,
-		std::span<Ref<Image>> framebuffers,
-		const SizeInt& framebufferSize,
-		Ref<RenderContext> renderContext,
-		RenderViewProvider& renderViewProvider, 
-		std::span<SceneDataProvider*> sceneDataProviders,
-		std::optional<RenderTask> dependsOn,
-		RenderTask* outTask)
-	{
-		// Create the RenderView using the given framebuffers
-		_renderView.Reset();
-		renderViewProvider.SetupRenderView(_renderView, compiledPipeline, rendererID, framebufferSize, framebuffers);
-
-		// Get the scene data
-		for (SceneDataProvider* provider : sceneDataProviders)
-		{
-			if (!provider)
-				continue;
-
-			provider->GatherSceneData(_renderView);
-		}
-
-		if (_gizmoRender && _renderGizmos)
-			_gizmoRender->GatherSceneData(_renderView);
-
-		Ref<GraphicsSemaphore> waitOn;
-
-		// Add syncronization to the previous task if it was given
-		if (dependsOn.has_value())
-		{
-			// Explicitly wait on the previous task's completion semaphore
-			waitOn = dependsOn->RenderCompletedSemaphore;
-		}
-		else if (_renderTasks.contains(rendererID))
-		{
-			std::vector<RenderServiceRenderTask>& tasks = _renderTasks.at(rendererID);
-
-			// If this renderer already performed a task this frame, wait on the last task's completion semaphore
-			if (tasks.size() > 0)
-			{
-				RenderServiceRenderTask& task = tasks.back();
-				Assert(task.Context.IsValid())
-
-				waitOn = task.Context->GetRenderCompletedSemaphore();
-
-				// Since the previous context is now being used, remove it from the orphaned list
-				auto it = std::find(_orphanedRenderContexts.begin(), _orphanedRenderContexts.end(), task.Context);
-				if (it != _orphanedRenderContexts.end())
-					_orphanedRenderContexts.erase(it);
-			}
-		}
-		else if(renderContext->GetWaitOnSemaphoreCount() == 0 && _orphanedRenderContexts.size() > 0)
-		{
-			// Use the last orphaned context as the signaller for this context
-			renderContext->AddWaitOnSemaphore(_orphanedRenderContexts.back()->GetRenderCompletedSemaphore());
-			_orphanedRenderContexts.pop_back();
-		}
-
-		if (!ExecuteRender(*renderContext, compiledPipeline, _renderView, waitOn))
-		{
-			_renderView.Reset();
-			return false;
-		}
-
-		_stats += renderContext->GetRenderStats();
-		_individualRenderStats.push_back(renderContext->GetRenderStats());
-		_renderView.Reset();
-
-		if (outTask)
-			*outTask = RenderTask(rendererID, renderContext->GetRenderStats(), renderContext->GetRenderCompletedSemaphore(), renderContext->GetRenderCompletedFence());
-
-		return true;
+		return _currentFrameTasks.QueueTask(rendererID, renderView, compiledPipeline);
 	}
 
 	void RenderService::SetGizmoRendering(bool renderGizmos)
@@ -270,61 +175,37 @@ namespace Coco::Rendering
 		_renderGizmos = renderGizmos;
 	}
 
-	bool RenderService::ExecuteRender(
-		RenderContext& context, 
-		CompiledRenderPipeline& compiledPipeline, 
-		RenderView& renderView,
-		Ref<GraphicsSemaphore> waitOn)
+	void RenderService::SetMaxFramesInFlight(uint32 framesInFlight)
 	{
-		context.SetCurrentRenderView(renderView);
+		_maxFramesInFlight = Math::Max(framesInFlight, static_cast<uint32>(1));
+		OnMaxFramesInFlightChanged.Invoke(_maxFramesInFlight);
+	}
 
-		try
+	SharedRef<RenderView> RenderService::GetRenderView(
+		uint64 rendererID,
+		std::span<Ref<Image>> framebuffers, 
+		const SizeInt& framebufferSize,
+		const CompiledRenderPipeline& compiledPipeline,
+		RenderViewProvider& renderViewProvider, 
+		std::span<SceneDataProvider*> sceneDataProviders)
+	{
+		SharedRef<RenderView> renderView = _renderViewPool.Get();
+		renderView->Reset();
+		renderViewProvider.SetupRenderView(*renderView, compiledPipeline, rendererID, framebufferSize, framebuffers);
+
+		// Get the scene data
+		for (SceneDataProvider* provider : sceneDataProviders)
 		{
-			// Go through each pass and prepare it
-			for (auto it = compiledPipeline.RenderPasses.begin(); it != compiledPipeline.RenderPasses.end(); it++)
-			{
-				it->Pass->Prepare(context, renderView);
-			}
-		}
-		catch (const std::exception& ex)
-		{
-			CocoError("Error preparing render: {}", ex.what())
+			if (!provider)
+				continue;
 
-			return false;
-		}
-
-		try
-		{
-			if (waitOn.IsValid())
-			{
-				context.AddWaitOnSemaphore(waitOn);
-			}
-
-			// Go through each pass and execute it
-			for (auto it = compiledPipeline.RenderPasses.begin(); it != compiledPipeline.RenderPasses.end(); it++)
-			{
-				if (it == compiledPipeline.RenderPasses.begin())
-				{
-					if (!context.Begin(compiledPipeline))
-						return false;
-				}
-				else
-				{
-					if (!context.BeginNextPass())
-						break;
-				}
-
-				it->Pass->Execute(context, renderView);
-			}
-		}
-		catch (const std::exception& ex)
-		{
-			CocoError("Error executing render: {}", ex.what())
+			provider->GatherSceneData(*renderView);
 		}
 
-		context.End();
+		if (_gizmoRender && _renderGizmos)
+			_gizmoRender->GatherSceneData(*renderView);
 
-		return true;
+		return renderView;
 	}
 
 	void RenderService::CreateDefaultDiffuseTexture()
@@ -414,87 +295,29 @@ namespace Coco::Rendering
 
 	void RenderService::HandleEarlyTick(const TickInfo& tickInfo)
 	{
-		Stopwatch waitForRenderSyncStopwatch(true);
-
-		for (auto it = _renderTasks.begin(); it != _renderTasks.end(); it++)
-		{
-			std::vector<RenderServiceRenderTask>& tasks = it->second;
-
-			if (tasks.size() == 0)
-				continue;
-
-			RenderServiceRenderTask& lastTask = tasks.back();
-			if (lastTask.Context.IsValid())
-				lastTask.Context->WaitForRenderingToComplete();
-		}
-
-		_stats.RenderSyncWait = waitForRenderSyncStopwatch.Stop();
+		//Stopwatch waitForRenderSyncStopwatch(true);
+		//
+		//for (auto it = _renderTasks.begin(); it != _renderTasks.end(); it++)
+		//{
+		//	std::vector<RenderServiceRenderTask>& tasks = it->second;
+		//
+		//	if (tasks.size() == 0)
+		//		continue;
+		//
+		//	RenderServiceRenderTask& lastTask = tasks.back();
+		//	if (lastTask.Context.IsValid())
+		//		lastTask.Context->WaitForRenderingToComplete();
+		//}
+		//
+		//_stats.RenderSyncWait = waitForRenderSyncStopwatch.Stop();
 	}
 
 	void RenderService::HandleLateTick(const TickInfo& tickInfo)
 	{
-		for (auto it = _renderTasks.begin(); it != _renderTasks.end(); it++)
-		{
-			std::vector<RenderServiceRenderTask>& tasks = it->second;
-
-			if (tasks.size() == 0)
-				continue;
-
-			RenderServiceRenderTask& lastTask = tasks.back();
-			Assert(lastTask.Context.IsValid())
-
-			if (lastTask.Presenter.IsValid())
-			{
-				lastTask.Presenter->Present(lastTask.Context->GetRenderCompletedSemaphore());
-			}
-		}
-
-		_individualRenderStats.clear();
-		_stats.Reset();
-		_renderTasks.clear();
+		_currentFrameTasks.Execute(*_contextPool);
+		_lastFrameStats = _currentFrameTasks.GetStats();
 
 		_device->ResetForNewFrame();
-	}
-
-	Ref<RenderContext> RenderService::GetReadyRenderContext()
-	{
-		int earliestContextIndex = -1;
-		double earliestTime = -1.0;
-
-		for (int i = 0; i < _renderContextCache.size(); i++)
-		{
-			Ref<RenderContext>& context = _renderContextCache.at(i);
-
-			if (context->CheckForRenderingComplete())
-			{
-				context->Reset();
-				return context;
-			}
-
-			// Save this context if it started rendering the earliest
-			double renderTime = context->GetLastRenderStartTime();
-			if (earliestContextIndex == -1 || renderTime < earliestTime)
-			{
-				earliestContextIndex = i;
-				earliestTime = renderTime;
-			}
-		}
-
-		const int maxContexts = 20;
-		if (_renderContextCache.size() == 0 || _renderContextCache.size() < maxContexts)
-		{
-			Ref<RenderContext>& context = _renderContextCache.emplace_back(_device->CreateRenderContext());
-
-			CocoTrace("Created RenderContext for RenderService")
-
-			return context;
-		}
-		else
-		{
-			Ref<RenderContext>& context = _renderContextCache.at(earliestContextIndex);
-			context->WaitForRenderingToComplete();
-			context->Reset();
-			return context;
-		}
+		_currentFrameTasks = FrameRenderTasks(tickInfo.TickNumber + 1);
 	}
 }

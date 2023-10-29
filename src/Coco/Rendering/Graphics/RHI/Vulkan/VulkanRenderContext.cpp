@@ -213,13 +213,13 @@ namespace Coco::Rendering::Vulkan
 
 		// Bind the vertex buffer
 		std::array<VkDeviceSize, 1> offsets = { 0 };
-		VulkanBuffer* vertexBuffer = static_cast<VulkanBuffer*>(mesh.VertexBuffer.Get());
-		VkBuffer vertexVkBuffer = vertexBuffer->GetBuffer();
+		const VulkanBuffer& vertexBuffer = static_cast<const VulkanBuffer&>(*mesh.VertexBuffer);
+		VkBuffer vertexVkBuffer = vertexBuffer.GetBuffer();
 		vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexVkBuffer, offsets.data());
 
 		// Bind the index buffer
-		VulkanBuffer* indexBuffer = static_cast<VulkanBuffer*>(mesh.IndexBuffer.Get());
-		vkCmdBindIndexBuffer(cmdBuffer, indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+		const VulkanBuffer& indexBuffer = static_cast<const VulkanBuffer&>(*mesh.IndexBuffer);
+		vkCmdBindIndexBuffer(cmdBuffer, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		// Draw the mesh
 		vkCmdDrawIndexed(cmdBuffer,
@@ -285,7 +285,7 @@ namespace Coco::Rendering::Vulkan
 			// Set clear clear color for each render target
 			for (size_t i = 0; i < clearValues.size(); i++)
 			{
-				const AttachmentFormat& attachment = _renderOperation->Pipeline.InputAttachments.at(i);
+				const CompiledPipelineAttachment& attachment = _renderOperation->Pipeline.Attachments.at(i);
 				SetClearValue(rts[i].ClearValue, attachment.PixelFormat, clearValues.at(i));
 			}
 
@@ -341,7 +341,6 @@ namespace Coco::Rendering::Vulkan
 			// Upload global state data
 			if (globalLayout.Hash != ShaderUniformLayout::EmptyHash)
 			{
-				VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
 				VulkanGlobalUniformData& uniformData = cache.GetOrCreateGlobalUniformData(globalLayout);
 				_globalDescriptorSet = uniformData.PrepareData(_globalUniforms);
 				_globalDescriptorSetLayout = &uniformData.GetDescriptorSetLayout();
@@ -407,15 +406,15 @@ namespace Coco::Rendering::Vulkan
 	{
 		Assert(_vulkanRenderOperation.has_value())
 
-		const auto& attachmentFormats = _renderOperation->Pipeline.InputAttachments;
+		const auto& attachmentFormats = _renderOperation->Pipeline.Attachments;
 		std::span<RenderTarget> rts = _renderView->GetRenderTargets();
 
 		for (size_t i = 0; i < attachmentFormats.size(); i++)
 		{
-			const AttachmentFormat& attachment = attachmentFormats.at(i);
+			const CompiledPipelineAttachment& attachment = attachmentFormats.at(i);
 
 			// Don't bother transitioning layouts for attachments that are cleared as Vulkan will handle that for us
-			if (_renderOperation->Pipeline.ClearAttachments.at(i))
+			if (attachment.Clear)
 				continue;
 
 			RenderTarget& rt = rts[i];
@@ -436,12 +435,12 @@ namespace Coco::Rendering::Vulkan
 	{
 		Assert(_vulkanRenderOperation.has_value())
 
-		const auto& attachmentFormats = _renderOperation->Pipeline.InputAttachments;
+		const auto& attachmentFormats = _renderOperation->Pipeline.Attachments;
 		std::span<RenderTarget> rts = _renderView->GetRenderTargets();
 
 		for (size_t i = 0; i < attachmentFormats.size(); i++)
 		{
-			const AttachmentFormat& attachment = attachmentFormats.at(i);
+			const CompiledPipelineAttachment& attachment = attachmentFormats.at(i);
 			VkImageLayout layout = ToAttachmentLayout(attachment.PixelFormat);
 			RenderTarget& rt = rts[i];
 

@@ -23,7 +23,6 @@ namespace Coco::ImGuiCoco
         // Inherited via RenderPass
         const char* GetName() const final { return sPassName.c_str(); }
         std::span<const AttachmentFormat> GetInputAttachments() const final { return _attachments; }
-        bool SupportsMSAA() const final { return false; }
         void Prepare(RenderContext& context, const RenderView& renderView) override;
         void Execute(RenderContext& context, const RenderView& renderView) override;
     };

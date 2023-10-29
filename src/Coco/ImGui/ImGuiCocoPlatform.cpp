@@ -537,8 +537,10 @@ namespace Coco::ImGuiCoco
 
     void ImGuiCocoPlatform::CreateObjects()
     {
+        ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
+
         // Create the pipeline
-        _renderPipeline = CreateUniqueRef<Rendering::RenderPipeline>();
+        _renderPipeline = resources.Create<Rendering::RenderPipeline>("ImGui Pipeline");
         std::array<uint8, 1> bindings = { 0 };
         _renderPipeline->AddRenderPass(_renderPass, bindings);
 
@@ -548,8 +550,6 @@ namespace Coco::ImGuiCoco
         pipelineState.CullingMode = CullMode::None;
         pipelineState.DepthTestingMode = DepthTestingMode::Never;
         pipelineState.EnableDepthWrite = false;
-
-        ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
         _shader = resources.Create<Shader>("ImGui", ImGuiRenderPass::sPassName);
         _shader->AddVariant(
             ShaderVariant(

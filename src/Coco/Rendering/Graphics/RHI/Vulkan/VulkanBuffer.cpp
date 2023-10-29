@@ -124,7 +124,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	void VulkanBuffer::CopyBuffer(const VkBuffer& source, uint64 sourceOffset, VkBuffer& destination, uint64 destinationOffset, uint64 size)
+	void VulkanBuffer::CopyBuffer(const VkBuffer& source, uint64 sourceOffset, const VkBuffer& destination, uint64 destinationOffset, uint64 size)
 	{
 		DeviceQueue* transferQueue = _device.GetQueue(DeviceQueue::Type::Transfer);
 		if (!transferQueue)

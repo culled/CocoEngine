@@ -40,7 +40,7 @@ namespace Coco
 	template<typename ValueType, typename ... Args>
 	UniqueRef<ValueType> CreateUniqueRef(Args&&... args)
 	{
-		return std::move(std::make_unique<ValueType>(std::forward<Args>(args)...));
+		return std::make_unique<ValueType>(std::forward<Args>(args)...);
 	}
 
 	/// @brief Tries to find a SharedRef in the given range of iterators

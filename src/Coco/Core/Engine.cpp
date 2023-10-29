@@ -11,11 +11,10 @@ namespace Coco
 	const char* Engine::sDefaultContentPath = "assets";
 
 	Engine::Engine(const EnginePlatformFactory& platformFactory) :
-		_exitCode(0)
+		_exitCode(0),
+		_platform(platformFactory.Create()),
+		_log(CreateUniqueRef<Log>("Coco", LogMessageSeverity::Info))
 	{
-		_platform = platformFactory.Create();
-		_log = CreateUniqueRef<Log>("Coco", LogMessageSeverity::Info);
-
 		SetupFromProcessArguments();
 
 		_mainLoop = CreateUniqueRef<MainLoop>();

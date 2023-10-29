@@ -45,20 +45,7 @@ void RenderViewProvider3D::SetupRenderView(
     std::span<Ref<Image>> backbuffers)
 {
     std::vector<RenderTarget> rts = _attachmentCache.CreateRenderTargets(pipeline, rendererID, backbufferSize, _msaaSamples, backbuffers);
-
-    for (size_t i = 0; i < rts.size(); i++)
-    {
-        ImagePixelFormat pixelFormat = pipeline.InputAttachments.at(i).PixelFormat;
-
-        if (IsDepthFormat(pixelFormat) || IsStencilFormat(pixelFormat))
-        {
-            rts.at(i).SetDepthClearValue(1.0);
-        }
-        else
-        {
-            rts.at(i).SetColorClearValue(_clearColor);
-        }
-    }
+    RenderTarget::SetClearValues(rts, _clearColor, 1.0, 0);
 
     double aspectRatio = static_cast<double>(backbufferSize.Width) / backbufferSize.Height;
     RectInt viewport(Vector2Int::Zero, backbufferSize);
@@ -82,7 +69,7 @@ void RenderViewProvider3D::SetupRenderView(
         projection, 
         _cameraTransform.GetGlobalPosition(),
         frustum,
-        pipeline.SupportsMSAA ? _msaaSamples : MSAASamples::One, 
+        _msaaSamples, 
         rts);
 
     GlobalShaderUniformLayout globalLayout(

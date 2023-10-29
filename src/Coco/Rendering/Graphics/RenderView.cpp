@@ -276,7 +276,6 @@ namespace Coco::Rendering
 
 	const ObjectData& RenderView::GetRenderObject(uint64 index) const
 	{
-		Assert(index >= 0)
 		Assert(index < _objectDatas.size())
 
 		return _objectDatas.at(index);

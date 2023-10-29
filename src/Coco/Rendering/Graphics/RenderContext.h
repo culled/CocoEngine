@@ -25,7 +25,7 @@ namespace Coco::Rendering
 	struct ContextRenderOperation
 	{
 		/// @brief The pipeline being rendered with
-		CompiledRenderPipeline& Pipeline;
+		const CompiledRenderPipeline& Pipeline;
 
 		/// @brief The index of the current RenderPass in the pipeline
 		uint32 CurrentPassIndex;
@@ -33,7 +33,7 @@ namespace Coco::Rendering
 		/// @brief The name of the current RenderPass in the pipeline
 		string CurrentPassName;
 
-		ContextRenderOperation(CompiledRenderPipeline& pipeline);
+		ContextRenderOperation(const CompiledRenderPipeline& pipeline);
 
 		/// @brief Gets the current pass
 		/// @return The current pass
@@ -242,7 +242,7 @@ namespace Coco::Rendering
 		/// @brief Begins rendering
 		/// @param pipeline The pipeline to render with
 		/// @return True if this context is ready for rendering
-		bool Begin(CompiledRenderPipeline& pipeline);
+		bool Begin(const CompiledRenderPipeline& pipeline);
 
 		/// @brief Begins the next render pass
 		/// @return True if this context is ready for rendering

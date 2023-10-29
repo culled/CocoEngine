@@ -1,6 +1,7 @@
 #pragma once
 #include "../../GraphicsPresenter.h"
 #include "../../GraphicsDeviceResource.h"
+#include <Coco/Core/Events/Event.h>
 
 #include "VulkanIncludes.h"
 
@@ -37,14 +38,14 @@ namespace Coco::Rendering::Vulkan
         SizeInt _framebufferSize;
         VSyncMode _vSyncMode;
         ImageDescription _backbufferDescription;
-        uint8 _maxFramesInFlight;
 
         std::vector<ManagedRef<VulkanImage>> _backbuffers;
-        std::vector<ManagedRef<VulkanRenderContext>> _renderContexts;
         std::optional<uint32> _currentBackbufferIndex;
 
         VkSwapchainKHR _swapchain;
         VkSurfaceKHR _surface;
+
+        EventHandler<uint32> _handleFramesInFlightChanged;
 
     public:
         VulkanGraphicsPresenter(const GraphicsDeviceResourceID& id);
@@ -55,7 +56,8 @@ namespace Coco::Rendering::Vulkan
         void InitializeSurface(const GraphicsPresenterSurface& surface) final;
         bool SurfaceInitialized() const final { return _surface != nullptr; }
 
-        bool PrepareForRender(Ref<RenderContext>& outContext, Ref<Image>& outBackbuffer) final;
+        bool PrepareForRender(Ref<GraphicsSemaphore> imageReadySemaphore, Ref<Image>& outBackbuffer) final;
+        Ref<Image> GetPreparedBackbuffer() final;
         bool Present(Ref<GraphicsSemaphore> frameCompletedSemaphore) final;
 
         void SetVSync(VSyncMode mode) final;
@@ -63,9 +65,6 @@ namespace Coco::Rendering::Vulkan
 
         void SetFramebufferSize(const SizeInt& size) final;
         SizeInt GetFramebufferSize() const final { return _framebufferSize; }
-
-        void SetMaximumFramesInFlight(uint8 maxFramesInFlight);
-        uint8 GetMaximumFramesInFlight() const { return _maxFramesInFlight; }
 
     private:
         /// @brief Recreates the swapchain if neccessary
@@ -82,7 +81,9 @@ namespace Coco::Rendering::Vulkan
         /// @brief Destroys all objects created alongside a swapchain
         void DestroySwapchainObjects();
 
-        /// @brief Gets/creates a render context that is ready for rendering
-        Ref<VulkanRenderContext> GetReadyRenderContext();
+        /// @brief Handler for when the RenderService's frames in flight change
+        /// @param framesInFlight The new frames in flight count
+        /// @return If the event should be handled
+        bool HandleFramesInFlightChanged(uint32 framesInFlight);
     };
 }

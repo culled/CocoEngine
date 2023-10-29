@@ -6,8 +6,8 @@ namespace Coco::Rendering
     const char* GizmoRenderPass::sPassName = "gizmo";
 
     const std::vector<AttachmentFormat> GizmoRenderPass::_sAttachments = {
-        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::ClearOnFirstUse),
-        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::ClearOnFirstUse)
+        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::Clear, false),
+        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::Clear, false)
     };
 
     void GizmoRenderPass::Prepare(RenderContext& context, const RenderView& renderView)
