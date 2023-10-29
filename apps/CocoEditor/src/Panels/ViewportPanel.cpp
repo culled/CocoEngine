@@ -38,6 +38,7 @@ namespace Coco
 		_isNavigating(false),
 		_isMouseHoveringGizmo(false),
 		_isMouseHovering(false),
+		_isMouseHoveringCameraPreview(false),
 		_isFocused(false),
 		_showCameraPreview(false),
 		_previewCameraFullscreen(false),
@@ -110,7 +111,11 @@ namespace Coco
 			DrawMenu();
 		
 			// Perform picking before our texture is possibly resized
-			if (!ImGui::IsAnyItemActive() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !_isMouseHoveringGizmo)
+			if (!ImGui::IsAnyItemActive() && 
+				!_previewCameraFullscreen &&
+				!_isMouseHoveringGizmo && 
+				!_isMouseHoveringCameraPreview &&
+				ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 			{
 				PickEntity();
 			}
@@ -142,7 +147,10 @@ namespace Coco
 				DrawGrid();
 
 			if (!_showCameraPreview)
+			{
 				_previewCameraFullscreen = false;
+				_isMouseHoveringCameraPreview = false;
+			}
 
 			_collapsed = false;
 		}
@@ -163,8 +171,6 @@ namespace Coco
 		if (_collapsed)
 			return;
 
-		std::array<Ref<Image>, 2> viewportImages = { _viewportTexture->GetImage(), _viewportPickingTexture->GetImage()};
-
 		if (_showCameraPreview)
 		{
 			RenderService* rendering = RenderService::Get();
@@ -176,7 +182,8 @@ namespace Coco
 
 			if (_previewCameraFullscreen)
 			{
-				CameraSystem::Render(_selection.GetSelectedEntity(), viewportImages, pipeline);
+				cameraImages.at(0) = _viewportTexture->GetImage();
+				CameraSystem::Render(_selection.GetSelectedEntity(), cameraImages, pipeline);
 			}
 
 			rendering->SetGizmoRendering(gizmos);
@@ -184,6 +191,8 @@ namespace Coco
 
 		if (!_previewCameraFullscreen)
 		{
+			std::array<Ref<Image>, 2> viewportImages = { _viewportTexture->GetImage(), _viewportPickingTexture->GetImage() };
+
 			SceneRender3DProvider sceneProvider(_currentScene);
 			std::array<SceneDataProvider*, 1> sceneProviders = { &sceneProvider };
 			RenderService::Get()->Render(0, viewportImages, pipeline, *this, sceneProviders);
@@ -632,6 +641,8 @@ namespace Coco
 			ImGui::Image(_cameraPreviewTexture.Get(), previewSize);
 
 			ImGui::Checkbox("Fullscreen", &_previewCameraFullscreen);
+
+			_isMouseHoveringCameraPreview = ImGui::IsAnyItemHovered();
 		}
 
 		ImGui::EndChild();

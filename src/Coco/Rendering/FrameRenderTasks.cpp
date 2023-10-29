@@ -109,10 +109,10 @@ namespace Coco::Rendering
 			else
 			{
 				context = contextPool.Get(!lastContext.IsValid());
-
-				if (lastContext.IsValid())
-					context->AddWaitOnSemaphore(lastContext->GetRenderCompletedSemaphore());
 			}
+
+			if (lastContext.IsValid())
+				context->AddWaitOnSemaphore(lastContext->GetRenderCompletedSemaphore());
 
 			// If this task is the last to use a presenter, we should present it after rendering
 			auto lastPresenterIt = std::find_if(_lastPresenterTasks.begin(), _lastPresenterTasks.end(), [task](const auto& kvp) { return kvp.second == task.ID; });
@@ -131,8 +131,8 @@ namespace Coco::Rendering
 			if (shouldPresent)
 			{
 				presenter->Present(context->GetRenderCompletedSemaphore());
-			}
-			else if(completedRender)
+			} 
+			else if(completedRender && _tasks.empty())
 			{
 				contextPool.MarkOrphan(context);
 			}

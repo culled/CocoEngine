@@ -56,6 +56,7 @@ namespace Coco
 		bool _isNavigating;
 		bool _isMouseHovering;
 		bool _isMouseHoveringGizmo;
+		bool _isMouseHoveringCameraPreview;
 		bool _isFocused;
 		bool _showCameraPreview;
 		bool _previewCameraFullscreen;
