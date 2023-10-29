@@ -91,13 +91,8 @@ namespace Coco::Rendering
 		return offset;
 	}
 
-	std::vector<uint8> ShaderUniformLayout::GetBufferFriendlyData(const GraphicsDevice& device, const ShaderUniformData& data) const
+	void ShaderUniformLayout::GetBufferFriendlyData(const GraphicsDevice& device, const ShaderUniformData& data, std::vector<uint8>& outBufferData) const
 	{
-		std::vector<uint8> bufferData;
-		
-		// TODO: better way to estimate data size?
-		bufferData.reserve(DataUniforms.size() * BufferIntSize * 32);
-
 		uint64 offset = 0;
 
 		for (const ShaderDataUniform& uniform : DataUniforms)
@@ -105,8 +100,8 @@ namespace Coco::Rendering
 			const uint8 dataSize = GetDataTypeSize(uniform.Type);
 			device.AlignOffset(uniform.Type, offset);
 
-			bufferData.resize(offset + dataSize);
-			uint8* dst = bufferData.data() + offset;
+			outBufferData.resize(offset + dataSize);
+			uint8* dst = outBufferData.data() + offset;
 
 			switch (uniform.Type)
 			{
@@ -216,9 +211,7 @@ namespace Coco::Rendering
 		}
 
 		// Pad the buffer to fit in the minimum buffer alignment
-		bufferData.resize(GraphicsDevice::GetOffsetForAlignment(bufferData.size(), device.GetFeatures().MinimumBufferAlignment));
-
-		return bufferData;
+		outBufferData.resize(GraphicsDevice::GetOffsetForAlignment(outBufferData.size(), device.GetFeatures().MinimumBufferAlignment));
 	}
 
 	GlobalShaderUniformLayout::GlobalShaderUniformLayout() :

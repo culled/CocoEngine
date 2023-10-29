@@ -44,14 +44,18 @@ namespace Coco::Rendering::Vulkan
 		_pools{},
 		_poolCreateInfo{},
 		_uniformData{},
-		_instanceSets{}
+		_instanceSets{},
+		_uniformDataBuffer()
 	{}
 
 	VulkanShaderUniformData::~VulkanShaderUniformData()
 	{
+		_uniformDataBuffer.clear();
 		_globalUniformData.reset();
+
 		DestroyDescriptorPools();
 		FreeAllBufferRegions();
+
 		_uniformBuffers.clear();
 	}
 
@@ -76,6 +80,8 @@ namespace Coco::Rendering::Vulkan
 			_globalUniformData.emplace(shader.GetVariant().GlobalUniforms, &shader.GetDescriptorSetLayout(UniformScope::ShaderGlobal));
 		}
 
+		uint64 dataSize = 0;
+
 		for (const VulkanDescriptorSetLayout& layout : shader.GetDescriptorSetLayouts())
 		{
 			for (const VkDescriptorSetLayoutBinding& binding : layout.LayoutBindings)
@@ -86,7 +92,11 @@ namespace Coco::Rendering::Vulkan
 
 				_poolCreateInfo.PoolSizes.push_back(poolSize);
 			}
+
+			dataSize = Math::Max(dataSize, layout.DataSize);
 		}
+
+		_uniformDataBuffer.reserve(dataSize);
 
 		_poolCreateInfo.CreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		_poolCreateInfo.CreateInfo.poolSizeCount = static_cast<uint32_t>(_poolCreateInfo.PoolSizes.size());
@@ -164,10 +174,11 @@ namespace Coco::Rendering::Vulkan
 			if (!buffer.MappedMemory)
 				buffer.MappedMemory = reinterpret_cast<char*>(buffer.Buffer->Lock(0, _sBufferSize));
 
-			std::vector<uint8> bufferData = instanceLayout.GetBufferFriendlyData(_device, uniformData);
+			_uniformDataBuffer.clear();
+			instanceLayout.GetBufferFriendlyData(_device, uniformData, _uniformDataBuffer);
 
 			char* dst = buffer.MappedMemory + data.AllocatedBlock.Offset;
-			Assert(memcpy_s(dst, data.AllocatedBlock.Size, bufferData.data(), bufferData.size()) == 0)
+			Assert(memcpy_s(dst, data.AllocatedBlock.Size, _uniformDataBuffer.data(), _uniformDataBuffer.size()) == 0)
 		}
 
 		data.Version = uniformData.Version;
@@ -188,7 +199,8 @@ namespace Coco::Rendering::Vulkan
 
 		if (variant.DrawUniforms.DataUniforms.size() > 0)
 		{
-			std::vector<uint8> pushConstantData = variant.DrawUniforms.GetBufferFriendlyData(_device, uniformData);
+			_uniformDataBuffer.clear();
+			variant.DrawUniforms.GetBufferFriendlyData(_device, uniformData, _uniformDataBuffer);
 			VkShaderStageFlags stageFlags = VK_SHADER_STAGE_ALL;
 
 			for (const ShaderDataUniform& u : variant.DrawUniforms.DataUniforms)
@@ -198,7 +210,7 @@ namespace Coco::Rendering::Vulkan
 				stageFlags = Math::Min(stageFlags, uniformStage);
 			}
 
-			vkCmdPushConstants(commandBuffer.GetCmdBuffer(), pipeline.GetPipelineLayout(), stageFlags, 0, static_cast<uint32_t>(pushConstantData.size()), pushConstantData.data());
+			vkCmdPushConstants(commandBuffer.GetCmdBuffer(), pipeline.GetPipelineLayout(), stageFlags, 0, static_cast<uint32_t>(_uniformDataBuffer.size()), _uniformDataBuffer.data());
 		}
 
 		// Don't bind a descriptor set for draw uniforms if we don't have draw textures

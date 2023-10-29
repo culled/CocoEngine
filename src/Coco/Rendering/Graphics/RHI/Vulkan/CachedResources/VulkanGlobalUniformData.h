@@ -19,6 +19,7 @@ namespace Coco::Rendering::Vulkan
         VulkanDescriptorSetLayout _descriptorSetLayout;
         VkDescriptorPool _pool;
         VkDescriptorSet _set;
+        std::vector<uint8> _uniformDataBuffer;
 
         ManagedRef<VulkanBuffer> _uniformBuffer;
         std::unordered_map<ShaderUniformData::UniformKey, ManagedRef<VulkanBuffer>> _globalBuffers;

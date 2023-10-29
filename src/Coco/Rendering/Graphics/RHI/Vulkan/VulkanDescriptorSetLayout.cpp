@@ -10,7 +10,8 @@ namespace Coco::Rendering::Vulkan
 	VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(uint64 layoutHash) :
 		LayoutHash(layoutHash),
 		Layout(nullptr),
-		LayoutBindings{}
+		LayoutBindings{},
+		DataSize(0)
 	{}
 
 	VulkanDescriptorSetLayout VulkanDescriptorSetLayout::CreateForUniformLayout(VulkanGraphicsDevice& device, const ShaderUniformLayout& layout, bool includeDataUniforms)
@@ -38,6 +39,8 @@ namespace Coco::Rendering::Vulkan
 			write.dstBinding = bindingIndex;
 			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			write.descriptorCount = 1;
+
+			setLayout.DataSize = layout.GetUniformDataSize(device);
 
 			bindingIndex++;
 		}

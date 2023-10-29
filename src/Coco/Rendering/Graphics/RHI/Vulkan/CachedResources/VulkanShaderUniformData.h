@@ -97,6 +97,7 @@ namespace Coco::Rendering::Vulkan
 		DescriptorPoolList _pools;
 		std::unordered_map<uint64, AllocatedUniformData> _uniformData;
 		std::unordered_map<uint64, VkDescriptorSet> _instanceSets;
+		std::vector<uint8> _uniformDataBuffer;
 
 	public:
 		VulkanShaderUniformData(const VulkanShaderVariant& shader);

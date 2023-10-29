@@ -54,8 +54,8 @@ namespace Coco::Rendering
 		/// @brief Gets buffer-friendly uniform data
 		/// @param device The device to calculate the data for
 		/// @param data The uniform data
-		/// @return The buffer-friendly data
-		std::vector<uint8> GetBufferFriendlyData(const GraphicsDevice& device, const ShaderUniformData& data) const;
+		/// @param outBufferData Will be filled with the buffer-friendly data
+		void GetBufferFriendlyData(const GraphicsDevice& device, const ShaderUniformData& data, std::vector<uint8>& outBufferData) const;
 	};
 
 	/// @brief Represents a global layout of shader uniforms

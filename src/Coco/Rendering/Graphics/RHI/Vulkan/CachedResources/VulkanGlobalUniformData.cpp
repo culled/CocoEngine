@@ -17,7 +17,8 @@ namespace Coco::Rendering::Vulkan
 		_uniformLayout(layout),
 		_descriptorSetLayout(0),
 		_pool(nullptr),
-		_set(nullptr)
+		_set(nullptr),
+		_uniformDataBuffer()
 	{
 		if (descriptorSetLayout)
 		{
@@ -44,6 +45,8 @@ namespace Coco::Rendering::Vulkan
 				BufferUsageFlags::TransferDestination | BufferUsageFlags::Uniform | BufferUsageFlags::HostVisible,
 				true
 			);
+
+			_uniformDataBuffer.reserve(dataSize);
 		}
 
 		CocoTrace("Created VulkanGlobalUniformData")
@@ -54,6 +57,7 @@ namespace Coco::Rendering::Vulkan
 		_device.WaitForIdle();
 
 		_uniformBuffer.Invalidate();
+		_uniformDataBuffer.clear();
 		_globalBuffers.clear();
 
 		if (_pool)
@@ -105,9 +109,10 @@ namespace Coco::Rendering::Vulkan
 
 		if (_uniformBuffer.IsValid())
 		{
-			std::vector<uint8> bufferData = _uniformLayout.GetBufferFriendlyData(_device, uniformData);
+			_uniformDataBuffer.clear();
+			_uniformLayout.GetBufferFriendlyData(_device, uniformData, _uniformDataBuffer);
 
-			_uniformBuffer->LoadData<uint8>(0, bufferData);
+			_uniformBuffer->LoadData<uint8>(0, _uniformDataBuffer);
 		}
 
 		return _set;

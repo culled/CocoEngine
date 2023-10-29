@@ -23,6 +23,9 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Templates for writing descriptor sets with this layout
 		std::vector<VkWriteDescriptorSet> WriteTemplates;
 
+		/// @brief The size of data for this layout
+		uint64 DataSize;
+
 		VulkanDescriptorSetLayout(uint64 layoutHash);
 
 		/// @brief Creates a VulkanDescriptorSetLayout for the given ShaderUniformLayout
