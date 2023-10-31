@@ -62,9 +62,28 @@ project "Coco.Rendering"
             "COCO_LOG_WARNING",
         }
 
+        if (RenderRHI["Vulkan"] == true) then
+            links
+            {
+                "shaderc_sharedd.lib",
+                "spirv-cross-cored.lib",
+                "spirv-cross-glsld.lib",
+                "SPIRV-Toolsd.lib"
+            }
+        end
+
         runtime "Debug"
         symbols "on"
         
     filter { "configurations:Release" }
+        if (RenderRHI["Vulkan"] == true) then
+            links
+            {
+                "shaderc_shared.lib",
+                "spirv-cross-core.lib",
+                "spirv-cross-glsl.lib"
+            }
+        end
+        
         runtime "Release"
         optimize "on"

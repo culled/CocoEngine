@@ -2,6 +2,7 @@
 
 #include "../Renderpch.h"
 #include <Coco/Core/Types/Refs.h>
+#include <Coco/Core/Types/Version.h>
 #include <Coco/Core/Types/Matrix.h>
 #include "GraphicsDeviceTypes.h"
 
@@ -18,6 +19,10 @@ namespace Coco::Rendering
 		/// @brief Gets the name of this platform
 		/// @return This platform's name
 		virtual const char* GetName() const = 0;
+
+		/// @brief Gets the version of this platform's api
+		/// @return The api version
+		virtual Version GetAPIVersion() const = 0;
 
 		/// @brief Creates a GraphicsDevice
 		/// @param createParams Parameters for creating a GraphicsDevice

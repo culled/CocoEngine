@@ -47,6 +47,7 @@ namespace Coco::Rendering::Vulkan
 		_computeQueue(nullptr),
 		_presentQueue(nullptr),
 		_cache(CreateUniqueRef<VulkanGraphicsDeviceCache>()),
+		_shaderCache(CreateUniqueRef<VulkanShaderCache>()),
 		_resources{},
 		_lastPurgeTime(0.0)
 	{
@@ -67,6 +68,7 @@ namespace Coco::Rendering::Vulkan
 		WaitForIdle();
 
 		_cache.reset();
+		_shaderCache.reset();
 
 		_graphicsQueue.reset();
 		_transferQueue.reset();
@@ -208,6 +210,7 @@ namespace Coco::Rendering::Vulkan
 	void VulkanGraphicsDevice::ResetForNewFrame()
 	{
 		_cache->ResetForNextFrame();
+		_shaderCache->ResetForNextFrame();
 
 		if (MainLoop::cGet()->GetCurrentTick().UnscaledTime - _lastPurgeTime > sPurgePeriod)
 			PurgeUnusedResources();

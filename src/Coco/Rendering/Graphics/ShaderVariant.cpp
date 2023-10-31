@@ -56,7 +56,7 @@ namespace Coco::Rendering
 					hash,
 					_sStringHasher(stage.EntryPointName),
 					static_cast<uint64>(stage.Type),
-					_sStringHasher(stage.FilePath)
+					_sStringHasher(stage.SourceFilePath)
 				);
 			});
 

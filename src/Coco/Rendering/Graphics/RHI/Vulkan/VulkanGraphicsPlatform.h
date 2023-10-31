@@ -16,6 +16,7 @@ namespace Coco::Rendering::Vulkan
 	private:
 		static const char* _sDebugValidationLayerName;
 
+		Version _apiVersion;
 		VkInstance _vulkanInstance;
 		VkDebugUtilsMessengerEXT _debugMessenger;
 		bool _usingValidationLayers;
@@ -26,6 +27,7 @@ namespace Coco::Rendering::Vulkan
 		~VulkanGraphicsPlatform();
 
 		const char* GetName() const final { return sVulkanRHIName; }
+		Version GetAPIVersion() const final { return _apiVersion; }
 		UniqueRef<GraphicsDevice> CreateDevice(const GraphicsDeviceCreateParams& createParams) final;
 		Matrix4x4 CreateOrthographicProjection(double left, double right, double bottom, double top, double nearClip, double farClip) final;
 		Matrix4x4 CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) final;

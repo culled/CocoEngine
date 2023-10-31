@@ -14,7 +14,8 @@ namespace Coco::Rendering::Vulkan
 		_vulkanInstance(nullptr),
 		_debugMessenger(nullptr),
 		_usingValidationLayers(useValidationLayers),
-		_supportsPresentation(createParams.PresentationSupport)
+		_supportsPresentation(createParams.PresentationSupport),
+		_apiVersion(ToVersion(apiVersion))
 	{
 		CreateVulkanInstance(createParams, apiVersion);
 

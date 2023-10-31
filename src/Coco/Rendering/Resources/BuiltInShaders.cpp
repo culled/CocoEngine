@@ -6,8 +6,8 @@ namespace Coco::Rendering
 	const ShaderVariant BuiltInShaders::LitVariant = ShaderVariant(
 		"DefaultLit",
 		{
-			ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Lit.vert.spv"),
-			ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Lit.frag.spv")
+			ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Lit.vert.glsl"),
+			ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Lit.frag.glsl")
 		},
 		GraphicsPipelineState(),
 		{
@@ -40,8 +40,8 @@ namespace Coco::Rendering
 	const ShaderVariant BuiltInShaders::UnlitVariant = ShaderVariant(
 		"DefaultUnlit",
 		{
-			ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Unlit.vert.spv"),
-			ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Unlit.frag.spv")
+			ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Unlit.vert.glsl"),
+			ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Unlit.frag.glsl")
 		},
 		GraphicsPipelineState(),
 		{

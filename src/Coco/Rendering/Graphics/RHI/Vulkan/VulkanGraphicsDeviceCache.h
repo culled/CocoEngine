@@ -1,7 +1,6 @@
 #pragma once
 #include "../../../Renderpch.h"
 #include "CachedResources/VulkanRenderPass.h"
-#include "CachedResources/VulkanShaderVariant.h"
 #include "CachedResources/VulkanPipeline.h"
 #include "CachedResources/VulkanRenderContextCache.h"
 
@@ -21,7 +20,6 @@ namespace Coco::Rendering::Vulkan
 		double _lastPurgeTime;
 
 		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderPass> _renderPasses;
-		std::unordered_map<GraphicsDeviceResourceID, VulkanShaderVariant> _shaders;
 		std::unordered_map<GraphicsDeviceResourceID, VulkanPipeline> _pipelines;
 		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderContextCache> _contextCaches;
 
@@ -35,11 +33,6 @@ namespace Coco::Rendering::Vulkan
 		/// @param resolveAttachmentIndices Indices of attachments in the pipeline that need to be resolved
 		/// @return A render pass
 		VulkanRenderPass& GetOrCreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices);
-
-		/// @brief Gets/creates a VulkanShaderVariant 
-		/// @param variantData The shader data
-		/// @return The shader
-		VulkanShaderVariant& GetOrCreateShader(const ShaderVariantData& variantData);
 
 		/// @brief Gets/creates a VulkanPipeline
 		/// @param renderPass The render pass

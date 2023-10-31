@@ -3,6 +3,7 @@
 
 #include "../VulkanGraphicsDevice.h"
 #include "../VulkanUtils.h"
+#include "../VulkanShaderCache.h"
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
@@ -156,18 +157,17 @@ namespace Coco::Rendering::Vulkan
 		VulkanShaderStage vulkanStage(stage);
 		VkShaderModuleCreateInfo& createInfo = vulkanStage.ShaderModuleCreateInfo;
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		
+		VulkanShaderCache& cache = static_cast<VulkanShaderCache&>(_device.GetShaderCache());
+		std::vector<uint32> byteCode = cache.CompileOrGetShaderStageBinary(vulkanStage);
 
-		File shaderFile = Engine::Get()->GetFileSystem().OpenFile(stage.FilePath, FileOpenFlags::Read);
-		std::vector<uint8> byteCode = shaderFile.ReadToEnd();
-		shaderFile.Close();
-
-		createInfo.codeSize = byteCode.size();
-		createInfo.pCode = reinterpret_cast<const uint32_t*>(byteCode.data());
+		createInfo.codeSize = byteCode.size() * sizeof(uint32);
+		createInfo.pCode = byteCode.data();
 
 		AssertVkSuccess(vkCreateShaderModule(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &vulkanStage.ShaderModule))
 
 		_stages.push_back(vulkanStage);
-		CocoTrace("Created VulkanShaderStage for file {}", stage.FilePath)
+		CocoTrace("Created VulkanShaderStage for file {}", stage.CompiledFilePath)
 	}
 
 	void VulkanShaderVariant::DestroyShaderStage(const VulkanShaderStage& stage)

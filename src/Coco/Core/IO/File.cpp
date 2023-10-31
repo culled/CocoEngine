@@ -131,6 +131,9 @@ namespace Coco
 		_fileStream.read(text.data(), maxLength);
 		SyncState();
 
+		uint64 read = _fileStream.gcount();
+		text.resize(read);
+
 		return text;
 	}
 

@@ -59,10 +59,14 @@ namespace Coco::Rendering
 		/// @brief The type of this stage
 		ShaderStageType Type;
 
-		/// @brief The file for the stage
-		string FilePath;
+		/// @brief The source file for the stage
+		string SourceFilePath;
+
+		/// @brief The compiled shader file path
+		string CompiledFilePath;
 
 		ShaderStage(const string& entryPointName, ShaderStageType type, const string& filePath);
+		ShaderStage(const string& entryPointName, ShaderStageType type, const string& filePath, const string& compiledFilePath);
 
 		bool operator==(const ShaderStage& other) const;
 	};

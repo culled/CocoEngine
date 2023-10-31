@@ -612,7 +612,9 @@ namespace Coco::Rendering::Vulkan
 
 		const ShaderVariantData& boundShaderData = _renderView->GetShaderVariantData(_vulkanRenderOperation->GlobalState->ShaderID);
 		VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
-		VulkanShaderVariant& shader = _deviceCache.GetOrCreateShader(boundShaderData);
+
+		VulkanShaderCache& shaderCache = static_cast<VulkanShaderCache&>(_device.GetShaderCache());
+		VulkanShaderVariant& shader = shaderCache.GetOrCreateShader(boundShaderData);
 
 		if (outShader)
 			*outShader = &shader;

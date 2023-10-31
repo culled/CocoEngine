@@ -82,7 +82,7 @@ namespace Coco::Rendering
 
 			emitter << YAML::Key << "type" << YAML::Value << static_cast<int>(stage.Type);
 			emitter << YAML::Key << "entry name" << YAML::Value << stage.EntryPointName;
-			emitter << YAML::Key << "file path" << YAML::Value << stage.FilePath;
+			emitter << YAML::Key << "file path" << YAML::Value << stage.SourceFilePath;
 
 			emitter << YAML::EndMap;
 		}

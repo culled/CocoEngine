@@ -15,13 +15,18 @@ namespace Coco::Rendering
 	}
 
 	ShaderStage::ShaderStage(const string& entryPointName, ShaderStageType type, const string& filePath) :
+		ShaderStage(entryPointName, type, filePath, string())
+	{}
+
+	ShaderStage::ShaderStage(const string& entryPointName, ShaderStageType type, const string& filePath, const string& compiledFilePath) :
 		EntryPointName(entryPointName),
 		Type(type),
-		FilePath(filePath)
+		SourceFilePath(filePath),
+		CompiledFilePath(compiledFilePath)
 	{}
 
 	bool ShaderStage::operator==(const ShaderStage & other) const
 	{
-		return EntryPointName == other.EntryPointName && Type == other.Type && FilePath == other.FilePath;
+		return EntryPointName == other.EntryPointName && Type == other.Type && SourceFilePath == other.SourceFilePath;
 	}
 }

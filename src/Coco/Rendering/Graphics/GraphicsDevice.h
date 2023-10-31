@@ -4,6 +4,7 @@
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Version.h>
 #include "GraphicsDeviceTypes.h"
+#include "ShaderCache.h"
 #include "BufferTypes.h"
 
 namespace Coco::Rendering
@@ -63,6 +64,10 @@ namespace Coco::Rendering
 		/// @param type The data type
 		/// @param offset The offset to modify
 		virtual void AlignOffset(BufferDataType type, uint64& offset) const = 0;
+
+		/// @brief Gets this device's shader cache
+		/// @return The shader cache
+		virtual ShaderCache& GetShaderCache() = 0;
 
 		/// @brief Creates a GraphicsPresenter
 		/// @return The created presenter

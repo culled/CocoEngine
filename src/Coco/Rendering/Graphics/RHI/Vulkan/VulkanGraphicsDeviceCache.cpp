@@ -38,27 +38,6 @@ namespace Coco::Rendering::Vulkan
 		return resource;
 	}
 
-	VulkanShaderVariant& VulkanGraphicsDeviceCache::GetOrCreateShader(const ShaderVariantData& variantData)
-	{
-		GraphicsDeviceResourceID key = VulkanShaderVariant::MakeKey(variantData);
-
-		auto it = _shaders.find(key);
-
-		if (it == _shaders.end())
-		{
-			it = _shaders.try_emplace(key, variantData).first;
-		}
-
-		VulkanShaderVariant& resource = it->second;
-
-		if (resource.NeedsUpdate(variantData))
-			resource.Update(variantData);
-
-		resource.Use();
-
-		return resource;
-	}
-
 	VulkanPipeline& VulkanGraphicsDeviceCache::GetOrCreatePipeline(
 		const VulkanRenderPass& renderPass, 
 		uint32 subpassIndex, 
@@ -130,25 +109,6 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		uint64 shadersPurged = 0;
-
-		{
-			auto it = _shaders.begin();
-
-			while (it != _shaders.end())
-			{
-				if (it->second.IsStale(sPurgeThreshold))
-				{
-					it = _shaders.erase(it);
-					shadersPurged++;
-				}
-				else
-				{
-					it++;
-				}
-			}
-		}
-
 		uint64 pipelinesPurged = 0;
 
 		{
@@ -187,10 +147,10 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
-		if (renderPassesPurged > 0 || shadersPurged > 0 || pipelinesPurged > 0 || cachesPurged > 0)
+		if (renderPassesPurged > 0 || pipelinesPurged > 0 || cachesPurged > 0)
 		{
-			CocoTrace("Purged {} VulkanRenderPasses, {} VulkanRenderPassShaders, {} VulkanPipelines, and {} VulkanRenderContextCaches", 
-				renderPassesPurged, shadersPurged, pipelinesPurged, cachesPurged)
+			CocoTrace("Purged {} VulkanRenderPasses, {} VulkanPipelines, and {} VulkanRenderContextCaches", 
+				renderPassesPurged, pipelinesPurged, cachesPurged)
 		}
 
 		_lastPurgeTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;

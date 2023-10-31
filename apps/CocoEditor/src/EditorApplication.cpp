@@ -174,8 +174,8 @@ namespace Coco
 			shader->AddVariant(ShaderVariant(
 				PickingRenderPass::sName,
 				{
-					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Picking.vert.spv"),
-					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Picking.frag.spv"),
+					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Picking.vert.glsl"),
+					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Picking.frag.glsl"),
 				},
 				GraphicsPipelineState(),
 				{

@@ -6,6 +6,7 @@
 #include <Coco/Core/Types/Version.h>
 #include "VulkanCommandBufferPool.h"
 #include "VulkanGraphicsDeviceCache.h"
+#include "VulkanShaderCache.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
@@ -75,7 +76,7 @@ namespace Coco::Rendering::Vulkan
 	};
 
 	/// @brief Vulkan implementation of a GraphicsDevice
-	class VulkanGraphicsDevice : 
+	class VulkanGraphicsDevice :
 		public GraphicsDevice
 	{
 	public:
@@ -97,6 +98,7 @@ namespace Coco::Rendering::Vulkan
 		UniqueRef<DeviceQueue> _computeQueue;
 		DeviceQueue* _presentQueue;
 		UniqueRef<VulkanGraphicsDeviceCache> _cache;
+		UniqueRef<VulkanShaderCache> _shaderCache;
 		OwnedResourceLibrary<GraphicsDeviceResourceID, GraphicsDeviceResourceBase, GraphicsDeviceResourceIDGenerator> _resources;
 		double _lastPurgeTime;
 
@@ -118,6 +120,7 @@ namespace Coco::Rendering::Vulkan
 		void WaitForIdle() const final;
 		uint8 GetDataTypeAlignment(BufferDataType type) const final;
 		void AlignOffset(BufferDataType type, uint64& offset) const final;
+		ShaderCache& GetShaderCache() final { return *_shaderCache; }
 		Ref<GraphicsPresenter> CreatePresenter() final;
 		void TryReleasePresenter(Ref<GraphicsPresenter>& presenter) final;
 		Ref<Buffer> CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind) final;

@@ -37,8 +37,8 @@ namespace Coco::Rendering
 			ShaderVariant(
 				GizmoRenderPass::sPassName,
 				{
-					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Debug.vert.spv"),
-					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Debug.frag.spv")
+					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Debug.vert.glsl"),
+					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Debug.frag.glsl")
 				},
 				pipelineState,
 				{

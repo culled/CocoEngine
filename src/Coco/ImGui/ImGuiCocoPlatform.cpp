@@ -555,8 +555,8 @@ namespace Coco::ImGuiCoco
             ShaderVariant(
                 ImGuiRenderPass::sPassName,
                 {
-                    ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/ImGui.vert.spv"),
-                    ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/ImGui.frag.spv")
+                    ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/ImGui.vert.glsl"),
+                    ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/ImGui.frag.glsl")
                 },
                 pipelineState,
                 {

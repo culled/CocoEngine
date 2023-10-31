@@ -361,6 +361,9 @@ docs/generated/
 # Built shaders
 *.spv
 
+# Cached files
+assets/cache/
+
 # Random things
 misc/
 

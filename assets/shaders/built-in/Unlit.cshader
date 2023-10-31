@@ -5,10 +5,10 @@ pass shaders:
     stages:
       - type: 0
         entry name: main
-        file path: shaders/built-in/Unlit.vert.spv
+        file path: shaders/built-in/Unlit.vert.glsl
       - type: 3
         entry name: main
-        file path: shaders/built-in/Unlit.frag.spv
+        file path: shaders/built-in/Unlit.frag.glsl
     pipeline state:
       topology: 3
       cull: 1
@@ -49,10 +49,10 @@ pass shaders:
     stages:
       - type: 0
         entry name: main
-        file path: shaders/built-in/Picking.vert.spv
+        file path: shaders/built-in/Picking.vert.glsl
       - type: 3
         entry name: main
-        file path: shaders/built-in/Picking.frag.spv
+        file path: shaders/built-in/Picking.frag.glsl
     pipeline state:
       topology: 3
       cull: 1

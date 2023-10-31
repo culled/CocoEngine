@@ -61,4 +61,36 @@ namespace Coco::Rendering
         Assert(false)
         return 0;
     }
+
+    string GetBufferDataTypeString(BufferDataType type)
+    {
+        switch (type)
+        {
+        case BufferDataType::Float:
+            return "Float";
+        case BufferDataType::Float2:
+            return "Float2";
+        case BufferDataType::Float3:
+            return "Float3";
+        case BufferDataType::Float4:
+            return "Float4";
+        case BufferDataType::Mat4x4:
+            return "Mat4x4";
+        case BufferDataType::Int:
+            return "Int";
+        case BufferDataType::Int2:
+            return "Int2";
+        case BufferDataType::Int3:
+            return "Int3";
+        case BufferDataType::Int4:
+            return "Int4";
+        case BufferDataType::Bool:
+            return "Bool";
+        default:
+            break;
+        }
+
+        Assert(false)
+        return "";
+    }
 }

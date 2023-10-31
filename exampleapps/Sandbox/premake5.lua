@@ -62,7 +62,6 @@ project "Sandbox"
 
     filter { "system:windows", "options:renderRHI-vulkan or options:renderRHIs-all" }
         postbuildcommands {
-            "call \"%{wks.location}\\scripts\\vulkan-compile-shaders.bat\" %{BinDir.vulkan} %{AssetsDir}",
             "xcopy %{AssetsDir} %{TargetDir}assets\\ /S /Y /I"
         }
 
@@ -74,6 +73,16 @@ project "Sandbox"
             "COCO_LOG_WARNING",
         }
 
+        if (RenderRHI["Vulkan"] == true) then
+            links
+            {
+                "shaderc_sharedd.lib",
+                "spirv-cross-cored.lib",
+                "spirv-cross-glsld.lib",
+                "SPIRV-Toolsd.lib"
+            }
+        end
+
         debugargs { "--show-console", "--content-path=%{wks.location}assets" }
         debugdir "%{TargetDir}"
 
@@ -81,5 +90,14 @@ project "Sandbox"
         symbols "on"
         
     filter { "configurations:Release" }
+        if (RenderRHI["Vulkan"] == true) then
+            links
+            {
+                "shaderc_shared.lib",
+                "spirv-cross-core.lib",
+                "spirv-cross-glsl.lib"
+            }
+        end
+
         runtime "Release"
         optimize "on"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Defines.h>
+#include <Coco/Core/Types/String.h>
 
 namespace Coco::Rendering
 {
@@ -34,6 +35,11 @@ namespace Coco::Rendering
 	/// @param type The data type
 	/// @return The number of individual components that compose the type
 	uint8 GetDataTypeComponentCount(BufferDataType type);
+
+	/// @brief Gets the string representation of a BufferDataType
+	/// @param type The data type
+	/// @return The string
+	string GetBufferDataTypeString(BufferDataType type);
 
 	/// @brief Types of buffer usage
 	enum class BufferUsageFlags
