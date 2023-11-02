@@ -157,18 +157,22 @@ namespace Coco::Rendering::Vulkan
 	{
 		Assert(_vulkanRenderOperation.has_value())
 
-		if (!shader.Variants.contains(variantName))
+		uint64 variantID = RenderView::InvalidID;
+
+		if (shader.Variants.contains(variantName))
+		{
+			const ShaderVariantData& variantData = _renderView->GetShaderVariantData(shader.Variants.at(variantName));
+			variantID = variantData.ID;
+		}
+		else
 		{
 			CocoError("Shader {} does not contain a variant called {}", shader.ID, variantName)
-			return;
 		}
 
-		const ShaderVariantData& variantData = _renderView->GetShaderVariantData(shader.Variants.at(variantName));
-
-		if (_vulkanRenderOperation->GlobalState.has_value() && _vulkanRenderOperation->GlobalState->ShaderID == variantData.ID)
+		if (_vulkanRenderOperation->GlobalState.has_value() && _vulkanRenderOperation->GlobalState->ShaderID == variantID)
 			return;
 
-		_vulkanRenderOperation->GlobalState.emplace(variantData.ID);
+		_vulkanRenderOperation->GlobalState.emplace(variantID);
 
 		// Clear shader-specific uniforms
 		_instanceUniforms.Clear();
@@ -211,11 +215,14 @@ namespace Coco::Rendering::Vulkan
 
 		VkCommandBuffer cmdBuffer = _commandBuffer->GetCmdBuffer();
 
+ 		uint64 vertexPositionSize = mesh.VertexCount * GetDataTypeSize(BufferDataType::Float3);
+		bool hasOptionalAttributes = mesh.Format.AdditionalAttributes != VertexAttrFlags::None;
+
 		// Bind the vertex buffer
-		std::array<VkDeviceSize, 1> offsets = { 0 };
+		std::array<VkDeviceSize, 2> offsets = { 0, vertexPositionSize };
 		const VulkanBuffer& vertexBuffer = static_cast<const VulkanBuffer&>(*mesh.VertexBuffer);
-		VkBuffer vertexVkBuffer = vertexBuffer.GetBuffer();
-		vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexVkBuffer, offsets.data());
+		std::array<VkBuffer, 2> vertexBuffers = { vertexBuffer.GetBuffer(), vertexBuffer.GetBuffer() };
+		vkCmdBindVertexBuffers(cmdBuffer, 0, hasOptionalAttributes ? 2 : 1, vertexBuffers.data(), offsets.data());
 
 		// Bind the index buffer
 		const VulkanBuffer& indexBuffer = static_cast<const VulkanBuffer&>(*mesh.IndexBuffer);
@@ -490,12 +497,12 @@ namespace Coco::Rendering::Vulkan
 		try
 		{
 			if (!_vulkanRenderOperation->GlobalState.has_value())
-				throw std::exception("No shader was bound");
+			{
+				CocoError("No global state was bound")
+				_vulkanRenderOperation->GlobalState.emplace(RenderView::InvalidID);
+			}
 
 			BoundGlobalState& globalState = _vulkanRenderOperation->GlobalState.value();
-
-			if (globalState.ShaderID == RenderView::InvalidID)
-				throw std::exception("Invalid shader");
 
 			VulkanShaderVariant* shader = nullptr;
 			VulkanShaderUniformData& uniformData = GetUniformDataForBoundShader(&shader);
@@ -608,7 +615,6 @@ namespace Coco::Rendering::Vulkan
 	{
 		Assert(_vulkanRenderOperation.has_value())
 		Assert(_vulkanRenderOperation->GlobalState.has_value())
-		Assert(_vulkanRenderOperation->GlobalState->ShaderID != Resource::InvalidID)
 
 		const ShaderVariantData& boundShaderData = _renderView->GetShaderVariantData(_vulkanRenderOperation->GlobalState->ShaderID);
 		VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);

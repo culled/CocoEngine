@@ -119,19 +119,7 @@ namespace Coco::Rendering
 
 		emitter << YAML::EndSeq;
 
-		emitter << YAML::Key << "vertex attributes" << YAML::Value << YAML::BeginSeq;
-
-		for (const ShaderVertexAttribute& attr : variant.VertexAttributes)
-		{
-			emitter << YAML::BeginMap;
-
-			emitter << YAML::Key << "name" << YAML::Value << attr.Name;
-			emitter << YAML::Key << "type" << YAML::Value << static_cast<int>(attr.Type);
-
-			emitter << YAML::EndMap;
-		}
-
-		emitter << YAML::EndSeq;
+		emitter << YAML::Key << "vertex attributes" << YAML::Value << static_cast<int>(variant.VertexFormat.AdditionalAttributes);
 
 		if (variant.GlobalUniforms.Hash != ShaderUniformLayout::EmptyHash)
 		{
@@ -198,16 +186,7 @@ namespace Coco::Rendering
 			);
 		}
 
-		std::vector<ShaderVertexAttribute> vertexAttrs;
-		YAML::Node vertexAttrsNode = baseNode["vertex attributes"];
-
-		for (YAML::const_iterator it = vertexAttrsNode.begin(); it != vertexAttrsNode.end(); ++it)
-		{
-			vertexAttrs.emplace_back(
-				(*it)["name"].as<string>(),
-				static_cast<BufferDataType>((*it)["type"].as<int>())
-			);
-		}
+		VertexDataFormat format(static_cast<VertexAttrFlags>(baseNode["vertex attributes"].as<int>()));
 
 		GlobalShaderUniformLayout globalLayout{};
 
@@ -235,7 +214,7 @@ namespace Coco::Rendering
 			stages,
 			pipelineState,
 			blendStates,
-			vertexAttrs,
+			format,
 			globalLayout,
 			instanceLayout,
 			drawLayout

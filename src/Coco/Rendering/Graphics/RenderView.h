@@ -307,5 +307,9 @@ namespace Coco::Rendering
 		/// @param position The position to sort relative to
 		/// @param sortMode The sort mode
 		void SortByDistance(std::vector<uint64>& objectIndices, const Vector3& position, RenderObjectSortMode sortMode) const;
+
+	private:
+		/// @brief Adds default objects to this view
+		void AddDefaults();
 	};
 }

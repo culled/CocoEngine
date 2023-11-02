@@ -36,17 +36,32 @@ namespace Coco::ECS
 			{
 				BoundingBox b = kvp.second.Bounds.Transformed(transform.Transform.GlobalTransform);
 
-				// Skip meshes outside our frustum or that don't have a material
-				if (!viewFrustum.IsInside(b) || !renderer.Materials.contains(kvp.first))
+				// Skip meshes outside our frustum
+				if (!viewFrustum.IsInside(b))
 					continue;
 
-				renderView.AddRenderObject(
-					e.GetID(),
-					*renderer.Mesh,
-					kvp.first,
-					transform.Transform.GlobalTransform,
-					*renderer.Materials.at(kvp.first),
-					&b);
+				auto it = renderer.Materials.find(kvp.first);
+
+				if (it != renderer.Materials.end())
+				{
+					renderView.AddRenderObject(
+						e.GetID(),
+						*renderer.Mesh,
+						kvp.first,
+						transform.Transform.GlobalTransform,
+						*(it->second),
+						&b);
+				}
+				else
+				{
+					renderView.AddRenderObject(
+						e.GetID(),
+						*renderer.Mesh,
+						kvp.first,
+						transform.Transform.GlobalTransform,
+						nullptr,
+						&b);
+				}
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 #include "Renderpch.h"
 #include "RenderService.h"
 #include "Texture.h"
+#include "Shader.h"
 #include "Pipeline/RenderPipeline.h"
 #include "Gizmos/GizmoRender.h"
 #include "Graphics/RenderView.h"
@@ -38,6 +39,7 @@ namespace Coco::Rendering
 		CreateDefaultDiffuseTexture();
 		CreateDefaultNormalTexture();
 		CreateDefaultCheckerTexture();
+		CreateErrorShader();
 
 		//MainLoop::Get()->AddListener(_earlyTickListener);
 		MainLoop::Get()->AddListener(_lateTickListener);
@@ -60,6 +62,7 @@ namespace Coco::Rendering
 		_defaultDiffuseTexture.reset();
 		_defaultNormalTexture.reset();
 		_defaultCheckerTexture.reset();
+		_errorShader.reset();
 
 		_contextPool.reset();
 		_gizmoRender.reset();
@@ -291,6 +294,33 @@ namespace Coco::Rendering
 		_defaultCheckerTexture->SetPixels(0, pixelData.data(), pixelData.size());
 
 		CocoTrace("Created default checker texture");
+	}
+
+	void RenderService::CreateErrorShader()
+	{
+		_errorShader = Engine::Get()->GetResourceLibrary().Create<Shader>("Error Shader", "error");
+		_errorShader->AddVariant(
+			ShaderVariant(
+				"error",
+				{
+					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Error.vert.glsl"),
+					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Error.frag.glsl")
+				},
+				GraphicsPipelineState(),
+				{
+					BlendState::Opaque
+				},
+				VertexDataFormat(),
+				GlobalShaderUniformLayout(),
+				ShaderUniformLayout(),
+				ShaderUniformLayout(
+					{
+						ShaderDataUniform("ModelMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+					},
+					{}
+				)
+			)
+		);
 	}
 
 	void RenderService::HandleEarlyTick(const TickInfo& tickInfo)

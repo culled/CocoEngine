@@ -8,7 +8,6 @@ namespace Coco::Rendering
 	void MeshUtilities::CreateXYGrid(
 		const Vector2& size, 
 		const Vector3& offset,
-		const VertexDataFormat& format,
 		std::vector<VertexData>& vertices, 
 		std::vector<uint32>& indices, 
 		uint32 subdivisions, 
@@ -30,12 +29,8 @@ namespace Coco::Rendering
 				const double v = static_cast<double>(y) / (vertexSideCount - 1);
 
 				VertexData& vertex = vertices.emplace_back(Vector3(x * vertexScaling - 0.5, y * vertexScaling - 0.5, 0.0) * scale + offset);
-
-				if (format.HasNormals)
-					vertex.Normal = normalDir;
-
-				if (format.HasUV0)
-					vertex.UV0 = Vector2(flipDirection ? -u : u, v);
+				vertex.Normal = normalDir;
+				vertex.UV0 = Vector2(flipDirection ? -u : u, v);
 			}
 		}
 
@@ -60,7 +55,6 @@ namespace Coco::Rendering
 	void MeshUtilities::CreateXZGrid(
 		const Vector2& size, 
 		const Vector3& offset, 
-		const VertexDataFormat& format, 
 		std::vector<VertexData>& vertices, 
 		std::vector<uint32>& indices, 
 		uint32 subdivisions, 
@@ -82,12 +76,8 @@ namespace Coco::Rendering
 				const double v = 1.0 - (static_cast<double>(z) / (vertexSideCount - 1));
 
 				VertexData& vertex = vertices.emplace_back(Vector3(x * vertexScaling - 0.5, 0.0, z * vertexScaling - 0.5) * scale + offset);
-
-				if (format.HasNormals)
-					vertex.Normal = normalDir;
-
-				if (format.HasUV0)
-					vertex.UV0 = Vector2(flipDirection ? -u : u, v);
+				vertex.Normal = normalDir;
+				vertex.UV0 = Vector2(flipDirection ? -u : u, v);
 			}
 		}
 
@@ -112,7 +102,6 @@ namespace Coco::Rendering
 	void MeshUtilities::CreateZYGrid(
 		const Vector2& size, 
 		const Vector3& offset, 
-		const VertexDataFormat& format, 
 		std::vector<VertexData>& vertices, 
 		std::vector<uint32>& indices, 
 		uint32 subdivisions, 
@@ -134,12 +123,8 @@ namespace Coco::Rendering
 				const double v = static_cast<double>(y) / (vertexSideCount - 1);
 
 				VertexData& vertex = vertices.emplace_back(Vector3(0.0, y * vertexScaling - 0.5, z * vertexScaling - 0.5) * scale + offset);
-
-				if (format.HasNormals)
-					vertex.Normal = normalDir;
-
-				if (format.HasUV0)
-					vertex.UV0 = Vector2(flipDirection ? -u : u, v);
+				vertex.Normal = normalDir;
+				vertex.UV0 = Vector2(flipDirection ? -u : u, v);
 			}
 		}
 
@@ -164,7 +149,6 @@ namespace Coco::Rendering
 	void MeshUtilities::CreateBox(
 		const Vector3& size, 
 		const Vector3& offset,
-		const VertexDataFormat& format,
 		std::vector<VertexData>& vertices, 
 		std::vector<uint32>& indices, 
 		uint32 subdivisions, 
@@ -173,29 +157,28 @@ namespace Coco::Rendering
 		Vector3 sizeOffset = size * 0.5;
 
 		// X face
-		CreateZYGrid(Vector2(size.Z, size.Y), Vector3::Right * sizeOffset.X + offset, format, vertices, indices, subdivisions, flipDirection);
+		CreateZYGrid(Vector2(size.Z, size.Y), Vector3::Right * sizeOffset.X + offset, vertices, indices, subdivisions, flipDirection);
 
 		// -X face
-		CreateZYGrid(Vector2(size.Z, size.Y), Vector3::Left * sizeOffset.X + offset, format, vertices, indices, subdivisions, !flipDirection);
+		CreateZYGrid(Vector2(size.Z, size.Y), Vector3::Left * sizeOffset.X + offset, vertices, indices, subdivisions, !flipDirection);
 
 		// Y face
-		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Up * sizeOffset.Y + offset, format, vertices, indices, subdivisions, flipDirection);
+		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Up * sizeOffset.Y + offset, vertices, indices, subdivisions, flipDirection);
 
 		// -Y face
-		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Down * sizeOffset.Y + offset, format, vertices, indices, subdivisions, !flipDirection);
+		CreateXZGrid(Vector2(size.X, size.Z), Vector3::Down * sizeOffset.Y + offset, vertices, indices, subdivisions, !flipDirection);
 
 		// Z face
-		CreateXYGrid(Vector2(size.X, size.Y), Vector3::Backward * sizeOffset.Z + offset, format, vertices, indices, subdivisions, flipDirection);
+		CreateXYGrid(Vector2(size.X, size.Y), Vector3::Backward * sizeOffset.Z + offset, vertices, indices, subdivisions, flipDirection);
 
 		// -Z face
-		CreateXYGrid(Vector2(size.X, size.Y), Vector3::Forward * sizeOffset.Z + offset, format, vertices, indices, subdivisions, !flipDirection);
+		CreateXYGrid(Vector2(size.X, size.Y), Vector3::Forward * sizeOffset.Z + offset, vertices, indices, subdivisions, !flipDirection);
 	}
 
 	void MeshUtilities::CreateXYTriangleFan(
 		double radius, 
 		uint32 vertexCount, 
 		const Vector3& offset, 
-		const VertexDataFormat& format, 
 		std::vector<VertexData>& vertices, 
 		std::vector<uint32>& indices, 
 		bool flipDirection)
@@ -207,12 +190,8 @@ namespace Coco::Rendering
 		{
 			// Add the middle vertex
 			VertexData& v = vertices.emplace_back(offset);
-
-			if (format.HasNormals)
-				v.Normal = normalDir;
-
-			if (format.HasUV0)
-				v.UV0 = Vector2(0.5, 0.5);
+			v.Normal = normalDir;
+			v.UV0 = Vector2(0.5, 0.5);
 		}
 
 		// Create bottom circle
@@ -223,12 +202,8 @@ namespace Coco::Rendering
 			const double s = Math::Sin(angle);
 
 			VertexData& v = vertices.emplace_back(Vector3(c * radius, s * radius, 0.0) + offset);
-
-			if (format.HasNormals)
-				v.Normal = normalDir;
-
-			if (format.HasUV0)
-				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
+			v.Normal = normalDir;
+			v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
 		}
 
 		uint32 firstVert = vertexOffset + 1;
@@ -251,7 +226,6 @@ namespace Coco::Rendering
 		double radius,
 		uint32 vertexCount,
 		const Vector3& offset,
-		const VertexDataFormat& format,
 		std::vector<VertexData>& vertices,
 		std::vector<uint32>& indices,
 		bool flipDirection)
@@ -263,12 +237,8 @@ namespace Coco::Rendering
 		{
 			// Add the middle vertex
 			VertexData& v = vertices.emplace_back(offset);
-
-			if (format.HasNormals)
-				v.Normal = normalDir;
-
-			if (format.HasUV0)
-				v.UV0 = Vector2(0.5, 0.5);
+			v.Normal = normalDir;
+			v.UV0 = Vector2(0.5, 0.5);
 		}
 
 		// Create bottom circle
@@ -279,12 +249,8 @@ namespace Coco::Rendering
 			const double s = Math::Sin(angle);
 
 			VertexData& v = vertices.emplace_back(Vector3(c * radius, 0.0, -s * radius) + offset);
-
-			if (format.HasNormals)
-				v.Normal = normalDir;
-
-			if (format.HasUV0)
-				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
+			v.Normal = normalDir;
+			v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
 		}
 
 		uint32 firstVert = vertexOffset + 1;
@@ -307,7 +273,6 @@ namespace Coco::Rendering
 		double radius,
 		uint32 vertexCount,
 		const Vector3& offset,
-		const VertexDataFormat& format,
 		std::vector<VertexData>& vertices,
 		std::vector<uint32>& indices,
 		bool flipDirection)
@@ -319,12 +284,8 @@ namespace Coco::Rendering
 		{
 			// Add the middle vertex
 			VertexData& v = vertices.emplace_back(offset);
-
-			if (format.HasNormals)
-				v.Normal = normalDir;
-
-			if (format.HasUV0)
-				v.UV0 = Vector2(0.5, 0.5);
+			v.Normal = normalDir;
+			v.UV0 = Vector2(0.5, 0.5);
 		}
 
 		// Create bottom circle
@@ -335,12 +296,8 @@ namespace Coco::Rendering
 			const double s = Math::Sin(angle);
 
 			VertexData& v = vertices.emplace_back(Vector3(0.0, s * radius, -c * radius) + offset);
-
-			if (format.HasNormals)
-				v.Normal = normalDir;
-
-			if (format.HasUV0)
-				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
+			v.Normal = normalDir;
+			v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
 		}
 
 		uint32 firstVert = vertexOffset + 1;
@@ -364,7 +321,6 @@ namespace Coco::Rendering
 		double radius, 
 		uint32 baseVertexCount, 
 		const Vector3& offset, 
-		const VertexDataFormat& format, 
 		std::vector<VertexData>& vertices, 
 		std::vector<uint32>& indices, 
 		bool flipDirection)
@@ -377,12 +333,8 @@ namespace Coco::Rendering
 		{
 			// Add the top vertex
 			VertexData& v = vertices.emplace_back(topPosition);
-
-			if (format.HasNormals)
-				v.Normal = topNormal;
-
-			if (format.HasUV0)
-				v.UV0 = Vector2(0.25, 0.25);
+			v.Normal = topNormal;
+			v.UV0 = Vector2(0.25, 0.25);
 		}
 
 		for (uint32 i = 0; i < baseVertexCount; i++)
@@ -393,15 +345,11 @@ namespace Coco::Rendering
 
 			VertexData& v = vertices.emplace_back(Vector3(c * radius, 0.0, -s * radius) + offset);
 
-			if (format.HasNormals)
-			{
-				Vector3 toTop = (topPosition - v.Position).Normalized();
-				Vector3 right = toTop.Cross(Vector3::Up);
-				v.Normal = right.Cross(toTop).Normalized();
-			}
+			Vector3 toTop = (topPosition - v.Position).Normalized();
+			Vector3 right = toTop.Cross(Vector3::Up);
+			v.Normal = right.Cross(toTop).Normalized();
 
-			if (format.HasUV0)
-				v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
+			v.UV0 = Vector2(c * 0.5 + 0.5, s * 0.5 + 0.5);
 		}
 
 		uint32 firstVert = vertexOffset + 1;
@@ -419,14 +367,13 @@ namespace Coco::Rendering
 		indices.push_back(vertexOffset);
 		indices.push_back(flipDirection ? lastVert : firstVert);
 
-		CreateXZTriangleFan(radius, baseVertexCount, offset, format, vertices, indices, !flipDirection);
+		CreateXZTriangleFan(radius, baseVertexCount, offset, vertices, indices, !flipDirection);
 	}
 
 	void MeshUtilities::CreateUVSphere(
 		uint32 slices, uint32 stacks, 
 		double radius, 
-		const Vector3& offset, 
-		const VertexDataFormat& format, 
+		const Vector3& offset,  
 		std::vector<VertexData>& vertices, 
 		std::vector<uint32>& indices, 
 		bool flipDirection)
@@ -443,12 +390,8 @@ namespace Coco::Rendering
 			double u = (static_cast<double>(j) / slices) + uOffset;
 
 			VertexData& v = vertices.emplace_back(Vector3(0.0, radius, 0.0) + offset);
-
-			if (format.HasNormals)
-				v.Normal = flipDirection ? Vector3::Down : Vector3::Up;
-
-			if (format.HasUV0)
-				v.UV0 = Vector2(u, 1.0);
+			v.Normal = flipDirection ? Vector3::Down : Vector3::Up;
+			v.UV0 = Vector2(u, 1.0);
 		}
 
 		const double twoPI = 2.0 * Math::PI;
@@ -466,11 +409,8 @@ namespace Coco::Rendering
 				Vector3 pos = Vector3(Math::Sin(phi) * Math::Cos(theta), Math::Cos(phi), -Math::Sin(phi) * Math::Sin(theta));
 				VertexData& vert = vertices.emplace_back(pos * radius + offset);
 
-				if (format.HasNormals)
-					vert.Normal = pos.Normalized() * (flipDirection ? -1.0 : 1.0);
-
-				if (format.HasUV0)
-					vert.UV0 = Vector2(u, v);
+				vert.Normal = pos.Normalized() * (flipDirection ? -1.0 : 1.0);
+				vert.UV0 = Vector2(u, v);
 			}
 		}
 
@@ -480,12 +420,8 @@ namespace Coco::Rendering
 			double u = (static_cast<double>(j) / slices) + uOffset;
 
 			VertexData& v = vertices.emplace_back(Vector3(0.0, -radius, 0.0) + offset);
-
-			if (format.HasNormals)
-				v.Normal = flipDirection ? Vector3::Up : Vector3::Down;
-
-			if (format.HasUV0)
-				v.UV0 = Vector2(u, 0.0);
+			v.Normal = flipDirection ? Vector3::Up : Vector3::Down;
+			v.UV0 = Vector2(u, 0.0);
 		}
 
 		const uint32 topRingOffset = slices;

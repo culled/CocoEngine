@@ -13,7 +13,6 @@ namespace Coco::Rendering
 		/// @brief Creates a flat grid on the X-Y plane, with default faces facing in the +Z direction
 		/// @param size The size of the grid
 		/// @param offset The position of the center of the grid
-		/// @param format The format of the vertices to add
 		/// @param vertices The vertices to add to
 		/// @param indices The indices to add to
 		/// @param subdivisions The number of cuts along each side of the grid
@@ -21,7 +20,6 @@ namespace Coco::Rendering
 		static void CreateXYGrid(
 			const Vector2& size,
 			const Vector3& offset,
-			const VertexDataFormat& format,
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			uint32 subdivisions = 0,
@@ -30,7 +28,6 @@ namespace Coco::Rendering
 		/// @brief Creates a flat grid on the X-Z plane, with default faces facing in the +Y direction
 		/// @param size The size of the grid
 		/// @param offset The position of the center of the grid
-		/// @param format The format of the vertices to add
 		/// @param vertices The vertices to add to
 		/// @param indices The indices to add to
 		/// @param subdivisions The number of cuts along each side of the grid
@@ -38,7 +35,6 @@ namespace Coco::Rendering
 		static void CreateXZGrid(
 			const Vector2& size,
 			const Vector3& offset,
-			const VertexDataFormat& format,
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			uint32 subdivisions = 0,
@@ -47,7 +43,6 @@ namespace Coco::Rendering
 		/// @brief Creates a flat grid on the Z-Y plane, with default faces facing in the +X direction
 		/// @param size The size of the grid
 		/// @param offset The position of the center of the grid
-		/// @param format The format of the vertices to add
 		/// @param vertices The vertices to add to
 		/// @param indices The indices to add to
 		/// @param subdivisions The number of cuts along each side of the grid
@@ -55,7 +50,6 @@ namespace Coco::Rendering
 		static void CreateZYGrid(
 			const Vector2& size,
 			const Vector3& offset,
-			const VertexDataFormat& format,
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			uint32 subdivisions = 0,
@@ -64,7 +58,6 @@ namespace Coco::Rendering
 		/// @brief Creates a box, with default faces facing outward
 		/// @param size The size of the box on each axis
 		/// @param offset The position of the center of the box
-		/// @param format The format of the vertices to add 
 		/// @param vertices The vertices to add to
 		/// @param indices The indices to add to
 		/// @param subdivisions The number of cuts along each side of the box
@@ -72,7 +65,6 @@ namespace Coco::Rendering
 		static void CreateBox(
 			const Vector3& size,
 			const Vector3& offset,
-			const VertexDataFormat& format,
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			uint32 subdivisions = 0,
@@ -82,7 +74,6 @@ namespace Coco::Rendering
 		/// @param radius The radius of the circle
 		/// @param vertexCount The number of vertices in the circle
 		/// @param offset The position of the center of the circle
-		/// @param format The format of the vertices to add  
 		/// @param vertices The vertices to add to
 		/// @param indices The indices to add to
 		/// @param flipDirection If true, the faces & normals will point towards the -Z direction
@@ -90,7 +81,6 @@ namespace Coco::Rendering
 			double radius,
 			uint32 vertexCount,
 			const Vector3& offset,
-			const VertexDataFormat& format,
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			bool flipDirection = false);
@@ -99,7 +89,6 @@ namespace Coco::Rendering
 		/// @param radius The radius of the circle
 		/// @param vertexCount The number of vertices in the circle
 		/// @param offset The position of the center of the circle
-		/// @param format The format of the vertices to add  
 		/// @param vertices The vertices to add to
 		/// @param indices The indices to add to
 		/// @param flipDirection If true, the faces & normals will point towards the -Y direction
@@ -107,7 +96,6 @@ namespace Coco::Rendering
 			double radius,
 			uint32 vertexCount,
 			const Vector3& offset,
-			const VertexDataFormat& format,
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			bool flipDirection = false);
@@ -116,7 +104,6 @@ namespace Coco::Rendering
 		/// @param radius The radius of the circle
 		/// @param vertexCount The number of vertices in the circle
 		/// @param offset The position of the center of the circle
-		/// @param format The format of the vertices to add  
 		/// @param vertices The vertices to add to
 		/// @param indices The indices to add to
 		/// @param flipDirection If true, the faces & normals will point towards the -X direction
@@ -124,7 +111,6 @@ namespace Coco::Rendering
 			double radius,
 			uint32 vertexCount,
 			const Vector3& offset,
-			const VertexDataFormat& format,
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			bool flipDirection = false);
@@ -134,7 +120,6 @@ namespace Coco::Rendering
 		/// @param radius The radius of the cone's base
 		/// @param baseVertexCount The number of vertices in the base
 		/// @param offset The position of the center of the base of the cone
-		/// @param format The format of the vertices to add  
 		/// @param vertices The vertices to add to
 		/// @param indices The indices to add to
 		/// @param flipDirection If true, the faces & normals will point inwards
@@ -143,7 +128,6 @@ namespace Coco::Rendering
 			double radius,
 			uint32 baseVertexCount,
 			const Vector3& offset,
-			const VertexDataFormat& format,
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			bool flipDirection = false);
@@ -153,7 +137,6 @@ namespace Coco::Rendering
 		/// @param stacks The number of horizontal stacks
 		/// @param radius The radius of the sphere
 		/// @param offset The position of the center of the sphere
-		/// @param format The format of the vertices to add  
 		/// @param vertices The vertices to add to
 		/// @param indices The indices to add to
 		/// @param flipDirection If true, the faces & normals will point inwards
@@ -161,7 +144,6 @@ namespace Coco::Rendering
 			uint32 slices, uint32 stacks,
 			double radius,
 			const Vector3& offset,
-			const VertexDataFormat& format,
 			std::vector<VertexData>& vertices,
 			std::vector<uint32>& indices,
 			bool flipDirection = false);

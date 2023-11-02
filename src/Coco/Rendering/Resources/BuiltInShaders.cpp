@@ -13,12 +13,7 @@ namespace Coco::Rendering
 		{
 			BlendState::Opaque
 		},
-		{
-			ShaderVertexAttribute("Position", BufferDataType::Float3),
-			ShaderVertexAttribute("Normal", BufferDataType::Float3),
-			ShaderVertexAttribute("Tangent", BufferDataType::Float4),
-			ShaderVertexAttribute("UV", BufferDataType::Float2)
-		},
+		VertexDataFormat(VertexAttrFlags::Normal | VertexAttrFlags::Tangent | VertexAttrFlags::UV0),
 		GlobalShaderUniformLayout(),
 		ShaderUniformLayout(
 			{
@@ -47,10 +42,7 @@ namespace Coco::Rendering
 		{
 			BlendState::Opaque
 		},
-		{
-			ShaderVertexAttribute("Position", BufferDataType::Float3),
-			ShaderVertexAttribute("UV", BufferDataType::Float2)
-		},
+		VertexDataFormat(VertexAttrFlags::UV0),
 		GlobalShaderUniformLayout(),
 		ShaderUniformLayout(
 			{

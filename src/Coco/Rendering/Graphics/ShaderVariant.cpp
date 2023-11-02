@@ -12,7 +12,7 @@ namespace Coco::Rendering
 		const std::vector<ShaderStage>& stages,
 		const GraphicsPipelineState& pipelineState,
 		const std::vector<BlendState>& attachmentBlendStates,
-		const std::vector<ShaderVertexAttribute>& vertexAttributes,
+		const VertexDataFormat& vertexFormat,
 		const GlobalShaderUniformLayout& globalUniforms,
 		const ShaderUniformLayout& instanceUniforms,
 		const ShaderUniformLayout& drawUniforms) :
@@ -21,30 +21,17 @@ namespace Coco::Rendering
 		Stages(stages),
 		PipelineState(pipelineState),
 		AttachmentBlendStates(attachmentBlendStates),
-		VertexAttributes(vertexAttributes),
+		VertexFormat(vertexFormat),
 		GlobalUniforms(globalUniforms),
 		InstanceUniforms(instanceUniforms),
 		DrawUniforms(drawUniforms)
 	{
-		CalculateAttributeOffsets();
 		CalculateHash();
 	}
 
 	bool ShaderVariant::operator==(const ShaderVariant& other) const
 	{
 		return Hash == other.Hash;
-	}
-
-	void ShaderVariant::CalculateAttributeOffsets()
-	{
-		uint32 offset = 0;
-		for (ShaderVertexAttribute& attr : VertexAttributes)
-		{
-			attr.Offset = offset;
-			offset += GetDataTypeSize(attr.Type);
-		}
-
-		VertexDataSize = offset;
 	}
 
 	void ShaderVariant::CalculateHash()
@@ -60,17 +47,11 @@ namespace Coco::Rendering
 				);
 			});
 
-		uint64 attrHash = std::accumulate(VertexAttributes.begin(), VertexAttributes.end(), static_cast<uint64>(0), 
-			[](uint64 hash, const ShaderVertexAttribute& attr)
+		uint64 attrHash = 0;
+		VertexFormat.ForEachAdditionalAttr([&attrHash](VertexAttrFlags flag, BufferDataType type)
 			{
-				return Math::CombineHashes(
-					hash,
-					_sStringHasher(attr.Name),
-					attr.Offset,
-					static_cast<uint64>(attr.Type)
-				);
-			}
-		);
+				attrHash |= static_cast<uint64>(flag);
+			});
 
 		uint64 blendHash = std::accumulate(AttachmentBlendStates.begin(), AttachmentBlendStates.end(), static_cast<uint64>(0),
 			[](uint64 hash, const BlendState& state)

@@ -44,9 +44,7 @@ namespace Coco::Rendering
 				{
 					BlendState::Opaque
 				},
-				{
-					ShaderVertexAttribute("Position", BufferDataType::Float3)
-				},
+				VertexDataFormat(),
 				GlobalShaderUniformLayout(),
 				ShaderUniformLayout(),
 				ShaderUniformLayout(

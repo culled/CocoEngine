@@ -146,19 +146,12 @@ namespace Coco::ImGuiCoco
 
         ImDrawData* drawData = _currentlyRenderingViewport->DrawData;
 
-        VertexDataFormat format{};
-        format.HasColor = true;
-        format.HasUV0 = true;
-
+        VertexDataFormat format(VertexAttrFlags::Color | VertexAttrFlags::UV0);
         SharedRef<Mesh> mesh = GetOrCreateViewportMesh(_currentlyRenderingViewport);
 
         if (drawData->TotalVtxCount > 0)
         {
             mesh->ClearSubmeshes();
-
-            VertexDataFormat format{};
-            format.HasUV0 = true;
-            format.HasColor = true;
 
             std::vector<VertexData> vertices(drawData->TotalVtxCount);
             std::vector<uint32> indices;
@@ -562,11 +555,7 @@ namespace Coco::ImGuiCoco
                 {
                     BlendState::AlphaBlending
                 },
-                {
-                    ShaderVertexAttribute("Position", BufferDataType::Float3),
-                    ShaderVertexAttribute("Color", BufferDataType::Float4),
-                    ShaderVertexAttribute("UV", BufferDataType::Float2)
-                },
+                VertexDataFormat(VertexAttrFlags::Color | VertexAttrFlags::UV0),
                 GlobalShaderUniformLayout(),
                 ShaderUniformLayout(),
                 ShaderUniformLayout(

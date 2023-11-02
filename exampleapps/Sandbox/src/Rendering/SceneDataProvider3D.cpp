@@ -8,32 +8,28 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	_boxTransform(Vector3(0.0, 4.0, 0.0), Quaternion::Identity, Vector3::One),
 	_drawBounds(false)
 {
-	VertexDataFormat format{};
-	format.HasNormals = true;
-	format.HasTangents = true;
-	format.HasUV0 = true;
-
 	std::vector<VertexData> vertices;
 	std::vector<uint32> indices;
-	MeshUtilities::CreateXYGrid(Vector2::One, Vector3(0.0, 0.0, -0.5), format, vertices, indices);
-	MeshUtilities::CreateXZGrid(Vector2::One, Vector3(0.0, -0.5, 0.0), format, vertices, indices);
-	MeshUtilities::CreateZYGrid(Vector2::One, Vector3(-0.5, 0.0, 0.0), format, vertices, indices);
+	MeshUtilities::CreateXYGrid(Vector2::One, Vector3(0.0, 0.0, -0.5), vertices, indices);
+	MeshUtilities::CreateXZGrid(Vector2::One, Vector3(0.0, -0.5, 0.0), vertices, indices);
+	MeshUtilities::CreateZYGrid(Vector2::One, Vector3(-0.5, 0.0, 0.0), vertices, indices);
 
-	MeshUtilities::CreateBox(Vector3(1.0, 2.0, 3.0), Vector3(0.0, 0.0, 5.0), format, vertices, indices);
+	MeshUtilities::CreateBox(Vector3(1.0, 2.0, 3.0), Vector3(0.0, 0.0, 5.0), vertices, indices);
 
-	MeshUtilities::CreateXYTriangleFan(1.0, 16, Vector3(-5.0, 0.0, -1.0), format, vertices, indices);
-	MeshUtilities::CreateXZTriangleFan(1.0, 16, Vector3(-5.0, -1.0, 0.0), format, vertices, indices);
-	MeshUtilities::CreateZYTriangleFan(1.0, 16, Vector3(-6.0, 0.0, 0.0), format, vertices, indices);
+	MeshUtilities::CreateXYTriangleFan(1.0, 16, Vector3(-5.0, 0.0, -1.0), vertices, indices);
+	MeshUtilities::CreateXZTriangleFan(1.0, 16, Vector3(-5.0, -1.0, 0.0), vertices, indices);
+	MeshUtilities::CreateZYTriangleFan(1.0, 16, Vector3(-6.0, 0.0, 0.0), vertices, indices);
 
-	MeshUtilities::CreateCone(1.0, 0.5, 16, Vector3(5.0, 0.0, 0.0), format, vertices, indices);
+	MeshUtilities::CreateCone(1.0, 0.5, 16, Vector3(5.0, 0.0, 0.0), vertices, indices);
 
-	MeshUtilities::CreateUVSphere(16, 8, 1.0, Vector3(5.0, 0.0, 3.0), format, vertices, indices);
+	MeshUtilities::CreateUVSphere(16, 8, 1.0, Vector3(5.0, 0.0, 3.0), vertices, indices);
 
 	MeshUtilities::CalculateTangents(vertices, indices);
 
 	ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
 	_mesh = resourceLibrary.Create<Mesh>("Mesh");
+	VertexDataFormat format(VertexAttrFlags::Normal | VertexAttrFlags::Tangent | VertexAttrFlags::UV0);
 	_mesh->SetVertices(format, vertices);
 	_mesh->SetIndices(indices, 0);
 	_mesh->Apply();
@@ -43,7 +39,7 @@ SceneDataProvider3D::SceneDataProvider3D() :
 
 	_boxMesh = resourceLibrary.Create<Mesh>("BoxMesh");
 
-	MeshUtilities::CreateBox(Vector3::One, Vector3::Zero, format, vertices, indices);
+	MeshUtilities::CreateBox(Vector3::One, Vector3::Zero, vertices, indices);
 
 	MeshUtilities::CalculateTangents(vertices, indices);
 

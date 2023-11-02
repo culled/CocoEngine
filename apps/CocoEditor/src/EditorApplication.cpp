@@ -155,14 +155,12 @@ namespace Coco
 		{
 			_mainScene = resourceLibrary.Create<Scene>("Scene");
 
-			VertexDataFormat format{};
-			format.HasUV0 = true;
-
 			std::vector<VertexData> vertices;
 			std::vector<uint32> indices;
-			MeshUtilities::CreateXYGrid(Vector2::One, Vector3::Zero, format, vertices, indices);
+			MeshUtilities::CreateXYGrid(Vector2::One, Vector3::Zero, vertices, indices);
 
 			SharedRef<Mesh> mesh = resourceLibrary.Create<Mesh>("Mesh");
+			VertexDataFormat format(VertexAttrFlags::UV0);
 			mesh->SetVertices(format, vertices);
 			mesh->SetIndices(indices, 0);
 			resourceLibrary.Save("meshes/Quad.cmesh", mesh, true);
@@ -181,7 +179,7 @@ namespace Coco
 				{
 					BlendState::Opaque
 				},
-				BuiltInShaders::UnlitVariant.VertexAttributes,
+				BuiltInShaders::UnlitVariant.VertexFormat,
 				GlobalShaderUniformLayout(),
 				ShaderUniformLayout(),
 				ShaderUniformLayout(

@@ -166,23 +166,43 @@ namespace Coco::Rendering::Vulkan
 		colorBlendState.blendConstants[2] = 0.0f;
 		colorBlendState.blendConstants[3] = 0.0f;
 
+		std::vector<VkVertexInputBindingDescription> vertexInputs(1);
+
 		// Attribute inputs
-		VkVertexInputBindingDescription vertexInput{};
-		vertexInput.binding = 0; // The index of the binding
-		vertexInput.stride = variant.VertexDataSize;
-		vertexInput.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // One data entry for each vertex
+		// Add the position input binding
+		VkVertexInputBindingDescription& posVertexInput = vertexInputs.front();
+		posVertexInput.binding = 0; // The index of the binding
+		posVertexInput.stride = sizeof(float) * 3; // Size of vec3
+		posVertexInput.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // One data entry for each vertex
 
-		std::array<VkVertexInputBindingDescription, 1> vertexInputs = { vertexInput };
+		// Add the position attribute
+		std::vector<VkVertexInputAttributeDescription> vertexAttributes(1);
+		VkVertexInputAttributeDescription& posDescription = vertexAttributes.front();
+		posDescription.binding = 0; // The input binding index
+		posDescription.location = 0;
+		posDescription.format = ToVkFormat(BufferDataType::Float3);
+		posDescription.offset = 0;
 
-		std::vector<VkVertexInputAttributeDescription> vertexAttributes(variant.VertexAttributes.size());
-		for (uint32_t i = 0; i < vertexAttributes.size(); i++)
+		if (variant.VertexFormat.AdditionalAttributes != VertexAttrFlags::None)
 		{
-			const ShaderVertexAttribute& attr = variant.VertexAttributes.at(i);
-			VkVertexInputAttributeDescription& attrDescription = vertexAttributes.at(i);
-			attrDescription.binding = 0; // The input binding index
-			attrDescription.location = i;
-			attrDescription.format = ToVkFormat(attr.Type);
-			attrDescription.offset = attr.Offset;
+			VkVertexInputBindingDescription& attrInput = vertexInputs.emplace_back();
+			attrInput.binding = 1;
+			attrInput.stride = static_cast<uint32>(variant.VertexFormat.GetAdditionalAttrStride());
+			attrInput.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+			uint32 offset = 0;
+			uint32 location = 1;
+
+			variant.VertexFormat.ForEachAdditionalAttr([&vertexAttributes, &offset, &location](VertexAttrFlags flag, BufferDataType type)
+				{
+					VkVertexInputAttributeDescription& desc = vertexAttributes.emplace_back();
+					desc.binding = 1;
+					desc.location = location++;
+					desc.offset = offset;
+					desc.format = ToVkFormat(type);
+
+					offset += GetDataTypeSize(type);
+				});
 		}
 
 		VkPipelineVertexInputStateCreateInfo vertexInputState{};

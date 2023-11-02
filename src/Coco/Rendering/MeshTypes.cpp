@@ -5,29 +5,59 @@
 namespace Coco::Rendering
 {
 	VertexDataFormat::VertexDataFormat() :
-		HasNormals(false),
-		HasColor(false),
-		HasTangents(false),
-		HasUV0(false)
+		VertexDataFormat(VertexAttrFlags::None)
 	{}
 
-	uint16 VertexDataFormat::GetVertexSize() const
+	VertexDataFormat::VertexDataFormat(VertexAttrFlags additionalAttributes) :
+		AdditionalAttributes(additionalAttributes)
+	{}
+
+	uint64 VertexDataFormat::GetDataSize(uint64 vertexCount) const
 	{
-		uint16 size = GetDataTypeSize(BufferDataType::Float3); // Position
+		uint64 size = GetDataTypeSize(BufferDataType::Float3) + GetAdditionalAttrStride(); // Position + additional data
+		return size * vertexCount;
+	}
 
-		if (HasNormals)
-			size += GetDataTypeSize(BufferDataType::Float3);
+	uint64 VertexDataFormat::GetAdditionalAttrStride() const
+	{
+		uint64 stride = 0;
 
-		if (HasColor)
-			size += GetDataTypeSize(BufferDataType::Float4);
+		ForEachAdditionalAttr([&stride](VertexAttrFlags flag, BufferDataType type)
+			{
+				stride += GetDataTypeSize(type);
+			});
 
-		if (HasTangents)
-			size += GetDataTypeSize(BufferDataType::Float4);
+		return stride;
+	}
 
-		if (HasUV0)
-			size += GetDataTypeSize(BufferDataType::Float2);
+	void VertexDataFormat::ForEachAdditionalAttr(std::function<void(VertexAttrFlags, BufferDataType)> callback) const
+	{
+		for (int i = 1; i < static_cast<int>(VertexAttrFlags::All); i = i << 1)
+		{
+			VertexAttrFlags flag = static_cast<VertexAttrFlags>(i);
+			if ((flag & AdditionalAttributes) != flag)
+				continue;
 
-		return size;
+			BufferDataType type;
+
+			switch (flag)
+			{
+			case VertexAttrFlags::UV0:
+				type = BufferDataType::Float2;
+				break;
+			case VertexAttrFlags::Normal:
+				type = BufferDataType::Float3;
+				break;
+			case VertexAttrFlags::Color:
+			case VertexAttrFlags::Tangent:
+				type = BufferDataType::Float4;
+				break;
+			default:
+				continue;
+			}
+
+			callback(flag, type);
+		}
 	}
 
 	const uint16 VertexData::MaxVertexSize = 
@@ -51,52 +81,66 @@ namespace Coco::Rendering
 
 	std::vector<uint8> GetVertexData(const VertexDataFormat& format, std::span<VertexData> data)
 	{
-		uint16 vertexSize = format.GetVertexSize();
-		std::vector<uint8> vertexData(vertexSize * data.size());
+		std::vector<uint8> vertexData(format.GetDataSize(data.size()));
 
 		std::vector<float> temp(VertexData::MaxVertexSize);
 		uint64 index = 0;
 		for (size_t i = 0; i < data.size(); i++)
 		{
-			uint16 p = 0;
 			const VertexData& vertex = data[i];
 
-			temp[p++] = static_cast<float>(vertex.Position.X);
-			temp[p++] = static_cast<float>(vertex.Position.Y);
-			temp[p++] = static_cast<float>(vertex.Position.Z);
+			temp[0] = static_cast<float>(vertex.Position.X);
+			temp[1] = static_cast<float>(vertex.Position.Y);
+			temp[2] = static_cast<float>(vertex.Position.Z);
 
-			if (format.HasNormals)
+			uint64 size = sizeof(float) * 3;
+			Assert(memcpy_s(vertexData.data() + index, vertexData.size(), temp.data(), size) == 0)
+			index += size;
+		}
+
+		if (format.AdditionalAttributes != VertexAttrFlags::None)
+		{
+			for (size_t i = 0; i < data.size(); i++)
 			{
-				temp[p++] = static_cast<float>(vertex.Normal.X);
-				temp[p++] = static_cast<float>(vertex.Normal.Y);
-				temp[p++] = static_cast<float>(vertex.Normal.Z);
-			}
+				uint16 p = 0;
+				const VertexData& vertex = data[i];
 
-			if (format.HasColor)
-			{
-				temp[p++] = static_cast<float>(vertex.Color.X);
-				temp[p++] = static_cast<float>(vertex.Color.Y);
-				temp[p++] = static_cast<float>(vertex.Color.Z);
-				temp[p++] = static_cast<float>(vertex.Color.W);
-			}
+				if ((format.AdditionalAttributes & VertexAttrFlags::Normal) == VertexAttrFlags::Normal)
+				{
+					temp[p++] = static_cast<float>(vertex.Normal.X);
+					temp[p++] = static_cast<float>(vertex.Normal.Y);
+					temp[p++] = static_cast<float>(vertex.Normal.Z);
+				}
 
-			if (format.HasTangents)
-			{
-				temp[p++] = static_cast<float>(vertex.Tangent.X);
-				temp[p++] = static_cast<float>(vertex.Tangent.Y);
-				temp[p++] = static_cast<float>(vertex.Tangent.Z);
-				temp[p++] = static_cast<float>(vertex.Tangent.W);
-			}
+				if ((format.AdditionalAttributes & VertexAttrFlags::Color) == VertexAttrFlags::Color)
+				{
+					temp[p++] = static_cast<float>(vertex.Color.X);
+					temp[p++] = static_cast<float>(vertex.Color.Y);
+					temp[p++] = static_cast<float>(vertex.Color.Z);
+					temp[p++] = static_cast<float>(vertex.Color.W);
+				}
 
-			if (format.HasUV0)
-			{
-				temp[p++] = static_cast<float>(vertex.UV0.X);
-				temp[p++] = static_cast<float>(vertex.UV0.Y);
-			}
+				if ((format.AdditionalAttributes & VertexAttrFlags::Tangent) == VertexAttrFlags::Tangent)
+				{
+					temp[p++] = static_cast<float>(vertex.Tangent.X);
+					temp[p++] = static_cast<float>(vertex.Tangent.Y);
+					temp[p++] = static_cast<float>(vertex.Tangent.Z);
+					temp[p++] = static_cast<float>(vertex.Tangent.W);
+				}
 
-			size_t tempSize = p * sizeof(float);
-			Assert(memcpy_s(vertexData.data() + index, vertexData.size(), temp.data(), tempSize) == 0)
-			index += tempSize;
+				if ((format.AdditionalAttributes & VertexAttrFlags::UV0) == VertexAttrFlags::UV0)
+				{
+					temp[p++] = static_cast<float>(vertex.UV0.X);
+					temp[p++] = static_cast<float>(vertex.UV0.Y);
+				}
+
+				if (p == 0)
+					break;
+
+				size_t tempSize = p * sizeof(float);
+				Assert(memcpy_s(vertexData.data() + index, vertexData.size(), temp.data(), tempSize) == 0)
+					index += tempSize;
+			}
 		}
 
 		return vertexData;

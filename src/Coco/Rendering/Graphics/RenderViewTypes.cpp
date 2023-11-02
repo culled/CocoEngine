@@ -52,12 +52,14 @@ namespace Coco::Rendering
 	MeshData::MeshData(
 		uint64 id,
 		uint64 version,
+		const VertexDataFormat& format,
 		const Ref<Buffer>& vertexBuffer,
 		uint64 vertexCount,
 		const Ref<Buffer>& indexBuffer,
 		const BoundingBox& bounds) :
 		ID(id),
 		Version(version),
+		Format(format),
 		VertexBuffer(vertexBuffer),
 		VertexCount(vertexCount),
 		IndexBuffer(indexBuffer),

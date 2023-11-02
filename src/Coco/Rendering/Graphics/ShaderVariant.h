@@ -5,6 +5,7 @@
 #include "GraphicsPipelineTypes.h"
 #include "ShaderTypes.h"
 #include "ShaderUniformLayout.h"
+#include "../MeshTypes.h"
 
 namespace Coco::Rendering
 {
@@ -26,8 +27,8 @@ namespace Coco::Rendering
 		/// @brief Blending states for this shader's attachments
 		std::vector<BlendState> AttachmentBlendStates;
 
-		/// @brief The vertex attributes for this shader
-		std::vector<ShaderVertexAttribute> VertexAttributes;
+		/// @brief The vertex format for this shader
+		VertexDataFormat VertexFormat;
 
 		/// @brief The size of each vertex's data, in bytes (auto-calculated after calling CalculateAttributeOffsets())
 		uint32 VertexDataSize;
@@ -46,15 +47,12 @@ namespace Coco::Rendering
 			const std::vector<ShaderStage>& stages,
 			const GraphicsPipelineState& pipelineState,
 			const std::vector<BlendState>& attachmentBlendStates,
-			const std::vector<ShaderVertexAttribute>& vertexAttributes,
+			const VertexDataFormat& vertexFormat,
 			const GlobalShaderUniformLayout& globalUniforms,
 			const ShaderUniformLayout& instanceUniforms,
 			const ShaderUniformLayout& drawUniforms);
 
 		bool operator==(const ShaderVariant& other) const;
-
-		/// @brief Calculates the offsets for each vertex attribute and the total vertex data size
-		void CalculateAttributeOffsets();
 
 		/// @brief Calculates this shader's hash from its currently set values
 		void CalculateHash();

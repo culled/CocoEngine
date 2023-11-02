@@ -7,16 +7,14 @@
 SceneDataProvider2D::SceneDataProvider2D() :
 	_transform(Vector2(50, 50), 0.0, Vector2::One)
 {
-	VertexDataFormat format{};
-	format.HasUV0 = true;
-
 	std::vector<VertexData> vertices;
 	std::vector<uint32> indices;
-	MeshUtilities::CreateXYGrid(Vector2::One * 50.0, Vector3::Zero, format, vertices, indices);
+	MeshUtilities::CreateXYGrid(Vector2::One * 50.0, Vector3::Zero, vertices, indices);
 
 	ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
 	_mesh = resourceLibrary.Create<Mesh>("Mesh");
+	VertexDataFormat format(VertexAttrFlags::UV0);
 	_mesh->SetVertices(format, vertices);
 	_mesh->SetIndices(indices, 0);
 

@@ -66,6 +66,9 @@ namespace Coco::Rendering
 		/// @brief The version of this data
 		uint64 Version;
 
+		/// @brief The format of this mesh data
+		VertexDataFormat Format;
+
 		/// @brief The buffer holding the vertex data
 		Ref<Buffer> VertexBuffer;
 
@@ -81,6 +84,7 @@ namespace Coco::Rendering
 		MeshData(
 			uint64 id,
 			uint64 version,
+			const VertexDataFormat& format,
 			const Ref<Buffer>& vertexBuffer,
 			uint64 vertexCount,
 			const Ref<Buffer>& indexBuffer,

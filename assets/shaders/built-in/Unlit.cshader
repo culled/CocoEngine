@@ -24,11 +24,7 @@ pass shaders:
         alpha src factor: 1
         alpha dst factor: 1
         alpha blend op: 0
-    vertex attributes:
-      - name: Position
-        type: 2
-      - name: UV
-        type: 1
+    vertex attributes: 8
     instance layout:
       data uniforms:
         - name: TintColor
@@ -68,11 +64,7 @@ pass shaders:
         alpha src factor: 1
         alpha dst factor: 1
         alpha blend op: 0
-    vertex attributes:
-      - name: Position
-        type: 2
-      - name: UV
-        type: 1
+    vertex attributes: 8
     draw layout:
       data uniforms:
         - name: ModelMatrix

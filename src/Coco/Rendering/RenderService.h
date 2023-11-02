@@ -20,6 +20,7 @@
 namespace Coco::Rendering
 {
 	class Texture;
+	class Shader;
 	class RenderPipeline;
 	class GizmoRender;
 	struct CompiledRenderPipeline;
@@ -45,6 +46,7 @@ namespace Coco::Rendering
 		SharedRef<Texture> _defaultDiffuseTexture;
 		SharedRef<Texture> _defaultNormalTexture;
 		SharedRef<Texture> _defaultCheckerTexture;
+		SharedRef<Shader> _errorShader;
 		ManagedRef<TickListener> _earlyTickListener;
 		ManagedRef<TickListener> _lateTickListener;
 		AttachmentCache _attachmentCache;
@@ -84,6 +86,10 @@ namespace Coco::Rendering
 		/// @brief Gets the default checker texture. Useful if a texture should definitely not be missing
 		/// @return The default checker texture
 		SharedRef<Texture> GetDefaultCheckerTexture() const { return _defaultCheckerTexture; }
+		
+		/// @brief Gets the error shader
+		/// @return The error shader
+		SharedRef<Shader> GetErrorShader() const { return _errorShader; }
 
 		/// @brief Gets the global attachment cache
 		/// @return The global attachment cache
@@ -160,6 +166,9 @@ namespace Coco::Rendering
 
 		/// @brief Creates the default checker texture
 		void CreateDefaultCheckerTexture();
+
+		/// @brief Creates the error shader
+		void CreateErrorShader();
 
 		/// @brief Handles the early tick
 		/// @param tickInfo The current tick info

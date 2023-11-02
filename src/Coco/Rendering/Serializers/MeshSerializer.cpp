@@ -37,12 +37,8 @@ namespace Coco::Rendering
 		out << YAML::Key << "keepLocalData" << YAML::Value << mesh->_keepLocalData;
 		out << YAML::Key << "isDynamic" << YAML::Value << mesh->_isDynamic;
 
-		out << YAML::Key << "vertexFormat" << YAML::Value << YAML::Flow << YAML::BeginSeq;
-
 		const VertexDataFormat format = mesh->GetVertexFormat();
-		out << format.HasNormals << format.HasColor << format.HasTangents << format.HasUV0;
-
-		out << YAML::EndSeq;
+		out << YAML::Key << "vertexFormat" << YAML::Value << static_cast<int>(format.AdditionalAttributes);
 
 		// TODO: this should probably be binary data
 		out << YAML::Key << "vertices" << YAML::Value << YAML::BeginSeq;
@@ -76,13 +72,7 @@ namespace Coco::Rendering
 		bool keepLocalData = baseNode["keepLocalData"].as<bool>();
 		bool isDynamic = baseNode["isDynamic"].as<bool>();
 
-		const YAML::Node vertexFormatNode = baseNode["vertexFormat"];
-		VertexDataFormat format;
-
-		format.HasNormals = vertexFormatNode[0].as<bool>();
-		format.HasColor = vertexFormatNode[1].as<bool>();
-		format.HasTangents = vertexFormatNode[2].as<bool>();
-		format.HasUV0 = vertexFormatNode[3].as<bool>();
+		VertexDataFormat format(static_cast<VertexAttrFlags>(baseNode["vertexFormat"].as<int>()));
 
 		std::vector<VertexData> vertices;
 		const YAML::Node verticesNode = baseNode["vertices"];

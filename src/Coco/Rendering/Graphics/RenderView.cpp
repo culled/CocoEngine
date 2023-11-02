@@ -4,6 +4,7 @@
 #include "../Shader.h"
 #include "../Material.h"
 #include "ShaderUniformLayout.h"
+#include "../RenderService.h"
 
 #include <Coco/Core/Engine.h>
 
@@ -35,7 +36,9 @@ namespace Coco::Rendering
 		_objectDatas(),
 		_directionalLightDatas(),
 		_pointLightDatas()
-	{}
+	{
+		AddDefaults();
+	}
 
 	void RenderView::Setup(
 		const RectInt& viewportRect, 
@@ -68,6 +71,8 @@ namespace Coco::Rendering
 		_objectDatas.clear();
 		_directionalLightDatas.clear();
 		_pointLightDatas.clear();
+
+		AddDefaults();
 	}
 
 	RenderTarget& RenderView::GetRenderTarget(size_t index)
@@ -91,6 +96,7 @@ namespace Coco::Rendering
 			_meshDatas.try_emplace(meshID, 
 				meshID, 
 				mesh.GetVersion(), 
+				mesh.GetVertexFormat(),
 				mesh.GetVertexBuffer(), 
 				mesh.GetVertexCount(), 
 				mesh.GetIndexBuffer(),
@@ -424,5 +430,13 @@ namespace Coco::Rendering
 					return true;
 				}
 			});
+	}
+
+	void RenderView::AddDefaults()
+	{
+		RenderService& rendering = *RenderService::Get();
+
+		SharedRef<Shader> errorShader = rendering.GetErrorShader();
+		_shaderVariantDatas.try_emplace(Resource::InvalidID, Resource::InvalidID, errorShader->GetVersion(), errorShader->GetShaderVariants().front());
 	}
 }
