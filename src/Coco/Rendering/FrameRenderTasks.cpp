@@ -123,18 +123,22 @@ namespace Coco::Rendering
 				shouldPresent = true;
 			}
 
-			lastContext = context;
-
 			const CompiledRenderPipeline& pipeline = _pipelines.at(task.PipelineID);
 			bool completedRender = ExecuteRender(*context, pipeline, *task.View);
 
 			if (shouldPresent)
 			{
 				presenter->Present(context->GetRenderCompletedSemaphore());
+				lastContext.Invalidate();
 			} 
-			else if(completedRender && _tasks.empty())
+			else
 			{
-				contextPool.MarkOrphan(context);
+				lastContext = context;
+
+				if (completedRender && _tasks.empty())
+				{
+					contextPool.MarkOrphan(context);
+				}
 			}
 
 			_stats += context->GetRenderStats();
