@@ -335,27 +335,28 @@ namespace Coco
 
 		/// @brief Gets/loads a resource at the given content path
 		/// @param contentPath The path of the resource
+		/// @param forceReload If true, the resource will be reloaded from disk
 		/// @param outResource Will be set to the loaded resource if successful
 		/// @return True if the resource was loaded/retrieved
-		bool GetOrLoad(const string& contentPath, SharedRef<Resource>& outResource);
+		bool GetOrLoad(const string& contentPath, bool forceReload, SharedRef<Resource>& outResource);
 
-		/// @brief Gets/loads a resource at the given content path. Throws if the resource is not derived ResourceType
+		/// @brief Gets/loads a resource at the given content path. Returns nothing if the resource could not be loaded as the specified type
 		/// @tparam ResourceType The type of resource that should be returned
 		/// @param contentPath The path of the resource
-		/// @return The resource
+		/// @param forceReload If true, the resource will be reloaded from disk
+		/// @return The resource, or a null resource if the resource couldn't be loaded
 		template<typename ResourceType>
-		SharedRef<ResourceType> GetOrLoad(const string& contentPath)
+		SharedRef<ResourceType> GetOrLoad(const string& contentPath, bool forceReload = false)
 		{
 			SharedRef<Resource> tempResource;
-			Assert(GetOrLoad(contentPath, tempResource))
+			GetOrLoad(contentPath, forceReload, tempResource);
 
 			if (SharedRef<ResourceType> resource = std::dynamic_pointer_cast<ResourceType>(tempResource))
 			{
 				return resource;
 			}
 
-			string err = FormatString("Resource was not of type {}", typeid(ResourceType).name());
-			throw std::exception(err.c_str());
+			return nullptr;
 		}
 
 		/// @brief Saves a resource to a file

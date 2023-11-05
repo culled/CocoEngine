@@ -54,8 +54,8 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	sampler.LODBias = -1.0;
 	sampler.MaxAnisotropy = 16;
 
-	_texture = resourceLibrary.Create<Texture>("LargeBlocks", "assets/textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
-	_normalTexture = resourceLibrary.Create<Texture>("LargeBlocks_N", "assets/textures/LargeBlocks_N.png", ImageColorSpace::Linear, ImageUsageFlags::Sampled, sampler);
+	_texture = resourceLibrary.Create<Texture>("LargeBlocks", "textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
+	_normalTexture = resourceLibrary.Create<Texture>("LargeBlocks_N", "textures/LargeBlocks_N.png", ImageColorSpace::Linear, ImageUsageFlags::Sampled, sampler);
 
 	_material = resourceLibrary.Create<Material>("Material", _shader);
 	_material->SetShader(_shader);

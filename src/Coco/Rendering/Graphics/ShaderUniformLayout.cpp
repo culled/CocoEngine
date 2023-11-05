@@ -82,7 +82,7 @@ namespace Coco::Rendering
 		for (const auto& u : DataUniforms)
 		{
 			device.AlignOffset(u.Type, offset);
-			offset += GetDataTypeSize(u.Type);
+			offset += GetBufferDataTypeSize(u.Type);
 		}
 
 		// Pad out the data size so they fill a block accessible by the minimum buffer alignment
@@ -97,7 +97,7 @@ namespace Coco::Rendering
 
 		for (const ShaderDataUniform& uniform : DataUniforms)
 		{
-			const uint8 dataSize = GetDataTypeSize(uniform.Type);
+			const uint8 dataSize = GetBufferDataTypeSize(uniform.Type);
 			device.AlignOffset(uniform.Type, offset);
 
 			outBufferData.resize(offset + dataSize);

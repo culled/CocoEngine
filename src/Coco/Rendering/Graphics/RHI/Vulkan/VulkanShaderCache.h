@@ -2,6 +2,12 @@
 #include "../../ShaderCache.h"
 #include "CachedResources/VulkanShaderVariant.h"
 
+namespace spirv_cross
+{
+    class Compiler;
+    struct Resource;
+}
+
 namespace Coco::Rendering::Vulkan
 {
     /// @brief A cache for VulkanShaderVariant
@@ -38,8 +44,28 @@ namespace Coco::Rendering::Vulkan
         std::vector<uint32> CompileOrGetShaderStageBinary(ShaderStage& stage);
 
         /// @brief Performs reflection on a shader stage
+        /// @param variant The variant to reflect with
         /// @param stage The shader stage
         /// @param byteCode The bytecode for the shader module
-        void Reflect(ShaderStage& stage, const std::vector<uint32>& byteCode);
+        void Reflect(ShaderVariant& variant, const ShaderStage& stage, const std::vector<uint32>& byteCode);
+
+    private:
+        void ReflectUniforms(
+            ShaderUniformLayout& layout, 
+            ShaderStageType stage, 
+            const spirv_cross::Compiler& compiler, 
+            const spirv_cross::Resource& bufferResource);
+
+        void ReflectUniformBlock(
+            GlobalShaderUniformLayout& layout, 
+            ShaderStageType stage, 
+            const spirv_cross::Compiler& compiler, 
+            const spirv_cross::Resource& bufferResource);
+
+        void ReflectTexture(
+            ShaderVariant& variant,
+            ShaderStageType stage,
+            const spirv_cross::Compiler& compiler,
+            const spirv_cross::Resource& imageResource);
     };
 }

@@ -33,12 +33,12 @@ layout(set = 0, binding = 1) uniform LightBlock {
     PointLight pointLights[10];
 } lightBO;
 
-layout(set = 1, binding = 0) uniform shaderUniformObject {
+layout(set = 2, binding = 0) uniform shaderUniformObject {
     vec4 baseColor;
 } shaderUBO;
 
-layout(set = 1, binding = 1) uniform sampler2D baseTexSampler;
-layout(set = 1, binding = 2) uniform sampler2D normalTexSampler;
+layout(set = 2, binding = 1) uniform sampler2D baseTexSampler;
+layout(set = 2, binding = 2) uniform sampler2D normalTexSampler;
 
 layout(location = 0) out vec4 outColor;
 

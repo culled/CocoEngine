@@ -97,8 +97,7 @@ namespace Coco::Rendering::Vulkan
         UniqueRef<VulkanCommandBuffer> _commandBuffer;
         VulkanGraphicsDeviceCache& _deviceCache;
 
-        const VulkanDescriptorSetLayout* _globalDescriptorSetLayout;
-        VkDescriptorSet _globalDescriptorSet;
+        std::pair<const VulkanDescriptorSetLayout*, VkDescriptorSet> _globalDescriptorSet;
 
         std::vector<Ref<VulkanGraphicsSemaphore>> _waitOnSemaphores;
         std::vector<Ref<VulkanGraphicsSemaphore>> _renderCompletedSignalSemaphores;

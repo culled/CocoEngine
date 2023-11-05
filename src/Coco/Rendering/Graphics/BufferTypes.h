@@ -29,12 +29,12 @@ namespace Coco::Rendering
 	/// @brief Gets the size of the given type of data, in bytes
 	/// @param type The data type
 	/// @return The size, in bytes
-	uint8 GetDataTypeSize(BufferDataType type);
+	uint8 GetBufferDataTypeSize(BufferDataType type);
 
 	/// @brief Gets the number of components in a type of data
 	/// @param type The data type
 	/// @return The number of individual components that compose the type
-	uint8 GetDataTypeComponentCount(BufferDataType type);
+	uint8 GetBufferDataTypeComponentCount(BufferDataType type);
 
 	/// @brief Gets the string representation of a BufferDataType
 	/// @param type The data type

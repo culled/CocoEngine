@@ -82,8 +82,10 @@ namespace Coco::Rendering::Vulkan
 
 		uint64 dataSize = 0;
 
-		for (const VulkanDescriptorSetLayout& layout : shader.GetDescriptorSetLayouts())
+		for (const auto& layoutKVP : shader.GetDescriptorSetLayouts())
 		{
+			const VulkanDescriptorSetLayout& layout = layoutKVP.second;
+
 			for (const VkDescriptorSetLayoutBinding& binding : layout.LayoutBindings)
 			{
 				VkDescriptorPoolSize poolSize{};

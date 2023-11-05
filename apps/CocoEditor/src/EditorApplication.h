@@ -59,6 +59,7 @@ namespace Coco
 
         void NewScene();
         void OpenScene();
+        void OpenScene(const string& scenePath);
         void SaveSceneAs();
 
     private:

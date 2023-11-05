@@ -1,6 +1,8 @@
 #include "Renderpch.h"
 #include "VulkanGraphicsDeviceCache.h"
 
+#include "VulkanGraphicsDevice.h"
+
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
@@ -8,13 +10,20 @@ namespace Coco::Rendering::Vulkan
 	const double VulkanGraphicsDeviceCache::sPurgePeriod = 5.0;
 	const double VulkanGraphicsDeviceCache::sPurgeThreshold = 4.0;
 
-	VulkanGraphicsDeviceCache::VulkanGraphicsDeviceCache() :
+	VulkanGraphicsDeviceCache::VulkanGraphicsDeviceCache(VulkanGraphicsDevice& device) :
+		_device(device),
 		_lastPurgeTime(0.0)
-	{}
+	{
+		VulkanPipeline::CreateEmptyLayout(_device);
+	}
 
 	VulkanGraphicsDeviceCache::~VulkanGraphicsDeviceCache()
 	{
+		_contextCaches.clear();
 		_renderPasses.clear();
+		_pipelines.clear();
+
+		VulkanPipeline::DestroyEmptyLayout(_device);
 	}
 
 	VulkanRenderPass& VulkanGraphicsDeviceCache::GetOrCreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices)

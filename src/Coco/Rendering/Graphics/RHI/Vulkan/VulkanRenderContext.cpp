@@ -48,8 +48,7 @@ namespace Coco::Rendering::Vulkan
 		_renderCompletedSignalSemaphores{},
 		_commandBuffer{},
 		_deviceCache(_device.GetCache()),
-		_globalDescriptorSetLayout(nullptr),
-		_globalDescriptorSet(nullptr)
+		_globalDescriptorSet(std::make_pair(nullptr, nullptr))
 	{
 		DeviceQueue* graphicsQueue = _device.GetQueue(DeviceQueue::Type::Graphics);
 		if (!graphicsQueue)
@@ -215,7 +214,7 @@ namespace Coco::Rendering::Vulkan
 
 		VkCommandBuffer cmdBuffer = _commandBuffer->GetCmdBuffer();
 
- 		uint64 vertexPositionSize = mesh.VertexCount * GetDataTypeSize(BufferDataType::Float3);
+ 		uint64 vertexPositionSize = mesh.VertexCount * GetBufferDataTypeSize(BufferDataType::Float3);
 		bool hasOptionalAttributes = mesh.Format.AdditionalAttributes != VertexAttrFlags::None;
 
 		// Bind the vertex buffer
@@ -349,8 +348,7 @@ namespace Coco::Rendering::Vulkan
 			if (globalLayout.Hash != ShaderUniformLayout::EmptyHash)
 			{
 				VulkanGlobalUniformData& uniformData = cache.GetOrCreateGlobalUniformData(globalLayout);
-				_globalDescriptorSet = uniformData.PrepareData(_globalUniforms);
-				_globalDescriptorSetLayout = &uniformData.GetDescriptorSetLayout();
+				_globalDescriptorSet = std::make_pair(&uniformData.GetDescriptorSetLayout(), uniformData.PrepareData(_globalUniforms));
 			}
 		}
 		catch (const std::exception& ex)
@@ -399,8 +397,7 @@ namespace Coco::Rendering::Vulkan
 		_renderCompletedSignalSemaphores.clear();
 		_renderCompletedFence->Reset();
 
-		_globalDescriptorSetLayout = nullptr;
-		_globalDescriptorSet = nullptr;
+		_globalDescriptorSet = std::make_pair(nullptr, nullptr);
 	}
 
 	void VulkanRenderContext::UniformChanged(UniformScope scope, ShaderUniformData::UniformKey key)
@@ -516,12 +513,12 @@ namespace Coco::Rendering::Vulkan
 					_vulkanRenderOperation->RenderPass,
 					_renderOperation->CurrentPassIndex,
 					*shader,
-					_globalDescriptorSetLayout
+					_globalDescriptorSet.first
 				);
 
 				vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, globalState.Pipeline->GetPipeline());
 
-				if (_globalDescriptorSet)
+				if (_globalDescriptorSet.second)
 				{
 					// Bind the global descriptor set
 					vkCmdBindDescriptorSets(
@@ -529,7 +526,7 @@ namespace Coco::Rendering::Vulkan
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
 						globalState.Pipeline->GetPipelineLayout(),
 						0,
-						1, &_globalDescriptorSet,
+						1, &_globalDescriptorSet.second,
 						0, 0);
 				}
 
@@ -544,7 +541,7 @@ namespace Coco::Rendering::Vulkan
 						cmdBuffer,
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
 						globalState.Pipeline->GetPipelineLayout(),
-						_globalDescriptorSet ? 1 : 0,
+						1,
 						1, &globalState.DescriptorSet,
 						0, 0);
 				}
@@ -567,14 +564,12 @@ namespace Coco::Rendering::Vulkan
 
 				Assert(instanceState.DescriptorSet != nullptr)
 
-				uint32 offset = (_globalDescriptorSet ? 1 : 0) + (globalState.DescriptorSet ? 1 : 0);
-
-				// Bind the instance descriptor set
+				//// Bind the instance descriptor set
 				vkCmdBindDescriptorSets(
 					cmdBuffer,
 					VK_PIPELINE_BIND_POINT_GRAPHICS,
 					globalState.Pipeline->GetPipelineLayout(),
-					offset, 
+					2, 
 					1, &instanceState.DescriptorSet,
 					0, 0);
 			}
@@ -586,16 +581,12 @@ namespace Coco::Rendering::Vulkan
 
 				if (drawSet)
 				{
-					uint32 offset = (_globalDescriptorSet ? 1 : 0) + 
-						(globalState.DescriptorSet ? 1 : 0) + 
-						(_vulkanRenderOperation->InstanceState.has_value() && _vulkanRenderOperation->InstanceState->DescriptorSet ? 1 : 0);
-
 					// Bind the instance descriptor set
 					vkCmdBindDescriptorSets(
 						cmdBuffer,
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
 						globalState.Pipeline->GetPipelineLayout(),
-						offset,
+						3,
 						1, &drawSet,
 						0, 0);
 				}

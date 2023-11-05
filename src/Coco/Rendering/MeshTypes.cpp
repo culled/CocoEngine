@@ -14,7 +14,7 @@ namespace Coco::Rendering
 
 	uint64 VertexDataFormat::GetDataSize(uint64 vertexCount) const
 	{
-		uint64 size = GetDataTypeSize(BufferDataType::Float3) + GetAdditionalAttrStride(); // Position + additional data
+		uint64 size = GetBufferDataTypeSize(BufferDataType::Float3) + GetAdditionalAttrStride(); // Position + additional data
 		return size * vertexCount;
 	}
 
@@ -24,7 +24,7 @@ namespace Coco::Rendering
 
 		ForEachAdditionalAttr([&stride](VertexAttrFlags flag, BufferDataType type)
 			{
-				stride += GetDataTypeSize(type);
+				stride += GetBufferDataTypeSize(type);
 			});
 
 		return stride;
@@ -61,11 +61,11 @@ namespace Coco::Rendering
 	}
 
 	const uint16 VertexData::MaxVertexSize = 
-		GetDataTypeSize(BufferDataType::Float3) + // Position
-		GetDataTypeSize(BufferDataType::Float3) + // Normal
-		GetDataTypeSize(BufferDataType::Float4) + // Color
-		GetDataTypeSize(BufferDataType::Float4) + // Tangent
-		GetDataTypeSize(BufferDataType::Float2); // UV0
+		GetBufferDataTypeSize(BufferDataType::Float3) + // Position
+		GetBufferDataTypeSize(BufferDataType::Float3) + // Normal
+		GetBufferDataTypeSize(BufferDataType::Float4) + // Color
+		GetBufferDataTypeSize(BufferDataType::Float4) + // Tangent
+		GetBufferDataTypeSize(BufferDataType::Float2); // UV0
 
 	VertexData::VertexData() :
 		VertexData(Vector3::Zero)

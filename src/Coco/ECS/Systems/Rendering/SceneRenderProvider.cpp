@@ -42,7 +42,7 @@ namespace Coco::ECS
 
 				auto it = renderer.Materials.find(kvp.first);
 
-				if (it != renderer.Materials.end())
+				if (it != renderer.Materials.end() && it->second)
 				{
 					renderView.AddRenderObject(
 						e.GetID(),

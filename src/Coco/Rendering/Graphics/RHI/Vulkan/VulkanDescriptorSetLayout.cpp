@@ -90,7 +90,7 @@ namespace Coco::Rendering::Vulkan
 		VkDescriptorSetLayoutCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		createInfo.bindingCount = static_cast<uint32_t>(setLayout.LayoutBindings.size());
-		createInfo.pBindings = setLayout.LayoutBindings.data();
+		createInfo.pBindings = setLayout.LayoutBindings.size() > 0 ? setLayout.LayoutBindings.data() : nullptr;
 		
 		AssertVkSuccess(vkCreateDescriptorSetLayout(device.GetDevice(), &createInfo, device.GetAllocationCallbacks(), &setLayout.Layout))
 

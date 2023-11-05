@@ -3,6 +3,25 @@
 
 namespace Coco::Rendering
 {
+	ShaderStageFlags ToShaderStageFlags(ShaderStageType stage)
+	{
+		switch (stage)
+		{
+		case ShaderStageType::Vertex:
+			return ShaderStageFlags::Vertex;
+		case ShaderStageType::Tesselation:
+			return ShaderStageFlags::Tesselation;
+		case ShaderStageType::Geometry:
+			return ShaderStageFlags::Geometry;
+		case ShaderStageType::Fragment:
+			return ShaderStageFlags::Fragment;
+		case ShaderStageType::Compute:
+			return ShaderStageFlags::Compute;
+		default:
+			return ShaderStageFlags::None;
+		}
+	}
+
 	ShaderVertexAttribute::ShaderVertexAttribute(const string& name, BufferDataType type) :
 		Name(name),
 		Offset(0),

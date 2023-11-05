@@ -21,14 +21,19 @@ namespace Coco
 		_resources.clear();
 	}
 
-	bool ResourceLibrary::GetOrLoad(const string& contentPath, SharedRef<Resource>& outResource)
+	bool ResourceLibrary::GetOrLoad(const string& contentPath, bool forceReload, SharedRef<Resource>& outResource)
 	{
+		bool resourceLoaded = false;
+
 		auto it = FindResource(contentPath);
 		if (it != _resources.end())
 		{
 			outResource = it->second;
-			return true;
+			resourceLoaded = true;
 		}
+
+		if (!forceReload && resourceLoaded)
+			return true;
 
 		EngineFileSystem& efs = Engine::Get()->GetFileSystem();
 
@@ -54,11 +59,14 @@ namespace Coco
 		f.Close();
 
 		ResourceID id = _idGenerator();
-		it = _resources.try_emplace(id, serializer->Deserialize(resourceType, id, data)).first;
-		
-		SharedRef<Resource>& resource = it->second;
-		resource->_contentPath = contentPath;
-		outResource = resource;
+		SharedRef<Resource> newResource = serializer->Deserialize(resourceType, id, data);
+		newResource->_contentPath = contentPath;
+
+		if (resourceLoaded)
+			Remove(outResource->_id);
+
+		_resources.try_emplace(id, newResource).first;
+		outResource = newResource;
 
 		return true;
 	}

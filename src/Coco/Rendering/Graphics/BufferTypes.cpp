@@ -3,7 +3,7 @@
 
 namespace Coco::Rendering
 {
-    uint8 GetDataTypeSize(BufferDataType type)
+    uint8 GetBufferDataTypeSize(BufferDataType type)
     {
         switch (type)
         {
@@ -35,7 +35,7 @@ namespace Coco::Rendering
         return 0;
     }
 
-    uint8 GetDataTypeComponentCount(BufferDataType type)
+    uint8 GetBufferDataTypeComponentCount(BufferDataType type)
     {
         switch (type)
         {

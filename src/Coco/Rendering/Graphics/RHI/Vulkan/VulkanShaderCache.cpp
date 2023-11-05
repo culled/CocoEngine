@@ -25,15 +25,25 @@ namespace Coco::Rendering::Vulkan
 
 	ShaderVariant VulkanShaderCache::LoadVariant(const std::unordered_map<ShaderStageType, string>& stageFiles)
 	{
+		ShaderVariant variant("", {}, GraphicsPipelineState(), {}, {}, {}, {}, {});
+
 		for (const auto& stageFile : stageFiles)
 		{
-			ShaderStage stage("main", stageFile.first, stageFile.second);
+			if (variant.Name.empty())
+			{
+				FilePath stageFilePath(stageFile.second);
+				variant.Name = stageFilePath.GetFileName(false);
+			}
+
+			//ShaderStage stage("main", stageFile.first, stageFile.second);
+			ShaderStage& stage = variant.Stages.emplace_back("main", stageFile.first, stageFile.second);
 			std::vector<uint32> byteCode = CompileOrGetShaderStageBinary(stage);
-			// TODO: reflection
-			//Reflect(stage, byteCode);
+			Reflect(variant, stage, byteCode);
 		}
 
-		return ShaderVariant("", {}, GraphicsPipelineState(), {}, {}, {}, {}, {});
+		variant.CalculateHash();
+
+		return variant;
 	}
 
 	VulkanShaderVariant& VulkanShaderCache::GetOrCreateShader(const ShaderVariantData& variantData)
@@ -144,7 +154,7 @@ namespace Coco::Rendering::Vulkan
 			shaderc::CompileOptions options;
 			options.SetTargetEnvironment(shaderc_target_env_vulkan, envVersion);
 
-			const bool optimize = true;
+			const bool optimize = false;
 			if (optimize)
 				options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
@@ -173,7 +183,7 @@ namespace Coco::Rendering::Vulkan
 		return byteCode;
 	}
 
-	void VulkanShaderCache::Reflect(ShaderStage& stage, const std::vector<uint32>& byteCode)
+	void VulkanShaderCache::Reflect(ShaderVariant& variant, const ShaderStage& stage, const std::vector<uint32>& byteCode)
 	{
 		spirv_cross::Compiler compiler(byteCode.data(), byteCode.size());
 		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
@@ -185,26 +195,215 @@ namespace Coco::Rendering::Vulkan
 		{
 			const auto& type = compiler.get_type(buffer.base_type_id);
 			uint64 size = compiler.get_declared_struct_size(type);
+			uint32 set = compiler.get_decoration(buffer.id, spv::DecorationDescriptorSet);
 			uint32 binding = compiler.get_decoration(buffer.id, spv::DecorationBinding);
 			uint64 memberCount = type.member_types.size();
 
-			CocoInfo("\t\t{}:", buffer.name);
-			CocoInfo("\t\t\tSize = {}", size);
-			CocoInfo("\t\t\tBinding = {}", binding);
-			CocoInfo("\t\t\tMembers = {}", memberCount);
+			if (binding == 0)
+			{
+				switch (set)
+				{
+				case 1:
+					ReflectUniforms(variant.GlobalUniforms, stage.Type, compiler, buffer);
+					break;
+				case 2:
+					ReflectUniforms(variant.InstanceUniforms, stage.Type, compiler, buffer);
+					break;
+				case 3:
+					ReflectUniforms(variant.DrawUniforms, stage.Type, compiler, buffer);
+					break;
+				default:
+					CocoInfo("Skipping unsupported uniform set {}", set)
+					break;
+				}
+			}
+			else if(binding == 1)
+			{
+				if (set > 1)
+				{
+					CocoError("Uniform buffer blocks are only available for sets 0 and 1")
+					continue;
+				}
+				else if (set == 1)
+				{
+					ReflectUniformBlock(variant.GlobalUniforms, stage.Type, compiler, buffer);
+				}
+				else
+				{
+					CocoInfo("Skipping unsupported uniform buffer set {}", set)
+				}
+			}
+			else
+			{
+				CocoInfo("Skipping unsupported uniform binding {}", binding)
+			}
+
+			CocoInfo("\t\t{}:", buffer.name)
+			CocoInfo("\t\t\tSize = {}", size)
+			CocoInfo("\t\t\tSet = {}", set)
+			CocoInfo("\t\t\tBinding = {}", binding)
+			CocoInfo("\t\t\tMembers = {}", memberCount)
 			for (uint32 i = 0; i < memberCount; i++)
 			{
 				CocoInfo("\t\t\t\t{}:", compiler.get_member_name(buffer.base_type_id, i))
 				const auto& memberType = compiler.get_type(type.member_types[i]);
 
-				CocoInfo("\t\t\t\t\tType = {}", GetBufferDataTypeString(SPIRTypeToBufferDataType(memberType)))
+				if (memberType.basetype != spirv_cross::SPIRType::BaseType::Struct)
+				{
+					CocoInfo("\t\t\t\t\tType = {}", GetBufferDataTypeString(SPIRTypeToBufferDataType(memberType)))
+				}
+				else
+				{
+					CocoInfo("\t\t\t\t\tType = Struct")
+					CocoInfo("\t\t\t\t\tSize = {}", compiler.get_declared_struct_size(memberType))
+				}
 			}
 		}
 
 		CocoInfo("\t{} images", resources.sampled_images.size());
 		for (const auto& image : resources.sampled_images)
 		{
-			CocoInfo("\t\t{}", image.name);
+			uint32 set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
+			uint32 binding = compiler.get_decoration(image.id, spv::DecorationBinding);
+
+			CocoInfo("\t\t{}:", image.name)
+			CocoInfo("\t\t\tSet = {}", set)
+			CocoInfo("\t\t\tBinding = {}", binding)
+
+			ReflectTexture(variant, stage.Type, compiler, image);
 		}
+	}
+
+	void VulkanShaderCache::ReflectUniforms(
+		ShaderUniformLayout& layout,
+		ShaderStageType stage, 
+		const spirv_cross::Compiler& compiler, 
+		const spirv_cross::Resource& bufferResource)
+	{
+		const auto& type = compiler.get_type(bufferResource.base_type_id);
+		uint64 memberCount = type.member_types.size();
+		ShaderStageFlags stageFlags = ToShaderStageFlags(stage);
+
+		for (uint32 i = 0; i < memberCount; i++)
+		{
+			const auto& memberType = compiler.get_type(type.member_types[i]);
+
+			if (memberType.basetype == spirv_cross::SPIRType::BaseType::Struct)
+			{
+				throw std::exception("Structs are not supported in uniform data blocks");
+			}
+			else
+			{
+				string name = compiler.get_member_name(bufferResource.base_type_id, i);
+				BufferDataType bufferDataType = SPIRTypeToBufferDataType(memberType);
+
+				auto it = std::find_if(layout.DataUniforms.begin(), layout.DataUniforms.end(), [name](const auto& other)
+					{
+						return other.Name == name;
+					}
+				);
+
+				if (it != layout.DataUniforms.end())
+				{
+					if (it->Type != bufferDataType)
+					{
+						string err = FormatString("A uniform named \"{}\" already exists", name);
+						throw std::exception(err.c_str());
+					}
+
+					it->BindingPoints |= stageFlags;
+					continue;
+				}
+
+				layout.DataUniforms.emplace_back(name, stageFlags, bufferDataType);
+			}
+		}
+	}
+	void VulkanShaderCache::ReflectUniformBlock(
+		GlobalShaderUniformLayout& layout, 
+		ShaderStageType stage, 
+		const spirv_cross::Compiler& compiler, 
+		const spirv_cross::Resource& bufferResource)
+	{
+		const auto& type = compiler.get_type(bufferResource.base_type_id);
+		uint64 memberCount = type.member_types.size();
+		ShaderStageFlags stageFlags = ToShaderStageFlags(stage);
+
+		for (uint32 i = 0; i < memberCount; i++)
+		{
+			const auto& memberType = compiler.get_type(type.member_types[i]);
+			string name = compiler.get_member_name(bufferResource.base_type_id, i);
+
+			if (memberType.array.size() > 1)
+			{
+				throw std::exception("Multidimensional arrays are not supported");
+			}
+
+			auto it = std::find_if(layout.BufferUniforms.begin(), layout.BufferUniforms.end(), [name](const auto& other)
+				{
+					return other.Name == name;
+				}
+			);
+
+			uint64 size = compiler.get_declared_struct_size(memberType);
+
+			if (memberType.array.size() > 0)
+			{
+				size *= memberType.array.front();
+			}
+
+			if (it != layout.BufferUniforms.end())
+			{
+				if (it->Size == size)
+				{
+					it->BindingPoints |= stageFlags;
+					continue;
+				}
+				else
+				{
+					string err = FormatString("A buffer uniform named \"{}\" already exists", name);
+					throw std::exception(err.c_str());
+				}
+
+				layout.BufferUniforms.emplace_back(name, stageFlags, size);
+			}
+		}
+	}
+
+	void VulkanShaderCache::ReflectTexture(
+		ShaderVariant& variant, 
+		ShaderStageType stage, 
+		const spirv_cross::Compiler& compiler, 
+		const spirv_cross::Resource& imageResource)
+	{
+		uint32 set = compiler.get_decoration(imageResource.id, spv::DecorationDescriptorSet);
+
+		if (set <= 0 || set > 3)
+			return;
+
+		ShaderUniformLayout& layout = set == 1 ? variant.GlobalUniforms : (
+			set == 2 ? variant.InstanceUniforms : variant.DrawUniforms
+			);
+
+		uint32 binding = compiler.get_decoration(imageResource.id, spv::DecorationBinding);
+		ShaderStageFlags stageFlags = ToShaderStageFlags(stage);
+
+		auto it = std::find_if(layout.TextureUniforms.begin(), layout.TextureUniforms.end(), [imageResource](const auto& o)
+			{
+				return o.Name == imageResource.name;
+			}
+		);
+
+		if (it != layout.TextureUniforms.end())
+		{
+			// TODO: check if the binding spot is the same	
+			it->BindingPoints |= stageFlags;
+			return;
+
+			//string err = FormatString("A texture for set {} named \"{}\" already exists", set, imageResource.name);
+			//throw std::exception(err.c_str());
+		}
+
+		layout.TextureUniforms.emplace_back(imageResource.name, stageFlags, ShaderTextureUniform::DefaultTextureType::White);
 	}
 }

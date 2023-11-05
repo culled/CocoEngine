@@ -46,10 +46,19 @@ namespace Coco
 		FilePath(const string& filePath);
 		FilePath(const std::filesystem::path& filePath);
 
+		bool operator==(const FilePath& other);
+		bool operator!=(const FilePath& other) { return !(*this == other); }
+
 		/// @brief Determines if the file path is a relative path
 		/// @param path The file path
 		/// @return True if the given path is a relative path
 		static bool IsRelativePath(const string& path);
+
+		/// @brief Gets a relative path to a path
+		/// @param path The path
+		/// @param relativeTo The path to be relative to
+		/// @return A relative path, or the original path if no relative path could be found
+		static FilePath GetRelativePath(const FilePath& path, const FilePath& relativeTo);
 
 		/// @brief Combines multiple individual elements into a path
 		/// @tparam ...Args The types of arguments

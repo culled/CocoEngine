@@ -26,7 +26,7 @@ SceneDataProvider2D::SceneDataProvider2D() :
 	_shader->AddVariant(variant);
 
 	ImageSamplerDescription sampler = ImageSamplerDescription::LinearClamp;
-	_texture = resourceLibrary.Create<Texture>("TextureUI", "assets/textures/UI Test 2.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
+	_texture = resourceLibrary.Create<Texture>("TextureUI", "textures/UI Test 2.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
 
 	_material = resourceLibrary.Create<Material>("Material2D", _shader);
 	_material->SetShader(_shader);

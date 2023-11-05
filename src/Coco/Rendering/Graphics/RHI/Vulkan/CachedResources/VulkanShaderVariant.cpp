@@ -32,18 +32,6 @@ namespace Coco::Rendering::Vulkan
 		return variantData.ID;
 	}
 
-	std::vector<VulkanDescriptorSetLayout> VulkanShaderVariant::GetDescriptorSetLayouts() const
-	{
-		std::vector<VulkanDescriptorSetLayout> layouts;
-		layouts.reserve(_layouts.size());
-
-		std::transform(_layouts.begin(), _layouts.end(),
-			std::back_inserter(layouts),
-			[](const auto& kvp) { return kvp.second; });
-
-		return layouts;
-	}
-
 	const VulkanDescriptorSetLayout& VulkanShaderVariant::GetDescriptorSetLayout(UniformScope scope) const
 	{
 		Assert(_layouts.contains(scope))
@@ -87,7 +75,7 @@ namespace Coco::Rendering::Vulkan
 		for (int i = 0; i < drawUniforms.size(); i++)
 		{
 			const ShaderDataUniform& uniform = drawUniforms.at(i);
-			const uint32 size = GetDataTypeSize(uniform.Type);
+			const uint32 size = GetBufferDataTypeSize(uniform.Type);
 
 			_device.AlignOffset(uniform.Type, offset);
 

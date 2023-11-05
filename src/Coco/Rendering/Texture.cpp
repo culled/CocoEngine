@@ -91,7 +91,12 @@ namespace Coco::Rendering
 		int channelsToLoad = 4;
 		int actualChannelCount;
 		int width, height;
-		uint8_t* rawImageData = stbi_load(_imageFilePath.c_str(), &width, &height, &actualChannelCount, channelsToLoad);
+
+		File f = Engine::Get()->GetFileSystem().OpenFile(_imageFilePath, FileOpenFlags::Read);
+		std::vector<uint8> fileData = f.ReadToEnd();
+		f.Close();
+
+		uint8_t* rawImageData = stbi_load_from_memory(fileData.data(), static_cast<int>(fileData.size()), &width, &height, &actualChannelCount, channelsToLoad);
 
 		if (rawImageData == nullptr || stbi_failure_reason())
 		{

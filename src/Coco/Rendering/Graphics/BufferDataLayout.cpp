@@ -24,7 +24,7 @@ namespace Coco::Rendering
 		{
 			device.AlignOffset(d, offset);
 
-			uint8 size = GetDataTypeSize(d);
+			uint8 size = GetBufferDataTypeSize(d);
 			largestSize = Math::Max(largestSize, size);
 			offset += size;
 		}
@@ -93,7 +93,7 @@ namespace Coco::Rendering
 			if (i == subElementIndex)
 				break;
 
-			uint8 size = GetDataTypeSize(d);
+			uint8 size = GetBufferDataTypeSize(d);
 			offset += size;
 		}
 

@@ -40,6 +40,12 @@ SandboxApp::SandboxApp() :
 
 		Vulkan::VulkanGraphicsPlatformFactory vulkanFactory(platformParams, Vulkan::VulkanGraphicsPlatformFactory::sDefaultAPIVersion, true);
 		services->CreateService<RenderService>(vulkanFactory, true);
+
+		RenderService::Get()->GetDevice().GetShaderCache().LoadVariant(
+			{
+				{ ShaderStageType::Vertex, "shaders/built-in/Lit.vert.glsl" },
+				{ ShaderStageType::Fragment, "shaders/built-in/Lit.frag.glsl" }
+			});
 	}
 
 	{

@@ -14,7 +14,11 @@ namespace Coco::Rendering::Vulkan
 	class VulkanPipeline : 
 		public CachedVulkanResource
 	{
+		friend class VulkanGraphicsDeviceCache;
+
 	private:
+		static VulkanDescriptorSetLayout _sEmptyLayout;
+
 		uint64 _version;
 		VkPipelineLayout _pipelineLayout;
 		VkPipeline _pipeline;
@@ -94,5 +98,13 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Destroys the pipeline
 		void DestroyPipeline();
+
+		/// @brief Creates the empty descriptor set layout
+		/// @param device The device
+		static void CreateEmptyLayout(VulkanGraphicsDevice& device);
+
+		/// @brief Destroys the empty descriptor set layout
+		/// @param device The device
+		static void DestroyEmptyLayout(VulkanGraphicsDevice& device);
 	};
 }

@@ -2,9 +2,11 @@
 
 #include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
 #include <Coco/ECS/Components/Transform3DComponent.h>
+#include <Coco/Rendering/Material.h>
 
 #include <Coco/Rendering/Gizmos/GizmoRender.h>
 
+#include <Coco/Core/Engine.h>
 #include <imgui.h>
 
 using namespace Coco::ECS;
@@ -16,21 +18,47 @@ namespace Coco
 	{
 		MeshRendererComponent& renderer = entity.GetComponent<MeshRendererComponent>();
 
-		ImGui::Text("Mesh Path: %s", renderer.Mesh ? renderer.Mesh->GetContentPath().c_str() : "");
+		//ImGui::Text("Mesh: %s", renderer.Mesh ? renderer.Mesh->GetContentPath().c_str() : "");
+		string meshText = renderer.Mesh ? FormatString("Mesh: {}", renderer.Mesh->GetContentPath()) : "Mesh";
+		ImGui::Button(meshText.c_str());
+
+		auto& resources = Engine::Get()->GetResourceLibrary();
 
 		if (ImGui::BeginDragDropTarget())
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(".cmesh"))
 			{
-				ImGui::EndDragDropTarget();
+				string meshPath(static_cast<const char*>(payload->Data), payload->DataSize);
+				renderer.Mesh = resources.GetOrLoad<Mesh>(meshPath);
+				renderer.EnsureMaterialSlots();
 			}
+
+			ImGui::EndDragDropTarget();
 		}
 
-		for (const auto& it : renderer.Materials)
+		for (auto& it : renderer.Materials)
 		{
 			SharedRef<Resource> materialResource = std::dynamic_pointer_cast<Resource>(it.second);
 
-			ImGui::Text("Material %i: %s", it.first, materialResource ? materialResource->GetContentPath().c_str() : "");
+			//ImGui::Text("Material %i: %s", it.first, materialResource ? materialResource->GetContentPath().c_str() : "");
+			string t = materialResource ? FormatString("Material {}: {}", it.first, materialResource->GetContentPath()) : FormatString("Material {}", it.first);
+
+			ImGui::PushID(it.first);
+
+			ImGui::Button(t.c_str());
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(".cmaterial"))
+				{
+					string materialPath(static_cast<const char*>(payload->Data), payload->DataSize);
+					it.second = resources.GetOrLoad<Material>(materialPath);
+				}
+
+				ImGui::EndDragDropTarget();
+			}
+
+			ImGui::PopID();
 		}
 	}
 

@@ -15,10 +15,20 @@ namespace Coco
 		_filePath(filePath)
 	{}
 
+	bool FilePath::operator==(const FilePath & other)
+	{
+		return _filePath == other._filePath;
+	}
+
 	bool FilePath::IsRelativePath(const string& path)
 	{
 		FilePath p(path);
 		return p.IsRelative();
+	}
+
+	FilePath FilePath::GetRelativePath(const FilePath& path, const FilePath& relativeTo)
+	{
+		return FilePath(std::filesystem::relative(path, relativeTo));
 	}
 
 	FilePath FilePath::GetCurrentWorkingDirectoryPath()

@@ -31,7 +31,7 @@ namespace Coco::Rendering
 	{
 		const BufferDataElement& e = _layout.Elements.at(elementIndex);
 		BufferDataType d = e.SubElements.at(subElementIndex);
-		uint64 size = GetDataTypeSize(d);
+		uint64 size = GetBufferDataTypeSize(d);
 
 		Assert(size == dataSize)
 

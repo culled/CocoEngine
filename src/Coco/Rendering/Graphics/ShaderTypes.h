@@ -33,6 +33,8 @@ namespace Coco::Rendering
 	constexpr void operator|=(ShaderStageFlags& a, const ShaderStageFlags& b) { a = a | b; }
 	constexpr void operator&=(ShaderStageFlags& a, const ShaderStageFlags& b) { a = a & b; }
 
+	ShaderStageFlags ToShaderStageFlags(ShaderStageType stage);
+
 	/// @brief An attribute that represents a kind of data within a contiguous vertex buffer
 	struct ShaderVertexAttribute
 	{

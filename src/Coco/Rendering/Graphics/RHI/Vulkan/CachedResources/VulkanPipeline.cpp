@@ -8,6 +8,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
+	VulkanDescriptorSetLayout VulkanPipeline::_sEmptyLayout = VulkanDescriptorSetLayout(Math::MaxValue<uint64>());
+
 	VulkanPipeline::VulkanPipeline(
 		const VulkanRenderPass& renderPass,
 		const VulkanShaderVariant& shader,
@@ -64,16 +66,44 @@ namespace Coco::Rendering::Vulkan
 		uint32 subpassIndex,
 		const VulkanDescriptorSetLayout* globalLayout)
 	{
-		std::vector<VulkanDescriptorSetLayout> shaderLayouts = shader.GetDescriptorSetLayouts();
-
+		const std::unordered_map<UniformScope, VulkanDescriptorSetLayout>& shaderLayouts = shader.GetDescriptorSetLayouts();
 		std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
-		std::transform(shaderLayouts.begin(), shaderLayouts.end(),
-			std::back_inserter(descriptorSetLayouts),
-			[](const VulkanDescriptorSetLayout& layout) { return layout.Layout; });
-
 		if (globalLayout)
-			descriptorSetLayouts.emplace(descriptorSetLayouts.begin(), globalLayout->Layout);
+		{
+			descriptorSetLayouts.emplace_back(globalLayout->Layout);
+		}
+		else
+		{
+			descriptorSetLayouts.emplace_back(_sEmptyLayout.Layout);
+		}
+
+		if (shaderLayouts.contains(UniformScope::ShaderGlobal))
+		{
+			descriptorSetLayouts.emplace_back(shaderLayouts.at(UniformScope::ShaderGlobal).Layout);
+		}
+		else
+		{
+			descriptorSetLayouts.emplace_back(_sEmptyLayout.Layout);
+		}
+
+		if (shaderLayouts.contains(UniformScope::Instance))
+		{
+			descriptorSetLayouts.emplace_back(shaderLayouts.at(UniformScope::Instance).Layout);
+		}
+		else
+		{
+			descriptorSetLayouts.emplace_back(_sEmptyLayout.Layout);
+		}
+
+		if (shaderLayouts.contains(UniformScope::Draw))
+		{
+			descriptorSetLayouts.emplace_back(shaderLayouts.at(UniformScope::Draw).Layout);
+		}
+		else
+		{
+			descriptorSetLayouts.emplace_back(_sEmptyLayout.Layout);
+		}
 
 		std::vector<VkPushConstantRange> pushConstantRanges = shader.GetPushConstantRanges();
 
@@ -201,7 +231,7 @@ namespace Coco::Rendering::Vulkan
 					desc.offset = offset;
 					desc.format = ToVkFormat(type);
 
-					offset += GetDataTypeSize(type);
+					offset += GetBufferDataTypeSize(type);
 				});
 		}
 
@@ -282,5 +312,25 @@ namespace Coco::Rendering::Vulkan
 
 			CocoTrace("Destroyed VulkanPipeline")
 		}
+	}
+
+	void VulkanPipeline::CreateEmptyLayout(VulkanGraphicsDevice& device)
+	{
+		if (_sEmptyLayout.Layout)
+			return;
+
+		_sEmptyLayout = VulkanDescriptorSetLayout::CreateForUniformLayout(device, ShaderUniformLayout(), false);
+	}
+
+	void VulkanPipeline::DestroyEmptyLayout(VulkanGraphicsDevice& device)
+	{
+		if (!_sEmptyLayout.Layout)
+			return;
+
+		device.WaitForIdle();
+
+		vkDestroyDescriptorSetLayout(device.GetDevice(), _sEmptyLayout.Layout, device.GetAllocationCallbacks());
+
+		_sEmptyLayout.Layout = nullptr;
 	}
 }

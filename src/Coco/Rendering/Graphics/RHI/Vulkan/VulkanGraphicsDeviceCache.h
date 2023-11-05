@@ -6,6 +6,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
+	class VulkanGraphicsDevice;
+
 	/// @brief A cache for a VulkanGraphicsDevice
 	class VulkanGraphicsDeviceCache
 	{
@@ -17,6 +19,7 @@ namespace Coco::Rendering::Vulkan
 		static const double sPurgeThreshold;
 
 	private:
+		VulkanGraphicsDevice& _device;
 		double _lastPurgeTime;
 
 		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderPass> _renderPasses;
@@ -24,7 +27,7 @@ namespace Coco::Rendering::Vulkan
 		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderContextCache> _contextCaches;
 
 	public:
-		VulkanGraphicsDeviceCache();
+		VulkanGraphicsDeviceCache(VulkanGraphicsDevice& device);
 		~VulkanGraphicsDeviceCache();
 
 		/// @brief Gets/creates a VulkanRenderPass

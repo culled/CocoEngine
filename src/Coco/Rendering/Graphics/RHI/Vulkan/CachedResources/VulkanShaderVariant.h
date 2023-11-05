@@ -29,7 +29,7 @@ namespace Coco::Rendering::Vulkan
 		uint64 _version;
 		std::vector<VulkanShaderStage> _stages;
 		ShaderVariant _variant;
-		std::map<UniformScope, VulkanDescriptorSetLayout> _layouts;
+		std::unordered_map<UniformScope, VulkanDescriptorSetLayout> _layouts;
 
 	public:
 		VulkanShaderVariant(const ShaderVariantData& variantData);
@@ -50,7 +50,7 @@ namespace Coco::Rendering::Vulkan
 
 		/// @brief Gets all descriptor set layouts for this shader
 		/// @return This shader's descriptor set layouts
-		std::vector<VulkanDescriptorSetLayout> GetDescriptorSetLayouts() const;
+		const std::unordered_map<UniformScope, VulkanDescriptorSetLayout>& GetDescriptorSetLayouts() const { return _layouts; }
 
 		/// @brief Gets a descriptor set layout for the given scope
 		/// @param scope The uniform scope

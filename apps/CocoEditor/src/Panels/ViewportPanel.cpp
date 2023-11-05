@@ -159,6 +159,17 @@ namespace Coco
 			_collapsed = true;
 		}
 
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* scenePayload = ImGui::AcceptDragDropPayload(".cscene"))
+			{
+				string filePathStr(static_cast<const char*>(scenePayload->Data), scenePayload->DataSize);
+				EditorApplication::Get()->OpenScene(filePathStr);
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
 		ImGui::End();
 		ImGui::PopStyleVar();
 

@@ -47,7 +47,7 @@ namespace Coco::ECS
 			if (!path.empty())
 			{
 				SharedRef<Resource> materialResource;
-				if (resources.GetOrLoad(path, materialResource))
+				if (resources.GetOrLoad(path, false, materialResource))
 					mat = std::dynamic_pointer_cast<MaterialDataProvider>(materialResource);
 			}
 		}

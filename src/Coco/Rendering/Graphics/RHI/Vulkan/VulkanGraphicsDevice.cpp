@@ -46,13 +46,14 @@ namespace Coco::Rendering::Vulkan
 		_transferQueue(nullptr),
 		_computeQueue(nullptr),
 		_presentQueue(nullptr),
-		_cache(CreateUniqueRef<VulkanGraphicsDeviceCache>()),
 		_shaderCache(CreateUniqueRef<VulkanShaderCache>()),
 		_resources{},
 		_lastPurgeTime(0.0)
 	{
 		GetPhysicalDeviceProperties();
 		CreateLogicalDevice(createParams);
+
+		_cache = CreateUniqueRef<VulkanGraphicsDeviceCache>(*this);
 
 		CocoInfo("Using Vulkan on {} - Driver version {}, API version {}",
 			_name,

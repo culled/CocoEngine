@@ -358,7 +358,12 @@ namespace Coco
 		if (path.empty())
 			return;
 
-		SharedRef<Scene> newScene = engine->GetResourceLibrary().GetOrLoad<Scene>(path);
+		OpenScene(path);
+	}
+
+	void EditorApplication::OpenScene(const string& scenePath)
+	{
+		SharedRef<Scene> newScene = Engine::Get()->GetResourceLibrary().GetOrLoad<Scene>(scenePath, true);
 		ChangeScenes(newScene);
 	}
 

@@ -1,5 +1,5 @@
 name: LargeBlocks
-image file: assets/textures/LargeBlocks.png
+image file: textures/LargeBlocks.png
 image description:
   width: 1024
   height: 1024
