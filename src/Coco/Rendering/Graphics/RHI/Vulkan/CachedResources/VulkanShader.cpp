@@ -1,5 +1,5 @@
 #include "Renderpch.h"
-#include "VulkanShaderVariant.h"
+#include "VulkanShader.h"
 
 #include "../VulkanGraphicsDevice.h"
 #include "../VulkanUtils.h"
@@ -14,43 +14,46 @@ namespace Coco::Rendering::Vulkan
 		ShaderModuleCreateInfo{}
 	{}
 
-	VulkanShaderVariant::VulkanShaderVariant(const ShaderVariantData& variantData) :
-		CachedVulkanResource(MakeKey(variantData)),
+	VulkanShader::VulkanShader(const SharedRef<Shader>& shader) :
+		CachedVulkanResource(MakeKey(shader)),
 		_version(0),
-		_variant(variantData.Variant),
+		_shader(shader),
 		_stages{},
 		_layouts{}
 	{}
 
-	VulkanShaderVariant::~VulkanShaderVariant()
+	VulkanShader::~VulkanShader()
 	{
 		DestroyShaderObjects();
 	}
 
-	GraphicsDeviceResourceID VulkanShaderVariant::MakeKey(const ShaderVariantData& variantData)
+	GraphicsDeviceResourceID VulkanShader::MakeKey(const SharedRef<Shader>& shader)
 	{
-		return variantData.ID;
+		std::hash<string> strHasher;
+		return strHasher(shader->GetName());
 	}
 
-	const VulkanDescriptorSetLayout& VulkanShaderVariant::GetDescriptorSetLayout(UniformScope scope) const
+	const VulkanDescriptorSetLayout& VulkanShader::GetDescriptorSetLayout(UniformScope scope) const
 	{
 		Assert(_layouts.contains(scope))
 
 		return _layouts.at(scope);
 	}
 
-	bool VulkanShaderVariant::HasScope(UniformScope scope) const
+	bool VulkanShader::HasScope(UniformScope scope) const
 	{
 		// A layout will not be generated for data-only uniforms in the draw scope, so just test if the layout is not empty for the behavior for the draw scope
-		if (scope == UniformScope::Draw && _variant.DrawUniforms.Hash != ShaderUniformLayout::EmptyHash)
-			return true;
+		if (scope == UniformScope::Draw)
+		{
+			return _shader->GetDrawUniformLayout().Hash != ShaderUniformLayout::EmptyHash;
+		}
 
 		return _layouts.contains(scope);
 	}
 
-	std::vector<VkPushConstantRange> VulkanShaderVariant::GetPushConstantRanges() const
+	std::vector<VkPushConstantRange> VulkanShader::GetPushConstantRanges() const
 	{
-		const uint64 dataSize = _variant.DrawUniforms.GetUniformDataSize(_device);
+		const uint64 dataSize = _shader->GetDrawUniformLayout().GetUniformDataSize(_device);
 
 		if (dataSize == 0)
 			return std::vector<VkPushConstantRange>();
@@ -87,42 +90,42 @@ namespace Coco::Rendering::Vulkan
 		return std::vector<VkPushConstantRange>({ range });
 	}
 
-	bool VulkanShaderVariant::NeedsUpdate(const ShaderVariantData& variantData) const
+	bool VulkanShader::NeedsUpdate() const
 	{
-		return variantData.Version != _version ||
-			_stages.size() == 0;
+		return _shader->GetVersion() != _version || _stages.size() == 0;
 	}
 
-	void VulkanShaderVariant::Update(const ShaderVariantData& variantData)
+	void VulkanShader::Update()
 	{
-		_variant = variantData.Variant;
-
 		DestroyShaderObjects();
 		CreateShaderObjects();
 
-		_version = variantData.Version;
+		_version = _shader->GetVersion();
 	}
 
-	void VulkanShaderVariant::CreateShaderObjects()
+	void VulkanShader::CreateShaderObjects()
 	{
-		for (const ShaderStage& stage : _variant.Stages)
+		for (const ShaderStage& stage : _shader->GetStages())
 		{
 			CreateStage(stage);
 		}
 
-		if (_variant.GlobalUniforms.Hash != ShaderUniformLayout::EmptyHash)
-			CreateLayout(UniformScope::ShaderGlobal);
+		const auto& globalLayout = _shader->GetGlobalUniformLayout();
+		if (globalLayout.Hash != ShaderUniformLayout::EmptyHash)
+			CreateLayout(globalLayout, UniformScope::ShaderGlobal);
 
-		if (_variant.InstanceUniforms.Hash != ShaderUniformLayout::EmptyHash)
-			CreateLayout(UniformScope::Instance);
+		const auto& instanceLayout = _shader->GetInstanceUniformLayout();
+		if (instanceLayout.Hash != ShaderUniformLayout::EmptyHash)
+			CreateLayout(instanceLayout, UniformScope::Instance);
 
-		if (_variant.DrawUniforms.Hash != ShaderUniformLayout::EmptyHash && _variant.DrawUniforms.TextureUniforms.size() > 0)
-			CreateLayout(UniformScope::Draw);
+		const auto& drawLayout = _shader->GetDrawUniformLayout();
+		if (drawLayout.HasTextureUniforms())
+			CreateLayout(drawLayout, UniformScope::Draw);
 
-		CocoTrace("Created VulkanShaderVariant")
+		CocoTrace("Created VulkanShader")
 	}
 
-	void VulkanShaderVariant::DestroyShaderObjects()
+	void VulkanShader::DestroyShaderObjects()
 	{
 		if (_layouts.size() == 0 && _stages.size() == 0)
 			return;
@@ -137,10 +140,10 @@ namespace Coco::Rendering::Vulkan
 
 		_stages.clear();
 
-		CocoTrace("Destroyed VulkanShaderVariant")
+		CocoTrace("Destroyed VulkanShader")
 	}
 
-	void VulkanShaderVariant::CreateStage(const ShaderStage& stage)
+	void VulkanShader::CreateStage(const ShaderStage& stage)
 	{
 		VulkanShaderStage vulkanStage(stage);
 		VkShaderModuleCreateInfo& createInfo = vulkanStage.ShaderModuleCreateInfo;
@@ -155,10 +158,10 @@ namespace Coco::Rendering::Vulkan
 		AssertVkSuccess(vkCreateShaderModule(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &vulkanStage.ShaderModule))
 
 		_stages.push_back(vulkanStage);
-		CocoTrace("Created VulkanShaderStage for file {}", stage.CompiledFilePath)
+		CocoTrace("Created VulkanShaderStage for file {}", stage.CompiledFilePath.ToString())
 	}
 
-	void VulkanShaderVariant::DestroyShaderStage(const VulkanShaderStage& stage)
+	void VulkanShader::DestroyShaderStage(const VulkanShaderStage& stage)
 	{
 		if (!stage.ShaderModule)
 			return;
@@ -169,17 +172,14 @@ namespace Coco::Rendering::Vulkan
 		CocoTrace("Destroyed VulkanShaderStage")
 	}
 
-	void VulkanShaderVariant::CreateLayout(UniformScope scope)
+	void VulkanShader::CreateLayout(const ShaderUniformLayout& layout, UniformScope scope)
 	{
-		const ShaderUniformLayout& layout = scope == UniformScope::ShaderGlobal ? _variant.GlobalUniforms : 
-			(scope == UniformScope::Instance ? _variant.InstanceUniforms : _variant.DrawUniforms);
-		
 		_layouts.try_emplace(scope, VulkanDescriptorSetLayout::CreateForUniformLayout(_device, layout, scope != UniformScope::Draw));
 
 		CocoTrace("Created VulkanDescriptorSetLayout for scope {}", static_cast<int>(scope))
 	}
 
-	void VulkanShaderVariant::DestroyLayout(UniformScope scope)
+	void VulkanShader::DestroyLayout(UniformScope scope)
 	{
 		auto it = _layouts.find(scope);
 

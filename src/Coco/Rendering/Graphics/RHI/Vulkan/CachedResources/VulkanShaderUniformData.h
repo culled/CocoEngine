@@ -15,7 +15,7 @@ namespace Coco::Rendering
 namespace Coco::Rendering::Vulkan
 {
 	class VulkanBuffer;
-	class VulkanShaderVariant;
+	class VulkanShader;
 	class VulkanCommandBuffer;
 	class VulkanCommandBuffer;
 	struct VulkanDescriptorSetLayout;
@@ -100,13 +100,13 @@ namespace Coco::Rendering::Vulkan
 		std::vector<uint8> _uniformDataBuffer;
 
 	public:
-		VulkanShaderUniformData(const VulkanShaderVariant& shader);
+		VulkanShaderUniformData(const VulkanShader& shader);
 		~VulkanShaderUniformData();
 
 		/// @brief Makes a key from a shader
 		/// @param shader The shader
 		/// @return The key unique to the shader
-		static GraphicsDeviceResourceID MakeKey(const VulkanShaderVariant& shader);
+		static GraphicsDeviceResourceID MakeKey(const VulkanShader& shader);
 
 		/// @brief Gets this resource's version
 		/// @return The version
@@ -115,11 +115,11 @@ namespace Coco::Rendering::Vulkan
 		/// @brief Determines if this uniform data needs to be updated
 		/// @param shader The shader
 		/// @return True if this resource should be updated
-		bool NeedsUpdate(const VulkanShaderVariant& shader) const;
+		bool NeedsUpdate(const VulkanShader& shader) const;
 
 		/// @brief Updates this uniform data to be compatible with the given shader
 		/// @param shader The shader
-		void Update(const VulkanShaderVariant& shader);
+		void Update(const VulkanShader& shader);
 
 		/// @brief Sets data for a buffer uniform
 		/// @param key The uniform key
@@ -139,7 +139,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param uniformData The uniform data
 		/// @param preserve If true, the data will be preserved between frames
 		/// @return A descriptor set if the data was prepared, else nullptr
-		VkDescriptorSet PrepareInstanceData(const VulkanShaderVariant& shader, uint64 instanceID, const ShaderUniformData& uniformData, bool preserve);
+		VkDescriptorSet PrepareInstanceData(const VulkanShader& shader, uint64 instanceID, const ShaderUniformData& uniformData, bool preserve);
 
 		/// @brief Prepares the given draw uniform data
 		/// @param shader The shader
@@ -147,7 +147,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param pipeline The current pipeline
 		/// @param uniformData The uniform data
 		/// @return A descriptor set if the data was prepared, else nullptr
-		VkDescriptorSet PrepareDrawData(const VulkanShaderVariant& shader, VulkanCommandBuffer& commandBuffer, const VulkanPipeline& pipeline, const ShaderUniformData& uniformData);
+		VkDescriptorSet PrepareDrawData(const VulkanShader& shader, VulkanCommandBuffer& commandBuffer, const VulkanPipeline& pipeline, const ShaderUniformData& uniformData);
 
 		/// @brief Resets this object for a new frame
 		void ResetForNextFrame();

@@ -43,16 +43,14 @@ namespace Coco
 
 	public:
 		FilePath();
+		FilePath(const char* filePath);
 		FilePath(const string& filePath);
 		FilePath(const std::filesystem::path& filePath);
 
-		bool operator==(const FilePath& other);
-		bool operator!=(const FilePath& other) { return !(*this == other); }
-
-		/// @brief Determines if the file path is a relative path
-		/// @param path The file path
-		/// @return True if the given path is a relative path
-		static bool IsRelativePath(const string& path);
+		bool operator==(const FilePath& other) const;
+		bool operator!=(const FilePath& other) const { return !(*this == other); }
+		FilePath operator/(const FilePath& b) const;
+		void operator/=(const FilePath& b);
 
 		/// @brief Gets a relative path to a path
 		/// @param path The path
@@ -97,6 +95,10 @@ namespace Coco
 		/// @brief Determines if this path points to a directory
 		/// @return True if this path points to a directory
 		bool IsDirectory() const;
+
+		/// @brief Determines if this path is empty
+		/// @return True if this path is empty
+		bool IsEmpty() const;
 
 		/// @brief Gets this path as a string
 		/// @return This path as a string

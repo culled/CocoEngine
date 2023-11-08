@@ -4,7 +4,7 @@
 namespace Coco::Rendering
 {
     class Material;
-    class MaterialInstance;
+    //class MaterialInstance;
 
     /// @brief A serializer for Material and MaterialInstance resources
     class MaterialSerializer :
@@ -32,12 +32,12 @@ namespace Coco::Rendering
         /// @brief Serializes a MaterialInstance
         /// @param material The material
         /// @return The serialized data
-        string SerializeMaterialInstance(const MaterialInstance& material);
+        //string SerializeMaterialInstance(const MaterialInstance& material);
 
         /// @brief Deserializes a MaterialInstance
         /// @param resourceID The ID for the resource
         /// @param data The serialized data
         /// @return The deserialized resource
-        SharedRef<Resource> DeserializeMaterialInstance(const ResourceID& resourceID, const string& data);
+        //SharedRef<Resource> DeserializeMaterialInstance(const ResourceID& resourceID, const string& data);
     };
 }

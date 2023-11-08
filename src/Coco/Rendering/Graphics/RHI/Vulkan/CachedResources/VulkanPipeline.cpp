@@ -1,7 +1,7 @@
 #include "Renderpch.h"
 #include "VulkanPipeline.h"
 #include "VulkanRenderPass.h"
-#include "VulkanShaderVariant.h"
+#include "VulkanShader.h"
 #include "../VulkanGraphicsDevice.h"
 #include "../VulkanUtils.h"
 #include <Coco/Core/Engine.h>
@@ -12,7 +12,7 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanPipeline::VulkanPipeline(
 		const VulkanRenderPass& renderPass,
-		const VulkanShaderVariant& shader,
+		const VulkanShader& shader,
 		uint32 subpassIndex,
 		const VulkanDescriptorSetLayout* globalLayout) :
 		CachedVulkanResource(MakeKey(renderPass, shader, subpassIndex, globalLayout)),
@@ -29,7 +29,7 @@ namespace Coco::Rendering::Vulkan
 
 	GraphicsDeviceResourceID VulkanPipeline::MakeKey(
 		const VulkanRenderPass& renderPass, 
-		const VulkanShaderVariant& shader, 
+		const VulkanShader& shader, 
 		uint32 subpassIndex,
 		const VulkanDescriptorSetLayout* globalLayout)
 	{
@@ -38,14 +38,14 @@ namespace Coco::Rendering::Vulkan
 
 	bool VulkanPipeline::NeedsUpdate(
 		const VulkanRenderPass& renderPass, 
-		const VulkanShaderVariant& shader)
+		const VulkanShader& shader)
 	{
 		return _pipeline == nullptr || MakeVersion(renderPass, shader) != _version;
 	}
 
 	void VulkanPipeline::Update(
 		const VulkanRenderPass& renderPass, 
-		const VulkanShaderVariant& shader, 
+		const VulkanShader& shader, 
 		uint32 subpassIndex,
 		const VulkanDescriptorSetLayout* globalLayout)
 	{
@@ -55,14 +55,14 @@ namespace Coco::Rendering::Vulkan
 		_version = MakeVersion(renderPass, shader);
 	}
 
-	uint64 VulkanPipeline::MakeVersion(const VulkanRenderPass& renderPass, const VulkanShaderVariant& shader)
+	uint64 VulkanPipeline::MakeVersion(const VulkanRenderPass& renderPass, const VulkanShader& shader)
 	{
 		return Math::CombineHashes(renderPass.GetVersion(), shader.GetVersion());
 	}
 
 	void VulkanPipeline::CreatePipeline(
 		const VulkanRenderPass& renderPass, 
-		const VulkanShaderVariant& shader, 
+		const VulkanShader& shader, 
 		uint32 subpassIndex,
 		const VulkanDescriptorSetLayout* globalLayout)
 	{
@@ -132,8 +132,8 @@ namespace Coco::Rendering::Vulkan
 		viewportState.viewportCount = 1;
 		viewportState.scissorCount = 1;
 
-		const ShaderVariant& variant = shader.GetVariant();
-		const GraphicsPipelineState& pipelineState = variant.PipelineState;
+		SharedRef<Shader> baseShader = shader.GetBaseShader();
+		const GraphicsPipelineState& pipelineState = baseShader->GetPipelineState();
 
 		// Rasterization state
 		VkPipelineRasterizationStateCreateInfo rasterizationState{};
@@ -169,10 +169,11 @@ namespace Coco::Rendering::Vulkan
 		depthStencilState.stencilTestEnable = VK_FALSE; // TODO: stencils
 
 		// Blend states
-		std::vector<VkPipelineColorBlendAttachmentState> attachmentBlendStates(variant.AttachmentBlendStates.size());
+		const auto& attachmentBlends = baseShader->GetAttachmentBlendStates();
+		std::vector<VkPipelineColorBlendAttachmentState> attachmentBlendStates(attachmentBlends.size());
 		for (uint64_t i = 0; i < attachmentBlendStates.size(); i++)
 		{
-			const BlendState& state = variant.AttachmentBlendStates.at(i);
+			const BlendState& state = attachmentBlends[i];
 			VkPipelineColorBlendAttachmentState& blendState = attachmentBlendStates.at(i);
 			blendState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
@@ -213,17 +214,18 @@ namespace Coco::Rendering::Vulkan
 		posDescription.format = ToVkFormat(BufferDataType::Float3);
 		posDescription.offset = 0;
 
-		if (variant.VertexFormat.AdditionalAttributes != VertexAttrFlags::None)
+		const VertexDataFormat& vertexFormat = baseShader->GetVertexDataFormat();
+		if (vertexFormat.AdditionalAttributes != VertexAttrFlags::None)
 		{
 			VkVertexInputBindingDescription& attrInput = vertexInputs.emplace_back();
 			attrInput.binding = 1;
-			attrInput.stride = static_cast<uint32>(variant.VertexFormat.GetAdditionalAttrStride());
+			attrInput.stride = static_cast<uint32>(vertexFormat.GetAdditionalAttrStride());
 			attrInput.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 			uint32 offset = 0;
 			uint32 location = 1;
 
-			variant.VertexFormat.ForEachAdditionalAttr([&vertexAttributes, &offset, &location](VertexAttrFlags flag, BufferDataType type)
+			vertexFormat.ForEachAdditionalAttr([&vertexAttributes, &offset, &location](VertexAttrFlags flag, BufferDataType type)
 				{
 					VkVertexInputAttributeDescription& desc = vertexAttributes.emplace_back();
 					desc.binding = 1;
@@ -252,13 +254,11 @@ namespace Coco::Rendering::Vulkan
 
 		for (const VulkanShaderStage& stage : shader.GetStages())
 		{
-			VkPipelineShaderStageCreateInfo stageInfo{};
+			VkPipelineShaderStageCreateInfo& stageInfo = shaderStageInfos.emplace_back();
 			stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			stageInfo.stage = ToVkShaderStageFlagBits(stage.Type);
 			stageInfo.module = stage.ShaderModule;
 			stageInfo.pName = stage.EntryPointName.c_str();
-
-			shaderStageInfos.push_back(stageInfo);
 		}
 
 		VkGraphicsPipelineCreateInfo createInfo{};

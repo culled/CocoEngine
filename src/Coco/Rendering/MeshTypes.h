@@ -33,6 +33,8 @@ namespace Coco::Rendering
 		VertexDataFormat();
 		VertexDataFormat(VertexAttrFlags additionalAttributes);
 
+		bool operator==(const VertexDataFormat& other) const;
+
 		/// @brief Gets the size of this format's vertex data, in bytes
 		/// @param vertexCount The number of vertices
 		/// @return The size of the vertex data

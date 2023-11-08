@@ -24,26 +24,12 @@ namespace Coco::Rendering
 
 		/// @brief Deserializes a ShaderUniformLayout
 		/// @param baseNode The base node
-		/// @return The deserialized layout
-		static ShaderUniformLayout DeserializeLayout(const YAML::Node& baseNode);
+		/// @param outLayout The layout to deserialize into
+		static void DeserializeLayout(const YAML::Node& baseNode, ShaderUniformLayout& outLayout);
 
 		/// @brief Deserializes a GlobalShaderUniformLayout
 		/// @param baseNode The base node
-		/// @return The deserialized layout
-		static GlobalShaderUniformLayout DeserializeGlobalLayout(const YAML::Node& baseNode);
-
-		/// @brief Serializes the data for a ShaderUniform
-		/// @param emitter The emitter
-		/// @param uniform The uniform
-		static void SerializeBaseUniform(YAML::Emitter& emitter, const ShaderUniform& uniform);
-
-		/// @brief Deserializes the data for a ShaderUniformLayout
-		/// @param baseNode The base node
-		/// @param outDataUniforms Will be filled with the data uniforms
-		/// @param outTextureUniforms Will be filled with the texture uniforms
-		static void DeserializeBaseUniformData(
-			const YAML::Node& baseNode, 
-			std::vector<ShaderDataUniform>& outDataUniforms, 
-			std::vector<ShaderTextureUniform>& outTextureUniforms);
+		/// @param outLayout The layout to deserialize into
+		static void DeserializeGlobalLayout(const YAML::Node& baseNode, GlobalShaderUniformLayout& outLayout);
 	};
 }

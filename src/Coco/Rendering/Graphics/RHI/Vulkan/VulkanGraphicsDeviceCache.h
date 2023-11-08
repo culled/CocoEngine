@@ -46,7 +46,7 @@ namespace Coco::Rendering::Vulkan
 		VulkanPipeline& GetOrCreatePipeline(
 			const VulkanRenderPass& renderPass,
 			uint32 subpassIndex,
-			const VulkanShaderVariant& shader,
+			const VulkanShader& shader,
 			const VulkanDescriptorSetLayout* globalDescriptorSetLayout);
 
 		/// @brief Gets/creates a cache for a RenderContext

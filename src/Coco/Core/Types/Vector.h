@@ -34,6 +34,7 @@ namespace Coco
 		double Y;
 
 		Vector2();
+		Vector2(std::span<float, 2> data);
 		Vector2(double x, double y);
 
 		Vector2 operator+(const Vector2& other) const { return Vector2(X + other.X, Y + other.Y); }
@@ -113,6 +114,16 @@ namespace Coco
 		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
 		string ToString() const;
+
+		/// @brief Returns an array of this vector's values
+		/// @return An array of this vector's values
+		std::array<float, 2> AsFloatArray() const
+		{
+			return std::array<float, 2>{
+				static_cast<float>(X),
+				static_cast<float>(Y)
+			};
+		}
 	};
 
 	/// @brief Represents a 2D vector using integer coordinates
@@ -143,6 +154,7 @@ namespace Coco
 		int Y;
 
 		Vector2Int();
+		Vector2Int(std::span<int, 2> data);
 		Vector2Int(int x, int y);
 
 		Vector2Int operator+(const Vector2Int& other) const { return Vector2Int(X + other.X, Y + other.Y); }
@@ -192,6 +204,10 @@ namespace Coco
 		/// @brief Gets the string representation of this vector
 		/// @return This vector as a string
 		string ToString() const;
+
+		/// @brief Returns an array of this vector's values
+		/// @return An array of this vector's values
+		std::array<int, 2> AsIntArray() const { return std::array<int, 2>{X, Y}; }
 	};
 
 	/// @brief Represents a 3D vector using decimal coordinates
@@ -231,6 +247,7 @@ namespace Coco
 		double Z;
 
 		Vector3();
+		Vector3(std::span<float, 3> data);
 		Vector3(double x, double y, double z);
 		Vector3(const Vector2& vec2, double z = 0.0);
 
@@ -331,6 +348,17 @@ namespace Coco
 		/// @brief Converts this vector to a Vector2
 		/// @return A Vector2
 		Vector2 XY() const { return Vector2(X, Y); }
+
+		/// @brief Returns an array of this vector's values
+		/// @return An array of this vector's values
+		std::array<float, 3> AsFloatArray() const
+		{
+			return std::array<float, 3> {
+				static_cast<float>(X),
+				static_cast<float>(Y),
+				static_cast<float>(Z)
+			};
+		}
 	};
 
 	/// @brief Represents a 3D vector using integer coordinates
@@ -370,6 +398,7 @@ namespace Coco
 		int Z;
 
 		Vector3Int();
+		Vector3Int(std::span<int, 3> data);
 		Vector3Int(int x, int y, int z);
 
 		Vector3Int operator+(const Vector3Int& other) const { return Vector3Int(X + other.X, Y + other.Y, Z + other.Z); }
@@ -423,6 +452,10 @@ namespace Coco
 		/// @brief Converts this vector to a Vector2Int
 		/// @return A Vector2Int
 		Vector2Int XY() const { return Vector2Int(X, Y); }
+
+		/// @brief Returns an array of this vector's values
+		/// @return An array of this vector's values
+		std::array<int, 3> AsIntArray() const { return std::array<int, 3>{X, Y, Z}; }
 	};
 
 	/// @brief Represents a 4D vector using decimal coordinates
@@ -447,6 +480,7 @@ namespace Coco
 		double W;
 
 		Vector4();
+		Vector4(std::span<float, 4> data);
 		Vector4(double x, double y, double z, double w);
 		Vector4(const Vector2& vec2, double z = 0.0, double w = 0.0);
 		Vector4(const Vector3& vec3, double w = 0.0);
@@ -522,6 +556,18 @@ namespace Coco
 		/// @brief Converts this vector to a Vector3
 		/// @return A Vector3
 		Vector3 XYZ() const { return Vector3(X, Y, Z); }
+
+		/// @brief Returns an array of this vector's values
+		/// @return An array of this vector's values
+		std::array<float, 4> AsFloatArray() const 
+		{ 
+			return std::array<float, 4>{
+				static_cast<float>(X), 
+				static_cast<float>(Y), 
+				static_cast<float>(Z), 
+				static_cast<float>(W) 
+			}; 
+		}
 	};
 
 	/// @brief Represents a 4D vector using integer coordinates
@@ -546,6 +592,7 @@ namespace Coco
 		int W;
 
 		Vector4Int();
+		Vector4Int(std::span<int, 4> data);
 		Vector4Int(int x, int y, int z, int w);
 
 		Vector4Int operator+(const Vector4Int& other) const { return Vector4Int(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
@@ -603,5 +650,9 @@ namespace Coco
 		/// @brief Converts this vector to a Vector3Int
 		/// @return A Vector3Int
 		Vector3Int XYZ() const { return Vector3Int(X, Y, Z); }
+
+		/// @brief Returns an array of this vector's values
+		/// @return An array of this vector's values
+		std::array<int, 4> AsIntArray() const { return std::array<int, 4>{X, Y, Z, W}; }
 	};
 }

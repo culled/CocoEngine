@@ -7,6 +7,10 @@ namespace Coco
 		_filePath()
 	{}
 
+	FilePath::FilePath(const char* filePath) :
+		FilePath(std::filesystem::path(filePath))
+	{}
+
 	FilePath::FilePath(const string& filePath) :
 		FilePath(std::filesystem::path(filePath))
 	{}
@@ -15,15 +19,19 @@ namespace Coco
 		_filePath(filePath)
 	{}
 
-	bool FilePath::operator==(const FilePath & other)
+	bool FilePath::operator==(const FilePath & other) const
 	{
 		return _filePath == other._filePath;
 	}
 
-	bool FilePath::IsRelativePath(const string& path)
+	FilePath FilePath::operator/(const FilePath& b) const
 	{
-		FilePath p(path);
-		return p.IsRelative();
+		return FilePath(this->_filePath / b._filePath);
+	}
+
+	void FilePath::operator/=(const FilePath& b)
+	{
+		_filePath /= b._filePath;
 	}
 
 	FilePath FilePath::GetRelativePath(const FilePath& path, const FilePath& relativeTo)
@@ -66,6 +74,11 @@ namespace Coco
 	bool FilePath::IsDirectory() const
 	{
 		return std::filesystem::is_directory(_filePath);
+	}
+
+	bool FilePath::IsEmpty() const
+	{
+		return _filePath.empty();
 	}
 
 	string FilePath::ToString() const

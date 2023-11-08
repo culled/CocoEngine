@@ -13,6 +13,8 @@
 // TEMPORARY
 #include <Coco/Rendering/Resources/BuiltInPipeline.h>
 #include "Rendering/PickingRenderPass.h"
+#include <Coco/Rendering/Pipeline/RenderPasses/BasicShaderRenderPass.h>
+#include <Coco/Rendering/Pipeline/RenderPasses/BuiltInRenderPass.h>
 #include <Coco/Rendering/Mesh.h>
 #include <Coco/Rendering/Material.h>
 #include <Coco/Rendering/MeshUtilities.h>
@@ -58,7 +60,7 @@ namespace Coco
 		loop.AddListener(_updateTickListener);
 		loop.AddListener(_renderTickListener);
 
-		std::vector<uint8> bindings = { 2, 1 };
+		std::array<uint8, 2> bindings = { 2, 1 };
 		_pipeline->AddRenderPass(CreateSharedRef<PickingRenderPass>(), bindings);
 	}
 
@@ -167,46 +169,21 @@ namespace Coco
 
 			mesh->Apply();
 
-			SharedRef<Shader> shader = resourceLibrary.Create<Shader>("UnlitShader", "");
-			shader->AddVariant(BuiltInShaders::UnlitVariant);
-			shader->AddVariant(ShaderVariant(
-				PickingRenderPass::sName,
-				{
-					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Picking.vert.glsl"),
-					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Picking.frag.glsl"),
-				},
-				GraphicsPipelineState(),
-				{
-					BlendState::Opaque
-				},
-				BuiltInShaders::UnlitVariant.VertexFormat,
-				GlobalShaderUniformLayout(),
-				ShaderUniformLayout(),
-				ShaderUniformLayout(
-					{
-						ShaderDataUniform("ModelMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
-						ShaderDataUniform("ID", ShaderStageFlags::Vertex, BufferDataType::Int)
-					},
-					{}
-				)
-			));
+			SharedRef<Material> material = resourceLibrary.Create<Material>("UnlitMaterial");
 
-			resourceLibrary.Save("shaders/built-in/Unlit.cshader", shader, true);
+			material->AddParametersFromShader(*BuiltInShaders::GetUnlitShader());
 
-			SharedRef<Material> material = resourceLibrary.Create<Material>("UnlitMaterial", shader);
-			material->SetFloat4("TintColor", Color::Red);
-
-			resourceLibrary.Save("materials/Unlit_Red.cmaterial", material, true);
+			resourceLibrary.Save("materials/Unlit.cmaterial", material, true);
 
 			_entity = _mainScene->CreateEntity("Test");
 			_entity.AddComponent<Transform3DComponent>(Vector3::Forward, Quaternion::Identity, Vector3::One);
 
 			std::unordered_map<uint32, SharedRef<MaterialDataProvider>> materials = { { 0, material } };
-			_entity.AddComponent<MeshRendererComponent>(mesh, materials);
+			_entity.AddComponent<MeshRendererComponent>(mesh, materials, BuiltInRenderPass::sUnlitVisibilityGroup);
 
 			_entity2 = _mainScene->CreateEntity("Test 2");
 			_entity2.AddComponent<Transform3DComponent>(Vector3(2.0, 2.0, 2.0), Quaternion(Vector3::Up, Math::DegToRad(180.0)), Vector3::One * 2.0);
-			_entity2.AddComponent<MeshRendererComponent>(mesh, materials);
+			_entity2.AddComponent<MeshRendererComponent>(mesh, materials, BuiltInRenderPass::sUnlitVisibilityGroup);
 			_entity2.SetParent(_entity);
 
 			_cameraEntity = _mainScene->CreateEntity("Camera");

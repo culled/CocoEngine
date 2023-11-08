@@ -1,10 +1,9 @@
 #pragma once
 #include <Coco/Rendering/Providers/SceneDataProvider.h>
 #include <Coco/Rendering/Mesh.h>
-#include <Coco/Rendering/Shader.h>
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Rendering/Material.h>
-#include <Coco/Rendering/MaterialInstance.h>
+#include <Coco/Rendering/Shader.h>
 #include <Coco/Core/Types/Transform.h>
 
 using namespace Coco;
@@ -18,7 +17,6 @@ private:
     SharedRef<Mesh> _boxMesh;
 
     SharedRef<Mesh> _mesh;
-    SharedRef<Shader> _shader;
     SharedRef<Texture> _texture;
     SharedRef<Texture> _normalTexture;
     SharedRef<Material> _material;

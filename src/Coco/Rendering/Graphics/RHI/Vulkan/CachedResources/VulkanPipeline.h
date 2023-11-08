@@ -7,7 +7,7 @@ namespace Coco::Rendering::Vulkan
 {
 	class VulkanGraphicsDevice;
 	class VulkanRenderPass;
-	class VulkanShaderVariant;
+	class VulkanShader;
 	struct VulkanDescriptorSetLayout;
 
 	/// @brief A Vulkan pipeline
@@ -27,7 +27,7 @@ namespace Coco::Rendering::Vulkan
 	public:
 		VulkanPipeline(
 			const VulkanRenderPass& renderPass,
-			const VulkanShaderVariant& shader,
+			const VulkanShader& shader,
 			uint32 subpassIndex,
 			const VulkanDescriptorSetLayout* globalLayout);
 
@@ -41,7 +41,7 @@ namespace Coco::Rendering::Vulkan
 		/// @return A key created from the given items
 		static GraphicsDeviceResourceID MakeKey(
 			const VulkanRenderPass& renderPass,
-			const VulkanShaderVariant& shader,
+			const VulkanShader& shader,
 			uint32 subpassIndex,
 			const VulkanDescriptorSetLayout* globalLayout);
 
@@ -63,7 +63,7 @@ namespace Coco::Rendering::Vulkan
 		/// @return True if this pipeline should be updated
 		bool NeedsUpdate(
 			const VulkanRenderPass& renderPass,
-			const VulkanShaderVariant& shader);
+			const VulkanShader& shader);
 
 		/// @brief Updates this pipeline
 		/// @param renderPass The render pass
@@ -72,7 +72,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param globalLayout The global descriptor layout, if one exists
 		void Update(
 			const VulkanRenderPass& renderPass,
-			const VulkanShaderVariant& shader,
+			const VulkanShader& shader,
 			uint32 subpassIndex,
 			const VulkanDescriptorSetLayout* globalLayout);
 
@@ -83,7 +83,7 @@ namespace Coco::Rendering::Vulkan
 		/// @return A combined version
 		static uint64 MakeVersion(
 			const VulkanRenderPass& renderPass,
-			const VulkanShaderVariant& shader);
+			const VulkanShader& shader);
 
 		/// @brief Creates the pipeline
 		/// @param renderPass The render pass
@@ -92,7 +92,7 @@ namespace Coco::Rendering::Vulkan
 		/// @param globalLayout The global descriptor layout, if one exists
 		void CreatePipeline(
 			const VulkanRenderPass& renderPass,
-			const VulkanShaderVariant& shader,
+			const VulkanShader& shader,
 			uint32 subpassIndex,
 			const VulkanDescriptorSetLayout* globalLayout);
 

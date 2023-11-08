@@ -32,8 +32,6 @@ namespace Coco::Rendering
 		std::vector<RenderTarget> _renderTargets;
 		GlobalShaderUniformLayout _globalUniformLayout;
 		std::unordered_map<uint64, MeshData> _meshDatas;
-		std::unordered_map<uint64, ShaderVariantData> _shaderVariantDatas;
-		std::unordered_map<uint64, ShaderData> _shaderDatas;
 		std::unordered_map<uint64, MaterialData> _materialDatas;
 		std::vector<ObjectData> _objectDatas;
 		std::vector<DirectionalLightData> _directionalLightDatas;
@@ -122,21 +120,6 @@ namespace Coco::Rendering
 		/// @return The data
 		const MeshData& GetMeshData(uint64 key) const;
 
-		/// @brief Adds a shader to this view
-		/// @param shader The shader
-		/// @return The id of the stored shader
-		uint64 AddShader(const Shader& shader);
-
-		/// @brief Gets a stored shader's data
-		/// @param key The shader's key
-		/// @return The shader data
-		const ShaderData& GetShaderData(uint64 key) const;
-
-		/// @brief Gets a stored shader variant's data
-		/// @param key The shader variant's key
-		/// @return The shader variant data
-		const ShaderVariantData& GetShaderVariantData(uint64 key) const;
-
 		/// @brief Adds material data to this view
 		/// @param materialData The material data
 		/// @return The key to the material data
@@ -153,7 +136,8 @@ namespace Coco::Rendering
 		/// @param mesh The mesh
 		/// @param submeshID The ID of the submesh
 		/// @param modelMatrix The model matrix
-		/// @param material The material
+		/// @param visibilityGroups The visibility groups for the object
+		/// @param material The material, or nullptr for no material
 		/// @param boundsOverride The global bounding box for the object, or nullptr to auto-calculate the global bounding box
 		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
 		/// @param extraData Extra data for the object
@@ -162,29 +146,9 @@ namespace Coco::Rendering
 			uint64 objectID,
 			const Mesh& mesh, 
 			uint32 submeshID, 
-			const Matrix4x4& modelMatrix, 
-			const MaterialDataProvider& material, 
-			const BoundingBox* boundsOverride = nullptr,
-			const RectInt* scissorRect = nullptr,
-			std::any extraData = nullptr);
-
-		/// @brief Adds an object to be rendered. 
-		/// NOTE: the mesh must have been applied for this to work
-		/// @param objectID The id of the object
-		/// @param mesh The mesh
-		/// @param submeshID The ID of the submesh
-		/// @param modelMatrix The model matrix
-		/// @param shader The shader, or nullptr for no shader
-		/// @param boundsOverride The global bounding box for the object, or nullptr to auto-calculate the global bounding box
-		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
-		/// @param extraData Extra data for the object
-		/// @return The key to the object
-		uint64 AddRenderObject(
-			uint64 objectID,
-			const Mesh& mesh,
-			uint32 submeshID,
 			const Matrix4x4& modelMatrix,
-			const Shader* shader,
+			uint64 visibilityGroups,
+			const MaterialDataProvider* material, 
 			const BoundingBox* boundsOverride = nullptr,
 			const RectInt* scissorRect = nullptr,
 			std::any extraData = nullptr);
@@ -197,7 +161,8 @@ namespace Coco::Rendering
 		/// @param indexCount The number of indices to render
 		/// @param modelMatrix The model matrix
 		/// @param bounds The bounds of the object
-		/// @param material The material
+		/// @param visibilityGroups The visibility groups for the object
+		/// @param material The material, or nullptr for no material
 		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
 		/// @param extraData Extra data for the object
 		/// @return The key to the object
@@ -208,30 +173,8 @@ namespace Coco::Rendering
 			uint64 indexCount,
 			const Matrix4x4& modelMatrix,
 			const BoundingBox& bounds,
-			const MaterialDataProvider& material,
-			const RectInt* scissorRect = nullptr,
-			std::any extraData = nullptr);
-
-		/// @brief Adds an object to be rendered. 
-		/// NOTE: the mesh must have been applied for this to work
-		/// @param objectID The id of the object
-		/// @param mesh The mesh
-		/// @param indexOffset The offset of the first index in the mesh's index buffer 
-		/// @param indexCount The number of indices to render
-		/// @param modelMatrix The model matrix
-		/// @param bounds The bounds of the object
-		/// @param shader The shader to render with, or nullptr for no shader
-		/// @param scissorRect The scissor rect, or nullptr for no scissor rectangle
-		/// @param extraData Extra data for the object
-		/// @return The key to the object
-		uint64 AddRenderObject(
-			uint64 objectID,
-			const Mesh& mesh,
-			uint64 indexOffset,
-			uint64 indexCount,
-			const Matrix4x4& modelMatrix,
-			const BoundingBox& bounds,
-			const Shader* shader,
+			uint64 visibilityGroups,
+			const MaterialDataProvider* material,
 			const RectInt* scissorRect = nullptr,
 			std::any extraData = nullptr);
 
@@ -278,24 +221,19 @@ namespace Coco::Rendering
 		void FilterOutsideFrustum(std::vector<uint64>& objectIndices) const;
 
 		/// @brief Filters out object indices that are outside of a frustum
+		/// @param objectIndices The object indices
 		/// @param frustum The view frustum
-		/// @param objectIndices The object indices
-		void FilterOutsideFrustum(const ViewFrustum& frustum, std::vector<uint64>& objectIndices) const;
+		void FilterOutsideFrustum(std::vector<uint64>& objectIndices, const ViewFrustum& frustum) const;
 
-		/// @brief Filters out objects whose shader group tags don't equal the given tag
+		/// @brief Filters out object indicies that do not include any of the given visibility groups
 		/// @param objectIndices The object indices
-		/// @param tag The shader group tag
-		void FilterWithTag(std::vector<uint64>& objectIndices, const string& tag) const;
+		/// @param visibilityGroups The visibility groups
+		void FilterWithAnyVisibilityGroups(std::vector<uint64>& objectIndices, uint64 visibilityGroups) const;
 
-		/// @brief Filters out objects whose shader group tags aren't in the list of tags
+		/// @brief Filters out object indicies that do not include all of the given visibility groups
 		/// @param objectIndices The object indices
-		/// @param tags The shader group tags
-		void FilterWithTags(std::vector<uint64>& objectIndices, std::span<const string> tags) const;
-
-		/// @brief Filters out objects whose shaders do not contain a variant of the given name
-		/// @param objectIndices The object indices
-		/// @param variantName The name of the shader variant
-		void FilterWithShaderVariant(std::vector<uint64>& objectIndices, const string& variantName) const;
+		/// @param visibilityGroups The visibility groups
+		void FilterWithAllVisibilityGroups(std::vector<uint64>& objectIndices, uint64 visibilityGroups) const;
 
 		/// @brief Sorts objects by distance from this view's view position
 		/// @param objectIndices The object indices
@@ -307,9 +245,5 @@ namespace Coco::Rendering
 		/// @param position The position to sort relative to
 		/// @param sortMode The sort mode
 		void SortByDistance(std::vector<uint64>& objectIndices, const Vector3& position, RenderObjectSortMode sortMode) const;
-
-	private:
-		/// @brief Adds default objects to this view
-		void AddDefaults();
 	};
 }

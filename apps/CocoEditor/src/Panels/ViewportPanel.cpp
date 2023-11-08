@@ -592,9 +592,7 @@ namespace Coco
 				nullptr,
 				_enableSnap ? snapValues.data() : nullptr))
 			{
-				Matrix4x4 transformed;
-				for (size_t i = 0; i < Matrix4x4::CellCount; i++)
-					transformed.Data[i] = model.at(i);
+				Matrix4x4 transformed(model);
 
 				transformed.Decompose(transform.LocalPosition, transform.LocalRotation, transform.LocalScale);
 

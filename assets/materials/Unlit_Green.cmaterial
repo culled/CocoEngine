@@ -1,5 +1,0 @@
-name: Unlit Green
-shader path: shaders/built-in/Unlit.cshader
-uniforms:
-  float4s:
-    1257004672949495411: [0, 1, 0, 1]  # Fix

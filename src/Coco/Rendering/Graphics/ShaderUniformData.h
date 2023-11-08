@@ -4,38 +4,114 @@
 #include <Coco/Core/Defines.h>
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/Matrix.h>
 #include "Image.h"
 #include "ImageSampler.h"
 
 namespace Coco::Rendering
 {
+	/// @brief A union for shader uniform data
+	struct ShaderUniformUnion
+	{
+		/// @brief The maximum data size
+		static constexpr int MaxDataSize = 16 * sizeof(float);
+
+		union
+		{
+			bool AsBool;
+			float AsFloat;
+			float AsFloat2[2];
+			float AsFloat3[3];
+			float AsFloat4[4];
+			float AsMat4x4[Matrix4x4::CellCount];
+			int AsInt;
+			int AsInt2[2];
+			int AsInt3[3];
+			int AsInt4[4];
+			uint8 AsData[MaxDataSize];
+		};
+
+		ShaderUniformUnion();
+		ShaderUniformUnion(bool value);
+		ShaderUniformUnion(float value);
+		ShaderUniformUnion(const Vector2& value);
+		ShaderUniformUnion(const Vector3& value);
+		ShaderUniformUnion(const Vector4& value);
+		ShaderUniformUnion(const Color& value);
+		ShaderUniformUnion(int value);
+		ShaderUniformUnion(const Vector2Int& value);
+		ShaderUniformUnion(const Vector3Int& value);
+		ShaderUniformUnion(const Vector4Int& value);
+		ShaderUniformUnion(const Matrix4x4& value);
+
+		/// @brief Gets the contained value as a certain type
+		/// @tparam ValueType The type of value to return
+		/// @return The value
+		template<typename ValueType>
+		ValueType As() const;
+
+		/// @brief Gets the value as a boolean
+		/// @return The value
+		template<>
+		bool As<bool>() const { return AsBool; }
+
+		/// @brief Gets the value as a float
+		/// @return The value
+		template<>
+		float As<float>() const { return AsFloat; }
+
+		/// @brief Gets the value as a Vector2
+		/// @return The value
+		template<>
+		Vector2 As<Vector2>() const;
+
+		/// @brief Gets the value as a Vector3
+		/// @return The value
+		template<>
+		Vector3 As<Vector3>() const;
+		
+		/// @brief Gets the value as a Vector4
+		/// @return The value
+		template<>
+		Vector4 As<Vector4>() const;
+
+		/// @brief Gets the value as a Color
+		/// @return The value
+		template<>
+		Color As<Color>() const;
+
+		/// @brief Gets the value as a int
+		/// @return The value
+		template<>
+		int As<int>() const { return AsInt; }
+
+		/// @brief Gets the value as a Vector2Int
+		/// @return The value
+		template<>
+		Vector2Int As<Vector2Int>() const;
+
+		/// @brief Gets the value as a Vector3Int
+		/// @return The value
+		template<>
+		Vector3Int As<Vector3Int>() const;
+
+		/// @brief Gets the value as a Vector4Int
+		/// @return The value
+		template<>
+		Vector4Int As<Vector4Int>() const;
+
+		/// @brief Gets the value as a Matrix4x4
+		/// @return The value
+		template<>
+		Matrix4x4 As<Matrix4x4>() const;
+	};
+
 	/// @brief Container for uniform data to pass to shaders
 	struct ShaderUniformData
 	{
 		/// @brief A key for a uniform
 		using UniformKey = uint64;
-
-		/// @brief A pair of float values
-		using float2 = std::array<float, 2>;
-
-		/// @brief A set of 3 float values
-		using float3 = std::array<float, 3>;
-
-		/// @brief A set of 4 float values
-		using float4 = std::array<float, 4>;
-
-		/// @brief A pair of int32 values
-		using int2 = std::array<int32, 2>;
-
-		/// @brief A set of 3 int32 values
-		using int3 = std::array<int32, 3>;
-
-		/// @brief A set of 4 int32 values
-		using int4 = std::array<int32, 4>;
-
-		/// @brief A set of 16 float values for a Matrix4x4
-		using Mat4x4 = std::array<float, Matrix4x4::CellCount>;
 
 		/// @brief An image and image sampler combination
 		using TextureSampler = std::pair<Ref<Image>, Ref<ImageSampler>>;
@@ -49,35 +125,8 @@ namespace Coco::Rendering
 		/// @brief The version of this uniform data
 		uint64 Version;
 
-		/// @brief The float uniforms
-		std::unordered_map<UniformKey, float> Floats;
-
-		/// @brief The float2 uniforms
-		std::unordered_map<UniformKey, float2> Float2s;
-
-		/// @brief The float3 uniforms
-		std::unordered_map<UniformKey, float3> Float3s;
-
-		/// @brief The float4 uniforms
-		std::unordered_map<UniformKey, float4> Float4s;
-
-		/// @brief The mat4 uniforms
-		std::unordered_map<UniformKey, Mat4x4> Mat4x4s;
-
-		/// @brief The int uniforms
-		std::unordered_map<UniformKey, int32> Ints;
-
-		/// @brief The int2 uniforms
-		std::unordered_map<UniformKey, int2> Int2s;
-
-		/// @brief The int3 uniforms
-		std::unordered_map<UniformKey, int3> Int3s;
-
-		/// @brief The int4 uniforms
-		std::unordered_map<UniformKey, int4> Int4s;
-
-		/// @brief The bool uniforms
-		std::unordered_map<UniformKey, uint8> Bools;
+		/// @brief The uniforms
+		std::unordered_map<UniformKey, ShaderUniformUnion> Uniforms;
 
 		/// @brief The texture uniforms
 		std::unordered_map<UniformKey, TextureSampler> Textures;
@@ -94,41 +143,6 @@ namespace Coco::Rendering
 		/// @param name The uniform name
 		/// @return The key
 		static UniformKey MakeKey(const string& name);
-
-		/// @brief Convertes a Vector2 into a float2
-		/// @param v The vector
-		/// @return The float2
-		constexpr static float2 ToFloat2(const Vector2& v) { return float2{ static_cast<float>(v.X), static_cast<float>(v.Y) }; }
-
-		/// @brief Convertes a Vector3 into a float3
-		/// @param v The vector
-		/// @return The float3
-		constexpr static float3 ToFloat3(const Vector3& v) { return float3{ static_cast<float>(v.X), static_cast<float>(v.Y), static_cast<float>(v.Z) }; }
-
-		/// @brief Convertes a Vector4 into a float4
-		/// @param v The vector
-		/// @return The float4
-		constexpr static float4 ToFloat4(const Vector4& v) { return float4{ static_cast<float>(v.X), static_cast<float>(v.Y), static_cast<float>(v.Z), static_cast<float>(v.W) }; }
-
-		/// @brief Convertes a Matrix4x4 into a Mat4x4
-		/// @param v The matrix
-		/// @return The Mat4x4
-		static Mat4x4 ToMat4x4(const Matrix4x4& v);
-
-		/// @brief Convertes a Vector2Int into a int2
-		/// @param v The vector
-		/// @return The int2
-		constexpr static int2 ToInt2(const Vector2Int& v) { return int2{ v.X, v.Y }; }
-
-		/// @brief Convertes a Vector3Int into a int3
-		/// @param v The vector
-		/// @return The int3
-		constexpr static int3 ToInt3(const Vector3Int& v) { return int3{ v.X, v.Y, v.Z }; }
-
-		/// @brief Convertes a Vector4Int into a int4
-		/// @param v The vector
-		/// @return The int4
-		constexpr static int4 ToInt4(const Vector4Int& v) { return int4{ v.X, v.Y, v.Z, v.W }; }
 
 		/// @brief Converts an Image and ImageSampler to a TextureSampler
 		/// @param image The image

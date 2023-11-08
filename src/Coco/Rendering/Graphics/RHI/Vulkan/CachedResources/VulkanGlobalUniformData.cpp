@@ -153,12 +153,14 @@ namespace Coco::Rendering::Vulkan
 
 	bool VulkanGlobalUniformData::WriteDescriptorSet(const ShaderUniformData& uniformData)
 	{
-		bool hasUniforms = _uniformLayout.DataUniforms.size() > 0;
+		bool hasUniforms = _uniformLayout.HasDataUniforms();
 
 		std::vector<VkWriteDescriptorSet> descriptorWrites = _descriptorSetLayout.WriteTemplates;
 
 		std::vector<VkDescriptorBufferInfo> bufferInfos((hasUniforms ? 1 : 0) + _uniformLayout.BufferUniforms.size());
-		std::vector<VkDescriptorImageInfo> imageInfos(_uniformLayout.TextureUniforms.size());
+		std::vector<VkDescriptorImageInfo> imageInfos;
+		imageInfos.reserve(descriptorWrites.size());
+
 		uint32 bufferIndex = 0;
 		uint32 bindingIndex = 0;
 
@@ -179,14 +181,15 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		// Write texture bindings
-		for (uint32_t i = 0; i < _uniformLayout.TextureUniforms.size(); i++)
+		for (const ShaderUniform& uniform : _uniformLayout.Uniforms)
 		{
-			const ShaderTextureUniform& textureSampler = _uniformLayout.TextureUniforms.at(i);
+			if (uniform.Type != ShaderUniformType::Texture)
+				continue;
 
 			Ref<Image> image;
 			Ref<ImageSampler> sampler;
 
-			auto it = uniformData.Textures.find(textureSampler.Key);
+			auto it = uniformData.Textures.find(uniform.Key);
 
 			if (it != uniformData.Textures.end())
 			{
@@ -200,16 +203,21 @@ namespace Coco::Rendering::Vulkan
 			{
 				const RenderService& rendering = *RenderService::cGet();
 				SharedRef<Texture> defaultTexture;
+				
+				DefaultTextureType textureType = DefaultTextureType::Checkered;
 
-				switch (textureSampler.DefaultTexture)
+				if (const DefaultTextureType* t = std::any_cast<DefaultTextureType>(&uniform.DefaultValue))
+					textureType = *t;
+
+				switch (textureType)
 				{
-				case ShaderTextureUniform::DefaultTextureType::White:
+				case DefaultTextureType::White:
 					defaultTexture = rendering.GetDefaultDiffuseTexture();
 					break;
-				case ShaderTextureUniform::DefaultTextureType::Normal:
+				case DefaultTextureType::FlatNormal:
 					defaultTexture = rendering.GetDefaultNormalTexture();
 					break;
-				case ShaderTextureUniform::DefaultTextureType::Checker:
+				case DefaultTextureType::Checkered:
 				default:
 					defaultTexture = rendering.GetDefaultCheckerTexture();
 					break;
@@ -221,7 +229,7 @@ namespace Coco::Rendering::Vulkan
 
 			if (!image.IsValid() || !sampler.IsValid())
 			{
-				CocoError("The image or sampler reference for \"{}\" is empty", textureSampler.Name);
+				CocoError("The image or sampler reference for \"{}\" is empty", uniform.Name);
 				return false;
 			}
 
@@ -229,7 +237,7 @@ namespace Coco::Rendering::Vulkan
 			VulkanImageSampler* vulkanSampler = static_cast<VulkanImageSampler*>(sampler.Get());
 
 			// Texture data
-			VkDescriptorImageInfo& imageInfo = imageInfos.at(i);
+			VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			imageInfo.imageView = vulkanImage->GetNativeView();
 			imageInfo.sampler = vulkanSampler->GetSampler();

@@ -3,6 +3,7 @@
 #include "../Defines.h"
 #include "../Types/Refs.h"
 #include "../Types/String.h"
+#include "../IO/FileTypes.h"
 
 namespace Coco
 {
@@ -26,7 +27,7 @@ namespace Coco
 		ResourceID _id;
 		ResourceVersion _version;
 		string _name;
-		string _contentPath;
+		FilePath _contentPath;
 
 	public:
 		Resource(const ResourceID& id, const string& name);
@@ -54,7 +55,7 @@ namespace Coco
 
 		/// @brief Gets the content path of this resource, if it is associated with a file
 		/// @return This resource's content path
-		const string& GetContentPath() const { return _contentPath; }
+		const FilePath& GetContentPath() const { return _contentPath; }
 
 	protected:
 		/// @brief Sets the version of this resource

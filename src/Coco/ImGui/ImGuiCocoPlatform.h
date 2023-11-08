@@ -75,8 +75,8 @@ namespace Coco::ImGuiCoco
 
 		std::vector<Windowing::DisplayInfo> _displays;
 		bool _shouldUpdateDisplays;
-		SharedRef<Shader> _shader;
 		SharedRef<Texture> _texture;
+		SharedRef<Shader> _shader;
 		std::unordered_map<uint64, SharedRef<Mesh>> _viewportMeshes;
 		SharedRef<ImGuiRenderPass> _renderPass;
 		SharedRef<Rendering::RenderPipeline> _renderPipeline;
@@ -103,10 +103,6 @@ namespace Coco::ImGuiCoco
 		/// @brief Gets the ImGui font texture
 		/// @return The ImGui font texture
 		SharedRef<Texture> GetTexture() const { return _texture; }
-
-		/// @brief Gets the ImGui shader
-		/// @return The ImGui shader
-		SharedRef<Shader> GetShader() const { return _shader; }
 
 		/// @brief Renders a viewport
 		/// @param viewport The viewport

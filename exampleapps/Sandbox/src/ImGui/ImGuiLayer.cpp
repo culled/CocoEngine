@@ -1,10 +1,10 @@
 #include "ImGuiLayer.h"
 
-#include <imgui.h>
 #include <Coco/Core/MainLoop/MainLoop.h>
 
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Windowing/WindowService.h>
+#include <imgui.h>
 
 using namespace Coco;
 using namespace Coco::Rendering;

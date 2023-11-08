@@ -23,44 +23,42 @@ namespace Coco::Rendering::Vulkan
 		_shaders.clear();
 	}
 
-	ShaderVariant VulkanShaderCache::LoadVariant(const std::unordered_map<ShaderStageType, string>& stageFiles)
+	//Shader VulkanShaderCache::LoadShader(const std::unordered_map<ShaderStageType, string>& stageFiles)
+	//{
+	//	Shader shader;
+	//
+	//	for (const auto& stageFile : stageFiles)
+	//	{
+	//		if (variant.Name.empty())
+	//		{
+	//			FilePath stageFilePath(stageFile.second);
+	//			variant.Name = stageFilePath.GetFileName(false);
+	//		}
+	//
+	//		//ShaderStage stage("main", stageFile.first, stageFile.second);
+	//		ShaderStage& stage = variant.Stages.emplace_back("main", stageFile.first, stageFile.second);
+	//		std::vector<uint32> byteCode = CompileOrGetShaderStageBinary(stage);
+	//		Reflect(variant, stage, byteCode);
+	//	}
+	//
+	//	return shader;
+	//}
+
+	VulkanShader& VulkanShaderCache::GetOrCreateShader(const SharedRef<Shader>& shader)
 	{
-		ShaderVariant variant("", {}, GraphicsPipelineState(), {}, {}, {}, {}, {});
-
-		for (const auto& stageFile : stageFiles)
-		{
-			if (variant.Name.empty())
-			{
-				FilePath stageFilePath(stageFile.second);
-				variant.Name = stageFilePath.GetFileName(false);
-			}
-
-			//ShaderStage stage("main", stageFile.first, stageFile.second);
-			ShaderStage& stage = variant.Stages.emplace_back("main", stageFile.first, stageFile.second);
-			std::vector<uint32> byteCode = CompileOrGetShaderStageBinary(stage);
-			Reflect(variant, stage, byteCode);
-		}
-
-		variant.CalculateHash();
-
-		return variant;
-	}
-
-	VulkanShaderVariant& VulkanShaderCache::GetOrCreateShader(const ShaderVariantData& variantData)
-	{
-		GraphicsDeviceResourceID key = VulkanShaderVariant::MakeKey(variantData);
+		GraphicsDeviceResourceID key = VulkanShader::MakeKey(shader);
 
 		auto it = _shaders.find(key);
 
 		if (it == _shaders.end())
 		{
-			it = _shaders.try_emplace(key, variantData).first;
+			it = _shaders.try_emplace(key, shader).first;
 		}
 
-		VulkanShaderVariant& resource = it->second;
+		VulkanShader& resource = it->second;
 
-		if (resource.NeedsUpdate(variantData))
-			resource.Update(variantData);
+		if (resource.NeedsUpdate())
+			resource.Update();
 
 		resource.Use();
 
@@ -106,7 +104,7 @@ namespace Coco::Rendering::Vulkan
 	{
 		FilePath sourceFilePath(stage.SourceFilePath);
 		FilePath cachedFilePath(
-			stage.CompiledFilePath.empty() ? 
+			stage.CompiledFilePath.IsEmpty() ? 
 			FilePath::CombineToPath(_sCacheDirectory, sourceFilePath.GetFileName(false) + ".spv") :
 			stage.CompiledFilePath
 		);
@@ -158,7 +156,8 @@ namespace Coco::Rendering::Vulkan
 			if (optimize)
 				options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
-			shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(shaderSource, ShaderStageToShaderC(stage.Type), stage.SourceFilePath.c_str(), options);
+			string filePathStr = stage.SourceFilePath.ToString();
+			shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(shaderSource, ShaderStageToShaderC(stage.Type), filePathStr.c_str(), options);
 
 			if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 			{
@@ -183,7 +182,7 @@ namespace Coco::Rendering::Vulkan
 		return byteCode;
 	}
 
-	void VulkanShaderCache::Reflect(ShaderVariant& variant, const ShaderStage& stage, const std::vector<uint32>& byteCode)
+	/*void VulkanShaderCache::Reflect(ShaderVariant& variant, const ShaderStage& stage, const std::vector<uint32>& byteCode)
 	{
 		spirv_cross::Compiler compiler(byteCode.data(), byteCode.size());
 		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
@@ -284,6 +283,7 @@ namespace Coco::Rendering::Vulkan
 		uint64 memberCount = type.member_types.size();
 		ShaderStageFlags stageFlags = ToShaderStageFlags(stage);
 
+		// TODO: reflect uniforms
 		for (uint32 i = 0; i < memberCount; i++)
 		{
 			const auto& memberType = compiler.get_type(type.member_types[i]);
@@ -297,13 +297,13 @@ namespace Coco::Rendering::Vulkan
 				string name = compiler.get_member_name(bufferResource.base_type_id, i);
 				BufferDataType bufferDataType = SPIRTypeToBufferDataType(memberType);
 
-				auto it = std::find_if(layout.DataUniforms.begin(), layout.DataUniforms.end(), [name](const auto& other)
+				auto it = std::find_if(layout.Uniforms.begin(), layout.Uniforms.end(), [name](const auto& other)
 					{
 						return other.Name == name;
 					}
 				);
 
-				if (it != layout.DataUniforms.end())
+				if (it != layout.Uniforms.end())
 				{
 					if (it->Type != bufferDataType)
 					{
@@ -376,6 +376,7 @@ namespace Coco::Rendering::Vulkan
 		const spirv_cross::Compiler& compiler, 
 		const spirv_cross::Resource& imageResource)
 	{
+		// TODO: reflect uniforms
 		uint32 set = compiler.get_decoration(imageResource.id, spv::DecorationDescriptorSet);
 
 		if (set <= 0 || set > 3)
@@ -405,5 +406,5 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		layout.TextureUniforms.emplace_back(imageResource.name, stageFlags, ShaderTextureUniform::DefaultTextureType::White);
-	}
+	}*/
 }

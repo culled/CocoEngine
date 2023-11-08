@@ -107,14 +107,12 @@ namespace Coco::Rendering
 		virtual void SetScissorRect(const RectInt& scissorRect) = 0;
 
 		/// @brief Sets the shader that should be used for subsequent draw calls
-		/// @param shader The shader
-		/// @param variantName The name of the shader variant
-		virtual void SetShader(const ShaderData& shader, const string& variantName) = 0;
+		/// @param shaderName The name of the shader
+		virtual void SetShader(const string& shaderName) = 0;
 
-		/// @brief Sets the material that should be used for subsequent draw calls
+		/// @brief Sets instance properties from a material
 		/// @param material The material
-		/// @param shaderVariantName The name of the shader variant that should be bound
-		virtual void SetMaterial(const MaterialData& material, const string& shaderVariantName) = 0;
+		virtual void SetMaterial(const MaterialData& material) = 0;
 
 		/// @brief Draws a number of indices of a mesh
 		/// @param mesh The mesh
@@ -138,83 +136,34 @@ namespace Coco::Rendering
 		/// @return The state
 		RenderContextState GetState() const { return _currentState; }
 
-		/// @brief Sets a float uniform.
+		/// @brief Sets a uniform.
 		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
 		/// @param scope The scope of the uniform
 		/// @param key The uniform key
 		/// @param value The value
-		void SetFloat(UniformScope scope, ShaderUniformData::UniformKey key, float value);
+		template<typename ValueType>
+		void SetValue(UniformScope scope, ShaderUniformData::UniformKey key, const ValueType& value)
+		{
+			switch (scope)
+			{
+			case UniformScope::Global:
+				_globalUniforms.Uniforms[key] = value;
+				break;
+			case UniformScope::ShaderGlobal:
+				_globalShaderUniforms.Uniforms[key] = value;
+				break;
+			case UniformScope::Instance:
+				_instanceUniforms.Uniforms[key] = value;
+				break;
+			case UniformScope::Draw:
+				_drawUniforms.Uniforms[key] = value;
+				break;
+			default:
+				return;
+			}
 
-		/// @brief Sets a float2 uniform.
-		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
-		/// @param scope The scope of the uniform
-		/// @param key The uniform key
-		/// @param value The value
-		void SetFloat2(UniformScope scope, ShaderUniformData::UniformKey key, const Vector2& value);
-
-		/// @brief Sets a float3 uniform.
-		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
-		/// @param scope The scope of the uniform
-		/// @param key The uniform key
-		/// @param value The value
-		void SetFloat3(UniformScope scope, ShaderUniformData::UniformKey key, const Vector3& value);
-
-		/// @brief Sets a float4 uniform.
-		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
-		/// @param scope The scope of the uniform
-		/// @param key The uniform key
-		/// @param value The value
-		void SetFloat4(UniformScope scope, ShaderUniformData::UniformKey key, const Vector4& value);
-
-		/// @brief Sets a float uniform.
-		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
-		/// @param scope The scope of the uniform
-		/// @param key The uniform key
-		/// @param value The value
-		/// @param asLinear If true, the color will be written in a linear color gamut instead of gamma
-		void SetFloat4(UniformScope scope, ShaderUniformData::UniformKey key, const Color& value, bool asLinear = true);
-
-		/// @brief Sets a Mat4x4 uniform.
-		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
-		/// @param scope The scope of the uniform
-		/// @param key The uniform key
-		/// @param value The value
-		void SetMatrix4x4(UniformScope scope, ShaderUniformData::UniformKey key, const Matrix4x4& value);
-
-		/// @brief Sets an int uniform.
-		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
-		/// @param scope The scope of the uniform
-		/// @param key The uniform key
-		/// @param value The value
-		void SetInt(UniformScope scope, ShaderUniformData::UniformKey key, int32 value);
-
-		/// @brief Sets an int2 uniform.
-		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
-		/// @param scope The scope of the uniform
-		/// @param key The uniform key
-		/// @param value The value
-		void SetInt2(UniformScope scope, ShaderUniformData::UniformKey key, const Vector2Int& value);
-
-		/// @brief Sets an int3 uniform.
-		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
-		/// @param scope The scope of the uniform
-		/// @param key The uniform key
-		/// @param value The value
-		void SetInt3(UniformScope scope, ShaderUniformData::UniformKey key, const Vector3Int& value);
-
-		/// @brief Sets an int4 uniform.
-		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
-		/// @param scope The scope of the uniform
-		/// @param key The uniform key
-		/// @param value The value
-		void SetInt4(UniformScope scope, ShaderUniformData::UniformKey key, const Vector4Int& value);
-
-		/// @brief Sets a bool uniform.
-		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly
-		/// @param scope The scope of the uniform
-		/// @param key The uniform key
-		/// @param value The value
-		void SetBool(UniformScope scope, ShaderUniformData::UniformKey key, bool value);
+			UniformChanged(scope, key);
+		}
 
 		/// @brief Sets a TextureSampler uniform.
 		/// NOTE: bind a shader before calling this to make sure instance & draw data get set properly

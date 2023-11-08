@@ -1,8 +1,8 @@
 #include "SceneDataProvider3D.h"
 #include <Coco/Rendering/MeshUtilities.h>
 #include <Coco/Rendering/Gizmos/GizmoRender.h>
-#include <Coco/Rendering/Resources/BuiltInShaders.h>
 #include <Coco/Core/Engine.h>
+#include <Coco/Rendering/RenderService.h>
 
 SceneDataProvider3D::SceneDataProvider3D() :
 	_boxTransform(Vector3(0.0, 4.0, 0.0), Quaternion::Identity, Vector3::One),
@@ -46,9 +46,6 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	_boxMesh->SetVertices(format, vertices);
 	_boxMesh->SetIndices(indices, 0);
 	_boxMesh->Apply();
-	
-	_shader = resourceLibrary.Create<Shader>("Lit Shader", "");
-	_shader->AddVariant(BuiltInShaders::LitVariant);
 
 	ImageSamplerDescription sampler = ImageSamplerDescription::LinearRepeat;
 	sampler.LODBias = -1.0;
@@ -57,11 +54,10 @@ SceneDataProvider3D::SceneDataProvider3D() :
 	_texture = resourceLibrary.Create<Texture>("LargeBlocks", "textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
 	_normalTexture = resourceLibrary.Create<Texture>("LargeBlocks_N", "textures/LargeBlocks_N.png", ImageColorSpace::Linear, ImageUsageFlags::Sampled, sampler);
 
-	_material = resourceLibrary.Create<Material>("Material", _shader);
-	_material->SetShader(_shader);
-	_material->SetFloat4("AlbedoTintColor", Color::White);
-	_material->SetTexture("AlbedoTexture", _texture);
-	_material->SetTexture("NormalTexture", _normalTexture);
+	_material = resourceLibrary.Create<Material>("Material");
+	_material->SetValue("AlbedoTintColor", Color::White);
+	_material->SetValue("AlbedoTexture", _texture);
+	_material->SetValue("NormalTexture", _normalTexture);
 }
 
 void SceneDataProvider3D::SetDrawBounds(bool drawBounds)
@@ -75,8 +71,8 @@ void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
 	_boxTransform.LocalRotation = Quaternion(Vector3(Math::Sin(t), Math::Cos(t * 0.8 + 20.0), Math::Sin(t * 1.2 - 30.0)));
 	_boxTransform.Recalculate();
 
-	renderView.AddRenderObject(0, *_mesh, 0, Matrix4x4::Identity, *_material);
-	renderView.AddRenderObject(0, *_boxMesh, 0, _boxTransform.GlobalTransform, *_material);
+	renderView.AddRenderObject(0, *_mesh, 0, Matrix4x4::Identity, 1, _material.get());
+	renderView.AddRenderObject(0, *_boxMesh, 0, _boxTransform.GlobalTransform, 1, _material.get());
 
 	GizmoRender* gizmo = GizmoRender::Get();
 

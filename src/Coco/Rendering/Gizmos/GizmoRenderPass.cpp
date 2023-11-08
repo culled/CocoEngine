@@ -1,5 +1,6 @@
 #include "Renderpch.h"
 #include "GizmoRenderPass.h"
+#include "GizmoRender.h"
 
 namespace Coco::Rendering
 {
@@ -12,34 +13,33 @@ namespace Coco::Rendering
 
     void GizmoRenderPass::Prepare(RenderContext& context, const RenderView& renderView)
     {
-        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("Projection"), renderView.GetProjectionMatrix());
-        context.SetMatrix4x4(UniformScope::Global, ShaderUniformData::MakeKey("View"), renderView.GetViewMatrix());
+        context.SetValue(UniformScope::Global, ShaderUniformData::MakeKey("Projection"), renderView.GetProjectionMatrix());
+        context.SetValue(UniformScope::Global, ShaderUniformData::MakeKey("View"), renderView.GetViewMatrix());
     }
 
     void GizmoRenderPass::Execute(RenderContext& context, const RenderView& renderView)
     {
         std::vector<uint64> objectIndices = renderView.GetRenderObjectIndices();
-        renderView.FilterWithShaderVariant(objectIndices, sPassName);
+        renderView.FilterWithAllVisibilityGroups(objectIndices, GizmoRender::_sVisibilityGroup);
 
+        context.SetShader(GizmoRender::_sShaderName);
+        
         for (uint64 i : objectIndices)
         {
             const ObjectData& obj = renderView.GetRenderObject(i);
-            const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
             const MeshData& mesh = renderView.GetMeshData(obj.MeshID);
-
-            context.SetMaterial(material, sPassName);
-
-            context.SetMatrix4x4(UniformScope::Draw, ShaderUniformData::MakeKey("Model"), obj.ModelMatrix);
-
+        
+            context.SetValue(UniformScope::Draw, ShaderUniformData::MakeKey("Model"), obj.ModelMatrix);
+        
             if (const Color* color = std::any_cast<Color>(&obj.ExtraData))
             {
-                context.SetFloat4(UniformScope::Draw, ShaderUniformData::MakeKey("Color"), *color);
+                context.SetValue(UniformScope::Draw, ShaderUniformData::MakeKey("Color"), *color);
             }
             else
             {
-                context.SetFloat4(UniformScope::Draw, ShaderUniformData::MakeKey("Color"), Color::Magenta);
+                context.SetValue(UniformScope::Draw, ShaderUniformData::MakeKey("Color"), Color::Magenta);
             }
-
+        
             context.DrawIndexed(mesh, obj.IndexOffset, obj.IndexCount);
         }
     }

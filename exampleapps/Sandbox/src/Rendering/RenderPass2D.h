@@ -1,5 +1,6 @@
 #pragma once
 #include <Coco\Rendering\Pipeline\RenderPass.h>
+#include <Coco/Rendering/Shader.h>
 #include <vector>
 
 using namespace Coco;
@@ -9,6 +10,7 @@ class RenderPass2D :
 	public RenderPass
 {
 private:
+	static SharedRef<Shader> _sShader;
 	std::vector<AttachmentFormat> _attachments;
 
 public:

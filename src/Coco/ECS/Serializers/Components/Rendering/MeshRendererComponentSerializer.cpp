@@ -5,6 +5,7 @@
 #include <Coco/Core/Engine.h>
 
 #include <yaml-cpp/yaml.h>
+#include <Coco/Third Party/yaml-cpp/Converters.h>
 
 namespace Coco::ECS
 {

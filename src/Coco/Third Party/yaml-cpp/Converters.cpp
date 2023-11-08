@@ -2,6 +2,13 @@
 
 namespace YAML
 {
+    Emitter& operator<<(Emitter& out, const Coco::FilePath& v)
+    {
+        out << v.ToString();
+
+        return out;
+    }
+
     Emitter& operator<<(Emitter& out, const Coco::Vector2& v)
     {
         out << YAML::Flow;
@@ -62,6 +69,21 @@ namespace YAML
     {
         out << YAML::Flow;
         out << YAML::BeginSeq << v.R << v.G << v.B << v.A << v.IsLinear << YAML::EndSeq;
+
+        return out;
+    }
+
+    Emitter& operator<<(Emitter& out, const Coco::Matrix4x4& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq;
+        
+        for (int i = 0; i < Coco::Matrix4x4::CellCount; i++)
+        {
+            out << v.Data.at(i);
+        }
+
+        out << YAML::EndSeq;
 
         return out;
     }

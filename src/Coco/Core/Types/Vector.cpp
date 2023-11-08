@@ -14,6 +14,10 @@ namespace Coco
 		Vector2(0, 0)
 	{}
 
+	Vector2::Vector2(std::span<float, 2> data) :
+		Vector2(data[0], data[1])
+	{}
+
 	Vector2::Vector2(double x, double y) :
 		X(x),
 		Y(y)
@@ -84,6 +88,10 @@ namespace Coco
 		Vector2Int(0, 0)
 	{}
 
+	Vector2Int::Vector2Int(std::span<int, 2> data) :
+		Vector2Int(data[0], data[1])
+	{}
+
 	Vector2Int::Vector2Int(int x, int y) : 
 		X(x),
 		Y(y)
@@ -105,6 +113,10 @@ namespace Coco
 
 	Vector3::Vector3() : 
 		Vector3(0, 0, 0)
+	{}
+
+	Vector3::Vector3(std::span<float, 3> data) :
+		Vector3(data[0], data[1], data[2])
 	{}
 
 	Vector3::Vector3(double x, double y, double z) :
@@ -195,6 +207,10 @@ namespace Coco
 		Vector3Int(0, 0, 0)
 	{}
 
+	Vector3Int::Vector3Int(std::span<int, 3> data) :
+		Vector3Int(data[0], data[1], data[2])
+	{}
+
 	Vector3Int::Vector3Int(int x, int y, int z) :
 		X(x),
 		Y(y),
@@ -211,6 +227,10 @@ namespace Coco
 
 	Vector4::Vector4() : 
 		Vector4(0, 0, 0, 0)
+	{}
+
+	Vector4::Vector4(std::span<float, 4> data) :
+		Vector4(data[0], data[1], data[2], data[3])
 	{}
 
 	Vector4::Vector4(double x, double y, double z, double w) :
@@ -263,6 +283,10 @@ namespace Coco
 
 	Vector4Int::Vector4Int() :
 		Vector4Int(0, 0, 0, 0)
+	{}
+
+	Vector4Int::Vector4Int(std::span<int, 4> data) :
+		Vector4Int(data[0], data[1], data[2], data[3])
 	{}
 
 	Vector4Int::Vector4Int(int x, int y, int z, int w) :

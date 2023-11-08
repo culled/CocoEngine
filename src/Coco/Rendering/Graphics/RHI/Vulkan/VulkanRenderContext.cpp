@@ -8,6 +8,7 @@
 #include "CachedResources/VulkanRenderPass.h"
 #include "CachedResources/VulkanPipeline.h"
 #include "CachedResources/VulkanRenderContextCache.h"
+#include "CachedResources/VulkanShader.h"
 #include "VulkanBuffer.h"
 
 #include <Coco/Core/Math/Random.h>
@@ -15,8 +16,8 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	BoundGlobalState::BoundGlobalState(uint64 shaderID) :
-		ShaderID(shaderID),
+	BoundGlobalState::BoundGlobalState(const string& shaderName) :
+		ShaderName(shaderName),
 		Pipeline(nullptr),
 		DescriptorSet(nullptr)
 	{}
@@ -152,26 +153,14 @@ namespace Coco::Rendering::Vulkan
 		vkCmdSetScissor(_commandBuffer->GetCmdBuffer(), 0, 1, &scissor);
 	}
 
-	void VulkanRenderContext::SetShader(const ShaderData& shader, const string& variantName)
+	void VulkanRenderContext::SetShader(const string& shaderName)
 	{
 		Assert(_vulkanRenderOperation.has_value())
-
-		uint64 variantID = RenderView::InvalidID;
-
-		if (shader.Variants.contains(variantName))
-		{
-			const ShaderVariantData& variantData = _renderView->GetShaderVariantData(shader.Variants.at(variantName));
-			variantID = variantData.ID;
-		}
-		else
-		{
-			CocoError("Shader {} does not contain a variant called {}", shader.ID, variantName)
-		}
-
-		if (_vulkanRenderOperation->GlobalState.has_value() && _vulkanRenderOperation->GlobalState->ShaderID == variantID)
+		if (_vulkanRenderOperation->GlobalState.has_value() && 
+			_vulkanRenderOperation->GlobalState->ShaderName == shaderName)
 			return;
 
-		_vulkanRenderOperation->GlobalState.emplace(variantID);
+		_vulkanRenderOperation->GlobalState.emplace(shaderName);
 
 		// Clear shader-specific uniforms
 		_instanceUniforms.Clear();
@@ -183,16 +172,12 @@ namespace Coco::Rendering::Vulkan
 		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Shader);
 	}
 
-	void VulkanRenderContext::SetMaterial(const MaterialData& material, const string& shaderVariantName)
+	void VulkanRenderContext::SetMaterial(const MaterialData& material)
 	{
 		Assert(_vulkanRenderOperation.has_value())
 
 		if (_vulkanRenderOperation->InstanceState.has_value() && _vulkanRenderOperation->InstanceState->InstanceID == material.ID)
 			return;
-
-		const ShaderData& shader = _renderView->GetShaderData(material.ShaderID);
-
-		SetShader(shader, shaderVariantName);
 
 		_instanceUniforms = material.UniformData;
 
@@ -254,9 +239,10 @@ namespace Coco::Rendering::Vulkan
 	{
 		Assert(_vulkanRenderOperation.has_value())
 		Assert(_vulkanRenderOperation->GlobalState.has_value())
-		Assert(_vulkanRenderOperation->GlobalState->ShaderID != RenderView::InvalidID)
+		Assert(!_vulkanRenderOperation->GlobalState->ShaderName.empty())
 
-		VulkanShaderUniformData& uniformData = GetUniformDataForBoundShader(nullptr);
+		VulkanShader& shader = GetBoundShader();
+		VulkanShaderUniformData& uniformData = GetUniformDataForShader(shader);
 
 		uniformData.SetBufferUniformData(key, offset, data, dataSize);
 
@@ -496,13 +482,13 @@ namespace Coco::Rendering::Vulkan
 			if (!_vulkanRenderOperation->GlobalState.has_value())
 			{
 				CocoError("No global state was bound")
-				_vulkanRenderOperation->GlobalState.emplace(RenderView::InvalidID);
+				_vulkanRenderOperation->GlobalState.emplace(RenderService::sErrorShaderName);
 			}
 
 			BoundGlobalState& globalState = _vulkanRenderOperation->GlobalState.value();
 
-			VulkanShaderVariant* shader = nullptr;
-			VulkanShaderUniformData& uniformData = GetUniformDataForBoundShader(&shader);
+			VulkanShader& shader = GetBoundShader();
+			VulkanShaderUniformData& uniformData = GetUniformDataForShader(shader);
 
 			VkCommandBuffer cmdBuffer = _commandBuffer->GetCmdBuffer();
 
@@ -512,7 +498,7 @@ namespace Coco::Rendering::Vulkan
 				globalState.Pipeline = &_deviceCache.GetOrCreatePipeline(
 					_vulkanRenderOperation->RenderPass,
 					_renderOperation->CurrentPassIndex,
-					*shader,
+					shader,
 					_globalDescriptorSet.first
 				);
 
@@ -530,7 +516,7 @@ namespace Coco::Rendering::Vulkan
 						0, 0);
 				}
 
-				if (shader->HasScope(UniformScope::ShaderGlobal))
+				if (shader.HasScope(UniformScope::ShaderGlobal))
 				{
 					globalState.DescriptorSet = uniformData.PrepareGlobalData(_globalShaderUniforms);
 
@@ -550,7 +536,7 @@ namespace Coco::Rendering::Vulkan
 			Assert(globalState.Pipeline != nullptr)
 
 			// Bind the instance descriptors if the instance changed or the shader needs instance data
-			if (shader->HasScope(UniformScope::Instance) &&
+			if (shader.HasScope(UniformScope::Instance) &&
 				(_vulkanRenderOperation->StateChanges.contains(VulkanContextRenderOperation::StateChangeType::Instance) || !_vulkanRenderOperation->InstanceState.has_value()))
 			{
 				if (!_vulkanRenderOperation->InstanceState.has_value())
@@ -560,7 +546,7 @@ namespace Coco::Rendering::Vulkan
 
 				BoundInstanceState& instanceState = _vulkanRenderOperation->InstanceState.value();
 
-				instanceState.DescriptorSet = uniformData.PrepareInstanceData(*shader, instanceState.InstanceID, _instanceUniforms, instanceState.InstanceID != 0);
+				instanceState.DescriptorSet = uniformData.PrepareInstanceData(shader, instanceState.InstanceID, _instanceUniforms, instanceState.InstanceID != 0);
 
 				Assert(instanceState.DescriptorSet != nullptr)
 
@@ -575,9 +561,9 @@ namespace Coco::Rendering::Vulkan
 			}
 
 			// Bind the draw descriptors if a draw uniform changed or the shader needs draw data
-			if (shader->HasScope(UniformScope::Draw))
+			if (shader.HasScope(UniformScope::Draw))
 			{
-				VkDescriptorSet drawSet = uniformData.PrepareDrawData(*shader, *_commandBuffer, *globalState.Pipeline, _drawUniforms);
+				VkDescriptorSet drawSet = uniformData.PrepareDrawData(shader, *_commandBuffer, *globalState.Pipeline, _drawUniforms);
 
 				if (drawSet)
 				{
@@ -602,20 +588,28 @@ namespace Coco::Rendering::Vulkan
 		return stateBound;
 	}
 
-	VulkanShaderUniformData& VulkanRenderContext::GetUniformDataForBoundShader(VulkanShaderVariant** outShader)
+	VulkanShader& VulkanRenderContext::GetBoundShader()
 	{
 		Assert(_vulkanRenderOperation.has_value())
 		Assert(_vulkanRenderOperation->GlobalState.has_value())
 
-		const ShaderVariantData& boundShaderData = _renderView->GetShaderVariantData(_vulkanRenderOperation->GlobalState->ShaderID);
-		VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
+		auto& resources = Engine::Get()->GetResourceLibrary();
+
+		SharedRef<Shader> shader;
+		if (!resources.TryFind(_vulkanRenderOperation->GlobalState->ShaderName, shader))
+		{
+			shader = RenderService::Get()->GetErrorShader();
+		}
+
+		Assert(shader)
 
 		VulkanShaderCache& shaderCache = static_cast<VulkanShaderCache&>(_device.GetShaderCache());
-		VulkanShaderVariant& shader = shaderCache.GetOrCreateShader(boundShaderData);
+		return shaderCache.GetOrCreateShader(shader);
+	}
 
-		if (outShader)
-			*outShader = &shader;
-
+	VulkanShaderUniformData& VulkanRenderContext::GetUniformDataForShader(const VulkanShader& shader)
+	{
+		VulkanRenderContextCache& cache = _deviceCache.GetOrCreateContextCache(ID);
 		return cache.GetOrCreateShaderUniformData(shader);
 	}
 }

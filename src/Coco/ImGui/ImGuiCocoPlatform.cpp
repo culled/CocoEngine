@@ -53,9 +53,8 @@ namespace Coco::ImGuiCoco
     std::unordered_map<uint64, CocoViewportData> ImGuiCocoPlatform::_sViewports;
     const GlobalShaderUniformLayout ImGuiCocoPlatform::_sGlobalUniformLayout = GlobalShaderUniformLayout(
         {
-            ShaderDataUniform("ProjectionMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+            ShaderUniform("ProjectionMatrix", ShaderUniformType::Mat4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity)
         },
-        {},
         {}
     );
 
@@ -102,7 +101,6 @@ namespace Coco::ImGuiCoco
 
         _renderPipeline.reset();
         _renderPass.reset();
-        _shader.reset();
         _viewportMeshes.clear();
     }
 
@@ -220,7 +218,8 @@ namespace Coco::ImGuiCoco
                         cmd.ElemCount,
                         Matrix4x4::Identity,
                         mesh->GetBounds(),
-                        _shader.get(),
+                        ImGuiRenderPass::_sVisibilityGroup,
+                        nullptr,
                         &scissorRect,
                         ShaderUniformData::ToTextureSampler(tex->GetImage(), tex->GetImageSampler())
                     );
@@ -536,36 +535,6 @@ namespace Coco::ImGuiCoco
         _renderPipeline = resources.Create<Rendering::RenderPipeline>("ImGui Pipeline");
         std::array<uint8, 1> bindings = { 0 };
         _renderPipeline->AddRenderPass(_renderPass, bindings);
-
-        // Setup ImGui shader
-        GraphicsPipelineState pipelineState{};
-        pipelineState.WindingMode = TriangleWindingMode::CounterClockwise;
-        pipelineState.CullingMode = CullMode::None;
-        pipelineState.DepthTestingMode = DepthTestingMode::Never;
-        pipelineState.EnableDepthWrite = false;
-        _shader = resources.Create<Shader>("ImGui", ImGuiRenderPass::sPassName);
-        _shader->AddVariant(
-            ShaderVariant(
-                ImGuiRenderPass::sPassName,
-                {
-                    ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/ImGui.vert.glsl"),
-                    ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/ImGui.frag.glsl")
-                },
-                pipelineState,
-                {
-                    BlendState::AlphaBlending
-                },
-                VertexDataFormat(VertexAttrFlags::Color | VertexAttrFlags::UV0),
-                GlobalShaderUniformLayout(),
-                ShaderUniformLayout(),
-                ShaderUniformLayout(
-                    {},
-                    {
-                        ShaderTextureUniform("Texture", ShaderStageFlags::Fragment, ShaderTextureUniform::DefaultTextureType::Checker)
-                    }
-                )
-            )
-        );
     }
 
     void ImGuiCocoPlatform::UpdateDisplays()

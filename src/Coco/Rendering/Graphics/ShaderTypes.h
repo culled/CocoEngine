@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Types/String.h>
+#include <Coco/Core/IO/FileTypes.h>
 #include "BufferTypes.h"
 #include "ShaderUniformData.h"
 
@@ -62,13 +63,13 @@ namespace Coco::Rendering
 		ShaderStageType Type;
 
 		/// @brief The source file for the stage
-		string SourceFilePath;
+		FilePath SourceFilePath;
 
 		/// @brief The compiled shader file path
-		string CompiledFilePath;
+		FilePath CompiledFilePath;
 
-		ShaderStage(const string& entryPointName, ShaderStageType type, const string& filePath);
-		ShaderStage(const string& entryPointName, ShaderStageType type, const string& filePath, const string& compiledFilePath);
+		ShaderStage(const string& entryPointName, ShaderStageType type, const FilePath& filePath);
+		ShaderStage(const string& entryPointName, ShaderStageType type, const FilePath& filePath, const FilePath& compiledFilePath);
 
 		bool operator==(const ShaderStage& other) const;
 	};

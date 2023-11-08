@@ -42,26 +42,18 @@ namespace Coco::ECS
 
 				auto it = renderer.Materials.find(kvp.first);
 
+				const MaterialDataProvider* material = nullptr;
 				if (it != renderer.Materials.end() && it->second)
-				{
-					renderView.AddRenderObject(
-						e.GetID(),
-						*renderer.Mesh,
-						kvp.first,
-						transform.Transform.GlobalTransform,
-						*(it->second),
-						&b);
-				}
-				else
-				{
-					renderView.AddRenderObject(
-						e.GetID(),
-						*renderer.Mesh,
-						kvp.first,
-						transform.Transform.GlobalTransform,
-						nullptr,
-						&b);
-				}
+					material = it->second.get();
+
+				renderView.AddRenderObject(
+					e.GetID(),
+					*renderer.Mesh,
+					kvp.first,
+					transform.Transform.GlobalTransform,
+					renderer.VisibilityGroups,
+					material,
+					&b);
 			}
 		}
 	}

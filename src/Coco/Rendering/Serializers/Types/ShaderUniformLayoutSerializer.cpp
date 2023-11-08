@@ -1,5 +1,6 @@
 #include "Renderpch.h"
 #include "ShaderUniformLayoutSerializer.h"
+#include "ShaderUniformDataSerializer.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -7,28 +8,33 @@ namespace Coco::Rendering
 {
 	void ShaderUniformLayoutSerialization::SerializeLayout(YAML::Emitter& emitter, const ShaderUniformLayout& layout)
 	{
-		emitter << YAML::Key << "data uniforms" << YAML::Value << YAML::BeginSeq;
+		emitter << YAML::Key << "uniforms" << YAML::Value << YAML::BeginSeq;
 
-		for (const ShaderDataUniform& u : layout.DataUniforms)
+		for (const ShaderUniform& u : layout.Uniforms)
 		{
 			emitter << YAML::BeginMap;
 
-			SerializeBaseUniform(emitter, u);
+			emitter << YAML::Key << "name" << YAML::Value << u.Name;
 			emitter << YAML::Key << "type" << YAML::Value << static_cast<int>(u.Type);
+			emitter << YAML::Key << "binding points" << YAML::Value << static_cast<int>(u.BindingPoints);
+			emitter << YAML::Key << "default" << YAML::Value;
 
-			emitter << YAML::EndMap;
-		}
-
-		emitter << YAML::EndSeq;
-
-		emitter << YAML::Key << "texture uniforms" << YAML::Value << YAML::BeginSeq;
-
-		for (const ShaderTextureUniform& u : layout.TextureUniforms)
-		{
-			emitter << YAML::BeginMap;
-
-			SerializeBaseUniform(emitter, u);
-			emitter << YAML::Key << "default" << YAML::Value << static_cast<int>(u.DefaultTexture);
+			if (IsDataShaderUniformType(u.Type))
+			{
+				ShaderUniformUnion defaultValue = layout.GetDefaultDataUniformValue(u);
+				ShaderUniformDataSerializer::SerializeUniformUnion(emitter, defaultValue);
+			}
+			else
+			{
+				if (const DefaultTextureType* defaultTexture = std::any_cast<DefaultTextureType>(&u.DefaultValue))
+				{
+					emitter << static_cast<int>(*defaultTexture);
+				}
+				else
+				{
+					emitter << "error";
+				}
+			}
 
 			emitter << YAML::EndMap;
 		}
@@ -46,7 +52,8 @@ namespace Coco::Rendering
 		{
 			emitter << YAML::BeginMap;
 
-			SerializeBaseUniform(emitter, u);
+			emitter << YAML::Key << "name" << YAML::Value << u.Name;
+			emitter << YAML::Key << "binding points" << YAML::Value << static_cast<int>(u.BindingPoints);
 			emitter << YAML::Key << "size" << YAML::Value << static_cast<int>(u.Size);
 
 			emitter << YAML::EndMap;
@@ -55,69 +62,88 @@ namespace Coco::Rendering
 		emitter << YAML::EndSeq;
 	}
 
-	ShaderUniformLayout ShaderUniformLayoutSerialization::DeserializeLayout(const YAML::Node& baseNode)
+	void ShaderUniformLayoutSerialization::DeserializeLayout(const YAML::Node& baseNode, ShaderUniformLayout& outLayout)
 	{
-		std::vector<ShaderDataUniform> dataUniforms;
-		std::vector<ShaderTextureUniform> textureUniforms;
+		YAML::Node dataUniformsNode = baseNode["uniforms"];
 
-		DeserializeBaseUniformData(baseNode, dataUniforms, textureUniforms);
+		for (YAML::const_iterator it = dataUniformsNode.begin(); it != dataUniformsNode.end(); ++it)
+		{
+			std::any defaultValue;
+			ShaderUniformType type = static_cast<ShaderUniformType>((*it)["type"].as<int>());
 
-		return ShaderUniformLayout(dataUniforms, textureUniforms);
+			YAML::Node defaultNode = (*it)["default"];
+
+			if (IsDataShaderUniformType(type))
+			{
+				ShaderUniformUnion u;
+				ShaderUniformDataSerializer::DeserializeUniformUnion(defaultNode, u);
+
+				switch (type)
+				{
+				case ShaderUniformType::Bool:
+					defaultValue = u.As<bool>();
+					break;
+				case ShaderUniformType::Float:
+					defaultValue = u.As<float>();
+					break;
+				case ShaderUniformType::Float2:
+					defaultValue = u.As<Vector2>();
+					break;
+				case ShaderUniformType::Float3:
+					defaultValue = u.As<Vector3>();
+					break;
+				case ShaderUniformType::Float4:
+					defaultValue = u.As<Vector4>();
+					break;
+				case ShaderUniformType::Color:
+					defaultValue = u.As<Color>();
+					break;
+				case ShaderUniformType::Mat4x4:
+					defaultValue = u.As<Matrix4x4>();
+					break;
+				case ShaderUniformType::Int:
+					defaultValue = u.As<int>();
+					break;
+				case ShaderUniformType::Int2:
+					defaultValue = u.As<Vector2Int>();
+					break;
+				case ShaderUniformType::Int3:
+					defaultValue = u.As<Vector3Int>();
+					break;
+				case ShaderUniformType::Int4:
+					defaultValue = u.As<Vector4Int>();
+					break;
+				default:
+					Assert(false)
+					break;
+				}
+			}
+			else
+			{
+				defaultValue = static_cast<DefaultTextureType>(defaultNode.as<int>());
+			}
+
+			outLayout.Uniforms.emplace_back(
+				(*it)["name"].as<string>(),
+				type,
+				static_cast<ShaderStageFlags>((*it)["binding points"].as<int>()),
+				defaultValue
+			);
+		}
 	}
 
-	GlobalShaderUniformLayout ShaderUniformLayoutSerialization::DeserializeGlobalLayout(const YAML::Node& baseNode)
+	void ShaderUniformLayoutSerialization::DeserializeGlobalLayout(const YAML::Node& baseNode, GlobalShaderUniformLayout& outLayout)
 	{
-		std::vector<ShaderDataUniform> dataUniforms;
-		std::vector<ShaderTextureUniform> textureUniforms;
-
-		DeserializeBaseUniformData(baseNode, dataUniforms, textureUniforms);
-
-		std::vector<ShaderBufferUniform> bufferUniforms;
+		DeserializeLayout(baseNode, outLayout);
 
 		YAML::Node bufferUniformsNode = baseNode["buffer uniforms"];
 
 		for (YAML::const_iterator it = bufferUniformsNode.begin(); it != bufferUniformsNode.end(); ++it)
 		{
-			bufferUniforms.emplace_back(
+			outLayout.BufferUniforms.emplace_back(
 				(*it)["name"].as<string>(),
 				static_cast<ShaderStageFlags>((*it)["binding points"].as<int>()),
 				(*it)["size"].as<uint64>()
-			);
-		}
-
-		return GlobalShaderUniformLayout(dataUniforms, textureUniforms, bufferUniforms);
-	}
-
-	void ShaderUniformLayoutSerialization::SerializeBaseUniform(YAML::Emitter& emitter, const ShaderUniform& uniform)
-	{
-		emitter << YAML::Key << "name" << YAML::Value << uniform.Name;
-		emitter << YAML::Key << "binding points" << YAML::Value << static_cast<int>(uniform.BindingPoints);
-	}
-
-	void ShaderUniformLayoutSerialization::DeserializeBaseUniformData(
-		const YAML::Node& baseNode, 
-		std::vector<ShaderDataUniform>& outDataUniforms, 
-		std::vector<ShaderTextureUniform>& outTextureUniforms)
-	{
-		YAML::Node dataUniformsNode = baseNode["data uniforms"];
-
-		for (YAML::const_iterator it = dataUniformsNode.begin(); it != dataUniformsNode.end(); ++it)
-		{
-			outDataUniforms.emplace_back(
-				(*it)["name"].as<string>(),
-				static_cast<ShaderStageFlags>((*it)["binding points"].as<int>()),
-				static_cast<BufferDataType>((*it)["type"].as<int>())
-			);
-		}
-
-		YAML::Node textureUniformsNode = baseNode["texture uniforms"];
-
-		for (YAML::const_iterator it = textureUniformsNode.begin(); it != textureUniformsNode.end(); ++it)
-		{
-			outTextureUniforms.emplace_back(
-				(*it)["name"].as<string>(),
-				static_cast<ShaderStageFlags>((*it)["binding points"].as<int>()),
-				static_cast<ShaderTextureUniform::DefaultTextureType>((*it)["default"].as<int>())
 			);
 		}
 	}

@@ -21,7 +21,7 @@ namespace Coco
 		_resources.clear();
 	}
 
-	bool ResourceLibrary::GetOrLoad(const string& contentPath, bool forceReload, SharedRef<Resource>& outResource)
+	bool ResourceLibrary::GetOrLoad(const FilePath& contentPath, bool forceReload, SharedRef<Resource>& outResource)
 	{
 		bool resourceLoaded = false;
 
@@ -39,7 +39,7 @@ namespace Coco
 
 		if (!efs.FileExists(contentPath))
 		{
-			CocoError("File at \"{}\" does not exist", contentPath)
+			CocoError("File at \"{}\" does not exist", contentPath.ToString())
 			return false;
 		}
 
@@ -48,7 +48,7 @@ namespace Coco
 
 		if (!serializer)
 		{
-			CocoError("No serializers support deserializing the file at \"{}\"", contentPath)
+			CocoError("No serializers support deserializing the file at \"{}\"", contentPath.ToString())
 			return false;
 		}
 
@@ -62,6 +62,8 @@ namespace Coco
 		SharedRef<Resource> newResource = serializer->Deserialize(resourceType, id, data);
 		newResource->_contentPath = contentPath;
 
+		CocoInfo("Loaded \"{}\"", contentPath.ToString())
+
 		if (resourceLoaded)
 			Remove(outResource->_id);
 
@@ -71,13 +73,13 @@ namespace Coco
 		return true;
 	}
 
-	bool ResourceLibrary::Save(const string& contentPath, SharedRef<Resource> resource, bool overwrite)
+	bool ResourceLibrary::Save(const FilePath& contentPath, SharedRef<Resource> resource, bool overwrite)
 	{
 		EngineFileSystem& efs = Engine::Get()->GetFileSystem();
 
 		if (!overwrite && efs.FileExists(contentPath))
 		{
-			CocoError("Cannot overwrite existing file at \"{}\"", contentPath)
+			CocoError("Cannot overwrite existing file at \"{}\"", contentPath.ToString())
 			return false;
 		}
 
@@ -86,7 +88,7 @@ namespace Coco
 
 		if (!serializer)
 		{
-			CocoError("No serializers support serializing the file at \"{}\"", contentPath)
+			CocoError("No serializers support serializing the file at \"{}\"", contentPath.ToString())
 			return false;
 		}
 
@@ -104,7 +106,7 @@ namespace Coco
 		}
 		catch (const std::exception& ex)
 		{
-			CocoError("Error saving \"{}\": {}", contentPath, ex.what())
+			CocoError("Error saving \"{}\": {}", contentPath.ToString(), ex.what())
 			return false;
 		}
 	}
@@ -122,10 +124,9 @@ namespace Coco
 		return it->get();
 	}
 
-	ResourceSerializer* ResourceLibrary::GetSerializerForFileType(const string& contentPath, std::type_index& outType)
+	ResourceSerializer* ResourceLibrary::GetSerializerForFileType(const FilePath& contentPath, std::type_index& outType)
 	{
-		FilePath fp(contentPath);
-		string extension = fp.GetExtension();
+		string extension = contentPath.GetExtension();
 
 		auto it = std::find_if(_serializers.begin(), _serializers.end(), [extension](const UniqueRef<ResourceSerializer>& serializer)
 			{
@@ -140,7 +141,7 @@ namespace Coco
 		return serializer;
 	}
 
-	ResourceLibrary::ResourceMap::iterator ResourceLibrary::FindResource(const string& contentPath)
+	ResourceLibrary::ResourceMap::iterator ResourceLibrary::FindResource(const FilePath& contentPath)
 	{
 		return std::find_if(_resources.begin(), _resources.end(), [contentPath](const auto& kvp)
 			{

@@ -75,6 +75,7 @@ namespace Coco
 		Matrix4x4();
 		Matrix4x4(bool isIdentity);
 		Matrix4x4(const DataType& data);
+		Matrix4x4(std::span<float, 16> data);
 		Matrix4x4(const Matrix4x4& other);
 		Matrix4x4(Matrix4x4&& other);
 

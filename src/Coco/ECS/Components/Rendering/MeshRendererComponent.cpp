@@ -4,10 +4,18 @@
 namespace Coco::ECS
 {
 	MeshRendererComponent::MeshRendererComponent() :
-		MeshRendererComponent(nullptr, std::unordered_map<uint32, SharedRef<MaterialDataProvider>>())
+		MeshRendererComponent(nullptr, std::unordered_map<uint32, SharedRef<MaterialDataProvider>>(), 1)
 	{}
 
 	MeshRendererComponent::MeshRendererComponent(SharedRef<Rendering::Mesh> mesh, const std::unordered_map<uint32, SharedRef<MaterialDataProvider>>& materials) :
+		MeshRendererComponent(mesh, materials, 1)
+	{}
+
+	MeshRendererComponent::MeshRendererComponent(
+		SharedRef<Rendering::Mesh> mesh, 
+		const std::unordered_map<uint32, SharedRef<MaterialDataProvider>>& materials, 
+		uint64 visibilityGroups) :
+		VisibilityGroups(visibilityGroups),
 		Mesh(mesh),
 		Materials(materials)
 	{}

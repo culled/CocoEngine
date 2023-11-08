@@ -43,11 +43,15 @@ namespace Coco::Rendering
 		public Singleton<GizmoRender>,
 		public SceneDataProvider
 	{
+		friend class GizmoRenderPass;
+
 	public:
 		static const int sLateTickPriority;
 
 	private:
 		static const VertexDataFormat _sVertexFormat;
+		static const uint64 _sVisibilityGroup;
+		static const string _sShaderName;
 
 		ManagedRef<TickListener> _lateTickListener;
 
@@ -57,8 +61,6 @@ namespace Coco::Rendering
 		std::pair<uint64, uint64> _sphereIndexInfo;
 
 		SharedRef<Mesh> _mesh;
-		SharedRef<Shader> _shader;
-		SharedRef<Material> _material;
 
 	public:
 		GizmoRender();

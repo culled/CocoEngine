@@ -1,6 +1,6 @@
 #pragma once
 #include "CachedVulkanResource.h"
-#include "../../../ShaderVariant.h"
+#include "../../../../Shader.h"
 #include "../../../RenderViewTypes.h"
 #include "../VulkanDescriptorSetLayout.h"
 #include "../VulkanIncludes.h"
@@ -21,32 +21,29 @@ namespace Coco::Rendering::Vulkan
 		VulkanShaderStage(const ShaderStage& stage);
 	};
 
-	/// @brief A Vulkan shader for a specific render pass
-	class VulkanShaderVariant : 
+	/// @brief A Vulkan shader
+	class VulkanShader : 
 		public CachedVulkanResource
 	{
 	private:
 		uint64 _version;
+		SharedRef<Shader> _shader;
 		std::vector<VulkanShaderStage> _stages;
-		ShaderVariant _variant;
 		std::unordered_map<UniformScope, VulkanDescriptorSetLayout> _layouts;
 
 	public:
-		VulkanShaderVariant(const ShaderVariantData& variantData);
-		~VulkanShaderVariant();
+		VulkanShader(const SharedRef<Shader>& shader);
+		~VulkanShader();
 
-		/// @brief Creates a key from the given shader info
-		/// @param variantData The shader variant data
-		/// @return The key
-		static GraphicsDeviceResourceID MakeKey(const ShaderVariantData& variantData);
+		static GraphicsDeviceResourceID MakeKey(const SharedRef<Shader>& shader);
+
+		/// @brief Gets the base shader that this shader is based on
+		/// @return The shader that this shader is based on
+		SharedRef<Shader> GetBaseShader() const { return _shader; }
 
 		/// @brief Gets this shader's version
 		/// @return The version
 		uint64 GetVersion() const { return _version; }
-
-		/// @brief Gets the variant that was used to create this shader
-		/// @return The shader variant
-		const ShaderVariant& GetVariant() const { return _variant; }
 
 		/// @brief Gets all descriptor set layouts for this shader
 		/// @return This shader's descriptor set layouts
@@ -71,13 +68,11 @@ namespace Coco::Rendering::Vulkan
 		std::span<const VulkanShaderStage> GetStages() const { return _stages; }
 
 		/// @brief Determines if this shader needs to be updated
-		/// @param variantData The shader variant
 		/// @return True if this shader should be updated
-		bool NeedsUpdate(const ShaderVariantData& variantData) const;
+		bool NeedsUpdate() const;
 
-		/// @brief Updates this shader from the given shader variant
-		/// @param variantData The shader variant
-		void Update(const ShaderVariantData& variantData);
+		/// @brief Updates this shader from the given shader data
+		void Update();
 
 	private:
 		/// @brief Creates all shader objects
@@ -94,9 +89,10 @@ namespace Coco::Rendering::Vulkan
 		/// @param stage The stage
 		void DestroyShaderStage(const VulkanShaderStage& stage);
 
-		/// @brief Creates a descriptor set layout for a uniform scope
-		/// @param scope The uniform scope
-		void CreateLayout(UniformScope scope);
+		/// @brief Creates a descriptor set layout
+		/// @param layout The uniform layout
+		/// @param scope The scope of the layout
+		void CreateLayout(const ShaderUniformLayout& layout, UniformScope scope);
 
 		/// @brief Destroys the descriptor set layout for a uniform scope
 		/// @param scope The uniform scope

@@ -66,22 +66,8 @@ namespace Coco::Rendering
 		Bounds(bounds)
 	{}
 
-	ShaderVariantData::ShaderVariantData(uint64 id, uint64 version, const ShaderVariant& variant) :
+	MaterialData::MaterialData(uint64 id, const ShaderUniformData& uniformData) :
 		ID(id),
-		Version(version),
-		Variant(variant)
-	{}
-
-	ShaderData::ShaderData(uint64 id, uint64 version, const string& groupTag, const std::unordered_map<string, uint64>& passShaders) :
-		ID(id),
-		Version(version),
-		GroupTag(groupTag),
-		Variants(passShaders)
-	{}
-
-	MaterialData::MaterialData(uint64 id, uint64 shaderID, const ShaderUniformData& uniformData) :
-		ID(id),
-		ShaderID(shaderID),
 		UniformData(uniformData)
 	{}
 
@@ -93,7 +79,7 @@ namespace Coco::Rendering
 		uint64 indexOffset,
 		uint64 indexCount,
 		uint64 materialID,
-		uint64 shaderID,
+		uint64 visibilityGroups,
 		const RectInt& scissorRect,
 		const BoundingBox& bounds,
 		std::any extraData) :
@@ -104,7 +90,7 @@ namespace Coco::Rendering
 		IndexOffset(indexOffset),
 		IndexCount(indexCount),
 		MaterialID(materialID),
-		ShaderID(shaderID),
+		VisibilityGroups(visibilityGroups),
 		ScissorRect(scissorRect),
 		Bounds(bounds),
 		ExtraData(extraData)

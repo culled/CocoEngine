@@ -12,6 +12,11 @@ namespace Coco::Rendering
 		AdditionalAttributes(additionalAttributes)
 	{}
 
+	bool VertexDataFormat::operator==(const VertexDataFormat & other) const
+	{
+		return AdditionalAttributes == other.AdditionalAttributes;
+	}
+
 	uint64 VertexDataFormat::GetDataSize(uint64 vertexCount) const
 	{
 		uint64 size = GetBufferDataTypeSize(BufferDataType::Float3) + GetAdditionalAttrStride(); // Position + additional data

@@ -3,7 +3,7 @@
 #include "../../../../RenderService.h"
 #include "../../../../Texture.h"
 #include "VulkanGlobalUniformData.h"
-#include "VulkanShaderVariant.h"
+#include "VulkanShader.h"
 #include "../VulkanGraphicsDevice.h"
 #include "../VulkanBuffer.h"
 #include "../VulkanCommandBuffer.h"
@@ -37,7 +37,7 @@ namespace Coco::Rendering::Vulkan
 		LastAllocateTime(0.0)
 	{}
 
-	VulkanShaderUniformData::VulkanShaderUniformData(const VulkanShaderVariant& shader) :
+	VulkanShaderUniformData::VulkanShaderUniformData(const VulkanShader& shader) :
 		CachedVulkanResource(MakeKey(shader)),
 		_version(Math::MaxValue<uint64>()),
 		_uniformBuffers{},
@@ -59,17 +59,17 @@ namespace Coco::Rendering::Vulkan
 		_uniformBuffers.clear();
 	}
 
-	GraphicsDeviceResourceID VulkanShaderUniformData::MakeKey(const VulkanShaderVariant& shader)
+	GraphicsDeviceResourceID VulkanShaderUniformData::MakeKey(const VulkanShader& shader)
 	{
 		return shader.ID;
 	}
 
-	bool VulkanShaderUniformData::NeedsUpdate(const VulkanShaderVariant& shader) const
+	bool VulkanShaderUniformData::NeedsUpdate(const VulkanShader& shader) const
 	{
 		return _version != shader.GetVersion();
 	}
 
-	void VulkanShaderUniformData::Update(const VulkanShaderVariant& shader)
+	void VulkanShaderUniformData::Update(const VulkanShader& shader)
 	{
 		_globalUniformData.reset();
 		DestroyDescriptorPools();
@@ -77,7 +77,7 @@ namespace Coco::Rendering::Vulkan
 
 		if (shader.HasScope(UniformScope::ShaderGlobal))
 		{
-			_globalUniformData.emplace(shader.GetVariant().GlobalUniforms, &shader.GetDescriptorSetLayout(UniformScope::ShaderGlobal));
+			_globalUniformData.emplace(shader.GetBaseShader()->GetGlobalUniformLayout(), &shader.GetDescriptorSetLayout(UniformScope::ShaderGlobal));
 		}
 
 		uint64 dataSize = 0;
@@ -125,7 +125,7 @@ namespace Coco::Rendering::Vulkan
 		return _globalUniformData->PrepareData(uniformData);
 	}
 
-	VkDescriptorSet VulkanShaderUniformData::PrepareInstanceData(const VulkanShaderVariant& shader, uint64 instanceID, const ShaderUniformData& uniformData, bool preserve)
+	VkDescriptorSet VulkanShaderUniformData::PrepareInstanceData(const VulkanShader& shader, uint64 instanceID, const ShaderUniformData& uniformData, bool preserve)
 	{
 		auto it = _instanceSets.find(instanceID);
 
@@ -144,7 +144,7 @@ namespace Coco::Rendering::Vulkan
 			needsUpdate = true;
 		}
 
-		const ShaderUniformLayout& instanceLayout = shader.GetVariant().InstanceUniforms;
+		const ShaderUniformLayout& instanceLayout = shader.GetBaseShader()->GetInstanceUniformLayout();
 		AllocatedUniformData& data = uniformIt->second;
 		uint64 dataSize = instanceLayout.GetUniformDataSize(_device);
 
@@ -189,7 +189,7 @@ namespace Coco::Rendering::Vulkan
 	}
 
 	VkDescriptorSet VulkanShaderUniformData::PrepareDrawData(
-		const VulkanShaderVariant& shader, 
+		const VulkanShader& shader, 
 		VulkanCommandBuffer& commandBuffer, 
 		const VulkanPipeline& pipeline, 
 		const ShaderUniformData& uniformData)
@@ -197,16 +197,19 @@ namespace Coco::Rendering::Vulkan
 		if (!shader.HasScope(UniformScope::Draw))
 			return nullptr;
 
-		const ShaderVariant& variant = shader.GetVariant();
+		const auto& drawUniforms = shader.GetBaseShader()->GetDrawUniformLayout();
 
-		if (variant.DrawUniforms.DataUniforms.size() > 0)
+		if (drawUniforms.HasDataUniforms())
 		{
 			_uniformDataBuffer.clear();
-			variant.DrawUniforms.GetBufferFriendlyData(_device, uniformData, _uniformDataBuffer);
+			drawUniforms.GetBufferFriendlyData(_device, uniformData, _uniformDataBuffer);
 			VkShaderStageFlags stageFlags = VK_SHADER_STAGE_ALL;
 
-			for (const ShaderDataUniform& u : variant.DrawUniforms.DataUniforms)
+			for (const ShaderUniform& u : drawUniforms.Uniforms)
 			{
+				if (!IsDataShaderUniformType(u.Type))
+					continue;
+
 				VkShaderStageFlags uniformStage = ToVkShaderStageFlags(u.BindingPoints);
 
 				stageFlags = Math::Min(stageFlags, uniformStage);
@@ -216,12 +219,12 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		// Don't bind a descriptor set for draw uniforms if we don't have draw textures
-		if (variant.DrawUniforms.TextureUniforms.size() == 0)
+		if (!drawUniforms.HasTextureUniforms())
 			return nullptr;
 
 		const VulkanDescriptorSetLayout& setLayout = shader.GetDescriptorSetLayout(UniformScope::Draw);
 		VkDescriptorSet set = AllocateDescriptorSet(setLayout);
-		if (!UpdateDescriptorSet(variant.DrawUniforms, setLayout, uniformData, nullptr, set))
+		if (!UpdateDescriptorSet(drawUniforms, setLayout, uniformData, nullptr, set))
 		{
 			return nullptr;
 		}
@@ -365,17 +368,19 @@ namespace Coco::Rendering::Vulkan
 		VkDescriptorSet& set)
 	{
 		std::vector<VkWriteDescriptorSet> descriptorWrites = setLayout.WriteTemplates;
-		std::vector<VkDescriptorImageInfo> imageInfos(layout.TextureUniforms.size());
-		bool hasUniforms = layout.DataUniforms.size() > 0 && data != nullptr;
+		std::vector<VkDescriptorImageInfo> imageInfos;
+		imageInfos.reserve(descriptorWrites.size());
 
-		std::vector<VkDescriptorBufferInfo> bufferInfos(hasUniforms ? 1 : 0);
+		bool hasUniforms = layout.HasDataUniforms() && data != nullptr;
+
+		std::vector<VkDescriptorBufferInfo> bufferInfos;
 		uint32 bufferIndex = 0;
 		uint32 bindingIndex = 0;
 
 		// Write buffer binding if we need it
 		if (hasUniforms)
 		{
-			VkDescriptorBufferInfo& bufferInfo = bufferInfos.at(bufferIndex);
+			VkDescriptorBufferInfo& bufferInfo = bufferInfos.emplace_back();
 			bufferInfo.buffer = data->Buffer->Buffer->GetBuffer();
 			bufferInfo.offset = data->AllocatedBlock.Offset;
 			bufferInfo.range = data->AllocatedBlock.Size;
@@ -389,14 +394,15 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		// Write texture bindings
-		for (uint32_t i = 0; i < layout.TextureUniforms.size(); i++)
+		for (const ShaderUniform& uniform : layout.Uniforms)
 		{
-			const ShaderTextureUniform& textureSampler = layout.TextureUniforms.at(i);
+			if (uniform.Type != ShaderUniformType::Texture)
+				continue;
 
 			Ref<Image> image;
 			Ref<ImageSampler> sampler;
 
-			auto it = uniformData.Textures.find(textureSampler.Key);
+			auto it = uniformData.Textures.find(uniform.Key);
 
 			if (it != uniformData.Textures.end())
 			{
@@ -411,15 +417,20 @@ namespace Coco::Rendering::Vulkan
 				const RenderService& rendering = *RenderService::Get();
 				SharedRef<Texture> defaultTexture;
 
-				switch (textureSampler.DefaultTexture)
+				DefaultTextureType textureType = DefaultTextureType::Checkered;
+
+				if (const DefaultTextureType* t = std::any_cast<DefaultTextureType>(&uniform.DefaultValue))
+					textureType = *t;
+
+				switch (textureType)
 				{
-				case ShaderTextureUniform::DefaultTextureType::White:
+				case DefaultTextureType::White:
 					defaultTexture = rendering.GetDefaultDiffuseTexture();
 					break;
-				case ShaderTextureUniform::DefaultTextureType::Normal:
+				case DefaultTextureType::FlatNormal:
 					defaultTexture = rendering.GetDefaultNormalTexture();
 					break;
-				case ShaderTextureUniform::DefaultTextureType::Checker:
+				case DefaultTextureType::Checkered:
 				default:
 					defaultTexture = rendering.GetDefaultCheckerTexture();
 					break;
@@ -431,7 +442,7 @@ namespace Coco::Rendering::Vulkan
 
 			if (!image.IsValid() || !sampler.IsValid())
 			{
-				CocoError("The image or sampler reference for \"{}\" is empty", textureSampler.Name);
+				CocoError("The image or sampler reference for \"{}\" is empty", uniform.Name);
 				return false;
 			}
 
@@ -439,7 +450,7 @@ namespace Coco::Rendering::Vulkan
 			VulkanImageSampler* vulkanSampler = static_cast<VulkanImageSampler*>(sampler.Get());
 
 			// Texture data
-			VkDescriptorImageInfo& imageInfo = imageInfos.at(i);
+			VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			imageInfo.imageView = vulkanImage->GetNativeView();
 			imageInfo.sampler = vulkanSampler->GetSampler();

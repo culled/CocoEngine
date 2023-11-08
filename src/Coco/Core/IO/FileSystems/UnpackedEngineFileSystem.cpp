@@ -11,17 +11,17 @@ namespace Coco
 		CocoTrace("Initialized UnpackedEngineFileSystem with content path at \"{}\"", contentBasePath.ToString())
 	}
 
-	File UnpackedEngineFileSystem::OpenFile(const string& contentPath, FileOpenFlags openFlags)
+	File UnpackedEngineFileSystem::OpenFile(const FilePath& contentPath, FileOpenFlags openFlags)
 	{
 		return File(GetFullFilePath(contentPath), openFlags);
 	}
 
-	bool UnpackedEngineFileSystem::FileExists(const string& contentPath) const
+	bool UnpackedEngineFileSystem::FileExists(const FilePath& contentPath) const
 	{
 		return File::Exists(GetFullFilePath(contentPath));
 	}
 
-	File UnpackedEngineFileSystem::CreateFile(const string& contentPath, FileOpenFlags openFlags)
+	File UnpackedEngineFileSystem::CreateFile(const FilePath& contentPath, FileOpenFlags openFlags)
 	{
 		FilePath fullPath = GetFullFilePath(contentPath);
 		FilePath directory = fullPath.GetParentDirectory();
@@ -31,11 +31,11 @@ namespace Coco
 		return File(fullPath, openFlags);
 	}
 
-	FilePath UnpackedEngineFileSystem::GetFullFilePath(const string& contentPath) const
+	FilePath UnpackedEngineFileSystem::GetFullFilePath(const FilePath& contentPath) const
 	{
-		if (FilePath::IsRelativePath(contentPath))
-			return FilePath::CombineToPath(_contentBasePath, contentPath);
+		if (contentPath.IsRelative())
+			return _contentBasePath / contentPath;
 		else
-			return FilePath(contentPath);
+			return contentPath;
 	}
 }

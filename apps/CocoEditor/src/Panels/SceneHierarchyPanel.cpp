@@ -143,12 +143,16 @@ namespace Coco
 		Entity child;
 		Assert(_scene->TryGetEntity(id, child))
 
-		Transform3DComponent& transformComp = child.GetComponent<Transform3DComponent>();
-		Transform3D& transform = transformComp.Transform;
+		Transform3DComponent* transformComp = nullptr;
+		Transform3D* transform = nullptr;
 		Vector3 p, s;
 		Quaternion r;
 
-		transform.GetGlobalTransform(p, r, s);
+		if (child.TryGetComponent(transformComp))
+		{
+			transform = &transformComp->Transform;
+			transform->GetGlobalTransform(p, r, s);
+		}
 
 		if (parent == Entity::Null)
 		{
@@ -165,8 +169,11 @@ namespace Coco
 			}
 		}
 
-		transform.LocalPosition = p;
-		transform.LocalRotation = r;
-		transform.LocalScale = s;
+		if (transform)
+		{
+			transform->LocalPosition = p;
+			transform->LocalRotation = r;
+			transform->LocalScale = s;
+		}
 	}
 }

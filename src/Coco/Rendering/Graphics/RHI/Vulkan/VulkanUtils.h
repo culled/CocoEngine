@@ -7,7 +7,7 @@
 #include "../../BufferTypes.h"
 #include "../../ImageTypes.h"
 #include "../../ImageSamplerTypes.h"
-#include "../../ShaderVariant.h"
+#include "../../ShaderTypes.h"
 #include "../../GraphicsPresenterTypes.h"
 #include "VulkanIncludes.h"
 

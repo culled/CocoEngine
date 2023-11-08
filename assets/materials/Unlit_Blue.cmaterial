@@ -1,5 +1,0 @@
-name: Unlit Blue
-shader path: shaders/built-in/Unlit.cshader
-uniforms:
-  float4s:
-    1257004672949495411: [0, 0, 1, 1]  # Fix

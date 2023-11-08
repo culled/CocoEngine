@@ -1,6 +1,7 @@
 #pragma once
 #include <Coco\Rendering\Pipeline\RenderPass.h>
 #include <Coco/Rendering/Graphics/BufferDataLayout.h>
+#include <Coco/Rendering/Shader.h>
 #include <vector>
 
 using namespace Coco;
@@ -13,6 +14,7 @@ public:
 	static const BufferDataLayout sLightingBufferLayout;
 
 private:
+	static SharedRef<Shader> _sShader;
 	std::vector<AttachmentFormat> _attachments;
 
 public:

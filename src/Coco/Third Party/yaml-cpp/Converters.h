@@ -1,12 +1,37 @@
 #pragma once
 
+#include <Coco/Core/IO/FileTypes.h>
 #include <Coco/Core/Types/Vector.h>
 #include <Coco/Core/Types/Quaternion.h>
 #include <Coco/Core/Types/Color.h>
+#include <Coco/Core/Types/Matrix.h>
 #include <yaml-cpp/yaml.h>
 
 namespace YAML
 {
+	Emitter& operator<<(Emitter& out, const Coco::FilePath& v);
+
+	template<>
+	struct convert<Coco::FilePath>
+	{
+		static Node encode(const Coco::FilePath& v)
+		{
+			Node node;
+			node.push_back(v.ToString());
+			return node;
+		}
+
+		static bool decode(const Node& node, Coco::FilePath& v)
+		{
+			if (!node.IsScalar())
+				return false;
+
+			v = Coco::FilePath(node.as<Coco::string>());
+
+			return true;
+		}
+	};
+
 	Emitter& operator<<(Emitter& out, const Coco::Vector2& v);
 
 	template<>
@@ -224,6 +249,37 @@ namespace YAML
 			v.B = node[2].as<double>();
 			v.A = node[3].as<double>();
 			v.IsLinear = node[4].as<bool>();
+
+			return true;
+		}
+	};
+
+	Emitter& operator<<(Emitter& out, const Coco::Matrix4x4& v);
+
+	template<>
+	struct convert<Coco::Matrix4x4>
+	{
+		static Node encode(const Coco::Matrix4x4& v)
+		{
+			Node node;
+
+			for (int i = 0; i < Coco::Matrix4x4::CellCount; i++)
+			{
+				node.push_back(v.Data.at(i));
+			}
+
+			return node;
+		}
+
+		static bool decode(const Node& node, Coco::Matrix4x4& v)
+		{
+			if (!node.IsSequence() || node.size() != Coco::Matrix4x4::CellCount)
+				return false;
+
+			for (int i = 0; i < Coco::Matrix4x4::CellCount; i++)
+			{
+				v.Data.at(i) = node.as<double>();
+			}
 
 			return true;
 		}

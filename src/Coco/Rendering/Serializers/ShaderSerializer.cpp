@@ -192,21 +192,21 @@ namespace Coco::Rendering
 
 		if (baseNode["global layout"])
 		{
-			globalLayout = ShaderUniformLayoutSerialization::DeserializeGlobalLayout(baseNode["global layout"]);
+			ShaderUniformLayoutSerialization::DeserializeGlobalLayout(baseNode["global layout"], globalLayout);
 		}
 
 		ShaderUniformLayout instanceLayout{};
 
 		if (baseNode["instance layout"])
 		{
-			instanceLayout = ShaderUniformLayoutSerialization::DeserializeLayout(baseNode["instance layout"]);
+			ShaderUniformLayoutSerialization::DeserializeLayout(baseNode["instance layout"], instanceLayout);
 		}
 
 		ShaderUniformLayout drawLayout{};
 
 		if (baseNode["draw layout"])
 		{
-			drawLayout = ShaderUniformLayoutSerialization::DeserializeLayout(baseNode["draw layout"]);
+			ShaderUniformLayoutSerialization::DeserializeLayout(baseNode["draw layout"], drawLayout);
 		}
 
 		return ShaderVariant(

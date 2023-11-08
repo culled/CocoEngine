@@ -35,6 +35,9 @@ namespace Coco::Rendering
 		/// @brief The tick priority for the RenderService's late tick
 		static constexpr int sLateTickPriority = 10000;
 
+		/// @brief Gets the name of the error shader
+		static const string sErrorShaderName;
+
 		Event<uint32> OnMaxFramesInFlightChanged;
 
 	private:
@@ -86,7 +89,7 @@ namespace Coco::Rendering
 		/// @brief Gets the default checker texture. Useful if a texture should definitely not be missing
 		/// @return The default checker texture
 		SharedRef<Texture> GetDefaultCheckerTexture() const { return _defaultCheckerTexture; }
-		
+
 		/// @brief Gets the error shader
 		/// @return The error shader
 		SharedRef<Shader> GetErrorShader() const { return _errorShader; }

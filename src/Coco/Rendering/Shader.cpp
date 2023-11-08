@@ -1,43 +1,93 @@
 #include "Renderpch.h"
 #include "Shader.h"
 
+#include <Coco/Core/Math/Math.h>
+
 namespace Coco::Rendering
 {
-	Shader::Shader(const ResourceID& id, const string& name, const string& groupTag) :
-		RendererResource(id, name),
-		_groupTag(groupTag),
-		_variants{}
+	std::hash<string> _sStringHasher;
+
+	Shader::Shader(const ResourceID& id, const string& name) :
+		Shader(id, name, {}, GraphicsPipelineState(), {}, VertexDataFormat(), GlobalShaderUniformLayout(), ShaderUniformLayout(), ShaderUniformLayout())
 	{}
 
-	Shader::~Shader()
+	Shader::Shader(const ResourceID& id, const string& name, const SharedRef<Shader>& shader) :
+		Shader(
+			id, 
+			name, 
+			shader->_stages, 
+			shader->_pipelineState, 
+			shader->_attachmentBlendStates, 
+			shader->_vertexFormat, 
+			shader->_globalUniforms, 
+			shader->_instanceUniforms, 
+			shader->_drawUniforms)
+	{}
+
+	Shader::Shader(
+		const ResourceID& id,
+		const string& name,
+		const std::vector<ShaderStage>& stages,
+		const GraphicsPipelineState& pipelineState,
+		const std::vector<BlendState>& attachmentBlendStates,
+		const VertexDataFormat& vertexFormat,
+		const GlobalShaderUniformLayout& globalUniforms,
+		const ShaderUniformLayout& instanceUniforms,
+		const ShaderUniformLayout& drawUniforms) :
+		RendererResource(id, name),
+		_stages(stages),
+		_pipelineState(pipelineState),
+		_attachmentBlendStates(attachmentBlendStates),
+		_vertexFormat(vertexFormat),
+		_globalUniforms(globalUniforms),
+		_instanceUniforms(instanceUniforms),
+		_drawUniforms(drawUniforms)
+	{}
+
+	void Shader::SetPipelineState(const GraphicsPipelineState& pipelineState)
 	{
-		_variants.clear();
+		_pipelineState = pipelineState;
+
+		IncrementVersion();
 	}
 
-	void Shader::SetGroupTag(const char* groupTag)
+	void Shader::SetAttachmentBlendStates(std::span<const BlendState> blendStates)
 	{
-		_groupTag = groupTag;
+		_attachmentBlendStates = std::vector<BlendState>(blendStates.begin(), blendStates.end());
+
+		IncrementVersion();
 	}
 
-	void Shader::AddVariant(ShaderVariant&& variant)
+	void Shader::SetVertexDataFormat(const VertexDataFormat& format)
 	{
-		_variants.emplace_back(std::forward<ShaderVariant>(variant));
+		_vertexFormat = format;
+
+		IncrementVersion();
 	}
 
-	void Shader::AddVariant(const ShaderVariant& variant)
+	void Shader::SetGlobalUniformLayout(const GlobalShaderUniformLayout& layout)
 	{
-		_variants.push_back(variant);
+		_globalUniforms = layout;
+
+		IncrementVersion();
 	}
 
-	bool Shader::TryGetShaderVariant(const char* variantName, const ShaderVariant*& outShaderVariant) const
+	void Shader::SetInstanceUniformLayout(const ShaderUniformLayout& layout)
 	{
-		auto it = std::find_if(_variants.begin(), _variants.end(), [variantName](const ShaderVariant& variant) { return variant.Name == variantName; });
+		_instanceUniforms = layout;
 
-		if (it == _variants.end())
-			return false;
+		IncrementVersion();
+	}
 
-		outShaderVariant = &(*it);
+	void Shader::SetDrawUniformLayout(const ShaderUniformLayout& layout)
+	{
+		_drawUniforms = layout;
 
-		return true;
+		IncrementVersion();
+	}
+
+	void Shader::IncrementVersion()
+	{
+		SetVersion(GetVersion() + 1);
 	}
 }

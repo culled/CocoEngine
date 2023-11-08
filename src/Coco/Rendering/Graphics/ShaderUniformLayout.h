@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ShaderUniformTypes.h"
+#include "ShaderUniformData.h"
 
 namespace Coco::Rendering
 {
@@ -16,35 +17,29 @@ namespace Coco::Rendering
 		/// @brief The hash of this layout's content (auto-calculated after calling CalculateHash())
 		uint64 Hash;
 
-		/// @brief The data uniforms
-		std::vector<ShaderDataUniform> DataUniforms;
-
-		/// @brief The texture uniforms
-		std::vector<ShaderTextureUniform> TextureUniforms;
+		/// @brief The uniforms
+		std::vector<ShaderUniform> Uniforms;
 
 		ShaderUniformLayout();
-		ShaderUniformLayout(
-			const std::vector<ShaderDataUniform>& dataUniforms, 
-			const std::vector<ShaderTextureUniform>& textureUniforms);
+		ShaderUniformLayout(const std::vector<ShaderUniform>& uniforms);
 
 		virtual ~ShaderUniformLayout() = default;
 
 		bool operator==(const ShaderUniformLayout& other) const;
 
+		/// @brief Gets the default value for a uniform
+		/// @param uniform The uniform
+		/// @return The default value for the uniform
+		static ShaderUniformUnion GetDefaultDataUniformValue(const ShaderUniform& uniform);
+
 		/// @brief Calculates this layout's hash from its currently set values
 		virtual void CalculateHash();
 		
-		/// @brief Gets the binding points for all uniforms
-		/// @return The binding points for all uniforms
-		virtual ShaderStageFlags GetAllBindStages() const;
-
-		/// @brief Gets the binding points for data uniforms
-		/// @return The binding points for data uniforms
-		ShaderStageFlags GetDataUniformBindStages() const;
-
-		/// @brief Gets the binding points for texture uniforms
-		/// @return The binding points for texture uniforms
-		ShaderStageFlags GetTextureUniformBindStages() const;
+		/// @brief Gets the binding points for data or texture uniforms
+		/// @param dataUniforms If true, the binding points for the data uniforms will be returned
+		/// @param textureUniforms If true, the binding points for the data uniforms will be returned
+		/// @return The binding points for data or texture uniforms
+		ShaderStageFlags GetUniformBindStages(bool dataUniforms, bool textureUniforms) const;
 
 		/// @brief Gets the size of the data uniforms
 		/// @param device The device to calculate the size for
@@ -56,6 +51,14 @@ namespace Coco::Rendering
 		/// @param data The uniform data
 		/// @param outBufferData Will be filled with the buffer-friendly data
 		void GetBufferFriendlyData(const GraphicsDevice& device, const ShaderUniformData& data, std::vector<uint8>& outBufferData) const;
+
+		/// @brief Determines if this layout has data uniforms
+		/// @return True if this layout has data uniforms
+		bool HasDataUniforms() const;
+
+		/// @brief Determines if this layout has texture uniforms
+		/// @return True if this layout has texture uniforms
+		bool HasTextureUniforms() const;
 	};
 
 	/// @brief Represents a global layout of shader uniforms
@@ -67,14 +70,12 @@ namespace Coco::Rendering
 
 		GlobalShaderUniformLayout();
 		GlobalShaderUniformLayout(
-			const std::vector<ShaderDataUniform>& dataUniforms,
-			const std::vector<ShaderTextureUniform>& textureUniforms,
+			const std::vector<ShaderUniform>& uniforms,
 			const std::vector<ShaderBufferUniform>& bufferUniforms);
 
 		bool operator==(const GlobalShaderUniformLayout& other) const;
 
 		void CalculateHash() final;
-		ShaderStageFlags GetAllBindStages() const final;
 
 		/// @brief Gets the binding points for buffer uniforms
 		/// @return The binding points for buffer uniforms

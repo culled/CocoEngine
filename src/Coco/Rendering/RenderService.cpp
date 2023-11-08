@@ -6,7 +6,7 @@
 #include "Gizmos/GizmoRender.h"
 #include "Graphics/RenderView.h"
 
-#include "Serializers/ShaderSerializer.h"
+//#include "Serializers/ShaderSerializer.h"
 #include "Serializers/TextureSerializer.h"
 #include "Serializers/MaterialSerializer.h"
 #include "Serializers/MeshSerializer.h"
@@ -15,6 +15,8 @@
 
 namespace Coco::Rendering
 {
+	const string RenderService::sErrorShaderName = "error";
+
 	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory, bool includeGizmoRendering) :
 		_earlyTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleEarlyTick, sEarlyTickPriority)),
 		_lateTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
@@ -46,7 +48,7 @@ namespace Coco::Rendering
 
 		// Add resource serializers
 		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
-		resources.CreateSerializer<ShaderSerializer>();
+		//resources.CreateSerializer<ShaderSerializer>();
 		resources.CreateSerializer<TextureSerializer>();
 		resources.CreateSerializer<MaterialSerializer>();
 		resources.CreateSerializer<MeshSerializer>();
@@ -278,16 +280,20 @@ namespace Coco::Rendering
 			for (uint64 y = 0; y < size; y++)
 			{
 				const uint64 baseIndex = ((x * size) + y) * channels;
-				pixelData[baseIndex + 0] = 255;
-				pixelData[baseIndex + 1] = 255;
-				pixelData[baseIndex + 2] = 255;
+				pixelData[baseIndex + 0] = (x % 2) ? 255 : 0;
+				pixelData[baseIndex + 1] = (y % 2) ? 255 : 0;
+				pixelData[baseIndex + 2] = ((x + y) % 2) ? 255 : 0;
 				pixelData[baseIndex + 3] = 255;
-
-				if (((x % 2) && (y % 2)) || !(y % 2))
-				{
-					pixelData[baseIndex + 1] = 0; // Green = 0
-					pixelData[baseIndex + 2] = 0; // Red = 0
-				}
+				//pixelData[baseIndex + 0] = 255;
+				//pixelData[baseIndex + 1] = 255;
+				//pixelData[baseIndex + 2] = 255;
+				//pixelData[baseIndex + 3] = 255;
+				//
+				//if (((x % 2) && (y % 2)) || !(y % 2))
+				//{
+				//	pixelData[baseIndex + 1] = 0; // Green = 0
+				//	pixelData[baseIndex + 2] = 0; // Red = 0
+				//}
 			}
 		}
 
@@ -298,27 +304,23 @@ namespace Coco::Rendering
 
 	void RenderService::CreateErrorShader()
 	{
-		_errorShader = Engine::Get()->GetResourceLibrary().Create<Shader>("Error Shader", "error");
-		_errorShader->AddVariant(
-			ShaderVariant(
-				"error",
+		_errorShader = Engine::Get()->GetResourceLibrary().Create<Shader>(
+			sErrorShaderName,
+			std::vector<ShaderStage>({
+				ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Error.vert.glsl"),
+				ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Error.frag.glsl")
+			}),
+			GraphicsPipelineState(),
+			std::vector<BlendState>({
+				BlendState::Opaque
+			}),
+			VertexDataFormat(),
+			GlobalShaderUniformLayout(),
+			ShaderUniformLayout(),
+			ShaderUniformLayout(
 				{
-					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Error.vert.glsl"),
-					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Error.frag.glsl")
-				},
-				GraphicsPipelineState(),
-				{
-					BlendState::Opaque
-				},
-				VertexDataFormat(),
-				GlobalShaderUniformLayout(),
-				ShaderUniformLayout(),
-				ShaderUniformLayout(
-					{
-						ShaderDataUniform("ModelMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
-					},
-					{}
-				)
+					ShaderUniform("ModelMatrix", ShaderUniformType::Mat4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity)
+				}
 			)
 		);
 	}

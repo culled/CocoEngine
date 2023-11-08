@@ -315,7 +315,8 @@ namespace Coco
 	};
 
 	/// @brief A library that holds Resources
-	class ResourceLibrary : public SharedResourceLibrary<ResourceID, Resource, ResourceIDGenerator>
+	class ResourceLibrary : 
+		public SharedResourceLibrary<ResourceID, Resource, ResourceIDGenerator>
 	{
 	private:
 		std::vector<UniqueRef<ResourceSerializer>> _serializers;
@@ -338,7 +339,7 @@ namespace Coco
 		/// @param forceReload If true, the resource will be reloaded from disk
 		/// @param outResource Will be set to the loaded resource if successful
 		/// @return True if the resource was loaded/retrieved
-		bool GetOrLoad(const string& contentPath, bool forceReload, SharedRef<Resource>& outResource);
+		bool GetOrLoad(const FilePath& contentPath, bool forceReload, SharedRef<Resource>& outResource);
 
 		/// @brief Gets/loads a resource at the given content path. Returns nothing if the resource could not be loaded as the specified type
 		/// @tparam ResourceType The type of resource that should be returned
@@ -346,7 +347,7 @@ namespace Coco
 		/// @param forceReload If true, the resource will be reloaded from disk
 		/// @return The resource, or a null resource if the resource couldn't be loaded
 		template<typename ResourceType>
-		SharedRef<ResourceType> GetOrLoad(const string& contentPath, bool forceReload = false)
+		SharedRef<ResourceType> GetOrLoad(const FilePath& contentPath, bool forceReload = false)
 		{
 			SharedRef<Resource> tempResource;
 			GetOrLoad(contentPath, forceReload, tempResource);
@@ -364,7 +365,30 @@ namespace Coco
 		/// @param resource The resource to save
 		/// @param overwrite If true, any file at the content path will be overwritten. If false, saving will fail if a file already exists
 		/// @return True if the resource was saved
-		bool Save(const string& contentPath, SharedRef<Resource> resource, bool overwrite);
+		bool Save(const FilePath& contentPath, SharedRef<Resource> resource, bool overwrite);
+
+		/// @brief Attempts to find a resource of the given type by name
+		/// @tparam ResourceType The type of resource
+		/// @param resourceName The name of the resource
+		/// @param outResource Will be set to the resource if found
+		/// @return True if a resource matching the name and type was found
+		template<typename ResourceType>
+		bool TryFind(const string& resourceName, SharedRef<ResourceType>& outResource) const
+		{
+			ResourceMap::const_iterator it = std::find_if(_resources.begin(), _resources.end(), 
+				[resourceName](const auto& kvp)
+				{
+					const SharedRef<Resource>& r = kvp.second;
+					return r->_name == resourceName && r->GetType() == typeid(ResourceType);
+				}
+			);
+
+			if (it == _resources.end())
+				return false;
+
+			outResource = std::static_pointer_cast<ResourceType>(it->second);
+			return true;
+		}
 
 	private:
 		/// @brief Gets a ResourceSerializer that supports the given resource type
@@ -376,11 +400,11 @@ namespace Coco
 		/// @param contentPath The path to the file
 		/// @param outType Will be set to the resource type if a serializer was found
 		/// @return A resource serializer, or nullptr if no serializer supports the file type
-		ResourceSerializer* GetSerializerForFileType(const string& contentPath, std::type_index& outType);
+		ResourceSerializer* GetSerializerForFileType(const FilePath& contentPath, std::type_index& outType);
 
 		/// @brief Finds a resource with the given content path
 		/// @param contentPath The content path
 		/// @return An iterator to the resource if found, or an iterator at the end of the resource map if not found
-		ResourceMap::iterator FindResource(const string& contentPath);
+		ResourceMap::iterator FindResource(const FilePath& contentPath);
 	};
 }

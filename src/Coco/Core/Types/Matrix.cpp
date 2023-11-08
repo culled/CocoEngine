@@ -35,6 +35,13 @@ namespace Coco
 		Data{data}
 	{}
 
+	Matrix4x4::Matrix4x4(std::span<float, 16> data) :
+		Data{0.f}
+	{
+		for (int i = 0; i < CellCount; i++)
+			Data.at(i) = data[i];
+	}
+
 	Matrix4x4::Matrix4x4(const Matrix4x4& other) :
 		Data{other.Data}
 	{}

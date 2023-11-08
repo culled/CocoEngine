@@ -1,8 +1,8 @@
 #pragma once
 #include <Coco/Rendering/Providers/SceneDataProvider.h>
 #include <Coco/Core/Types/Transform.h>
-#include <Coco/Rendering/Shader.h>
 #include <Coco/Rendering/Material.h>
+#include <Coco/Rendering/Shader.h>
 #include <Coco/Rendering/Mesh.h>
 #include <Coco/Rendering/Texture.h>
 
@@ -16,7 +16,6 @@ private:
     Transform2D _transform;
 
     SharedRef<Mesh> _mesh;
-    SharedRef<Shader> _shader;
     SharedRef<Texture> _texture;
     SharedRef<Material> _material;
 

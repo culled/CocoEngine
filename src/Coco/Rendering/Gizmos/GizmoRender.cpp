@@ -6,6 +6,7 @@
 #include "../Material.h"
 #include "../MeshUtilities.h"
 #include "GizmoRenderPass.h"
+#include "../RenderService.h"
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering
@@ -19,6 +20,8 @@ namespace Coco::Rendering
 
 	const int GizmoRender::sLateTickPriority = 999;
 	const VertexDataFormat GizmoRender::_sVertexFormat = VertexDataFormat();
+	const uint64 GizmoRender::_sVisibilityGroup = static_cast<uint64>(1) << 63;
+	const string GizmoRender::_sShaderName = "Gizmo";
 
 	GizmoRender::GizmoRender() :
 		_drawCalls(),
@@ -26,40 +29,33 @@ namespace Coco::Rendering
 	{
 		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
 
-		_shader = resources.Create<Shader>("DebugShader", GizmoRenderPass::sPassName);
-
 		GraphicsPipelineState pipelineState;
 		pipelineState.TopologyMode = TopologyMode::Lines;
 		pipelineState.CullingMode = CullMode::None;
 		pipelineState.EnableDepthWrite = false;
 
-		_shader->AddVariant(
-			ShaderVariant(
-				GizmoRenderPass::sPassName,
+		resources.Create<Shader>(
+			_sShaderName,
+			std::vector<ShaderStage>({
+				ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Debug.vert.glsl"),
+				ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Debug.frag.glsl")
+			}),
+			pipelineState,
+			std::vector<BlendState>({
+				BlendState::Opaque
+			}),
+			VertexDataFormat(),
+			GlobalShaderUniformLayout(),
+			ShaderUniformLayout(),
+			ShaderUniformLayout(
 				{
-					ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Debug.vert.glsl"),
-					ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Debug.frag.glsl")
-				},
-				pipelineState,
-				{
-					BlendState::Opaque
-				},
-				VertexDataFormat(),
-				GlobalShaderUniformLayout(),
-				ShaderUniformLayout(),
-				ShaderUniformLayout(
-					{
-						ShaderDataUniform("Model", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
-						ShaderDataUniform("Color", ShaderStageFlags::Vertex, BufferDataType::Float4)
-					},
-					{}
-				)
+					ShaderUniform("Model", ShaderUniformType::Mat4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity),
+					ShaderUniform("Color", ShaderUniformType::Float4, ShaderStageFlags::Vertex, Color::White)
+				}
 			)
 		);
 
-		_material = resources.Create<Material>("Debug", _shader);
-
-		_mesh = resources.Create<Mesh>("DebugMesh", false, false);
+		_mesh = resources.Create<Mesh>("Gizmo", false, false);
 
 		SetupMesh();
 
@@ -71,8 +67,6 @@ namespace Coco::Rendering
 		MainLoop::Get()->RemoveListener(_lateTickListener);
 
 		_mesh.reset();
-		_shader.reset();
-		_material.reset();
 	}
 
 	void GizmoRender::GatherSceneData(RenderView& renderView)
@@ -86,7 +80,8 @@ namespace Coco::Rendering
 				dc.IndexCount,
 				dc.Transform,
 				BoundingBox::Zero,
-				*_material,
+				_sVisibilityGroup,
+				nullptr,
 				nullptr,
 				dc.Color);
 		}

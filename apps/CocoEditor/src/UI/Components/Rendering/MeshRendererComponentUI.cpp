@@ -5,6 +5,8 @@
 #include <Coco/Rendering/Material.h>
 
 #include <Coco/Rendering/Gizmos/GizmoRender.h>
+#include "../../MaterialUI.h"
+#include "../../UIUtils.h"
 
 #include <Coco/Core/Engine.h>
 #include <imgui.h>
@@ -14,48 +16,65 @@ using namespace Coco::Rendering;
 
 namespace Coco
 {
+	MeshRendererComponentUI::MeshRendererComponentUI()
+	{
+		for (int i = 0; i < _flagTexts.size(); i++)
+		{
+			_flagTexts.at(i) = FormatString("Group {}", i);
+		}
+	}
+
 	void MeshRendererComponentUI::DrawPropertiesImpl(ECS::Entity& entity)
 	{
 		MeshRendererComponent& renderer = entity.GetComponent<MeshRendererComponent>();
 
-		//ImGui::Text("Mesh: %s", renderer.Mesh ? renderer.Mesh->GetContentPath().c_str() : "");
-		string meshText = renderer.Mesh ? FormatString("Mesh: {}", renderer.Mesh->GetContentPath()) : "Mesh";
-		ImGui::Button(meshText.c_str());
+		string visibilityPreview = GetVisibilityFlagText(renderer.VisibilityGroups, 2);
 
-		auto& resources = Engine::Get()->GetResourceLibrary();
-
-		if (ImGui::BeginDragDropTarget())
+		if (ImGui::BeginCombo("Visibility Groups", visibilityPreview.c_str()))
 		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(".cmesh"))
+			for (int i = 0; i < _flagTexts.size(); i++)
 			{
-				string meshPath(static_cast<const char*>(payload->Data), payload->DataSize);
-				renderer.Mesh = resources.GetOrLoad<Mesh>(meshPath);
-				renderer.EnsureMaterialSlots();
+				const string& label = _flagTexts.at(i);
+				uint64 flag = static_cast<uint64>(1) << i;
+				bool selected = (renderer.VisibilityGroups & flag) != 0;
+
+				if (ImGui::Selectable(label.c_str(), &selected))
+				{
+					if (selected)
+					{
+						renderer.VisibilityGroups |= flag;
+					}
+					else
+					{
+						renderer.VisibilityGroups &= ~flag;
+					}
+				}
 			}
 
-			ImGui::EndDragDropTarget();
+			ImGui::EndCombo();
+		}
+
+		if (UIUtils::DrawResourcePicker(".cmesh", "Mesh", renderer.Mesh))
+		{
+			renderer.EnsureMaterialSlots();
 		}
 
 		for (auto& it : renderer.Materials)
 		{
-			SharedRef<Resource> materialResource = std::dynamic_pointer_cast<Resource>(it.second);
-
-			//ImGui::Text("Material %i: %s", it.first, materialResource ? materialResource->GetContentPath().c_str() : "");
-			string t = materialResource ? FormatString("Material {}: {}", it.first, materialResource->GetContentPath()) : FormatString("Material {}", it.first);
-
 			ImGui::PushID(it.first);
 
-			ImGui::Button(t.c_str());
+			SharedRef<Material> materialResource = std::dynamic_pointer_cast<Material>(it.second);
+			string t = FormatString("Material {}", it.first);
+			UIUtils::DrawResourcePicker(".cmaterial", t.c_str(), materialResource);
 
-			if (ImGui::BeginDragDropTarget())
+			if (materialResource)
 			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(".cmaterial"))
+				if (ImGui::CollapsingHeader("Properties"))
 				{
-					string materialPath(static_cast<const char*>(payload->Data), payload->DataSize);
-					it.second = resources.GetOrLoad<Material>(materialPath);
+					MaterialUI::Draw(*materialResource);
 				}
 
-				ImGui::EndDragDropTarget();
+				it.second = materialResource;
 			}
 
 			ImGui::PopID();
@@ -82,5 +101,36 @@ namespace Coco
 		}
 
 		gizmo->DrawWireBounds(renderer.Mesh->GetBounds(), modelMatrix, Color::White);
+	}
+
+	string MeshRendererComponentUI::GetVisibilityFlagText(uint64 flags, int maxFlags)
+	{
+		string v;
+		int added = 0;
+
+		for (int i = 0; i < _flagTexts.size(); i++)
+		{
+			if ((flags & static_cast<uint64>(1) << i) != 0)
+			{
+				if (added < maxFlags)
+				{
+					if (added > 0)
+						v += ", ";
+
+					v += _flagTexts.at(i);
+				}
+				else
+				{
+					v += "...";
+				}
+
+				added++;
+			}
+		}
+
+		if (added == 0)
+			v = "None";
+
+		return v;
 	}
 }

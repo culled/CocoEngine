@@ -7,7 +7,8 @@
 #include <Coco/Core/Types/Color.h>
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/BoundingBox.h>
-#include "ShaderVariant.h"
+#include "../MeshTypes.h"
+#include "ShaderUniformData.h"
 
 namespace Coco::Rendering
 {
@@ -91,52 +92,16 @@ namespace Coco::Rendering
 			const BoundingBox& bounds);
 	};
 
-	/// @brief Data for a single ShaderVariant
-	struct ShaderVariantData
-	{
-		/// @brief The id of this shader
-		uint64 ID;
-
-		/// @brief The version of this data
-		uint64 Version;
-
-		/// @brief The shader data
-		ShaderVariant Variant;
-
-		ShaderVariantData(uint64 id, uint64 version, const ShaderVariant& variant);
-	};
-
-	/// @brief Data for a Shader
-	struct ShaderData
-	{
-		/// @brief The id of this shader
-		uint64 ID;
-
-		/// @brief The version of this shader
-		uint64 Version;
-
-		/// @brief The group of this shader
-		string GroupTag;
-
-		/// @brief Renderpass shaders for this shader
-		std::unordered_map<string, uint64> Variants;
-
-		ShaderData(uint64 id, uint64 version, const string& groupTag, const std::unordered_map<string, uint64>& passShaders);
-	};
-
 	/// @brief Data for a Material
 	struct MaterialData
 	{
 		/// @brief The id of this material
 		uint64 ID;
 
-		/// @brief The id of the shader that this material uses
-		uint64 ShaderID;
-
 		/// @brief The uniform data for this material
 		ShaderUniformData UniformData;
 
-		MaterialData(uint64 id, uint64 shaderID, const ShaderUniformData& uniformData);
+		MaterialData(uint64 id, const ShaderUniformData& uniformData);
 	};
 
 	/// @brief Data for an object to render
@@ -163,8 +128,8 @@ namespace Coco::Rendering
 		/// @brief The ID of the material to render with
 		uint64 MaterialID;
 
-		/// @brief The ID of the shader to render with
-		uint64 ShaderID;
+		/// @brief The visibility groups for this object
+		uint64 VisibilityGroups;
 
 		/// @brief The scissor rectangle to use for rendering this object
 		RectInt ScissorRect;
@@ -183,7 +148,7 @@ namespace Coco::Rendering
 			uint64 indexOffset,
 			uint64 indexCount,
 			uint64 materialID,
-			uint64 shaderID,
+			uint64 visibilityGroups,
 			const RectInt& scissorRect,
 			const BoundingBox& bounds,
 			std::any extraData);

@@ -50,7 +50,7 @@ namespace Coco::Rendering::Vulkan
 	VulkanPipeline& VulkanGraphicsDeviceCache::GetOrCreatePipeline(
 		const VulkanRenderPass& renderPass, 
 		uint32 subpassIndex, 
-		const VulkanShaderVariant& shader,
+		const VulkanShader& shader,
 		const VulkanDescriptorSetLayout* globalDescriptorSetLayout)
 	{
 		GraphicsDeviceResourceID key = VulkanPipeline::MakeKey(renderPass, shader, subpassIndex, globalDescriptorSetLayout);

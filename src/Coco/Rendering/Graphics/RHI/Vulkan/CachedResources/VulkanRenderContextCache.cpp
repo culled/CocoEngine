@@ -61,7 +61,7 @@ namespace Coco::Rendering::Vulkan
 	}
 
 
-	VulkanShaderUniformData& VulkanRenderContextCache::GetOrCreateShaderUniformData(const VulkanShaderVariant& shader)
+	VulkanShaderUniformData& VulkanRenderContextCache::GetOrCreateShaderUniformData(const VulkanShader& shader)
 	{
 		GraphicsDeviceResourceID key = VulkanShaderUniformData::MakeKey(shader);
 

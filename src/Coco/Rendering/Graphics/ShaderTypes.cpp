@@ -33,11 +33,11 @@ namespace Coco::Rendering
 		return Name == other.Name && Type == other.Type && Offset == other.Offset;
 	}
 
-	ShaderStage::ShaderStage(const string& entryPointName, ShaderStageType type, const string& filePath) :
+	ShaderStage::ShaderStage(const string& entryPointName, ShaderStageType type, const FilePath& filePath) :
 		ShaderStage(entryPointName, type, filePath, string())
 	{}
 
-	ShaderStage::ShaderStage(const string& entryPointName, ShaderStageType type, const string& filePath, const string& compiledFilePath) :
+	ShaderStage::ShaderStage(const string& entryPointName, ShaderStageType type, const FilePath& filePath, const FilePath& compiledFilePath) :
 		EntryPointName(entryPointName),
 		Type(type),
 		SourceFilePath(filePath),

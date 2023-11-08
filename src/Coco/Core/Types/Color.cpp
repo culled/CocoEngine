@@ -68,4 +68,15 @@ namespace Coco
 	{
 		return FormatString("{}, {}, {}, {}, {}", R, G, B, A, IsLinear);
 	}
+
+	std::array<float, 4> Color::AsFloatArray(bool asLinear) const
+	{
+		Color v = asLinear ? AsLinear() : AsGamma();
+		return std::array<float, 4>{
+			static_cast<float>(v.R),
+				static_cast<float>(v.G),
+				static_cast<float>(v.B),
+				static_cast<float>(v.A)
+		};
+	}
 }

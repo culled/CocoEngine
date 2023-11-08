@@ -4,11 +4,108 @@
 #include <Coco/Core/Types/Color.h>
 #include "Providers/MaterialDataProvider.h"
 #include "Graphics/ShaderUniformData.h"
-#include "Shader.h"
+#include "Graphics/ShaderUniformTypes.h"
 #include "Texture.h"
+#include "Shader.h"
 
 namespace Coco::Rendering
 {
+	/// @brief A parameter for a material
+	struct MaterialParameter
+	{
+		/// @brief The name of the parameter
+		string Name;
+
+		/// @brief The type of the parameter
+		ShaderUniformType Type;
+
+		/// @brief The parameter value
+		std::any Value;
+
+		MaterialParameter();
+		MaterialParameter(const string& name, ShaderUniformType type, std::any value);
+		MaterialParameter(const string& name, float value);
+		MaterialParameter(const string& name, const Vector2& value);
+		MaterialParameter(const string& name, const Vector3& value);
+		MaterialParameter(const string& name, const Vector4& value);
+		MaterialParameter(const string& name, const Color& value);
+		MaterialParameter(const string& name, const Matrix4x4& value);
+		MaterialParameter(const string& name, int value);
+		MaterialParameter(const string& name, const Vector2Int& value);
+		MaterialParameter(const string& name, const Vector3Int& value);
+		MaterialParameter(const string& name, const Vector4Int& value);
+		MaterialParameter(const string& name, bool value);
+		MaterialParameter(const string& name, const SharedRef<Texture>& value);
+
+		virtual ~MaterialParameter() = default;
+
+		/// @brief Gets this parameter's value
+		/// @tparam ValueType The type of value
+		/// @return The value
+		template<typename ValueType>
+		ValueType As() const;
+
+		/// @brief Gets this parameter's value as a float
+		/// @return The value
+		template<>
+		float As<float>() const;
+
+		/// @brief Gets this parameter's value as a Vector2
+		/// @return The value
+		template<>
+		Vector2 As<Vector2>() const;
+
+		/// @brief Gets this parameter's value as a Vector3
+		/// @return The value
+		template<>
+		Vector3 As<Vector3>() const;
+
+		/// @brief Gets this parameter's value as a Vector4
+		/// @return The value
+		template<>
+		Vector4 As<Vector4>() const;
+
+		/// @brief Gets this parameter's value as a Color
+		/// @return The value
+		template<>
+		Color As<Color>() const;
+
+		/// @brief Gets this parameter's value as a Matrix4x4
+		/// @return The value
+		template<>
+		Matrix4x4 As<Matrix4x4>() const;
+
+		/// @brief Gets this parameter's value as a int
+		/// @return The value
+		template<>
+		int As<int>() const;
+
+		/// @brief Gets this parameter's value as a Vector2Int
+		/// @return The value
+		template<>
+		Vector2Int As<Vector2Int>() const;
+
+		/// @brief Gets this parameter's value as a Vector3Int
+		/// @return The value
+		template<>
+		Vector3Int As<Vector3Int>() const;
+
+		/// @brief Gets this parameter's value as a Vector4Int
+		/// @return The value
+		template<>
+		Vector4Int As<Vector4Int>() const;
+
+		/// @brief Gets this parameter's value as a bool
+		/// @return The value
+		template<>
+		bool As<bool>() const;
+
+		/// @brief Gets this parameter's value as a texture resource
+		/// @return The value
+		template<>
+		SharedRef<Texture> As<SharedRef<Texture>>() const;
+	};
+
 	/// @brief Describes how to render a surface
 	class Material : 
 		public RendererResource, 
@@ -17,139 +114,56 @@ namespace Coco::Rendering
 		friend class MaterialSerializer;
 
 	private:
-		SharedRef<Shader> _shader;
-		ShaderUniformData _uniformData;
-		std::unordered_map<ShaderUniformData::UniformKey, SharedRef<Texture>> _textures;
+		std::unordered_map<string, MaterialParameter> _parameters;
 
 	public:
 		Material(const ResourceID& id, const string& name);
-		Material(const ResourceID& id, const string& name, SharedRef<Shader> shader);
 
 		std::type_index GetType() const final { return typeid(Material); }
 
 		uint64 GetMaterialID() const final { return GetID(); }
-		ShaderUniformData GetUniformData() const final { return _uniformData; }
-		SharedRef<Shader> GetShader() const final { return _shader; }
+		ShaderUniformData GetUniformData() const final;
 
-		/// @brief Sets the shader of this material
+		/// @brief Sets the value of a parameter
+		/// @tparam ValueType The type of value to set
+		/// @param name The name of the parameter
+		/// @param value The value
+		template<typename ValueType>
+		void SetValue(const char* name, const ValueType& value)
+		{
+			// TODO: only allow parameter creation through explicit means?
+			_parameters[name] = MaterialParameter(name, value);
+
+			IncrementVersion();
+		}
+
+		/// @brief Gets the value of a parameter
+		/// @tparam ValueType The type of value to get. NOTE: this must match the type of the parameter
+		/// @param name The name of the parameter
+		/// @return The parameter's value
+		template<typename ValueType>
+		ValueType GetValue(const char* name) const
+		{
+			auto it = _parameters.find(name);
+
+			if (it == _parameters.end())
+				return ValueType();
+
+			return it->second.As<ValueType>();
+		}
+
+		/// @brief Determines if this material has a parameter with the given name
+		/// @param name The parameter name
+		/// @return True if a parameter with the given name exists
+		bool HasParameter(const char* name) const;
+
+		/// @brief Performs a callback function for each parameter in this material
+		/// @param callback The callback function
+		void ForEachParameter(std::function<void(const MaterialParameter&)> callback) const;
+
+		/// @brief Adds parameters to this material from a given shader
 		/// @param shader The shader
-		void SetShader(SharedRef<Shader> shader);
-
-		/// @brief Sets a float uniform
-		/// @param name The name of the uniform
-		/// @param value The value
-		void SetFloat(const char* name, float value);
-
-		/// @brief Gets a float uniform
-		/// @param name The name of the uniform
-		/// @return The value
-		float GetFloat(const char* name) const;
-
-		/// @brief Sets a float2 uniform
-		/// @param name The name of the uniform
-		/// @param value The value
-		void SetFloat2(const char* name, const Vector2& value);
-
-		/// @brief Gets a float2 uniform
-		/// @param name The name of the uniform
-		/// @return The value
-		Vector2 GetFloat2(const char* name) const;
-
-		/// @brief Sets a float3 uniform
-		/// @param name The name of the uniform
-		/// @param value The value
-		void SetFloat3(const char* name, const Vector3& value);
-
-		/// @brief Gets a float3 uniform
-		/// @param name The name of the uniform
-		/// @return The value
-		Vector3 GetFloat3(const char* name) const;
-
-		/// @brief Sets a float4 uniform
-		/// @param name The name of the uniform
-		/// @param value The value
-		void SetFloat4(const char* name, const Vector4& value);
-
-		/// @brief Sets a float4 uniform from a color
-		/// @param name The name of the uniform
-		/// @param value The color
-		/// @param asLinear If true, the color will be sent to the shader converted to a linear value
-		void SetFloat4(const char* name, const Color& value, bool asLinear = true);
-
-		/// @brief Gets a float4 uniform
-		/// @param name The name of the uniform
-		/// @return The value 
-		Vector4 GetFloat4(const char* name) const;
-
-		/// @brief Sets a matrix4x4 uniform
-		/// @param name The name of the uniform
-		/// @param value The value
-		void SetMatrix4x4(const char* name, const Matrix4x4& value);
-
-		/// @brief Gets a matrix4x4 uniform
-		/// @param name The name of the uniform
-		/// @return The value 
-		Matrix4x4 GetMatrix4x4(const char* name) const;
-
-		/// @brief Sets an int uniform
-		/// @param name The name of the uniform
-		/// @param value The value
-		void SetInt(const char* name, int32 value);
-
-		/// @brief Gets an int uniform
-		/// @param name The name of the uniform
-		/// @return The value 
-		int32 GetInt(const char* name) const;
-
-		/// @brief Sets an int2 uniform
-		/// @param name The name of the uniform
-		/// @param value The value
-		void SetInt2(const char* name, const Vector2Int& value);
-
-		/// @brief Gets an int2 uniform
-		/// @param name The name of the uniform
-		/// @return The value 
-		Vector2Int GetInt2(const char* name) const;
-
-		/// @brief Sets an int3 uniform
-		/// @param name The name of the uniform
-		/// @param value The value
-		void SetInt3(const char* name, const Vector3Int& value);
-
-		/// @brief Gets an int3 uniform
-		/// @param name The name of the uniform
-		/// @return The value
-		Vector3Int GetInt3(const char* name) const;
-
-		/// @brief Sets an int4 uniform
-		/// @param name The name of the uniform
-		/// @param value The value
-		void SetInt4(const char* name, const Vector4Int& value);
-
-		/// @brief Gets an int4 uniform
-		/// @param name The name of the uniform
-		/// @return The value
-		Vector4Int GetInt4(const char* name) const;
-
-		/// @brief Sets a bool uniform
-		/// @param name The name of the uniform
-		/// @param value The value 
-		void SetBool(const char* name, bool value);
-
-		/// @brief Gets a bool uniform
-		/// @param name The name of the uniform
-		/// @return The value
-		bool GetBool(const char* name) const;
-
-		/// @brief Sets a texture uniform
-		/// @param name The name of the uniform
-		/// @param texture The texture
-		void SetTexture(const char* name, SharedRef<Texture> texture);
-
-		/// @brief Gets a texture uniform
-		/// @param name The name of the uniform
-		/// @return The texture
-		SharedRef<Texture> GetTexture(const char* name) const;
+		void AddParametersFromShader(const Shader& shader);
 
 	private:
 		/// @brief Increments the version of this material

@@ -82,5 +82,10 @@ namespace Coco
 		/// @brief Converts this color to a string
 		/// @return This color as a string
 		string ToString() const;
+
+		/// @brief Converts this color into an array of floats storing the R, G, B, and A values
+		/// @param asLinear If true, the returned values will be in linear color-space
+		/// @return An array of floats containing this color
+		std::array<float, 4> AsFloatArray(bool asLinear) const;
 	};
 }

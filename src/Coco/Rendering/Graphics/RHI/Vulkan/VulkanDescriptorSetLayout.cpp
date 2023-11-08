@@ -18,23 +18,20 @@ namespace Coco::Rendering::Vulkan
 	{
 		VulkanDescriptorSetLayout setLayout(layout.Hash);
 
-		bool hasDataUniforms = layout.DataUniforms.size() > 0 && includeDataUniforms;
-
-		setLayout.LayoutBindings.resize((hasDataUniforms ? 1 : 0) + layout.TextureUniforms.size());
-		setLayout.WriteTemplates.resize(setLayout.LayoutBindings.size());
+		bool hasDataUniforms = layout.HasDataUniforms() && includeDataUniforms;
 
 		uint32 bindingIndex = 0;
 
 		if (hasDataUniforms)
 		{
-			VkDescriptorSetLayoutBinding& binding = setLayout.LayoutBindings.at(bindingIndex);
+			VkDescriptorSetLayoutBinding& binding = setLayout.LayoutBindings.emplace_back();
 			binding.descriptorCount = 1;
 			binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			binding.pImmutableSamplers = nullptr;
 			binding.binding = bindingIndex;
-			binding.stageFlags = ToVkShaderStageFlags(layout.GetDataUniformBindStages());
+			binding.stageFlags = ToVkShaderStageFlags(layout.GetUniformBindStages(true, false));
 
-			VkWriteDescriptorSet& write = setLayout.WriteTemplates.at(bindingIndex);
+			VkWriteDescriptorSet& write = setLayout.WriteTemplates.emplace_back();
 			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			write.dstBinding = bindingIndex;
 			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -45,16 +42,19 @@ namespace Coco::Rendering::Vulkan
 			bindingIndex++;
 		}
 
-		for (uint32 i = 0; i < layout.TextureUniforms.size(); i++)
+		for (const ShaderUniform& uniform : layout.Uniforms)
 		{
-			VkDescriptorSetLayoutBinding& binding = setLayout.LayoutBindings.at(bindingIndex);
+			if (uniform.Type != ShaderUniformType::Texture)
+				continue;
+
+			VkDescriptorSetLayoutBinding& binding = setLayout.LayoutBindings.emplace_back();
 			binding.descriptorCount = 1;
 			binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			binding.pImmutableSamplers = nullptr;
 			binding.binding = bindingIndex;
-			binding.stageFlags = ToVkShaderStageFlags(layout.TextureUniforms.at(i).BindingPoints);
+			binding.stageFlags = ToVkShaderStageFlags(uniform.BindingPoints);
 
-			VkWriteDescriptorSet& write = setLayout.WriteTemplates.at(bindingIndex);
+			VkWriteDescriptorSet& write = setLayout.WriteTemplates.emplace_back();
 			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			write.dstBinding = bindingIndex;
 			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -65,19 +65,16 @@ namespace Coco::Rendering::Vulkan
 
 		if (const GlobalShaderUniformLayout* globalLayout = dynamic_cast<const GlobalShaderUniformLayout*>(&layout))
 		{
-			setLayout.LayoutBindings.resize(setLayout.LayoutBindings.size() + globalLayout->BufferUniforms.size());
-			setLayout.WriteTemplates.resize(setLayout.LayoutBindings.size());
-
-			for (uint32 i = 0; i < globalLayout->BufferUniforms.size(); i++)
+			for (const ShaderBufferUniform& uniform : globalLayout->BufferUniforms)
 			{
-				VkDescriptorSetLayoutBinding& binding = setLayout.LayoutBindings.at(bindingIndex);
+				VkDescriptorSetLayoutBinding& binding = setLayout.LayoutBindings.emplace_back();
 				binding.descriptorCount = 1;
 				binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				binding.pImmutableSamplers = nullptr;
 				binding.binding = bindingIndex;
-				binding.stageFlags = ToVkShaderStageFlags(globalLayout->BufferUniforms.at(i).BindingPoints);
+				binding.stageFlags = ToVkShaderStageFlags(uniform.BindingPoints);
 
-				VkWriteDescriptorSet& write = setLayout.WriteTemplates.at(bindingIndex);
+				VkWriteDescriptorSet& write = setLayout.WriteTemplates.emplace_back();
 				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				write.dstBinding = bindingIndex;
 				write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

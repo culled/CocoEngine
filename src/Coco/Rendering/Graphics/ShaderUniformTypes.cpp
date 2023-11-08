@@ -5,45 +5,67 @@
 
 namespace Coco::Rendering
 {
-	ShaderUniform::ShaderUniform(const string& name, ShaderStageFlags bindPoints) :
+	BufferDataType GetBufferDataType(ShaderUniformType dataUniform)
+	{
+		switch (dataUniform)
+		{
+		case ShaderUniformType::Float:
+			return BufferDataType::Float;
+		case ShaderUniformType::Float2:
+			return BufferDataType::Float2;
+		case ShaderUniformType::Float3:
+			return BufferDataType::Float3;
+		case ShaderUniformType::Float4:
+		case ShaderUniformType::Color:
+			return BufferDataType::Float4;
+		case ShaderUniformType::Mat4x4:
+			return BufferDataType::Mat4x4;
+		case ShaderUniformType::Int:
+			return BufferDataType::Int;
+		case ShaderUniformType::Int2:
+			return BufferDataType::Int2;
+		case ShaderUniformType::Int3:
+			return BufferDataType::Int3;
+		case ShaderUniformType::Int4:
+			return BufferDataType::Int4;
+		case ShaderUniformType::Bool:
+			return BufferDataType::Bool;
+		default:
+			break;
+		}
+
+		// Uniform was not a data uniform
+		Assert(false)
+		throw std::exception("Type was not a data uniform");
+	}
+
+	bool IsDataShaderUniformType(ShaderUniformType type)
+	{
+		return type != ShaderUniformType::Texture;
+	}
+
+	ShaderUniform::ShaderUniform(const string& name, ShaderUniformType type, ShaderStageFlags bindPoints, std::any defaultValue) :
 		Name(name),
+		Type(type),
 		BindingPoints(bindPoints),
+		DefaultValue(defaultValue),
 		Key(ShaderUniformData::MakeKey(name.c_str()))
 	{}
 
 	bool ShaderUniform::operator==(const ShaderUniform& other) const
 	{
-		return Key == other.Key && BindingPoints == other.BindingPoints;
-	}
-
-	ShaderTextureUniform::ShaderTextureUniform(const string& name, ShaderStageFlags bindPoints, DefaultTextureType defaultTexture) :
-		ShaderUniform(name, bindPoints),
-		DefaultTexture(defaultTexture)
-	{}
-
-	bool ShaderTextureUniform::operator==(const ShaderTextureUniform& other) const
-	{
-		return DefaultTexture == other.DefaultTexture && ShaderUniform::operator==(other);
-	}
-
-	ShaderDataUniform::ShaderDataUniform(const string& name, ShaderStageFlags bindPoints, BufferDataType type) :
-		ShaderUniform(name, bindPoints),
-		Type(type)
-	{}
-
-	bool ShaderDataUniform::operator==(const ShaderDataUniform& other) const
-	{
-		return Type == other.Type && ShaderDataUniform::operator==(other);
+		return Key == other.Key && Type == other.Type && BindingPoints == other.BindingPoints;
 	}
 
 	ShaderBufferUniform::ShaderBufferUniform(const string& name, ShaderStageFlags bindPoints, uint64 size) :
-		ShaderUniform(name, bindPoints),
-		Size(size)
+		Name(name),
+		BindingPoints(bindPoints),
+		Size(size),
+		Key(ShaderUniformData::MakeKey(name.c_str()))
 	{}
 
 	bool ShaderBufferUniform::operator==(const ShaderBufferUniform& other) const
 	{
-		return Size == other.Size && ShaderUniform::operator==(other);
+		return Key == other.Key && Size == other.Size && BindingPoints == other.BindingPoints;
 	}
-
 }

@@ -1,7 +1,6 @@
 #include "Renderpch.h"
 #include "RenderView.h"
 #include "../Mesh.h"
-#include "../Shader.h"
 #include "../Material.h"
 #include "ShaderUniformLayout.h"
 #include "../RenderService.h"
@@ -12,10 +11,9 @@ namespace Coco::Rendering
 {
 	const GlobalShaderUniformLayout RenderView::DefaultGlobalUniformLayout = GlobalShaderUniformLayout(
 		{
-			ShaderDataUniform("ProjectionMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4),
-			ShaderDataUniform("ViewMatrix", ShaderStageFlags::Vertex, BufferDataType::Mat4x4)
+			ShaderUniform("ProjectionMatrix", ShaderUniformType::Mat4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity),
+			ShaderUniform("ViewMatrix", ShaderUniformType::Mat4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity)
 		},
-		{},
 		{}
 	);
 
@@ -30,15 +28,11 @@ namespace Coco::Rendering
 		_samples(),
 		_renderTargets(),
 		_meshDatas(),
-		_shaderVariantDatas(),
-		_shaderDatas(),
 		_materialDatas(),
 		_objectDatas(),
 		_directionalLightDatas(),
 		_pointLightDatas()
-	{
-		AddDefaults();
-	}
+	{}
 
 	void RenderView::Setup(
 		const RectInt& viewportRect, 
@@ -65,14 +59,10 @@ namespace Coco::Rendering
 		_renderTargets.clear();
 		_globalUniformLayout = DefaultGlobalUniformLayout;
 		_meshDatas.clear();
-		_shaderVariantDatas.clear();
-		_shaderDatas.clear();
 		_materialDatas.clear();
 		_objectDatas.clear();
 		_directionalLightDatas.clear();
 		_pointLightDatas.clear();
-
-		AddDefaults();
 	}
 
 	RenderTarget& RenderView::GetRenderTarget(size_t index)
@@ -113,52 +103,13 @@ namespace Coco::Rendering
 		return _meshDatas.at(key);
 	}
 
-	uint64 RenderView::AddShader(const Shader& shader)
-	{
-		uint64 shaderID = shader.GetID();
-
-		if (!_shaderDatas.contains(shaderID))
-		{
-			std::unordered_map<string, uint64> passShaders;
-
-			for (const ShaderVariant& variant : shader.GetShaderVariants())
-			{
-				uint64 variantID = variant.Hash;
-				_shaderVariantDatas.try_emplace(variantID, variantID, shader.GetVersion(), variant);
-
-				passShaders.try_emplace(variant.Name, variantID);
-			}
-
-			_shaderDatas.try_emplace(shaderID, shaderID, shader.GetVersion(), shader.GetGroupTag(), passShaders);
-		}
-
-		return shaderID;
-	}
-
-	const ShaderData& RenderView::GetShaderData(uint64 key) const
-	{
-		Assert(_shaderDatas.contains(key))
-
-		return _shaderDatas.at(key);
-	}
-
-	const ShaderVariantData& RenderView::GetShaderVariantData(uint64 key) const
-	{
-		Assert(_shaderVariantDatas.contains(key))
-
-		return _shaderVariantDatas.at(key);
-	}
-
 	uint64 RenderView::AddMaterial(const MaterialDataProvider& materialData)
 	{
 		uint64 id = materialData.GetMaterialID();
 
 		if (!_materialDatas.contains(id))
 		{
-			SharedRef<Shader> shader = materialData.GetShader();
-			uint64 shaderID = shader ? AddShader(*shader) : InvalidID;
-
-			_materialDatas.try_emplace(id, id, shaderID, materialData.GetUniformData());
+			_materialDatas.try_emplace(id, id, materialData.GetUniformData());
 		}
 
 		return id;
@@ -175,8 +126,9 @@ namespace Coco::Rendering
 		uint64 objectID,
 		const Mesh& mesh, 
 		uint32 submeshID, 
-		const Matrix4x4& modelMatrix, 
-		const MaterialDataProvider& material,
+		const Matrix4x4& modelMatrix,
+		uint64 visibilityGroups,
+		const MaterialDataProvider* material,
 		const BoundingBox* boundsOverride,
 		const RectInt* scissorRect,
 		std::any extraData)
@@ -189,30 +141,8 @@ namespace Coco::Rendering
 			submesh.Offset, submesh.Count,
 			modelMatrix,
 			boundsOverride ? *boundsOverride : submesh.Bounds.Transformed(modelMatrix),
+			visibilityGroups,
 			material,
-			scissorRect,
-			extraData);
-	}
-
-	uint64 RenderView::AddRenderObject(
-		uint64 objectID,
-		const Mesh& mesh, 
-		uint32 submeshID, 
-		const Matrix4x4& modelMatrix, 
-		const Shader* shader,
-		const BoundingBox* boundsOverride,
-		const RectInt* scissorRect, 
-		std::any extraData)
-	{
-		SubMesh submesh;
-		Assert(mesh.TryGetSubmesh(submeshID, submesh))
-		return AddRenderObject(
-			objectID,
-			mesh,
-			submesh.Offset, submesh.Count,
-			modelMatrix,
-			boundsOverride ? *boundsOverride : submesh.Bounds.Transformed(modelMatrix),
-			shader,
 			scissorRect,
 			extraData);
 	}
@@ -224,13 +154,13 @@ namespace Coco::Rendering
 		uint64 indexCount, 
 		const Matrix4x4& modelMatrix,
 		const BoundingBox& bounds,
-		const MaterialDataProvider& material, 
+		uint64 visibilityGroups,
+		const MaterialDataProvider* material, 
 		const RectInt* scissorRect,
 		std::any extraData)
 	{
 		uint64 meshID = AddMesh(mesh);
-		uint64 materialID = AddMaterial(material);
-		uint64 shaderID = _materialDatas.at(materialID).ShaderID;
+		uint64 materialID = material ? AddMaterial(*material) : InvalidID;
 
 		uint64 renderID = _objectDatas.size();
 		_objectDatas.emplace_back(
@@ -241,38 +171,7 @@ namespace Coco::Rendering
 			indexOffset,
 			indexCount,
 			materialID,
-			shaderID,
-			scissorRect ? *scissorRect : _scissorRect,
-			bounds,
-			extraData);
-
-		return renderID;
-	}
-
-	uint64 RenderView::AddRenderObject(
-		uint64 objectID,
-		const Mesh& mesh, 
-		uint64 indexOffset, 
-		uint64 indexCount, 
-		const Matrix4x4& modelMatrix, 
-		const BoundingBox& bounds, 
-		const Shader* shader, 
-		const RectInt* scissorRect, 
-		std::any extraData)
-	{
-		uint64 meshID = AddMesh(mesh);
-		uint64 shaderID = shader ? AddShader(*shader) : InvalidID;
-
-		uint64 renderID = _objectDatas.size();
-		_objectDatas.emplace_back(
-			renderID,
-			objectID,
-			modelMatrix,
-			meshID,
-			indexOffset,
-			indexCount,
-			InvalidID,
-			shaderID,
+			visibilityGroups,
 			scissorRect ? *scissorRect : _scissorRect,
 			bounds,
 			extraData);
@@ -323,10 +222,10 @@ namespace Coco::Rendering
 
 	void RenderView::FilterOutsideFrustum(std::vector<uint64>& objectIndices) const
 	{
-		FilterOutsideFrustum(_frustum, objectIndices);
+		FilterOutsideFrustum(objectIndices, _frustum);
 	}
 
-	void RenderView::FilterOutsideFrustum(const ViewFrustum& frustum, std::vector<uint64>& objectIndices) const
+	void RenderView::FilterOutsideFrustum(std::vector<uint64>& objectIndices, const ViewFrustum& frustum) const
 	{
 		auto it = objectIndices.begin();
 
@@ -345,13 +244,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void RenderView::FilterWithTag(std::vector<uint64>& objectIndices, const string& tag) const
-	{
-		std::array<string, 1> tags = { tag };
-		FilterWithTags(objectIndices, tags);
-	}
-
-	void RenderView::FilterWithTags(std::vector<uint64>& objectIndices, std::span<const string> tags) const
+	void RenderView::FilterWithAnyVisibilityGroups(std::vector<uint64>& objectIndices, uint64 visibilityGroups) const
 	{
 		auto it = objectIndices.begin();
 
@@ -359,15 +252,7 @@ namespace Coco::Rendering
 		{
 			const ObjectData& obj = GetRenderObject(*it);
 
-			if (obj.ShaderID == InvalidID)
-			{
-				it = objectIndices.erase(it);
-				continue;
-			}
-
-			const ShaderData& shader = GetShaderData(obj.ShaderID);
-
-			if (std::find(tags.begin(), tags.end(), shader.GroupTag) != tags.end())
+			if ((obj.VisibilityGroups & visibilityGroups) != 0)
 			{
 				it++;
 			}
@@ -378,7 +263,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	void RenderView::FilterWithShaderVariant(std::vector<uint64>& objectIndices, const string& variantName) const
+	void RenderView::FilterWithAllVisibilityGroups(std::vector<uint64>& objectIndices, uint64 visibilityGroups) const
 	{
 		auto it = objectIndices.begin();
 
@@ -386,15 +271,7 @@ namespace Coco::Rendering
 		{
 			const ObjectData& obj = GetRenderObject(*it);
 
-			if (obj.ShaderID == InvalidID)
-			{
-				it = objectIndices.erase(it);
-				continue;
-			}
-
-			const ShaderData& shader = GetShaderData(obj.ShaderID);
-
-			if (shader.Variants.contains(variantName))
+			if ((obj.VisibilityGroups & visibilityGroups) == visibilityGroups)
 			{
 				it++;
 			}
@@ -430,13 +307,5 @@ namespace Coco::Rendering
 					return true;
 				}
 			});
-	}
-
-	void RenderView::AddDefaults()
-	{
-		RenderService& rendering = *RenderService::Get();
-
-		SharedRef<Shader> errorShader = rendering.GetErrorShader();
-		_shaderVariantDatas.try_emplace(Resource::InvalidID, Resource::InvalidID, errorShader->GetVersion(), errorShader->GetShaderVariants().front());
 	}
 }

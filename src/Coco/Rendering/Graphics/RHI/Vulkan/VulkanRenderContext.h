@@ -3,7 +3,6 @@
 #include <Coco/Core/Defines.h>
 #include "../../RenderContext.h"
 #include "../../GraphicsDeviceResource.h"
-#include "../../ShaderVariant.h"
 #include "VulkanGraphicsSemaphore.h"
 #include "VulkanGraphicsFence.h"
 #include "VulkanIncludes.h"
@@ -19,14 +18,14 @@ namespace Coco::Rendering::Vulkan
     class VulkanCommandBuffer;
     struct VulkanDescriptorSetLayout;
     class VulkanShaderUniformData;
-    class VulkanShaderVariant;
+    class VulkanShader;
     class VulkanImage;
 
     /// @brief The bound global state
     struct BoundGlobalState
     {
-        /// @brief The ID of the shader bound
-        uint64 ShaderID;
+        /// @brief The name of the shader to bind
+        string ShaderName;
 
         /// @brief The bound pipeline, if any
         VulkanPipeline* Pipeline;
@@ -34,7 +33,7 @@ namespace Coco::Rendering::Vulkan
         /// @brief The bound shader global descriptor set, if any
         VkDescriptorSet DescriptorSet;
 
-        BoundGlobalState(uint64 shaderID);
+        BoundGlobalState(const string& shaderName);
     };
 
     /// @brief The bound instance state
@@ -120,8 +119,8 @@ namespace Coco::Rendering::Vulkan
 
         void SetViewportRect(const RectInt& viewportRect) final;
         void SetScissorRect(const RectInt& scissorRect) final;
-        void SetShader(const ShaderData& shader, const string& variantName) final;
-        void SetMaterial(const MaterialData& material, const string& shaderVariantName) final;
+        void SetShader(const string& shaderName) final;
+        void SetMaterial(const MaterialData& material) final;
 
         void DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount) final;
 
@@ -151,9 +150,13 @@ namespace Coco::Rendering::Vulkan
         /// @return True if the state was setup successfully
         bool FlushStateChanges();
 
-        /// @brief Gets the uniform data for the currently-bound shader
-        /// @param outShader If given, will be set to the currently-bound shader
-        /// @return The shader's uniform data
-        VulkanShaderUniformData& GetUniformDataForBoundShader(VulkanShaderVariant** outShader);
+        /// @brief Gets the shader for the currently bound global state
+        /// @return The bound shader
+        VulkanShader& GetBoundShader();
+
+        /// @brief Gets the uniform data for a shader
+        /// @param shader The shader
+        /// @return The uniform data for the shader
+        VulkanShaderUniformData& GetUniformDataForShader(const VulkanShader& shader);
     };
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "../RenderPass.h"
+#include "../../Shader.h"
 
 namespace Coco::Rendering
 {
@@ -8,11 +9,16 @@ namespace Coco::Rendering
         public RenderPass
     {
     public:
-        /// @brief The group tag of shaders that this pass will consider rendering
-        static const string sGroupTag;
+        /// @brief The visibility group for objects to render with the lit shader
+        static const uint64 sLitVisibilityGroup;
+
+        /// @brief The visibility group for objects to render with the unlit shader
+        static const uint64 sUnlitVisibilityGroup;
 
     private:
         static const std::array<AttachmentFormat, 2> _sAttachments;
+        static SharedRef<Shader> _sLitShader;
+        static SharedRef<Shader> _sUnlitShader;
 
         bool _frustumCulling;
 
@@ -34,6 +40,9 @@ namespace Coco::Rendering
         bool IsUsingFrustumCulling() const { return _frustumCulling; }
 
     private:
+        /// @brief Creates the built-in shaders
+        static void CreateShaders();
+
         /// @brief Renders all objects that use the "Unlit" shader variant
         /// @param context The render context
         /// @param renderView The render view
@@ -50,7 +59,7 @@ namespace Coco::Rendering
         /// @param context The render context
         /// @param renderView The render view
         /// @param objectIndices The objects that should be rendered
-        /// @param shaderVariantName The name of the shader variant to render with
-        void RenderObjects(RenderContext& context, const RenderView& renderView, const std::vector<uint64>& objectIndices, const string& shaderVariantName);
+        /// @param shaderName The name of the shader to render with
+        void RenderObjects(RenderContext& context, const RenderView& renderView, const std::vector<uint64>& objectIndices, const string& shaderName);
     };
 }
