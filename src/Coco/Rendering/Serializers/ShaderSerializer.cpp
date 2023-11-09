@@ -32,15 +32,79 @@ namespace Coco::Rendering
 		out << YAML::BeginMap;
 
 		out << YAML::Key << "name" << YAML::Value << shader->GetName();
-		out << YAML::Key << "group tag" << YAML::Value << shader->GetGroupTag();
-		out << YAML::Key << "pass shaders" << YAML::Value << YAML::BeginSeq;
 
-		for (const ShaderVariant& variant : shader->GetShaderVariants())
+		out << YAML::Key << "stages" << YAML::Value << YAML::BeginSeq;
+
+		for (const ShaderStage& stage : shader->GetStages())
 		{
-			SerializeShaderVariant(out, variant);
+			out << YAML::BeginMap;
+
+			out << YAML::Key << "type" << YAML::Value << static_cast<int>(stage.Type);
+			out << YAML::Key << "entry name" << YAML::Value << stage.EntryPointName;
+			out << YAML::Key << "source file path" << YAML::Value << stage.SourceFilePath.ToString();
+
+			out << YAML::EndMap;
 		}
 
 		out << YAML::EndSeq;
+
+		out << YAML::Key << "pipeline state" << YAML::Value << YAML::BeginMap;
+
+		const GraphicsPipelineState& pipelineState = shader->GetPipelineState();
+		out << YAML::Key << "topology" << YAML::Value << static_cast<int>(pipelineState.TopologyMode);
+		out << YAML::Key << "cull" << YAML::Value << static_cast<int>(pipelineState.CullingMode);
+		out << YAML::Key << "winding" << YAML::Value << static_cast<int>(pipelineState.WindingMode);
+		out << YAML::Key << "fill" << YAML::Value << static_cast<int>(pipelineState.PolygonFillMode);
+		out << YAML::Key << "depth clamping" << YAML::Value << pipelineState.EnableDepthClamping;
+		out << YAML::Key << "depth test" << YAML::Value << static_cast<int>(pipelineState.DepthTestingMode);
+		out << YAML::Key << "depth write" << YAML::Value << pipelineState.EnableDepthWrite;
+
+		out << YAML::EndMap;
+
+		out << YAML::Key << "blend states" << YAML::Value << YAML::BeginSeq;
+
+		for (const BlendState& blendState : shader->GetAttachmentBlendStates())
+		{
+			out << YAML::BeginMap;
+
+			out << YAML::Key << "color src factor" << YAML::Value << static_cast<int>(blendState.ColorSourceFactor);
+			out << YAML::Key << "color dst factor" << YAML::Value << static_cast<int>(blendState.ColorDestinationFactor);
+			out << YAML::Key << "color blend op" << YAML::Value << static_cast<int>(blendState.ColorBlendOperation);
+			out << YAML::Key << "alpha src factor" << YAML::Value << static_cast<int>(blendState.AlphaSourceFactor);
+			out << YAML::Key << "alpha dst factor" << YAML::Value << static_cast<int>(blendState.AlphaDestinationFactor);
+			out << YAML::Key << "alpha blend op" << YAML::Value << static_cast<int>(blendState.AlphaBlendOperation);
+
+			out << YAML::EndMap;
+		}
+
+		out << YAML::EndSeq;
+
+		const VertexDataFormat& vertexFormat = shader->GetVertexDataFormat();
+		out << YAML::Key << "vertex attributes" << YAML::Value << static_cast<int>(vertexFormat.AdditionalAttributes);
+
+		const GlobalShaderUniformLayout& globalLayout = shader->GetGlobalUniformLayout();
+		if (globalLayout.Hash != ShaderUniformLayout::EmptyHash)
+		{
+			out << YAML::Key << "global layout" << YAML::Value << YAML::BeginMap;
+			ShaderUniformLayoutSerialization::SerializeLayout(out, globalLayout);
+			out << YAML::EndMap;
+		}
+
+		const ShaderUniformLayout& instanceLayout = shader->GetInstanceUniformLayout();
+		if (instanceLayout.Hash != ShaderUniformLayout::EmptyHash)
+		{
+			out << YAML::Key << "instance layout" << YAML::Value << YAML::BeginMap;
+			ShaderUniformLayoutSerialization::SerializeLayout(out, instanceLayout);
+			out << YAML::EndMap;
+		}
+
+		const ShaderUniformLayout& drawLayout = shader->GetDrawUniformLayout();
+		if (drawLayout.Hash != ShaderUniformLayout::EmptyHash)
+		{
+			out << YAML::Key << "draw layout" << YAML::Value << YAML::BeginMap;
+			ShaderUniformLayoutSerialization::SerializeLayout(out, drawLayout);
+			out << YAML::EndMap;
+		}
 
 		// HACK: the yaml parser throws an unknown character exception unless we add something to the end
 		out << YAML::EndMap << YAML::Comment("Fix");
@@ -52,101 +116,8 @@ namespace Coco::Rendering
 
 	SharedRef<Resource> ShaderSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
 	{
-		YAML::Node shaderNode = YAML::Load(data);
+		YAML::Node baseNode = YAML::Load(data);
 
-		string name = shaderNode["name"].as<string>();
-		string groupTag = shaderNode["group tag"].as<string>();
-
-		SharedRef<Shader> shader = CreateSharedRef<Shader>(resourceID, name, groupTag);
-
-		YAML::Node passShadersNode = shaderNode["pass shaders"];
-		for (YAML::const_iterator it = passShadersNode.begin(); it != passShadersNode.end(); ++it)
-		{
-			shader->AddVariant(DeserializeShaderVariant(*it));
-		}
-
-		return shader;
-	}
-
-	void ShaderSerializer::SerializeShaderVariant(YAML::Emitter& emitter, const ShaderVariant& variant)
-	{
-		emitter << YAML::BeginMap;
-
-		emitter << YAML::Key << "name" << YAML::Value << variant.Name;
-
-		emitter << YAML::Key << "stages" << YAML::Value << YAML::BeginSeq;
-
-		for (const ShaderStage& stage : variant.Stages)
-		{
-			emitter << YAML::BeginMap;
-
-			emitter << YAML::Key << "type" << YAML::Value << static_cast<int>(stage.Type);
-			emitter << YAML::Key << "entry name" << YAML::Value << stage.EntryPointName;
-			emitter << YAML::Key << "file path" << YAML::Value << stage.SourceFilePath;
-
-			emitter << YAML::EndMap;
-		}
-
-		emitter << YAML::EndSeq;
-
-		emitter << YAML::Key << "pipeline state" << YAML::Value << YAML::BeginMap;
-
-		emitter << YAML::Key << "topology" << YAML::Value << static_cast<int>(variant.PipelineState.TopologyMode);
-		emitter << YAML::Key << "cull" << YAML::Value << static_cast<int>(variant.PipelineState.CullingMode);
-		emitter << YAML::Key << "winding" << YAML::Value << static_cast<int>(variant.PipelineState.WindingMode);
-		emitter << YAML::Key << "fill" << YAML::Value << static_cast<int>(variant.PipelineState.PolygonFillMode);
-		emitter << YAML::Key << "depth clamping" << YAML::Value << variant.PipelineState.EnableDepthClamping;
-		emitter << YAML::Key << "depth test" << YAML::Value << static_cast<int>(variant.PipelineState.DepthTestingMode);
-		emitter << YAML::Key << "depth write" << YAML::Value << variant.PipelineState.EnableDepthWrite;
-
-		emitter << YAML::EndMap;
-
-		emitter << YAML::Key << "blend states" << YAML::Value << YAML::BeginSeq;
-
-		for (const BlendState& blendState : variant.AttachmentBlendStates)
-		{
-			emitter << YAML::BeginMap;
-
-			emitter << YAML::Key << "color src factor" << YAML::Value << static_cast<int>(blendState.ColorSourceFactor);
-			emitter << YAML::Key << "color dst factor" << YAML::Value << static_cast<int>(blendState.ColorDestinationFactor);
-			emitter << YAML::Key << "color blend op" << YAML::Value << static_cast<int>(blendState.ColorBlendOperation);
-			emitter << YAML::Key << "alpha src factor" << YAML::Value << static_cast<int>(blendState.AlphaSourceFactor);
-			emitter << YAML::Key << "alpha dst factor" << YAML::Value << static_cast<int>(blendState.AlphaDestinationFactor);
-			emitter << YAML::Key << "alpha blend op" << YAML::Value << static_cast<int>(blendState.AlphaBlendOperation);
-
-			emitter << YAML::EndMap;
-		}
-
-		emitter << YAML::EndSeq;
-
-		emitter << YAML::Key << "vertex attributes" << YAML::Value << static_cast<int>(variant.VertexFormat.AdditionalAttributes);
-
-		if (variant.GlobalUniforms.Hash != ShaderUniformLayout::EmptyHash)
-		{
-			emitter << YAML::Key << "global layout" << YAML::Value << YAML::BeginMap;
-			ShaderUniformLayoutSerialization::SerializeLayout(emitter, variant.GlobalUniforms);
-			emitter << YAML::EndMap;
-		}
-
-		if (variant.InstanceUniforms.Hash != ShaderUniformLayout::EmptyHash)
-		{
-			emitter << YAML::Key << "instance layout" << YAML::Value << YAML::BeginMap;
-			ShaderUniformLayoutSerialization::SerializeLayout(emitter, variant.InstanceUniforms);
-			emitter << YAML::EndMap;
-		}
-
-		if (variant.DrawUniforms.Hash != ShaderUniformLayout::EmptyHash)
-		{
-			emitter << YAML::Key << "draw layout" << YAML::Value << YAML::BeginMap;
-			ShaderUniformLayoutSerialization::SerializeLayout(emitter, variant.DrawUniforms);
-			emitter << YAML::EndMap;
-		}
-
-		emitter << YAML::EndMap;
-	}
-
-	ShaderVariant ShaderSerializer::DeserializeShaderVariant(const YAML::Node& baseNode)
-	{
 		string name = baseNode["name"].as<string>();
 
 		std::vector<ShaderStage> stages;
@@ -157,7 +128,7 @@ namespace Coco::Rendering
 			stages.emplace_back(
 				(*it)["entry name"].as<string>(),
 				static_cast<ShaderStageType>((*it)["type"].as<int>()),
-				(*it)["file path"].as<string>()
+				(*it)["source file path"].as<string>()
 			);
 		}
 
@@ -209,15 +180,8 @@ namespace Coco::Rendering
 			ShaderUniformLayoutSerialization::DeserializeLayout(baseNode["draw layout"], drawLayout);
 		}
 
-		return ShaderVariant(
-			name,
-			stages,
-			pipelineState,
-			blendStates,
-			format,
-			globalLayout,
-			instanceLayout,
-			drawLayout
-		);
+		SharedRef<Shader> shader = CreateSharedRef<Shader>(resourceID, name, stages, pipelineState, blendStates, format, globalLayout, instanceLayout, drawLayout);
+
+		return shader;
 	}
 }

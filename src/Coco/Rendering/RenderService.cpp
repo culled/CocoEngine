@@ -6,7 +6,7 @@
 #include "Gizmos/GizmoRender.h"
 #include "Graphics/RenderView.h"
 
-//#include "Serializers/ShaderSerializer.h"
+#include "Serializers/ShaderSerializer.h"
 #include "Serializers/TextureSerializer.h"
 #include "Serializers/MaterialSerializer.h"
 #include "Serializers/MeshSerializer.h"
@@ -48,7 +48,7 @@ namespace Coco::Rendering
 
 		// Add resource serializers
 		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
-		//resources.CreateSerializer<ShaderSerializer>();
+		resources.CreateSerializer<ShaderSerializer>();
 		resources.CreateSerializer<TextureSerializer>();
 		resources.CreateSerializer<MaterialSerializer>();
 		resources.CreateSerializer<MeshSerializer>();

@@ -22,16 +22,5 @@ namespace Coco::Rendering
 		const std::type_index GetResourceTypeForExtension(const string& extension) const final;
 		string Serialize(SharedRef<Resource> resource) override;
 		SharedRef<Resource> Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data) override;
-
-	private:
-		/// @brief Serializes a ShaderVariant
-		/// @param emitter The emitter
-		/// @param variant The shader variant
-		void SerializeShaderVariant(YAML::Emitter& emitter, const ShaderVariant& variant);
-
-		/// @brief Deserializes a ShaderVariant
-		/// @param baseNode The base node of the render pass shader
-		/// @return The deserialized shader variant
-		ShaderVariant DeserializeShaderVariant(const YAML::Node& baseNode);
 	};
 }

@@ -13,6 +13,7 @@ namespace Coco::ECS
 	{
 		const MeshRendererComponent& renderer = entity.GetComponent<MeshRendererComponent>();
 
+		emitter << YAML::Key << "visibility" << YAML::Value << renderer.VisibilityGroups;
 		emitter << YAML::Key << "mesh" << YAML::Value << (renderer.Mesh ? renderer.Mesh->GetContentPath() : "");
 		emitter << YAML::Key << "materials" << YAML::Value << YAML::BeginMap;
 
@@ -31,6 +32,8 @@ namespace Coco::ECS
 
 	void MeshRendererComponentSerializer::DeserializeImpl(const YAML::Node& baseNode, Entity& entity)
 	{
+		uint64 visibilityGroups = baseNode["visibility"].as<uint64>();
+
 		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
 
 		SharedRef<Mesh> mesh = resources.GetOrLoad<Mesh>(baseNode["mesh"].as<string>());
@@ -53,6 +56,6 @@ namespace Coco::ECS
 			}
 		}
 
-		entity.AddComponent<MeshRendererComponent>(mesh, materials);
+		entity.AddComponent<MeshRendererComponent>(mesh, materials, visibilityGroups);
 	}
 }

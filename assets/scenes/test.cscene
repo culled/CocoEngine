@@ -30,9 +30,10 @@ entities:
       localScale: [2, 2, 2]
       inheritParentTransform: true
     MeshRendererComponent:
+      visibility: 4
       mesh: meshes/Quad.cmesh
       materials:
-        0: materials/Unlit_Red.cmaterial
+        0: materials/Unlit.cmaterial
   - EntityInfoComponent:
       name: Test
       id: 0
@@ -43,6 +44,7 @@ entities:
       localScale: [1, 1, 1]
       inheritParentTransform: true
     MeshRendererComponent:
+      visibility: 4
       mesh: meshes/Quad.cmesh
       materials:
-        0: materials/Unlit_Red.cmaterial  # Fix
+        0: materials/Unlit.cmaterial  # Fix
