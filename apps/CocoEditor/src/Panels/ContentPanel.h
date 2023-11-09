@@ -11,9 +11,11 @@ namespace Coco
 	{
 	private:
 		bool _useTree;
+		bool _showUnsupportedFiles;
 		FilePath _basePath;
 		FilePath _currentPath;
 
+		std::regex _fileTypeRegex;
 		SharedRef<Rendering::Texture> _fileIcon;
 		SharedRef<Rendering::Texture> _folderIcon;
 
@@ -29,5 +31,7 @@ namespace Coco
 		void DrawCurrentPath();
 
 		void DragDropFile(const FilePath& filePath);
+
+		bool FilterPath(const FilePath& filePath);
 	};
 }

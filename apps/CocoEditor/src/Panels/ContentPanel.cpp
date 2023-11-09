@@ -11,7 +11,9 @@ using namespace Coco::Rendering;
 namespace Coco
 {
 	ContentPanel::ContentPanel() :
-		_useTree(false)
+		_useTree(false),
+		_showUnsupportedFiles(false),
+		_fileTypeRegex("(.cscene)|(.cmaterial)|(.cmesh)|(.cshader)|(.ctexture)", std::regex_constants::ECMAScript | std::regex_constants::icase)
 	{
 		if (UnpackedEngineFileSystem* fs = dynamic_cast<UnpackedEngineFileSystem*>(&Engine::Get()->GetFileSystem()))
 			_basePath = fs->GetContentBasePath();
@@ -55,6 +57,8 @@ namespace Coco
 		{
 			ImGui::Checkbox("Tree View", &_useTree);
 
+			ImGui::Checkbox("Show Unsupported File Types", &_showUnsupportedFiles);
+
 			ImGui::EndMenuBar();
 		}
 	}
@@ -82,7 +86,9 @@ namespace Coco
 				for (const auto& it : std::filesystem::directory_iterator{ path })
 				{
 					FilePath fp(it.path());
-					DrawFileTreeNode(fp);
+
+					if(FilterPath(fp) || _showUnsupportedFiles)
+						DrawFileTreeNode(fp);
 				}
 			}
 
@@ -125,9 +131,12 @@ namespace Coco
 		
 		for (const auto& it : std::filesystem::directory_iterator{ _currentPath })
 		{
+			FilePath fp(it.path());
+			if (!FilterPath(fp) && !_showUnsupportedFiles)
+				continue;
+
 			ImGui::TableNextColumn();
 
-			FilePath fp(it.path());
 			string pathName = fp.GetFileName(true);
 			bool isDirectory = fp.IsDirectory();
 
@@ -164,5 +173,15 @@ namespace Coco
 		string itemPath = relative.ToString();
 		string itemType = relative.GetExtension();
 		ImGui::SetDragDropPayload(itemType.c_str(), itemPath.c_str(), itemPath.size(), ImGuiCond_Once);
+	}
+
+	bool ContentPanel::FilterPath(const FilePath& filePath)
+	{
+		if (filePath.IsDirectory())
+			return true;
+
+		string ext = filePath.GetExtension();
+
+		return std::regex_search(ext, _fileTypeRegex);
 	}
 }
