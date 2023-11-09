@@ -129,6 +129,8 @@ namespace Coco::Rendering
 				_lockedVertexMemory = nullptr;
 			}
 
+			Assert(_vertexBuffer)
+
 			// Gather index data
 			uint64 offset = 0;
 			std::vector<uint8> indexBufferData(_indexCount * sizeof(uint32));
@@ -160,6 +162,8 @@ namespace Coco::Rendering
 				_indexBuffer->Resize(indexBufferData.size(), false);
 				_lockedIndexMemory = nullptr;
 			}
+
+			Assert(_indexBuffer)
 
 			if (_isDynamic)
 			{

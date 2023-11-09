@@ -367,13 +367,18 @@ namespace Coco
 		/// @return True if the resource was saved
 		bool Save(const FilePath& contentPath, SharedRef<Resource> resource, bool overwrite);
 
+		/// @brief Saves all modified resources
+		/// @param overwrite If true, all existing disk files will be overwritten
+		/// @return True if all resources were saved
+		bool SaveAll(bool overwrite = true);
+
 		/// @brief Attempts to find a resource of the given type by name
 		/// @tparam ResourceType The type of resource
 		/// @param resourceName The name of the resource
 		/// @param outResource Will be set to the resource if found
 		/// @return True if a resource matching the name and type was found
 		template<typename ResourceType>
-		bool TryFind(const string& resourceName, SharedRef<ResourceType>& outResource) const
+		bool TryFindByName(const string& resourceName, SharedRef<ResourceType>& outResource) const
 		{
 			ResourceMap::const_iterator it = std::find_if(_resources.begin(), _resources.end(), 
 				[resourceName](const auto& kvp)
@@ -390,6 +395,12 @@ namespace Coco
 			return true;
 		}
 
+		/// @brief Tries to find a resource by its content path
+		/// @param contentPath The content path of the resource
+		/// @param outResource Will be set to the resource if found
+		/// @return True if a resource was found
+		bool TryFindByPath(const FilePath& contentPath, SharedRef<Resource>& outResource) const;
+
 	private:
 		/// @brief Gets a ResourceSerializer that supports the given resource type
 		/// @param type The resource type
@@ -398,9 +409,8 @@ namespace Coco
 
 		/// @brief Gets a ResourceSerializer that supports the given file type
 		/// @param contentPath The path to the file
-		/// @param outType Will be set to the resource type if a serializer was found
 		/// @return A resource serializer, or nullptr if no serializer supports the file type
-		ResourceSerializer* GetSerializerForFileType(const FilePath& contentPath, std::type_index& outType);
+		ResourceSerializer* GetSerializerForFileType(const FilePath& contentPath);
 
 		/// @brief Finds a resource with the given content path
 		/// @param contentPath The content path

@@ -171,6 +171,43 @@ namespace Coco::Rendering
 		return std::any_cast<SharedRef<Texture>>(Value);
 	}
 
+	template<>
+	ShaderUniformUnion MaterialParameter::As<ShaderUniformUnion>() const
+	{
+		Assert(IsDataShaderUniformType(Type))
+
+		switch (Type)
+		{
+		case ShaderUniformType::Float:
+			return As<float>();
+		case ShaderUniformType::Float2:
+			return As<Vector2>();
+		case ShaderUniformType::Float3:
+			return As<Vector3>();
+		case ShaderUniformType::Float4:
+			return As<Vector4>();
+		case ShaderUniformType::Color:
+			return As<Color>();
+		case ShaderUniformType::Mat4x4:
+			return As<Matrix4x4>();
+		case ShaderUniformType::Int:
+			return As<int>();
+		case ShaderUniformType::Int2:
+			return As<Vector2Int>();
+		case ShaderUniformType::Int3:
+			return As<Vector3Int>();
+		case ShaderUniformType::Int4:
+			return As<Vector4Int>();
+		case ShaderUniformType::Bool:
+			return As<bool>();
+		default:
+		{
+			Assert(false)
+			return ShaderUniformUnion();
+		}
+		}
+	}
+
 	Material::Material(const ResourceID& id, const string& name) :
 		RendererResource(id, name),
 		_parameters()
@@ -185,52 +222,16 @@ namespace Coco::Rendering
 			{
 				ShaderUniformData::UniformKey key = ShaderUniformData::MakeKey(param.Name);
 
-				switch (param.Type)
-				{
-				case ShaderUniformType::Float:
-					data.Uniforms[key] = param.As<float>();
-					break;
-				case ShaderUniformType::Float2:
-					data.Uniforms[key] = param.As<Vector2>();
-					break;
-				case ShaderUniformType::Float3:
-					data.Uniforms[key] = param.As<Vector3>();
-					break;
-				case ShaderUniformType::Float4:
-					data.Uniforms[key] = param.As<Vector4>();
-					break;
-				case ShaderUniformType::Color:
-					data.Uniforms[key] = param.As<Color>();
-					break;
-				case ShaderUniformType::Mat4x4:
-					data.Uniforms[key] = param.As<Matrix4x4>();
-					break;
-				case ShaderUniformType::Int:
-					data.Uniforms[key] = param.As<int>();
-					break;
-				case ShaderUniformType::Int2:
-					data.Uniforms[key] = param.As<Vector2Int>();
-					break;
-				case ShaderUniformType::Int3:
-					data.Uniforms[key] = param.As<Vector3Int>();
-					break;
-				case ShaderUniformType::Int4:
-					data.Uniforms[key] = param.As<Vector4Int>();
-					break;
-				case ShaderUniformType::Bool:
-					data.Uniforms[key] = param.As<bool>();
-					break;
-				case ShaderUniformType::Texture:
+				if (param.Type == ShaderUniformType::Texture)
 				{
 					SharedRef<Texture> tex = param.As<SharedRef<Texture>>();
 
 					if (tex)
 						data.Textures[key] = ShaderUniformData::ToTextureSampler(tex->GetImage(), tex->GetImageSampler());
-
-					break;
 				}
-				default:
-					break;
+				else
+				{
+					data.Uniforms[key] = param.As<ShaderUniformUnion>();
 				}
 			}
 		);

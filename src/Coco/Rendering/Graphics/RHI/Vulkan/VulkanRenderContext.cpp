@@ -596,7 +596,7 @@ namespace Coco::Rendering::Vulkan
 		auto& resources = Engine::Get()->GetResourceLibrary();
 
 		SharedRef<Shader> shader;
-		if (!resources.TryFind(_vulkanRenderOperation->GlobalState->ShaderName, shader))
+		if (!resources.TryFindByName(_vulkanRenderOperation->GlobalState->ShaderName, shader))
 		{
 			shader = RenderService::Get()->GetErrorShader();
 		}

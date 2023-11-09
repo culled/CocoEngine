@@ -44,6 +44,11 @@ namespace Coco::Rendering
 		_drawUniforms(drawUniforms)
 	{}
 
+	void Shader::SetStages(std::span<const ShaderStage> stages)
+	{
+		_stages = std::vector<ShaderStage>(stages.begin(), stages.end());
+	}
+
 	void Shader::SetPipelineState(const GraphicsPipelineState& pipelineState)
 	{
 		_pipelineState = pipelineState;

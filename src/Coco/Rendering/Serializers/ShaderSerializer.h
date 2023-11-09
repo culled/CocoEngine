@@ -19,8 +19,8 @@ namespace Coco::Rendering
 		// Inherited via ResourceSerializer
 		bool SupportsFileExtension(const string& extension) const override;
 		bool SupportsResourceType(const std::type_index& type) const override;
-		const std::type_index GetResourceTypeForExtension(const string& extension) const final;
 		string Serialize(SharedRef<Resource> resource) override;
-		SharedRef<Resource> Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data) override;
+		SharedRef<Resource> CreateAndDeserialize(const ResourceID& id, const string& data) override;
+		bool Deserialize(const string& data, SharedRef<Resource> resource) override;
 	};
 }

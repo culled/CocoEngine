@@ -27,6 +27,7 @@ namespace Coco::ECS
 
 	Scene::~Scene()
 	{
+		Clear();
 		_systems.clear();
 		MainLoop::Get()->RemoveListener(_lateTickListener);
 	}
@@ -177,5 +178,16 @@ namespace Coco::ECS
 
 		for (auto& s : _systems)
 			s->Execute(GetSelfRef<Scene>());
+	}
+
+	void Scene::Clear()
+	{
+		_entityParentMap.clear();
+		_queuedDestroyEntities.clear();
+		
+		for (const auto& e : _registry.view<entt::entity>())
+		{
+			_registry.destroy(e);
+		}
 	}
 }

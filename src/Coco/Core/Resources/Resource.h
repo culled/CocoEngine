@@ -28,6 +28,7 @@ namespace Coco
 		ResourceVersion _version;
 		string _name;
 		FilePath _contentPath;
+		ResourceVersion _savedVersion;
 
 	public:
 		Resource(const ResourceID& id, const string& name);
@@ -57,6 +58,10 @@ namespace Coco
 		/// @return This resource's content path
 		const FilePath& GetContentPath() const { return _contentPath; }
 
+		/// @brief Determines if this resource has changed since it was last saved 
+		/// @return True if this resource has changed since it was last saved
+		bool NeedsSaving() const;
+
 	protected:
 		/// @brief Sets the version of this resource
 		/// @param version The new version
@@ -70,5 +75,9 @@ namespace Coco
 		{
 			return std::static_pointer_cast<DerivedType>(shared_from_this());
 		}
+
+		/// @brief Marks this resource as being saved at the given path
+		/// @param contentPath The saved path of this resource
+		void MarkSaved(const FilePath& contentPath);
 	};
 }

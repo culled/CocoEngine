@@ -103,5 +103,8 @@ namespace Coco::ECS
         /// @brief Handler for the late tick
         /// @param tickInfo The tick info
         void HandleLateTick(const TickInfo& tickInfo);
+
+        /// @brief Clears all entities from this scene
+        void Clear();
     };
 }

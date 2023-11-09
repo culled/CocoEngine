@@ -7,6 +7,14 @@
 
 namespace Coco::Rendering
 {
+	Texture::Texture(const ResourceID& id, const string& name) :
+		RendererResource(id, name),
+		_version(0),
+		_image(),
+		_sampler(),
+		_imageFilePath()
+	{}
+
 	Texture::Texture(
 		const ResourceID& id,
 		const string& name, 
@@ -27,7 +35,7 @@ namespace Coco::Rendering
 	Texture::Texture(
 		const ResourceID& id,
 		const string& name, 
-		const string& imageFilePath, 
+		const FilePath& imageFilePath,
 		ImageColorSpace colorSpace,
 		ImageUsageFlags usageFlags, 
 		const ImageSamplerDescription& samplerDescription) :
@@ -39,7 +47,7 @@ namespace Coco::Rendering
 	{
 		RenderService& rendering = EnsureRenderService();
 
-		ReloadImage(colorSpace, usageFlags);
+		LoadImage(imageFilePath, colorSpace, usageFlags);
 		CreateSampler(samplerDescription);
 	}
 
@@ -76,12 +84,12 @@ namespace Coco::Rendering
 		Assert(_image.IsValid())
 
 		ImageDescription desc = _image->GetDescription();
-		ReloadImage(desc.ColorSpace, desc.UsageFlags);
+		LoadImage(_imageFilePath, desc.ColorSpace, desc.UsageFlags);
 	}
 
-	void Texture::ReloadImage(ImageColorSpace colorSpace, ImageUsageFlags usageFlags)
+	void Texture::LoadImage(const FilePath& imageFilePath, ImageColorSpace colorSpace, ImageUsageFlags usageFlags)
 	{
-		if (_imageFilePath.empty())
+		if (imageFilePath.IsEmpty())
 			return;
 
 		// Set Y = 0 to the top
@@ -92,7 +100,7 @@ namespace Coco::Rendering
 		int actualChannelCount;
 		int width, height;
 
-		File f = Engine::Get()->GetFileSystem().OpenFile(_imageFilePath, FileOpenFlags::Read);
+		File f = Engine::Get()->GetFileSystem().OpenFile(imageFilePath, FileOpenFlags::Read);
 		std::vector<uint8> fileData = f.ReadToEnd();
 		f.Close();
 
@@ -100,7 +108,7 @@ namespace Coco::Rendering
 
 		if (rawImageData == nullptr || stbi_failure_reason())
 		{
-			CocoError("Failed to load image data from \"{}\": {}", _imageFilePath, stbi_failure_reason())
+			CocoError("Failed to load image data from \"{}\": {}", imageFilePath.ToString(), stbi_failure_reason())
 
 			// Free the image data if it was somehow loaded
 			if (rawImageData)
@@ -177,16 +185,23 @@ namespace Coco::Rendering
 		Ref<Image> oldImage = _image;
 		_image = newImage;
 		device.TryReleaseImage(oldImage);
+
+		_imageFilePath = imageFilePath;
 		_version++;
 
 		stbi_image_free(rawImageData);
 
-		CocoTrace("Loaded image \"{}\"", _imageFilePath)
+		CocoTrace("Loaded image \"{}\"", _imageFilePath.ToString())
 	}
 
 	void Texture::CreateSampler(const ImageSamplerDescription& samplerDescription)
 	{
 		RenderService& rendering = EnsureRenderService();
+
+		if (_sampler)
+		{
+			rendering.GetDevice().TryReleaseImageSampler(_sampler);
+		}
 
 		ImageSamplerDescription newSamplerDescription = samplerDescription;
 		if(samplerDescription.MaxLOD == 0)

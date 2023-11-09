@@ -19,11 +19,6 @@ namespace Coco::Rendering
 		return type == typeid(Texture);
 	}
 
-	const std::type_index TextureSerializer::GetResourceTypeForExtension(const string& extension) const
-	{
-		return typeid(Texture);
-	}
-
 	string TextureSerializer::Serialize(SharedRef<Resource> resource)
 	{
 		SharedRef<Texture> texture = std::dynamic_pointer_cast<Texture>(resource);
@@ -35,7 +30,7 @@ namespace Coco::Rendering
 		out << YAML::BeginMap;
 
 		out << YAML::Key << "name" << YAML::Value << texture->GetName();
-		out << YAML::Key << "image file" << YAML::Value << texture->_imageFilePath;
+		out << YAML::Key << "image file" << YAML::Value << texture->_imageFilePath.ToString();
 
 		out << YAML::Key << "image description" << YAML::Value << YAML::BeginMap;
 		ImageDescriptionSerializer::Serialize(out, texture->GetImage()->GetDescription());
@@ -50,18 +45,33 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	SharedRef<Resource> TextureSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
+	SharedRef<Resource> TextureSerializer::CreateAndDeserialize(const ResourceID& id, const string& data)
 	{
+		SharedRef<Texture> texture = CreateSharedRef<Texture>(id, data);
+		Deserialize(data, texture);
+
+		return texture;
+	}
+
+	bool TextureSerializer::Deserialize(const string& data, SharedRef<Resource> resource)
+	{
+		SharedRef<Texture> texture = std::dynamic_pointer_cast<Texture>(resource);
+
+		Assert(texture)
+
 		YAML::Node baseNode = YAML::Load(data);
-		string name = baseNode["name"].as<string>();
-		string imageFilePath = baseNode["image file"].as<string>();
+		texture->SetName(baseNode["name"].as<string>());
+		
+		FilePath imageFilePath = baseNode["image file"].as<string>();
 
 		YAML::Node imageDescNode = baseNode["image description"];
 		ImageDescription imageDesc = ImageDescriptionSerializer::Deserialize(imageDescNode);
 
-		YAML::Node samplerDescNode = baseNode["sampler description"];
-		ImageSamplerDescription samplerDesc = ImageSamplerDescriptionSerializer::Deserialize(samplerDescNode);
+		texture->LoadImage(imageFilePath, imageDesc.ColorSpace, imageDesc.UsageFlags);
 
-		return CreateSharedRef<Texture>(resourceID, name, imageFilePath, imageDesc.ColorSpace, imageDesc.UsageFlags, samplerDesc);
+		YAML::Node samplerDescNode = baseNode["sampler description"];
+		texture->CreateSampler(ImageSamplerDescriptionSerializer::Deserialize(samplerDescNode));
+
+		return true;
 	}
 }

@@ -71,7 +71,15 @@ namespace Coco
 			flags |= ImGuiTreeNodeFlags_Leaf;
 
 		string pathName = path.GetFileName(true);
-		bool expanded = ImGui::TreeNodeEx(pathName.c_str(), flags, "%s", pathName.c_str());
+
+		string saveState = "";
+		SharedRef<Resource> r;
+		if (Engine::Get()->GetResourceLibrary().TryFindByPath(path, r) && r->NeedsSaving())
+		{
+			saveState = "*";
+		}
+
+		bool expanded = ImGui::TreeNodeEx(pathName.c_str(), flags, "%s%s", pathName.c_str(), saveState.c_str());
 
 		if (!isDirectory && ImGui::BeginDragDropSource())
 		{
@@ -128,7 +136,9 @@ namespace Coco
 
 		if (!ImGui::BeginTable("Contents", columns, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_SizingStretchSame))
 			return;
-		
+
+		auto& resources = Engine::Get()->GetResourceLibrary();
+
 		for (const auto& it : std::filesystem::directory_iterator{ _currentPath })
 		{
 			FilePath fp(it.path());
@@ -139,6 +149,16 @@ namespace Coco
 
 			string pathName = fp.GetFileName(true);
 			bool isDirectory = fp.IsDirectory();
+			string saveState;;
+
+			if (!isDirectory)
+			{
+				SharedRef<Resource> r;
+				if (resources.TryFindByPath(fp, r) && r->NeedsSaving())
+				{
+					saveState = "*";
+				}
+			}
 
 			ImGui::PushID(pathName.c_str());
 
@@ -159,7 +179,7 @@ namespace Coco
 				ImGui::EndDragDropSource();
 			}
 
-			ImGui::TextWrapped("%s", pathName.c_str());
+			ImGui::TextWrapped("%s%s", pathName.c_str(), saveState.c_str());
 
 			ImGui::PopID();
 		}

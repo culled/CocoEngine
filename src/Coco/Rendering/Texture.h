@@ -17,9 +17,11 @@ namespace Coco::Rendering
 		uint64 _version;
 		Ref<Image> _image;
 		Ref<ImageSampler> _sampler;
-		string _imageFilePath;
+		FilePath _imageFilePath;
 
 	public:
+		Texture(const ResourceID& id, const string& name);
+
 		Texture(
 			const ResourceID& id,
 			const string& name,
@@ -30,7 +32,7 @@ namespace Coco::Rendering
 		Texture(
 			const ResourceID& id,
 			const string& name,
-			const string& imageFilePath,
+			const FilePath& imageFilePath,
 			ImageColorSpace colorSpace,
 			ImageUsageFlags usageFlags,
 			const ImageSamplerDescription& samplerDescription
@@ -86,10 +88,11 @@ namespace Coco::Rendering
 		void ReloadImage();
 
 	private:
-		/// @brief Reloads this texture's image from the image file
-		/// @param colorSpace The color space to load the image as
-		/// @param usageFlags The usage flags for the image
-		void ReloadImage(ImageColorSpace colorSpace, ImageUsageFlags usageFlags);
+		/// @brief Loads an image into this texture
+		/// @param filePath The image file path
+		/// @param colorSpace The image's color space
+		/// @param usageFlags The image's usage flags
+		void LoadImage(const FilePath& filePath, ImageColorSpace colorSpace, ImageUsageFlags usageFlags);
 
 		/// @brief Creates this texture's sampler
 		/// @param samplerDescription The description for the sampler

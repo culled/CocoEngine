@@ -72,6 +72,12 @@ namespace Coco
 				if (ImGui::CollapsingHeader("Properties"))
 				{
 					MaterialUI::Draw(*materialResource);
+
+					SharedRef<Shader> shader;
+					if (UIUtils::DrawResourcePicker(".cshader", "Add Parameters From Shader", shader))
+					{
+						materialResource->AddParametersFromShader(*shader);
+					}
 				}
 
 				it.second = materialResource;

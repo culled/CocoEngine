@@ -14,39 +14,38 @@ namespace Coco::Rendering
 {
 	bool MaterialSerializer::SupportsFileExtension(const string& extension) const
 	{
-		return extension == ".cmaterial" || extension == ".cmaterialinst";
+		return extension == ".cmaterial";
 	}
 
 	bool MaterialSerializer::SupportsResourceType(const std::type_index& type) const
 	{
-		//return type == typeid(Material) || type == typeid(MaterialInstance);
 		return type == typeid(Material);
-	}
-
-	const std::type_index MaterialSerializer::GetResourceTypeForExtension(const string& extension) const
-	{
-		//return extension == ".cmaterial" ? typeid(Material) : typeid(MaterialInstance);
-		return typeid(Material);
 	}
 
 	string MaterialSerializer::Serialize(SharedRef<Resource> resource)
 	{
-		if (SharedRef<Material> material = std::dynamic_pointer_cast<Material>(resource))
-			return SerializeMaterial(*material);
-		//else if (SharedRef<MaterialInstance> materialInst = std::dynamic_pointer_cast<MaterialInstance>(resource))
-		//	return SerializeMaterialInstance(*materialInst);
+		SharedRef<Material> material = std::dynamic_pointer_cast<Material>(resource);
 
-		throw std::exception("Unsupported resource type");
+		Assert(material)
+		
+		return SerializeMaterial(*material);
 	}
 
-	SharedRef<Resource> MaterialSerializer::Deserialize(const std::type_index& resourceType, const ResourceID& resourceID, const string& data)
+	SharedRef<Resource> MaterialSerializer::CreateAndDeserialize(const ResourceID& id, const string& data)
 	{
-		if (resourceType == typeid(Material))
-			return DeserializeMaterial(resourceID, data);
-		//else if (resourceType == typeid(MaterialInstance))
-		//	return DeserializeMaterialInstance(resourceID, data);
+		SharedRef<Material> material = CreateSharedRef<Material>(id, "");
+		Deserialize(data, material);
 
-		throw std::exception("Unsupported resource type");
+		return material;
+	}
+
+	bool MaterialSerializer::Deserialize(const string& data, SharedRef<Resource> resource)
+	{
+		SharedRef<Material> material = std::dynamic_pointer_cast<Material>(resource);
+
+		Assert(material)
+
+		return DeserializeMaterial(data, *material);
 	}
 
 	string MaterialSerializer::SerializeMaterial(const Material& material)
@@ -123,12 +122,12 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	SharedRef<Resource> MaterialSerializer::DeserializeMaterial(const ResourceID& resourceID, const string& data)
+	bool MaterialSerializer::DeserializeMaterial(const string& data, Material& material)
 	{
 		YAML::Node baseNode = YAML::Load(data);
-		string name = baseNode["name"].as<string>();
 
-		SharedRef<Material> material = CreateSharedRef<Material>(resourceID, name);
+		material.SetName(baseNode["name"].as<string>());
+		material._parameters.clear();
 
 		YAML::Node parametersNode = baseNode["parameters"];
 		for (YAML::const_iterator it = parametersNode.begin(); it != parametersNode.end(); it++)
@@ -193,10 +192,12 @@ namespace Coco::Rendering
 				break;
 			}
 
-			material->_parameters[paramName] = MaterialParameter(paramName, type, value);
+			material._parameters[paramName] = MaterialParameter(paramName, type, value);
 		}
 
-		return material;
+		material.IncrementVersion();
+
+		return true;
 	}
 
 	/*string MaterialSerializer::SerializeMaterialInstance(const MaterialInstance& material)

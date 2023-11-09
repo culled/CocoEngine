@@ -104,6 +104,11 @@ namespace Coco::Rendering
 		/// @return The value
 		template<>
 		SharedRef<Texture> As<SharedRef<Texture>>() const;
+
+		/// @brief Gets this parameter's value as a ShaderUniformUnion
+		/// @return The value
+		template<>
+		ShaderUniformUnion As<ShaderUniformUnion>() const;
 	};
 
 	/// @brief Describes how to render a surface

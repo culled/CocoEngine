@@ -13,6 +13,8 @@ namespace Coco::Rendering
 	class Shader :
 		public RendererResource
 	{
+		friend class ShaderSerializer;
+
 	private:
 		std::vector<ShaderStage> _stages;
 		GraphicsPipelineState _pipelineState;
@@ -37,6 +39,10 @@ namespace Coco::Rendering
 			const ShaderUniformLayout& drawUniforms);
 
 		std::type_index GetType() const final { return typeid(Shader); }
+
+		/// @brief Sets the stages of this shader
+		/// @param stages The shader stages
+		void SetStages(std::span<const ShaderStage> stages);
 
 		/// @brief Gets the stages of this shader
 		/// @return This shader's stages

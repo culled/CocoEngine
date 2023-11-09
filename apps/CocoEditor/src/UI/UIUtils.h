@@ -23,7 +23,7 @@ namespace Coco
 				const FilePath& fp = resource->GetContentPath();
 				
 				if (!fp.IsEmpty())
-					pathText = fp.ToString();
+					pathText = fp.GetFileName(false);
 			}
 
 			string text = FormatString("{}: {}", label, pathText);

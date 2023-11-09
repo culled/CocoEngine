@@ -47,9 +47,9 @@ namespace Coco::ECS
         // Inherited via ResourceSerializer
         bool SupportsFileExtension(const string& extension) const override;
         bool SupportsResourceType(const std::type_index& type) const override;
-        const std::type_index GetResourceTypeForExtension(const string& extension) const override;
         string Serialize(SharedRef<Resource> resource) override;
-        SharedRef<Resource> Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data) override;
+        SharedRef<Resource> CreateAndDeserialize(const ResourceID& id, const string& data) override;
+        bool Deserialize(const string& data, SharedRef<Resource> resource) override;
 
     private:
         void SerializeEntity(YAML::Emitter& emitter, const Entity& entity);

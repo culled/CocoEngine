@@ -13,9 +13,9 @@ namespace Coco::Rendering
         // Inherited via ResourceSerializer
         bool SupportsFileExtension(const string& extension) const final;
         bool SupportsResourceType(const std::type_index& type) const final;
-        const std::type_index GetResourceTypeForExtension(const string& extension) const final;
         string Serialize(SharedRef<Resource> resource) final;
-        SharedRef<Resource> Deserialize(const std::type_index& resourceType, const ResourceID& resourceID, const string& data) final;
+        SharedRef<Resource> CreateAndDeserialize(const ResourceID& id, const string& data) final;
+        bool Deserialize(const string& data, SharedRef<Resource> resource) final;
 
     private:
         /// @brief Serializes a Material
@@ -24,10 +24,10 @@ namespace Coco::Rendering
         string SerializeMaterial(const Material& material);
 
         /// @brief Deserializes a Material
-        /// @param resourceID The ID for the resource
         /// @param data The serialized data
-        /// @return The deserialized resource
-        SharedRef<Resource> DeserializeMaterial(const ResourceID& resourceID, const string& data);
+        /// @param material The material to deserialize into
+        /// @return True if the deserialization was successful
+        bool DeserializeMaterial(const string& data, Material& material);
 
         /// @brief Serializes a MaterialInstance
         /// @param material The material

@@ -52,11 +52,6 @@ namespace Coco::ECS
 		return type == typeid(Scene);
 	}
 
-	const std::type_index SceneSerializer::GetResourceTypeForExtension(const string& extension) const
-	{
-		return typeid(Scene);
-	}
-
 	string SceneSerializer::Serialize(SharedRef<Resource> resource)
 	{
 		SharedRef<Scene> scene = std::dynamic_pointer_cast<Scene>(resource);
@@ -87,13 +82,24 @@ namespace Coco::ECS
 		return out.c_str();
 	}
 
-	SharedRef<Resource> SceneSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
+	SharedRef<Resource> SceneSerializer::CreateAndDeserialize(const ResourceID& id, const string& data)
 	{
+		SharedRef<Scene> scene = CreateSharedRef<Scene>(id, "");
+		Deserialize(data, scene);
+
+		return scene;
+	}
+
+	bool SceneSerializer::Deserialize(const string& data, SharedRef<Resource> resource)
+	{
+		SharedRef<Scene> scene = std::dynamic_pointer_cast<Scene>(resource);
+
+		Assert(scene)
+
 		YAML::Node baseNode = YAML::Load(data);
 
-		string name = baseNode["name"].as<string>();
-
-		SharedRef<Scene> scene = CreateSharedRef<Scene>(resourceID, name);
+		scene->SetName(baseNode["name"].as<string>());
+		scene->Clear();
 
 		YAML::Node hierarchyNode = baseNode["hierarchy"];
 		for (YAML::const_iterator it = hierarchyNode.begin(); it != hierarchyNode.end(); it++)
@@ -105,7 +111,7 @@ namespace Coco::ECS
 			DeserializeEntity(scene, *it);
 		}
 
-		return scene;
+		return true;
 	}
 
 	void SceneSerializer::SerializeEntity(YAML::Emitter& emitter, const Entity& entity)

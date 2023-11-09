@@ -18,11 +18,6 @@ namespace Coco::Rendering
 		return type == typeid(Mesh);
 	}
 
-	const std::type_index MeshSerializer::GetResourceTypeForExtension(const string& extension) const
-	{
-		return typeid(Mesh);
-	}
-
 	string MeshSerializer::Serialize(SharedRef<Resource> resource)
 	{
 		SharedRef<Mesh> mesh = std::dynamic_pointer_cast<Mesh>(resource);
@@ -64,13 +59,25 @@ namespace Coco::Rendering
 		return out.c_str();
 	}
 
-	SharedRef<Resource> MeshSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
+	SharedRef<Resource> MeshSerializer::CreateAndDeserialize(const ResourceID& id, const string& data)
 	{
+		SharedRef<Mesh> mesh = CreateSharedRef<Mesh>(id, "");
+		Deserialize(data, mesh);
+
+		return mesh;
+	}
+
+	bool MeshSerializer::Deserialize(const string& data, SharedRef<Resource> resource)
+	{
+		SharedRef<Mesh> mesh = std::dynamic_pointer_cast<Mesh>(resource);
+
+		Assert(mesh)
+
 		YAML::Node baseNode = YAML::Load(data);
 
-		string name = baseNode["name"].as<string>();
-		bool keepLocalData = baseNode["keepLocalData"].as<bool>();
-		bool isDynamic = baseNode["isDynamic"].as<bool>();
+		mesh->SetName(baseNode["name"].as<string>());
+		mesh->_keepLocalData = baseNode["keepLocalData"].as<bool>();
+		mesh->_isDynamic = baseNode["isDynamic"].as<bool>();
 
 		VertexDataFormat format(static_cast<VertexAttrFlags>(baseNode["vertexFormat"].as<int>()));
 
@@ -86,7 +93,6 @@ namespace Coco::Rendering
 			v.UV0 = vertexNode[4].as<Vector2>();
 		}
 
-		SharedRef<Mesh> mesh = CreateSharedRef<Mesh>(resourceID, name, keepLocalData, isDynamic);
 		mesh->SetVertices(format, vertices);
 
 		const YAML::Node indicesNode = baseNode["indices"];
@@ -96,8 +102,9 @@ namespace Coco::Rendering
 			mesh->SetIndices(i, it->first.as<uint32>());
 		}
 
+		mesh->SetVersion(mesh->GetVersion() + 1);
 		mesh->Apply();
 
-		return mesh;
+		return true;
 	}
 }

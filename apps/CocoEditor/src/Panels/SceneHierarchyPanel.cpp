@@ -2,6 +2,7 @@
 
 #include <Coco/ECS/Components/EntityInfoComponent.h>
 #include <Coco/ECS/Components/Transform3DComponent.h>
+#include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
 #include <Coco/ECS/Systems/TransformSystem.h>
 
 #include "../EditorApplication.h"
@@ -64,8 +65,15 @@ namespace Coco
 
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-		if (_selection.HasSelectedEntity() && _selection.GetSelectedEntity() == entity)
-			flags |= ImGuiTreeNodeFlags_Selected;
+		bool hasChildSelected = false;
+
+		if (_selection.HasSelectedEntity())
+		{
+			if (_selection.GetSelectedEntity() == entity)
+				flags |= ImGuiTreeNodeFlags_Selected;
+			else if (_selection.GetSelectedEntity().IsDescendentOf(entity))
+				ImGui::SetNextItemOpen(true);
+		}
 
 		std::vector<Entity> children = entity.GetChildren();
 
@@ -116,12 +124,37 @@ namespace Coco
 	{
 		if (ImGui::MenuItem("Create Empty Entity"))
 		{
-			_scene->CreateEntity();
+			Entity e = _scene->CreateEntity();
+			_selection.SetSelectedEntity(e);
+		}
+
+		if (ImGui::MenuItem("Create Render Entity"))
+		{
+			Entity e = _scene->CreateEntity("Render Entity");
+			e.AddComponent<Transform3DComponent>();
+			e.AddComponent<MeshRendererComponent>();
+			_selection.SetSelectedEntity(e);
 		}
 	}
 
 	void SceneHierarchyPanel::DrawEntityContextMenu(Entity& entity)
 	{
+		if (ImGui::MenuItem("Create Empty Child"))
+		{
+			Entity e = _scene->CreateEntity();
+			e.SetParent(entity);
+			_selection.SetSelectedEntity(e);
+		}
+
+		if (ImGui::MenuItem("Create Render Child"))
+		{
+			Entity e = _scene->CreateEntity("Render Entity");
+			e.AddComponent<Transform3DComponent>();
+			e.AddComponent<MeshRendererComponent>();
+			e.SetParent(entity);
+			_selection.SetSelectedEntity(e);
+		}
+
 		if (ImGui::MenuItem("Clear Parent"))
 		{
 			entity.ClearParent();

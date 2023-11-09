@@ -19,9 +19,12 @@ namespace Coco
 		_filePath(filePath)
 	{}
 
-	bool FilePath::operator==(const FilePath & other) const
+	bool FilePath::operator==(const FilePath& other) const
 	{
-		return _filePath == other._filePath;
+		if ((_filePath.empty() || other._filePath.empty()) || (_filePath.is_relative() && other._filePath.is_relative()))
+			return _filePath == other._filePath;
+
+		return std::filesystem::equivalent(_filePath, other._filePath);
 	}
 
 	FilePath FilePath::operator/(const FilePath& b) const

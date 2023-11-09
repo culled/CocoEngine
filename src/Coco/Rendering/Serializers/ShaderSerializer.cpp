@@ -18,11 +18,6 @@ namespace Coco::Rendering
 		return type == typeid(Shader);
 	}
 
-	const std::type_index ShaderSerializer::GetResourceTypeForExtension(const string& extension) const
-	{
-		return typeid(Shader);
-	}
-
 	string ShaderSerializer::Serialize(SharedRef<Resource> resource)
 	{
 		SharedRef<Shader> shader = std::dynamic_pointer_cast<Shader>(resource);
@@ -114,11 +109,23 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	SharedRef<Resource> ShaderSerializer::Deserialize(const std::type_index& type, const ResourceID& resourceID, const string& data)
+	SharedRef<Resource> ShaderSerializer::CreateAndDeserialize(const ResourceID& id, const string& data)
 	{
+		SharedRef<Shader> shader = CreateSharedRef<Shader>(id, "");
+		Deserialize(data, shader);
+
+		return shader;
+	}
+
+	bool ShaderSerializer::Deserialize(const string& data, SharedRef<Resource> resource)
+	{
+		SharedRef<Shader> shader = std::dynamic_pointer_cast<Shader>(resource);
+
+		Assert(shader)
+
 		YAML::Node baseNode = YAML::Load(data);
 
-		string name = baseNode["name"].as<string>();
+		shader->SetName(baseNode["name"].as<string>());
 
 		std::vector<ShaderStage> stages;
 
@@ -180,8 +187,15 @@ namespace Coco::Rendering
 			ShaderUniformLayoutSerialization::DeserializeLayout(baseNode["draw layout"], drawLayout);
 		}
 
-		SharedRef<Shader> shader = CreateSharedRef<Shader>(resourceID, name, stages, pipelineState, blendStates, format, globalLayout, instanceLayout, drawLayout);
+		shader->SetStages(stages);
+		shader->SetPipelineState(pipelineState);
+		shader->SetAttachmentBlendStates(blendStates);
+		shader->SetVertexDataFormat(format);
+		shader->SetGlobalUniformLayout(globalLayout);
+		shader->SetInstanceUniformLayout(instanceLayout);
+		shader->SetDrawUniformLayout(drawLayout);
+		shader->IncrementVersion();
 
-		return shader;
+		return true;
 	}
 }

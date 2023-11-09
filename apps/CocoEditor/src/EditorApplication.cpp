@@ -356,7 +356,9 @@ namespace Coco
 		if (path.empty())
 			return;
 
-		engine->GetResourceLibrary().Save(path, _mainScene, true);
+		auto& resources = engine->GetResourceLibrary();
+		resources.Save(path, _mainScene, true);
+		resources.SaveAll();
 	}
 
 	void EditorApplication::ChangeScenes(SharedRef<Scene> newScene)
