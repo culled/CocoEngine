@@ -26,8 +26,9 @@ namespace Coco
 					pathText = fp.GetFileName(false);
 			}
 
-			string text = FormatString("{}: {}", label, pathText);
-			ImGui::Button(text.c_str());
+			ImGui::Text("%s", label);
+			ImGui::SameLine();
+			ImGui::Button(pathText.c_str());
 
 			auto& resources = Engine::Get()->GetResourceLibrary();
 
