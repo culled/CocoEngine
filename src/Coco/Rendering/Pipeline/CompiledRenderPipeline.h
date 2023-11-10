@@ -3,6 +3,7 @@
 #include "../Renderpch.h"
 #include "RenderPassBinding.h"
 #include "../Graphics/AttachmentFormat.h"
+#include "RenderPipelineTypes.h"
 
 namespace Coco::Rendering
 {
@@ -24,7 +25,7 @@ namespace Coco::Rendering
 		bool PreserveAfterRender;
 
 		CompiledPipelineAttachment();
-		CompiledPipelineAttachment(const AttachmentFormat& attachment);
+		CompiledPipelineAttachment(const AttachmentFormat& attachment, AttachmentClearMode clearMode);
 
 		bool operator==(const CompiledPipelineAttachment& other) const;
 

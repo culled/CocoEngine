@@ -58,7 +58,7 @@ namespace Coco::ImGuiCoco
         {}
     );
 
-    ImGuiCocoPlatform::ImGuiCocoPlatform(bool enableViewports) :
+    ImGuiCocoPlatform::ImGuiCocoPlatform(bool enableViewports, bool clearAttachments) :
         _renderPass(CreateSharedRef<ImGuiRenderPass>()),
         _currentlyRenderingViewport(nullptr),
         _shouldUpdateDisplays(true), 
@@ -86,7 +86,7 @@ namespace Coco::ImGuiCoco
             InitPlatformInterface();
         }
 
-        CreateObjects();
+        CreateObjects(clearAttachments);
         RebuildFontTexture();
     }
 
@@ -527,7 +527,7 @@ namespace Coco::ImGuiCoco
         platformIO.Platform_SetWindowTitle = nullptr;
     }
 
-    void ImGuiCocoPlatform::CreateObjects()
+    void ImGuiCocoPlatform::CreateObjects(bool clearAttachments)
     {
         ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
 
@@ -535,6 +535,7 @@ namespace Coco::ImGuiCoco
         _renderPipeline = resources.Create<Rendering::RenderPipeline>("ImGui Pipeline");
         std::array<uint8, 1> bindings = { 0 };
         _renderPipeline->AddRenderPass(_renderPass, bindings);
+        _renderPipeline->SetDefaultAttachmentClearMode(clearAttachments ? AttachmentClearMode::Clear : AttachmentClearMode::DontClear);
     }
 
     void ImGuiCocoPlatform::UpdateDisplays()

@@ -83,7 +83,7 @@ namespace Coco::ImGuiCoco
 		ImGuiViewport* _currentlyRenderingViewport;
 
 	public:
-		ImGuiCocoPlatform(bool enableViewports);
+		ImGuiCocoPlatform(bool enableViewports, bool clearAttachments);
 		~ImGuiCocoPlatform();
 
 		void SetupRenderView(
@@ -182,7 +182,8 @@ namespace Coco::ImGuiCoco
 		void ShutdownPlatformInterface();
 
 		/// @brief Creates resources for ImGui rendering
-		void CreateObjects();
+		/// @param clearAttachments If true, attachments will be cleared
+		void CreateObjects(bool clearAttachments);
 
 		/// @brief Updates the ImGui displays
 		void UpdateDisplays();

@@ -14,7 +14,7 @@ namespace Coco::ImGuiCoco
     SharedRef<Shader> ImGuiRenderPass::_sShader = nullptr;
 
     ImGuiRenderPass::ImGuiRenderPass() :
-        _attachments({ AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::Never, true) })
+        _attachments({ AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, true) })
     {
         if (!_sShader)
             CreateShader();

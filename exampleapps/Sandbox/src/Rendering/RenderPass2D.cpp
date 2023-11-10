@@ -7,7 +7,7 @@ SharedRef<Shader> RenderPass2D::_sShader = nullptr;
 
 RenderPass2D::RenderPass2D() :
     _attachments({
-        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::Never, true)
+        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, true)
         })
 {
     _sShader = Engine::Get()->GetResourceLibrary().Create<Shader>("UI", BuiltInShaders::GetUnlitShader());

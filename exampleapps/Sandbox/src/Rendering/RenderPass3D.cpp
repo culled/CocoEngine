@@ -21,8 +21,8 @@ SharedRef<Shader> RenderPass3D::_sShader = nullptr;
 
 RenderPass3D::RenderPass3D() :
     _attachments({
-        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::Clear, true),
-        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::Clear, true),
+        AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, true),
+        AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, true),
         })
 {
     _sShader = BuiltInShaders::GetLitShader();

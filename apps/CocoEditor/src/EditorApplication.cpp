@@ -44,7 +44,7 @@ namespace Coco
 		_mainWindow(),
 		_updateTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleUpdateTick, 0)),
 		_renderTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleRenderTick, 99)),
-		_pipeline(BuiltInPipeline::Create(true)),
+		_pipeline(BuiltInPipeline::Create(true, true)),
 		_viewportClosedHandler(this, &EditorApplication::OnViewportPanelClosed)
 	{
 		Engine::Get()->GetResourceLibrary().CreateSerializer<SceneSerializer>();
@@ -101,7 +101,7 @@ namespace Coco
 		Vulkan::VulkanGraphicsPlatformFactory vulkanFactory(platformParams, Vulkan::VulkanGraphicsPlatformFactory::sDefaultAPIVersion, true);
 		services.CreateService<RenderService>(vulkanFactory, true);
 
-		services.CreateService<ImGuiService>(true);
+		services.CreateService<ImGuiService>(true, true);
 
 		services.CreateService<WindowService>(true);
 	}

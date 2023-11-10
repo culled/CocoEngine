@@ -14,10 +14,10 @@ namespace Coco::Rendering
 		PreserveAfterRender(false)
 	{}
 
-	CompiledPipelineAttachment::CompiledPipelineAttachment(const AttachmentFormat& attachment) :
+	CompiledPipelineAttachment::CompiledPipelineAttachment(const AttachmentFormat& attachment, AttachmentClearMode clearMode) :
 		PixelFormat(attachment.PixelFormat),
 		ColorSpace(attachment.ColorSpace),
-		Clear(attachment.ClearMode == AttachmentClearMode::Clear),
+		Clear(clearMode == AttachmentClearMode::Clear),
 		PreserveAfterRender(attachment.PreserveAfterRender)
 	{}
 

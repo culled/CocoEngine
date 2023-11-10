@@ -32,7 +32,7 @@ namespace Coco::ImGuiCoco
 		return true;
 	}
 
-	ImGuiService::ImGuiService(bool enableViewports) :
+	ImGuiService::ImGuiService(bool enableViewports, bool clearAttachments) :
 		HasMouseCapture(&ImGuiWantsMouse),
 		HasKeyboardCapture(&ImGuiWantsKeyboard),
 		_newFrameTickListener(CreateManagedRef<TickListener>(this, &ImGuiService::HandleNewFrameTick, sImGuiNewFramePriority)),
@@ -45,7 +45,7 @@ namespace Coco::ImGuiCoco
 
 		// Create the ImGui context and run setup
 		::ImGui::CreateContext();
-		_platform = CreateUniqueRef<ImGuiCocoPlatform>(enableViewports);
+		_platform = CreateUniqueRef<ImGuiCocoPlatform>(enableViewports, clearAttachments);
 
 		CocoTrace("Created ImGuiService")
 	}

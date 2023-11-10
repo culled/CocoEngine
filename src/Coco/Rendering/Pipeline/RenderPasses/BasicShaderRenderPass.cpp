@@ -6,8 +6,8 @@
 namespace Coco::Rendering
 {
 	const std::array<AttachmentFormat, 2> BasicShaderRenderPass::_sAttachments = {
-		AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentClearMode::Clear, true),
-		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::Clear, true)
+		AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, true),
+		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, true)
 	};
 
 	BasicShaderRenderPass::BasicShaderRenderPass(SharedRef<Shader> shader, uint64 visibilityGroups, bool exclusiveVisibilityGroups, bool useFrustumCulling) :

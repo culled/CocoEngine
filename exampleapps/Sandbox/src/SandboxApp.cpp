@@ -53,7 +53,7 @@ SandboxApp::SandboxApp() :
 
 	{
 		using namespace Coco::ImGuiCoco;
-		services->CreateService<ImGuiService>(true);
+		services->CreateService<ImGuiService>(true, false);
 	}
 
 	ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
@@ -77,6 +77,7 @@ SandboxApp::SandboxApp() :
 		std::array<uint8, 1> bindings = { 0 };
 		SharedRef<RenderPass2D> pass = CreateSharedRef<RenderPass2D>();
 		_pipeline2D->AddRenderPass(pass, bindings);
+		_pipeline2D->SetDefaultAttachmentClearMode(AttachmentClearMode::DontClear);
 	}
 
 	_renderViewProvider2D = CreateUniqueRef<RenderViewProvider2D>(*_attachmentCache);

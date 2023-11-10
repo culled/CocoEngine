@@ -10,8 +10,8 @@ namespace Coco
 	const string PickingRenderPass::sName = "picking";
 
 	std::vector<AttachmentFormat> PickingRenderPass::_sAttachments = {
-		AttachmentFormat(ImagePixelFormat::R32_Int, ImageColorSpace::Linear, AttachmentClearMode::Clear, true),
-		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, AttachmentClearMode::Clear, false)
+		AttachmentFormat(ImagePixelFormat::R32_Int, ImageColorSpace::Linear, true),
+		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, false)
 	};
 
 	SharedRef<Shader> PickingRenderPass::_sShader = nullptr;

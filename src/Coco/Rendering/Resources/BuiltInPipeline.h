@@ -8,7 +8,8 @@ namespace Coco::Rendering
 	{
 		/// @brief Creates a built-in render pipeline
 		/// @param useFrustumCulling If true, the built-in render pass will use frustum culling
+		/// @param clearAttachments If true, attachments will be cleared
 		/// @return The created pipeline
-		static SharedRef<RenderPipeline> Create(bool useFrustumCulling);
+		static SharedRef<RenderPipeline> Create(bool useFrustumCulling, bool clearAttachments);
 	};
 }

@@ -2,6 +2,7 @@
 
 #include "../Renderpch.h"
 #include <Coco/Core/Resources/Resource.h>
+#include "RenderPipelineTypes.h"
 #include "RenderPassBinding.h"
 #include "CompiledRenderPipeline.h"
 
@@ -12,6 +13,8 @@ namespace Coco::Rendering
 		public Resource
 	{
 	private:
+		AttachmentClearMode _defaultClearMode;
+		std::unordered_map<uint8, AttachmentClearMode> _attachmentClearModes;
 		std::vector<RenderPassBinding> _renderPasses;
 		CompiledRenderPipeline _compiledPipeline;
 		bool _isDirty;
@@ -39,6 +42,28 @@ namespace Coco::Rendering
 		/// @brief Gets the render passes in this pipeline
 		/// @return The render passes in this pipeline
 		std::span<RenderPassBinding> GetRenderPasses() { return _renderPasses; }
+
+		/// @brief Sets the default clear mode for all attachments
+		/// @param clearMode The clear mode
+		void SetDefaultAttachmentClearMode(AttachmentClearMode clearMode);
+
+		/// @brief Gets the default attachment clear mode
+		/// @return The default attachment clear mode
+		AttachmentClearMode GetDefaultAttachmentClearMode() const { return _defaultClearMode; }
+
+		/// @brief Sets the clear mode for a pipeline attachment
+		/// @param pipelineAttachmentIndex The index of the pipeline attachment
+		/// @param clearMode The clear mode for the attachment
+		void SetAttachmentClearMode(uint8 pipelineAttachmentIndex, AttachmentClearMode clearMode);
+
+		/// @brief Removes the clear mode for a pipeline attachment. This will revert it to the default clear mode for this pipeline
+		/// @param pipelineAttachmentIndex The index of the pipeline attachment
+		void RemoveAttachmentClearMode(uint8 pipelineAttachmentIndex);
+
+		/// @brief Gets the clear mode for a pipeline attachment
+		/// @param pipelineAttachmentIndex The index of the pipeline attachment
+		/// @return The clear mode for the attachment
+		AttachmentClearMode GetAttachmentClearMode(uint8 pipelineAttachmentIndex) const;
 
 		/// @brief Compiles this pipeline if it is dirty
 		/// @return True if compilation was successful

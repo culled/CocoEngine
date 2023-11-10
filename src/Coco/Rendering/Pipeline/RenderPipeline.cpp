@@ -10,6 +10,8 @@ namespace Coco::Rendering
 	RenderPipeline::RenderPipeline(const ResourceID& id, const string& name) :
 		Resource(id, name),
 		_renderPasses{},
+		_defaultClearMode(AttachmentClearMode::Clear),
+		_attachmentClearModes(),
 		_compiledPipeline(id),
 		_isDirty(true)
 	{}
@@ -55,6 +57,40 @@ namespace Coco::Rendering
 
 		_renderPasses.erase(it);
 		MarkDirty();
+	}
+
+	void RenderPipeline::SetDefaultAttachmentClearMode(AttachmentClearMode clearMode)
+	{
+		_defaultClearMode = clearMode;
+
+		MarkDirty();
+	}
+
+	void RenderPipeline::SetAttachmentClearMode(uint8 pipelineAttachmentIndex, AttachmentClearMode clearMode)
+	{
+		_attachmentClearModes[pipelineAttachmentIndex] = clearMode;
+
+		MarkDirty();
+	}
+
+	void RenderPipeline::RemoveAttachmentClearMode(uint8 pipelineAttachmentIndex)
+	{
+		if (!_attachmentClearModes.contains(pipelineAttachmentIndex))
+			return;
+
+		_attachmentClearModes.erase(pipelineAttachmentIndex);
+
+		MarkDirty();
+	}
+
+	AttachmentClearMode RenderPipeline::GetAttachmentClearMode(uint8 pipelineAttachmentIndex) const
+	{
+		auto it = _attachmentClearModes.find(pipelineAttachmentIndex);
+
+		if (it != _attachmentClearModes.end())
+			return it->second;
+
+		return _defaultClearMode;
 	}
 
 	bool RenderPipeline::Compile()
@@ -105,13 +141,10 @@ namespace Coco::Rendering
 
 					if (pipelineAttachment == CompiledPipelineAttachment::Empty)
 					{
-						pipelineAttachment = CompiledPipelineAttachment(passAttachment);
+						pipelineAttachment = CompiledPipelineAttachment(passAttachment, GetAttachmentClearMode(pipelineAttachmentIndex));
 					}
 					else
 					{
-						if (passAttachment.ClearMode != AttachmentClearMode::Clear)
-							pipelineAttachment.Clear = false;
-
 						if (passAttachment.PreserveAfterRender)
 							pipelineAttachment.PreserveAfterRender = true;
 					}
