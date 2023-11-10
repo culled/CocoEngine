@@ -29,6 +29,24 @@ namespace Coco
 			return contentPath;
 	}
 
+	FilePath UnpackedEngineFileSystem::ConvertToShortPath(const FilePath& contentPath) const
+	{
+		if (contentPath.IsRelative())
+			return contentPath;
+		else
+			return FilePath::GetRelativePath(contentPath, _contentBasePath);
+	}
+
+	bool UnpackedEngineFileSystem::AreSameFile(const FilePath& filePath1, const FilePath& filePath2) const
+	{
+		if (filePath1.IsEmpty() || filePath2.IsEmpty())
+			return filePath1 == filePath2;
+
+		FilePath fullPath1 = ConvertToFullPath(filePath1);
+		FilePath fullPath2 = ConvertToFullPath(filePath2);
+		return std::filesystem::equivalent(fullPath1, fullPath2);
+	}
+
 	File UnpackedEngineFileSystem::CreateFile(const FilePath& contentPath, FileOpenFlags openFlags)
 	{
 		FilePath fullPath = ConvertToFullPath(contentPath);

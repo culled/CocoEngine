@@ -17,14 +17,13 @@ namespace Coco
 
 	FilePath::FilePath(const std::filesystem::path& filePath) :
 		_filePath(filePath)
-	{}
+	{
+		_filePath.make_preferred();
+	}
 
 	bool FilePath::operator==(const FilePath& other) const
 	{
-		if ((_filePath.empty() || other._filePath.empty()) || (_filePath.is_relative() && other._filePath.is_relative()))
-			return _filePath == other._filePath;
-
-		return std::filesystem::equivalent(_filePath, other._filePath);
+		return _filePath == other._filePath;
 	}
 
 	FilePath FilePath::operator/(const FilePath& b) const

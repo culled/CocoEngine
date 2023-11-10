@@ -16,6 +16,8 @@ namespace Coco
         File OpenFile(const FilePath& contentPath, FileOpenFlags openFlags) final;
         bool FileExists(const FilePath& contentPath) const final;
         FilePath ConvertToFullPath(const FilePath& contentPath) const final;
+        FilePath ConvertToShortPath(const FilePath& contentPath) const final;
+        bool AreSameFile(const FilePath& filePath1, const FilePath& filePath2) const final;
         File CreateFile(const FilePath& contentPath, FileOpenFlags openFlags) final;
 
         /// @brief Gets the path to the content directory
