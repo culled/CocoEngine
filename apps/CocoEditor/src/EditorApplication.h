@@ -37,6 +37,8 @@ namespace Coco
         UniqueRef<ViewportPanel> _viewport;
         UniqueRef<SceneHierarchyPanel> _scenePanel;
         UniqueRef<InspectorPanel> _inspectorPanel;
+
+        EventHandler<const FilePath&> _fileDoubleClickedHandler;
         UniqueRef<ContentPanel> _contentPanel;
 
         EventHandler<const ViewportPanel&> _viewportClosedHandler;
@@ -59,7 +61,7 @@ namespace Coco
 
         void NewScene();
         void OpenScene();
-        void OpenScene(const string& scenePath);
+        void OpenScene(const FilePath& scenePath);
         void SaveSceneAs();
 
     private:
@@ -79,5 +81,7 @@ namespace Coco
         bool OnViewportPanelClosed(const ViewportPanel& panel);
 
         void ChangeScenes(SharedRef<Scene> newScene);
+
+        bool OnFileDoubleClicked(const FilePath& file);
     };
 }

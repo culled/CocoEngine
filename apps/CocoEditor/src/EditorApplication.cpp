@@ -45,7 +45,8 @@ namespace Coco
 		_updateTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleUpdateTick, 0)),
 		_renderTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleRenderTick, 99)),
 		_pipeline(BuiltInPipeline::Create(true, true)),
-		_viewportClosedHandler(this, &EditorApplication::OnViewportPanelClosed)
+		_viewportClosedHandler(this, &EditorApplication::OnViewportPanelClosed),
+		_fileDoubleClickedHandler(this, &EditorApplication::OnFileDoubleClicked)
 	{
 		Engine::Get()->GetResourceLibrary().CreateSerializer<SceneSerializer>();
 
@@ -138,6 +139,7 @@ namespace Coco
 		_scenePanel = CreateUniqueRef<SceneHierarchyPanel>(_mainScene);
 		_inspectorPanel = CreateUniqueRef<InspectorPanel>();
 		_contentPanel = CreateUniqueRef<ContentPanel>();
+		_fileDoubleClickedHandler.Connect(_contentPanel->OnFileDoubleClicked);
 	}
 
 	void EditorApplication::CreateMainScene()
@@ -338,7 +340,7 @@ namespace Coco
 		OpenScene(path);
 	}
 
-	void EditorApplication::OpenScene(const string& scenePath)
+	void EditorApplication::OpenScene(const FilePath& scenePath)
 	{
 		SharedRef<Scene> newScene = Engine::Get()->GetResourceLibrary().GetOrLoad<Scene>(scenePath, true);
 		ChangeScenes(newScene);
@@ -368,6 +370,17 @@ namespace Coco
 
 		_viewport->SetCurrentScene(_mainScene);
 		_scenePanel->SetCurrentScene(_mainScene);
+	}
+
+	bool EditorApplication::OnFileDoubleClicked(const FilePath& file)
+	{
+		if (file.GetExtension() == ".cscene")
+		{
+			OpenScene(file);
+			return true;
+		}
+
+		return false;
 	}
 }
 

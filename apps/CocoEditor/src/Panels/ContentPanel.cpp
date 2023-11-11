@@ -81,10 +81,18 @@ namespace Coco
 
 		bool expanded = ImGui::TreeNodeEx(pathName.c_str(), flags, "%s%s", pathName.c_str(), saveState.c_str());
 
-		if (!isDirectory && ImGui::BeginDragDropSource())
+		if (!isDirectory)
 		{
-			DragDropFile(path);
-			ImGui::EndDragDropSource();
+			if (ImGui::BeginDragDropSource())
+			{
+				DragDropFile(path);
+				ImGui::EndDragDropSource();
+			}
+
+			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+			{
+				OnFileDoubleClicked.Invoke(path);
+			}
 		}
 
 		if (expanded)
@@ -170,6 +178,10 @@ namespace Coco
 				if (isDirectory)
 				{
 					_currentPath = fp;
+				}
+				else
+				{
+					OnFileDoubleClicked.Invoke(fp);
 				}
 			}
 

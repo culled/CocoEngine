@@ -156,14 +156,11 @@ namespace Coco
 
 	void MeshRendererComponentUI::DrawAddParameterSection(Material& material)
 	{
-		if (!_isAddingParam)
+		if (ImGui::Button("Add Parameter..."))
 		{
-			if (ImGui::Button("Add Parameter..."))
-			{
-				_addParamUniformType = ShaderUniformType::Float;
-				_addParamUniformName = "New Param";
-				ImGui::OpenPopup("##add_param");
-			}
+			_addParamUniformType = ShaderUniformType::Float;
+			_addParamUniformName = "New Param";
+			ImGui::OpenPopup("##add_param");
 		}
 
 		if (ImGui::BeginPopup("##add_param", ImGuiWindowFlags_AlwaysAutoResize))
@@ -224,7 +221,7 @@ namespace Coco
 			}
 		);
 
-		if (!_isRemovingParam && params.size() > 0)
+		if (params.size() > 0)
 		{
 			if (ImGui::Button("Remove Parameter..."))
 			{
