@@ -188,14 +188,11 @@ namespace Coco
 			bool gizmos = rendering->GetRenderGizmos();
 			rendering->SetGizmoRendering(false);
 
-			std::array<Ref<Image>, 1> cameraImages = { _cameraPreviewTexture->GetImage() };
-			CameraSystem::Render(_selection.GetSelectedEntity(), cameraImages, pipeline);
+			std::array<Ref<Image>, 1> cameraImages = { 
+				_previewCameraFullscreen ? _viewportTexture->GetImage() : _cameraPreviewTexture->GetImage()
+			};
 
-			if (_previewCameraFullscreen)
-			{
-				cameraImages.at(0) = _viewportTexture->GetImage();
-				CameraSystem::Render(_selection.GetSelectedEntity(), cameraImages, pipeline);
-			}
+			CameraSystem::Render(_selection.GetSelectedEntity(), cameraImages, pipeline);
 
 			rendering->SetGizmoRendering(gizmos);
 		}
@@ -662,7 +659,7 @@ namespace Coco
 			ImGuiWindowFlags_NoMove |
 			ImGuiWindowFlags_NoSavedSettings))
 		{
-			ImGui::Image(_cameraPreviewTexture.Get(), previewSize);
+			ImGui::Image(_previewCameraFullscreen ? _viewportTexture.Get() : _cameraPreviewTexture.Get(), previewSize);
 
 			ImGui::Checkbox("Fullscreen", &_previewCameraFullscreen);
 
