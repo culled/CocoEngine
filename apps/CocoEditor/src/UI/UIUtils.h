@@ -13,6 +13,8 @@ namespace Coco
 	{
 		static bool DrawVector3UI(uint64 id, const char* label, Vector3& vector, double resetValue = 0.0);
 
+		static bool DrawInputStringEdit(const char* label, string& str, int maxLength);
+
 		template<typename ResourceType>
 		static bool DrawResourcePicker(const char* resourceExtension, const char* label, SharedRef<ResourceType>& resource)
 		{

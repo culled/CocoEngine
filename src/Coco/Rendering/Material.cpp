@@ -244,6 +244,68 @@ namespace Coco::Rendering
 		return _parameters.contains(name);
 	}
 
+	void Material::AddParameter(const char* name, ShaderUniformType type)
+	{
+		if (_parameters.contains(name))
+			return;
+
+		std::any value;
+
+		switch (type)
+		{
+		case ShaderUniformType::Float:
+			value = 0.f;
+			break;
+		case ShaderUniformType::Float2:
+			value = Vector2::Zero;
+			break;
+		case ShaderUniformType::Float3:
+			value = Vector3::Zero;
+			break; 
+		case ShaderUniformType::Float4:
+			value = Vector4::Zero;
+			break;
+		case ShaderUniformType::Color:
+			value = Color::Black;
+			break;
+		case ShaderUniformType::Mat4x4:
+			value = Matrix4x4::Identity;
+			break;
+		case ShaderUniformType::Int:
+			value = 0;
+			break;
+		case ShaderUniformType::Int2:
+			value = Vector2Int::Zero;
+			break;
+		case ShaderUniformType::Int3:
+			value = Vector3Int::Zero;
+			break;
+		case ShaderUniformType::Int4:
+			value = Vector4Int::Zero;
+			break;
+		case ShaderUniformType::Bool:
+			value = false;
+			break;
+		case ShaderUniformType::Texture:
+			value = SharedRef<Texture>();
+			break;
+		default:
+			break;
+		}
+
+		_parameters.try_emplace(name, MaterialParameter(name, type, value));
+	}
+
+	void Material::RemoveParameter(const char* name)
+	{
+		auto it = _parameters.find(name);
+
+		if (it == _parameters.end())
+			return;
+
+		_parameters.erase(it);
+	}
+
 	void Material::ForEachParameter(std::function<void(const MaterialParameter&)> callback) const
 	{
 		for (const auto& kvp : _parameters)

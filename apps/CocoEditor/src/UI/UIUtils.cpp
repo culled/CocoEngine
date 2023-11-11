@@ -102,4 +102,11 @@ namespace Coco
 
 		return changed;
 	}
+
+	bool UIUtils::DrawInputStringEdit(const char* label, string& str, int maxLength)
+	{
+		str.reserve(maxLength);
+
+		return ImGui::InputText(label, str.data(), maxLength);
+	}
 }

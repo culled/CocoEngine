@@ -44,6 +44,39 @@ namespace Coco::Rendering
 		return type != ShaderUniformType::Texture;
 	}
 
+	const char* GetShaderUniformTypeString(ShaderUniformType type)
+	{
+		switch (type)
+		{
+		case ShaderUniformType::Float:
+			return "Float";
+		case ShaderUniformType::Float2:
+			return "Float 2";
+		case ShaderUniformType::Float3:
+			return "Float 3";
+		case ShaderUniformType::Float4:
+			return "Float 4";
+		case ShaderUniformType::Color:
+			return "Color";
+		case ShaderUniformType::Mat4x4:
+			return "Matrix 4x4";
+		case ShaderUniformType::Int:
+			return "Int";
+		case ShaderUniformType::Int2:
+			return "Int 2";
+		case ShaderUniformType::Int3:
+			return "Int 3";
+		case ShaderUniformType::Int4:
+			return "Int 4";
+		case ShaderUniformType::Bool:
+			return "Boolean";
+		case ShaderUniformType::Texture:
+			return "Texture";
+		default:
+			return "Unknown";
+		}
+	}
+
 	ShaderUniform::ShaderUniform(const string& name, ShaderUniformType type, ShaderStageFlags bindPoints, std::any defaultValue) :
 		Name(name),
 		Type(type),

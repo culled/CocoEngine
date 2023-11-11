@@ -54,6 +54,11 @@ namespace Coco::Rendering
 	/// @return True if the given uniform type holds data
 	bool IsDataShaderUniformType(ShaderUniformType type);
 
+	/// @brief Gets the string representation of a ShaderUniformType
+	/// @param type The uniform type
+	/// @return The string representation
+	const char* GetShaderUniformTypeString(ShaderUniformType type);
+
 	/// @brief A uniform for a shader
 	struct ShaderUniform
 	{

@@ -162,6 +162,15 @@ namespace Coco::Rendering
 		/// @return True if a parameter with the given name exists
 		bool HasParameter(const char* name) const;
 
+		/// @brief Adds a parameter to this material, if it doesn't already exist
+		/// @param name The name of the parameter
+		/// @param type The parameter type
+		void AddParameter(const char* name, ShaderUniformType type);
+
+		/// @brief Removes a parameter from this material
+		/// @param name The name of the parameter
+		void RemoveParameter(const char* name);
+
 		/// @brief Performs a callback function for each parameter in this material
 		/// @param callback The callback function
 		void ForEachParameter(std::function<void(const MaterialParameter&)> callback) const;

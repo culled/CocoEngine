@@ -16,11 +16,23 @@ using namespace Coco::Rendering;
 
 namespace Coco
 {
-	MeshRendererComponentUI::MeshRendererComponentUI()
+	MeshRendererComponentUI::MeshRendererComponentUI() :
+		_isAddingParam(false),
+		_addParamUniformName(),
+		_addParamUniformType(ShaderUniformType::Float),
+		_isRemovingParam(false),
+		_removeParamUniformName()
 	{
 		for (int i = 0; i < _flagTexts.size(); i++)
 		{
 			_flagTexts.at(i) = FormatString("Group {}", i);
+		}
+
+		for (int i = 0; i < _uniformTypeTexts.size(); i++)
+		{
+			ShaderUniformType u = static_cast<ShaderUniformType>(i);
+
+			_uniformTypeTexts.at(i) = GetShaderUniformTypeString(u);
 		}
 	}
 
@@ -72,12 +84,14 @@ namespace Coco
 				if (ImGui::CollapsingHeader("Properties"))
 				{
 					MaterialUI::Draw(*materialResource);
+					DrawAddParameterSection(*materialResource);
+					DrawRemoveParameterSection(*materialResource);
 
-					SharedRef<Shader> shader;
-					if (UIUtils::DrawResourcePicker(".cshader", "Add Parameters From Shader", shader))
-					{
-						materialResource->AddParametersFromShader(*shader);
-					}
+					//SharedRef<Shader> shader;
+					//if (UIUtils::DrawResourcePicker(".cshader", "Add Parameters From Shader", shader))
+					//{
+					//	materialResource->AddParametersFromShader(*shader);
+					//}
 				}
 
 				it.second = materialResource;
@@ -138,5 +152,124 @@ namespace Coco
 			v = "None";
 
 		return v;
+	}
+
+	void MeshRendererComponentUI::DrawAddParameterSection(Material& material)
+	{
+		if (!_isAddingParam)
+		{
+			if (ImGui::Button("Add Parameter..."))
+			{
+				_addParamUniformType = ShaderUniformType::Float;
+				_addParamUniformName = "New Param";
+				ImGui::OpenPopup("##add_param");
+			}
+		}
+
+		if (ImGui::BeginPopup("##add_param", ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			_isAddingParam = true;
+
+			UIUtils::DrawInputStringEdit("Name", _addParamUniformName, 64);
+
+			const char* typePreview = GetShaderUniformTypeString(_addParamUniformType);
+
+			if (ImGui::BeginCombo("Type", typePreview))
+			{
+				for (int i = 0; i < _uniformTypeTexts.size(); i++)
+				{
+					ShaderUniformType u = static_cast<ShaderUniformType>(i);
+					const string& label = _uniformTypeTexts.at(i);
+					bool selected = u == _addParamUniformType;
+
+					if (ImGui::Selectable(label.c_str(), selected))
+					{
+						_addParamUniformType = u;
+					}
+				}
+
+				ImGui::EndCombo();
+			}
+
+			if (!_addParamUniformName.empty() && !material.HasParameter(_addParamUniformName.c_str()))
+			{
+				if (ImGui::Button("Add"))
+				{
+					material.AddParameter(_addParamUniformName.c_str(), _addParamUniformType);
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Cancel"))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
+		if (_isAddingParam && !ImGui::IsPopupOpen("##add_param"))
+			_isAddingParam = false;
+	}
+
+	void MeshRendererComponentUI::DrawRemoveParameterSection(Rendering::Material& material)
+	{
+		std::vector<string> params;
+		material.ForEachParameter(
+			[&params](const MaterialParameter& param)
+			{
+				params.push_back(param.Name);
+			}
+		);
+
+		if (!_isRemovingParam && params.size() > 0)
+		{
+			if (ImGui::Button("Remove Parameter..."))
+			{
+				_removeParamUniformName = params.front();
+				ImGui::OpenPopup("##remove_param");
+			}
+		}
+
+		if (ImGui::BeginPopup("##remove_param", ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			_isRemovingParam = true;
+
+			if (ImGui::BeginCombo("Name", _removeParamUniformName.c_str()))
+			{
+				for (int i = 0; i < params.size(); i++)
+				{
+					const string& label = params.at(i);
+					bool selected = label == _removeParamUniformName;
+
+					if (ImGui::Selectable(label.c_str(), selected))
+					{
+						_removeParamUniformName = label;
+					}
+				}
+
+				ImGui::EndCombo();
+			}
+
+			if (ImGui::Button("Remove"))
+			{
+				material.RemoveParameter(_removeParamUniformName.c_str());
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Cancel"))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
+		if (_isRemovingParam && !ImGui::IsPopupOpen("##remove_param"))
+			_isRemovingParam = false;
 	}
 }
