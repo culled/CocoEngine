@@ -18,14 +18,11 @@ namespace Coco::Rendering
 		/// @brief The color space for this attachment
 		ImageColorSpace ColorSpace;
 
-		/// @brief If true, this attachment's data will be cleared once the render starts
-		bool Clear;
-
-		/// @brief If true, this attachment's data will be preserved for subsequent renders
-		bool PreserveAfterRender;
+		/// @brief The options for this attachment
+		AttachmentOptionFlags Options;
 
 		CompiledPipelineAttachment();
-		CompiledPipelineAttachment(const AttachmentFormat& attachment, AttachmentClearMode clearMode);
+		CompiledPipelineAttachment(const AttachmentFormat& attachment, AttachmentOptionFlags options);
 
 		bool operator==(const CompiledPipelineAttachment& other) const;
 

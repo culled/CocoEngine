@@ -532,10 +532,11 @@ namespace Coco::ImGuiCoco
         ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
 
         // Create the pipeline
-        _renderPipeline = resources.Create<Rendering::RenderPipeline>("ImGui Pipeline");
+        _renderPipeline = resources.Create<Rendering::RenderPipeline>(
+            "ImGui Pipeline", 
+            clearAttachments ? AttachmentOptionFlags::Clear : AttachmentOptionFlags::Preserve);
         std::array<uint8, 1> bindings = { 0 };
         _renderPipeline->AddRenderPass(_renderPass, bindings);
-        _renderPipeline->SetDefaultAttachmentClearMode(clearAttachments ? AttachmentClearMode::Clear : AttachmentClearMode::DontClear);
     }
 
     void ImGuiCocoPlatform::UpdateDisplays()

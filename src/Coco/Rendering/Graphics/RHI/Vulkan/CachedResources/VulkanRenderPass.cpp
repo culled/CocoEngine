@@ -81,19 +81,22 @@ namespace Coco::Rendering::Vulkan
 			description.samples = ToVkSampleCountFlagBits(_samples);
 			description.format = ToVkFormat(attachment.PixelFormat, attachment.ColorSpace);
 
-			description.loadOp = attachment.Clear ?
+			bool clear = (attachment.Options & AttachmentOptionFlags::Clear) == AttachmentOptionFlags::Clear;
+			bool preserve = (attachment.Options & AttachmentOptionFlags::Preserve) == AttachmentOptionFlags::Preserve;
+
+			description.loadOp = clear ?
 				VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
 
-			description.storeOp = attachment.PreserveAfterRender ?
+			description.storeOp = preserve ?
 				VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-			description.stencilLoadOp = attachment.Clear ?
+			description.stencilLoadOp = clear ?
 				VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
 
-			description.stencilStoreOp = attachment.PreserveAfterRender ? 
+			description.stencilStoreOp = preserve ?
 				VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-			description.initialLayout = attachment.Clear ?
+			description.initialLayout = clear ?
 				VK_IMAGE_LAYOUT_UNDEFINED : layout;
 
 			description.finalLayout = layout;

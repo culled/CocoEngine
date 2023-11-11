@@ -2,13 +2,35 @@
 
 namespace Coco::Rendering
 {
-	/// @brief Clear modes for an attachment
-	enum class AttachmentClearMode
+	/// @brief Options for an attachment
+	enum class AttachmentOptionFlags
 	{
-		/// @brief The attachment should not be cleared
-		DontClear,
+		None = 0,
 
 		/// @brief The attachment should be cleared
-		Clear
+		Clear = 1 << 0,
+
+		/// @brief The attachment's data should be preserved between renders
+		Preserve = 1 << 1,
 	};
+
+	constexpr AttachmentOptionFlags operator|(const AttachmentOptionFlags& a, const AttachmentOptionFlags& b)
+	{ 
+		return static_cast<AttachmentOptionFlags>(static_cast<int>(a) | static_cast<int>(b));
+	}
+
+	constexpr void operator|=(AttachmentOptionFlags& a, const AttachmentOptionFlags& b)
+	{
+		a = a | b;
+	}
+
+	constexpr AttachmentOptionFlags operator&(const AttachmentOptionFlags& a, const AttachmentOptionFlags& b)
+	{
+		return static_cast<AttachmentOptionFlags>(static_cast<int>(a) & static_cast<int>(b));
+	}
+
+	constexpr void operator&=(AttachmentOptionFlags& a, const AttachmentOptionFlags& b)
+	{
+		a = a & b;
+	}
 }

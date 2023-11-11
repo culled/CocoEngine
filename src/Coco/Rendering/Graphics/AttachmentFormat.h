@@ -13,11 +13,8 @@ namespace Coco::Rendering
 		/// @brief The color space for this attachment
 		ImageColorSpace ColorSpace;
 
-		/// @brief If true, this attachment's data will be preserved for subsequent renders
-		bool PreserveAfterRender;
-
 		AttachmentFormat();
-		AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, bool preserveAfterRender);
+		AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace);
 
 		/// @brief Determines if this AttachmentFormat is compatible with another
 		/// @param other The other format

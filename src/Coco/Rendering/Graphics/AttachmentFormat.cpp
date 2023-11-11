@@ -4,13 +4,12 @@
 namespace Coco::Rendering
 {
     AttachmentFormat::AttachmentFormat() : 
-        AttachmentFormat(ImagePixelFormat::Unknown, ImageColorSpace::Unknown, false)
+        AttachmentFormat(ImagePixelFormat::Unknown, ImageColorSpace::Unknown)
     {}
 
-    AttachmentFormat::AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace, bool preserveAfterRender) :
+    AttachmentFormat::AttachmentFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace) :
         PixelFormat(pixelFormat),
-        ColorSpace(colorSpace),
-        PreserveAfterRender(preserveAfterRender)
+        ColorSpace(colorSpace)
     {}
 
     bool AttachmentFormat::IsCompatible(const AttachmentFormat& other) const

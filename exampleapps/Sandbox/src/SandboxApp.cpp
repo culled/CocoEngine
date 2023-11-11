@@ -58,7 +58,7 @@ SandboxApp::SandboxApp() :
 
 	ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
 
-	_pipeline3D = resources.Create<Rendering::RenderPipeline>("3D Pipeline");
+	_pipeline3D = resources.Create<Rendering::RenderPipeline>("3D Pipeline", AttachmentOptionFlags::Clear);
 
 	{
 		std::array<uint8, 2> bindings = { 0, 1 };
@@ -71,13 +71,12 @@ SandboxApp::SandboxApp() :
 	_renderViewProvider3D = CreateUniqueRef<RenderViewProvider3D>(*_attachmentCache);
 	_sceneDataProvider3D = CreateUniqueRef<SceneDataProvider3D>();
 
-	_pipeline2D = resources.Create<Rendering::RenderPipeline>("2D Pipeline");
+	_pipeline2D = resources.Create<Rendering::RenderPipeline>("2D Pipeline", AttachmentOptionFlags::Preserve);
 
 	{
 		std::array<uint8, 1> bindings = { 0 };
 		SharedRef<RenderPass2D> pass = CreateSharedRef<RenderPass2D>();
 		_pipeline2D->AddRenderPass(pass, bindings);
-		_pipeline2D->SetDefaultAttachmentClearMode(AttachmentClearMode::DontClear);
 	}
 
 	_renderViewProvider2D = CreateUniqueRef<RenderViewProvider2D>(*_attachmentCache);

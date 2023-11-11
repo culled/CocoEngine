@@ -10,23 +10,20 @@ namespace Coco::Rendering
 	CompiledPipelineAttachment::CompiledPipelineAttachment() :
 		PixelFormat(ImagePixelFormat::Unknown),
 		ColorSpace(ImageColorSpace::Unknown),
-		Clear(false),
-		PreserveAfterRender(false)
+		Options()
 	{}
 
-	CompiledPipelineAttachment::CompiledPipelineAttachment(const AttachmentFormat& attachment, AttachmentClearMode clearMode) :
+	CompiledPipelineAttachment::CompiledPipelineAttachment(const AttachmentFormat& attachment, AttachmentOptionFlags options) :
 		PixelFormat(attachment.PixelFormat),
 		ColorSpace(attachment.ColorSpace),
-		Clear(clearMode == AttachmentClearMode::Clear),
-		PreserveAfterRender(attachment.PreserveAfterRender)
+		Options(options)
 	{}
 
 	bool CompiledPipelineAttachment::operator==(const CompiledPipelineAttachment& other) const
 	{
 		return PixelFormat == other.PixelFormat &&
 			ColorSpace == other.ColorSpace &&
-			Clear == other.Clear &&
-			PreserveAfterRender == other.PreserveAfterRender;
+			Options == other.Options;
 	}
 
 	bool CompiledPipelineAttachment::IsCompatible(const AttachmentFormat& format) const

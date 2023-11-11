@@ -13,14 +13,14 @@ namespace Coco::Rendering
 		public Resource
 	{
 	private:
-		AttachmentClearMode _defaultClearMode;
-		std::unordered_map<uint8, AttachmentClearMode> _attachmentClearModes;
+		AttachmentOptionFlags _defaultAttachmentOptions;
+		std::unordered_map<uint8, AttachmentOptionFlags> _attachmentOptions;
 		std::vector<RenderPassBinding> _renderPasses;
 		CompiledRenderPipeline _compiledPipeline;
 		bool _isDirty;
 
 	public:
-		RenderPipeline(const ResourceID& id, const string& name);
+		RenderPipeline(const ResourceID& id, const string& name, AttachmentOptionFlags defaultAttachmentOptions = AttachmentOptionFlags::None);
 		~RenderPipeline();
 
 		std::type_index GetType() const final { return typeid(RenderPipeline); }
@@ -43,27 +43,27 @@ namespace Coco::Rendering
 		/// @return The render passes in this pipeline
 		std::span<RenderPassBinding> GetRenderPasses() { return _renderPasses; }
 
-		/// @brief Sets the default clear mode for all attachments
-		/// @param clearMode The clear mode
-		void SetDefaultAttachmentClearMode(AttachmentClearMode clearMode);
+		/// @brief Sets the default options for all attachments
+		/// @param options The attachment options
+		void SetDefaultAttachmentOptions(AttachmentOptionFlags options);
 
-		/// @brief Gets the default attachment clear mode
-		/// @return The default attachment clear mode
-		AttachmentClearMode GetDefaultAttachmentClearMode() const { return _defaultClearMode; }
+		/// @brief Gets the default options for attachments
+		/// @return The default attachment options
+		AttachmentOptionFlags GetDefaultAttachmentOptions() const { return _defaultAttachmentOptions; }
 
-		/// @brief Sets the clear mode for a pipeline attachment
+		/// @brief Sets the options for a pipeline attachment
 		/// @param pipelineAttachmentIndex The index of the pipeline attachment
-		/// @param clearMode The clear mode for the attachment
-		void SetAttachmentClearMode(uint8 pipelineAttachmentIndex, AttachmentClearMode clearMode);
+		/// @param options The options for the attachment
+		void SetAttachmentOptions(uint8 pipelineAttachmentIndex, AttachmentOptionFlags options);
 
-		/// @brief Removes the clear mode for a pipeline attachment. This will revert it to the default clear mode for this pipeline
+		/// @brief Removes the options for a pipeline attachment. This will revert it to the default attachment options for this pipeline
 		/// @param pipelineAttachmentIndex The index of the pipeline attachment
-		void RemoveAttachmentClearMode(uint8 pipelineAttachmentIndex);
+		void RemoveAttachmentOptions(uint8 pipelineAttachmentIndex);
 
-		/// @brief Gets the clear mode for a pipeline attachment
+		/// @brief Gets the options for a pipeline attachment
 		/// @param pipelineAttachmentIndex The index of the pipeline attachment
-		/// @return The clear mode for the attachment
-		AttachmentClearMode GetAttachmentClearMode(uint8 pipelineAttachmentIndex) const;
+		/// @return The options for the attachment
+		AttachmentOptionFlags GetAttachmentOptions(uint8 pipelineAttachmentIndex) const;
 
 		/// @brief Compiles this pipeline if it is dirty
 		/// @return True if compilation was successful

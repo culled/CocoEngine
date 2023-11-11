@@ -404,7 +404,7 @@ namespace Coco::Rendering::Vulkan
 			const CompiledPipelineAttachment& attachment = attachmentFormats.at(i);
 
 			// Don't bother transitioning layouts for attachments that are cleared as Vulkan will handle that for us
-			if (attachment.Clear)
+			if ((attachment.Options & AttachmentOptionFlags::Clear) == AttachmentOptionFlags::Clear)
 				continue;
 
 			RenderTarget& rt = rts[i];

@@ -10,8 +10,8 @@ namespace Coco::Rendering
 	const uint64 BuiltInRenderPass::sUnlitVisibilityGroup = 1 << 2;
 
 	const std::array<AttachmentFormat, 2> BuiltInRenderPass::_sAttachments = {
-		AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, true),
-		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear, true)
+		AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB),
+		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear)
 	};
 
 	SharedRef<Shader> BuiltInRenderPass::_sLitShader = nullptr;

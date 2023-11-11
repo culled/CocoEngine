@@ -7,11 +7,11 @@ namespace Coco::Rendering
 {
 	std::hash<RenderPipeline*> _pipelineHasher;
 
-	RenderPipeline::RenderPipeline(const ResourceID& id, const string& name) :
+	RenderPipeline::RenderPipeline(const ResourceID& id, const string& name, AttachmentOptionFlags defaultAttachmentOptions) :
 		Resource(id, name),
 		_renderPasses{},
-		_defaultClearMode(AttachmentClearMode::Clear),
-		_attachmentClearModes(),
+		_defaultAttachmentOptions(defaultAttachmentOptions),
+		_attachmentOptions(),
 		_compiledPipeline(id),
 		_isDirty(true)
 	{}
@@ -59,38 +59,38 @@ namespace Coco::Rendering
 		MarkDirty();
 	}
 
-	void RenderPipeline::SetDefaultAttachmentClearMode(AttachmentClearMode clearMode)
+	void RenderPipeline::SetDefaultAttachmentOptions(AttachmentOptionFlags options)
 	{
-		_defaultClearMode = clearMode;
+		_defaultAttachmentOptions = options;
 
 		MarkDirty();
 	}
 
-	void RenderPipeline::SetAttachmentClearMode(uint8 pipelineAttachmentIndex, AttachmentClearMode clearMode)
+	void RenderPipeline::SetAttachmentOptions(uint8 pipelineAttachmentIndex, AttachmentOptionFlags options)
 	{
-		_attachmentClearModes[pipelineAttachmentIndex] = clearMode;
+		_attachmentOptions[pipelineAttachmentIndex] = options;
 
 		MarkDirty();
 	}
 
-	void RenderPipeline::RemoveAttachmentClearMode(uint8 pipelineAttachmentIndex)
+	void RenderPipeline::RemoveAttachmentOptions(uint8 pipelineAttachmentIndex)
 	{
-		if (!_attachmentClearModes.contains(pipelineAttachmentIndex))
+		if (!_attachmentOptions.contains(pipelineAttachmentIndex))
 			return;
 
-		_attachmentClearModes.erase(pipelineAttachmentIndex);
+		_attachmentOptions.erase(pipelineAttachmentIndex);
 
 		MarkDirty();
 	}
 
-	AttachmentClearMode RenderPipeline::GetAttachmentClearMode(uint8 pipelineAttachmentIndex) const
+	AttachmentOptionFlags RenderPipeline::GetAttachmentOptions(uint8 pipelineAttachmentIndex) const
 	{
-		auto it = _attachmentClearModes.find(pipelineAttachmentIndex);
+		auto it = _attachmentOptions.find(pipelineAttachmentIndex);
 
-		if (it != _attachmentClearModes.end())
+		if (it != _attachmentOptions.end())
 			return it->second;
 
-		return _defaultClearMode;
+		return _defaultAttachmentOptions;
 	}
 
 	bool RenderPipeline::Compile()
@@ -141,12 +141,7 @@ namespace Coco::Rendering
 
 					if (pipelineAttachment == CompiledPipelineAttachment::Empty)
 					{
-						pipelineAttachment = CompiledPipelineAttachment(passAttachment, GetAttachmentClearMode(pipelineAttachmentIndex));
-					}
-					else
-					{
-						if (passAttachment.PreserveAfterRender)
-							pipelineAttachment.PreserveAfterRender = true;
+						pipelineAttachment = CompiledPipelineAttachment(passAttachment, GetAttachmentOptions(pipelineAttachmentIndex));
 					}
 				}
 
