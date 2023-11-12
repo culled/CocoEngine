@@ -57,7 +57,7 @@ namespace Coco
 		ResourceID id = _idGenerator();
 		if (!resourceLoaded)
 		{
-			outResource = serializer->CreateAndDeserialize(id, data);
+			outResource = serializer->CreateAndDeserialize(id, contentPath.GetFileName(false), data);
 			_resources.try_emplace(id, outResource).first;
 		}
 		else

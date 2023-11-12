@@ -15,14 +15,6 @@
 #include "Rendering/PickingRenderPass.h"
 #include <Coco/Rendering/Pipeline/RenderPasses/BasicShaderRenderPass.h>
 #include <Coco/Rendering/Pipeline/RenderPasses/BuiltInRenderPass.h>
-#include <Coco/Rendering/Mesh.h>
-#include <Coco/Rendering/Material.h>
-#include <Coco/Rendering/MeshUtilities.h>
-#include <Coco/ECS/Components/Transform3DComponent.h>
-#include <Coco/ECS/Components/EntityInfoComponent.h>
-#include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
-#include <Coco/ECS/Components/Rendering/CameraComponent.h>
-#include <Coco/Rendering/Resources/BuiltinShaders.h>
 #include <Coco/ECS/Serializers/SceneSerializer.h>
 // TEMPORARY
 
@@ -147,51 +139,9 @@ namespace Coco
 		using namespace Coco::Rendering;
 		using namespace Coco::ECS;
 
-		EngineFileSystem& fs = Engine::Get()->GetFileSystem();
 		ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
-		const char* sceneFile = "scenes/example.cscene";
-		if (fs.FileExists(sceneFile))
-		{
-			_mainScene = resourceLibrary.GetOrLoad<Scene>(sceneFile);
-		}
-		else
-		{
-			_mainScene = resourceLibrary.Create<Scene>("Scene");
-
-			std::vector<VertexData> vertices;
-			std::vector<uint32> indices;
-			MeshUtilities::CreateXYGrid(Vector2::One, Vector3::Zero, vertices, indices);
-
-			SharedRef<Mesh> mesh = resourceLibrary.Create<Mesh>("Mesh");
-			VertexDataFormat format(VertexAttrFlags::UV0);
-			mesh->SetVertices(format, vertices);
-			mesh->SetIndices(indices, 0);
-			resourceLibrary.Save("meshes/Quad.cmesh", mesh, true);
-
-			mesh->Apply();
-
-			SharedRef<Material> material = resourceLibrary.Create<Material>("UnlitMaterial");
-
-			material->AddParametersFromShader(*BuiltInShaders::GetUnlitShader());
-
-			resourceLibrary.Save("materials/Unlit.cmaterial", material, true);
-
-			_entity = _mainScene->CreateEntity("Test");
-			_entity.AddComponent<Transform3DComponent>(Vector3::Forward, Quaternion::Identity, Vector3::One);
-
-			std::unordered_map<uint32, SharedRef<MaterialDataProvider>> materials = { { 0, material } };
-			_entity.AddComponent<MeshRendererComponent>(mesh, materials, BuiltInRenderPass::sUnlitVisibilityGroup);
-
-			_entity2 = _mainScene->CreateEntity("Test 2");
-			_entity2.AddComponent<Transform3DComponent>(Vector3(2.0, 2.0, 2.0), Quaternion(Vector3::Up, Math::DegToRad(180.0)), Vector3::One * 2.0);
-			_entity2.AddComponent<MeshRendererComponent>(mesh, materials, BuiltInRenderPass::sUnlitVisibilityGroup);
-			_entity2.SetParent(_entity);
-
-			_cameraEntity = _mainScene->CreateEntity("Camera");
-			_cameraEntity.AddComponent<Transform3DComponent>(Vector3(0.0, 0.0, 1.0), Quaternion::Identity, Vector3::One);
-			_cameraEntity.AddComponent<CameraComponent>();
-		}
+		_mainScene = resourceLibrary.Create<Scene>("Scene");
 	}
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)
@@ -272,6 +222,11 @@ namespace Coco
 		if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
 		{
 			SaveSceneAs();
+		}
+
+		if (ImGui::MenuItem("Save All Resources"))
+		{
+			Engine::Get()->GetResourceLibrary().SaveAll();
 		}
 
 		ImGui::Separator();

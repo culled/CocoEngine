@@ -1,4 +1,3 @@
-name: Scene
 hierarchy:
   3: 4
   1: 4
@@ -6,89 +5,6 @@ hierarchy:
   5: 4
   6: 4
 entities:
-  - EntityInfoComponent:
-      name: Wall 4
-      id: 6
-      isActive: true
-    Transform3DComponent:
-      localPosition: [-2, 0.5, 4.4408920985006262e-16]
-      localRotation: [0.70710678118654746, 0, 0.70710678118654757, 0]
-      localScale: [4, 1, 0.99999994039535522]
-      inheritParentTransform: true
-    MeshRendererComponent:
-      visibility: 4
-      mesh: meshes/Quad.cmesh
-      materials:
-        0: materials/Unlit.cmaterial
-  - EntityInfoComponent:
-      name: Wall 3
-      id: 5
-      isActive: true
-    Transform3DComponent:
-      localPosition: [2, 0.5, 4.4408920985006262e-16]
-      localRotation: [0.70710678118654746, 0, -0.70710678118654757, 0]
-      localScale: [4, 1, 0.99999994039535522]
-      inheritParentTransform: true
-    MeshRendererComponent:
-      visibility: 4
-      mesh: meshes/Quad.cmesh
-      materials:
-        0: materials/Unlit.cmaterial
-  - EntityInfoComponent:
-      name: Room
-      id: 4
-      isActive: true
-    Transform3DComponent:
-      localPosition: [0, 0, 0]
-      localRotation: [1, 0, 0, 0]
-      localScale: [1, 1, 1]
-      inheritParentTransform: true
-  - EntityInfoComponent:
-      name: Floor
-      id: 3
-      isActive: true
-    Transform3DComponent:
-      localPosition: [0, 0, 0]
-      localRotation: [0.70710678118654746, -0.70710678118654757, 0, 0]
-      localScale: [4, 4.0000000000000009, 0.99999994039535545]
-      inheritParentTransform: true
-    MeshRendererComponent:
-      visibility: 4
-      mesh: meshes/Quad.cmesh
-      materials:
-        0: materials/Unlit.cmaterial
-  - EntityInfoComponent:
-      name: Camera
-      id: 2
-      isActive: true
-    Transform3DComponent:
-      localPosition: [0, 0, 1]
-      localRotation: [1, 0, 0, 0]
-      localScale: [1, 1, 1]
-      inheritParentTransform: true
-    CameraComponent:
-      priority: 0
-      clearColor: [0, 0, 0, 1, false]
-      msaaSamples: 0
-      projectionType: 0
-      perspectiveFOV: 1.5707963267948966
-      perspectiveClipping: [0.10000000000000001, 100]
-      orthoSize: 1
-      orthoClipping: [-1, 1]
-  - EntityInfoComponent:
-      name: Wall 2
-      id: 1
-      isActive: true
-    Transform3DComponent:
-      localPosition: [0, 0.5, 2]
-      localRotation: [0, 0, 1, 0]
-      localScale: [4, 1, 1]
-      inheritParentTransform: true
-    MeshRendererComponent:
-      visibility: 4
-      mesh: meshes/Quad.cmesh
-      materials:
-        0: materials/Unlit.cmaterial
   - EntityInfoComponent:
       name: Wall
       id: 0
@@ -100,6 +16,89 @@ entities:
       inheritParentTransform: true
     MeshRendererComponent:
       visibility: 4
-      mesh: meshes/Quad.cmesh
+      mesh: meshes\XY Quad.cmesh
       materials:
-        0: materials/Unlit.cmaterial  # Fix
+        0: materials\Large Blocks.cmaterial
+  - EntityInfoComponent:
+      name: Wall 2
+      id: 1
+      isActive: true
+    Transform3DComponent:
+      localPosition: [0, 0.5, 2]
+      localRotation: [0, 0, 1, 0]
+      localScale: [4, 1, 1]
+      inheritParentTransform: true
+    MeshRendererComponent:
+      visibility: 4
+      mesh: meshes\XY Quad.cmesh
+      materials:
+        0: materials\Large Blocks.cmaterial
+  - EntityInfoComponent:
+      name: Camera
+      id: 2
+      isActive: true
+    Transform3DComponent:
+      localPosition: [1.8429480791091919, 0.89452981948852539, 1.9233790636062622]
+      localRotation: [0.90692036077728833, -0.2047565949413514, 0.35915870530280414, 0.08108773298613102]
+      localScale: [0.99999999339041246, 1.0000000418999679, 1.000000056988761]
+      inheritParentTransform: true
+    CameraComponent:
+      priority: 0
+      clearColor: [0, 0, 0, 1, false]
+      msaaSamples: 0
+      projectionType: 0
+      perspectiveFOV: 1.5707963267948966
+      perspectiveClipping: [0.05000000074505806, 100]
+      orthoSize: 1
+      orthoClipping: [-1, 1]
+  - EntityInfoComponent:
+      name: Floor
+      id: 3
+      isActive: true
+    Transform3DComponent:
+      localPosition: [0, 0, 0]
+      localRotation: [0.70710678118654746, -0.70710678118654757, 0, 0]
+      localScale: [4, 4.0000000000000009, 0.99999994039535545]
+      inheritParentTransform: true
+    MeshRendererComponent:
+      visibility: 4
+      mesh: meshes\XY Quad.cmesh
+      materials:
+        0: materials\UV Grid.cmaterial
+  - EntityInfoComponent:
+      name: Room
+      id: 4
+      isActive: true
+    Transform3DComponent:
+      localPosition: [0, 0, 0]
+      localRotation: [1, 0, 0, 0]
+      localScale: [1, 1, 1]
+      inheritParentTransform: true
+  - EntityInfoComponent:
+      name: Wall 3
+      id: 5
+      isActive: true
+    Transform3DComponent:
+      localPosition: [2, 0.5, 4.4408920985006262e-16]
+      localRotation: [0.70710678118654746, 0, -0.70710678118654757, 0]
+      localScale: [4, 1, 0.99999994039535522]
+      inheritParentTransform: true
+    MeshRendererComponent:
+      visibility: 4
+      mesh: meshes\XY Quad.cmesh
+      materials:
+        0: materials\Large Blocks.cmaterial
+  - EntityInfoComponent:
+      name: Wall 4
+      id: 6
+      isActive: true
+    Transform3DComponent:
+      localPosition: [-2, 0.5, 4.4408920985006262e-16]
+      localRotation: [0.70710678118654746, 0, 0.70710678118654757, 0]
+      localScale: [4, 1, 0.99999994039535522]
+      inheritParentTransform: true
+    MeshRendererComponent:
+      visibility: 4
+      mesh: meshes\XY Quad.cmesh
+      materials:
+        0: materials\Large Blocks.cmaterial  # Fix

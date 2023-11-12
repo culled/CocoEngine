@@ -31,9 +31,9 @@ namespace Coco::Rendering
 		return SerializeMaterial(*material);
 	}
 
-	SharedRef<Resource> MaterialSerializer::CreateAndDeserialize(const ResourceID& id, const string& data)
+	SharedRef<Resource> MaterialSerializer::CreateAndDeserialize(const ResourceID& id, const string& name, const string& data)
 	{
-		SharedRef<Material> material = CreateSharedRef<Material>(id, "");
+		SharedRef<Material> material = CreateSharedRef<Material>(id, name);
 		Deserialize(data, material);
 
 		return material;
@@ -52,8 +52,6 @@ namespace Coco::Rendering
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-
-		out << YAML::Key << "name" << YAML::Value << material.GetName();
 
 		out << YAML::Key << "parameters" << YAML::Value << YAML::BeginMap;
 		material.ForEachParameter(
@@ -126,13 +124,12 @@ namespace Coco::Rendering
 	{
 		YAML::Node baseNode = YAML::Load(data);
 
-		material.SetName(baseNode["name"].as<string>());
 		material._parameters.clear();
 
 		YAML::Node parametersNode = baseNode["parameters"];
 		for (YAML::const_iterator it = parametersNode.begin(); it != parametersNode.end(); it++)
 		{
-			string paramName = it->first["name"].as<string>();
+			string paramName = it->first.as<string>();
 
 			ShaderUniformType type = static_cast<ShaderUniformType>(it->second["type"].as<int>());
 			std::any value;

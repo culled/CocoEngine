@@ -26,8 +26,6 @@ namespace Coco::Rendering
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 
-		out << YAML::Key << "name" << YAML::Value << shader->GetName();
-
 		out << YAML::Key << "stages" << YAML::Value << YAML::BeginSeq;
 
 		for (const ShaderStage& stage : shader->GetStages())
@@ -109,9 +107,9 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	SharedRef<Resource> ShaderSerializer::CreateAndDeserialize(const ResourceID& id, const string& data)
+	SharedRef<Resource> ShaderSerializer::CreateAndDeserialize(const ResourceID& id, const string& name, const string& data)
 	{
-		SharedRef<Shader> shader = CreateSharedRef<Shader>(id, "");
+		SharedRef<Shader> shader = CreateSharedRef<Shader>(id, name);
 		Deserialize(data, shader);
 
 		return shader;
@@ -124,8 +122,6 @@ namespace Coco::Rendering
 		Assert(shader)
 
 		YAML::Node baseNode = YAML::Load(data);
-
-		shader->SetName(baseNode["name"].as<string>());
 
 		std::vector<ShaderStage> stages;
 

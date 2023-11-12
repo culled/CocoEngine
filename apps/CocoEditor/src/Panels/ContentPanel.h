@@ -5,6 +5,9 @@
 #include <Coco/Core/Events/Event.h>
 
 #include <Coco/Rendering/Texture.h>
+#include "../Importers/ResourceImporter.h"
+#include "../Dialogs/MaterialResourceDialog.h"
+#include "../Dialogs/MeshPrimitiveResourceDialog.h"
 
 namespace Coco
 {
@@ -22,6 +25,9 @@ namespace Coco
 		std::regex _fileTypeRegex;
 		SharedRef<Rendering::Texture> _fileIcon;
 		SharedRef<Rendering::Texture> _folderIcon;
+		std::vector<UniqueRef<ResourceImporter>> _importers;
+		UniqueRef<MaterialResourceDialog> _materialDialog;
+		UniqueRef<MeshPrimitiveResourceDialog> _meshDialog;
 
 	public:
 		ContentPanel();
@@ -37,5 +43,8 @@ namespace Coco
 		void DragDropFile(const FilePath& filePath);
 
 		bool FilterPath(const FilePath& filePath);
+
+		void DrawPanelContextMenu();
+		void Import(const FilePath& filePath, const FilePath& saveDirectory);
 	};
 }

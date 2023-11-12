@@ -1,4 +1,3 @@
-name: Mesh
 keepLocalData: false
 isDynamic: false
 vertexFormat: 8

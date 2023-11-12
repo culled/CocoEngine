@@ -162,12 +162,9 @@ namespace Coco::Rendering::Vulkan
 
 		_vulkanRenderOperation->GlobalState.emplace(shaderName);
 
-		// Clear shader-specific uniforms
-		_instanceUniforms.Clear();
-		_drawUniforms.Clear();
-
 		// Reset shader-specific bindings
-		_vulkanRenderOperation->InstanceState.reset();
+		ClearInstanceProperties();
+		_drawUniforms.Clear();
 
 		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Shader);
 	}
@@ -183,6 +180,13 @@ namespace Coco::Rendering::Vulkan
 
 		_vulkanRenderOperation->InstanceState.emplace(material.ID);
 		_vulkanRenderOperation->StateChanges.emplace(VulkanContextRenderOperation::StateChangeType::Instance);
+	}
+
+	void VulkanRenderContext::ClearInstanceProperties()
+	{
+		// Reset shader-specific bindings
+		_vulkanRenderOperation->InstanceState.reset();
+		_instanceUniforms.Clear();
 	}
 
 	void VulkanRenderContext::DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount)

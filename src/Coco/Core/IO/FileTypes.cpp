@@ -68,6 +68,18 @@ namespace Coco
 		return FilePath(_filePath.parent_path());
 	}
 
+	FilePath FilePath::ChangeExtension(const string& newExtension) const
+	{
+		string pathStr = ToString();
+
+		size_t extensionPos = pathStr.find_last_of('.');
+
+		if (extensionPos != string::npos)
+			pathStr = pathStr.substr(0, extensionPos);
+
+		return FormatString("{}.{}", pathStr, newExtension);
+	}
+
 	bool FilePath::IsRelative() const
 	{
 		return _filePath.is_relative();

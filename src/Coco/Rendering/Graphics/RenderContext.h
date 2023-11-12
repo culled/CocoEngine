@@ -114,6 +114,9 @@ namespace Coco::Rendering
 		/// @param material The material
 		virtual void SetMaterial(const MaterialData& material) = 0;
 
+		/// @brief Clears the current instance properties
+		virtual void ClearInstanceProperties() = 0;
+
 		/// @brief Draws a number of indices of a mesh
 		/// @param mesh The mesh
 		/// @param firstIndexOffset The offset of the first index in the mesh's index buffer

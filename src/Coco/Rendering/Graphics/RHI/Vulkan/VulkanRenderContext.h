@@ -121,6 +121,7 @@ namespace Coco::Rendering::Vulkan
         void SetScissorRect(const RectInt& scissorRect) final;
         void SetShader(const string& shaderName) final;
         void SetMaterial(const MaterialData& material) final;
+        void ClearInstanceProperties() final;
 
         void DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount) final;
 

@@ -105,8 +105,18 @@ namespace Coco
 
 	bool UIUtils::DrawInputStringEdit(const char* label, string& str, int maxLength)
 	{
-		str.reserve(maxLength);
+		size_t size = str.size();
+		str.resize(maxLength);
 
-		return ImGui::InputText(label, str.data(), maxLength);
+		bool changed = ImGui::InputText(label, str.data(), maxLength);
+
+		if (changed)
+		{
+			size = str.find_first_of('\0');
+		}
+
+		str.resize(size);
+
+		return changed;
 	}
 }

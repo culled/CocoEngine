@@ -1,0 +1,73 @@
+hierarchy:
+  {}
+entities:
+  - EntityInfoComponent:
+      name: UV Sphere
+      id: 4
+      isActive: true
+    Transform3DComponent:
+      localPosition: [7, 0, 0]
+      localRotation: [1, 0, 0, 0]
+      localScale: [1, 1, 1]
+      inheritParentTransform: true
+    MeshRendererComponent:
+      visibility: 4
+      mesh: meshes\UV Sphere.cmesh
+      materials:
+        0: materials\UV Grid.cmaterial
+  - EntityInfoComponent:
+      name: XY Quad
+      id: 0
+      isActive: true
+    Transform3DComponent:
+      localPosition: [0, 0, 0]
+      localRotation: [1, 0, 0, 0]
+      localScale: [1, 1, 1]
+      inheritParentTransform: true
+    MeshRendererComponent:
+      visibility: 4
+      mesh: meshes\XY Quad.cmesh
+      materials:
+        0: materials\UV Grid.cmaterial
+  - EntityInfoComponent:
+      name: XZ Quad
+      id: 1
+      isActive: true
+    Transform3DComponent:
+      localPosition: [2, 0, 0]
+      localRotation: [1, 0, 0, 0]
+      localScale: [1, 1, 1]
+      inheritParentTransform: true
+    MeshRendererComponent:
+      visibility: 4
+      mesh: meshes\XZ Quad.cmesh
+      materials:
+        0: materials\UV Grid.cmaterial
+  - EntityInfoComponent:
+      name: ZY Quad
+      id: 2
+      isActive: true
+    Transform3DComponent:
+      localPosition: [3.5, 0, 0]
+      localRotation: [1, 0, 0, 0]
+      localScale: [1, 1, 1]
+      inheritParentTransform: true
+    MeshRendererComponent:
+      visibility: 4
+      mesh: meshes\ZY Quad.cmesh
+      materials:
+        0: materials\UV Grid.cmaterial
+  - EntityInfoComponent:
+      name: Box
+      id: 3
+      isActive: true
+    Transform3DComponent:
+      localPosition: [5, 0, 0]
+      localRotation: [1, 0, 0, 0]
+      localScale: [1, 1, 1]
+      inheritParentTransform: true
+    MeshRendererComponent:
+      visibility: 4
+      mesh: meshes\Box.cmesh
+      materials:
+        0: materials\UV Grid.cmaterial  # Fix

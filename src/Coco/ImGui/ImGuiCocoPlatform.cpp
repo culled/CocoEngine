@@ -203,8 +203,8 @@ namespace Coco::ImGuiCoco
 
                     RectInt scissorRect(
                         Vector2Int(
-                            static_cast<int>(cmd.ClipRect.x - drawData->DisplayPos.x), 
-                            static_cast<int>(cmd.ClipRect.y - drawData->DisplayPos.y)),
+                            Math::Max(static_cast<int>(cmd.ClipRect.x - drawData->DisplayPos.x), 0), 
+                            Math::Max(static_cast<int>(cmd.ClipRect.y - drawData->DisplayPos.y), 0)),
                         Vector2Int(
                             static_cast<int>(cmd.ClipRect.z - drawData->DisplayPos.x), 
                             static_cast<int>(cmd.ClipRect.w - drawData->DisplayPos.y))

@@ -14,7 +14,7 @@ namespace Coco::Rendering
         bool SupportsFileExtension(const string& extension) const final;
         bool SupportsResourceType(const std::type_index& type) const final;
         string Serialize(SharedRef<Resource> resource) final;
-        SharedRef<Resource> CreateAndDeserialize(const ResourceID& id, const string& data) final;
+        SharedRef<Resource> CreateAndDeserialize(const ResourceID& id, const string& name, const string& data) final;
         bool Deserialize(const string& data, SharedRef<Resource> resource) final;
 
     private:

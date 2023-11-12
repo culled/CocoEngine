@@ -293,7 +293,10 @@ namespace Coco::Rendering
 			break;
 		}
 
-		_parameters.try_emplace(name, MaterialParameter(name, type, value));
+		auto result = _parameters.try_emplace(name, MaterialParameter(name, type, value));
+
+		if(result.second)
+			IncrementVersion();
 	}
 
 	void Material::RemoveParameter(const char* name)
@@ -304,6 +307,7 @@ namespace Coco::Rendering
 			return;
 
 		_parameters.erase(it);
+		IncrementVersion();
 	}
 
 	void Material::ForEachParameter(std::function<void(const MaterialParameter&)> callback) const
@@ -343,6 +347,8 @@ namespace Coco::Rendering
 
 			_parameters[u.Name] = MaterialParameter(u.Name, u.Type, value);
 		}
+
+		IncrementVersion();
 	}
 
 	void Material::IncrementVersion()

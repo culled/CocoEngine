@@ -28,7 +28,6 @@ namespace Coco::Rendering
 
 		out << YAML::BeginMap;
 
-		out << YAML::Key << "name" << YAML::Value << mesh->GetName();
 		out << YAML::Key << "keepLocalData" << YAML::Value << mesh->_keepLocalData;
 		out << YAML::Key << "isDynamic" << YAML::Value << mesh->_isDynamic;
 
@@ -59,9 +58,9 @@ namespace Coco::Rendering
 		return out.c_str();
 	}
 
-	SharedRef<Resource> MeshSerializer::CreateAndDeserialize(const ResourceID& id, const string& data)
+	SharedRef<Resource> MeshSerializer::CreateAndDeserialize(const ResourceID& id, const string& name, const string& data)
 	{
-		SharedRef<Mesh> mesh = CreateSharedRef<Mesh>(id, "");
+		SharedRef<Mesh> mesh = CreateSharedRef<Mesh>(id, name);
 		Deserialize(data, mesh);
 
 		return mesh;
@@ -75,7 +74,6 @@ namespace Coco::Rendering
 
 		YAML::Node baseNode = YAML::Load(data);
 
-		mesh->SetName(baseNode["name"].as<string>());
 		mesh->_keepLocalData = baseNode["keepLocalData"].as<bool>();
 		mesh->_isDynamic = baseNode["isDynamic"].as<bool>();
 

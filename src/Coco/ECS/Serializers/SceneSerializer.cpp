@@ -61,7 +61,6 @@ namespace Coco::ECS
 		YAML::Emitter out;
 
 		out << YAML::BeginMap;
-		out << YAML::Key << "name" << YAML::Value << scene->GetName();
 
 		out << YAML::Key << "hierarchy" << YAML::Value << YAML::BeginMap;
 		for (const auto& kvp : scene->_entityParentMap)
@@ -82,9 +81,9 @@ namespace Coco::ECS
 		return out.c_str();
 	}
 
-	SharedRef<Resource> SceneSerializer::CreateAndDeserialize(const ResourceID& id, const string& data)
+	SharedRef<Resource> SceneSerializer::CreateAndDeserialize(const ResourceID& id, const string& name, const string& data)
 	{
-		SharedRef<Scene> scene = CreateSharedRef<Scene>(id, "");
+		SharedRef<Scene> scene = CreateSharedRef<Scene>(id, name);
 		Deserialize(data, scene);
 
 		return scene;
@@ -98,7 +97,6 @@ namespace Coco::ECS
 
 		YAML::Node baseNode = YAML::Load(data);
 
-		scene->SetName(baseNode["name"].as<string>());
 		scene->Clear();
 
 		YAML::Node hierarchyNode = baseNode["hierarchy"];

@@ -4,6 +4,11 @@
 #include <Coco/Core/IO/FileSystems/UnpackedEngineFileSystem.h>
 #include <filesystem>
 
+#include "../Importers/TextureImporter.h"
+#include "../UI/UIUtils.h"
+
+#include <Coco/Rendering/Material.h>
+
 #include <imgui.h>
 
 using namespace Coco::Rendering;
@@ -13,7 +18,10 @@ namespace Coco
 	ContentPanel::ContentPanel() :
 		_useTree(false),
 		_showUnsupportedFiles(false),
-		_fileTypeRegex("(.cscene)|(.cmaterial)|(.cmesh)|(.cshader)|(.ctexture)", std::regex_constants::ECMAScript | std::regex_constants::icase)
+		_fileTypeRegex("(.cscene)|(.cmaterial)|(.cmesh)|(.cshader)|(.ctexture)", std::regex_constants::ECMAScript | std::regex_constants::icase),
+		_importers(),
+		_materialDialog(CreateUniqueRef<MaterialResourceDialog>()),
+		_meshDialog(CreateUniqueRef<MeshPrimitiveResourceDialog>())
 	{
 		if (UnpackedEngineFileSystem* fs = dynamic_cast<UnpackedEngineFileSystem*>(&Engine::Get()->GetFileSystem()))
 			_basePath = fs->GetContentBasePath();
@@ -26,6 +34,8 @@ namespace Coco
 
 		_fileIcon = resources.Create<Texture>("File Icon", "ui/icons/file.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, ImageSamplerDescription::LinearClamp);
 		_folderIcon = resources.Create<Texture>("File Icon", "ui/icons/folder.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, ImageSamplerDescription::LinearClamp);
+
+		_importers.push_back(CreateUniqueRef<TextureImporter>());
 	}
 
 	void ContentPanel::Update(const TickInfo& tick)
@@ -45,6 +55,14 @@ namespace Coco
 				{
 					DrawCurrentPath();
 				}
+			}
+
+			// Right click over a black space
+			if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
+			{
+				DrawPanelContextMenu();
+
+				ImGui::EndPopup();
 			}
 		}
 
@@ -215,5 +233,60 @@ namespace Coco
 		string ext = filePath.GetExtension();
 
 		return std::regex_search(ext, _fileTypeRegex);
+	}
+
+	void ContentPanel::DrawPanelContextMenu()
+	{
+		if (ImGui::MenuItem("Create Material"))
+		{
+			_materialDialog->SetSavePath(_currentPath);
+			_materialDialog->Open();
+		}
+
+		if (ImGui::MenuItem("Create Mesh Primitive"))
+		{
+			_meshDialog->SetSavePath(_currentPath);
+			_meshDialog->Open();
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::MenuItem("Import..."))
+		{
+			Engine* engine = Engine::Get();
+			string path = engine->GetPlatform().ShowOpenFileDialog(
+				{
+					{"All supported files (*.png, *.jpg)", "*.png;*.jpg" }
+				}
+			);
+
+			if (path.empty())
+				return;
+
+			Import(path, _currentPath);
+		}
+	}
+
+	void ContentPanel::Import(const FilePath& filePath, const FilePath& saveDirectory)
+	{
+		string extension = filePath.GetExtension();
+
+		auto it = std::find_if(_importers.begin(), _importers.end(),
+			[filePath, extension](const UniqueRef<ResourceImporter>& importer)
+			{
+				return importer->SupportsExtension(extension);
+			}
+		);
+
+		if (it == _importers.end())
+		{
+			CocoError("Unsupported file type: {}", extension)
+			return;
+		}
+
+		ResourceImporter* importer = it->get();
+		importer->Import(filePath, saveDirectory);
+
+		CocoInfo("Imported {}", filePath.ToString())
 	}
 }

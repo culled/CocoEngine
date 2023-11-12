@@ -160,10 +160,10 @@ namespace Coco
 		{
 			_addParamUniformType = ShaderUniformType::Float;
 			_addParamUniformName = "New Param";
-			ImGui::OpenPopup("##add_param");
+			ImGui::OpenPopup("Add Material Parameter##1");
 		}
 
-		if (ImGui::BeginPopup("##add_param", ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::BeginPopup("Add Material Parameter##1", ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			_isAddingParam = true;
 
@@ -207,7 +207,7 @@ namespace Coco
 			ImGui::EndPopup();
 		}
 
-		if (_isAddingParam && !ImGui::IsPopupOpen("##add_param"))
+		if (_isAddingParam && !ImGui::IsPopupOpen("Add Material Parameter##1"))
 			_isAddingParam = false;
 	}
 
@@ -226,11 +226,11 @@ namespace Coco
 			if (ImGui::Button("Remove Parameter..."))
 			{
 				_removeParamUniformName = params.front();
-				ImGui::OpenPopup("##remove_param");
+				ImGui::OpenPopup("Remove Material Parameter##1");
 			}
 		}
 
-		if (ImGui::BeginPopup("##remove_param", ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::BeginPopup("Remove Material Parameter##1", ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			_isRemovingParam = true;
 
@@ -266,7 +266,7 @@ namespace Coco
 			ImGui::EndPopup();
 		}
 
-		if (_isRemovingParam && !ImGui::IsPopupOpen("##remove_param"))
+		if (_isRemovingParam && !ImGui::IsPopupOpen("Remove Material Parameter##1"))
 			_isRemovingParam = false;
 	}
 }

@@ -29,7 +29,6 @@ namespace Coco::Rendering
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 
-		out << YAML::Key << "name" << YAML::Value << texture->GetName();
 		out << YAML::Key << "image file" << YAML::Value << texture->_imageFilePath.ToString();
 
 		out << YAML::Key << "image description" << YAML::Value << YAML::BeginMap;
@@ -45,9 +44,9 @@ namespace Coco::Rendering
 		return string(out.c_str());
 	}
 
-	SharedRef<Resource> TextureSerializer::CreateAndDeserialize(const ResourceID& id, const string& data)
+	SharedRef<Resource> TextureSerializer::CreateAndDeserialize(const ResourceID& id, const string& name, const string& data)
 	{
-		SharedRef<Texture> texture = CreateSharedRef<Texture>(id, data);
+		SharedRef<Texture> texture = CreateSharedRef<Texture>(id, name);
 		Deserialize(data, texture);
 
 		return texture;
@@ -60,7 +59,6 @@ namespace Coco::Rendering
 		Assert(texture)
 
 		YAML::Node baseNode = YAML::Load(data);
-		texture->SetName(baseNode["name"].as<string>());
 		
 		FilePath imageFilePath = baseNode["image file"].as<string>();
 

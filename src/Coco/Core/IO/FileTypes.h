@@ -88,6 +88,11 @@ namespace Coco
 		/// @return The parent directory path
 		FilePath GetParentDirectory() const;
 
+		/// @brief Gets a path with its extension changed
+		/// @param newExtension The new extension (without the ".")
+		/// @return This path with the new extension
+		FilePath ChangeExtension(const string& newExtension) const;
+
 		/// @brief Determines if this file path represents a relative file path
 		/// @return True if this file path represents a relative file path
 		bool IsRelative() const;

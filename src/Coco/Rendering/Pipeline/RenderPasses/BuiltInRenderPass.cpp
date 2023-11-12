@@ -82,6 +82,10 @@ namespace Coco::Rendering
 
 				context.SetMaterial(material);
 			}
+			else
+			{
+				context.ClearInstanceProperties();
+			}
 
 			context.SetValue(UniformScope::Draw, ShaderUniformData::MakeKey("ModelMatrix"), obj.ModelMatrix);
 
