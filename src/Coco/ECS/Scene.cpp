@@ -3,33 +3,42 @@
 
 #include "Entity.h"
 #include "Components/EntityInfoComponent.h"
-
-#include "Systems/TransformSystem.h"
+#include "Components/TransformSystem.h"
+#include "Components/NativeScriptSystem.h"
 
 #include <Coco/Core/Engine.h>
 
 namespace Coco::ECS
 {
-	const int Scene::sLateTickPriority = 10000;
+	const int Scene::sTickPriority = -5;
+	const int Scene::sLateTickPriority = 1000;
 
-	Scene::Scene(const ResourceID& id, const string& name, bool useDefaultSystems) :
+	Scene::Scene(const ResourceID& id, const string& name) :
 		Resource(id, name),
+		_tickListener(CreateManagedRef<TickListener>(this, &Scene::HandleTick, sTickPriority)),
 		_lateTickListener(CreateManagedRef<TickListener>(this, &Scene::HandleLateTick, sLateTickPriority)),
 		_registry(),
 		_queuedDestroyEntities(),
 		_systemsNeedSorting(false)
 	{
+		MainLoop::Get()->AddListener(_tickListener);
 		MainLoop::Get()->AddListener(_lateTickListener);
-
-		if(useDefaultSystems)
-			UseDefaultSystems();
 	}
 
 	Scene::~Scene()
 	{
-		Clear();
 		_systems.clear();
+		Clear();
+		MainLoop::Get()->RemoveListener(_tickListener);
 		MainLoop::Get()->RemoveListener(_lateTickListener);
+	}
+
+	SharedRef<Scene> Scene::CreateWithDefaultSystems(const string& name)
+	{
+		SharedRef<Scene> scene = Engine::Get()->GetResourceLibrary().Create<Scene>(name);
+		scene->UseDefaultSystems();
+
+		return scene;
 	}
 
 	Entity Scene::CreateEntity(const string& name)
@@ -44,7 +53,7 @@ namespace Coco::ECS
 		for (auto e : view)
 		{
 			EntityInfoComponent& info = _registry.get<EntityInfoComponent>(e);
-			if (info.ID == id)
+			if (info.GetEntityID() == id)
 			{
 				outEntity = Entity(e, GetSelfRef<Scene>());
 				return true;
@@ -82,9 +91,8 @@ namespace Coco::ECS
 		for (auto e : view)
 		{
 			const EntityInfoComponent& info = _registry.get<EntityInfoComponent>(e);
-			EntityID id = info.ID;
 
-			if (_entityParentMap.contains(id))
+			if (_entityParentMap.contains(info.GetEntityID()))
 				continue;
 
 			rootEntities.push_back(Entity(e, GetSelfRef<Scene>()));
@@ -142,7 +150,8 @@ namespace Coco::ECS
 
 	void Scene::UseDefaultSystems()
 	{
-		UseSystem<TransformSystem>(*this);
+		UseSystem<TransformSystem>();
+		UseSystem<NativeScriptSystem>();
 	}
 
 	void Scene::SortSystems()
@@ -166,18 +175,21 @@ namespace Coco::ECS
 		return e;
 	}
 
+	void Scene::HandleTick(const TickInfo& tickInfo)
+	{
+		if (_systemsNeedSorting)
+			SortSystems();
+
+		for (auto& s : _systems)
+			s->Tick();
+	}
+
 	void Scene::HandleLateTick(const TickInfo& tickInfo)
 	{
 		for (Entity& e : _queuedDestroyEntities)
 			DestroyEntityImmediate(e);
 
 		_queuedDestroyEntities.clear();
-
-		if (_systemsNeedSorting)
-			SortSystems();
-
-		for (auto& s : _systems)
-			s->Execute(GetSelfRef<Scene>());
 	}
 
 	void Scene::Clear()

@@ -5,12 +5,11 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Windowing/WindowService.h>
 #include <Coco/Core/Engine.h>
-#include <Coco/ECS/Systems/Rendering/SceneRenderProvider.h>
+#include <Coco/ECS/Providers/Rendering/SceneRenderProvider.h>
 #include "../EditorApplication.h"
-#include <Coco/ECS/Systems/Rendering/CameraSystem.h>
+#include <Coco/ECS/Components/Rendering/CameraSystem.h>
 #include <Coco/ECS/Components/Transform3DComponent.h>
 #include "../UI/ComponentUI.h"
-#include <Coco/ECS/Systems/TransformSystem.h>
 #include <Coco/Rendering/Gizmos/GizmoRender.h>
 
 #include <imgui.h>
@@ -29,7 +28,7 @@ namespace Coco
 		_currentScene(scene),
 		_sampleCount(MSAASamples::Four),
 		_cameraTransform(Vector3(-2.0, 1.5, 2.0), Quaternion(Vector3(Math::DegToRad(-30), Math::DegToRad(-45), 0)), Vector3::One),
-		_cameraComponent(),
+		_cameraComponent(Entity::Null),
 		_lookSensitivity(0.5f),
 		_moveSpeed(2.0),
 		_panSpeed(2.0),
@@ -54,8 +53,8 @@ namespace Coco
 		_currentTransformMode(ImGuizmo::MODE::LOCAL),
 		_currentTransformOperation(ImGuizmo::OPERATION::TRANSLATE)
 	{
-		_cameraComponent.ClearColor = Color(0.1, 0.1, 0.1, 1.0);
-		_cameraComponent.PerspectiveFOV = Math::DegToRad(80);
+		_cameraComponent.SetClearColor(Color(0.1, 0.1, 0.1, 1.0));
+		_cameraComponent.SetPerspectiveFOV(Math::DegToRad(80));
 	}
 
 	ViewportPanel::~ViewportPanel()
@@ -72,13 +71,13 @@ namespace Coco
 		double aspectRatio = static_cast<double>(backbufferSize.Width) / backbufferSize.Height;
 		Matrix4x4 projection = _cameraComponent.GetProjectionMatrix(aspectRatio);
 		Matrix4x4 view = _cameraTransform.InvGlobalTransform;
-		Vector3 viewPosition = _cameraTransform.GetGlobalPosition();
-		ViewFrustum frustum = _cameraComponent.GetViewFrustum(aspectRatio, viewPosition, _cameraTransform.GetGlobalRotation());
+		Vector3 viewPosition = _cameraTransform.GetPosition(TransformSpace::Global);
+		ViewFrustum frustum = _cameraComponent.GetViewFrustum(aspectRatio, viewPosition, _cameraTransform.GetRotation(TransformSpace::Global));
 
 		RectInt viewport(Vector2Int::Zero, backbufferSize);
 
 		std::vector<RenderTarget> rts = RenderService::Get()->GetAttachmentCache().CreateRenderTargets(pipeline, rendererID, backbufferSize, _sampleCount, backbuffers);
-		RenderTarget::SetClearValues(rts, _cameraComponent.ClearColor, 1.0, 0);
+		RenderTarget::SetClearValues(rts, _cameraComponent.GetClearColor(), 1.0, 0);
 
 		// Set the picking image clear value
 		rts.back().ClearValue = Vector4(-1, -1, -1, -1);
@@ -272,18 +271,18 @@ namespace Coco
 					ImGui::EndCombo();
 				}
 
-				float fov = static_cast<float>(Math::RadToDeg(_cameraComponent.PerspectiveFOV));
+				float fov = static_cast<float>(Math::RadToDeg(_cameraComponent.GetPerspectiveFOV()));
 				if (ImGui::DragFloat("Field of View", &fov, 0.1f, 0.01f, 180.f))
 				{
-					_cameraComponent.PerspectiveFOV = Math::DegToRad(fov);
+					_cameraComponent.SetPerspectiveFOV(Math::DegToRad(fov));
 				}
 
-				float near = static_cast<float>(_cameraComponent.PerspectiveNearClip);
-				float far = static_cast<float>(_cameraComponent.PerspectiveFarClip);
+				float near = static_cast<float>(_cameraComponent.GetNearClip());
+				float far = static_cast<float>(_cameraComponent.GetFarClip());
 				if (ImGui::DragFloatRange2("Clipping Distance", &near, &far, 0.1f, Math::EpsilonF))
 				{
-					_cameraComponent.PerspectiveNearClip = near;
-					_cameraComponent.PerspectiveFarClip = far;
+					_cameraComponent.SetNearClip(near);
+					_cameraComponent.SetFarClip(far);
 				}
 
 				ImGui::SeparatorText("Grid Properties");
@@ -396,7 +395,7 @@ namespace Coco
 		_viewportRect.Maximum.X = static_cast<int>(pos.x + size.x);
 		_viewportRect.Maximum.Y = static_cast<int>(pos.y + size.y);
 
-		ImGuizmo::SetOrthographic(_cameraComponent.ProjectionType == CameraProjectionType::Orthographic);
+		ImGuizmo::SetOrthographic(_cameraComponent.GetProjectionType() == CameraProjectionType::Orthographic);
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetRect(pos.x, size.y + pos.y, size.x, -size.y);
 
@@ -419,7 +418,7 @@ namespace Coco
 
 			if (scrollDelta != 0)
 			{
-				_cameraTransform.TranslateGlobal(_cameraTransform.GetGlobalBackward() * (scrollDelta * _scrollDistance));
+				_cameraTransform.Translate(Vector3::Forward * (scrollDelta * _scrollDistance), TransformSpace::Self);
 				_cameraTransform.Recalculate();
 			}
 		}
@@ -510,8 +509,7 @@ namespace Coco
 				if (keyboard.IsKeyPressed(KeyboardKey::Q))
 					velocity += Vector3::Down;
 
-				velocity = _cameraTransform.LocalRotation * velocity;
-				_cameraTransform.TranslateLocal(velocity * (tickInfo.DeltaTime * _moveSpeed));
+				_cameraTransform.Translate(velocity * (tickInfo.DeltaTime * _moveSpeed), TransformSpace::Self);
 			}
 			else
 			{
@@ -522,7 +520,7 @@ namespace Coco
 				if (_invertPan.at(1))
 					pan.Y = -pan.Y;
 
-				_cameraTransform.TranslateLocal(_cameraTransform.LocalRotation * (pan * (_panSpeed * 0.01)));
+				_cameraTransform.Translate(pan * (_panSpeed * 0.01), TransformSpace::Self);
 			}
 
 			_cameraTransform.Recalculate();
@@ -548,15 +546,6 @@ namespace Coco
 
 		if (e.HasComponent<Transform3DComponent>())
 		{
-			std::array<float, Matrix4x4::CellCount> cameraProjection = _cameraComponent.GetProjectionMatrix(_viewportRect.GetAspectRatio()).AsFloatArray();
-			std::array<float, Matrix4x4::CellCount> cameraView = _cameraTransform.InvGlobalTransform.AsFloatArray();
-
-			// Ensure our transform is updated
-			TransformSystem::UpdateTransform3D(e);
-			Transform3DComponent& transformComp = e.GetComponent<Transform3DComponent>();
-			Transform3D& transform = transformComp.Transform;
-			std::array<float, Matrix4x4::CellCount> model = transform.GlobalTransform.AsFloatArray();
-
 			float snapIncrement = 0.f;
 
 			switch (_currentTransformOperation)
@@ -579,6 +568,12 @@ namespace Coco
 				snapIncrement, 
 				snapIncrement,
 			};
+
+			std::array<float, Matrix4x4::CellCount> cameraProjection = _cameraComponent.GetProjectionMatrix(_viewportRect.GetAspectRatio()).AsFloatArray();
+			std::array<float, Matrix4x4::CellCount> cameraView = _cameraTransform.InvGlobalTransform.AsFloatArray();
+
+			Transform3DComponent& transform = e.GetComponent<Transform3DComponent>();
+			std::array<float, Matrix4x4::CellCount> model = transform.GetTransformMatrix(TransformSpace::Self, TransformSpace::Global).AsFloatArray();
 			
 			if (ImGuizmo::Manipulate(
 				cameraView.data(),
@@ -591,15 +586,13 @@ namespace Coco
 			{
 				Matrix4x4 transformed(model);
 
-				transformed.Decompose(transform.LocalPosition, transform.LocalRotation, transform.LocalScale);
+				Vector3 p, s;
+				Quaternion r;
+				transformed.Decompose(p, r, s);
 
-				Transform3DComponent* parentTransformComp = nullptr;
-				if (TransformSystem::TryGetParentTransform3D(e, parentTransformComp))
-				{
-					parentTransformComp->Transform.TransformGlobalToLocal(transform.LocalPosition, transform.LocalRotation, transform.LocalScale);
-				}
-
-				TransformSystem::MarkTransform3DDirty(e);
+				transform.SetPosition(p, TransformSpace::Global);
+				transform.SetRotation(r, TransformSpace::Global);
+				transform.SetScale(s, TransformSpace::Global);
 			}
 
 			_isMouseHoveringGizmo = ImGuizmo::IsOver();

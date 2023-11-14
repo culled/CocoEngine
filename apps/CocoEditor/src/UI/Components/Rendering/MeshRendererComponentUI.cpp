@@ -40,7 +40,8 @@ namespace Coco
 	{
 		MeshRendererComponent& renderer = entity.GetComponent<MeshRendererComponent>();
 
-		string visibilityPreview = GetVisibilityFlagText(renderer.VisibilityGroups, 2);
+		uint64 visibility = renderer.GetVisibilityGroups();
+		string visibilityPreview = GetVisibilityFlagText(visibility, 2);
 
 		if (ImGui::BeginCombo("Visibility Groups", visibilityPreview.c_str()))
 		{
@@ -48,30 +49,34 @@ namespace Coco
 			{
 				const string& label = _flagTexts.at(i);
 				uint64 flag = static_cast<uint64>(1) << i;
-				bool selected = (renderer.VisibilityGroups & flag) != 0;
+				bool selected = (visibility & flag) != 0;
 
 				if (ImGui::Selectable(label.c_str(), &selected))
 				{
 					if (selected)
 					{
-						renderer.VisibilityGroups |= flag;
+						visibility |= flag;
 					}
 					else
 					{
-						renderer.VisibilityGroups &= ~flag;
+						visibility &= ~flag;
 					}
+
+					renderer.SetVisibilityGroups(visibility);
 				}
 			}
 
 			ImGui::EndCombo();
 		}
 
-		if (UIUtils::DrawResourcePicker(".cmesh", "Mesh", renderer.Mesh))
+		SharedRef<Mesh> mesh = renderer.GetMesh();
+		if (UIUtils::DrawResourcePicker(".cmesh", "Mesh", mesh))
 		{
-			renderer.EnsureMaterialSlots();
+			renderer.SetMesh(mesh);
 		}
 
-		for (auto& it : renderer.Materials)
+		auto materials = renderer.GetMaterials();
+		for (auto& it : materials)
 		{
 			ImGui::PushID(it.first);
 
@@ -99,13 +104,15 @@ namespace Coco
 
 			ImGui::PopID();
 		}
+
+		renderer.SetMaterials(materials);
 	}
 
 	void MeshRendererComponentUI::DrawGizmosImpl(ECS::Entity& entity, const SizeInt& viewportSize)
 	{
 		MeshRendererComponent& renderer = entity.GetComponent<MeshRendererComponent>();
-
-		if (!renderer.Mesh)
+		SharedRef<Mesh> mesh = renderer.GetMesh();
+		if (!mesh)
 			return;
 
 		GizmoRender* gizmo = GizmoRender::Get();
@@ -117,10 +124,10 @@ namespace Coco
 		if (entity.HasComponent<Transform3DComponent>())
 		{
 			Transform3DComponent& transform = entity.GetComponent<Transform3DComponent>();
-			modelMatrix = transform.Transform.GlobalTransform;
+			modelMatrix = transform.GetTransformMatrix(TransformSpace::Self, TransformSpace::Global);
 		}
 
-		gizmo->DrawWireBounds(renderer.Mesh->GetBounds(), modelMatrix, Color::White);
+		gizmo->DrawWireBounds(mesh->GetBounds(), modelMatrix, Color::White);
 	}
 
 	string MeshRendererComponentUI::GetVisibilityFlagText(uint64 flags, int maxFlags)

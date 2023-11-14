@@ -37,11 +37,15 @@ namespace Coco::ECS
 
 		/// @brief Gets the ID of this entity
 		/// @return This entity's ID
-		EntityID GetID() const;
+		const EntityID& GetID() const;
 
 		/// @brief Gets the scene that this entity belongs to
 		/// @return The scene
 		SharedRef<Scene> GetScene() const;
+
+		/// @brief Determines if this entity is active in the scene hierarchy
+		/// @return True if this entity is active
+		bool IsActiveInHierarchy() const;
 
 		/// @brief Adds a component to this entity
 		/// @tparam ComponentType The type of component
@@ -55,7 +59,7 @@ namespace Coco::ECS
 			Assert(!HasComponent<ComponentType>())
 
 			SharedRef<Scene> s = _scene.lock();
-			return s->_registry.emplace<ComponentType>(_handle, std::forward<Args>(args)...);
+			return s->_registry.emplace<ComponentType>(_handle, *this, std::forward<Args>(args)...);
 		}
 
 		/// @brief Determines if this entity has a component of the given type
@@ -74,20 +78,7 @@ namespace Coco::ECS
 		/// @tparam ComponentType The type of component
 		/// @return The component
 		template<typename ComponentType>
-		ComponentType& GetComponent()
-		{
-			Assert(IsValid())
-			Assert(HasComponent<ComponentType>())
-
-			SharedRef<Scene> s = _scene.lock();
-			return s->_registry.get<ComponentType>(_handle);
-		}
-
-		/// @brief Gets a component that is attached to this entity
-		/// @tparam ComponentType The type of component
-		/// @return The component
-		template<typename ComponentType>
-		const ComponentType& GetComponent() const
+		ComponentType& GetComponent() const
 		{
 			Assert(IsValid())
 			Assert(HasComponent<ComponentType>())

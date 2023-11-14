@@ -142,6 +142,7 @@ namespace Coco
 		ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
 		_mainScene = resourceLibrary.Create<Scene>("Scene");
+		_mainScene->UseDefaultSystems();
 	}
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)

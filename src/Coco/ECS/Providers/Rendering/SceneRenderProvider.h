@@ -1,5 +1,5 @@
 #pragma once
-#include <Coco\Rendering\Providers\SceneDataProvider.h>
+#include <Coco/Rendering/Providers/SceneDataProvider.h>
 #include "../../Scene.h"
 
 using namespace Coco::Rendering;

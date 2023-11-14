@@ -1,7 +1,6 @@
 #include "Transform3DComponentUI.h"
 
 #include <Coco/ECS/Components/Transform3DComponent.h>
-#include <Coco/ECS/Systems/TransformSystem.h>
 #include "../UIUtils.h"
 
 #include <imgui.h>
@@ -12,58 +11,31 @@ namespace Coco
 {
 	void Transform3DComponentUI::DrawPropertiesImpl(ECS::Entity& entity)
 	{
-		Transform3DComponent& transformComp = entity.GetComponent<Transform3DComponent>();
-		Transform3D& transform = transformComp.Transform;
+		Transform3DComponent& transform = entity.GetComponent<Transform3DComponent>();
 
-		if (transformComp.IsDirty)
-			TransformSystem::UpdateTransform3D(entity);
-
-		if (UIUtils::DrawVector3UI(entity.GetID(), "Position", transform.LocalPosition))
+		Vector3 position = transform.GetPosition(TransformSpace::Parent);
+		if (UIUtils::DrawVector3UI(entity.GetID(), "Position", position))
 		{
-			TransformSystem::MarkTransform3DDirty(entity);
+			transform.SetPosition(position, TransformSpace::Parent);
 		}
 
-		Vector3 eulerAngles = transform.LocalRotation.ToEulerAngles() * Math::Rad2DegMultiplier;
+		Vector3 eulerAngles = transform.GetEulerAngles(TransformSpace::Parent) * Math::Rad2DegMultiplier;
 
 		if (UIUtils::DrawVector3UI(entity.GetID(), "Rotation", eulerAngles))
 		{
-			transform.LocalRotation = Quaternion(eulerAngles * Math::Deg2RadMultiplier);
-
-			TransformSystem::MarkTransform3DDirty(entity);
+			transform.SetEulerAngles(eulerAngles * Math::Deg2RadMultiplier, TransformSpace::Parent);
 		}
 
-		if (UIUtils::DrawVector3UI(entity.GetID(), "Scale", transform.LocalScale, 1.0))
+		Vector3 scale = transform.GetScale(TransformSpace::Parent);
+		if (UIUtils::DrawVector3UI(entity.GetID(), "Scale", scale, 1.0))
 		{
-			TransformSystem::MarkTransform3DDirty(entity);
+			transform.SetScale(scale, TransformSpace::Parent);
 		}
 
-		if (ImGui::Checkbox("Inherit Parent Transform", &transformComp.InheritParentTransform))
+		bool inherit = transform.GetInheritParentTransform();
+		if (ImGui::Checkbox("Inherit Parent Transform", &inherit))
 		{
-			Vector3 globalPosition;
-			Quaternion globalRotation;
-			Vector3 globalScale;
-			transform.GetGlobalTransform(globalPosition, globalRotation, globalScale);
-			
-			if (transformComp.InheritParentTransform)
-			{
-				Transform3DComponent* parentTransformComp;
-				if (TransformSystem::TryGetParentTransform3D(entity, parentTransformComp))
-				{
-					Transform3D& parentTransform = parentTransformComp->Transform;
-
-					transform.LocalPosition = parentTransform.GlobalToLocalPosition(globalPosition);
-					transform.LocalRotation = parentTransform.GlobalToLocalRotation(globalRotation);
-					transform.LocalScale = parentTransform.GlobalToLocalScale(globalScale);
-				}				
-			}
-			else
-			{
-				transform.LocalPosition = globalPosition;
-				transform.LocalRotation = globalRotation;
-				transform.LocalScale = globalScale;
-			}
-
-			TransformSystem::MarkTransform3DDirty(entity);
+			transform.SetInheritParentTransform(inherit, true);
 		}
 	}
 }

@@ -51,14 +51,19 @@ namespace Coco::ECS
 		return s->_registry.valid(_handle);
 	}
 
-	EntityID Entity::GetID() const
+	const EntityID& Entity::GetID() const
 	{
-		return GetComponent<EntityInfoComponent>().ID;
+		return GetComponent<EntityInfoComponent>().GetEntityID();
 	}
 
 	SharedRef<Scene> Entity::GetScene() const
 	{
 		return _scene.expired() ? nullptr : _scene.lock();
+	}
+
+	bool Entity::IsActiveInHierarchy() const
+	{
+		return GetComponent<EntityInfoComponent>().IsActiveInHierarchy();
 	}
 
 	void Entity::SetParent(const Entity& parent)

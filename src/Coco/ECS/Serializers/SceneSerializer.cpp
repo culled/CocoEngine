@@ -84,6 +84,10 @@ namespace Coco::ECS
 	SharedRef<Resource> SceneSerializer::CreateAndDeserialize(const ResourceID& id, const string& name, const string& data)
 	{
 		SharedRef<Scene> scene = CreateSharedRef<Scene>(id, name);
+
+		// TODO: this can be forgetful, so change this sometime
+		scene->UseDefaultSystems();
+
 		Deserialize(data, scene);
 
 		return scene;
@@ -99,14 +103,27 @@ namespace Coco::ECS
 
 		scene->Clear();
 
-		YAML::Node hierarchyNode = baseNode["hierarchy"];
-		for (YAML::const_iterator it = hierarchyNode.begin(); it != hierarchyNode.end(); it++)
-			scene->_entityParentMap[it->first.as<EntityID>()] = it->second.as<EntityID>();
-
 		YAML::Node entitiesNode = baseNode["entities"];
 		for (YAML::const_iterator it = entitiesNode.begin(); it != entitiesNode.end(); it++)
 		{
 			DeserializeEntity(scene, *it);
+		}
+
+		YAML::Node hierarchyNode = baseNode["hierarchy"];
+		for (YAML::const_iterator it = hierarchyNode.begin(); it != hierarchyNode.end(); it++)
+			scene->_entityParentMap[it->first.as<EntityID>()] = it->second.as<EntityID>();
+
+
+		for (const auto& e : scene->GetRootEntities())
+		{
+			auto& info = e.GetComponent<EntityInfoComponent>();
+			info.UpdateSceneVisibility(info._isActive);
+
+			Transform3DComponent* transform3D;
+			if (e.TryGetComponent<Transform3DComponent>(transform3D))
+			{
+				transform3D->Recalculate();
+			}
 		}
 
 		return true;

@@ -44,8 +44,8 @@ namespace Coco
 			_sComponentUIInstances.push_back(
 				ComponentUIInstance(
 					[](const ECS::Entity& e) { return e.HasComponent<ComponentType>(); },
-					[](ECS::Entity& e) { return e.AddComponent<ComponentType>(); },
-					[](ECS::Entity& e) { return e.RemoveComponent<ComponentType>(); },
+					[](ECS::Entity& e) { e.AddComponent<ComponentType>(); },
+					[](ECS::Entity& e) { e.RemoveComponent<ComponentType>(); },
 					CreateUniqueRef<UIType>(std::forward<Args>(args)...)
 				)
 			);

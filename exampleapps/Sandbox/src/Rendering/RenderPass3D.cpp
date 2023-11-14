@@ -25,14 +25,15 @@ RenderPass3D::RenderPass3D() :
         AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear),
         })
 {
-    _sShader = BuiltInShaders::GetLitShader();
+    //_sShader = BuiltInShaders::GetLitShader();
+    _sShader = BuiltInShaders::GetUnlitShader();
 }
 
 void RenderPass3D::Prepare(RenderContext& context, const RenderView& renderView)
 {
     context.SetValue(UniformScope::Global, ShaderUniformData::MakeKey("ProjectionMatrix"), renderView.GetProjectionMatrix());
     context.SetValue(UniformScope::Global, ShaderUniformData::MakeKey("ViewMatrix"), renderView.GetViewMatrix());
-    context.SetValue(UniformScope::Global, ShaderUniformData::MakeKey("ViewPosition"), renderView.GetViewPosition());
+    /*context.SetValue(UniformScope::Global, ShaderUniformData::MakeKey("ViewPosition"), renderView.GetViewPosition());
     context.SetValue(UniformScope::Global, ShaderUniformData::MakeKey("AmbientColor"), Vector4(0.1, 0.1, 0.12, 1.0));
 
     BufferDataWriter writer(sLightingBufferLayout, RenderService::cGet()->GetDevice());
@@ -65,7 +66,7 @@ void RenderPass3D::Prepare(RenderContext& context, const RenderView& renderView)
         }
     }
 
-    context.SetGlobalBufferData(ShaderUniformData::MakeKey("Lights"), 0, writer.GetRawData(), writer.GetSize());
+    context.SetGlobalBufferData(ShaderUniformData::MakeKey("Lights"), 0, writer.GetRawData(), writer.GetSize());*/
 }
 
 void RenderPass3D::Execute(RenderContext& context, const RenderView& renderView)

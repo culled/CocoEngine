@@ -11,17 +11,17 @@ namespace Coco::ECS
 	{
 		const EntityInfoComponent& info = entity.GetComponent<EntityInfoComponent>();
 
-		emitter << YAML::Key << "name" << YAML::Value << info.Name;
-		emitter << YAML::Key << "id" << YAML::Value << info.ID;
-		emitter << YAML::Key << "isActive" << YAML::Value << info.IsActive;
+		emitter << YAML::Key << "name" << YAML::Value << info._name;
+		emitter << YAML::Key << "id" << YAML::Value << info._entityID;
+		emitter << YAML::Key << "isActive" << YAML::Value << info._isActive;
 	}
 
 	void EntityInfoComponentSerializer::DeserializeImpl(const YAML::Node& baseNode, Entity& entity)
 	{
 		EntityInfoComponent& info = entity.GetComponent<EntityInfoComponent>();
 
-		info.Name = baseNode["name"].as<string>();
-		info.ID = baseNode["id"].as<uint64>();
-		info.IsActive = baseNode["isActive"].as<bool>();
+		info._name = baseNode["name"].as<string>();
+		info._entityID = baseNode["id"].as<uint64>();
+		info._isActive = baseNode["isActive"].as<bool>();
 	}
 }

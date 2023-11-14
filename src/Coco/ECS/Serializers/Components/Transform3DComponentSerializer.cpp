@@ -12,10 +12,10 @@ namespace Coco::ECS
 	{
 		const Transform3DComponent& transform = entity.GetComponent<Transform3DComponent>();
 
-		emitter << YAML::Key << "localPosition" << YAML::Value << transform.Transform.LocalPosition;
-		emitter << YAML::Key << "localRotation" << YAML::Value << transform.Transform.LocalRotation;
-		emitter << YAML::Key << "localScale" << YAML::Value << transform.Transform.LocalScale;
-		emitter << YAML::Key << "inheritParentTransform" << YAML::Value << transform.InheritParentTransform;
+		emitter << YAML::Key << "localPosition" << YAML::Value << transform._transform.LocalPosition;
+		emitter << YAML::Key << "localRotation" << YAML::Value << transform._transform.LocalRotation;
+		emitter << YAML::Key << "localScale" << YAML::Value << transform._transform.LocalScale;
+		emitter << YAML::Key << "inheritParentTransform" << YAML::Value << transform._inheritParentTransform;
 	}
 
 	void Transform3DComponentSerializer::DeserializeImpl(const YAML::Node& baseNode, Entity& entity)

@@ -60,6 +60,7 @@ namespace Coco
 
 		Color();
 		Color(double r, double g, double b, double a = 1.0, bool isLinear = false);
+		Color(std::span<float, 4> colors, bool isLinear = false);
 
 		/// @brief Performs a gamma to linear conversion for this color
 		/// @param gamma The gamma value

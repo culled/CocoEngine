@@ -1,9 +1,19 @@
 #pragma once
 
+#include "../../ECSpch.h"
+#include "../EntityComponent.h"
 #include <Coco/Core/Types/Matrix.h>
 #include <Coco/Core/Types/ViewFrustum.h>
 #include <Coco/Core/Types/Color.h>
 #include <Coco/Rendering/Graphics/GraphicsPipelineTypes.h>
+#include <Coco/Rendering/Graphics/ShaderUniformLayout.h>
+
+namespace Coco::Rendering
+{
+    class Image;
+    class RenderPipeline;
+    class GraphicsPresenter;
+}
 
 namespace Coco::ECS
 {
@@ -15,39 +25,28 @@ namespace Coco::ECS
     };
 
     /// @brief A component that allows a scene to be rendered from its perspective
-    struct CameraComponent
+    class CameraComponent :
+        public EntityComponent
     {
-        /// @brief The color that will be used for clearing the frame
-        Color ClearColor;
+        friend class CameraComponentSerializer;
 
-        /// @brief The type of projection that this camera has
-        CameraProjectionType ProjectionType;
+    private:
+        Color _clearColor;
+        CameraProjectionType _projectionType;
 
-        /// @brief The distance to the near clip plane in perspective mode
-        double PerspectiveNearClip;
+        double _perspectiveNearClip;
+        double _perspectiveFarClip;
+        double _perspectiveFOV;
 
-        /// @brief The distance to the far clip plane in perspective mode
-        double PerspectiveFarClip;
+        double _orthoNearClip;
+        double _orthoFarClip;
+        double _orthoSize;
 
-        /// @brief The perspective vertical field of view, in radians
-        double PerspectiveFOV;
+        Rendering::MSAASamples _sampleCount;
+        int _priority;
 
-        /// @brief The distance to the near clip plane in orthographic mode
-        double OrthoNearClip;
-
-        /// @brief The distance to the far clip plane in orthographic mode
-        double OrthoFarClip;
-
-        /// @brief The vertical size of the orthographic frustum
-        double OrthoSize;
-
-        /// @brief The number of msaa samples
-        Rendering::MSAASamples SampleCount;
-
-        /// @brief The priority of this camera. Lower values mean the camera renders before those with higher values
-        int Priority;
-
-        CameraComponent();
+    public:
+        CameraComponent(const Entity& owner);
 
         /// @brief Sets this camera to use a perspective projection
         /// @param verticalFOVRadians The vertical field of view, in radians
@@ -73,12 +72,72 @@ namespace Coco::ECS
         /// @return The view frustum
         ViewFrustum GetViewFrustum(double aspectRatio, const Vector3& position, const Quaternion& rotation) const;
 
+        /// @brief Sets the projection type of this camera
+        /// @param projectionType The projection type
+        void SetProjectionType(CameraProjectionType projectionType);
+
+        /// @brief Gets the projection type of this camera
+        /// @return The projection type
+        CameraProjectionType GetProjectionType() const { return _projectionType; }
+
+        /// @brief Sets this camera's priority
+        /// @param priority The priority
+        void SetPriority(int priority);
+
+        /// @brief Gets this camera's priority
+        /// @return The priority
+        int GetPriority() const { return _priority; }
+
+        void SetNearClip(double nearClip);
+
         /// @brief Gets the near clip distance for this camera
         /// @return The near clip distance
         double GetNearClip() const;
 
+        void SetFarClip(double farClip);
+
         /// @brief Gets the far clip distance for this camera
         /// @return The far clip distance
         double GetFarClip() const;
+
+        /// @brief Sets the clear color of this camera
+        /// @param clearColor The clear color
+        void SetClearColor(const Color& clearColor);
+
+        /// @brief Gets the clear color of this camera
+        /// @return The clear color
+        const Color& GetClearColor() const { return _clearColor; }
+
+        void SetPerspectiveFOV(double verticalFOVRadians);
+        double GetPerspectiveFOV() const { return _perspectiveFOV; }
+
+        void SetOrthographicSize(double verticalSize);
+        double GetOrthographicSize() const { return _orthoSize; }
+
+        /// @brief Sets the MSAA sample count of this camera
+        /// @param sampleCount The number of MSAA samples
+        void SetSampleCount(Rendering::MSAASamples sampleCount);
+
+        /// @brief Gets the MSAA sample count of this camera
+        /// @return The number of MSAA samples
+        Rendering::MSAASamples GetSampleCount() const { return _sampleCount; }
+
+        /// @brief Renders from this camera's perspective
+        /// @param framebuffers The framebuffers to render with
+        /// @param pipeline The RenderPipeline to use
+        /// @param layoutOverride The layout override for the global uniforms
+        void Render(
+            std::span<Ref<Rendering::Image>> framebuffers,
+            Rendering::RenderPipeline& pipeline,
+            std::optional<Rendering::GlobalShaderUniformLayout> layoutOverride = std::optional<Rendering::GlobalShaderUniformLayout>());
+
+        /// @brief Renders from this camera's perspective
+        /// @param presenter The presenter to render to
+        /// @param pipeline The RenderPipeline to use
+        /// @param layoutOverride The layout override for the global uniforms
+        void Render(
+            Ref<Rendering::GraphicsPresenter> presenter,
+            Rendering::RenderPipeline& pipeline,
+            std::optional<Rendering::GlobalShaderUniformLayout> layoutOverride = std::optional<Rendering::GlobalShaderUniformLayout>());
     };
 }

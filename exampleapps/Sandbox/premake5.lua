@@ -20,44 +20,31 @@ project "Sandbox"
     includedirs
     {
         "%{IncludeDir.Coco}",
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.entt}"
     }
 
     links
     {
         "Coco.Core",
+        "Coco.Input",
+        "Coco.Rendering",
+        "Coco.Windowing",
+        "Coco.ImGui",
+        "Coco.ECS",
+        "Coco.Platforms.Win32"
     }
 
-    if (Services["Input"] == true) then
-        links { "Coco.Input" }
-    end
+    if (RenderRHI["Vulkan"] == true) then
+        libdirs
+        {
+            "%{LibraryDir.vulkan}"
+        }
 
-    if (Services["Rendering"] == true) then
-        links { "Coco.Rendering" }
-
-        if (RenderRHI["Vulkan"] == true) then
-            libdirs
-            {
-                "%{LibraryDir.vulkan}"
-            }
-    
-            links
-            {
-                "vulkan-1.lib"
-            }
-        end
-    end
-
-    if (Services["Windowing"] == true) then
-        links { "Coco.Windowing" }
-    end
-
-    if (Services["ImGui"] == true) then
-        includedirs { "%{IncludeDir.ImGui}" }
-        links { "Coco.ImGui" }
-    end
-
-    if (Platforms["Win32"] == true) then
-        links { "Coco.Platforms.Win32" }
+        links
+        {
+            "vulkan-1.lib"
+        }
     end
 
     filter { "system:windows", "options:renderRHI-vulkan or options:renderRHIs-all" }

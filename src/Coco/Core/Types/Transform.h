@@ -6,6 +6,13 @@
 
 namespace Coco
 {
+	enum class TransformSpace
+	{
+		Global = 0,
+		Parent,
+		Self
+	};
+
 	/// @brief Represents a 2D transformation
 	struct Transform2D
 	{
@@ -27,102 +34,127 @@ namespace Coco
 		/// @brief The inverse of the global transform matrix. This transforms global space to local space, which is NOT the same as parent space
 		Matrix4x4 InvGlobalTransform;
 
+		/// @brief The parent transform matrix. This transforms parent space to global space
+		Matrix4x4 ParentTransform;
+
+		/// @brief The inverse of the parent transform matrix. This transforms global space to parent space
+		Matrix4x4 InvParentTransform;
+
 		Transform2D();
 		Transform2D(const Vector2& position, double rotation, const Vector2& scale, const Transform2D* parent = nullptr);
-
-		/// @brief Calculates the local transform matrix
-		void CalculateLocalMatrix();
-
-		/// @brief Calculates the global transform matrix, using an optional parent's global transform.
-		/// NOTE: If using a parent, make sure the parent's global transform is updated before calling this
-		/// @param parent If given, this global matrix will be calculated as a child of the parent transform
-		void CalculateGlobalMatrix(const Transform2D* parent = nullptr);
 
 		/// @brief Calculates the global and local transform matrices
 		/// @param parent If given, this transform will be calculated as a child of the parent transform
 		void Recalculate(const Transform2D* parent = nullptr);
 
-		/// @brief Converts a position from global to local coordinate space
-		/// @param position The position, in global space
-		/// @return The position in local space
-		Vector2 GlobalToLocalPosition(const Vector2& position) const;
+		/// @brief Transforms a position between spaces
+		/// @param position The position
+		/// @param from The space to transform from
+		/// @param to The space to transform to
+		/// @return The transformed position
+		Vector2 TransformPosition(const Vector2& position, TransformSpace from, TransformSpace to) const;
 
-		/// @brief Converts a rotation from global to local coordinate space
-		/// @param rotation The rotation, in global space
-		/// @return The rotation in local space
-		double GlobalToLocalRotation(double rotation) const;
+		/// @brief Transforms a rotation between spaces
+		/// @param rotation The rotation
+		/// @param from The space to transform from
+		/// @param to The space to transform to
+		/// @return The transformed rotation 
+		double TransformRotation(double rotation, TransformSpace from, TransformSpace to) const;
 
-		/// @brief Converts a scale from global to local coordinate space
-		/// @param scale The scale, in global space
-		/// @return The scale in local space
-		Vector2 GlobalToLocalScale(const Vector2& scale) const;
+		/// @brief Transforms a vector between spaces
+		/// @param vector The vector
+		/// @param from The space to transform from
+		/// @param to The space to transform to
+		/// @return The transformed vector 
+		Vector2 TransformVector(const Vector2& vector, TransformSpace from, TransformSpace to) const;
 
-		/// @brief Converts a directional vector from global to local coordinate space
-		/// @param vector The vector, in global space
-		/// @return The vector in local space
-		Vector2 GlobalToLocalVector(const Vector2& vector) const;
+		/// @brief Transforms a scale between spaces
+		/// @param scale The scale
+		/// @param from The space to transform from
+		/// @param to The space to transform to
+		/// @return The transformed scale 
+		Vector2 TransformScale(const Vector2& scale, TransformSpace from, TransformSpace to) const;
 
-		/// @brief Converts a position from local to global coordinate space
-		/// @param position The position, in local space
-		/// @return The position in global space
-		Vector2 LocalToGlobalPosition(const Vector2& position) const;
+		/// @brief Moves this transform in the given space
+		/// @param translation The amount to move
+		/// @param space The space to move relative to
+		void Translate(const Vector2& translation, TransformSpace space);
 
-		/// @brief Converts a rotation from local to global coordinate space
-		/// @param rotation The rotation, in local space
-		/// @return The rotation in global space
-		double LocalToGlobalRotation(double rotation) const;
+		/// @brief Rotates this transform in the given space
+		/// @param rotation The amount to rotate
+		/// @param space The space to rotate relative to
+		void Rotate(double rotation, TransformSpace space);
 
-		/// @brief Converts a scale from local to global coordinate space
-		/// @param scale The scale, in local space
-		/// @return The scale in global space
-		Vector2 LocalToGlobalScale(const Vector2& scale) const;
+		/// @brief Sets the position in the given space
+		/// @param position The position
+		/// @param space The space
+		void SetPosition(const Vector2& position, TransformSpace space);
 
-		/// @brief Converts a directional vector from local to global coordinate space
-		/// @param vector The vector, in local space
-		/// @return The vector in global space
-		Vector2 LocalToGlobalVector(const Vector2& vector) const;
+		/// @brief Gets the position in the given space
+		/// @param space The space
+		/// @return The position
+		Vector2 GetPosition(TransformSpace space) const;
 
-		/// @brief Translates this transform in local space
-		/// @param translation The translation, in local space
-		void TranslateLocal(const Vector2& translation);
+		/// @brief Sets the rotation in the given space
+		/// @param rotation The rotation
+		/// @param space The space
+		void SetRotation(double rotation, TransformSpace space);
 
-		/// @brief Translates this transform in global space
-		/// @param translation The translation, in global space
-		/// @param parent The parent, or nullptr if no parent
-		void TranslateGlobal(const Vector2& translation, const Transform2D* parent = nullptr);
+		/// @brief Gets the rotation in the given space
+		/// @param space The space
+		/// @return The rotation
+		double GetRotation(TransformSpace space) const;
 
-		/// @brief Rotates this transform in local space
-		/// @param rotation The rotation, in local space
-		void RotateLocal(double rotation);
+		/// @brief Sets the scale in the given space
+		/// @param scale The scale
+		/// @param space The space
+		void SetScale(const Vector2& scale, TransformSpace space);
 
-		/// @brief Rotates this transform in global space
-		/// @param rotation The rotation, in global space
-		/// @param parent The parent, or nullptr if no parent
-		void RotateGlobal(double rotation, const Transform2D* parent = nullptr);
+		/// @brief Gets the scale in the given space
+		/// @param space The space
+		/// @return The scale
+		Vector2 GetScale(TransformSpace space) const;
 
-		/// @brief Gets the global position of this transform
-		/// @return The global position
-		Vector3 GetGlobalPosition() const { return LocalToGlobalPosition(Vector2::Zero); }
+		/// @brief Decomposes this transform
+		/// @param space The space
+		/// @param outPosition Will be set to the position in the given space
+		/// @param outRotation Will be set to the rotation in the given space
+		/// @param outScale Will be set to the scale in the given space
+		void Decompose(TransformSpace space, Vector2& outPosition, double& outRotation, Vector2& outScale) const;
 
-		/// @brief Gets the global rotation of this transform
-		/// @return The global rotation
-		double GetGlobalRotation() const { return LocalToGlobalRotation(0.0); }
-
-		/// @brief Gets the global scale of this transform
-		/// @return The global scale
-		Vector3 GetGlobalScale() const { return LocalToGlobalScale(Vector2::One); }
-
-		/// @brief Gets the global position, rotation, and scale of this transform
-		/// @param outPosition Will be set to the global position
-		/// @param outRotation Will be set to the global rotation
-		/// @param outScale Will be set to the global scale
-		void GetGlobalTransform(Vector2& outPosition, double& outRotation, Vector2& outScale) const;
-
-		/// @brief Transforms global-space coordinates to local-space coordinates
+		/// @brief Transforms a position, rotation, and scale between spaces
+		/// @param from The space to transform from
+		/// @param to The space to transform to
 		/// @param position The position
 		/// @param rotation The rotation
 		/// @param scale The scale
-		void TransformGlobalToLocal(Vector2& position, double& rotation, Vector2& scale) const;
+		void Transform(TransformSpace from, TransformSpace to, Vector2& position, double& rotation, Vector2& scale) const;
+
+		/// @brief Gets a vector that points right in the given space
+		/// @param space The space
+		/// @return The vector
+		Vector2 GetRight(TransformSpace space) const;
+
+		/// @brief Gets a vector that points left in the given space
+		/// @param space The space
+		/// @return The vector
+		Vector2 GetLeft(TransformSpace space) const;
+
+		/// @brief Gets a vector that points up in the given space
+		/// @param space The space
+		/// @return The vector
+		Vector2 GetUp(TransformSpace space) const;
+
+		/// @brief Gets a vector that points down in the given space
+		/// @param space The space
+		/// @return The vector
+		Vector2 GetDown(TransformSpace space) const;
+
+		/// @brief Gets a matrix that transforms between spaces
+		/// @param from The space to transform from
+		/// @param to The space to transform to 
+		/// @return The transformation matrix
+		Matrix4x4 GetTransformMatrix(TransformSpace from, TransformSpace to) const;
 	};
 
 	/// @brief Represents a 3D transformation
@@ -146,160 +178,157 @@ namespace Coco
 		/// @brief The inverse of the global transform matrix. This transforms global space to local space, which is NOT the same as parent space
 		Matrix4x4 InvGlobalTransform;
 
+		/// @brief The parent transform matrix. This transforms parent space to global space
+		Matrix4x4 ParentTransform;
+
+		/// @brief The inverse of the parent transform matrix. This transforms global space to parent space
+		Matrix4x4 InvParentTransform;
+
 		Transform3D();
 		Transform3D(const Vector3& position, const Quaternion& rotation, const Vector3& scale, const Transform3D* parent = nullptr);
-
-		/// @brief Calculates the local transform matrix
-		void CalculateLocalMatrix();
-
-		/// @brief Calculates the global transform matrix, using an optional parent's global transform.
-		/// NOTE: If using a parent, make sure the parent's global transform is updated before calling this
-		/// @param parent If given, this global matrix will be calculated as a child of the parent transform
-		void CalculateGlobalMatrix(const Transform3D* parent = nullptr);
 
 		/// @brief Calculates the global and local transform matrices
 		/// @param parent If given, this transform will be calculated as a child of the parent transform
 		void Recalculate(const Transform3D* parent = nullptr);
 
-		/// @brief Converts a position from global to local coordinate space
-		/// @param position The position, in global space
-		/// @return The position in local space
-		Vector3 GlobalToLocalPosition(const Vector3& position) const;
+		/// @brief Transforms a position between spaces
+		/// @param position The position
+		/// @param from The space to transform from
+		/// @param to The space to transform to
+		/// @return The transformed position
+		Vector3 TransformPosition(const Vector3& position, TransformSpace from, TransformSpace to) const;
 
-		/// @brief Converts a rotation from global to local coordinate space
-		/// @param rotation The rotation, in global space
-		/// @return The rotation in local space
-		Quaternion GlobalToLocalRotation(const Quaternion& rotation) const;
+		/// @brief Transforms a rotation between spaces
+		/// @param rotation The rotation
+		/// @param from The space to transform from
+		/// @param to The space to transform to
+		/// @return The transformed rotation 
+		Quaternion TransformRotation(const Quaternion& rotation, TransformSpace from, TransformSpace to) const;
 
-		/// @brief Converts a directional vector from global to local coordinate space
-		/// @param vector The vector, in global space
-		/// @return The vector in local space
-		Vector3 GlobalToLocalVector(const Vector3& vector) const;
+		/// @brief Transforms a vector between spaces
+		/// @param vector The vector
+		/// @param from The space to transform from
+		/// @param to The space to transform to
+		/// @return The transformed vector 
+		Vector3 TransformVector(const Vector3& vector, TransformSpace from, TransformSpace to) const;
 
-		/// @brief Converts a scale from global to local space coordinate space
-		/// @param scale The scale, in global space
-		/// @return The scale in local space
-		Vector3 GlobalToLocalScale(const Vector3& scale) const;
+		/// @brief Transforms a scale between spaces
+		/// @param scale The scale
+		/// @param from The space to transform from
+		/// @param to The space to transform to
+		/// @return The transformed scale 
+		Vector3 TransformScale(const Vector3& scale, TransformSpace from, TransformSpace to) const;
 
-		/// @brief Converts a position from local to global coordinate space
-		/// @param position The position, in local space
-		/// @return The position in global space
-		Vector3 LocalToGlobalPosition(const Vector3& position) const;
+		/// @brief Moves this transform in the given space
+		/// @param translation The amount to move
+		/// @param space The space to move relative to
+		void Translate(const Vector3& translation, TransformSpace space);
 
-		/// @brief Converts a rotation from local to global coordinate space
-		/// @param rotation The rotation, in local space
-		/// @return The rotation in global space
-		Quaternion LocalToGlobalRotation(const Quaternion& rotation) const;
+		/// @brief Rotates this transform in the given space
+		/// @param rotation The amount to rotate
+		/// @param space The space to rotate relative to
+		void Rotate(const Quaternion& rotation, TransformSpace space);
 
-		/// @brief Converts a directional vector from local to global coordinate space
-		/// @param vector The vector, in local space
-		/// @return The vector in global space
-		Vector3 LocalToGlobalVector(const Vector3& vector) const;
+		/// @brief Rotates this transform in the given space
+		/// @param eulerAngles The euler angles to rotate by, in radians
+		/// @param space The space to rotate relative to
+		void Rotate(const Vector3& eulerAngles, TransformSpace space);
 
-		/// @brief Converts a scale from local to global coordinate space
-		/// @param scale The scale, in local space
-		/// @return The scale in global space
-		Vector3 LocalToGlobalScale(const Vector3& scale) const;
+		/// @brief Rotates this transform in the given space
+		/// @param axis The axis to rotate about
+		/// @param angleRadians The angle to rotate by
+		/// @param space The space to rotate relative to
+		void Rotate(const Vector3& axis, double angleRadians, TransformSpace space);
 
-		/// @brief Translates this transform in local space
-		/// @param translation The translation, in local space
-		void TranslateLocal(const Vector3& translation);
+		/// @brief Sets the position in the given space
+		/// @param position The position
+		/// @param space The space
+		void SetPosition(const Vector3& position, TransformSpace space);
 
-		/// @brief Translates this transform in global space
-		/// @param translation The translation, in global space
-		/// @param parent The parent, or nullptr if no parent
-		void TranslateGlobal(const Vector3& translation, const Transform3D* parent = nullptr);
+		/// @brief Gets the position in the given space
+		/// @param space The space
+		/// @return The position
+		Vector3 GetPosition(TransformSpace space) const;
 
-		/// @brief Rotates this transform in local space
-		/// @param rotation The rotation, in local space
-		void RotateLocal(const Quaternion& rotation);
+		/// @brief Sets the rotation in the given space
+		/// @param rotation The rotation
+		/// @param space The space
+		void SetRotation(const Quaternion& rotation, TransformSpace space);
 
-		/// @brief Rotates this transform in local space
-		/// @param axis The axis to rotate around, in local space
-		/// @param angleRadians The amount to rotate, in radians
-		void RotateLocal(const Vector3& axis, double angleRadians);
+		/// @brief Gets the rotation in the given space
+		/// @param space The space
+		/// @return The rotation
+		Quaternion GetRotation(TransformSpace space) const;
 
-		/// @brief Rotates this transform in global space
-		/// @param rotation The rotation, in global space
-		/// @param parent The parent, or nullptr if no parent
-		void RotateGlobal(const Quaternion& rotation, const Transform3D* parent = nullptr);
+		/// @brief Sets the rotation in the given space
+		/// @param eulerAngles The euler angle rotation, in radians
+		/// @param space The space
+		void SetEulerAngles(const Vector3& eulerAngles, TransformSpace space) { SetRotation(Quaternion(eulerAngles), space); }
 
-		/// @brief Rotates this transform in global space
-		/// @param axis The axis to rotate around, in global space
-		/// @param angleRadians The amount to rotate, in radians
-		/// @param parent The parent, or nullptr if no parent
-		void RotateGlobal(const Vector3& axis, double angleRadians, const Transform3D* parent = nullptr);
+		/// @brief Gets the rotation in euler angles in the given space
+		/// @param space The space
+		/// @return The euler angle rotation, in radians
+		Vector3 GetEulerAngles(TransformSpace space) const { return GetRotation(space).ToEulerAngles(); }
 
-		/// @brief Gets the global position of this transform
-		/// @return The global position
-		Vector3 GetGlobalPosition() const { return LocalToGlobalPosition(Vector3::Zero); }
+		/// @brief Sets the scale in the given space
+		/// @param scale The scale
+		/// @param space The space
+		void SetScale(const Vector3& scale, TransformSpace space);
 
-		/// @brief Gets the global rotation of this transform
-		/// @return The global rotation
-		Quaternion GetGlobalRotation() const { return LocalToGlobalRotation(Quaternion::Identity); }
+		/// @brief Gets the scale in the given space
+		/// @param space The space
+		/// @return The scale
+		Vector3 GetScale(TransformSpace space) const;
 
-		/// @brief Gets the global scale of this transform
-		/// @return The global scale
-		Vector3 GetGlobalScale() const { return LocalToGlobalScale(Vector3::One); }
+		/// @brief Decomposes this transform
+		/// @param space The space
+		/// @param outPosition Will be set to the position in the given space
+		/// @param outRotation Will be set to the rotation in the given space
+		/// @param outScale Will be set to the scale in the given space
+		void Decompose(TransformSpace space, Vector3& outPosition, Quaternion& outRotation, Vector3& outScale) const;
 
-		/// @brief Gets the global position, rotation, and scale of this transform
-		/// @param outPosition Will be set to the global position
-		/// @param outRotation Will be set to the global rotation
-		/// @param outScale Will be set to the global scale
-		void GetGlobalTransform(Vector3& outPosition, Quaternion& outRotation, Vector3& outScale) const;
-
-		/// @brief Transforms global-space coordinates to local-space coordinates
+		/// @brief Transforms a position, rotation, and scale between spaces
+		/// @param from The space to transform from
+		/// @param to The space to transform to
 		/// @param position The position
 		/// @param rotation The rotation
 		/// @param scale The scale
-		void TransformGlobalToLocal(Vector3& position, Quaternion& rotation, Vector3& scale) const;
+		void Transform(TransformSpace from, TransformSpace to, Vector3& position, Quaternion& rotation, Vector3& scale) const;
 
-		/// @brief Gets the global forward direction of this transform
-		/// @return The global forward direction
-		Vector3 GetGlobalForward() const { return GlobalTransform.GetForwardVector(); }
+		/// @brief Gets a vector that points forward in the given space
+		/// @param space The space
+		/// @return The vector
+		Vector3 GetForward(TransformSpace space) const;
 
-		/// @brief Gets the global backward direction of this transform
-		/// @return The global backward direction
-		Vector3 GetGlobalBackward() const { return GlobalTransform.GetBackwardVector(); }
+		/// @brief Gets a vector that points backward in the given space
+		/// @param space The space
+		/// @return The vector
+		Vector3 GetBackward(TransformSpace space) const;
 
-		/// @brief Gets the global right direction of this transform
-		/// @return The global right direction
-		Vector3 GetGlobalRight() const { return GlobalTransform.GetRightVector(); }
+		/// @brief Gets a vector that points right in the given space
+		/// @param space The space
+		/// @return The vector
+		Vector3 GetRight(TransformSpace space) const;
 
-		/// @brief Gets the global left direction of this transform
-		/// @return The global left direction
-		Vector3 GetGlobalLeft() const { return GlobalTransform.GetLeftVector(); }
+		/// @brief Gets a vector that points left in the given space
+		/// @param space The space
+		/// @return The vector
+		Vector3 GetLeft(TransformSpace space) const;
 
-		/// @brief Gets the global up direction of this transform
-		/// @return The global up direction
-		Vector3 GetGlobalUp() const { return GlobalTransform.GetUpVector(); }
+		/// @brief Gets a vector that points up in the given space
+		/// @param space The space
+		/// @return The vector
+		Vector3 GetUp(TransformSpace space) const;
 
-		/// @brief Gets the global down direction of this transform
-		/// @return The global down direction
-		Vector3 GetGlobalDown() const { return GlobalTransform.GetDownVector(); }
+		/// @brief Gets a vector that points down in the given space
+		/// @param space The space
+		/// @return The vector
+		Vector3 GetDown(TransformSpace space) const;
 
-		/// @brief Gets the local forward direction of this transform
-		/// @return The local forward direction
-		Vector3 GetLocalForward() const { return LocalTransform.GetForwardVector(); }
-
-		/// @brief Gets the local backward direction of this transform
-		/// @return The local backward direction
-		Vector3 GetLocalBackward() const { return LocalTransform.GetBackwardVector(); }
-
-		/// @brief Gets the local right direction of this transform
-		/// @return The local right direction
-		Vector3 GetLocalRight() const { return LocalTransform.GetRightVector(); }
-
-		/// @brief Gets the local left direction of this transform
-		/// @return The local left direction
-		Vector3 GetLocalLeft() const { return LocalTransform.GetLeftVector(); }
-
-		/// @brief Gets the local up direction of this transform
-		/// @return The local up direction
-		Vector3 GetLocalUp() const { return LocalTransform.GetUpVector(); }
-
-		/// @brief Gets the local down direction of this transform
-		/// @return The local down direction
-		Vector3 GetLocalDown() const { return LocalTransform.GetDownVector(); }
+		/// @brief Gets a matrix that transforms between spaces
+		/// @param from The space to transform from
+		/// @param to The space to transform to 
+		/// @return The transformation matrix
+		Matrix4x4 GetTransformMatrix(TransformSpace from, TransformSpace to) const;
 	};
 }

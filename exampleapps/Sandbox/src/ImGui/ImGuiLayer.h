@@ -1,22 +1,25 @@
 #pragma once
 
-#include "../Rendering/RenderViewProvider3D.h"
-#include "../Rendering/SceneDataProvider3D.h"
+#include <Coco/ECS/Entity.h>
+
+using namespace Coco;
 
 class ImGuiLayer
 {
 private:
-	RenderViewProvider3D& _viewProvider3D;
-	SceneDataProvider3D& _sceneProvider3D;
+	ECS::Entity _cameraEntity;
 
 	int _movingAverageCount;
 	int _averageFps;
 	double _averageFrameTime;
 
 public:
-	ImGuiLayer(RenderViewProvider3D& viewProvider3D, SceneDataProvider3D& sceneProvider3D);
+	ImGuiLayer(const ECS::Entity& cameraEntity);
 
 	void Draw();
-	void DrawPostRender();
+
+private:
+	void DrawSettings();
+	void DrawRenderStats();
 };
 

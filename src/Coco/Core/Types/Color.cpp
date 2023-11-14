@@ -28,6 +28,10 @@ namespace Coco
 		IsLinear(isLinear)
 	{}
 
+	Color::Color(std::span<float, 4> colors, bool isLinear) :
+		Color(colors[0], colors[1], colors[2], colors[3], isLinear)
+	{}
+
 	Color Color::AsLinear(double gamma) const
 	{
 		Color c(*this);

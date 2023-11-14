@@ -13,11 +13,11 @@ namespace Coco::ECS
 	{
 		const MeshRendererComponent& renderer = entity.GetComponent<MeshRendererComponent>();
 
-		emitter << YAML::Key << "visibility" << YAML::Value << renderer.VisibilityGroups;
-		emitter << YAML::Key << "mesh" << YAML::Value << (renderer.Mesh ? renderer.Mesh->GetContentPath() : "");
+		emitter << YAML::Key << "visibility" << YAML::Value << renderer._visibilityGroups;
+		emitter << YAML::Key << "mesh" << YAML::Value << (renderer._mesh ? renderer._mesh->GetContentPath() : "");
 		emitter << YAML::Key << "materials" << YAML::Value << YAML::BeginMap;
 
-		for (const auto& it : renderer.Materials)
+		for (const auto& it : renderer._materials)
 		{
 			SharedRef<Resource> resource = nullptr;
 

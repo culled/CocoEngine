@@ -4,15 +4,15 @@
 
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Windowing/WindowService.h>
+#include <Coco/ECS/Components/Rendering/CameraComponent.h>
 #include <imgui.h>
 
-using namespace Coco;
+using namespace Coco::ECS;
 using namespace Coco::Rendering;
 using namespace Coco::Windowing;
 
-ImGuiLayer::ImGuiLayer(RenderViewProvider3D& viewProvider3D, SceneDataProvider3D& sceneProvider3D) :
-	_viewProvider3D(viewProvider3D),
-	_sceneProvider3D(sceneProvider3D),
+ImGuiLayer::ImGuiLayer(const ECS::Entity& cameraEntity) :
+	_cameraEntity(cameraEntity),
 	_movingAverageCount(30),
 	_averageFps(0),
 	_averageFrameTime(0)
@@ -20,10 +20,18 @@ ImGuiLayer::ImGuiLayer(RenderViewProvider3D& viewProvider3D, SceneDataProvider3D
 
 void ImGuiLayer::Draw()
 {
+	DrawSettings();
+	DrawRenderStats();
+}
+
+void ImGuiLayer::DrawSettings()
+{
 	ImGui::Begin("Settings");
 
+	auto& camera = _cameraEntity.GetComponent<CameraComponent>();
+
 	std::array<const char*, 4> msaaTexts = { "One", "Two", "Four", "Eight" };
-	MSAASamples currentMSAASamples = _viewProvider3D.GetMSAASamples();
+	MSAASamples currentMSAASamples = camera.GetSampleCount();
 
 	if (ImGui::BeginCombo("MSAA samples", msaaTexts[static_cast<int>(currentMSAASamples)]))
 	{
@@ -31,8 +39,7 @@ void ImGuiLayer::Draw()
 		{
 			MSAASamples s = static_cast<MSAASamples>(i);
 			if (ImGui::Selectable(msaaTexts[i], currentMSAASamples == s))
-				_viewProvider3D.SetMSAASamples(s);
-
+				camera.SetSampleCount(s);
 		}
 
 		ImGui::EndCombo();
@@ -53,20 +60,18 @@ void ImGuiLayer::Draw()
 		rendering.SetMaxFramesInFlight(static_cast<uint32>(maxFramesInFlight));
 	}
 
-	bool drawBounds = _sceneProvider3D.GetDrawBounds();
-	if (ImGui::Checkbox("Draw Bounds", &drawBounds))
-	{
-		_sceneProvider3D.SetDrawBounds(drawBounds);
-	}
+	//bool drawBounds = _sceneProvider3D.GetDrawBounds();
+	//if (ImGui::Checkbox("Draw Bounds", &drawBounds))
+	//{
+	//	_sceneProvider3D.SetDrawBounds(drawBounds);
+	//}
 
 	ImGui::End();
 }
 
-void ImGuiLayer::DrawPostRender()
+void ImGuiLayer::DrawRenderStats()
 {
-	//ImGui::ShowDemoWindow();
-
-	ImGui::Begin("Info");
+	ImGui::Begin("Render Info");
 
 	const TickInfo& currentTick = MainLoop::cGet()->GetCurrentTick();
 

@@ -15,7 +15,7 @@ namespace Coco
 		CameraComponent& camera = entity.GetComponent<CameraComponent>();
 
 		std::array<const char*, 2> projectionTypeNames = { "Perspective", "Orthographic" };
-		int projectionIndex = static_cast<int>(camera.ProjectionType);
+		int projectionIndex = static_cast<int>(camera.GetProjectionType());
 
 		if (ImGui::BeginCombo("Projection", projectionTypeNames.at(projectionIndex)))
 		{
@@ -24,7 +24,7 @@ namespace Coco
 				bool selected = i == projectionIndex;
 				if (ImGui::Selectable(projectionTypeNames.at(i), selected))
 				{
-					camera.ProjectionType = static_cast<CameraProjectionType>(i);
+					camera.SetProjectionType(static_cast<CameraProjectionType>(i));
 				}
 
 				if (selected)
@@ -34,73 +34,66 @@ namespace Coco
 			ImGui::EndCombo();
 		}
 
-		ImGui::DragInt("Priority", &camera.Priority);
+		int priority = camera.GetPriority();
+		if (ImGui::DragInt("Priority", &priority))
+			camera.SetPriority(priority);
 
-		std::array<float, 3> color = {
-			static_cast<float>(camera.ClearColor.R),
-			static_cast<float>(camera.ClearColor.G),
-			static_cast<float>(camera.ClearColor.B),
-		};
+
+		std::array<float, 4> color = camera.GetClearColor().AsFloatArray(false);
 
 		if (ImGui::ColorEdit3("Clear Color", color.data()))
 		{
-			camera.ClearColor.R = color.at(0);
-			camera.ClearColor.G = color.at(1);
-			camera.ClearColor.B = color.at(2);
+			camera.SetClearColor(Color(color, false));
 		}
 
-		switch (camera.ProjectionType)
+		switch (camera.GetProjectionType())
 		{
 		case CameraProjectionType::Perspective:
 		{
-			float fov = static_cast<float>(Math::RadToDeg(camera.PerspectiveFOV));
+			float fov = static_cast<float>(Math::RadToDeg(camera.GetPerspectiveFOV()));
 
 			if (ImGui::DragFloat("Vertical FOV", &fov, 0.2f, Math::EpsilonF))
-				camera.PerspectiveFOV = Math::DegToRad(fov);
-
-			float near = static_cast<float>(camera.PerspectiveNearClip);
-			float far = static_cast<float>(camera.PerspectiveFarClip);
-			if (ImGui::DragFloatRange2("Clipping Distance", &near, &far, 0.1f, Math::EpsilonF))
-			{
-				camera.PerspectiveNearClip = near;
-				camera.PerspectiveFarClip = far;
-			}
+				camera.SetPerspectiveFOV(Math::DegToRad(fov));
 
 			break;
 		}
 		case CameraProjectionType::Orthographic:
 		{
-			float size = static_cast<float>(camera.OrthoSize);
+			float size = static_cast<float>(camera.GetOrthographicSize());
 			if (ImGui::DragFloat("Vertical Size", &size, 0.2f))
-				camera.OrthoSize = size;
-
-			float near = static_cast<float>(camera.OrthoNearClip);
-			float far = static_cast<float>(camera.OrthoFarClip);
-			if (ImGui::DragFloatRange2("Clipping Distance", &near, &far, 0.1f))
-			{
-				camera.OrthoNearClip = near;
-				camera.OrthoFarClip = far;
-			}
+				camera.SetOrthographicSize(size);
 
 			break;
 		}
 		default:
 			break;
 		}
+
+		float near = static_cast<float>(camera.GetNearClip());
+		float far = static_cast<float>(camera.GetFarClip());
+		if (ImGui::DragFloatRange2("Clipping Distance", &near, &far, 0.1f, Math::EpsilonF))
+		{
+			camera.SetNearClip(near);
+			camera.SetFarClip(far);
+		}
 	}
 
 	void CameraComponentUI::DrawGizmosImpl(ECS::Entity& entity, const SizeInt& viewportSize)
 	{
 		CameraComponent& camera = entity.GetComponent<CameraComponent>();
-		Transform3D transform;
+
+		Vector3 position = Vector3::Zero;
+		Quaternion rotation = Quaternion::Identity;
 
 		if (entity.HasComponent<Transform3DComponent>())
 		{
-			transform = entity.GetComponent<Transform3DComponent>().Transform;
+			const Transform3DComponent& transform = entity.GetComponent<Transform3DComponent>();
+			position = transform.GetPosition(TransformSpace::Global);
+			rotation = transform.GetRotation(TransformSpace::Global);
 		}
 
 		double aspect = static_cast<double>(viewportSize.Width) / viewportSize.Height;
 
-		Rendering::GizmoRender::Get()->DrawFrustum(camera.GetViewFrustum(aspect, transform.GetGlobalPosition(), transform.GetGlobalRotation()), Color::White);
+		Rendering::GizmoRender::Get()->DrawFrustum(camera.GetViewFrustum(aspect, position, rotation), Color::White);
 	}
 }

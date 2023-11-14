@@ -3,69 +3,20 @@
 #include <Coco/Rendering/Gizmos/GizmoRender.h>
 #include <Coco/Core/Engine.h>
 #include <Coco/Rendering/RenderService.h>
+#include <Coco/Rendering/Mesh.h>
+#include <Coco/Rendering/Texture.h>
+#include <Coco/Rendering/Material.h>
 
-SceneDataProvider3D::SceneDataProvider3D() :
-	_boxTransform(Vector3(0.0, 4.0, 0.0), Quaternion::Identity, Vector3::One),
-	_drawBounds(false)
-{
-	std::vector<VertexData> vertices;
-	std::vector<uint32> indices;
-	MeshUtilities::CreateXYGrid(Vector2::One, Vector3(0.0, 0.0, -0.5), vertices, indices);
-	MeshUtilities::CreateXZGrid(Vector2::One, Vector3(0.0, -0.5, 0.0), vertices, indices);
-	MeshUtilities::CreateZYGrid(Vector2::One, Vector3(-0.5, 0.0, 0.0), vertices, indices);
+#include <Coco/ECS/Entity.h>
+#include <Coco/ECS/Components/Transform3DComponent.h>
+#include <Coco/ECS/Components/NativeScriptComponent.h>
+#include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
+#include "../Scripts/MovingBox.h"
+#include <unordered_map>
 
-	MeshUtilities::CreateBox(Vector3(1.0, 2.0, 3.0), Vector3(0.0, 0.0, 5.0), vertices, indices);
+using namespace Coco::ECS;
 
-	MeshUtilities::CreateXYTriangleFan(1.0, 16, Vector3(-5.0, 0.0, -1.0), vertices, indices);
-	MeshUtilities::CreateXZTriangleFan(1.0, 16, Vector3(-5.0, -1.0, 0.0), vertices, indices);
-	MeshUtilities::CreateZYTriangleFan(1.0, 16, Vector3(-6.0, 0.0, 0.0), vertices, indices);
-
-	MeshUtilities::CreateCone(1.0, 0.5, 16, Vector3(5.0, 0.0, 0.0), vertices, indices);
-
-	MeshUtilities::CreateUVSphere(16, 8, 1.0, Vector3(5.0, 0.0, 3.0), vertices, indices);
-
-	MeshUtilities::CalculateTangents(vertices, indices);
-
-	ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
-
-	_mesh = resourceLibrary.Create<Mesh>("Mesh");
-	VertexDataFormat format(VertexAttrFlags::Normal | VertexAttrFlags::Tangent | VertexAttrFlags::UV0);
-	_mesh->SetVertices(format, vertices);
-	_mesh->SetIndices(indices, 0);
-	_mesh->Apply();
-
-	vertices.clear();
-	indices.clear();
-
-	_boxMesh = resourceLibrary.Create<Mesh>("BoxMesh");
-
-	MeshUtilities::CreateBox(Vector3::One, Vector3::Zero, vertices, indices);
-
-	MeshUtilities::CalculateTangents(vertices, indices);
-
-	_boxMesh->SetVertices(format, vertices);
-	_boxMesh->SetIndices(indices, 0);
-	_boxMesh->Apply();
-
-	ImageSamplerDescription sampler = ImageSamplerDescription::LinearRepeat;
-	sampler.LODBias = -1.0;
-	sampler.MaxAnisotropy = 16;
-
-	_texture = resourceLibrary.Create<Texture>("LargeBlocks", "textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
-	_normalTexture = resourceLibrary.Create<Texture>("LargeBlocks_N", "textures/LargeBlocks_N.png", ImageColorSpace::Linear, ImageUsageFlags::Sampled, sampler);
-
-	_material = resourceLibrary.Create<Material>("Material");
-	_material->SetValue("AlbedoTintColor", Color::White);
-	_material->SetValue("AlbedoTexture", _texture);
-	_material->SetValue("NormalTexture", _normalTexture);
-}
-
-void SceneDataProvider3D::SetDrawBounds(bool drawBounds)
-{
-	_drawBounds = drawBounds;
-}
-
-void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
+/*void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
 {
 	double t = MainLoop::cGet()->GetCurrentTick().Time;
 	_boxTransform.LocalRotation = Quaternion(Vector3(Math::Sin(t), Math::Cos(t * 0.8 + 20.0), Math::Sin(t * 1.2 - 30.0)));
@@ -93,4 +44,74 @@ void SceneDataProvider3D::GatherSceneData(RenderView& renderView)
 
 	renderView.AddPointLight(Vector3(1.0, 3.0, 0.0), Color::Red, 3.0);
 	renderView.AddPointLight(Vector3(0.0, 2.0, 4.0), Color::Green, 3.0);
+}*/
+
+void SceneDataProvider3D::SetupScene(SharedRef<ECS::Scene> scene)
+{
+	std::vector<VertexData> vertices;
+	std::vector<uint32> indices;
+	MeshUtilities::CreateXYGrid(Vector2::One, Vector3(0.0, 0.0, -0.5), vertices, indices);
+	MeshUtilities::CreateXZGrid(Vector2::One, Vector3(0.0, -0.5, 0.0), vertices, indices);
+	MeshUtilities::CreateZYGrid(Vector2::One, Vector3(-0.5, 0.0, 0.0), vertices, indices);
+
+	MeshUtilities::CreateBox(Vector3(1.0, 2.0, 3.0), Vector3(0.0, 0.0, 5.0), vertices, indices);
+
+	MeshUtilities::CreateXYTriangleFan(1.0, 16, Vector3(-5.0, 0.0, -1.0), vertices, indices);
+	MeshUtilities::CreateXZTriangleFan(1.0, 16, Vector3(-5.0, -1.0, 0.0), vertices, indices);
+	MeshUtilities::CreateZYTriangleFan(1.0, 16, Vector3(-6.0, 0.0, 0.0), vertices, indices);
+
+	MeshUtilities::CreateCone(1.0, 0.5, 16, Vector3(5.0, 0.0, 0.0), vertices, indices);
+
+	MeshUtilities::CreateUVSphere(16, 8, 1.0, Vector3(5.0, 0.0, 3.0), vertices, indices);
+
+	MeshUtilities::CalculateTangents(vertices, indices);
+
+	Entity objectsEntity = scene->CreateEntity("Objects");
+	objectsEntity.AddComponent<Transform3DComponent>();
+
+	ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
+
+	SharedRef<Mesh> objectsMesh = resourceLibrary.Create<Mesh>("Objects Mesh");
+	//VertexDataFormat format(VertexAttrFlags::Normal | VertexAttrFlags::Tangent | VertexAttrFlags::UV0);
+	VertexDataFormat format(VertexAttrFlags::UV0);
+	objectsMesh->SetVertices(format, vertices);
+	objectsMesh->SetIndices(indices, 0);
+	objectsMesh->Apply();
+
+	ImageSamplerDescription sampler = ImageSamplerDescription::LinearRepeat;
+	sampler.LODBias = -1.0;
+	sampler.MaxAnisotropy = 16;
+
+	SharedRef<Texture> texture = resourceLibrary.Create<Texture>("LargeBlocks", "textures/LargeBlocks.png", ImageColorSpace::sRGB, ImageUsageFlags::Sampled, sampler);
+	SharedRef<Texture> normalTexture = resourceLibrary.Create<Texture>("LargeBlocks_N", "textures/LargeBlocks_N.png", ImageColorSpace::Linear, ImageUsageFlags::Sampled, sampler);
+
+	SharedRef<Material> material = resourceLibrary.Create<Material>("Material");
+	//material->SetValue("AlbedoTintColor", Color::White);
+	//material->SetValue("AlbedoTexture", texture);
+	//material->SetValue("NormalTexture", normalTexture);
+	material->SetValue("TintColor", Color::White);
+	material->SetValue("ColorTexture", texture);
+
+	std::unordered_map<uint32, SharedRef<MaterialDataProvider>> materialMap = { { 0, std::static_pointer_cast<MaterialDataProvider>(material) } };
+
+	objectsEntity.AddComponent<MeshRendererComponent>(objectsMesh, materialMap);
+
+	vertices.clear();
+	indices.clear();
+
+	MeshUtilities::CreateBox(Vector3::One, Vector3::Zero, vertices, indices);
+
+	MeshUtilities::CalculateTangents(vertices, indices);
+
+	SharedRef<Mesh> boxMesh = resourceLibrary.Create<Mesh>("Box Mesh");
+	boxMesh->SetVertices(format, vertices);
+	boxMesh->SetIndices(indices, 0);
+	boxMesh->Apply();
+
+	Entity boxEntity = scene->CreateEntity("Box");
+	boxEntity.AddComponent<Transform3DComponent>(Vector3(0.0, 4.0, 0.0), Quaternion::Identity, Vector3::One);
+
+	boxEntity.AddComponent<NativeScriptComponent>().Attach<MovingBox>();
+
+	boxEntity.AddComponent<MeshRendererComponent>(boxMesh, materialMap);
 }

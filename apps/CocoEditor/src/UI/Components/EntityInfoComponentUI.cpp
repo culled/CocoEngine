@@ -13,8 +13,12 @@ namespace Coco
 	{
 		EntityInfoComponent& info = entity.GetComponent<EntityInfoComponent>();
 
-		UIUtils::DrawInputStringEdit("Name", info.Name, 64);
+		string name = info.GetName();
+		if (UIUtils::DrawInputStringEdit("Name", name, 64))
+			info.SetName(name);
 
-		ImGui::Checkbox("Active", &info.IsActive);
+		bool isActive = info.GetIsActive();
+		if (ImGui::Checkbox("Active", &isActive))
+			info.SetActive(isActive);
 	}
 }

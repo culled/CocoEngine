@@ -3,7 +3,6 @@
 #include <Coco/ECS/Components/EntityInfoComponent.h>
 #include <Coco/ECS/Components/Transform3DComponent.h>
 #include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
-#include <Coco/ECS/Systems/TransformSystem.h>
 
 #include "../EditorApplication.h"
 #include <imgui.h>
@@ -80,7 +79,7 @@ namespace Coco
 		if (children.size() == 0)
 			flags |= ImGuiTreeNodeFlags_Leaf;
 
-		bool expanded = ImGui::TreeNodeEx((void*)entity.GetID(), flags, "%s", info.Name.c_str());
+		bool expanded = ImGui::TreeNodeEx((void*)entity.GetID(), flags, "%s", info.GetName().c_str());
 
 		// Left click entity
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
@@ -176,16 +175,16 @@ namespace Coco
 		Entity child;
 		Assert(_scene->TryGetEntity(id, child))
 
-		Transform3DComponent* transformComp = nullptr;
-		Transform3D* transform = nullptr;
-		Vector3 p, s;
-		Quaternion r;
-
-		if (child.TryGetComponent(transformComp))
-		{
-			transform = &transformComp->Transform;
-			transform->GetGlobalTransform(p, r, s);
-		}
+		//Transform3DComponent* transformComp = nullptr;
+		//Transform3D* transform = nullptr;
+		//Vector3 p, s;
+		//Quaternion r;
+		//
+		//if (child.TryGetComponent(transformComp))
+		//{
+		//	transform = &transformComp->Transform;
+		//	transform->GetGlobalTransform(p, r, s);
+		//}
 
 		if (parent == Entity::Null)
 		{
@@ -195,18 +194,18 @@ namespace Coco
 		{
 			child.SetParent(parent);
 
-			Transform3DComponent* parentTransformComp;
-			if (parent.TryGetComponent(parentTransformComp))
-			{
-				parentTransformComp->Transform.TransformGlobalToLocal(p, r, s);
-			}
+			//Transform3DComponent* parentTransformComp;
+			//if (parent.TryGetComponent(parentTransformComp))
+			//{
+			//	parentTransformComp->Transform.TransformGlobalToLocal(p, r, s);
+			//}
 		}
 
-		if (transform)
-		{
-			transform->LocalPosition = p;
-			transform->LocalRotation = r;
-			transform->LocalScale = s;
-		}
+		//if (transform)
+		//{
+		//	transform->LocalPosition = p;
+		//	transform->LocalRotation = r;
+		//	transform->LocalScale = s;
+		//}
 	}
 }

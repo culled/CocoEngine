@@ -6,10 +6,14 @@ namespace Coco::ECS
 {
 	class Scene;
 
-	/// @brief A system that can perform component-based operations for a specific scene
+	/// @brief A system that can perform component-based operations for a specific scene each tick
 	class SceneSystem
 	{
+	protected:
+		WeakSharedRef<Scene> _scene;
+
 	public:
+		SceneSystem(SharedRef<Scene> scene);
 		virtual ~SceneSystem() = default;
 
 		/// @brief Gets the execution priority for this system.
@@ -18,7 +22,6 @@ namespace Coco::ECS
 		virtual int GetPriority() const = 0;
 
 		/// @brief Executes this system for a given scene
-		/// @param scene The scene to execute
-		virtual void Execute(SharedRef<Scene> scene) = 0;
+		virtual void Tick() = 0;
 	};
 }
