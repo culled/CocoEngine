@@ -45,6 +45,12 @@ namespace Coco::Rendering::Vulkan
 
 		if ((_description.UsageFlags & ImageUsageFlags::HostVisible) == ImageUsageFlags::HostVisible)
 			CreateImage(true, _hostImageData);
+
+		// Transition the image to a shader-usable format if it will be sampled from
+		if ((_description.UsageFlags & ImageUsageFlags::Sampled) == ImageUsageFlags::Sampled)
+		{
+			TransitionLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		}
 	}
 
 	VulkanImage::VulkanImage(const GraphicsDeviceResourceID& id, const ImageDescription& description, VkImage image) :
@@ -162,6 +168,22 @@ namespace Coco::Rendering::Vulkan
 		Assert(memcpy_s(outData, dataSize, data + index, sourcePixelSize) == 0)
 
 		vkUnmapMemory(_device.GetDevice(), _hostImageData.Memory);
+	}
+
+	void VulkanImage::TransitionLayout(VkImageLayout to)
+	{
+		DeviceQueue* queue = _device.GetQueue(DeviceQueue::Type::Graphics);
+		if (!queue)
+			throw std::exception("A graphics queue is required to transition pixel data");
+
+		UniqueRef<VulkanCommandBuffer> buffer = queue->Pool.Allocate(true);
+		buffer->Begin(true, false);
+
+		TransitionLayout(*buffer, to);
+
+		buffer->EndAndSubmit();
+		_device.WaitForQueueIdle(DeviceQueue::Type::Graphics);
+		queue->Pool.Free(*buffer);
 	}
 
 	void VulkanImage::TransitionLayout(const VulkanCommandBuffer& commandBuffer, VkImageLayout to)

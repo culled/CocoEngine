@@ -123,10 +123,12 @@ namespace Coco::ECS
         Rendering::MSAASamples GetSampleCount() const { return _sampleCount; }
 
         /// @brief Renders from this camera's perspective
+        /// @param rendererID The ID of the renderer
         /// @param framebuffers The framebuffers to render with
         /// @param pipeline The RenderPipeline to use
         /// @param layoutOverride The layout override for the global uniforms
         void Render(
+            uint64 rendererID,
             std::span<Ref<Rendering::Image>> framebuffers,
             Rendering::RenderPipeline& pipeline,
             std::optional<Rendering::GlobalShaderUniformLayout> layoutOverride = std::optional<Rendering::GlobalShaderUniformLayout>());

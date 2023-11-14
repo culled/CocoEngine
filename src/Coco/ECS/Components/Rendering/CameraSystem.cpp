@@ -1,6 +1,7 @@
 #include "ECSpch.h"
 #include "CameraSystem.h"
 
+#include "../../SceneView.h"
 #include "CameraComponent.h"
 #include "../Transform3DComponent.h"
 #include "../../Providers/Rendering/SceneRenderProvider.h"
@@ -66,6 +67,7 @@ namespace Coco::ECS
 	}
 
 	void CameraSystem::Render(
+		uint64 rendererID,
 		const CameraComponent& camera,
 		std::span<Ref<Image>> framebuffers,
 		RenderPipeline& pipeline,
@@ -76,8 +78,12 @@ namespace Coco::ECS
 		const Entity& cameraEntity = camera.GetOwner();
 		CameraRenderViewProvider cameraProvider(cameraEntity, layoutOverride);
 		SceneRender3DProvider sceneProvider(cameraEntity.GetScene());
+
 		std::array<SceneDataProvider*, 1> sceneProviders = { &sceneProvider };
-		RenderService::Get()->Render(cameraEntity.GetID(), framebuffers, pipeline, cameraProvider, sceneProviders);
+
+		uint64 renderID = Math::CombineHashes(rendererID, cameraEntity.GetID());
+
+		RenderService::Get()->Render(renderID, framebuffers, pipeline, cameraProvider, sceneProviders);
 	}
 
 	void CameraSystem::Render(
@@ -91,7 +97,50 @@ namespace Coco::ECS
 		const Entity& cameraEntity = camera.GetOwner();
 		CameraRenderViewProvider cameraProvider(cameraEntity, layoutOverride);
 		SceneRender3DProvider sceneProvider(cameraEntity.GetScene());
+
 		std::array<SceneDataProvider*, 1> sceneProviders = { &sceneProvider };
+
 		RenderService::Get()->Render(presenter, pipeline, cameraProvider, sceneProviders);
+	}
+
+	bool CameraSystem::RenderScene(
+		uint64 rendererID, 
+		SharedRef<Scene> scene, 
+		std::span<Ref<Image>> framebuffers, 
+		RenderPipeline& pipeline, 
+		std::optional<GlobalShaderUniformLayout> layoutOverride)
+	{
+		CameraComponent* activeCamera = nullptr;
+
+		if (!TryGetActiveCamera(scene, activeCamera))
+			return false;
+
+		Render(rendererID, *activeCamera, framebuffers, pipeline, layoutOverride);
+
+		return true;
+	}
+
+	bool CameraSystem::TryGetActiveCamera(SharedRef<Scene> scene, CameraComponent*& outActiveCamera)
+	{
+		SceneView<CameraComponent> view(scene);
+
+		CameraComponent* currentCamera = nullptr;
+
+		for (const Entity& e : view)
+		{
+			if (!e.IsActiveInHierarchy())
+				continue;
+
+			CameraComponent& camera = e.GetComponent<CameraComponent>();
+
+			if (currentCamera == nullptr || camera.GetPriority() < currentCamera->GetPriority())
+				currentCamera = &camera;
+		}
+
+		if (!currentCamera)
+			return false;
+
+		outActiveCamera = currentCamera;
+		return true;
 	}
 }

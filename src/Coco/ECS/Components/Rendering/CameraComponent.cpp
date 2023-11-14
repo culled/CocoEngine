@@ -156,12 +156,19 @@ namespace Coco::ECS
 		_sampleCount = sampleCount;
 	}
 
-	void CameraComponent::Render(std::span<Ref<Image>> framebuffers, RenderPipeline& pipeline, std::optional<GlobalShaderUniformLayout> layoutOverride)
+	void CameraComponent::Render(
+		uint64 rendererID, 
+		std::span<Ref<Image>> framebuffers, 
+		RenderPipeline& pipeline, 
+		std::optional<GlobalShaderUniformLayout> layoutOverride)
 	{
-		CameraSystem::Render(*this, framebuffers, pipeline, layoutOverride);
+		CameraSystem::Render(rendererID, *this, framebuffers, pipeline, layoutOverride);
 	}
 
-	void CameraComponent::Render(Ref<GraphicsPresenter> presenter, RenderPipeline& pipeline, std::optional<GlobalShaderUniformLayout> layoutOverride)
+	void CameraComponent::Render(
+		Ref<GraphicsPresenter> presenter, 
+		RenderPipeline& pipeline, 
+		std::optional<GlobalShaderUniformLayout> layoutOverride)
 	{
 		CameraSystem::Render(*this, presenter, pipeline, layoutOverride);
 	}

@@ -73,9 +73,9 @@ namespace Coco
 		ImGuizmo::MODE _currentTransformMode;
 		ImGuizmo::OPERATION _currentTransformOperation;
 
-		ManagedRef<Texture> _cameraPreviewTexture;
-		ManagedRef<Texture> _viewportTexture;
-		ManagedRef<Texture> _viewportPickingTexture;
+		SharedRef<Texture> _cameraPreviewTexture;
+		SharedRef<Texture> _viewportTexture;
+		SharedRef<Texture> _viewportPickingTexture;
 
 	public:
 		ViewportPanel(const char* name, SharedRef<Scene> scene);
@@ -99,7 +99,7 @@ namespace Coco
 		void DrawViewportImage();
 		void DrawGrid();
 
-		void EnsureTexture(const SizeInt& size, ManagedRef<Texture>& texture);
+		void EnsureTexture(const SizeInt& size, SharedRef<Texture>& texture);
 		void EnsurePickingTexture(const SizeInt& size);
 
 		void UpdateWindowSettings();

@@ -69,6 +69,7 @@ namespace Coco
 			CloseViewportPanel();
 
 		_mainWindow.Invalidate();
+		_gameViewport.reset();
 		_scenePanel.reset();
 		_inspectorPanel.reset();
 		_contentPanel.reset();
@@ -132,6 +133,7 @@ namespace Coco
 		_inspectorPanel = CreateUniqueRef<InspectorPanel>();
 		_contentPanel = CreateUniqueRef<ContentPanel>();
 		_fileDoubleClickedHandler.Connect(_contentPanel->OnFileDoubleClicked);
+		_gameViewport = CreateUniqueRef<GamePanel>(_mainScene);
 	}
 
 	void EditorApplication::CreateMainScene()
@@ -196,6 +198,7 @@ namespace Coco
 		_scenePanel->Update(tickInfo);
 		_viewport->Update(tickInfo);
 		_contentPanel->Update(tickInfo);
+		_gameViewport->Update(tickInfo);
 
 		ImGui::End();
 	}
@@ -206,6 +209,7 @@ namespace Coco
 			return;
 
 		_viewport->Render(*_pipeline);
+		_gameViewport->Render(*_pipeline);
 	}
 
 	void EditorApplication::ShowFileMenu()
@@ -326,6 +330,7 @@ namespace Coco
 
 		_viewport->SetCurrentScene(_mainScene);
 		_scenePanel->SetCurrentScene(_mainScene);
+		_gameViewport->SetCurrentScene(_mainScene);
 	}
 
 	bool EditorApplication::OnFileDoubleClicked(const FilePath& file)

@@ -3,6 +3,7 @@
 #include "RendererResource.h"
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/String.h>
+#include <Coco/Core/Types/Size.h>
 #include "Graphics/Image.h"
 #include "Graphics/ImageSampler.h"
 
@@ -86,6 +87,10 @@ namespace Coco::Rendering
 
 		/// @brief Reload this texture's image from the image file
 		void ReloadImage();
+
+		/// @brief Resizes this texture. NOTE: will recreate the internal image and lose all data
+		/// @param newSize The new size for this texture
+		void Resize(const SizeInt& newSize);
 
 	private:
 		/// @brief Loads an image into this texture

@@ -87,6 +87,26 @@ namespace Coco::Rendering
 		LoadImage(_imageFilePath, desc.ColorSpace, desc.UsageFlags);
 	}
 
+	void Texture::Resize(const SizeInt& newSize)
+	{
+		RenderService* rendering = RenderService::Get();
+
+		if (!rendering || !_image)
+			return;
+
+		GraphicsDevice& device = rendering->GetDevice();
+
+		ImageDescription description = _image->GetDescription();
+		device.TryReleaseImage(_image);
+
+		description.Width = newSize.Width;
+		description.Height = newSize.Height;
+
+		_image = device.CreateImage(description);
+
+		Assert(_image.IsValid())
+	}
+
 	void Texture::LoadImage(const FilePath& imageFilePath, ImageColorSpace colorSpace, ImageUsageFlags usageFlags)
 	{
 		if (imageFilePath.IsEmpty())

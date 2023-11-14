@@ -178,7 +178,7 @@ namespace Coco
 
 	void ViewportPanel::Render(RenderPipeline& pipeline)
 	{
-		if (_collapsed)
+		if (_collapsed || !_viewportTexture)
 			return;
 
 		if (_showCameraPreview)
@@ -191,7 +191,8 @@ namespace Coco
 				_previewCameraFullscreen ? _viewportTexture->GetImage() : _cameraPreviewTexture->GetImage()
 			};
 
-			CameraSystem::Render(_selection.GetSelectedEntity(), cameraImages, pipeline);
+			CameraComponent& camera = _selection.GetSelectedEntity().GetComponent<CameraComponent>();
+			CameraSystem::Render(0, camera, cameraImages, pipeline);
 
 			rendering->SetGizmoRendering(gizmos);
 		}
@@ -303,9 +304,13 @@ namespace Coco
 	void ViewportPanel::DrawViewportImage()
 	{
 		SizeInt viewportSize = _viewportRect.GetSize();
+
+		if (viewportSize.Height < 2 || viewportSize.Width < 2)
+			return;
+
 		EnsureTexture(viewportSize, _viewportTexture);
 		EnsurePickingTexture(viewportSize);
-		ImGui::Image(_viewportTexture.Get(), ImVec2(static_cast<float>(viewportSize.Width), static_cast<float>(viewportSize.Height)));
+		ImGui::Image(_viewportTexture.get(), ImVec2(static_cast<float>(viewportSize.Width), static_cast<float>(viewportSize.Height)));
 	}
 
 	void ViewportPanel::DrawGrid()
@@ -315,11 +320,11 @@ namespace Coco
 		GizmoRender::Get()->DrawGrid(gridPos, Quaternion::Identity, _gridScale * _gridSquares, _gridSquares, Color::MidGrey);
 	}
 
-	void ViewportPanel::EnsureTexture(const SizeInt& size, ManagedRef<Texture>& texture)
+	void ViewportPanel::EnsureTexture(const SizeInt& size, SharedRef<Texture>& texture)
 	{
 		bool recreate = false;
 
-		if (!texture.IsValid())
+		if (!texture)
 		{
 			recreate = true;
 		}
@@ -334,24 +339,30 @@ namespace Coco
 		if (!recreate)
 			return;
 
-		texture = CreateManagedRef<Texture>(
-			0,
-			"Viewport Texture",
-			ImageDescription(
-				size.Width, size.Height,
-				ImagePixelFormat::RGBA8,
-				ImageColorSpace::sRGB,
-				ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled,
-				false,
-				MSAASamples::One),
-			ImageSamplerDescription::LinearClamp);
+		if (!texture)
+		{
+			texture = Engine::Get()->GetResourceLibrary().Create<Texture>(
+				"Viewport Texture",
+				ImageDescription(
+					size.Width, size.Height,
+					ImagePixelFormat::RGBA8,
+					ImageColorSpace::sRGB,
+					ImageUsageFlags::RenderTarget | ImageUsageFlags::Sampled,
+					false,
+					MSAASamples::One),
+				ImageSamplerDescription::LinearClamp);
+		}
+		else
+		{
+			texture->Resize(size);
+		}
 	}
 
 	void ViewportPanel::EnsurePickingTexture(const SizeInt& size)
 	{
 		bool recreate = false;
 
-		if (!_viewportPickingTexture.IsValid())
+		if (!_viewportPickingTexture)
 		{
 			recreate = true;
 		}
@@ -366,8 +377,7 @@ namespace Coco
 		if (!recreate)
 			return;
 
-		_viewportPickingTexture = CreateManagedRef<Texture>(
-			0,
+		_viewportPickingTexture = Engine::Get()->GetResourceLibrary().Create<Texture>(
 			"Viewport Picking Texture",
 			ImageDescription(
 				size.Width, size.Height,
@@ -652,7 +662,8 @@ namespace Coco
 			ImGuiWindowFlags_NoMove |
 			ImGuiWindowFlags_NoSavedSettings))
 		{
-			ImGui::Image(_previewCameraFullscreen ? _viewportTexture.Get() : _cameraPreviewTexture.Get(), previewSize);
+			if(_viewportTexture)
+				ImGui::Image(_previewCameraFullscreen ? _viewportTexture.get() : _cameraPreviewTexture.get(), previewSize);
 
 			ImGui::Checkbox("Fullscreen", &_previewCameraFullscreen);
 
@@ -671,7 +682,7 @@ namespace Coco
 			static_cast<int>(mousePos.y)
 		);
 
-		if (!_viewportRect.Intersects(viewportMousePos))
+		if (!_viewportRect.Intersects(viewportMousePos) || !_viewportPickingTexture)
 			return;
 
 		viewportMousePos.X -= _viewportRect.GetLeft();

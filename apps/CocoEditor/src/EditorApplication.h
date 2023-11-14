@@ -10,6 +10,7 @@
 #include "SelectionContext.h"
 #include "EditorInputLayer.h"
 #include "Panels/ViewportPanel.h"
+#include "Panels/GamePanel.h"
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/InspectorPanel.h"
 #include "Panels/ContentPanel.h"
@@ -35,6 +36,7 @@ namespace Coco
         std::vector<uint8> _fontData;
 
         UniqueRef<ViewportPanel> _viewport;
+        UniqueRef<GamePanel> _gameViewport;
         UniqueRef<SceneHierarchyPanel> _scenePanel;
         UniqueRef<InspectorPanel> _inspectorPanel;
 

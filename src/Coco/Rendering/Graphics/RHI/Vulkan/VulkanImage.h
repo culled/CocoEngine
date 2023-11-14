@@ -62,6 +62,10 @@ namespace Coco::Rendering::Vulkan
         VkImageView GetNativeView() const { return _nativeView; }
 
         /// @brief Transitions this image to a new layout
+        /// @param to The layout to transition to
+        void TransitionLayout(VkImageLayout to);
+
+        /// @brief Transitions this image to a new layout
         /// @param commandBuffer The command buffer to use
         /// @param to The layout to transition to
         void TransitionLayout(const VulkanCommandBuffer& commandBuffer, VkImageLayout to);
