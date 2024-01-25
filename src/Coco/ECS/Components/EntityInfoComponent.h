@@ -33,16 +33,16 @@ namespace Coco::ECS
 
         void SetSelfActive(bool isActive);
         bool GetIsSelfActive() const { return _isSelfActive; }
-
-        // TODO: active in scene hierarchy
-        bool IsActiveInHierarchy() const { return true; }
+        bool IsActiveInHierarchy() const { return _isActiveInHierarchy; }
 
     private:
         string _name;
         bool _isSelfActive;
+        bool _isActiveInHierarchy;
         WeakSharedRef<Scene> _scene;
 
     private:
         void SetScene(SharedRef<Scene> scene);
+        void UpdateSceneVisibility(bool isParentVisible);
     };
 }

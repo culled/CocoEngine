@@ -120,8 +120,18 @@ namespace Coco::ECS
 
 	void Scene::EntitiesAdded(std::span<Entity> rootEntities)
 	{
+		// Update active state for all entities
+		for (auto& e : rootEntities)
+		{
+			EntityInfoComponent& info = e.GetComponent<EntityInfoComponent>();
+			info.UpdateSceneVisibility(info.GetIsSelfActive());
+		}
+
+		// Allow systems to update entity states
 		for (const auto& s : _systems)
+		{
 			s->EntitiesAdded(rootEntities);
+		}
 	}
 
 	void Scene::StartSimulation()
