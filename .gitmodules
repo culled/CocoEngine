@@ -16,3 +16,9 @@
 [submodule "src/Vendor/imguizmo"]
 	path = src/Vendor/imguizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
+[submodule "src/Vendor/bullet3"]
+	path = src/Vendor/bullet3
+	url = https://github.com/bulletphysics/bullet3.git
+[submodule "src/Vendor/vma"]
+	path = src/Vendor/vma
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
