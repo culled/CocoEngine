@@ -10,11 +10,17 @@
 
 namespace Coco::Rendering
 {
-	CachedAttachments::CachedAttachments() :
+	CachedAttachments::CachedAttachments(GraphicsDevice& device) :
+		Device(device),
 		PipelineVersion(0),
 		Images(),
 		LastUseTime(0.0)
 	{}
+
+	CachedAttachments::~CachedAttachments()
+	{
+		PurgeAllImages();
+	}
 
 	uint64 CachedAttachments::MakeKey(const CompiledRenderPipeline& pipeline, uint64 rendererID, const SizeInt& size)
 	{
@@ -31,7 +37,7 @@ namespace Coco::Rendering
 		return MainLoop::Get()->GetCurrentTick().Time - LastUseTime > staleThreshold;
 	}
 
-	void CachedAttachments::TryPurgeImage(GraphicsDevice& device, uint32 imageIndex)
+	void CachedAttachments::TryPurgeImage(uint32 imageIndex)
 	{
 		auto it = Images.find(imageIndex);
 
@@ -40,21 +46,39 @@ namespace Coco::Rendering
 
 		Ref<Image> image = it->second;
 		Images.erase(it);
-		device.TryReleaseResource(image->ID);
+		Device.TryReleaseResource(image->ID);
 	}
 
-	void CachedAttachments::PurgeAllImages(GraphicsDevice& device)
+	void CachedAttachments::PurgeAllImages()
 	{
 		auto it = Images.begin();
 		while (it != Images.end())
 		{
 			Ref<Image> image = it->second;
 			it = Images.erase(it);
-			device.TryReleaseResource(image->ID);
+			Device.TryReleaseResource(image->ID);
 		}
 	}
 
-    std::vector<RenderTarget> AttachmentCache::GetRenderTargets(
+	const double AttachmentCache::ResourcePurgePeriod = 1.0;
+	const double AttachmentCache::StaleResourceThreshold = 1.5;
+	const int AttachmentCache::ResourcePurgeTickPriority = -200000;
+
+	AttachmentCache::AttachmentCache() :
+		_purgeTickListener(CreateManagedRef<TickListener>(this, &AttachmentCache::HandlePurgeTick, ResourcePurgeTickPriority)),
+		_cache()
+	{
+		_purgeTickListener->SetTickPeriod(ResourcePurgePeriod);
+		MainLoop::Get()->AddTickListener(_purgeTickListener);
+	}
+
+	AttachmentCache::~AttachmentCache()
+	{
+		_cache.clear();
+		MainLoop::Get()->RemoveTickListener(_purgeTickListener);
+	}
+
+	std::vector<RenderTarget> AttachmentCache::GetRenderTargets(
         const CompiledRenderPipeline& pipeline, 
         uint64 rendererID, 
         const SizeInt& backbufferSize, 
@@ -63,7 +87,10 @@ namespace Coco::Rendering
     {
         uint64 key = CachedAttachments::MakeKey(pipeline, rendererID, backbufferSize);
 
-        CachedAttachments& attachmentCache = _cache.try_emplace(key).first->second;
+		RenderService* rendering = RenderService::Get();
+		CocoAssert(rendering, "RenderService singleton was null")
+
+        CachedAttachments& attachmentCache = _cache.try_emplace(key, rendering->GetDevice()).first->second;
 		attachmentCache.Use();
 
         if (pipeline.PipelineVersion != attachmentCache.PipelineVersion)
@@ -71,9 +98,6 @@ namespace Coco::Rendering
             attachmentCache.Images.clear();
             attachmentCache.PipelineVersion = pipeline.PipelineVersion;
         }
-
-        RenderService* rendering = RenderService::Get();
-        CocoAssert(rendering, "RenderService singleton was null")
 
         std::vector<RenderTarget> rts(pipeline.Attachments.size());
         std::vector<bool> backbuffersMatched(backbuffers.size());
@@ -125,30 +149,23 @@ namespace Coco::Rendering
 		RenderService* rendering = RenderService::Get();
 		CocoAssert(rendering, "RenderService singleton was null")
 
-		GraphicsDevice& device = rendering->GetDevice();
+		uint64 purged = std::erase_if(_cache,
+			[](const auto& kvp)
+			{
+				return kvp.second.ShouldPurge(StaleResourceThreshold);
+			});
 
-		const double staleThreshold = 5.0;
-
-		uint64 purged = 0;
-
-		auto it = _cache.begin();
-		while (it != _cache.end())
+		if (purged > 0)
 		{
-			CachedAttachments& cache = it->second;
-
-			if (cache.ShouldPurge(staleThreshold))
-			{
-				cache.PurgeAllImages(device);
-				it = _cache.erase(it);
-				purged++;
-			}
-			else
-			{
-				++it;
-			}
+			CocoTrace("Purged {} CachedAttachments", purged)
 		}
 
 		return purged;
+	}
+
+	void AttachmentCache::HandlePurgeTick(const TickInfo& tickInfo)
+	{
+		PurgeUnusedAttachments();
 	}
 
 	Ref<Image> AttachmentCache::GetOrCreateImage(

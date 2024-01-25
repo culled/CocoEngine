@@ -380,38 +380,6 @@ namespace Coco::Rendering::Vulkan
 		VulkanQueue* graphicsQueue = _device.GetQueue(VulkanQueueType::Graphics);
 		CocoAssert(graphicsQueue, "Device does not support graphics operations")
 
-		VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-		//barrier.oldLayout = _imageInfo.CurrentLayout;
-		//barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		//barrier.newLayout = _imageInfo.CurrentLayout;
-		//
-		//barrier.srcQueueFamilyIndex = graphicsQueue->GetFamilyIndex();
-		//barrier.dstQueueFamilyIndex = graphicsQueue->GetFamilyIndex();
-		//
-		//barrier.image = _imageInfo.Image;
-		//
-		//barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		//barrier.dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT;
-		//
-		//barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		//
-		//barrier.subresourceRange.baseMipLevel = 0;
-		//barrier.subresourceRange.levelCount = 1;
-		//
-		//barrier.subresourceRange.baseArrayLayer = 0;
-		//barrier.subresourceRange.layerCount = 1;
-		//
-		//vkCmdPipelineBarrier(
-		//	commandBuffer.GetCmdBuffer(),
-		//	VK_PIPELINE_STAGE_TRANSFER_BIT,
-		//	//VK_PIPELINE_STAGE_TRANSFER_BIT,
-		//	VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-		//	0,
-		//	0, nullptr,
-		//	0, nullptr,
-		//	1, &barrier
-		//);
-
 		VkImageLayout oldLayout = _imageInfo.CurrentLayout;
 		_imageInfo.CurrentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		TransitionLayout(commandBuffer, *graphicsQueue, *graphicsQueue, oldLayout);
@@ -480,39 +448,12 @@ namespace Coco::Rendering::Vulkan
 				VK_FILTER_LINEAR
 			);
 
-			// Transition the previous mip layer to shader read
-			//barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-			//barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-			//
-			//barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			//barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			//
-			//vkCmdPipelineBarrier(commandBuffer.GetCmdBuffer(),
-			//	VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, 0,
-			//	0, nullptr,
-			//	0, nullptr,
-			//	1, &barrier);
-
 			mipWidth = dstMipWidth;
 			mipHeight = dstMipHeight;
 		}
 
 		// Transition the last mip level
 		barrier.subresourceRange.baseMipLevel = _description.MipCount - 1;
-		
-		//barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		//barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		//
-		//barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		//barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		//
-		//vkCmdPipelineBarrier(commandBuffer.GetCmdBuffer(),
-		//	VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, 0,
-		//	0, nullptr,
-		//	0, nullptr,
-		//	1, &barrier);
-		// 
-		//_imageInfo.CurrentLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -529,22 +470,5 @@ namespace Coco::Rendering::Vulkan
 		_imageInfo.CurrentLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 
 		TransitionLayout(commandBuffer, *graphicsQueue, *graphicsQueue, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-		// Transition the last mip level
-		//barrier.subresourceRange.baseMipLevel = _description.MipCount - 1;
-		//
-		//barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		//barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		//
-		//barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		//barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		//
-		//vkCmdPipelineBarrier(commandBuffer.GetCmdBuffer(),
-		//	VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, 0,
-		//	0, nullptr,
-		//	0, nullptr,
-		//	1, &barrier);
-		//
-		//_imageInfo.CurrentLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	}
 }

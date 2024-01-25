@@ -20,7 +20,7 @@ namespace Coco::Rendering
 
 	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory) :
 		_attachmentCache(nullptr),
-		_earlyTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleEarlyTick, EarlyTickPriority)),
+		//_earlyTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleEarlyTick, EarlyTickPriority)),
 		_lateTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleLateTick, LateTickPriority)),
 		_framesInFlight(),
 		_maxFramesInFlight(1),
@@ -35,7 +35,7 @@ namespace Coco::Rendering
 
 		_attachmentCache = CreateUniqueRef<AttachmentCache>();
 
-		MainLoop::Get()->AddTickListener(_earlyTickListener);
+		//MainLoop::Get()->AddTickListener(_earlyTickListener);
 		MainLoop::Get()->AddTickListener(_lateTickListener);
 
 		// Add resource serializers
@@ -47,14 +47,16 @@ namespace Coco::Rendering
 
 	RenderService::~RenderService()
 	{
-		MainLoop::Get()->RemoveTickListener(_earlyTickListener);
+		//MainLoop::Get()->RemoveTickListener(_earlyTickListener);
 		MainLoop::Get()->RemoveTickListener(_lateTickListener);
+
 		_framesInFlight.clear();
 
 		_defaultDiffuseTexture.reset();
 		_defaultNormalTexture.reset();
 		_defaultCheckerTexture.reset();
 		_errorShader.reset();
+		_attachmentCache.reset();
 
 		//_gizmoRender.reset();
 		_device.reset();
@@ -250,10 +252,10 @@ namespace Coco::Rendering
 		);
 	}
 
-	void RenderService::HandleEarlyTick(const TickInfo& tickInfo)
-	{
-		_attachmentCache->PurgeUnusedAttachments();
-	}
+	//void RenderService::HandleEarlyTick(const TickInfo& tickInfo)
+	//{
+	//	_attachmentCache->PurgeUnusedAttachments();
+	//}
 
 	void RenderService::HandleLateTick(const TickInfo& tickInfo)
 	{

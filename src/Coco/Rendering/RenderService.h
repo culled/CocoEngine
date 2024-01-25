@@ -111,7 +111,7 @@ namespace Coco::Rendering
 		SharedRef<Texture> _defaultNormalTexture;
 		SharedRef<Texture> _defaultCheckerTexture;
 		SharedRef<Shader> _errorShader;
-		ManagedRef<TickListener> _earlyTickListener;
+		//ManagedRef<TickListener> _earlyTickListener;
 		ManagedRef<TickListener> _lateTickListener;
 		uint32 _maxFramesInFlight;
 		std::vector<SharedRef<RenderFrame>> _framesInFlight;
@@ -133,7 +133,7 @@ namespace Coco::Rendering
 
 		/// @brief Handles the early tick
 		/// @param tickInfo The current tick info
-		void HandleEarlyTick(const TickInfo& tickInfo);
+		//void HandleEarlyTick(const TickInfo& tickInfo);
 
 		/// @brief Handles the late tick
 		/// @param tickInfo The current tick info

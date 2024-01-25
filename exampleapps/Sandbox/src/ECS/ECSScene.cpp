@@ -45,6 +45,7 @@ ECSScene::ECSScene()
 	_camera.AddComponent<Transform3DComponent>(Vector3::Backward, Quaternion::Identity, Vector3::One);
 	CameraComponent& camera = _camera.AddComponent<CameraComponent>();
 	camera.SetClearColor(Color(0.1, 0.2, 0.3, 1.0));
+	//camera.SetSampleCount(MSAASamples::Four);
 	
 	//Engine::Get()->GetAssetManager().Save(_scene, "scenes/test.cres");
 
