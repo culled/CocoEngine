@@ -24,11 +24,7 @@ namespace Coco::ECS
 
 	bool Entity::operator==(const Entity& other) const
 	{
-		if (_handle != other._handle)
-			return false;
-
-		// Same handle, so check if both are null handles
-		return _handle == entt::null;
+		return _handle == other._handle;
 	}
 
 	bool Entity::IsValid() const
@@ -61,7 +57,7 @@ namespace Coco::ECS
 		return ECSService::Get()->IsEntityOrphaned(*this);
 	}
 
-	bool Entity::IsDecendentOf(const Entity& ancestor) const
+	bool Entity::IsDescendentOf(const Entity& ancestor) const
 	{
 		return ECSService::Get()->IsEntityDescendentOf(*this, ancestor);
 	}
@@ -69,5 +65,10 @@ namespace Coco::ECS
 	bool Entity::IsActiveInHierarchy() const
 	{
 		return GetComponent<EntityInfoComponent>().IsActiveInHierarchy();
+	}
+
+	const string& Entity::GetName() const
+	{
+		return GetComponent<EntityInfoComponent>().GetName();
 	}
 }

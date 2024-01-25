@@ -1,19 +1,31 @@
 #include "EditorApplication.h"
 
 #include <Coco/Input/InputService.h>
-#include <Coco/Rendering/RenderService.h>
+
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
+#include <Coco/Rendering/RenderService.h>
+
 #include <Coco/ImGui/ImGuiService.h>
+
+#include <Coco/ECS/ECSService.h>
+
 #include <Coco/Windowing/WindowService.h>
+
 #include <Coco/Core/Engine.h>
 
-#include <imgui.h>
+#include "Panels/InspectorPanel.h"
+
+// TODO: move these to a separate class?
+#include "UI/Components/EntityInfoComponentUI.h"
+#include "UI/Components/Transform3DComponentUI.h"
 
 // TEMPORARY
 //#include "Rendering/PickingRenderPass.h"
 #include <Coco/Rendering/Pipeline/RenderPasses/BasicShaderRenderPass.h>
 #include <Coco/Rendering/BuiltIn/BuiltInShaderRenderPass.h>
 // TEMPORARY
+
+#include <imgui.h>
 
 using namespace Coco::ECS;
 using namespace Coco::Rendering;
@@ -41,6 +53,8 @@ namespace Coco
 		CreateMainWindow();
 		CreateResources();
 		CreateMainScene();
+		CreatePanels();
+		RegisterComponentUI();
 
 		Input::InputService::Get()->RegisterInputLayer(_inputLayer);
 
@@ -53,6 +67,9 @@ namespace Coco
 
 	EditorApplication::~EditorApplication()
 	{
+		_inspectorPanel.reset();
+		_sceneHierarchyPanel.reset();
+
 		MainLoop& loop = Engine::Get()->GetMainLoop();
 		loop.RemoveTickListener(_updateTickListener);
 		loop.RemoveTickListener(_renderTickListener);
@@ -76,6 +93,8 @@ namespace Coco
 		services.CreateService<ImGuiService>(true, true);
 
 		services.CreateService<WindowService>(true);
+
+		services.CreateService<ECSService>();
 	}
 
 	void EditorApplication::CreateMainWindow()
@@ -116,6 +135,18 @@ namespace Coco
 		ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
 		_mainScene = resourceLibrary.Create<Scene>(ResourceID("Scene"));
+	}
+
+	void EditorApplication::CreatePanels()
+	{
+		_sceneHierarchyPanel = CreateUniqueRef<SceneHierarchyPanel>(_mainScene, _selection);
+		_inspectorPanel = CreateUniqueRef<InspectorPanel>(_selection);
+	}
+
+	void EditorApplication::RegisterComponentUI()
+	{
+		InspectorPanel::Register<EntityInfoComponent>("Entity Info Component", EntityInfoComponentUI::DrawInspectorUI, false);
+		InspectorPanel::Register<Transform3DComponent>("Transform 3D Component", Transform3DComponentUI::DrawInspectorUI);
 	}
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)
@@ -175,6 +206,9 @@ namespace Coco
 
 			ImGui::EndMenuBar();
 		}
+
+		_sceneHierarchyPanel->Draw();
+		_inspectorPanel->Draw();
 
 		ImGui::End();
 	}
@@ -282,6 +316,7 @@ namespace Coco
 
 		_selection.ClearSelectedEntity();
 		_mainScene = newScene;
+		_sceneHierarchyPanel->SetScene(_mainScene);
 	}
 }
 

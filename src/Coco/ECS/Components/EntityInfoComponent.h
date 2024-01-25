@@ -12,6 +12,7 @@ namespace Coco::ECS
         public EntityComponent
     {
         friend class Scene;
+        friend class EntityInfoComponentSerializer;
 
     public:
         EntityInfoComponent(const Entity& owner);
@@ -30,11 +31,15 @@ namespace Coco::ECS
 
         SharedRef<Scene> GetScene() const { return _scene.expired() ? nullptr : _scene.lock(); }
 
+        void SetSelfActive(bool isActive);
+        bool GetIsSelfActive() const { return _isSelfActive; }
+
         // TODO: active in scene hierarchy
         bool IsActiveInHierarchy() const { return true; }
 
     private:
         string _name;
+        bool _isSelfActive;
         WeakSharedRef<Scene> _scene;
 
     private:

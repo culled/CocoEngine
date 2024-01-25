@@ -1,5 +1,7 @@
 #include "SelectionContext.h"
 
+using namespace Coco::ECS;
+
 namespace Coco
 {
 	SelectionContext::SelectionContext() :

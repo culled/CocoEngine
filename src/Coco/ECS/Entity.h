@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Coco/Core/Types/Refs.h>
+#include <Coco/Core/Types/String.h>
 #include "entt.h"
 
 namespace Coco::ECS
@@ -87,9 +88,11 @@ namespace Coco::ECS
 		std::vector<Entity> GetChildren() const;
 		Entity GetParent() const;
 		bool IsOrphaned() const;
-		bool IsDecendentOf(const Entity& ancestor) const;
+		bool IsDescendentOf(const Entity& ancestor) const;
 
 		bool IsActiveInHierarchy() const;
+
+		const string& GetName() const;
 
 	private:
 		entt::entity _handle;

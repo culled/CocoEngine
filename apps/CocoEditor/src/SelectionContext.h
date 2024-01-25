@@ -3,26 +3,24 @@
 #include <Coco/Core/Events/Event.h>
 #include <Coco/ECS/Entity.h>
 
-using namespace Coco::ECS;
-
 namespace Coco
 {
 	class SelectionContext
 	{
 	public:
-		Event<Entity> OnSelectionChanged;
+		Event<ECS::Entity> OnSelectionChanged;
 
 	public:
 		SelectionContext();
 
-		void SetSelectedEntity(Entity& entity);
+		void SetSelectedEntity(ECS::Entity& entity);
 		void ClearSelectedEntity();
 
 		bool HasSelectedEntity() const;
-		Entity& GetSelectedEntity() { return _selectedEntity; }
-		const Entity& GetSelectedEntity() const { return _selectedEntity; }
+		ECS::Entity& GetSelectedEntity() { return _selectedEntity; }
+		const ECS::Entity& GetSelectedEntity() const { return _selectedEntity; }
 
 	private:
-		Entity _selectedEntity;
+		ECS::Entity _selectedEntity;
 	};
 }

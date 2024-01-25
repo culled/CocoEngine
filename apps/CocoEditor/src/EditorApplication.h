@@ -9,6 +9,8 @@
 
 #include "SelectionContext.h"
 #include "EditorInputLayer.h"
+#include "Panels/SceneHierarchyPanel.h"
+#include "Panels/InspectorPanel.h"
 
 // TEMPORARY
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
@@ -27,7 +29,6 @@ namespace Coco
         ~EditorApplication();
 
         SelectionContext& GetSelection() { return _selection; }
-
         Ref<Windowing::Window> GetMainWindow() const { return _mainWindow; }
 
         void NewScene();
@@ -36,7 +37,7 @@ namespace Coco
         void SaveSceneAs();
 
         void StartPlayInEditor();
-        bool IsPlayingInEditor() const { return _mainScene->GetSimulateMode() == SceneSimulateMode::Running; }
+        bool IsPlayingInEditor() const { return _mainScene->GetSimulateMode() == ECS::SceneSimulateMode::Running; }
         void StopPlayInEditor();
 
     private:
@@ -46,6 +47,9 @@ namespace Coco
         ManagedRef<TickListener> _updateTickListener;
         ManagedRef<TickListener> _renderTickListener;
         std::vector<uint8> _fontData;
+
+        UniqueRef<SceneHierarchyPanel> _sceneHierarchyPanel;
+        UniqueRef<InspectorPanel> _inspectorPanel;
 
         // TEMPORARY
         SharedRef<Rendering::RenderPipeline> _renderPipeline;
@@ -57,6 +61,8 @@ namespace Coco
         void CreateMainWindow();
         void CreateResources();
         void CreateMainScene();
+        void CreatePanels();
+        void RegisterComponentUI();
 
         void HandleUpdateTick(const TickInfo& tickInfo);
         void HandleRenderTick(const TickInfo& tickInfo);
@@ -66,6 +72,6 @@ namespace Coco
         void ShowFileMenu();
         void ShowViewMenu();
 
-        void ChangeScenes(SharedRef<Scene> newScene);
+        void ChangeScenes(SharedRef<ECS::Scene> newScene);
     };
 }
