@@ -161,15 +161,22 @@ namespace Coco::ImGuiCoco
 
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-        _texture = Engine::Get()->GetResourceLibrary().Create<Texture>(
-            ResourceID("ImGuiCocoPlatform::FontTexture"),
-            ImageDescription::Create2D(
-                static_cast<uint32>(width), static_cast<uint32>(height),
-                ImagePixelFormat::RGBA8, ImageColorSpace::sRGB,
-                ImageUsageFlags::Sampled,
-                false
-            ),
-            ImageSamplerDescription::LinearClamp);
+        if (!_texture)
+        {
+            _texture = Engine::Get()->GetResourceLibrary().Create<Texture>(
+                ResourceID("ImGuiCocoPlatform::FontTexture"),
+                ImageDescription::Create2D(
+                    static_cast<uint32>(width), static_cast<uint32>(height),
+                    ImagePixelFormat::RGBA8, ImageColorSpace::sRGB,
+                    ImageUsageFlags::Sampled,
+                    false
+                ),
+                ImageSamplerDescription::LinearClamp);
+        }
+        else
+        {
+            _texture->Resize(width, height);
+        }
 
         _texture->SetPixels(0, pixels, static_cast<uint64>(width) * height * GetPixelFormatChannelCount(ImagePixelFormat::RGBA8));
 

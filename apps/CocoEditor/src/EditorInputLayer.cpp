@@ -7,7 +7,7 @@ using namespace Coco::Input;
 
 namespace Coco
 {
-	const int EditorInputLayer::sPriority = -20;
+	const int EditorInputLayer::Priority = -20;
 
 	bool EditorInputLayer::HandleKeyboardStateChange(const Input::KeyboardStateChange& state, const Input::Keyboard& keyboard)
 	{

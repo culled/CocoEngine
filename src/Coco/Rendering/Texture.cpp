@@ -73,6 +73,25 @@ namespace Coco::Rendering
 	
 		_image->SetPixels(offset, pixelData, pixelDataSize);
 	}
+
+	void Texture::Resize(uint32 width, uint32 height)
+	{
+		if (width == _imageDescription.Width && height == _imageDescription.Height)
+			return;
+
+		CocoAssert(_image.IsValid(), "Image was invalid")
+
+		_imageDescription.Width = width;
+		_imageDescription.Height = height;
+
+		RenderService* rendering = RenderService::Get();
+		GraphicsDevice& device = rendering->GetDevice();
+
+		Ref<Image> oldImage = _image;
+		_image = device.CreateImage(_imageDescription);
+
+		device.TryReleaseResource(oldImage->ID);
+	}
 	
 	//void Texture::ReadPixel(const Vector2Int& pixelCoordinate, void* outData, size_t dataSize)
 	//{

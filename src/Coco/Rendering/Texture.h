@@ -58,6 +58,8 @@ namespace Coco::Rendering
             SetPixels(offset, data.data(), data.size() * sizeof(DataType));
         }
 
+        void Resize(uint32 width, uint32 height);
+
         /// @brief Reads the pixel at the given position
         /// @param pixelCoordinate The pixel coordinate
         /// @param outData The destination for the pixel data copy. This should match the expected pixel data type

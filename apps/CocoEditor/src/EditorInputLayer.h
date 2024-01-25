@@ -7,11 +7,11 @@ namespace Coco
         public Input::InputLayer
     {
     public:
-        static const int sPriority;
+        static const int Priority;
 
     public:
         // Inherited via InputLayer
-        int GetPriority() const override { return sPriority; }
+        int GetPriority() const override { return Priority; }
         bool HandleKeyboardStateChange(const Input::KeyboardStateChange& state, const Input::Keyboard& keyboard) override;
     };
 }

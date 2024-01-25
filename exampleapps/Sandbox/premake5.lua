@@ -21,7 +21,7 @@ project "Sandbox"
     {
         "%{IncludeDir.Coco}",
         "%{IncludeDir.ImGui}",
-        --"%{IncludeDir.entt}"
+        "%{IncludeDir.entt}"
     }
 
     links 
@@ -31,7 +31,7 @@ project "Sandbox"
         "Coco.Rendering",
         "Coco.Windowing",
         "Coco.ImGui",
-        --"Coco.ECS",
+        "Coco.ECS",
         "Coco.Platforms.Win32",
     }
 

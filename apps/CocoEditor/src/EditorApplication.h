@@ -9,11 +9,6 @@
 
 #include "SelectionContext.h"
 #include "EditorInputLayer.h"
-#include "Panels/ViewportPanel.h"
-#include "Panels/GamePanel.h"
-#include "Panels/SceneHierarchyPanel.h"
-#include "Panels/InspectorPanel.h"
-#include "Panels/ContentPanel.h"
 
 // TEMPORARY
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
@@ -27,32 +22,6 @@ namespace Coco
         public Application,
         public Singleton<EditorApplication>
     {
-    private:
-        SelectionContext _selection;
-        ManagedRef<EditorInputLayer> _inputLayer;
-        Ref<Windowing::Window> _mainWindow;
-        ManagedRef<TickListener> _updateTickListener;
-        ManagedRef<TickListener> _renderTickListener;
-        std::vector<uint8> _fontData;
-
-        UniqueRef<ViewportPanel> _viewport;
-        UniqueRef<GamePanel> _gameViewport;
-        UniqueRef<SceneHierarchyPanel> _scenePanel;
-        UniqueRef<InspectorPanel> _inspectorPanel;
-
-        EventHandler<const FilePath&> _fileDoubleClickedHandler;
-        UniqueRef<ContentPanel> _contentPanel;
-
-        EventHandler<const ViewportPanel&> _viewportClosedHandler;
-        
-        // TEMPORARY
-        SharedRef<RenderPipeline> _pipeline;
-        SharedRef<ECS::Scene> _mainScene;
-        ECS::Entity _entity;
-        ECS::Entity _entity2;
-        ECS::Entity _cameraEntity;
-        // TEMPORARY
-
     public:
         EditorApplication();
         ~EditorApplication();
@@ -66,24 +35,37 @@ namespace Coco
         void OpenScene(const FilePath& scenePath);
         void SaveSceneAs();
 
+        void StartPlayInEditor();
+        bool IsPlayingInEditor() const { return _mainScene->GetSimulateMode() == SceneSimulateMode::Running; }
+        void StopPlayInEditor();
+
+    private:
+        SelectionContext _selection;
+        ManagedRef<EditorInputLayer> _inputLayer;
+        Ref<Windowing::Window> _mainWindow;
+        ManagedRef<TickListener> _updateTickListener;
+        ManagedRef<TickListener> _renderTickListener;
+        std::vector<uint8> _fontData;
+
+        // TEMPORARY
+        SharedRef<Rendering::RenderPipeline> _renderPipeline;
+        SharedRef<ECS::Scene> _mainScene;
+        // TEMPORARY
+
     private:
         void SetupServices();
         void CreateMainWindow();
-        void SetupDefaultLayout();
+        void CreateResources();
         void CreateMainScene();
 
         void HandleUpdateTick(const TickInfo& tickInfo);
         void HandleRenderTick(const TickInfo& tickInfo);
 
+        void DrawUI();
+
         void ShowFileMenu();
         void ShowViewMenu();
 
-        UniqueRef<ViewportPanel> CreateViewportPanel();
-        void CloseViewportPanel();
-        bool OnViewportPanelClosed(const ViewportPanel& panel);
-
         void ChangeScenes(SharedRef<Scene> newScene);
-
-        bool OnFileDoubleClicked(const FilePath& file);
     };
 }

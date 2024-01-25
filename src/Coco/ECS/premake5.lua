@@ -53,20 +53,20 @@ project "Coco.ECS"
         }
     end
 
-    if(Services["Physics3D"] ~= nil) then
-        links
-        {
-            "Coco.Physics3D"
-        }
-
-        defines { "COCO_SERVICE_PHYSICS3D" }
-    else
-        removefiles
-        {
-            "Components/Physics3D/**.h",
-            "Components/Physics3D/**.cpp",
-        }
-    end
+--    if(Services["Physics3D"] ~= nil) then
+--        links
+--        {
+--            "Coco.Physics3D"
+--        }
+--
+--        defines { "COCO_SERVICE_PHYSICS3D" }
+--    else
+--        removefiles
+--        {
+--            "Components/Physics3D/**.h",
+--            "Components/Physics3D/**.cpp",
+--        }
+--    end
 
     -- Build configs
     filter { "configurations:Debug" }

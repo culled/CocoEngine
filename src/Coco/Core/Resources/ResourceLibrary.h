@@ -25,7 +25,7 @@ namespace Coco
 
 			if (Has(id))
 			{
-				return nullptr;
+				return GetAs<ResourceType>(id);
 			}
 
 			SharedRef<ResourceType> resource = CreateSharedRef<ResourceType>(id, std::forward<Args>(args)...);

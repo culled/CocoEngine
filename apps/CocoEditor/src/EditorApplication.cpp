@@ -5,20 +5,20 @@
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
 #include <Coco/ImGui/ImGuiService.h>
 #include <Coco/Windowing/WindowService.h>
-#include "UI/ComponentUI.h"
 #include <Coco/Core/Engine.h>
 
 #include <imgui.h>
 
 // TEMPORARY
-#include <Coco/Rendering/Resources/BuiltInPipeline.h>
-#include "Rendering/PickingRenderPass.h"
+//#include "Rendering/PickingRenderPass.h"
 #include <Coco/Rendering/Pipeline/RenderPasses/BasicShaderRenderPass.h>
-#include <Coco/Rendering/Pipeline/RenderPasses/BuiltInRenderPass.h>
-#include <Coco/ECS/Serializers/SceneSerializer.h>
+#include <Coco/Rendering/BuiltIn/BuiltInShaderRenderPass.h>
 // TEMPORARY
 
 using namespace Coco::ECS;
+using namespace Coco::Rendering;
+using namespace Coco::ImGuiCoco;
+using namespace Coco::Windowing;
 
 // Current framebuffer layout:
 // 0 - main color
@@ -35,65 +35,43 @@ namespace Coco
 		_inputLayer(CreateManagedRef<EditorInputLayer>()),
 		_mainWindow(),
 		_updateTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleUpdateTick, 0)),
-		_renderTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleRenderTick, 99)),
-		_pipeline(BuiltInPipeline::Create(true, true)),
-		_viewportClosedHandler(this, &EditorApplication::OnViewportPanelClosed),
-		_fileDoubleClickedHandler(this, &EditorApplication::OnFileDoubleClicked)
+		_renderTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleRenderTick, 99))
 	{
-		Engine::Get()->GetResourceLibrary().CreateSerializer<SceneSerializer>();
-
 		SetupServices();
 		CreateMainWindow();
+		CreateResources();
 		CreateMainScene();
-		SetupDefaultLayout();
 
-		ComponentUI::RegisterBuiltInComponentUIs();
+		Input::InputService::Get()->RegisterInputLayer(_inputLayer);
 
 		MainLoop& loop = Engine::Get()->GetMainLoop();
-		loop.AddListener(_updateTickListener);
-		loop.AddListener(_renderTickListener);
+		loop.AddTickListener(_updateTickListener);
+		loop.AddTickListener(_renderTickListener);
 
-		std::array<uint8, 2> bindings = { 2, 1 };
-		_pipeline->AddRenderPass(CreateSharedRef<PickingRenderPass>(), bindings);
+		MainLoop::Get()->SetTimeScale(0.0);
 	}
 
 	EditorApplication::~EditorApplication()
 	{
 		MainLoop& loop = Engine::Get()->GetMainLoop();
-		loop.RemoveListener(_updateTickListener);
-		loop.RemoveListener(_renderTickListener);
+		loop.RemoveTickListener(_updateTickListener);
+		loop.RemoveTickListener(_renderTickListener);
 
 		Input::InputService::Get()->UnregisterInputLayer(_inputLayer);
 
-		if (_viewport)
-			CloseViewportPanel();
-
 		_mainWindow.Invalidate();
-		_gameViewport.reset();
-		_scenePanel.reset();
-		_inspectorPanel.reset();
-		_contentPanel.reset();
 		_fontData.clear();
 	}
 
 	void EditorApplication::SetupServices()
 	{
-		using namespace Coco::Input;
-		using namespace Coco::Rendering;
-		using namespace Coco::ImGuiCoco;
-		using namespace Coco::Windowing;
-
 		ServiceManager& services = Engine::Get()->GetServiceManager();
 
 		InputService& input = services.CreateService<InputService>();
-		input.RegisterInputLayer(_inputLayer);
 
-		GraphicsDeviceCreateParams deviceParams{};
-		GraphicsPlatformCreateParams platformParams(*this, true);
-		platformParams.DeviceCreateParameters = deviceParams;
-
-		Vulkan::VulkanGraphicsPlatformFactory vulkanFactory(platformParams, Vulkan::VulkanGraphicsPlatformFactory::sDefaultAPIVersion, true);
-		services.CreateService<RenderService>(vulkanFactory, true);
+		Vulkan::VulkanGraphicsPlatformCreateParams platformParams(*this, true);
+		Vulkan::VulkanGraphicsPlatformFactory vulkanFactory(platformParams);
+		services.CreateService<RenderService>(vulkanFactory);
 
 		services.CreateService<ImGuiService>(true, true);
 
@@ -102,7 +80,6 @@ namespace Coco
 
 	void EditorApplication::CreateMainWindow()
 	{
-		using namespace Coco::Windowing;
 		WindowCreateParams createParams("Coco Editor", SizeInt(1440, 810));
 		createParams.CanResize = true;
 		createParams.InitialState = WindowState::Maximized;
@@ -114,9 +91,14 @@ namespace Coco
 		_mainWindow->Show();
 	}
 
-	void EditorApplication::SetupDefaultLayout()
+	void EditorApplication::CreateResources()
 	{
-		using namespace Coco::ImGuiCoco;
+		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
+
+		_renderPipeline = resources.Create<RenderPipeline>(ResourceID("Editor::RenderPipeline"));
+
+		std::array<uint32, 2> bindings = { 0, 1 };
+		_renderPipeline->AddRenderPass(CreateSharedRef<BuiltInShaderRenderPass>(true), bindings);
 
 		File f = Engine::Get()->GetFileSystem().OpenFile("ui/fonts/Roboto/Roboto-Regular.ttf", FileOpenFlags::Read);
 		_fontData = f.ReadToEnd();
@@ -127,27 +109,27 @@ namespace Coco
 		fontConfig.FontDataOwnedByAtlas = false;
 		io.FontDefault = io.Fonts->AddFontFromMemoryTTF(_fontData.data(), static_cast<int>(_fontData.size()), 16.f, &fontConfig);
 		ImGuiService::Get()->GetPlatform().RebuildFontTexture();
-
-		_viewport = CreateViewportPanel();
-		_scenePanel = CreateUniqueRef<SceneHierarchyPanel>(_mainScene);
-		_inspectorPanel = CreateUniqueRef<InspectorPanel>();
-		_contentPanel = CreateUniqueRef<ContentPanel>();
-		_fileDoubleClickedHandler.Connect(_contentPanel->OnFileDoubleClicked);
-		_gameViewport = CreateUniqueRef<GamePanel>(_mainScene);
 	}
 
 	void EditorApplication::CreateMainScene()
 	{
-		using namespace Coco::Rendering;
-		using namespace Coco::ECS;
-
 		ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
-		_mainScene = resourceLibrary.Create<Scene>("Scene");
-		_mainScene->UseDefaultSystems();
+		_mainScene = resourceLibrary.Create<Scene>(ResourceID("Scene"));
 	}
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)
+	{
+		DrawUI();
+	}
+
+	void EditorApplication::HandleRenderTick(const TickInfo& tickInfo)
+	{
+		if (!_mainWindow->IsVisible())
+			return;
+	}
+
+	void EditorApplication::DrawUI()
 	{
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -194,22 +176,7 @@ namespace Coco
 			ImGui::EndMenuBar();
 		}
 
-		_inspectorPanel->Update(tickInfo);
-		_scenePanel->Update(tickInfo);
-		_viewport->Update(tickInfo);
-		_contentPanel->Update(tickInfo);
-		_gameViewport->Update(tickInfo);
-
 		ImGui::End();
-	}
-
-	void EditorApplication::HandleRenderTick(const TickInfo& tickInfo)
-	{
-		if (!_mainWindow->IsVisible() || !_viewport)
-			return;
-
-		_viewport->Render(*_pipeline);
-		_gameViewport->Render(*_pipeline);
 	}
 
 	void EditorApplication::ShowFileMenu()
@@ -229,11 +196,6 @@ namespace Coco
 			SaveSceneAs();
 		}
 
-		if (ImGui::MenuItem("Save All Resources"))
-		{
-			Engine::Get()->GetResourceLibrary().SaveAll();
-		}
-
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("Exit"))
@@ -244,44 +206,12 @@ namespace Coco
 
 	void EditorApplication::ShowViewMenu()
 	{
-		bool viewport = _viewport.get() != nullptr;
-		if (ImGui::Checkbox("Viewport", &viewport))
-		{
-			if (viewport)
-			{
-				_viewport = CreateViewportPanel();
-			}
-			else
-			{
-				CloseViewportPanel();
-			}
-		}
-	}
-
-	UniqueRef<ViewportPanel> EditorApplication::CreateViewportPanel()
-	{
-		UniqueRef<ViewportPanel> viewport = CreateUniqueRef<ViewportPanel>("Viewport", _mainScene);
-		_viewportClosedHandler.Connect(viewport->OnClosed);
-
-		return viewport;
-	}
-
-	void EditorApplication::CloseViewportPanel()
-	{
-		_viewportClosedHandler.Disconnect(_viewport->OnClosed);
-		_viewport.reset();
-	}
-
-	bool EditorApplication::OnViewportPanelClosed(const ViewportPanel& panel)
-	{
-		CloseViewportPanel();
-
-		return true;
+		// TODO
 	}
 
 	void EditorApplication::NewScene()
 	{
-		SharedRef<Scene> scene = Engine::Get()->GetResourceLibrary().Create<Scene>("Scene");
+		SharedRef<Scene> scene = Engine::Get()->GetResourceLibrary().Create<Scene>(ResourceID("Scene"));
 		ChangeScenes(scene);
 	}
 
@@ -302,8 +232,8 @@ namespace Coco
 
 	void EditorApplication::OpenScene(const FilePath& scenePath)
 	{
-		SharedRef<Scene> newScene = Engine::Get()->GetResourceLibrary().GetOrLoad<Scene>(scenePath, true);
-		ChangeScenes(newScene);
+		//SharedRef<Scene> newScene = Engine::Get()->GetResourceLibrary().GetOrLoad<Scene>(scenePath, true);
+		//ChangeScenes(newScene);
 	}
 
 	void EditorApplication::SaveSceneAs()
@@ -318,30 +248,40 @@ namespace Coco
 		if (path.empty())
 			return;
 
-		auto& resources = engine->GetResourceLibrary();
-		resources.Save(path, _mainScene, true);
-		resources.SaveAll();
+		//auto& resources = engine->GetResourceLibrary();
+		//resources.Save(path, _mainScene, true);
+		//resources.SaveAll();
+	}
+
+	void EditorApplication::StartPlayInEditor()
+	{
+		MainLoop& mainLoop = *MainLoop::Get();
+		mainLoop.SetTimeScale(1.0);
+		mainLoop.SetCurrentTickTime(0.0);
+
+		// TODO: duplicate scene
+		_mainScene->SetSimulateMode(SceneSimulateMode::Running);
+
+		CocoInfo("Started Play In Editor")
+	}
+
+	void EditorApplication::StopPlayInEditor()
+	{
+		MainLoop::Get()->SetTimeScale(0.0);
+		_mainScene->SetSimulateMode(SceneSimulateMode::Stopped);
+
+		// TODO: restore scene;
+
+		CocoInfo("Stopped Play In Editor")
 	}
 
 	void EditorApplication::ChangeScenes(SharedRef<Scene> newScene)
 	{
+		if (_mainScene->GetSimulateMode() == SceneSimulateMode::Running)
+			_mainScene->SetSimulateMode(SceneSimulateMode::Stopped);
+
 		_selection.ClearSelectedEntity();
 		_mainScene = newScene;
-
-		_viewport->SetCurrentScene(_mainScene);
-		_scenePanel->SetCurrentScene(_mainScene);
-		_gameViewport->SetCurrentScene(_mainScene);
-	}
-
-	bool EditorApplication::OnFileDoubleClicked(const FilePath& file)
-	{
-		if (file.GetExtension() == ".cscene")
-		{
-			OpenScene(file);
-			return true;
-		}
-
-		return false;
 	}
 }
 

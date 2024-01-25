@@ -9,7 +9,7 @@ project "CocoEditor"
     targetdir "%{OutputDir.bin}%{prj.name}"
     objdir "%{OutputDir.obj}%{prj.name}"
 
-    TargetDir = "%{OutputDir.bin}%{prj.name}\\"
+    TargetDir = "build\\bin\\" .. OutputFolder .. "\\%{prj.name}"
 
     files
     {
@@ -22,39 +22,37 @@ project "CocoEditor"
         "%{IncludeDir.Coco}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.ImGuizmo}",
-        "%{IncludeDir.yaml_cpp}",
         "%{IncludeDir.entt}"
     }
 
-    links
+    links 
     {
         "Coco.Core",
         "Coco.Input",
         "Coco.Rendering",
         "Coco.Windowing",
         "Coco.ImGui",
-        "Coco.ECS"
+        "Coco.ECS",
+        --"Coco.Physics3D",
     }
 
-    if (RenderRHI["Vulkan"] == true) then
-        libdirs
-        {
-            "%{LibraryDir.vulkan}"
-        }
-
-        links
-        {
-            "vulkan-1.lib"
-        }
-    end
-
     if (Platforms["Win32"] == true) then
-        links { "Coco.Platforms.Win32" }
+        links 
+        {
+            "Coco.Platforms.Win32",
+        }
     end
 
-    filter { "system:windows", "options:renderRHI-vulkan or options:renderRHIs-all" }
+    includedirs
+    {
+        "%{IncludeDir.Coco}",
+    }
+
+    filter { "system:windows" }
         postbuildcommands {
-            "xcopy %{AssetsDir} %{TargetDir}assets\\ /S /Y /I"
+            "pushd %{wks.location}",
+            "xcopy assets\\ %{TargetDir}\\assets\\ /S /Y /I",
+            "popd"
         }
 
     filter { "configurations:Debug" }
@@ -65,30 +63,11 @@ project "CocoEditor"
             "COCO_LOG_WARNING",
         }
 
-        if (RenderRHI["Vulkan"] == true) then
-            links
-            {
-                "shaderc_sharedd.lib",
-                "spirv-cross-cored.lib",
-                "spirv-cross-glsld.lib",
-                "SPIRV-Toolsd.lib"
-            }
-        end
-
         debugargs { "--show-console", "--content-path=%{wks.location}assets" }
 
         runtime "Debug"
         symbols "on"
         
     filter { "configurations:Release" }
-        if (RenderRHI["Vulkan"] == true) then
-            links
-            {
-                "shaderc_shared.lib",
-                "spirv-cross-core.lib",
-                "spirv-cross-glsl.lib"
-            }
-        end
-
         runtime "Release"
         optimize "on"
