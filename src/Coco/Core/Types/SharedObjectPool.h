@@ -9,9 +9,6 @@ namespace Coco
 	template<typename ObjectType>
 	class SharedObjectPool
 	{
-	private:
-		std::vector<SharedRef<ObjectType>> _objects;
-
 	public:
 		SharedObjectPool() :
 			_objects()
@@ -42,5 +39,8 @@ namespace Coco
 
 			return o;
 		}
+
+	private:
+		std::vector<SharedRef<ObjectType>> _objects;
 	};
 }

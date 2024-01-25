@@ -1,27 +1,23 @@
 #include "Renderpch.h"
 #include "BasicShaderRenderPass.h"
 
-#include "DefaultRenderPassFunctions.h"
+#include "../../Shader.h"
 
 namespace Coco::Rendering
 {
-	const std::array<AttachmentFormat, 2> BasicShaderRenderPass::_sAttachments = {
-		AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB),
-		AttachmentFormat(ImagePixelFormat::Depth32_Stencil8, ImageColorSpace::Linear)
-	};
-
-	BasicShaderRenderPass::BasicShaderRenderPass(SharedRef<Shader> shader, uint64 visibilityGroups, bool exclusiveVisibilityGroups, bool useFrustumCulling) :
+	BasicShaderRenderPass::BasicShaderRenderPass(
+		SharedRef<Shader> shader, 
+		std::span<const RenderPassAttachment> attachmentFormats, 
+		uint64 visibilityGroups, 
+		bool exclusiveVisibilityGroups, 
+		bool useFrustumCulling) :
 		_shader(shader),
 		_passName(shader->GetName()),
+		_attachments(attachmentFormats.begin(), attachmentFormats.end()),
 		_visibilityGroups(visibilityGroups),
 		_exclusiveVisibilityGroups(exclusiveVisibilityGroups),
 		_useFrustumCulling(useFrustumCulling)
 	{}
-
-	void BasicShaderRenderPass::Prepare(RenderContext& context, const RenderView& renderView)
-	{
-		DefaultRenderPassFunctions::ApplyDefaultPreparations(context, renderView);
-	}
 
 	void BasicShaderRenderPass::Execute(RenderContext& context, const RenderView& renderView)
 	{
@@ -35,24 +31,19 @@ namespace Coco::Rendering
 		if (_useFrustumCulling)
 			renderView.FilterOutsideFrustum(objectIndices);
 
+		context.SetShader(_shader);
+
 		for (const uint64& i : objectIndices)
 		{
-			const ObjectData& obj = renderView.GetRenderObject(i);
-			const MeshData& mesh = renderView.GetMeshData(obj.MeshID);
+			const RenderObjectData& obj = renderView.GetRenderObject(i);
 
-			if (obj.MaterialID != RenderView::InvalidID)
-			{
-				const MaterialData& material = renderView.GetMaterialData(obj.MaterialID);
+			if (obj.Material)
+				context.SetMaterial(obj.Material);
 
-				context.SetMaterial(material);
-			}
-			else
-			{
-				context.ClearInstanceProperties();
-			}
+			std::array<ShaderUniformValue, 1> drawUniforms = { ShaderUniformValue("ModelMatrix", obj.ModelMatrix) };
+			context.SetDrawUniforms(drawUniforms);
 
-			context.SetValue(UniformScope::Draw, ShaderUniformData::MakeKey("ModelMatrix"), obj.ModelMatrix);
-			context.DrawIndexed(mesh, obj.IndexOffset, obj.IndexCount);
+			context.Draw(obj.Mesh, obj.Submesh);
 		}
 	}
 }

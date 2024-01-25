@@ -2,7 +2,7 @@
 
 #include <Coco/Core/Defines.h>
 #include <Coco/Core/Types/String.h>
-#include "../Graphics/AttachmentFormat.h"
+#include "../Graphics/RenderPassAttachment.h"
 #include "../Graphics/RenderContext.h"
 #include "../Graphics/RenderView.h"
 
@@ -14,18 +14,13 @@ namespace Coco::Rendering
 	public:
 		virtual ~RenderPass() = default;
 
-		/// @brief Gets the name of this pass. Used to link to individual render pass shaders
+		/// @brief Gets the name of this pass
 		/// @return This pass's name
-		virtual const char* GetName() const = 0;
+		virtual const string& GetName() const = 0;
 
 		/// @brief Gets the attachment formats that this pass uses
 		/// @return This pass's attachments
-		virtual std::span<const AttachmentFormat> GetInputAttachments() const = 0;
-
-		/// @brief Allows preparations before rendering actually commences. Use this to set global values
-		/// @param context The context to use for rendering
-		/// @param renderView The view being rendered
-		virtual void Prepare(RenderContext& context, const RenderView& renderView) = 0;
+		virtual std::span<const RenderPassAttachment> GetAttachments() const = 0;
 
 		/// @brief Executes this render pass
 		/// @param context The context to use for rendering

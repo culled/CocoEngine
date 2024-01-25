@@ -1,14 +1,9 @@
 #include "ECSpch.h"
 #include "CameraComponentSerializer.h"
 
-#include "../../../Components/Rendering/CameraComponent.h"
-
-#include <yaml-cpp/yaml.h>
-#include <Coco/Third Party/yaml-cpp/Converters.h>
-
 namespace Coco::ECS
 {
-	void CameraComponentSerializer::SerializeImpl(YAML::Emitter& emitter, const Entity& entity)
+	void CameraComponentSerializer::Serialize(YAML::Emitter& emitter, const Entity& entity)
 	{
 		const CameraComponent& camera = entity.GetComponent<CameraComponent>();
 
@@ -24,7 +19,7 @@ namespace Coco::ECS
 		emitter << YAML::Key << "orthoClipping" << YAML::Value << YAML::Flow << YAML::BeginSeq << camera._orthoNearClip << camera._orthoFarClip << YAML::EndSeq;
 	}
 
-	void CameraComponentSerializer::DeserializeImpl(const YAML::Node& baseNode, Entity& entity)
+	bool CameraComponentSerializer::Deserialize(const YAML::Node& baseNode, Entity& entity)
 	{
 		CameraComponent& camera = entity.AddComponent<CameraComponent>();
 
@@ -44,5 +39,7 @@ namespace Coco::ECS
 		const YAML::Node orthoClipNode = baseNode["orthoClipping"];
 		camera._orthoNearClip = orthoClipNode[0].as<double>();
 		camera._orthoFarClip = orthoClipNode[1].as<double>();
+
+		return true;
 	}
 }

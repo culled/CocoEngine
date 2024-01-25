@@ -11,11 +11,6 @@ namespace Coco
 	/// @brief A log that messages can be written to
 	class Log
 	{
-	private:
-		string _name;
-		std::vector<SharedRef<LogSink>> _sinks;
-		LogMessageSeverity _minSeverity;
-
 	public:
 		Log(const string& name, LogMessageSeverity minimumSeverity);
 		~Log();
@@ -59,6 +54,11 @@ namespace Coco
 			string message = FormatString(format, std::forward<Args>(args)...);
 			Write(severity, message.c_str());
 		}
+
+	private:
+		string _name;
+		std::vector<SharedRef<LogSink>> _sinks;
+		LogMessageSeverity _minSeverity;
 	};
 }
 

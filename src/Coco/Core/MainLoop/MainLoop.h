@@ -5,34 +5,17 @@
 #include "../Types/Refs.h"
 #include "TickInfo.h"
 #include "TickListener.h"
+#include "../Types/TickSystem.h"
 
 namespace Coco
 {
 	/// @brief A loop that ticks listeners
-	class MainLoop : public Singleton<MainLoop>
+	class MainLoop : 
+		public Singleton<MainLoop>,
+		public TickSystem<TickListener, const TickInfo&>
 	{
-	private:
-		std::vector<Ref<TickListener>> _tickListeners;
-		bool _isRunning;
-		uint32 _targetTicksPerSecond;
-		bool _isSuspended;
-		bool _listenersNeedSorting;
-		TickInfo _currentTick;
-		TickInfo _lastTick;
-		double _timeScale;
-		double _lastAverageSleepTime;
-
 	public:
 		MainLoop();
-		~MainLoop();
-
-		/// @brief Adds a listener to this loop
-		/// @param listener The listener
-		void AddListener(Ref<TickListener> listener);
-
-		/// @brief Removes a listener from this loop
-		/// @param listener The listener
-		void RemoveListener(Ref<TickListener> listener);
 
 		/// @brief Sets the target amount of ticks per second that the loop will run at
 		/// @param ticksPerSecond The target number of ticks per second. Set to 0 to run as fast as possible
@@ -59,6 +42,10 @@ namespace Coco
 		/// @return The time scale
 		double GetTimeScale() const { return _timeScale; }
 
+		/// @brief Sets the time of the current tick
+		/// @param seconds The current time, in seconds
+		void SetCurrentTickTime(double seconds);
+
 		/// @brief Gets the current tick info
 		/// @return The current tick info
 		const TickInfo& GetCurrentTick() const { return _currentTick; }
@@ -75,14 +62,30 @@ namespace Coco
 		void Stop();
 
 	private:
-		/// @brief Sorts the list of tick handlers based on their priorities
-		void SortTickHandlers();
+		bool _isRunning;
+		uint32 _targetTicksPerSecond;
+		bool _isSuspended;
+		TickInfo _currentTick;
+		TickInfo _lastTick;
+		double _timeScale;
+		double _lastAverageSleepTime;
 
-		/// @brief Called right before handlers are ticked
-		void PreTick();
+	private:
+		/// @brief Compares two tick listeners for sorting
+		/// @param a The first listener
+		/// @param b The second listener
+		/// @return True if a should be sorted before b
+		static bool CompareTickListeners(const Ref<TickListener>& a, const Ref<TickListener>& b);
 
-		/// @brief Called right after handlers are ticked
-		void PostTick();
+		/// @brief Dispatches a tick to a listener
+		/// @param listener The listener
+		/// @param tickInfo The tick info
+		static void PerformTick(Ref<TickListener>& listener, const TickInfo& tickInfo);
+
+		/// @brief Handler for errors during the a tick
+		/// @param ex The exception
+		/// @return True if the error was handled
+		static bool HandleTickError(const std::exception& ex);
 
 		/// @brief Waits for the next tick based on the target tick rate
 		/// @param lastTickTime The platform-time of the last tick

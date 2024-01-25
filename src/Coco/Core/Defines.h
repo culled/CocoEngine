@@ -39,9 +39,28 @@ using int64 = long long;
 // Causes an attached debugger to break
 #define DebuggerBreak __builtin_trap();
 #endif
+
 // Generic assertion
 #define Assert(Expression) if(Expression) {} else { DebuggerBreak }
+
+// Assert function result
+#define AssertResult(Expression) if(Expression) {} else { DebuggerBreak }
 #else
 #define DebuggerBreak
 #define Assert
+#define AssertResult(Expression) Expression
 #endif
+
+#define DeclareFlagOperators(FlagType) \
+constexpr FlagType operator|(const FlagType& a, const FlagType& b); \
+constexpr FlagType operator&(const FlagType& a, const FlagType& b); \
+constexpr FlagType& operator|=(FlagType& a, const FlagType& b); \
+constexpr FlagType& operator&=(FlagType& a, const FlagType& b); \
+constexpr FlagType operator~(const FlagType& v);
+
+#define DefineFlagOperators(FlagType) \
+constexpr FlagType operator|(const FlagType& a, const FlagType& b) { return static_cast<FlagType>(static_cast<int>(a) | static_cast<int>(b)); } \
+constexpr FlagType operator&(const FlagType& a, const FlagType& b) { return static_cast<FlagType>(static_cast<int>(a) & static_cast<int>(b)); } \
+constexpr FlagType& operator|=(FlagType& a, const FlagType& b) { a = a | b; return a; } \
+constexpr FlagType& operator&=(FlagType& a, const FlagType& b) { a = a & b; return a; } \
+constexpr FlagType operator~(const FlagType& v) { return static_cast<FlagType>(~static_cast<int>(v)); }

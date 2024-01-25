@@ -6,50 +6,15 @@
 namespace Coco
 {
 	MainLoop::MainLoop() :
-		_tickListeners{},
+		TickSystem<TickListener, const TickInfo&>(&MainLoop::CompareTickListeners, &MainLoop::PerformTick, &MainLoop::HandleTickError),
 		_isRunning(false),
 		_targetTicksPerSecond(0),
 		_isSuspended(false),
-		_listenersNeedSorting(false),
 		_currentTick{},
 		_lastTick{},
 		_timeScale(1.0),
 		_lastAverageSleepTime(0.0)
 	{}
-
-	MainLoop::~MainLoop()
-	{
-		_tickListeners.clear();
-	}
-
-	void MainLoop::AddListener(Ref<TickListener> listener)
-	{
-		const auto it = std::find_if(_tickListeners.cbegin(), _tickListeners.cend(), [listener](const Ref<TickListener>& other)
-			{
-				return other.Get() == listener.Get();
-			});
-
-		if (it != _tickListeners.cend())
-			return;
-
-		_tickListeners.push_back(listener);
-		listener->_isRegistered = true;
-		_listenersNeedSorting = true;
-	}
-
-	void MainLoop::RemoveListener(Ref<TickListener> listener)
-	{
-		const auto it = std::find_if(_tickListeners.cbegin(), _tickListeners.cend(), [listener](const Ref<TickListener>& other)
-			{
-				return other.Get() == listener.Get();
-			});
-
-		if (it == _tickListeners.cend())
-			return;
-
-		_tickListeners.erase(it);
-		listener->_isRegistered = false;
-	}
 
 	void MainLoop::SetTargetTicksPerSecond(uint32 ticksPerSecond)
 	{
@@ -64,6 +29,12 @@ namespace Coco
 	void MainLoop::SetTimeScale(double timeScale)
 	{
 		_timeScale = timeScale;
+	}
+
+	void MainLoop::SetCurrentTickTime(double seconds)
+	{
+		_currentTick.UnscaledTime = seconds;
+		_currentTick.Time = seconds;
 	}
 
 	void MainLoop::Run()
@@ -104,25 +75,7 @@ namespace Coco
 
 			if (!_isSuspended)
 			{
-				PreTick();
-
-				std::vector<Ref<TickListener>> tempListeners(_tickListeners);
-				for (auto it = tempListeners.begin(); it != tempListeners.end(); it++)
-				{
-					if (!it->IsValid())
-						continue;
-
-					try
-					{
-						(*it)->Invoke(_currentTick);
-					}
-					catch (const std::exception& ex)
-					{
-						CocoError("Error ticking: {}", ex.what());
-					}
-				}
-
-				PostTick();
+				TickAllListeners(_currentTick);
 
 				didPerformFullTick = true;
 			}
@@ -145,44 +98,26 @@ namespace Coco
 		_isRunning = false;
 	}
 
-	void MainLoop::SortTickHandlers()
+	bool MainLoop::CompareTickListeners(const Ref<TickListener>& a, const Ref<TickListener>& b)
 	{
-		std::sort(_tickListeners.begin(), _tickListeners.end(),
-			[](const Ref<TickListener>& a, const Ref<TickListener>& b)
-			{
-				if (!a.IsValid())
-					return false;
+		if (!a.IsValid())
+			return false;
 
-				if (!b.IsValid())
-					return true;
+		if (!b.IsValid())
+			return true;
 
-				return a->Priority < b->Priority;
-			});
-
-		_listenersNeedSorting = false;
+		return a->Priority < b->Priority;
 	}
 
-	void MainLoop::PreTick()
+	void MainLoop::PerformTick(Ref<TickListener>& listener, const TickInfo& tickInfo)
 	{
-		if (_listenersNeedSorting)
-			SortTickHandlers();
+		listener->Invoke(tickInfo);
 	}
 
-	void MainLoop::PostTick()
+	bool MainLoop::HandleTickError(const std::exception& ex)
 	{
-		auto it = _tickListeners.begin();
-
-		while (it != _tickListeners.end())
-		{
-			if (!it->IsValid())
-			{
-				it = _tickListeners.erase(it);
-			}
-			else
-			{
-				it++;
-			}
-		}
+		CocoCritical("Error performing main loop tick: {}", ex.what())
+		return false;
 	}
 
 	void MainLoop::WaitForTargetTickTime(double lastTickTime)

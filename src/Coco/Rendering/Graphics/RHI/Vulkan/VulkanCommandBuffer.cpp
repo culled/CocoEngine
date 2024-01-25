@@ -1,20 +1,21 @@
 #include "Renderpch.h"
 #include "VulkanCommandBuffer.h"
-#include "VulkanGraphicsSemaphore.h"
+
 #include "VulkanGraphicsFence.h"
+#include "VulkanGraphicsSemaphore.h"
+
+#include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
 {
 	VulkanCommandBuffer::VulkanCommandBuffer(VkCommandBuffer buffer, VkQueue queue) :
 		_commandBuffer(buffer),
-		_queue(queue),
-		_currentState(State::Ready)
+		_queue(queue)
 	{}
 
 	void VulkanCommandBuffer::Begin(bool isSingleUse, bool isSimultaneousUse)
 	{
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		beginInfo.flags = 0;
 		beginInfo.pInheritanceInfo = nullptr;
 
@@ -33,58 +34,54 @@ namespace Coco::Rendering::Vulkan
 	}
 
 	void VulkanCommandBuffer::Submit(
-		std::vector<Ref<VulkanGraphicsSemaphore>>* waitSemaphores,
-		std::vector<Ref<VulkanGraphicsSemaphore>>* signalSemaphores,
+		std::span<std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>> waitSemaphores,
+		std::span<Ref<VulkanGraphicsSemaphore>> signalSemaphores, 
 		Ref<VulkanGraphicsFence> signalFence)
 	{
-		std::vector<VkSemaphore> vulkanWaitSemaphores;
-		std::vector<VkPipelineStageFlags> waitStages;
-
-		if (waitSemaphores)
-		{
-			for (Ref<VulkanGraphicsSemaphore>& s : *waitSemaphores)
+		std::vector<VkSemaphore> waitVkSemaphores;
+		std::transform(waitSemaphores.begin(), waitSemaphores.end(),
+			std::back_inserter(waitVkSemaphores),
+			[](const std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>& pair)
 			{
-				if (!s.IsValid())
-					continue;
+				const Ref<VulkanGraphicsSemaphore>& sem = pair.first;
+				CocoAssert(sem, "Semaphore was invalid")
+				return sem->GetSemaphore();
+			});
 
-				vulkanWaitSemaphores.push_back(s->GetSemaphore());
-
-				// TODO: configurable wait stages?
-				waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-			}
-		}
-
-		std::vector<VkSemaphore> vulkanSignalSemaphores;
-
-		if (signalSemaphores)
-		{
-			for (Ref<VulkanGraphicsSemaphore>& s : *signalSemaphores)
+		std::vector<VkPipelineStageFlags> waitPipelineStageFlags;
+		std::transform(waitSemaphores.begin(), waitSemaphores.end(),
+			std::back_inserter(waitPipelineStageFlags),
+			[](const std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>& pair)
 			{
-				if (!s.IsValid())
-					continue;
+				return pair.second;
+			});
 
-				vulkanSignalSemaphores.push_back(s->GetSemaphore());
-			}
-		}
+		std::vector<VkSemaphore> signalVkSemaphores;
+		std::transform(signalSemaphores.begin(), signalSemaphores.end(),
+			std::back_inserter(signalVkSemaphores),
+			[](const Ref<VulkanGraphicsSemaphore>& sem)
+			{
+				CocoAssert(sem, "Semaphore was invalid")
+				return sem->GetSemaphore();
+			});
 
 		VkFence fence = signalFence.IsValid() ? signalFence->GetFence() : VK_NULL_HANDLE;
 
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &_commandBuffer;
-		submitInfo.pWaitDstStageMask = waitStages.data();
-		submitInfo.waitSemaphoreCount = static_cast<uint32_t>(vulkanWaitSemaphores.size());
-		submitInfo.pWaitSemaphores = vulkanWaitSemaphores.data();
-		submitInfo.signalSemaphoreCount = static_cast<uint32_t>(vulkanSignalSemaphores.size());
-		submitInfo.pSignalSemaphores = vulkanSignalSemaphores.data();
+		submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitVkSemaphores.size());
+		submitInfo.pWaitSemaphores = waitVkSemaphores.data();
+		submitInfo.pWaitDstStageMask = waitPipelineStageFlags.data();
+		submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalVkSemaphores.size());
+		submitInfo.pSignalSemaphores = signalVkSemaphores.data();
 
 		AssertVkSuccess(vkQueueSubmit(_queue, 1, &submitInfo, fence));
 	}
 
 	void VulkanCommandBuffer::EndAndSubmit(
-		std::vector<Ref<VulkanGraphicsSemaphore>>* waitSemaphores,
-		std::vector<Ref<VulkanGraphicsSemaphore>>* signalSemaphores,
+		std::span<std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>> waitSemaphores, 
+		std::span<Ref<VulkanGraphicsSemaphore>> signalSemaphores, 
 		Ref<VulkanGraphicsFence> signalFence)
 	{
 		End();

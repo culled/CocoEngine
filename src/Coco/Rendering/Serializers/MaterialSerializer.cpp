@@ -2,238 +2,171 @@
 #include "MaterialSerializer.h"
 
 #include "../Material.h"
-//#include "../MaterialInstance.h"
-#include "Types/ShaderUniformDataSerializer.h"
-
-#include <yaml-cpp/yaml.h>
-#include <Coco/Third Party/yaml-cpp/Converters.h>
-
+#include "../Texture.h"
+#include <Coco/Core/Types/YAMLConverters.h>
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering
 {
-	bool MaterialSerializer::SupportsFileExtension(const string& extension) const
-	{
-		return extension == ".cmaterial";
-	}
-
-	bool MaterialSerializer::SupportsResourceType(const std::type_index& type) const
-	{
-		return type == typeid(Material);
-	}
-
-	string MaterialSerializer::Serialize(SharedRef<Resource> resource)
+	bool MaterialSerializer::SerializeYAML(YAML::Emitter& emitter, const SharedRef<Resource>& resource)
 	{
 		SharedRef<Material> material = std::dynamic_pointer_cast<Material>(resource);
+		if (!material)
+		{
+			CocoError("Resource was not a material resource")
+			return false;
+		}
 
-		Assert(material)
-		
-		return SerializeMaterial(*material);
-	}
+		emitter << YAML::Key << "parameters" << YAML::Value << YAML::BeginMap;
 
-	SharedRef<Resource> MaterialSerializer::CreateAndDeserialize(const ResourceID& id, const string& name, const string& data)
-	{
-		SharedRef<Material> material = CreateSharedRef<Material>(id, name);
-		Deserialize(data, material);
+		for (const auto& value : material->GetUniformValues())
+		{
+			emitter << YAML::Key << value.Name << YAML::Value << YAML::BeginMap;
 
-		return material;
-	}
+			emitter << YAML::Key << "type" << YAML::Value << static_cast<int>(value.Type);
 
-	bool MaterialSerializer::Deserialize(const string& data, SharedRef<Resource> resource)
-	{
-		SharedRef<Material> material = std::dynamic_pointer_cast<Material>(resource);
+			emitter << YAML::Key << "value" << YAML::Value;
 
-		Assert(material)
-
-		return DeserializeMaterial(data, *material);
-	}
-
-	string MaterialSerializer::SerializeMaterial(const Material& material)
-	{
-		YAML::Emitter out;
-		out << YAML::BeginMap;
-
-		out << YAML::Key << "parameters" << YAML::Value << YAML::BeginMap;
-		material.ForEachParameter(
-			[&out](const MaterialParameter& param)
+			switch (value.Type)
 			{
-				out << YAML::Key << param.Name << YAML::Value << YAML::BeginMap;
+			case ShaderUniformType::Float:
+				emitter << value.As<float>();
+				break;
+			case ShaderUniformType::Float2:
+				emitter << static_cast<std::span<const float>>(value.As<Float2>());
+				break;
+			case ShaderUniformType::Float3:
+				emitter << static_cast<std::span<const float>>(value.As<Float3>());
+				break;
+			case ShaderUniformType::Float4:
+			case ShaderUniformType::Color:
+				emitter << static_cast<std::span<const float>>(value.As<Float4>());
+				break;
+			case ShaderUniformType::Matrix4x4:
+				emitter << static_cast<std::span<const float>>(value.As<FloatMatrix4x4>());
+				break;
+			case ShaderUniformType::Int:
+				emitter << value.As<int>();
+				break;
+			case ShaderUniformType::Int2:
+				emitter << static_cast<std::span<const int>>(value.As<Int2>());
+				break;
+			case ShaderUniformType::Int3:
+				emitter << static_cast<std::span<const int>>(value.As<Int3>());
+				break;
+			case ShaderUniformType::Int4:
+				emitter << static_cast<std::span<const int>>(value.As<Int4>());
+				break;
+			case ShaderUniformType::Bool:
+				emitter << value.As<bool>();
+				break;
+			case ShaderUniformType::Texture:
+			{
+				SharedRef<Texture> tex = value.As<SharedRef<Texture>>();
 
-				out << YAML::Key << "type" << YAML::Value << static_cast<int>(param.Type);
-
-				out << YAML::Key << "value" << YAML::Value;
-
-				switch (param.Type)
+				if (tex)
 				{
-				case ShaderUniformType::Float:
-					out << param.As<float>();
-					break;
-				case ShaderUniformType::Float2:
-					out << param.As<Vector2>();
-					break;
-				case ShaderUniformType::Float3:
-					out << param.As<Vector3>();
-					break;
-				case ShaderUniformType::Float4:
-					out << param.As<Vector4>();
-					break;
-				case ShaderUniformType::Color:
-					out << param.As<Color>();
-					break;
-				case ShaderUniformType::Mat4x4:
-					out << param.As<Matrix4x4>();
-					break;
-				case ShaderUniformType::Int:
-					out << param.As<int>();
-					break; 
-				case ShaderUniformType::Int2:
-					out << param.As<Vector2Int>();
-					break;
-				case ShaderUniformType::Int3:
-					out << param.As<Vector3Int>();
-					break;
-				case ShaderUniformType::Int4:
-					out << param.As<Vector4Int>();
-					break;
-				case ShaderUniformType::Bool:
-					out << param.As<bool>();
-					break;
-				case ShaderUniformType::Texture:
-				{
-					SharedRef<Texture> tex = param.As<SharedRef<Texture>>();
-
-					if (tex)
-						out << tex->GetContentPath();
-					else
-						out << "";
+					emitter << *tex;
 				}
+				else
+				{
+					emitter << "";
 				}
 
-				out << YAML::EndMap;
+				break;
 			}
-		);
+			default:
+				CocoWarn("Parameter \"{}\" is not a known ShaderUniformValue type", value.Name)
+				break;
+			}
 
-		out << YAML::EndMap;
+			emitter << YAML::EndMap;
+		}
 
-		out << YAML::EndMap << YAML::Comment("Fix");
+		emitter << YAML::EndMap;
 
-		return string(out.c_str());
+		return true;
 	}
 
-	bool MaterialSerializer::DeserializeMaterial(const string& data, Material& material)
+	SharedRef<Resource> MaterialSerializer::CreateResource(const ResourceID& id)
 	{
-		YAML::Node baseNode = YAML::Load(data);
+		return CreateSharedRef<Material>(id);
+	}
 
-		material._parameters.clear();
+	bool MaterialSerializer::DeserializeYAML(const YAML::Node& baseNode, SharedRef<Resource> resource)
+	{
+		SharedRef<Material> material = std::dynamic_pointer_cast<Material>(resource);
+		if (!material)
+		{
+			CocoError("Resource was not a material resource")
+			return false;
+		}
 
+		material->_parameters.clear();
 		YAML::Node parametersNode = baseNode["parameters"];
+
 		for (YAML::const_iterator it = parametersNode.begin(); it != parametersNode.end(); it++)
 		{
 			string paramName = it->first.as<string>();
-
 			ShaderUniformType type = static_cast<ShaderUniformType>(it->second["type"].as<int>());
+			YAML::Node valueNode = it->second["value"];
 			std::any value;
 
-			YAML::Node valueNode = it->second["value"];
 			switch (type)
 			{
 			case ShaderUniformType::Float:
 				value = valueNode.as<float>();
 				break;
 			case ShaderUniformType::Float2:
-				value = valueNode.as<Vector2>();
+				value = valueNode.as<Float2>();
 				break;
 			case ShaderUniformType::Float3:
-				value = valueNode.as<Vector3>();
+				value = valueNode.as<Float3>();
 				break;
 			case ShaderUniformType::Float4:
-				value = valueNode.as<Vector4>();
-				break;
 			case ShaderUniformType::Color:
-				value = valueNode.as<Color>();
+				value = valueNode.as<Float4>();
 				break;
-			case ShaderUniformType::Mat4x4:
-				value = valueNode.as<Matrix4x4>();
+			case ShaderUniformType::Matrix4x4:
+				value = valueNode.as<FloatMatrix4x4>();
 				break;
 			case ShaderUniformType::Int:
 				value = valueNode.as<int>();
 				break;
 			case ShaderUniformType::Int2:
-				value = valueNode.as<Vector2Int>();
+				value = valueNode.as<Int2>();
 				break;
 			case ShaderUniformType::Int3:
-				value = valueNode.as<Vector3Int>();
+				value = valueNode.as<Int3>();
 				break;
 			case ShaderUniformType::Int4:
-				value = valueNode.as<Vector4Int>();
+				value = valueNode.as<Int4>();
 				break;
 			case ShaderUniformType::Bool:
 				value = valueNode.as<bool>();
 				break;
 			case ShaderUniformType::Texture:
 			{
-				string texturePath = valueNode.as<string>();
+				SharedRef<Texture> tex = std::dynamic_pointer_cast<Texture>(LoadResourceFromYAML(valueNode));
 
-				if (texturePath.empty())
+				if (!tex)
 				{
-					value = SharedRef<Texture>();
-				}
-				else
-				{
-					value = Engine::Get()->GetResourceLibrary().GetOrLoad<Texture>(texturePath);
+					CocoWarn("Could not load texture for parameter \"{}\"", paramName)
 				}
 
+				value = tex;
 				break;
 			}
 			default:
+				CocoWarn("Parameter \"{}\" is not a known ShaderUniformValue type", paramName)
 				break;
 			}
 
-			material._parameters[paramName] = MaterialParameter(paramName, type, value);
+			material->_parameters.emplace_back(paramName, type, value);
 		}
 
-		material.IncrementVersion();
+		material->IncrementVersion();
 
 		return true;
 	}
-
-	/*string MaterialSerializer::SerializeMaterialInstance(const MaterialInstance& material)
-	{
-		YAML::Emitter out;
-		out << YAML::BeginMap;
-
-		out << YAML::Key << "name" << YAML::Value << material.GetName();
-
-		SharedRef<Material> baseMaterial = material._baseMaterial;
-
-		out << YAML::Key << "base material path" << YAML::Value << (baseMaterial ? baseMaterial->GetContentPath() : "");
-
-		out << YAML::Key << "uniforms" << YAML::Value << YAML::BeginMap;
-
-		ShaderUniformDataSerializer::Serialize(out, material._uniformData, material._textures);
-
-		out << YAML::EndMap;
-
-		out << YAML::EndMap << YAML::Comment("Fix");
-
-		return string(out.c_str());
-	}
-
-	SharedRef<Resource> MaterialSerializer::DeserializeMaterialInstance(const ResourceID& resourceID, const string& data)
-	{
-		YAML::Node baseNode = YAML::Load(data);
-		string name = baseNode["name"].as<string>();
-		string baseMaterialPath = baseNode["base material path"].as<string>();
-
-		SharedRef<Material> baseMaterial = nullptr;
-		if(!baseMaterialPath.empty())
-			baseMaterial = Engine::Get()->GetResourceLibrary().GetOrLoad<Material>(baseMaterialPath);
-
-		SharedRef<MaterialInstance> material = CreateSharedRef<MaterialInstance>(resourceID, name, baseMaterial);
-
-		YAML::Node uniformsNode = baseNode["uniforms"];
-		ShaderUniformDataSerializer::Deserialize(uniformsNode, material->_uniformData, material->_textures);
-
-		return material;
-	}*/
 }

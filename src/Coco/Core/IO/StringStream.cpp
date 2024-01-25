@@ -1,6 +1,8 @@
 #include "Corepch.h"
 #include "StringStream.h"
 
+#include "../Engine.h"
+
 namespace Coco
 {
     StringStream::StringStream(const string& str) :
@@ -29,7 +31,7 @@ namespace Coco
         _stream.clear();
         Seek(p, false);
 
-        Assert(GetPosition() == p)
+        CocoAssert(GetPosition() == p, "Failed to reset position after peek")
     }
 
     string StringStream::ReadText(uint64 maxLength)

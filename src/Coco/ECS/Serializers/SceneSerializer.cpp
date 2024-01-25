@@ -3,162 +3,127 @@
 
 #include "../Scene.h"
 
-#include "Components/EntityInfoComponentSerializer.h"
 #include "../Components/EntityInfoComponent.h"
-
-#include "Components/Transform3DComponentSerializer.h"
-#include "../Components/Transform3DComponent.h"
-
-#include "Components/Rendering/CameraComponentSerializer.h"
-#include "../Components/Rendering/CameraComponent.h"
-
-#include "Components/Rendering/MeshRendererComponentSerializer.h"
-#include "../Components/Rendering/MeshRendererComponent.h"
+#include "ComponentSerializerFactory.h"
 
 #include <Coco/Core/Engine.h>
 
 #include <yaml-cpp/yaml.h>
-#include <Coco/Third Party/yaml-cpp/Converters.h>
+#include <Coco/Core/Types/YAMLConverters.h>
 
 namespace Coco::ECS
 {
-	ComponentSerializerInstance::ComponentSerializerInstance(
-		TestFunctionType testFunc,
-		UniqueRef<ComponentSerializer>&& serializer) :
-		TestFunc(testFunc),
-		Serializer(std::move(serializer))
+	SceneSerializer::SceneSerializer()
 	{}
 
-	std::vector<ComponentSerializerInstance> SceneSerializer::_sComponentSerializers;
-
-	SceneSerializer::SceneSerializer()
-	{
-		_sComponentSerializers = std::vector<ComponentSerializerInstance>();
-		AddDefaultSerializers();
-	}
-
 	SceneSerializer::~SceneSerializer()
-	{
-		_sComponentSerializers.clear();
-	}
+	{}
 
-	bool SceneSerializer::SupportsFileExtension(const string& extension) const
-	{
-		return extension == ".cscene";
-	}
-
-	bool SceneSerializer::SupportsResourceType(const std::type_index& type) const
-	{
-		return type == typeid(Scene);
-	}
-
-	string SceneSerializer::Serialize(SharedRef<Resource> resource)
+	bool SceneSerializer::SerializeYAML(YAML::Emitter& emitter, const SharedRef<Resource>& resource)
 	{
 		SharedRef<Scene> scene = std::dynamic_pointer_cast<Scene>(resource);
 
-		Assert(scene)
+		if (!scene)
+		{
+			CocoError("Resource was not a scene resource")
+			return false;
+		}
 
-		YAML::Emitter out;
+		emitter << YAML::Key << "entities" << YAML::Value << YAML::BeginMap;
 
-		out << YAML::BeginMap;
+		std::vector<Entity> sceneRootEntities = scene->GetEntities(true);
 
-		out << YAML::Key << "hierarchy" << YAML::Value << YAML::BeginMap;
-		for (const auto& kvp : scene->_entityParentMap)
-			out << YAML::Key << kvp.first << YAML::Value << kvp.second;
+		for (const Entity& entity : sceneRootEntities)
+			SerializeEntity(emitter, entity);
 
-		out << YAML::EndMap;
+		emitter << YAML::EndMap;
 
-		out << YAML::Key << "entities" << YAML::Value << YAML::BeginSeq;
-
-		scene->EachEntity([&](Entity& e) 
-			{
-				SerializeEntity(out, e);
-			});
-
-		out << YAML::EndSeq;
-		out << YAML::EndMap << YAML::Comment("Fix");
-
-		return out.c_str();
+		return true;
 	}
 
-	SharedRef<Resource> SceneSerializer::CreateAndDeserialize(const ResourceID& id, const string& name, const string& data)
+	SharedRef<Resource> SceneSerializer::CreateResource(const ResourceID& id)
 	{
-		SharedRef<Scene> scene = CreateSharedRef<Scene>(id, name);
-
-		// TODO: this can be forgetful, so change this sometime
-		scene->UseDefaultSystems();
-
-		Deserialize(data, scene);
-
-		return scene;
+		return CreateSharedRef<Scene>(id);
 	}
 
-	bool SceneSerializer::Deserialize(const string& data, SharedRef<Resource> resource)
+	bool SceneSerializer::DeserializeYAML(const YAML::Node& baseNode, SharedRef<Resource> resource)
 	{
 		SharedRef<Scene> scene = std::dynamic_pointer_cast<Scene>(resource);
 
-		Assert(scene)
+		if (!scene)
+		{
+			CocoError("Resource was not a scene resource")
+			return false;
+		}
 
-		YAML::Node baseNode = YAML::Load(data);
+		scene->DestroyAllEntities(false);
 
-		scene->Clear();
-
+		std::vector<Entity> rootEntities;
 		YAML::Node entitiesNode = baseNode["entities"];
-		for (YAML::const_iterator it = entitiesNode.begin(); it != entitiesNode.end(); it++)
+		for (YAML::const_iterator it = entitiesNode.begin(); it != entitiesNode.end(); ++it)
 		{
-			DeserializeEntity(scene, *it);
+			rootEntities.push_back(DeserializeEntity(scene, it->first.as<string>(), it->second, Entity::Null));
 		}
 
-		YAML::Node hierarchyNode = baseNode["hierarchy"];
-		for (YAML::const_iterator it = hierarchyNode.begin(); it != hierarchyNode.end(); it++)
-			scene->_entityParentMap[it->first.as<EntityID>()] = it->second.as<EntityID>();
-
-
-		for (const auto& e : scene->GetRootEntities())
-		{
-			auto& info = e.GetComponent<EntityInfoComponent>();
-			info.UpdateSceneVisibility(info._isActive);
-
-			Transform3DComponent* transform3D;
-			if (e.TryGetComponent<Transform3DComponent>(transform3D))
-			{
-				transform3D->Recalculate();
-			}
-		}
+		scene->EntitiesAdded(rootEntities);
 
 		return true;
 	}
 
 	void SceneSerializer::SerializeEntity(YAML::Emitter& emitter, const Entity& entity)
 	{
-		emitter << YAML::BeginMap;
+		const EntityInfoComponent& entityInfo = entity.GetComponent<EntityInfoComponent>();
 
-		for (auto& serializer : _sComponentSerializers)
+		emitter << YAML::Key << entityInfo.GetName() << YAML::Value << YAML::BeginMap;
+
+		emitter << YAML::Key << "components" << YAML::Value << YAML::BeginMap;
+		for (auto& serializerKVP : ComponentSerializerFactory::GetMap())
 		{
-			if (!serializer.TestFunc(entity))
+			auto serializer = ComponentSerializerFactory::Create(serializerKVP.first);
+
+			if (!serializer->ShouldUseForEntity(entity))
 				continue;
 
-			serializer.Serializer->Serialize(emitter, entity);
+			emitter << YAML::Key << serializerKVP.first << YAML::BeginMap;
+			serializer->Serialize(emitter, entity);
+			emitter << YAML::EndMap;
 		}
+		emitter << YAML::EndMap;
+
+		emitter << YAML::Key << "childEntities" << YAML::Value << YAML::BeginMap;
+		for (const Entity& child : entity.GetChildren())
+		{
+			SerializeEntity(emitter, child);
+		}
+		emitter << YAML::EndMap;
 
 		emitter << YAML::EndMap;
 	}
 
-	void SceneSerializer::DeserializeEntity(SharedRef<Scene>& scene, const YAML::Node& entityNode)
+	Entity SceneSerializer::DeserializeEntity(SharedRef<Scene>& scene, const string& entityName, const YAML::Node& entityNode, const Entity& parent)
 	{
-		Entity entity = scene->CreateEntity("Entity", InvalidEntityID, Entity::Null);
+		Entity entity = scene->CreateEntity(entityName, parent);
 
-		for (auto& serializer : _sComponentSerializers)
+		YAML::Node childEntitiesNode = entityNode["childEntities"];
+		for (YAML::const_iterator it = childEntitiesNode.begin(); it != childEntitiesNode.end(); ++it)
 		{
-			serializer.Serializer->Deserialize(entityNode, entity);
+			DeserializeEntity(scene, it->first.as<string>(), it->second, entity);
 		}
-	}
 
-	void SceneSerializer::AddDefaultSerializers()
-	{
-		RegisterComponentSerializer<EntityInfoComponent, EntityInfoComponentSerializer>();
-		RegisterComponentSerializer<Transform3DComponent, Transform3DComponentSerializer>();
-		RegisterComponentSerializer<CameraComponent, CameraComponentSerializer>();
-		RegisterComponentSerializer<MeshRendererComponent, MeshRendererComponentSerializer>();
+		YAML::Node componentsNode = entityNode["components"];
+		for (YAML::const_iterator it = componentsNode.begin(); it != componentsNode.end(); ++it)
+		{
+			string componentTypename = it->first.as<string>();
+			if (!ComponentSerializerFactory::Has(componentTypename))
+			{
+				CocoError("Unknown component type \"{}\"", componentTypename)
+				continue;
+			}
+
+			auto serializer = ComponentSerializerFactory::Create(componentTypename);
+			serializer->Deserialize(it->second, entity);
+		}
+
+		return entity;
 	}
 }

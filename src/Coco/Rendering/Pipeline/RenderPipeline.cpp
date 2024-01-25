@@ -5,51 +5,47 @@
 
 namespace Coco::Rendering
 {
-	std::hash<RenderPipeline*> _pipelineHasher;
-
-	RenderPipeline::RenderPipeline(const ResourceID& id, const string& name, AttachmentOptionFlags defaultAttachmentOptions) :
-		Resource(id, name),
-		_renderPasses{},
-		_defaultAttachmentOptions(defaultAttachmentOptions),
-		_attachmentOptions(),
-		_compiledPipeline(id),
-		_isDirty(true)
+	RenderPipelineCompileException::RenderPipelineCompileException(const string& message) :
+		Exception(message)
 	{}
 
-	RenderPipeline::~RenderPipeline()
-	{
-		_renderPasses.clear();
-	}
+	RenderPipeline::RenderPipeline(const ResourceID& id, AttachmentOptionsFlags defaultAttachmentOptions) :
+		Resource(id),
+		_defaultAttachmentOptions(defaultAttachmentOptions),
+		_renderPasses(),
+		_compiledPipeline()
+	{}
 
-	bool RenderPipeline::AddRenderPass(SharedRef<RenderPass> renderPass, std::span<const uint8> bindingIndices)
+	bool RenderPipeline::AddRenderPass(SharedRef<RenderPass> renderPass, std::span<const uint32> pipelineAttachmentBindingIndices)
 	{
-		std::span<const AttachmentFormat> passInputAttachments = renderPass->GetInputAttachments();
+		std::span<const RenderPassAttachment> passAttachments = renderPass->GetAttachments();
 
-		if (bindingIndices.size() != passInputAttachments.size())
+		if (pipelineAttachmentBindingIndices.size() != passAttachments.size())
 		{
-			CocoError("Binding index count does not match the number of input attachments for the render pass ({} != {})", bindingIndices.size(), passInputAttachments.size())
+			CocoError("pipelineAttachmentBindingIndices size does not match the number of attachments for the render pass ({} != {})", 
+				pipelineAttachmentBindingIndices.size(), passAttachments.size())
 			return false;
 		}
 
-		std::unordered_map<uint8, uint8> indexMapping;
-		for (uint8 i = 0; i < bindingIndices.size(); i++)
-			indexMapping[bindingIndices[i]] = i;
+		std::unordered_map<uint32, uint32> pipelineAttachmentMapping;
+		for (uint32 i = 0; i < pipelineAttachmentBindingIndices.size(); i++)
+			pipelineAttachmentMapping[pipelineAttachmentBindingIndices[i]] = i;
 
-		_renderPasses.emplace_back(renderPass, indexMapping);
+		_renderPasses.emplace_back(renderPass, pipelineAttachmentMapping);
 
 		MarkDirty();
-
 		return true;
 	}
 
 	void RenderPipeline::RemoveRenderPass(const SharedRef<RenderPass>& renderPass)
 	{
-		auto it = std::find_if(_renderPasses.begin(), _renderPasses.end(), [renderPass](const RenderPassBinding& binding)
+		auto it = std::find_if(_renderPasses.begin(), _renderPasses.end(), 
+			[renderPass](const RenderPassPipelineBinding& binding)
 			{
 				return renderPass.get() == binding.Pass.get();
 			});
 
-		if (it == _renderPasses.cend())
+		if(it == _renderPasses.end())
 		{
 			CocoError("RenderPass was not added to this RenderPipeline")
 			return;
@@ -59,142 +55,91 @@ namespace Coco::Rendering
 		MarkDirty();
 	}
 
-	void RenderPipeline::SetDefaultAttachmentOptions(AttachmentOptionFlags options)
+	const CompiledRenderPipeline& RenderPipeline::GetOrCompile()
 	{
-		_defaultAttachmentOptions = options;
+		if (_compiledPipeline.has_value())
+			return *_compiledPipeline;
+		
+		std::vector<std::optional<RenderPassAttachment>> pipelineAttachments;
+		std::vector<RenderPassPipelineBinding> pipelinePasses;
+		pipelinePasses.reserve(_renderPasses.size());
 
-		MarkDirty();
-	}
-
-	void RenderPipeline::SetAttachmentOptions(uint8 pipelineAttachmentIndex, AttachmentOptionFlags options)
-	{
-		_attachmentOptions[pipelineAttachmentIndex] = options;
-
-		MarkDirty();
-	}
-
-	void RenderPipeline::RemoveAttachmentOptions(uint8 pipelineAttachmentIndex)
-	{
-		if (!_attachmentOptions.contains(pipelineAttachmentIndex))
-			return;
-
-		_attachmentOptions.erase(pipelineAttachmentIndex);
-
-		MarkDirty();
-	}
-
-	AttachmentOptionFlags RenderPipeline::GetAttachmentOptions(uint8 pipelineAttachmentIndex) const
-	{
-		auto it = _attachmentOptions.find(pipelineAttachmentIndex);
-
-		if (it != _attachmentOptions.end())
-			return it->second;
-
-		return _defaultAttachmentOptions;
-	}
-
-	bool RenderPipeline::Compile()
-	{
-		CheckIfRenderPassesDirty();
-
-		if (!_isDirty)
-			return true;
-
-		try
+		for (const RenderPassPipelineBinding& pass : _renderPasses)
 		{
-			std::vector<RenderPassBinding> bindings;
-			_compiledPipeline.Attachments.clear();
+			std::span<const RenderPassAttachment> passAttachments = pass.Pass->GetAttachments();
 
-			for (const RenderPassBinding& binding : _renderPasses)
+			for (const auto& kvp : pass.PipelineToPassAttachmentMapping)
 			{
-				if (!binding.PassEnabled)
-					continue;
+				const uint8 pipelineAttachmentIndex = kvp.first;
+				const uint8 passAttachmentIndex = kvp.second;
+				const RenderPassAttachment& passAttachment = passAttachments[passAttachmentIndex];
 
-				std::span<const AttachmentFormat> passAttachments = binding.Pass->GetInputAttachments();
-
-				for (const auto& kvp : binding.PipelineToPassIndexMapping)
+				if (pipelineAttachmentIndex < pipelineAttachments.size())
 				{
-					const uint8 pipelineAttachmentIndex = kvp.first;
-					const uint8 passAttachmentIndex = kvp.second;
-					const AttachmentFormat& passAttachment = passAttachments[passAttachmentIndex];
+					const auto& pipelineAttachment = pipelineAttachments.at(pipelineAttachmentIndex);
 
-					if (pipelineAttachmentIndex < _compiledPipeline.Attachments.size())
+					// If the pipeline attachment is already defined, make sure it is compatible with the pass attachment
+					if (pipelineAttachment.has_value() && !pipelineAttachment->IsCompatible(passAttachment))
 					{
-						const CompiledPipelineAttachment& pipelineAttachment = _compiledPipeline.Attachments.at(pipelineAttachmentIndex);
-
-						if (!pipelineAttachment.IsCompatible(passAttachment))
-						{
-							string err = FormatString(
-								"Error compiling RenderPipeline: Attachment {} on RenderPass is incompatible with previously defined RenderPipeline attachment {}",
+						throw RenderPipelineCompileException(
+							FormatString(
+								"Attachment {} on RenderPass \"{}\" is incompatible with previously defined RenderPipeline attachment {}",
 								passAttachmentIndex,
-								pipelineAttachmentIndex);
-
-							throw std::exception(err.c_str());
-						}
-					}
-					else
-					{
-						_compiledPipeline.Attachments.resize(static_cast<size_t>(pipelineAttachmentIndex) + 1);
-					}
-
-					CompiledPipelineAttachment& pipelineAttachment = _compiledPipeline.Attachments.at(pipelineAttachmentIndex);
-
-					if (pipelineAttachment == CompiledPipelineAttachment::Empty)
-					{
-						pipelineAttachment = CompiledPipelineAttachment(passAttachment, GetAttachmentOptions(pipelineAttachmentIndex));
+								pass.Pass->GetName(),
+								pipelineAttachmentIndex
+							)
+						);
 					}
 				}
-
-				bindings.push_back(binding);
-			}
-
-			bool missingAttachments = std::any_of(_compiledPipeline.Attachments.begin(), _compiledPipeline.Attachments.end(), 
-				[](const CompiledPipelineAttachment& attachment)
+				else
 				{
-					return attachment == CompiledPipelineAttachment::Empty;
-				});
+					pipelineAttachments.resize(static_cast<size_t>(pipelineAttachmentIndex) + 1);
+				}
 
-			if (missingAttachments)
-			{
-				throw std::exception("The list of input attachments is not continuous");
+				auto& pipelineAttachment = pipelineAttachments.at(pipelineAttachmentIndex);
+
+				if (!pipelineAttachment.has_value())
+				{
+					pipelineAttachment.emplace(passAttachment);
+				}
+				else
+				{
+					pipelineAttachment->UsageFlags |= passAttachment.UsageFlags;
+					pipelineAttachment->OptionsFlags |= passAttachment.OptionsFlags;
+				}
+
+				pipelineAttachment->OptionsFlags |= _defaultAttachmentOptions;
 			}
 
-			_compiledPipeline.Version++;
-			_compiledPipeline.RenderPasses = std::move(bindings);
+			pipelinePasses.push_back(pass);
+		}
 
-			_isDirty = false;
-			return true;
-		}
-		catch (const std::exception& ex)
+		bool missingAttachments = std::any_of(pipelineAttachments.begin(), pipelineAttachments.end(),
+			[](const auto& attachment)
+			{
+				return !attachment.has_value();
+			});
+
+		if (missingAttachments)
 		{
-			CocoError("Error compiling RenderPipeline: {}", ex.what())
-			return false;
+			throw RenderPipelineCompileException("The list of pipeline attachments is not continuous");
 		}
+
+		CompiledRenderPipeline& compiledPipeline = _compiledPipeline.emplace(GetID(), GetVersion());
+		compiledPipeline.RenderPasses = pipelinePasses;
+
+		std::transform(pipelineAttachments.begin(), pipelineAttachments.end(),
+			std::back_inserter(compiledPipeline.Attachments),
+			[](const auto& attachment)
+			{
+				return attachment.value();
+			});
+
+		return compiledPipeline;
 	}
 
 	void RenderPipeline::MarkDirty()
 	{
-		_isDirty = true;
-	}
-
-	void RenderPipeline::CheckIfRenderPassesDirty()
-	{
-		if (_compiledPipeline.RenderPasses.size() != _renderPasses.size())
-		{
-			MarkDirty();
-			return;
-		}
-
-		for (uint64 i = 0; i < _renderPasses.size(); i++)
-		{
-			const RenderPassBinding& binding = _renderPasses.at(i);
-			const RenderPassBinding& compiledBinding = _compiledPipeline.RenderPasses.at(i);
-
-			if (binding.PassEnabled != compiledBinding.PassEnabled)
-			{
-				MarkDirty();
-				return;
-			}
-		}
+		_compiledPipeline.reset();
 	}
 }

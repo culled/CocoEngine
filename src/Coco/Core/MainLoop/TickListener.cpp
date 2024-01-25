@@ -10,8 +10,7 @@ namespace Coco
 		Priority(priority),
 		_enabled(true),
 		_tickPeriod(0.0),
-		_timeSinceLastTick(0.0),
-		_isRegistered(false)
+		_timeSinceLastTick(0.0)
 	{}
 
 	void TickListener::SetEnabled(bool enabled)

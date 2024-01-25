@@ -6,8 +6,8 @@ project "Coco.Core.Tests"
     pchheader "pch.h"
     pchsource "pch.cpp"
     
-    OutputBin = "%{OutputDir.bin}%{prj.name}"
-    OutputObj = "%{OutputDir.obj}%{prj.name}"
+    OutputBin = "%{OutputDir.bin}Tests/%{prj.name}"
+    OutputObj = "%{OutputDir.obj}Tests/%{prj.name}"
 
     targetdir(OutputBin)
     objdir(OutputObj)

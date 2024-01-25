@@ -1,20 +1,36 @@
 #include "Renderpch.h"
 #include "VulkanGraphicsPlatformFactory.h"
 #include "VulkanGraphicsPlatform.h"
-#include "VulkanUtils.h"
 
 namespace Coco::Rendering::Vulkan
 {
-	const Version VulkanGraphicsPlatformFactory::sDefaultAPIVersion = Version(1, 2, 0);
+	VulkanGraphicsDeviceCreateParams::VulkanGraphicsDeviceCreateParams() :
+		PreferredDeviceType(GraphicsDeviceType::Discrete),
+		PresentationSupport(true),
+		RequireComputeCapability(true),
+		RequireTransferCapability(true),
+		EnableAnisotropicSampling(true),
+		EnableDepthClamping(false),
+		EnableWireframeDrawing(false)
+	{}
 
-	VulkanGraphicsPlatformFactory::VulkanGraphicsPlatformFactory(const GraphicsPlatformCreateParams& createParams, const Version& apiVersion, bool useValidationLayers) :
-		GraphicsPlatformFactory(createParams),
-		_apiVersion(ToVkVersion(apiVersion)),
-		_useValidationLayers(useValidationLayers)
+	const Version VulkanGraphicsPlatformCreateParams::DefaultAPIVersion = Version(1, 3, 0);
+
+	VulkanGraphicsPlatformCreateParams::VulkanGraphicsPlatformCreateParams(const Application& app, bool presentationSupport) :
+		App(app),
+		PresentationSupport(presentationSupport),
+		APIVersion(DefaultAPIVersion),
+		UseValidationLayers(false),
+		RenderingExtensions(),
+		DeviceCreateParams()
+	{}
+
+	VulkanGraphicsPlatformFactory::VulkanGraphicsPlatformFactory(const VulkanGraphicsPlatformCreateParams& createParams) :
+		_createParams(createParams)
 	{}
 
 	UniqueRef<GraphicsPlatform> VulkanGraphicsPlatformFactory::Create() const
 	{
-		return CreateUniqueRef<VulkanGraphicsPlatform>(_createParams, _apiVersion, _useValidationLayers);
+		return CreateUniqueRef<VulkanGraphicsPlatform>(_createParams);
 	}
 }

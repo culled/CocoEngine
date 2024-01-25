@@ -2,7 +2,7 @@
 
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/String.h>
-#include <Coco/Rendering/Graphics/GraphicsPresenterTypes.h>
+#include <Coco/Rendering/Graphics/PresenterTypes.h>
 
 namespace Coco::Platforms::Win32
 {
@@ -16,7 +16,7 @@ namespace Coco::Platforms::Win32
         /// @param renderRHIName The name of the render RHI being used
         /// @param window The window to create the surface for
         /// @return The created surface
-        virtual SharedRef<Rendering::GraphicsPresenterSurface> CreateSurfaceForWindow(const char* renderRHIName, const Win32Window& window) const;
+        virtual UniqueRef<Rendering::PresenterSurface> CreateSurfaceForWindow(const string& renderRHIName, const Win32Window& window) const;
 
         /// @brief Shows an open-file dialog
         /// @param filters The file filters
@@ -33,7 +33,7 @@ namespace Coco::Platforms::Win32
         /// @brief Creates a Vulkan surface for a window
         /// @param window The window to create the surface for
         /// @return The created surface
-        SharedRef<Rendering::GraphicsPresenterSurface> CreateVulkanSurfaceForWindow(const Win32Window& window) const;
+        UniqueRef<Rendering::PresenterSurface> CreateVulkanSurfaceForWindow(const Win32Window& window) const;
 #endif
     };
 }

@@ -7,11 +7,6 @@ namespace Coco
 	/// @brief A basic stopwatch that can be started and stopped
 	class Stopwatch
 	{
-	private:
-		TimeSpan _time;
-		double _startTimeSeconds;
-		bool _isRunning;
-
 	public:
 		Stopwatch();
 		Stopwatch(bool startAutomatically);
@@ -31,5 +26,10 @@ namespace Coco
 		/// @brief Gets the time that this timer was last started, in platform seconds
 		/// @return The time that this timer was last started
 		double GetStartTimeSeconds() const { return _startTimeSeconds; }
+
+	private:
+		TimeSpan _time;
+		double _startTimeSeconds;
+		bool _isRunning;
 	};
 }

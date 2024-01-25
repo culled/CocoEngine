@@ -3,16 +3,10 @@
 #include "../Defines.h"
 #include "../Types/Refs.h"
 #include "../Types/String.h"
-#include "../IO/FileTypes.h"
+#include "ResourceTypes.h"
 
 namespace Coco
 {
-	/// @brief An ID for a resource
-	using ResourceID = uint64;
-
-	/// @brief A version for a resource
-	using ResourceVersion = uint64;
-
 	/// @brief Base class for Engine resources
 	class Resource :
 		public std::enable_shared_from_this<Resource>
@@ -20,23 +14,16 @@ namespace Coco
 		friend class ResourceLibrary;
 
 	public:
-		/// @brief An invalid resource ID
-		static const ResourceID InvalidID;
-
-	private:
-		ResourceID _id;
-		ResourceVersion _version;
-		string _name;
-		FilePath _contentPath;
-		ResourceVersion _savedVersion;
-
-	public:
-		Resource(const ResourceID& id, const string& name);
+		Resource(const ResourceID& id);
 		virtual ~Resource() = default;
 
-		/// @brief Gets the underlying type of this resource
+		/// @brief Gets the type of this resource
 		/// @return This resource's type
-		virtual std::type_index GetType() const = 0;
+		virtual const std::type_info& GetType() const = 0;
+
+		/// @brief Gets the typename of this resource
+		/// @return This resource's typename
+		virtual const char* GetTypename() const = 0;
 
 		/// @brief Gets the ID of this resource
 		/// @return This resource's ID
@@ -46,26 +33,13 @@ namespace Coco
 		/// @return This resource's version
 		const ResourceVersion& GetVersion() const { return _version; }
 
-		/// @brief Sets the name of this resource
-		/// @param name The name
-		void SetName(const string& name);
-
-		/// @brief Gets the name of this resource
-		/// @return This resource's name
-		const string& GetName() const { return _name; }
-
-		/// @brief Gets the content path of this resource, if it is associated with a file
-		/// @return This resource's content path
-		const FilePath& GetContentPath() const { return _contentPath; }
-
-		/// @brief Determines if this resource has changed since it was last saved 
-		/// @return True if this resource has changed since it was last saved
-		bool NeedsSaving() const;
-
 	protected:
 		/// @brief Sets the version of this resource
 		/// @param version The new version
 		void SetVersion(const ResourceVersion& version);
+
+		/// @brief Increments the version of this resource
+		void IncrementVersion();
 
 		/// @brief Gets a self-reference for this resource
 		/// @tparam DerivedType The derived type
@@ -76,8 +50,8 @@ namespace Coco
 			return std::static_pointer_cast<DerivedType>(shared_from_this());
 		}
 
-		/// @brief Marks this resource as being saved at the given path
-		/// @param contentPath The saved path of this resource
-		void MarkSaved(const FilePath& contentPath);
+	private:
+		ResourceID _id;
+		ResourceVersion _version;
 	};
 }

@@ -14,6 +14,22 @@ namespace Coco::ECS
 		DestroyAttachedScript();
 	}
 
+	void NativeScriptComponent::CreateAttachedScript()
+	{
+		if (!_createScriptFunc)
+			return;
+
+		if (_scriptInstance)
+		{
+			DestroyAttachedScript();
+		}
+
+		_scriptInstance = _createScriptFunc();
+		_scriptInstance->_entity = GetOwner();
+
+		_scriptInstance->OnCreate();
+	}
+
 	void NativeScriptComponent::DestroyAttachedScript()
 	{
 		if (!_scriptInstance)
@@ -22,7 +38,5 @@ namespace Coco::ECS
 		_scriptInstance->OnDestroy();
 		_scriptInstance.reset();
 		_scriptStarted = false;
-
-		CocoTrace("Destroyed attached script")
 	}
 }

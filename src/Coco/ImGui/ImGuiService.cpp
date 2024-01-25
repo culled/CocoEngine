@@ -40,8 +40,9 @@ namespace Coco::ImGuiCoco
 	{
 		using namespace Coco::Rendering;
 
-		MainLoop::Get()->AddListener(_newFrameTickListener);
-		MainLoop::Get()->AddListener(_drawTickListener);
+		MainLoop& mainLoop = *MainLoop::Get();
+		mainLoop.AddTickListener(_newFrameTickListener);
+		mainLoop.AddTickListener(_drawTickListener);
 
 		// Create the ImGui context and run setup
 		::ImGui::CreateContext();
@@ -56,8 +57,9 @@ namespace Coco::ImGuiCoco
 
 		_platform.reset();
 
-		MainLoop::Get()->RemoveListener(_newFrameTickListener);
-		MainLoop::Get()->RemoveListener(_drawTickListener);
+		MainLoop& mainLoop = *MainLoop::Get();
+		mainLoop.RemoveTickListener(_newFrameTickListener);
+		mainLoop.RemoveTickListener(_drawTickListener);
 
 		::ImGui::DestroyContext();
 
@@ -89,8 +91,7 @@ namespace Coco::ImGuiCoco
 		using namespace Coco::Rendering;
 
 		WindowService* windowing = WindowService::Get();
-		if (!windowing)
-			throw std::exception("No active WindowService found");
+		CocoAssert(windowing, "WindowService singleton was null")
 
 		Ref<Window> mainWindow = windowing->GetMainWindow();
 		if (!mainWindow.IsValid())

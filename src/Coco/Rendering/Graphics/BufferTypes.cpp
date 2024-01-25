@@ -15,7 +15,7 @@ namespace Coco::Rendering
             return BufferFloatSize * 3;
         case BufferDataType::Float4:
             return BufferFloatSize * 4;
-        case BufferDataType::Mat4x4:
+        case BufferDataType::Matrix4x4:
             return BufferFloatSize * 4 * 4;
         case BufferDataType::Int:
             return BufferIntSize;
@@ -32,7 +32,7 @@ namespace Coco::Rendering
         }
 
         Assert(false)
-        return 0;
+            return 0;
     }
 
     uint8 GetBufferDataTypeComponentCount(BufferDataType type)
@@ -52,14 +52,14 @@ namespace Coco::Rendering
         case BufferDataType::Float4:
         case BufferDataType::Int4:
             return 4;
-        case BufferDataType::Mat4x4:
+        case BufferDataType::Matrix4x4:
             return 4 * 4;
         default:
             break;
         }
 
         Assert(false)
-        return 0;
+            return 0;
     }
 
     string GetBufferDataTypeString(BufferDataType type)
@@ -74,8 +74,8 @@ namespace Coco::Rendering
             return "Float3";
         case BufferDataType::Float4:
             return "Float4";
-        case BufferDataType::Mat4x4:
-            return "Mat4x4";
+        case BufferDataType::Matrix4x4:
+            return "Matrix4x4";
         case BufferDataType::Int:
             return "Int";
         case BufferDataType::Int2:
@@ -91,6 +91,6 @@ namespace Coco::Rendering
         }
 
         Assert(false)
-        return "";
+            return "";
     }
 }

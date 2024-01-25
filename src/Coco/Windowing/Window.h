@@ -7,16 +7,13 @@
 #include <Coco/Core/Types/Refs.h>
 #include <Coco/Core/Types/Rect.h>
 
-#include "WindowTypes.h"
+#include <Coco/Rendering/Graphics/Presenter.h>
 
-namespace Coco::Rendering
-{
-	class GraphicsPresenter;
-	struct GraphicsPresenterSurface;
-}
+#include "WindowTypes.h"
 
 namespace Coco::Windowing
 {
+
 	/// @brief A GUI window
 	class Window
 	{
@@ -47,17 +44,7 @@ namespace Coco::Windowing
 
 		/// @brief Invoked when this window had become focused/unfocused
 		Event<bool> OnFocusChanged;
-
-	protected:
-		WindowID _parentID;
-		Ref<Rendering::GraphicsPresenter> _presenter;
-
-	private:
-		static std::atomic<WindowID> _id;
-
-	protected:
-		Window(const WindowCreateParams& createParams);
-
+		
 	public:
 		virtual ~Window();
 
@@ -148,7 +135,7 @@ namespace Coco::Windowing
 
 		/// @brief Gets this window's GraphicsPresenter
 		/// @return This window's GraphicsPresenter
-		Ref<Rendering::GraphicsPresenter> GetPresenter() const { return _presenter; }
+		Ref<Rendering::Presenter> GetPresenter() const { return _presenter; }
 
 		/// @brief Closes this window
 		void Close();
@@ -168,9 +155,15 @@ namespace Coco::Windowing
 		RectInt GetRect(bool clientArea, bool relativeToParent = true) const;
 
 	protected:
+		WindowID _parentID;
+		Ref<Rendering::Presenter> _presenter;
+
+	protected:
+		Window(const WindowCreateParams& createParams);
+
 		/// @brief Creates a surface for this window to render to
 		/// @return The surface
-		virtual SharedRef<Rendering::GraphicsPresenterSurface> CreateSurface() = 0;
+		virtual UniqueRef<Rendering::PresenterSurface> CreateSurface() = 0;
 
 		/// @brief Gets the parent window from the window service, if one exists
 		/// @return A pointer to the parent window, or nullptr if the parent could not be found or this window has no parent
@@ -181,5 +174,8 @@ namespace Coco::Windowing
 
 		/// @brief Ensures that the presenter surface is created
 		void EnsurePresenterSurface();
+
+	private:
+		static std::atomic<WindowID> _id;
 	};
 }

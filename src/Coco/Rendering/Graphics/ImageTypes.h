@@ -21,50 +21,44 @@ namespace Coco::Rendering
 		Unknown
 	};
 
-	/// @brief Determines if two ImagePixelFormats are compatible with each other
-	/// @param a The first pixel format
-	/// @param b The second pixel format
-	/// @return True if the two formats are compatible
-	bool AreCompatible(ImagePixelFormat a, ImagePixelFormat b);
-
-	/// @brief Gets the number of bytes per pixel for a pixel format
-	/// @param format The pixel format
-	/// @return The number of bytes per pixel
-	uint8 GetPixelFormatSize(ImagePixelFormat format);
-
-	/// @brief Gets the number of channels for a pixel format
-	/// @param format The pixel format
-	/// @return The number of channels
-	uint8 GetPixelFormatChannelCount(ImagePixelFormat format);
-
-	/// @brief Determines if the given format is a depth format
-	/// @param format The format
-	/// @return True if the format is a depth format
-	bool IsDepthFormat(ImagePixelFormat format);
-
-	/// @brief Determines if the given format is a stencil format
-	/// @param format The format
-	/// @return True if the format is a stencil format
-	bool IsStencilFormat(ImagePixelFormat format);
-
 	/// @brief Image color spaces
 	enum class ImageColorSpace
 	{
+		/// @brief sRGB color space
 		sRGB,
+
+		/// @brief Linear color space
 		Linear,
+
+		/// @brief Unknown color space
 		Unknown
 	};
 
 	/// @brief Image dimension types
 	enum class ImageDimensionType
 	{
+		/// @brief An image with only a width
 		OneDimensional,
+
+		/// @brief An array of 1D images
 		OneDimensionalArray,
+
+		/// @brief An image with a width and height
 		TwoDimensional,
+
+		/// @brief An array of 2D images
 		TwoDimensionalArray,
+
+		/// @brief An image with a width, height, and depth
 		ThreeDimensional,
+
+		/// @brief An array of 3D images
 		ThreeDimensionalArray,
+
+		/// @brief An image that can be used as a cubemap
 		CubeMap,
+
+		/// @brief An array of cubemap images
 		CubeMapArray
 	};
 
@@ -72,26 +66,27 @@ namespace Coco::Rendering
 	enum class ImageUsageFlags
 	{
 		None = 0,
+
+		/// @brief Allows the image to be the source of a transfer operation
 		TransferSource = 1 << 0,
+
+		/// @brief Allows the image to be the destination of a transfer operation
 		TransferDestination = 1 << 1,
+
+		/// @brief Allows the image to be sampled from shaders
 		Sampled = 1 << 2,
+
+		/// @brief Allows the image to be written to by shaders
 		RenderTarget = 1 << 3,
+
+		/// @brief Allows the image to be presented by a presenter
 		Presented = 1 << 4,
+
+		/// @brief Allows image data to be access via the CPU
 		HostVisible = 1 << 5,
 	};
 
-	constexpr ImageUsageFlags operator|(ImageUsageFlags a, ImageUsageFlags b) { return static_cast<ImageUsageFlags>(static_cast<int>(a) | static_cast<int>(b)); }
-	constexpr ImageUsageFlags operator&(ImageUsageFlags a, ImageUsageFlags b) { return static_cast<ImageUsageFlags>(static_cast<int>(a) & static_cast<int>(b)); }
-	constexpr ImageUsageFlags operator~(ImageUsageFlags a) { return static_cast<ImageUsageFlags>(~static_cast<int>(a)); }
-
-	constexpr void operator|=(ImageUsageFlags& a, ImageUsageFlags b) { a = a | b; }
-	constexpr void operator&=(ImageUsageFlags& a, ImageUsageFlags b) { a = a & b; }
-
-	/// @brief Calculates the number of mip maps for an image with the given dimensions
-	/// @param width The image width
-	/// @param height The image height
-	/// @return The number of mip map levels, including the original image
-	uint32 CalculateMipMapCount(uint32 width, uint32 height);
+	DefineFlagOperators(ImageUsageFlags)
 
 	/// @brief A description of an Image
 	struct ImageDescription
@@ -132,14 +127,6 @@ namespace Coco::Rendering
 		ImageDescription();
 
 		ImageDescription(
-			uint32 width, uint32 height,
-			ImagePixelFormat pixelFormat,
-			ImageColorSpace colorSpace,
-			ImageUsageFlags usageFlags,
-			bool withMipMaps,
-			MSAASamples sampleCount = MSAASamples::One);
-
-		ImageDescription(
 			uint32 width, uint32 height, uint32 depth,
 			uint32 layers,
 			ImagePixelFormat pixelFormat,
@@ -149,5 +136,39 @@ namespace Coco::Rendering
 			MSAASamples sampleCount = MSAASamples::One);
 
 		bool operator==(const ImageDescription& other) const;
+
+		static ImageDescription Create2D(
+			uint32 width, uint32 height,
+			ImagePixelFormat pixelFormat,
+			ImageColorSpace colorSpace,
+			ImageUsageFlags usageFlags,
+			bool withMipMaps,
+			MSAASamples sampleCount = MSAASamples::One);
 	};
+
+	/// @brief Calculates the number of mip maps for an image with the given dimensions
+	/// @param width The image width
+	/// @param height The image height
+	/// @return The number of mip map levels, including the original image
+	uint32 CalculateMipMapCount(uint32 width, uint32 height);
+
+	/// @brief Gets the number of bytes per pixel for a pixel format
+	/// @param format The pixel format
+	/// @return The number of bytes per pixel
+	uint8 GetPixelFormatBytesPerPixel(ImagePixelFormat format);
+
+	/// @brief Gets the number of channels for a pixel format
+	/// @param format The pixel format
+	/// @return The number of channels
+	uint8 GetPixelFormatChannelCount(ImagePixelFormat format);
+
+	/// @brief Determines if the given format is a depth format
+	/// @param format The format
+	/// @return True if the format is a depth format
+	bool IsDepthFormat(ImagePixelFormat format);
+
+	/// @brief Determines if the given format is a stencil format
+	/// @param format The format
+	/// @return True if the format is a stencil format
+	bool IsStencilFormat(ImagePixelFormat format);
 }

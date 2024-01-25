@@ -1,107 +1,72 @@
 #pragma once
-
 #include "../../Image.h"
-#include "../../GraphicsDeviceResource.h"
 
 #include "VulkanIncludes.h"
+#include <vk_mem_alloc.h>
 
 namespace Coco::Rendering::Vulkan
 {
     class VulkanGraphicsDevice;
     class VulkanCommandBuffer;
     class VulkanBuffer;
+    class VulkanQueue;
 
     /// @brief Data for a Vulkan image
-    struct VulkanImageData
+    struct VulkanImageInfo
     {
         /// @brief The image
         VkImage Image;
+        VkImageView NativeView;
 
-        /// @brief The image's memory
-        VkDeviceMemory Memory;
-
-        /// @brief The head index of the image memory
-        uint32 HeapIndex;
+        VmaAllocation Memory;
+        VmaAllocationInfo AllocInfo;
 
         /// @brief The current layout of the image
         VkImageLayout CurrentLayout;
 
-        VulkanImageData();
-        VulkanImageData(VkImage image);
+        VulkanImageInfo();
+        VulkanImageInfo(VkImage image);
     };
 
-    /// @brief Vulkan implementation of an Image
-    class VulkanImage : 
-        public Image, 
-        public GraphicsDeviceResource<VulkanGraphicsDevice>
+    class VulkanImage :
+        public Image
     {
         friend class VulkanRenderContext;
 
-    private:
-        ImageDescription _description;
-        VulkanImageData _imageData;
-        VkImageView _nativeView;
-        VulkanImageData _hostImageData;
-
     public:
-        VulkanImage(const GraphicsDeviceResourceID& id, const ImageDescription& description);
-        VulkanImage(const GraphicsDeviceResourceID& id, const ImageDescription& description, VkImage image);
+        VulkanImage(const GraphicsResourceID& id, VulkanGraphicsDevice& device, const ImageDescription& description, VkImage image);
+        VulkanImage(const GraphicsResourceID& id, VulkanGraphicsDevice& device, const ImageDescription& description);
         ~VulkanImage();
 
-        ImageDescription GetDescription() const final { return _description; }
-        uint64 GetDataSize() const final;
-        void SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize) final;
-        void ReadPixel(const Vector2Int& pixelCoords, void* outData, size_t dataSize) final;
+        // Inherited via Image
+        const ImageDescription& GetDescription() const override { return _description; }
+        uint64 GetDataSize() const override { return _imageInfo.AllocInfo.size; }
+        void SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize) override;
 
-        /// @brief Gets the Vulkan image
-        /// @return The Vulkan image
-        VkImage GetImage() const { return _imageData.Image; }
+        void TransitionLayout(const VulkanCommandBuffer& commandBuffer, VulkanQueue& fromQueue, VulkanQueue& toQueue, VkImageLayout to);
 
-        /// @brief Gets the native view onto this image
-        /// @return The native image view
-        VkImageView GetNativeView() const { return _nativeView; }
-
-        /// @brief Transitions this image to a new layout
-        /// @param to The layout to transition to
-        void TransitionLayout(VkImageLayout to);
-
-        /// @brief Transitions this image to a new layout
-        /// @param commandBuffer The command buffer to use
-        /// @param to The layout to transition to
-        void TransitionLayout(const VulkanCommandBuffer& commandBuffer, VkImageLayout to);
+        VkImage GetImage() const { return _imageInfo.Image; }
+        VkImageView GetNativeView() const { return _imageInfo.NativeView; }
 
     private:
-        /// @brief Creates the image from the set description
-        /// @param hostVisible If true, the image will be created so that it is host visible
-        /// @param outImageData Will be filled with the created image
-        void CreateImage(bool hostVisible, VulkanImageData& outImageData);
+        VulkanGraphicsDevice& _device;
+        ImageDescription _description;
+        VulkanImageInfo _imageInfo;
 
-        /// @brief Destroys an image
-        /// @param imageData The image to destroy
-        void DestroyImage(VulkanImageData& imageData);
-
-        /// @brief Creates the native image view
-        void CreateNativeImageView();
+    private:
+        static void AdjustDescription(VulkanGraphicsDevice& device, ImageDescription& description);
+        static void CreateImage(VulkanGraphicsDevice& device, const ImageDescription& description, bool enableHostVisible, VulkanImageInfo& outImageInfo);
+        static void DestroyImage(VulkanGraphicsDevice& device, VulkanImageInfo& imageInfo);
+        static void CreateNativeImageView(VulkanGraphicsDevice& device, const ImageDescription& description, VulkanImageInfo& imageInfo);
+        static void DestroyNativeImageView(VulkanGraphicsDevice& device, VulkanImageInfo& imageInfo);     
+        static void TransitionLayout(VulkanGraphicsDevice& device, const VulkanCommandBuffer& commandBuffer, VulkanQueue& fromQueue, VulkanQueue& toQueue, VkImageLayout to, const ImageDescription& description, VulkanImageInfo& imageData);
 
         /// @brief Copies pixel data into this image from a buffer
-        /// @param commandBuffer The command buffer
-        /// @param source The source buffer
+       /// @param commandBuffer The command buffer
+       /// @param source The source buffer
         void CopyFromBuffer(const VulkanCommandBuffer& commandBuffer, const VulkanBuffer& source);
 
-        /// @brief Transitions an image to a new layout
-        /// @param commandBuffer The command buffer to use
-        /// @param to The layout to transition to
-        /// @param imageData The image to transition
-        void TransitionLayout(const VulkanCommandBuffer& commandBuffer, VkImageLayout to, VulkanImageData& imageData);
-
-        /// @brief Copies an image to the destination image
-        /// @param src The source image
-        /// @param srcRegion The region of the source image
-        /// @param dstData The image to copy to
-        /// @param dstEndingLayout The layout that the destination image will be transitioned to after the copy finishes
-        void Copy(VulkanImage& src, const RectInt& srcRegion, VulkanImageData& dstData, VkImageLayout dstEndingLayout);
-
-        /// @brief Generates mip maps from the base image
+        /// @brief Generates mip maps from the base image. The image's end layout will be VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         /// @param commandBuffer The command buffer
         void GenerateMipMaps(const VulkanCommandBuffer& commandBuffer);
     };

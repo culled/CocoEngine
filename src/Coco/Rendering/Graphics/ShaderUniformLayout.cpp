@@ -1,152 +1,92 @@
 #include "Renderpch.h"
 #include "ShaderUniformLayout.h"
 #include "GraphicsDevice.h"
-#include "ShaderUniformData.h"
+
+#include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering
 {
-	const uint64 ShaderUniformLayout::EmptyHash = 0;
+	const ShaderUniformLayout ShaderUniformLayout::Empty = ShaderUniformLayout();
 
 	ShaderUniformLayout::ShaderUniformLayout() :
-		Uniforms(),
-		Hash(EmptyHash)
+		ShaderUniformLayout(std::span<const ShaderUniform>())
+	{}
+	
+	ShaderUniformLayout::ShaderUniformLayout(const std::initializer_list<ShaderUniform>& uniforms) :
+		ShaderUniformLayout(std::span<const ShaderUniform>(uniforms))
 	{}
 
-	ShaderUniformLayout::ShaderUniformLayout(const std::vector<ShaderUniform>& uniforms) :
-		Uniforms(uniforms)
+	//ShaderUniformLayout::ShaderUniformLayout(const std::initializer_list<ShaderUniform>& uniforms) :
+	//	_totalSize(0),
+	//	_uniforms(),
+	//	_hash(0)
+	//{
+	//	uint32 order = 0;
+	//	std::hash<string> strHasher;
+	//
+	//	for (const auto& u : uniforms)
+	//	{
+	//		auto result = _uniforms.try_emplace(u.Name, u);
+	//
+	//		if (!result.second)
+	//		{
+	//			CocoError("Duplicate uniform \"{}\" encountered", u.Name)
+	//			continue;
+	//		}
+	//
+	//		ShaderUniform& uniform = result.first->second;
+	//		uniform.Order = order;
+	//		++order;
+	//
+	//		_hash = Math::CombineHashes(
+	//			_hash,
+	//			strHasher(u.Name),
+	//			static_cast<uint64>(u.BindingPoints),
+	//			static_cast<uint64>(u.Type));
+	//	}
+	//}
+
+	ShaderUniformLayout::ShaderUniformLayout(std::span<const ShaderUniform> uniforms) :
+		_totalSize(0),
+		_uniforms(),
+		_hash(0)
 	{
-		this->CalculateHash();
-	}
+		uint32 order = 0;
+		std::hash<string> strHasher;
 
-	bool ShaderUniformLayout::operator==(const ShaderUniformLayout& other) const
-	{
-		return Hash == other.Hash;
-	}
+		for (const auto& u : uniforms)
+		{
+			auto result = _uniforms.try_emplace(u.Name, u);
 
-	ShaderUniformUnion ShaderUniformLayout::GetDefaultDataUniformValue(const ShaderUniform& uniform)
-	{
-		ShaderUniformUnion u;
+			if (!result.second)
+			{
+				CocoError("Duplicate uniform \"{}\" encountered", u.Name)
+					continue;
+			}
 
-		if (!IsDataShaderUniformType(uniform.Type))
-			return u;
+			ShaderUniform& uniform = result.first->second;
+			uniform.Order = order;
+			++order;
 
-		BufferDataType type = GetBufferDataType(uniform.Type);
-		switch (type)
-		{
-		case BufferDataType::Float:
-		{
-			if (const float* v = std::any_cast<float>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			break;
+			_hash = Math::CombineHashes(
+				_hash,
+				strHasher(u.Name),
+				static_cast<uint64>(u.BindingPoints),
+				static_cast<uint64>(u.Type));
 		}
-		case BufferDataType::Float2:
-		{
-			if (const Vector2* v = std::any_cast<Vector2>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			break;
-		}
-		case BufferDataType::Float3:
-		{
-			if (const Vector3* v = std::any_cast<Vector3>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			break;
-		}
-		case BufferDataType::Float4:
-		{
-			if (const Vector4* v = std::any_cast<Vector4>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			else if (const Color* v = std::any_cast<Color>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			break;
-		}
-		case BufferDataType::Mat4x4:
-		{
-			if (const Matrix4x4* v = std::any_cast<Matrix4x4>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			break;
-		}
-		case BufferDataType::Int:
-		{
-			if (const int* v = std::any_cast<int>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			break;
-		}
-		case BufferDataType::Int2:
-		{
-			if (const Vector2Int* v = std::any_cast<Vector2Int>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			break;
-		}
-		case BufferDataType::Int3:
-		{
-			if (const Vector3Int* v = std::any_cast<Vector3Int>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			break;
-		}
-		case BufferDataType::Int4:
-		{
-			if (const Vector4Int* v = std::any_cast<Vector4Int>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			break;
-		}
-		case BufferDataType::Bool:
-		{
-			if (const bool* v = std::any_cast<bool>(&uniform.DefaultValue))
-			{
-				u = *v;
-			}
-			break;
-		}
-		default:
-			break;
-		}
-
-		return u;
-	}
-
-	void ShaderUniformLayout::CalculateHash()
-	{
-		Hash = std::accumulate(Uniforms.begin(), Uniforms.end(), static_cast<uint64>(0), [](uint64 hash, const ShaderUniform& u)
-			{
-				return Math::CombineHashes(
-					hash,
-					u.Key,
-					static_cast<uint64>(u.BindingPoints),
-					static_cast<uint64>(u.Type)
-				);
-			}
-		);
 	}
 
 	ShaderStageFlags ShaderUniformLayout::GetUniformBindStages(bool dataUniforms, bool textureUniforms) const
 	{
-		return std::accumulate(Uniforms.begin(), Uniforms.end(), ShaderStageFlags::None, [dataUniforms, textureUniforms](ShaderStageFlags f, const ShaderUniform& u)
+		return std::accumulate(_uniforms.begin(), _uniforms.end(),
+			ShaderStageFlags::None,
+			[dataUniforms, textureUniforms](ShaderStageFlags f, const auto& kvp)
 			{
-				bool data = IsDataShaderUniformType(u.Type);
+				bool data = IsDataShaderUniformType(kvp.second.Type);
 
 				if ((data && dataUniforms) || (!data && textureUniforms))
 				{
-					f |= u.BindingPoints;
+					f |= kvp.second.BindingPoints;
 				}
 
 				return f;
@@ -154,113 +94,157 @@ namespace Coco::Rendering
 		);
 	}
 
-	uint64 ShaderUniformLayout::GetUniformDataSize(const GraphicsDevice& device) const
+	bool ShaderUniformLayout::NeedsDataCalculation() const
 	{
+		return _totalSize == 0 && HasUniformsOfType(true, false);
+	}
+
+	void ShaderUniformLayout::CalculateDataUniforms(const GraphicsDevice& device)
+	{
+		std::vector<ShaderUniform*> uniforms = GetDataUniforms();
+
 		uint64 offset = 0;
-
-		for (const auto& u : Uniforms)
+		for (ShaderUniform* uniform : uniforms)
 		{
-			if (!IsDataShaderUniformType(u.Type))
-				continue;
+			BufferDataType type = GetBufferDataType(uniform->Type);
+			offset = GetOffsetForAlignment(offset, device.GetDataTypeAlignment(type));
 
-			BufferDataType type = GetBufferDataType(u.Type);
-			device.AlignOffset(type, offset);
-			offset += GetBufferDataTypeSize(type);
+			uniform->Offset = offset;
+			uniform->DataSize = GetBufferDataTypeSize(type);
+
+			offset += uniform->DataSize;
 		}
 
 		// Pad out the data size so they fill a block accessible by the minimum buffer alignment
-		offset = GraphicsDevice::GetOffsetForAlignment(offset, device.GetFeatures().MinimumBufferAlignment);
-
-		return offset;
+		_totalSize = GetOffsetForAlignment(offset, device.GetFeatures().MinimumBufferAlignment);
 	}
 
-	void ShaderUniformLayout::GetBufferFriendlyData(const GraphicsDevice& device, const ShaderUniformData& data, std::vector<uint8>& outBufferData) const
+	bool ShaderUniformLayout::HasUniformsOfType(bool dataUniforms, bool textureUniforms) const
 	{
-		uint64 offset = 0;
+		return std::any_of(_uniforms.begin(), _uniforms.end(), 
+			[dataUniforms, textureUniforms](const auto& kvp)
+			{
+				bool isData = IsDataShaderUniformType(kvp.second.Type);
+				return (dataUniforms && isData) || (textureUniforms && !isData);
+			}
+		);
+	}
 
-		for (const ShaderUniform& uniform : Uniforms)
+	std::vector<const ShaderUniform*> ShaderUniformLayout::GetUniforms(bool includeDataUniforms, bool includeTextureUniforms) const
+	{
+		std::vector<const ShaderUniform*> uniforms;
+		uniforms.reserve(_uniforms.size());
+
+		for (const auto& kvp : _uniforms)
 		{
-			if (!IsDataShaderUniformType(uniform.Type))
-				continue;
-
-			BufferDataType type = GetBufferDataType(uniform.Type);
-			const uint8 dataSize = GetBufferDataTypeSize(type);
-			device.AlignOffset(type, offset);
-
-			outBufferData.resize(offset + dataSize);
-			uint8* dst = outBufferData.data() + offset;
-
-			ShaderUniformUnion u = data.Uniforms.contains(uniform.Key) ? data.Uniforms.at(uniform.Key) : GetDefaultDataUniformValue(uniform);
-			Assert(memcpy_s(dst, dataSize, u.AsData, dataSize) == 0)
-
-			offset += dataSize;
+			if (IsDataShaderUniformType(kvp.second.Type))
+			{
+				if (includeDataUniforms)
+					uniforms.emplace_back(&kvp.second);
+			}
+			else
+			{
+				if (includeTextureUniforms)
+					uniforms.emplace_back(&kvp.second);
+			}
 		}
 
-		// Pad the buffer to fit in the minimum buffer alignment
-		outBufferData.resize(GraphicsDevice::GetOffsetForAlignment(outBufferData.size(), device.GetFeatures().MinimumBufferAlignment));
-	}
-
-	bool ShaderUniformLayout::HasDataUniforms() const
-	{
-		return std::any_of(Uniforms.begin(), Uniforms.end(), [](const auto& u)
+		std::sort(uniforms.begin(), uniforms.end(),
+			[](const ShaderUniform* a, const ShaderUniform* b)
 			{
-				return IsDataShaderUniformType(u.Type);
-			}
-		);
+				return a->Order < b->Order;
+			});
+
+		return uniforms;
 	}
 
-	bool ShaderUniformLayout::HasTextureUniforms() const
+	std::vector<ShaderUniformValue> ShaderUniformLayout::GetDefaultValues() const
 	{
-		return std::any_of(Uniforms.begin(), Uniforms.end(), [](const auto& u)
+		std::vector<ShaderUniformValue> defaultValues;
+		
+		std::transform(_uniforms.begin(), _uniforms.end(),
+			std::back_inserter(defaultValues),
+			[](const auto& kvp)
 			{
-				return u.Type == ShaderUniformType::Texture;
-			}
-		);
+				return kvp.second;
+			});
+
+		return defaultValues;
 	}
 
-	GlobalShaderUniformLayout::GlobalShaderUniformLayout() :
-		ShaderUniformLayout(),
-		BufferUniforms()
-	{}
-
-	GlobalShaderUniformLayout::GlobalShaderUniformLayout(
-		const std::vector<ShaderUniform>& uniforms,
-		const std::vector<ShaderBufferUniform>& bufferUniforms) :
-		ShaderUniformLayout(uniforms),
-		BufferUniforms(bufferUniforms)
+	std::vector<uint8> ShaderUniformLayout::GetBufferData(std::span<const ShaderUniformValue> uniformValues) const
 	{
-		CalculateHash();
-	}
+		CocoAssert(!NeedsDataCalculation(), "Layout's buffer size has not been calculated")
 
-	bool GlobalShaderUniformLayout::operator==(const GlobalShaderUniformLayout& other) const
-	{
-		return Hash == other.Hash;
-	}
+		std::vector<uint8> data(_totalSize);
+		std::vector<const ShaderUniform*> uniforms = GetUniforms(true, false);
 
-	void GlobalShaderUniformLayout::CalculateHash()
-	{
-		ShaderUniformLayout::CalculateHash();
+		for (const ShaderUniform* uniform : uniforms)
+		{
+			auto it = std::find_if(uniformValues.begin(), uniformValues.end(),
+				[uniform](const ShaderUniformValue& uniformValue)
+				{
+					return uniform->Name == uniformValue.Name;
+				});
 
-		uint64 bufferUniformHash = std::accumulate(BufferUniforms.begin(), BufferUniforms.end(), static_cast<uint64>(0), [](uint64 hash, const ShaderBufferUniform& u)
+			if (it == uniformValues.end())
 			{
-				return Math::CombineHashes(
-					hash,
-					u.Key,
-					static_cast<uint64>(u.BindingPoints),
-					static_cast<uint64>(u.Size)
-				);
+				GetDataUniformBytes(*uniform, std::span<uint8>(data.begin() + uniform->Offset, uniform->DataSize));
 			}
-		);
+			else
+			{
+				GetDataUniformBytes(*it, std::span<uint8>(data.begin() + uniform->Offset, uniform->DataSize));
+			}
+		}
 
-		Hash = Math::CombineHashes(Hash, bufferUniformHash);
+		return data;
 	}
 
-	ShaderStageFlags GlobalShaderUniformLayout::GetBufferUniformBindStages() const
+	std::unordered_map<string, SharedRef<Texture>> ShaderUniformLayout::GetTextures(std::span<const ShaderUniformValue> uniformValues) const
 	{
-		return std::accumulate(BufferUniforms.begin(), BufferUniforms.end(), ShaderStageFlags::None, [](ShaderStageFlags f, const ShaderBufferUniform& u)
+		std::unordered_map<string, SharedRef<Texture>> textures;
+		std::vector<const ShaderUniform*> uniforms = GetUniforms(false, true);
+
+		for (const ShaderUniform* uniform : uniforms)
+		{
+			auto it = std::find_if(uniformValues.begin(), uniformValues.end(),
+				[uniform](const ShaderUniformValue& uniformValue)
+				{
+					return uniform->Name == uniformValue.Name;
+				});
+
+			if (it == uniformValues.end())
 			{
-				return f | u.BindingPoints;
+				textures[uniform->Name] = GetTextureUniformValue(*uniform);
 			}
-		);
+			else
+			{
+				textures[uniform->Name] = GetTextureUniformValue(*it);
+			}
+		}
+
+		return textures;
+	}
+
+	std::vector<ShaderUniform*> ShaderUniformLayout::GetDataUniforms()
+	{
+		std::vector<ShaderUniform*> dataUniforms;
+		dataUniforms.reserve(_uniforms.size());
+
+		for(auto& kvp : _uniforms)
+		{
+			if (!IsDataShaderUniformType(kvp.second.Type))
+				continue;
+
+			dataUniforms.emplace_back(&kvp.second);
+		}
+
+		std::sort(dataUniforms.begin(), dataUniforms.end(),
+			[](const ShaderUniform* a, const ShaderUniform* b)
+			{
+				return a->Order < b->Order;
+			});
+
+		return dataUniforms;
 	}
 }

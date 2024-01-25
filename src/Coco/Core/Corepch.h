@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <numbers>
 #include <numeric>
+#include <source_location>
 
 #include <span>
 #include <array>

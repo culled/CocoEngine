@@ -7,16 +7,17 @@
 
 namespace Coco::ECS
 {
-	const int NativeScriptSystem::sPriority = 0;
+	const int NativeScriptSystem::sSetupPriority = 1000;
+	const int NativeScriptSystem::sTickPriority = 0;
 
 	NativeScriptSystem::NativeScriptSystem(SharedRef<Scene> scene) :
 		SceneSystem(scene)
-	{}
-
-	void NativeScriptSystem::Tick()
 	{
-		const TickInfo& tickInfo = MainLoop::cGet()->GetCurrentTick();
+		RegisterTickListener(this, &NativeScriptSystem::SimulationTick, sTickPriority);
+	}
 
+	void NativeScriptSystem::SimulationStarted()
+	{
 		SharedRef<Scene> scene = _scene.lock();
 		SceneView<NativeScriptComponent> view(scene);
 
@@ -24,7 +25,33 @@ namespace Coco::ECS
 		{
 			NativeScriptComponent& nsc = entity.GetComponent<NativeScriptComponent>();
 
-			if (!entity.IsActiveInHierarchy() || nsc._scriptStarted)
+			nsc.CreateAttachedScript();
+		}
+	}
+
+	void NativeScriptSystem::SimulationEnded()
+	{
+		SharedRef<Scene> scene = _scene.lock();
+		SceneView<NativeScriptComponent> view(scene);
+
+		for (Entity& entity : view)
+		{
+			NativeScriptComponent& nsc = entity.GetComponent<NativeScriptComponent>();
+
+			nsc.DestroyAttachedScript();
+		}
+	}
+
+	void NativeScriptSystem::SimulationTick(const TickInfo& tickInfo)
+	{
+		SharedRef<Scene> scene = _scene.lock();
+		SceneView<NativeScriptComponent> view(scene);
+
+		for (Entity& entity : view)
+		{
+			NativeScriptComponent& nsc = entity.GetComponent<NativeScriptComponent>();
+
+			if (!entity.IsActiveInHierarchy() || !nsc._scriptInstance || nsc._scriptStarted)
 				continue;
 
 			nsc._scriptInstance->OnStart();

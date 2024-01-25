@@ -4,24 +4,14 @@
 namespace Coco::Rendering
 {
 	GraphicsDeviceFeatures::GraphicsDeviceFeatures() :
-		MaximumMSAASamples(MSAASamples::One),
-		SupportsHostVisibleLocalMemory(false),
+		Name(""),
+		Type(GraphicsDeviceType::Other),
+		DriverVersion(),
 		MaxImageWidth(0),
 		MaxImageHeight(0),
 		MaxImageDepth(0),
 		MinimumBufferAlignment(0),
-		SupportsWireframe(false),
-		MaxAnisotropicLevel(0)
-	{}
-
-	GraphicsDeviceCreateParams::GraphicsDeviceCreateParams() :
-		PreferredDeviceType(GraphicsDeviceType::Discrete),
-		SupportsPresentation(true),
-		RequireGraphicsCapability(true),
-		RequireTransferCapability(true),
-		RequireComputeCapability(true),
-		EnableAnisotropicSampling(true),
-		EnableDepthClamping(false),
-		EnableWireframeDrawing(true)
+		MaxAnisotropicLevel(0),
+		SupportsWireframe(false)
 	{}
 }

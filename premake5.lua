@@ -3,24 +3,31 @@ workspace "CocoEngine"
     platforms { "Win64" }
     architecture "x64"
 
-    OutputFolder = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}\\"
+    OutputFolder = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
     -- Library directories relative to the workspace
     LibraryDir = {}
 
     -- Output directories relative to the workspace
     OutputDir = {}
-    OutputDir["bin"] = "%{wks.location}\\build\\bin\\" .. OutputFolder
-    OutputDir["obj"] = "%{wks.location}\\build\\obj\\" .. OutputFolder
+    OutputDir["bin"] = "%{wks.location}/build/bin/" .. OutputFolder .. "/"
+    OutputDir["obj"] = "%{wks.location}/build/obj/" .. OutputFolder .. "/"
 
     -- Include directories relative to the workspace
     IncludeDir = {}
-    IncludeDir["Coco"] = "%{wks.location}\\src\\"
-    IncludeDir["uuid_v4"] = "%{wks.location}\\src\\Vendor\\uuid_v4"
-    IncludeDir["yaml_cpp"] = "%{wks.location}\\src\\Vendor\\yaml-cpp\\include"
+    IncludeDir["Coco"] = "%{wks.location}/src/"
+    IncludeDir["uuid_v4"] = "%{wks.location}/src/Vendor/uuid_v4"
+    IncludeDir["entt"] = "%{wks.location}/src/Vendor/entt/src"
+    IncludeDir["yaml_cpp"] = "%{wks.location}/src/Vendor/yaml-cpp/include"
+    IncludeDir["bullet"] = "%{wks.location}/src/Vendor/bullet3/src"
+    IncludeDir["ImGui"] = "%{wks.location}/src/Vendor/imgui"
+    IncludeDir["ImGuizmo"] = "%{wks.location}/src/Vendor/imguizmo"
+    IncludeDir["stb"] = "%{wks.location}/src/Vendor/stb"
+    IncludeDir["yaml_cpp"] = "%{wks.location}/src/Vendor/yaml-cpp/include"
+    IncludeDir["vma"] = "%{wks.location}/src/Vendor/vma/include"
 
     -- Assets directory
-    AssetsDir = "%{wks.location}assets\\"
+    AssetsDir = "%{wks.location}assets/"
 
     -- External program directories
     BinDir = {}
@@ -65,6 +72,11 @@ workspace "CocoEngine"
     }
 
     newoption {
+        trigger = "service-physics3d",
+        description = "Include the 3D physics service in the engine build"
+    }
+
+    newoption {
         trigger = "services-all",
         description = "Include all the services in the engine build"
     }
@@ -77,12 +89,12 @@ workspace "CocoEngine"
     if (_OPTIONS["service-rendering"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
         print("Including rendering service") 
         Services["Rendering"] = true
-        IncludeDir["stb"] = "%{wks.location}\\src\\Vendor\\stb"
     end
 
     if (_OPTIONS["service-windowing"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
         if (Services["Rendering"] ~= true) then
-            error("Rendering service must be included with windowing service")
+            Services["Rendering"] = true
+            print("Adding Rendering Service since Windowing service requires it")
         end
 
         print("Including windowing service") 
@@ -90,16 +102,23 @@ workspace "CocoEngine"
     end
 
     if (_OPTIONS["service-imgui"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
+        if (Services["Rendering"] ~= true) then
+            Services["Rendering"] = true
+            print("Adding Rendering Service since ImGui service requires it")
+        end
+
         print("Including ImGUI service") 
         Services["ImGui"] = true
-        IncludeDir["ImGui"] = "%{wks.location}\\src\\Vendor\\imgui"
-        IncludeDir["ImGuizmo"] = "%{wks.location}\\src\\Vendor\\imguizmo"
     end
 
     if (_OPTIONS["service-ecs"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
         print("Including ECS service") 
         Services["ECS"] = true
-        IncludeDir["entt"] = "%{wks.location}\\src\\Vendor\\entt\\src"
+    end
+
+    if (_OPTIONS["service-physics3d"] ~= nil or _OPTIONS["services-all"] ~= nil) then 
+        print("Including Physics3D service") 
+        Services["Physics3D"] = true
     end
 
     -- Rendering RHI options
@@ -131,31 +150,28 @@ workspace "CocoEngine"
         description = "Include all rendering RHIs in the engine build"
     }
 
-    if (Services["Rendering"] ~= nil) then
-        if (_OPTIONS["renderRHI-vulkan"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then
-            print("Including Vulkan RHI")
-            RenderRHI["Vulkan"] = true
-
-            if (_OPTIONS["vulkan-sdk-path"] == nil) then
-                error("Vulkan was included but the Vulkan sdk path was not given")
-            else
-                print("Vulkan path specified at " .. _OPTIONS["vulkan-sdk-path"])
-
-                IncludeDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Include\\"
-                LibraryDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Lib\\"
-                BinDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "\\Bin\\"
-            end
+    if (_OPTIONS["renderRHI-vulkan"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then
+        RenderRHI["Vulkan"] = true
+        
+        if (_OPTIONS["vulkan-sdk-path"] == nil) then
+            error("Vulkan was included but the Vulkan sdk path was not given")
+        else
+            print("Vulkan path specified at " .. _OPTIONS["vulkan-sdk-path"])
+            
+            IncludeDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "/Include/"
+            LibraryDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "/Lib/"
+            BinDir["vulkan"] = _OPTIONS["vulkan-sdk-path"] .. "/Bin/"
         end
 
-        if (_OPTIONS["renderRHI-opengl"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then 
-            print("Including OpenGL RHI") 
-            RenderRHI["OpenGL"] = true
-        end
+        print("Including Vulkan RHI")
+    end
 
-        if (_OPTIONS["renderRHI-dx12"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then 
-            print("Including DirectX12 RHI") 
-            RenderRHI["DX12"] = true
-        end
+    if (_OPTIONS["renderRHI-opengl"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then 
+        RenderRHI["OpenGL"] = true
+    end
+
+    if (_OPTIONS["renderRHI-dx12"] ~= nil or _OPTIONS["renderRHIs-all"] ~= nil) then 
+        RenderRHI["DX12"] = true
     end
     
     -- Platform options
@@ -176,70 +192,75 @@ workspace "CocoEngine"
         description = "Include Linux platform in the engine build"
     }
 
-    newoption {
-        trigger = "platforms-all",
-        description = "Include all platforms in the engine build"
-    }
-
-    if (_OPTIONS["platform-win32"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then 
-        print("Including Win32 platform")
+    if (_OPTIONS["platform-win32"] ~= nil) then 
+        print("Including Win32 Platform")
         Platforms["Win32"] = true
     end
 
     if (_OPTIONS["platform-osx"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then 
-        print("Including Mac platform") 
+        print("Including OSX Platform")
         Platforms["OSX"] = true
     end
 
     if (_OPTIONS["platform-linux"] ~= nil or _OPTIONS["platforms-all"] ~= nil) then 
-        print("Including Linux platform") 
+        print("Including Linux Platform")
         Platforms["Linux"] = true
     end
 
     startproject "CocoEditor"
 
     if (_ACTION ~= nil) then
-        group "Engine"
-            include "src\\Coco\\Core"
-
-            if (Services["Input"] == true) then 
-                include "src\\Coco\\Input"
-            end
-
-            if (Services["Rendering"] == true) then 
-                include "src\\Coco\\Rendering"
-            end
-
-            if(Services["Windowing"] == true) then         
-                include "src\\Coco\\Windowing"
-            end
-
-            if(Services["ImGui"] == true) then         
-                include "src\\Coco\\ImGUI"
-            end
-
-            if(Services["ECS"] == true) then         
-                include "src\\Coco\\ECS"
-            end
-
-        group "Engine/Platforms"
-            if (Platforms["Win32"] == true) then
-                include "src\\Coco\\Platforms\\Win32"
-            end
-
         if (_OPTIONS["tests"]) then
             print "Including test projects"
             
             group "Tests"
-                include "tests\\Coco\\Core"
+                include "tests/Coco/Core"
         end
 
-        group "Engine/Third Party"
-            include "src\\Coco\\Third Party\\yaml-cpp"
+        group "Engine"
+            include "src/Coco/Core"
 
+            if (Services["Input"] == true) then 
+                include "src/Coco/Input"
+            end
+
+            if (Services["Rendering"] == true) then 
+                include "src/Coco/Rendering"
+            end
+
+            if(Services["Windowing"] == true) then         
+                include "src/Coco/Windowing"
+            end
+
+            if(Services["ImGui"] == true) then         
+                include "src/Coco/ImGUI"
+            end
+
+            if(Services["ECS"] == true) then         
+                include "src/Coco/ECS"
+            end
+
+            if(Services["Physics3D"] == true) then         
+                include "src/Coco/Physics3D"
+            end
+
+        group "Engine/Third Party"
+            include "src/Coco/Third Party/yaml"
+
+            if(Services["Physics3D"] == true) then
+                include "src/Coco/Third Party/bullet"
+            end 
+
+        group "Engine/Platforms"
+            if (Platforms["Win32"] == true) then
+                include "src/Coco/Platforms/Win32"
+            end
+            
         group "Apps"
-            include "apps\\CocoEditor"
+            print "Including Editor Application"
+            include "apps/CocoEditor"
 
         group "Example Apps"
-            include "exampleapps\\Sandbox"
+            print "Including Sandbox Application"
+            include "exampleapps/Sandbox"
     end

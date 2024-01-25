@@ -1,17 +1,18 @@
 #pragma once
-
+#include "GraphicsResource.h"
 #include "ImageSamplerTypes.h"
 
 namespace Coco::Rendering
 {
-	/// @brief A sampler for an Image
-	class ImageSampler
-	{
-	public:
-		virtual ~ImageSampler() = default;
+    class ImageSampler :
+        public GraphicsResource
+    {
+    public:
+        ~ImageSampler() = default;
 
-		/// @brief Gets this image sampler's description
-		/// @return The description
-		virtual ImageSamplerDescription GetDescription() const = 0;
-	};
+        virtual const ImageSamplerDescription& GetDescription() const = 0;
+
+    protected:
+        ImageSampler(const GraphicsResourceID& id);
+    };
 }

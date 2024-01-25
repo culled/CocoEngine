@@ -4,25 +4,24 @@
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanGraphicsFence::VulkanGraphicsFence(const GraphicsDeviceResourceID& id, bool startSignaled) :
-		GraphicsDeviceResource<VulkanGraphicsDevice>(id),
+	VulkanGraphicsFence::VulkanGraphicsFence(const GraphicsResourceID& id, VulkanGraphicsDevice& device, bool startSignaled) :
+		GraphicsResource(id),
+		_device(device),
 		_fence(nullptr)
 	{
-		VkFenceCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		VkFenceCreateInfo createInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
 
 		if (startSignaled)
 			createInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
 
-		AssertVkSuccess(vkCreateFence(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_fence));
+		AssertVkSuccess(vkCreateFence(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_fence))
 	}
 
 	VulkanGraphicsFence::~VulkanGraphicsFence()
 	{
-		_device.WaitForIdle();
-
 		if (_fence)
 		{
+			_device.WaitForIdle();
 			vkDestroyFence(_device.GetDevice(), _fence, _device.GetAllocationCallbacks());
 			_fence = nullptr;
 		}
@@ -35,10 +34,10 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanGraphicsFence::Reset()
 	{
-		AssertVkSuccess(vkResetFences(_device.GetDevice(), 1, &_fence));
+		AssertVkSuccess(vkResetFences(_device.GetDevice(), 1, &_fence))
 	}
 
-	void VulkanGraphicsFence::Wait(uint64 timeoutNs)
+	void VulkanGraphicsFence::WaitForSignal(uint64 timeoutNs)
 	{
 		vkWaitForFences(_device.GetDevice(), 1, &_fence, VK_TRUE, timeoutNs);
 	}

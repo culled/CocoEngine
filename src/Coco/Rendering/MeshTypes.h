@@ -2,8 +2,9 @@
 
 #include "Renderpch.h"
 #include <Coco/Core/Defines.h>
-#include "Graphics/BufferTypes.h"
 #include <Coco/Core/Types/Vector.h>
+#include <Coco/Core/Types/BoundingBox.h>
+#include "Graphics/BufferTypes.h"
 
 namespace Coco::Rendering
 {
@@ -18,11 +19,17 @@ namespace Coco::Rendering
 		All = Normal | Color | Tangent | UV0
 	};
 
-	constexpr VertexAttrFlags operator|(const VertexAttrFlags a, const VertexAttrFlags b) { return static_cast<VertexAttrFlags>(static_cast<int>(a) | static_cast<int>(b)); }
-	constexpr VertexAttrFlags operator&(const VertexAttrFlags a, const VertexAttrFlags b) { return static_cast<VertexAttrFlags>(static_cast<int>(a) & static_cast<int>(b)); }
+	DefineFlagOperators(VertexAttrFlags)
 
-	constexpr void operator|=(VertexAttrFlags& a, const VertexAttrFlags b) { a = a | b; }
-	constexpr void operator&=(VertexAttrFlags& a, const VertexAttrFlags b) { a = a & b; }
+	/// @brief Flags to define the usage of a mesh
+	enum class MeshUsageFlags
+	{
+		None = 0,
+		Dynamic = 1 << 0,
+		RetainCPUData = 1 << 1
+	};
+
+	DefineFlagOperators(MeshUsageFlags)
 
 	/// @brief Defines a format for vertex data
 	struct VertexDataFormat
@@ -33,7 +40,7 @@ namespace Coco::Rendering
 		VertexDataFormat();
 		VertexDataFormat(VertexAttrFlags additionalAttributes);
 
-		bool operator==(const VertexDataFormat& other) const;
+		bool operator==(const VertexDataFormat& other) const { return AdditionalAttributes == other.AdditionalAttributes; }
 
 		/// @brief Gets the size of this format's vertex data, in bytes
 		/// @param vertexCount The number of vertices
@@ -74,9 +81,21 @@ namespace Coco::Rendering
 		VertexData(const Vector3& position);
 	};
 
-	/// @brief Converts the given vertex data into a buffer-friendly format
-	/// @param format The vertex format
-	/// @param data The vertex data
-	/// @return The buffer-friendly vertex data
-	std::vector<uint8> GetVertexData(const VertexDataFormat& format, std::span<VertexData> data);
+	/// @brief Defines a series of indices to render mesh data
+	struct Submesh
+	{
+		/// @brief The offset of the first index in the index buffer
+		uint64 IndexOffset;
+
+		/// @brief The number of indices
+		uint64 IndexCount;
+
+		Submesh();
+		Submesh(uint64 indexOffset, uint64 indexCount);
+	};
+
+	std::vector<uint8> GetVertexBufferData(const VertexDataFormat& format, std::span<const VertexData> vertices);
+
+	BoundingBox CalculateBounds(std::span<const VertexData> vertices);
+	BoundingBox CalculateBounds(std::span<const VertexData> vertices, std::span<const uint32> indices);
 }

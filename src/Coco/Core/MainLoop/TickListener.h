@@ -19,13 +19,6 @@ namespace Coco
 		/// @brief The priority of this listener. Lower priorities tick earlier than higher priorities
 		const int Priority;
 
-	private:
-		bool _enabled;
-		bool _isRegistered;
-		double _tickPeriod;
-		double _timeSinceLastTick;
-		CallbackFunction _callback;
-
 	public:
 		TickListener(CallbackFunction callback, int priority);
 
@@ -63,6 +56,12 @@ namespace Coco
 		{
 			SetCallback(std::bind(callback, instance, std::placeholders::_1));
 		}
+
+	private:
+		bool _enabled;
+		double _tickPeriod;
+		double _timeSinceLastTick;
+		CallbackFunction _callback;
 
 	private:
 		/// @brief Invokes the callback function if it should be dispatched

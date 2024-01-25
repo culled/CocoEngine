@@ -4,17 +4,25 @@
 #include "Engine.h"
 namespace Coco
 {
-	ApplicationCreateParameters::ApplicationCreateParameters(const string& name, const Coco::Version& version):
+	ApplicationCreateParameters::ApplicationCreateParameters(
+		const string& name,
+		const Coco::Version& version,
+		LogMessageSeverity logSeverity,
+		bool copyEngineLogSinks):
 		Name(name), 
 		Version(version),
-		LogSeverity(LogMessageSeverity::Info)
+		LogSeverity(logSeverity),
+		CopyEngineLogSinks(copyEngineLogSinks)
 	{}
 
 	Application::Application(const ApplicationCreateParameters& createParams) :
 		_createParams(createParams),
 		_log(CreateUniqueRef<Log>(createParams.Name, createParams.LogSeverity))
 	{
-		Engine::cGet()->GetLog().CopySinksTo(*_log);
+		CocoAssert(_log, "Application log could not be created")
+
+		if(createParams.CopyEngineLogSinks)
+			Engine::cGet()->GetLog().CopySinksTo(*_log);
 	}
 
 	Application::~Application()

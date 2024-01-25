@@ -1,53 +1,49 @@
 #include "Renderpch.h"
 #include "Texture.h"
-#include "Vendor/stb_image.h"
 
 #include "RenderService.h"
 #include <Coco/Core/Engine.h>
+#include "Vendor/stb_image.h"
 
 namespace Coco::Rendering
 {
-	Texture::Texture(const ResourceID& id, const string& name) :
-		RendererResource(id, name),
-		_version(0),
-		_image(),
-		_sampler(),
-		_imageFilePath()
+	Texture::Texture(const ResourceID& id) :
+		Texture(id, ImageDescription::Empty, ImageSamplerDescription::LinearRepeat)
 	{}
 
-	Texture::Texture(
-		const ResourceID& id,
-		const string& name, 
-		const ImageDescription& imageDescription, 
-		const ImageSamplerDescription& samplerDescription) :
-		RendererResource(id, name),
-		_version(0),
+	Texture::Texture(const ResourceID& id, const ImageDescription& imageDescription, const ImageSamplerDescription& samplerDescription) :
+		Resource(id),
+		_imageFilePath(),
 		_image(),
 		_sampler(),
-		_imageFilePath()
+		_imageDescription(imageDescription)
 	{
-		RenderService& rendering = EnsureRenderService();
+		RenderService* rendering = RenderService::Get();
 
-		_image = rendering.GetDevice().CreateImage(imageDescription);
+		CocoAssert(rendering, "RenderService singleton was null")
+
+		AddTextureImageUsageFlags(_imageDescription);
+
+		if(imageDescription != ImageDescription::Empty)
+			_image = rendering->GetDevice().CreateImage(_imageDescription);
+
 		CreateSampler(samplerDescription);
 	}
 
 	Texture::Texture(
-		const ResourceID& id,
-		const string& name, 
-		const FilePath& imageFilePath,
-		ImageColorSpace colorSpace,
+		const ResourceID& id, 
+		const FilePath& imageFilePath, 
+		ImageColorSpace colorSpace, 
 		ImageUsageFlags usageFlags, 
 		const ImageSamplerDescription& samplerDescription) :
-		RendererResource(id, name),
-		_version(0),
+		Resource(id),
+		_imageFilePath(imageFilePath),
+		_imageDescription(ImageDescription::Create2D(1, 1, ImagePixelFormat::RGBA8, colorSpace, usageFlags, true)),
 		_image(),
-		_sampler(),
-		_imageFilePath(imageFilePath)
+		_sampler()
 	{
-		RenderService& rendering = EnsureRenderService();
-
-		LoadImage(imageFilePath, colorSpace, usageFlags);
+		AddTextureImageUsageFlags(_imageDescription);
+		LoadImage(imageFilePath);
 		CreateSampler(samplerDescription);
 	}
 
@@ -57,8 +53,12 @@ namespace Coco::Rendering
 		if (rendering)
 		{
 			GraphicsDevice& device = rendering->GetDevice();
-			device.TryReleaseImageSampler(_sampler);
-			device.TryReleaseImage(_image);
+
+			if (_sampler.IsValid())
+				device.TryReleaseResource(_sampler->ID);
+
+			if (_image.IsValid())
+				device.TryReleaseResource(_image->ID);
 		}
 		else
 		{
@@ -69,54 +69,49 @@ namespace Coco::Rendering
 
 	void Texture::SetPixels(uint64 offset, const void* pixelData, uint64 pixelDataSize)
 	{
-		Assert(_image.IsValid())
-
+		CocoAssert(_image.IsValid(), "Image was invalid")
+	
 		_image->SetPixels(offset, pixelData, pixelDataSize);
 	}
-
-	void Texture::ReadPixel(const Vector2Int& pixelCoordinate, void* outData, size_t dataSize)
-	{
-		_image->ReadPixel(pixelCoordinate, outData, dataSize);
-	}
+	
+	//void Texture::ReadPixel(const Vector2Int& pixelCoordinate, void* outData, size_t dataSize)
+	//{
+	//	CocoAssert(_image.IsValid(), "Image was invalid")
+	//
+	//	_image->ReadPixel(pixelCoordinate, outData, dataSize);
+	//}
 
 	void Texture::ReloadImage()
 	{
-		Assert(_image.IsValid())
-
-		ImageDescription desc = _image->GetDescription();
-		LoadImage(_imageFilePath, desc.ColorSpace, desc.UsageFlags);
+		LoadImage(_imageFilePath);
 	}
 
-	void Texture::Resize(const SizeInt& newSize)
+	void Texture::AddTextureImageUsageFlags(ImageDescription& description)
 	{
-		RenderService* rendering = RenderService::Get();
-
-		if (!rendering || !_image)
-			return;
-
-		GraphicsDevice& device = rendering->GetDevice();
-
-		ImageDescription description = _image->GetDescription();
-		device.TryReleaseImage(_image);
-
-		description.Width = newSize.Width;
-		description.Height = newSize.Height;
-
-		_image = device.CreateImage(description);
-
-		Assert(_image.IsValid())
+		description.UsageFlags |= ImageUsageFlags::Sampled;
+		description.UsageFlags |= ImageUsageFlags::TransferDestination;
+		description.UsageFlags |= ImageUsageFlags::TransferSource;
 	}
 
-	void Texture::LoadImage(const FilePath& imageFilePath, ImageColorSpace colorSpace, ImageUsageFlags usageFlags)
+	void Texture::LoadImage(const FilePath& imageFilePath)
 	{
 		if (imageFilePath.IsEmpty())
 			return;
+
+		if(_imageDescription.PixelFormat != ImagePixelFormat::RGBA8)
+		{ 
+			CocoError("Loading of RGBA8 is currently the only supported image format")
+			return;
+		}
+
+		RenderService* rendering = RenderService::Get();
+		CocoAssert(rendering, "RenderService singleton was null")
 
 		// Set Y = 0 to the top
 		stbi_set_flip_vertically_on_load(true);
 
 		// Load in the image data from the file
-		int channelsToLoad = 4;
+		int channelsToLoad = GetPixelFormatChannelCount(_imageDescription.PixelFormat);
 		int actualChannelCount;
 		int width, height;
 
@@ -132,7 +127,10 @@ namespace Coco::Rendering
 
 			// Free the image data if it was somehow loaded
 			if (rawImageData)
+			{
 				stbi_image_free(rawImageData);
+				rawImageData = nullptr;
+			}
 
 			// Clears any error so it won't cause subsequent false failures
 			stbi_clear_error();
@@ -140,7 +138,6 @@ namespace Coco::Rendering
 			return;
 		}
 
-		
 		uint64_t byteSize = static_cast<uint64_t>(width) * height * channelsToLoad;
 
 		// Check if there is any transparency in the image
@@ -158,33 +155,17 @@ namespace Coco::Rendering
 			}
 		}
 
-		ImagePixelFormat pixelFormat;
-
-		// TODO: determine this from loaded file
-		switch (channelsToLoad)
-		{
-		case 4:
-			pixelFormat = ImagePixelFormat::RGBA8;
-			break;
-		default:
-		{
-			CocoError("Images with {} channels are not supported", channelsToLoad)
-			stbi_image_free(rawImageData);
-			return;
-		}
-		}
-
-		usageFlags |= ImageUsageFlags::TransferDestination;
-		usageFlags |= ImageUsageFlags::TransferSource;
-
 		// Create a new image description with the given usage flags
-		ImageDescription description(static_cast<uint32>(width), static_cast<uint32>(height), pixelFormat, colorSpace, usageFlags, true);
+		ImageDescription description = ImageDescription::Create2D(
+			static_cast<uint32>(width), static_cast<uint32>(height), 
+			_imageDescription.PixelFormat, _imageDescription.ColorSpace, 
+			_imageDescription.UsageFlags,
+			true);
 
 		// Hold onto the old image data just in-case the transfer fails
 		Ref<Image> newImage = _image;
 
-		RenderService& rendering = EnsureRenderService();
-		GraphicsDevice& device = rendering.GetDevice();
+		GraphicsDevice& device = rendering->GetDevice();
 
 		try
 		{
@@ -197,36 +178,40 @@ namespace Coco::Rendering
 			CocoError("Failed to transfer image data into backend: {}", ex.what())
 
 			// Revert to the previous image data
-			device.TryReleaseImage(newImage);
+			device.TryReleaseResource(newImage->ID);
 
 			return;
 		}
 
+		stbi_image_free(rawImageData);
+
 		Ref<Image> oldImage = _image;
 		_image = newImage;
-		device.TryReleaseImage(oldImage);
+
+		if (oldImage)
+			device.TryReleaseResource(oldImage->ID);
 
 		_imageFilePath = imageFilePath;
-		_version++;
-
-		stbi_image_free(rawImageData);
+		_imageDescription = description;
+		IncrementVersion();
 
 		CocoTrace("Loaded image \"{}\"", _imageFilePath.ToString())
 	}
 
 	void Texture::CreateSampler(const ImageSamplerDescription& samplerDescription)
 	{
-		RenderService& rendering = EnsureRenderService();
+		RenderService* rendering = RenderService::Get();
+		CocoAssert(rendering, "RenderService singleton was null")
+
+		GraphicsDevice& device = rendering->GetDevice();
 
 		if (_sampler)
-		{
-			rendering.GetDevice().TryReleaseImageSampler(_sampler);
-		}
+			device.TryReleaseResource(_sampler->ID);
 
 		ImageSamplerDescription newSamplerDescription = samplerDescription;
-		if(samplerDescription.MaxLOD == 0)
-			newSamplerDescription.MaxLOD = _image->GetDescription().MipCount;
+		if (samplerDescription.MaxLOD == 0)
+			newSamplerDescription.MaxLOD = _imageDescription.MipCount;
 
-		_sampler = rendering.GetDevice().CreateImageSampler(newSamplerDescription);
+		_sampler = device.CreateImageSampler(newSamplerDescription);
 	}
 }

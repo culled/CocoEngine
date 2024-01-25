@@ -13,6 +13,10 @@
 
 namespace Coco::Platforms::Win32
 {
+	Win32PlatformOperationException::Win32PlatformOperationException(const string& message) :
+		Exception(message)
+	{}
+
 	Win32EnginePlatform::Win32EnginePlatform(HINSTANCE hInstance) :
 		_hInstance(hInstance),
 		_consoleOpen(false)
@@ -27,7 +31,7 @@ namespace Coco::Platforms::Win32
 #ifdef COCO_SERVICE_WINDOWING
 		if (!RegisterWindowClass())
 		{
-			throw std::exception("Failed to register window class");
+			throw Win32PlatformOperationException("Failed to register window class");
 		}
 
 		_windowExtensions = CreateSharedRef<Win32WindowExtensions>();
@@ -41,6 +45,37 @@ namespace Coco::Platforms::Win32
 	Win32EnginePlatform::~Win32EnginePlatform()
 	{
 		_processArguments.clear();
+	}
+
+	string Win32EnginePlatform::GetWin32ErrorMessage(DWORD error)
+	{
+#if UNICODE || _UNICODE
+		std::wstring str(512, L'\0');
+#else
+		string str(512, '\0');
+#endif // UNICODE || _UNICODE
+
+		// Try to get the message from the system errors.
+		DWORD chars = ::FormatMessage(
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			error,
+			0,
+			str.data(),
+			static_cast<DWORD>(str.size()),
+			NULL
+		);
+
+		if (chars > 0)
+		{
+#if UNICODE || _UNICODE
+			return WideStringToString(str.c_str());
+#else
+			return str;
+#endif
+		}
+
+		return FormatString("Code {}", error);
 	}
 
 	double Win32EnginePlatform::GetSeconds() const
@@ -301,6 +336,7 @@ namespace Coco::Platforms::Win32
 			return 1;
 		default: break;
 		}
+
 		return DefWindowProc(windowHandle, message, wParam, lParam);
 	}
 
@@ -327,6 +363,7 @@ namespace Coco::Platforms::Win32
 		}
 		catch (...)
 		{
+			CocoError("Failed to get process arguments from Windows")
 		}
 
 		LocalFree(rawArguments);
@@ -355,8 +392,9 @@ namespace Coco::Platforms::Win32
 		_renderingExtensions = renderingExtensions;
 	}
 
-	void Win32EnginePlatform::GetPlatformRenderingExtensions(const char* renderRHIName, bool includePresentationExtensions, std::vector<const char*>& extensions) const
+	void Win32EnginePlatform::GetPlatformRenderingExtensions(const string& renderRHIName, bool includePresentationExtensions, std::vector<string>& extensions) const
 	{
+		CocoAssert(_renderingExtensions, "Rendering extensions were null. Did you forget to set them via SetRenderingExtensions()?")
 		_renderingExtensions->GetRenderingExtensions(renderRHIName, includePresentationExtensions, extensions);
 	}
 #endif
@@ -369,8 +407,9 @@ namespace Coco::Platforms::Win32
 		_windowExtensions = windowExtensions;
 	}
 
-	SharedRef<Rendering::GraphicsPresenterSurface> Win32EnginePlatform::CreateSurfaceForWindow(const char* renderRHIName, const Win32Window& window) const
+	UniqueRef<Rendering::PresenterSurface> Win32EnginePlatform::CreateSurfaceForWindow(const string& renderRHIName, const Win32Window& window) const
 	{
+		CocoAssert(_windowExtensions, "Window extensions were null. Did you forget to set them via SetWindowExtensions()?")
 		return _windowExtensions->CreateSurfaceForWindow(renderRHIName, window);
 	}
 
@@ -424,7 +463,7 @@ namespace Coco::Platforms::Win32
 
 		if (!::SetProcessDpiAwarenessContext(mode))
 		{
-			CocoError("Failed to set the DPI aware mode (code {})", GetLastError())
+			CocoError("Failed to set the DPI aware mode: {}", GetWin32ErrorMessage(::GetLastError()))
 		}
 #else
 		CocoError("Cannot set dpi awareness: Engine was not built with high-dpi support")
@@ -451,13 +490,14 @@ namespace Coco::Platforms::Win32
 	bool Win32EnginePlatform::DispatchWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		LONG_PTR userPtr = GetWindowLongPtr(windowHandle, GWLP_USERDATA);
-		Win32Window* window = reinterpret_cast<Win32Window*>(userPtr);
 
-		if (!window)
+		if (!userPtr)
 		{
 			CocoError("Target window of message was null")
 			return false;
 		}
+
+		Win32Window* window = reinterpret_cast<Win32Window*>(userPtr);
 
 		return window->ProcessMessage(message, wParam, lParam);
 	}
@@ -475,8 +515,7 @@ namespace Coco::Platforms::Win32
 
 		if (!RegisterRawInputDevices(rids.data(), static_cast<UINT>(rids.size()), sizeof(rid)))
 		{
-			string err = FormatString("Failed to register raw input - code {}", ::GetLastError());
-			throw std::exception(err.c_str());
+			CocoError("Failed to register raw input: {}", GetWin32ErrorMessage(::GetLastError()));
 		}
 	}
 #endif

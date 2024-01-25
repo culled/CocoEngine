@@ -1,20 +1,37 @@
 #pragma once
-
 #include "../../GraphicsDevice.h"
-#include <Coco/Core/Resources/ResourceLibrary.h>
-#include <Coco/Core/Types/String.h>
-#include <Coco/Core/Types/Version.h>
-#include "VulkanCommandBufferPool.h"
+
+#include <Coco/Core/MainLoop/TickListener.h>
+#include "VulkanRenderFrame.h"
+#include "VulkanQueue.h"
 #include "VulkanGraphicsDeviceCache.h"
-#include "VulkanShaderCache.h"
 #include "VulkanIncludes.h"
+#include <vk_mem_alloc.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	class VulkanGraphicsDevice;
+	class VulkanGraphicsPlatform;
+	struct VulkanGraphicsDeviceCreateParams;
 
-	/// @brief Vulkan-specific device features
-	struct VulkanGraphicsDeviceFeatures
+	/// @brief Queue families that can be used on a physical device
+	struct VkPhysicalDeviceQueueFamilyInfo
+	{
+		/// @brief The index of the graphics queue family, if any
+		std::optional<uint32> GraphicsQueueFamily;
+
+		/// @brief The index of the transfer queue family, if any
+		std::optional<uint32> TransferQueueFamily;
+
+		/// @brief The index of the compute queue family, if any
+		std::optional<uint32> ComputeQueueFamily;
+
+		VkPhysicalDeviceQueueFamilyInfo();
+
+		static VkPhysicalDeviceQueueFamilyInfo GetInfo(VkPhysicalDevice physicalDevice);
+	};
+
+	struct VulkanGraphicsDeviceFeatures :
+		public GraphicsDeviceFeatures
 	{
 		/// @brief The maximum size of the push constants buffer
 		uint32 MaxPushConstantSize;
@@ -22,199 +39,91 @@ namespace Coco::Rendering::Vulkan
 		VulkanGraphicsDeviceFeatures();
 	};
 
-	/// @brief A ranking for a VkPhysicalDevice
-	struct PhysicalDeviceRanking
-	{
-		/// @brief The physical device
-		VkPhysicalDevice Device;
-
-		/// @brief The device's score
-		int Score;
-
-		PhysicalDeviceRanking(VkPhysicalDevice device, int score);
-	};
-
-	/// @brief Queue families that can be used on a physical device
-	struct PhysicalDeviceQueueFamilyInfo
-	{
-		/// @brief The index of the graphics queue family, if any
-		std::optional<int> GraphicsQueueFamily;
-
-		/// @brief The index of the transfer queue family, if any
-		std::optional<int> TransferQueueFamily;
-
-		/// @brief The index of the compute queue family, if any
-		std::optional<int> ComputeQueueFamily;
-
-		PhysicalDeviceQueueFamilyInfo();
-	};
-
-	/// @brief Describes a queue on the VulkanGraphicsDevice
-	struct DeviceQueue
-	{
-		/// @brief Types of queues
-		enum class Type
-		{
-			Graphics,
-			Transfer,
-			Compute
-		};
-
-		/// @brief The type of queue this is
-		Type QueueType;
-
-		/// @brief The family index of the queue
-		uint8 FamilyIndex;
-
-		/// @brief The actual queue
-		VkQueue Queue;
-
-		/// @brief The command buffer pool
-		VulkanCommandBufferPool Pool;
-
-		DeviceQueue(VulkanGraphicsDevice& device, Type type, uint8 familyIndex, VkQueue queue);
-	};
-
-	/// @brief Vulkan implementation of a GraphicsDevice
 	class VulkanGraphicsDevice :
 		public GraphicsDevice
 	{
 	public:
-		/// @brief The period between purges in seconds
-		static const double sPurgePeriod;
-
-	private:
-		VkInstance _instance;
-		VkPhysicalDevice _physicalDevice;
-		VkDevice _device;
-		string _name;
-		GraphicsDeviceType _deviceType;
-		Version _driverVersion;
-		Version _apiVersion;
-		GraphicsDeviceFeatures _features;
-		VulkanGraphicsDeviceFeatures _vulkanFeatures;
-		UniqueRef<DeviceQueue> _graphicsQueue;
-		UniqueRef<DeviceQueue> _transferQueue;
-		UniqueRef<DeviceQueue> _computeQueue;
-		DeviceQueue* _presentQueue;
-		UniqueRef<VulkanGraphicsDeviceCache> _cache;
-		UniqueRef<VulkanShaderCache> _shaderCache;
-		OwnedResourceLibrary<GraphicsDeviceResourceID, GraphicsDeviceResourceBase, GraphicsDeviceResourceIDGenerator> _resources;
-		double _lastPurgeTime;
+		static const double ResourcePurgePeriod;
+		static const double StaleResourceThreshold;
+		static const int ResourcePurgeTickPriority;
 
 	public:
-		VulkanGraphicsDevice(VkInstance instance, const GraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice);
+		VulkanGraphicsDevice(const VulkanGraphicsPlatform& platform, const VulkanGraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice);
 		~VulkanGraphicsDevice();
 
-		/// @brief Creates a VulkanGraphicsDevice
-		/// @param instance The vulkan instance
-		/// @param createParams Parameters for creating the device
-		/// @return The device
-		static UniqueRef<VulkanGraphicsDevice> Create(VkInstance instance, const GraphicsDeviceCreateParams& createParams);
+		// Inherited via GraphicsDevice
+		const string& GetName() const override { return _features.Name; }
+		GraphicsDeviceType GetDeviceType() const override { return _features.Type; }
+		Version GetDriverVersion() const override { return _features.DriverVersion; }
+		const GraphicsDeviceFeatures& GetFeatures() const { return _features; }
+		uint32 GetDataTypeAlignment(BufferDataType type) const;
+		Ref<Presenter> CreatePresenter() override;
+		Ref<Buffer> CreateBuffer(uint64 size, BufferUsageFlags usageFlags) override;
+		Ref<Image> CreateImage(const ImageDescription& description) override;
+		Ref<ImageSampler> CreateImageSampler(const ImageSamplerDescription& description) override;
+		bool TryReleaseResource(const GraphicsResourceID& resourceID) override;
+		SharedRef<RenderFrame> GetCurrentRenderFrame() const override { return _currentRenderFrame; }
+		void WaitForIdle() override;
 
-		const char* GetName() const final { return _name.c_str(); }
-		GraphicsDeviceType GetDeviceType() const final { return _deviceType; }
-		Version GetDriverVersion() const final { return _driverVersion; }
-		Version GetAPIVersion() const final { return _apiVersion; }
-		const GraphicsDeviceFeatures& GetFeatures() const final { return _features; }
-		void WaitForIdle() const final;
-		uint8 GetDataTypeAlignment(BufferDataType type) const final;
-		void AlignOffset(BufferDataType type, uint64& offset) const final;
-		ShaderCache& GetShaderCache() final { return *_shaderCache; }
-		Ref<GraphicsPresenter> CreatePresenter() final;
-		void TryReleasePresenter(Ref<GraphicsPresenter>& presenter) final;
-		Ref<Buffer> CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind) final;
-		void TryReleaseBuffer(Ref<Buffer>& buffer) final;
-		Ref<Image> CreateImage(const ImageDescription& description) final;
-		void TryReleaseImage(Ref<Image>& image) final;
-		Ref<ImageSampler> CreateImageSampler(const ImageSamplerDescription& description) final;
-		void TryReleaseImageSampler(Ref<ImageSampler>& imageSampler) final;
-		Ref<RenderContext> CreateRenderContext() final;
-		void TryReleaseRenderContext(Ref<RenderContext>& context) final;
-		void PurgeUnusedResources() final;
-		void ResetForNewFrame() final;
+		static bool PickPhysicalDevice(VkInstance instance, const VulkanGraphicsDeviceCreateParams& createParams, VkPhysicalDevice& outDevice);
 
-		/// @brief Gets the Vulkan instance that this device was created with
-		/// @return The Vulkan instance
-		VkInstance GetInstance() const { return _instance; }
-
-		/// @brief Gets this device's allocation callbacks
-		/// @return This device's allocation callbacks
-		VkAllocationCallbacks* GetAllocationCallbacks() { return nullptr; } // TODO: allocation callbacks
-
-		/// @brief Gets the logical device
-		/// @return The logical device
+		VkInstance GetVulkanInstance() const;
 		VkDevice GetDevice() const { return _device; }
-
-		/// @brief Gets the physical device
-		/// @return The physical device
 		VkPhysicalDevice GetPhysicalDevice() const { return _physicalDevice; }
+		const VkAllocationCallbacks* GetAllocationCallbacks() const;
+		VmaAllocator GetAllocator() const { return _allocator; }
 
-		/// @brief Gets a queue on this device
-		/// @param queueType The type of queue
-		/// @return The queue, or nullptr if it doesn't exist
-		DeviceQueue* GetQueue(DeviceQueue::Type queueType);
+		VulkanQueue* GetQueue(VulkanQueueType queueType);
+		VulkanQueue* GetOrCreatePresentQueue(VkSurfaceKHR surface);
 
-		/// @brief Gets a queue on this device
-		/// @param queueType The type of queue
-		/// @return The queue, or nullptr if it doesn't exist
-		const DeviceQueue* GetQueue(DeviceQueue::Type queueType) const;
-
-		/// @brief Gets or creates a queue that can be used for presentation operations
-		/// @param surface The surface to check presentation support for
-		/// @return The present queue, or nullptr if presentation isn't supported
-		DeviceQueue* GetOrCreatePresentQueue(VkSurfaceKHR surface);
-
-		/// @brief Gets this device's cache
-		/// @return The device cache
 		VulkanGraphicsDeviceCache& GetCache() { return *_cache; }
+		Ref<VulkanRenderContext> CreateRenderContext();
 
-		/// @brief Gets the Vulkan-specific features of this device
-		/// @return The Vulkan features
-		const VulkanGraphicsDeviceFeatures& GetVulkanFeatures() const { return _vulkanFeatures; }
-
-		/// @brief Finds the heap index for a type of memory
-		/// @param type The memory types
-		/// @param memoryProperties The memory properties
-		/// @param outIndex Will be set to the heap index
-		/// @return True if memory was found that supports the given properties
-		bool FindMemoryIndex(uint32 type, VkMemoryPropertyFlags memoryProperties, uint32& outIndex) const;
-
-		/// @brief Waits until a queue has finished all operations
-		/// @param queueType The queue to wait for
-		void WaitForQueueIdle(DeviceQueue::Type queueType) const;
-
-		void TryReleaseResource(const uint64& id);
+	protected:
+		// Inherited via GraphicsDevice
+		SharedRef<RenderFrame> StartNewRenderFrame() override;
+		void EndRenderFrame() override;
 
 	private:
-		/// @brief Gets queue family information for a device
-		/// @param device The device
-		/// @return The queue family info
-		static PhysicalDeviceQueueFamilyInfo GetQueueFamilyInfo(VkPhysicalDevice device);
+		static std::atomic_uint64_t _sNextResourceID;
 
-		/// @brief Calculates a score for a given device based on how much it satisfies the given requirements
-		/// @param device The device
-		/// @param createParams The requirements for the device
-		/// @return The device score
-		static int CalculateDeviceScore(const VkPhysicalDevice& device, const GraphicsDeviceCreateParams& createParams);
+		const VulkanGraphicsPlatform& _platform;
+		VkPhysicalDevice _physicalDevice;
+		VkDevice _device;
+		VmaAllocator _allocator;
+		VulkanGraphicsDeviceFeatures _features;
+		ManagedRef<TickListener> _purgeTickListener;
 
-		/// @brief Picks the most suitable physical device to use for rendering
-		/// @param instance The Vulkan instance
-		/// @param createParams The requirements for the device
-		/// @return The most suitable physical device
-		static VkPhysicalDevice PickPhysicalDevice(const VkInstance& instance, const GraphicsDeviceCreateParams& createParams);
+		UniqueRef<VulkanQueue> _graphicsQueue;
+		UniqueRef<VulkanQueue> _transferQueue;
+		UniqueRef<VulkanQueue> _computeQueue;
+		VulkanQueue* _presentQueue;
 
-		/// @brief Creates the Vulkan logical device
-		/// @param createParams The parameters to create the device with
-		void CreateLogicalDevice(const GraphicsDeviceCreateParams& createParams);
+		UniqueRef<VulkanGraphicsDeviceCache> _cache;
 
-		/// @brief Gets properties for this device's physical device
-		void GetPhysicalDeviceProperties();
+		SharedRef<VulkanRenderFrame> _currentRenderFrame;
 
-		/// @brief Checks if a given queue supports presentation
-		/// @param surface The surface to check support with
-		/// @param queue The queue
-		/// @return True if the queue supports presenting
-		bool CheckQueuePresentSupport(VkSurfaceKHR surface, const DeviceQueue* queue);
+		std::unordered_map<GraphicsResourceID, ManagedRef<GraphicsResource>> _resources;
+
+	private:
+		static VulkanGraphicsDeviceFeatures GetDeviceFeatures(VkPhysicalDevice physicalDevice);
+		static int CalculateDeviceScore(const VkPhysicalDevice& device, const VulkanGraphicsDeviceCreateParams& createParams);
+		static GraphicsResourceID GetNewResourceID();
+
+		template<typename ResourceType, typename... Args>
+		Ref<ResourceType> CreateResource(Args&&... args)
+		{
+			GraphicsResourceID id = GetNewResourceID();
+			auto result = _resources.try_emplace(id, CreateManagedRef<ResourceType>(id, *this, std::forward<Args>(args)...));
+			Ref<GraphicsResource> r = result.first->second;
+			return StaticRefCast<ResourceType>(r);
+		}
+
+		void CreateDevice(const VulkanGraphicsDeviceCreateParams& createParams);
+		void DestroyDevice();
+
+		bool CheckPresentQueueSupport(VkSurfaceKHR surface, const VulkanQueue* queue);
+		void HandlePurgeTickListener(const TickInfo& tickInfo);
+		void PurgeStaleResources();
 	};
 }

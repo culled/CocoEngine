@@ -10,7 +10,8 @@ namespace Coco::ECS
 	Transform3DComponent::Transform3DComponent(const Entity& owner, const Transform3D& transform, bool inheritParentTransform) :
 		EntityComponent(owner),
 		_transform(transform),
-		_inheritParentTransform(inheritParentTransform)
+		_inheritParentTransform(inheritParentTransform),
+		_reparentMode(TransformReparentMode::KeepWorldTransform)
 	{
 		Recalculate();
 	}
@@ -36,6 +37,25 @@ namespace Coco::ECS
 	void Transform3DComponent::SetScale(const Vector3& scale, TransformSpace space)
 	{
 		_transform.SetScale(scale, space);
+
+		Recalculate();
+	}
+
+	void Transform3DComponent::SetPositionAndRotation(const Vector3& position, const Quaternion& rotation, TransformSpace space)
+	{
+		SetTransform(&position, &rotation, nullptr, space);
+	}
+
+	void Transform3DComponent::SetTransform(const Vector3* position, const Quaternion* rotation, const Vector3* scale, TransformSpace space)
+	{
+		if (scale)
+			_transform.SetScale(*scale, space);
+
+		if (rotation)
+			_transform.SetRotation(*rotation, space);
+
+		if (position)
+			_transform.SetPosition(*position, space);
 
 		Recalculate();
 	}
@@ -81,6 +101,11 @@ namespace Coco::ECS
 		Recalculate();
 	}
 
+	void Transform3DComponent::SetReparentMode(TransformReparentMode newMode)
+	{
+		_reparentMode = newMode;
+	}
+
 	void Transform3DComponent::Recalculate()
 	{
 		const Transform3D* parentTransform = nullptr;
@@ -96,7 +121,7 @@ namespace Coco::ECS
 			return;
 
 		const Entity& entity = GetOwner();
-		for (const Entity& child : entity.GetChildren())
+		for (Entity& child : entity.GetChildren())
 		{
 			if (!child.HasComponent<Transform3DComponent>())
 				continue;
@@ -113,7 +138,7 @@ namespace Coco::ECS
 		const Entity& owner = GetOwner();
 		const Transform3DComponent* parentTransform = nullptr;
 
-		if (owner.HasParent() && owner.GetParent().TryGetComponent(parentTransform))
+		if (!owner.IsOrphaned() && owner.GetParent().TryGetComponent(parentTransform))
 		{
 			outParentTransform = &parentTransform->_transform;
 			return true;

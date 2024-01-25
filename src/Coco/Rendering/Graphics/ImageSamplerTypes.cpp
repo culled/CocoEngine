@@ -11,10 +11,10 @@ namespace Coco::Rendering
 	const ImageSamplerDescription ImageSamplerDescription::NearestMirror = ImageSamplerDescription(ImageFilterMode::Nearest, ImageRepeatMode::Mirror, MipMapFilterMode::Linear, 0);
 
 	ImageSamplerDescription::ImageSamplerDescription(
-		ImageFilterMode filterMode, 
-		ImageRepeatMode repeatMode, 
+		ImageFilterMode filterMode,
+		ImageRepeatMode repeatMode,
 		MipMapFilterMode mipMapFilterMode,
-		uint8 maxAnisotropy) :
+		uint32 maxAnisotropy) :
 		ImageSamplerDescription(filterMode, filterMode,
 			repeatMode, repeatMode, repeatMode,
 			mipMapFilterMode,
@@ -23,10 +23,10 @@ namespace Coco::Rendering
 	{}
 
 	ImageSamplerDescription::ImageSamplerDescription(
-		ImageFilterMode minimizeFilter, ImageFilterMode magnifyFilter, 
-		ImageRepeatMode repeatModeU, ImageRepeatMode repeatModeV, ImageRepeatMode repeatModeW, 
-		MipMapFilterMode mipMapFilterMode, 
-		uint8 maxAnisotropy, 
+		ImageFilterMode minimizeFilter, ImageFilterMode magnifyFilter,
+		ImageRepeatMode repeatModeU, ImageRepeatMode repeatModeV, ImageRepeatMode repeatModeW,
+		MipMapFilterMode mipMapFilterMode,
+		uint32 maxAnisotropy,
 		uint32 minLOD, uint32 maxLOD, double lodBias) :
 		MinimizeFilter(minimizeFilter),
 		MagnifyFilter(magnifyFilter),

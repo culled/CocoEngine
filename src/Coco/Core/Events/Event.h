@@ -15,11 +15,7 @@ namespace Coco
 	{
 	public:
 		using HandlerType = EventHandler<ArgTypes...>;
-
 		friend class HandlerType;
-
-	private:
-		std::vector<HandlerType*> _handlers;
 
 	public:
 		Event() = default;
@@ -63,6 +59,10 @@ namespace Coco
 		/// @return The number of event handlers
 		size_t GetHandlerCount() const { return _handlers.size(); }
 
+
+	private:
+		std::vector<HandlerType*> _handlers;
+
 	private:
 		/// @brief Adds a handler to this event
 		/// @param handler The handler
@@ -89,15 +89,9 @@ namespace Coco
 	{
 	public:
 		using EventType = Event<ArgTypes...>;
-
 		friend class EventType;
 
-	public:
 		using CallbackFunction = std::function<bool(ArgTypes...)>;
-
-	private:
-		std::vector<EventType*> _events;
-		CallbackFunction _callback;
 
 	public:
 		EventHandler() :
@@ -183,6 +177,10 @@ namespace Coco
 		/// @param source The event
 		/// @return True if this handler is connected to the event
 		bool IsConnectedTo(EventType& source) const { return std::find(_events.begin(), _events.end(), &source) != _events.end(); }
+
+	private:
+		std::vector<EventType*> _events;
+		CallbackFunction _callback;
 
 	private:
 		/// @brief Invokes the callback function

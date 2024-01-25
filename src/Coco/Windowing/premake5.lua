@@ -7,8 +7,8 @@ project "Coco.Windowing"
     pchheader "Windowpch.h"
     pchsource "Windowpch.cpp"
 
-    OutputBin = "%{OutputDir.bin}%{prj.name}"
-    OutputObj = "%{OutputDir.obj}%{prj.name}"
+    OutputBin = "%{OutputDir.bin}Coco/%{prj.name}"
+    OutputObj = "%{OutputDir.obj}Coco/%{prj.name}"
 
     targetdir(OutputBin)
     objdir(OutputObj)

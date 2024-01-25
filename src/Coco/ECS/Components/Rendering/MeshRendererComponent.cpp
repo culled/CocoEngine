@@ -1,20 +1,18 @@
 #include "ECSpch.h"
 #include "MeshRendererComponent.h"
 
+using namespace Coco::Rendering;
+
 namespace Coco::ECS
 {
 	MeshRendererComponent::MeshRendererComponent(const Entity& owner) :
-		MeshRendererComponent(owner, nullptr, std::unordered_map<uint32, SharedRef<MaterialDataProvider>>(), 1)
-	{}
-
-	MeshRendererComponent::MeshRendererComponent(const Entity& owner, SharedRef<Rendering::Mesh> mesh, const std::unordered_map<uint32, SharedRef<MaterialDataProvider>>& materials) :
-		MeshRendererComponent(owner, mesh, materials, 1)
+		MeshRendererComponent(owner, nullptr, std::unordered_map<uint32, SharedRef<Material>>(), 1)
 	{}
 
 	MeshRendererComponent::MeshRendererComponent(
 		const Entity& owner, 
 		SharedRef<Rendering::Mesh> mesh, 
-		const std::unordered_map<uint32, SharedRef<MaterialDataProvider>>& materials, 
+		const std::unordered_map<uint32, SharedRef<Material>>& materials, 
 		uint64 visibilityGroups) :
 		EntityComponent(owner),
 		_visibilityGroups(visibilityGroups),
@@ -31,7 +29,7 @@ namespace Coco::ECS
 		EnsureMaterialSlots();
 	}
 
-	void MeshRendererComponent::SetMaterial(uint32 slotIndex, SharedRef<MaterialDataProvider> material)
+	void MeshRendererComponent::SetMaterial(uint32 slotIndex, SharedRef<Material> material)
 	{
 		if (!_materials.contains(slotIndex))
 			return;
@@ -39,7 +37,7 @@ namespace Coco::ECS
 		_materials[slotIndex] = material;
 	}
 
-	void MeshRendererComponent::SetMaterials(const std::unordered_map<uint32, SharedRef<MaterialDataProvider>>& materials)
+	void MeshRendererComponent::SetMaterials(const std::unordered_map<uint32, SharedRef<Material>>& materials)
 	{
 		_materials = materials;
 

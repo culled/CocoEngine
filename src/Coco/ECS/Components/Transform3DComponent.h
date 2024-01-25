@@ -5,6 +5,12 @@
 
 namespace Coco::ECS
 {
+    enum class TransformReparentMode
+    {
+        KeepLocalTransform,
+        KeepWorldTransform
+    };
+
     /// @brief A component that stores a 3D transform
     class Transform3DComponent :
         public EntityComponent
@@ -13,14 +19,13 @@ namespace Coco::ECS
         friend class TransformSystem;
         friend class SceneSerializer;
 
-    private:
-        Transform3D _transform;
-        bool _inheritParentTransform;
-
     public:
         Transform3DComponent(const Entity& owner);
         Transform3DComponent(const Entity& owner, const Transform3D& transform, bool inheritParentTransform = true);
         Transform3DComponent(const Entity& owner, const Vector3& position, const Quaternion& rotation, const Vector3& scale, bool inheritParentTransform = true);
+
+        // Inherited via EntityComponent
+        const char* GetComponentTypename() const override { return "Transform3DComponent"; }
 
         /// @brief Gets a matrix that transforms between spaces
         /// @param from The space to transform from
@@ -71,6 +76,19 @@ namespace Coco::ECS
         /// @param space The space
         /// @return The scale
         Vector3 GetScale(TransformSpace space) const { return _transform.GetScale(space); }
+
+        /// @brief Sets the position and rotation of this transform in the given space
+        /// @param position The position
+        /// @param rotation The rotation
+        /// @param space The space
+        void SetPositionAndRotation(const Vector3& position, const Quaternion& rotation, TransformSpace space);
+
+        /// @brief Sets the position, rotation, and scale of this transform in the given space
+        /// @param position The position, or nullptr to not set position
+        /// @param rotation The rotation, or nullptr to not set rotation
+        /// @param scale The scale, or nullptr to not set scale
+        /// @param space The space
+        void SetTransform(const Vector3* position, const Quaternion* rotation, const Vector3* scale, TransformSpace space);
 
         /// @brief Moves this transform in the given space
         /// @param translation The amount to move
@@ -142,8 +160,16 @@ namespace Coco::ECS
         /// @return True if this transform inherits its parent's transformation
         bool GetInheritParentTransform() const { return _inheritParentTransform; }
 
+        void SetReparentMode(TransformReparentMode newMode);
+        TransformReparentMode GetReparentMode() const { return _reparentMode; }
+
         /// @brief Recalculates this transform and its children
         void Recalculate();
+
+    private:
+        Transform3D _transform;
+        bool _inheritParentTransform;
+        TransformReparentMode _reparentMode;
 
 	private:
         /// @brief Recalculates this transform and its children

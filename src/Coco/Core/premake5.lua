@@ -7,13 +7,13 @@ project "Coco.Core"
     pchheader "Corepch.h"
     pchsource "Corepch.cpp"
 
-    OutputBin = "%{OutputDir.bin}%{prj.name}"
-    OutputObj = "%{OutputDir.obj}%{prj.name}"
+    OutputBin = "%{OutputDir.bin}Coco/%{prj.name}"
+    OutputObj = "%{OutputDir.obj}Coco/%{prj.name}"
 
     targetdir(OutputBin)
     objdir(OutputObj)
 
-    defines { "COCO_ASSERTIONS" }
+    defines { "COCO_ASSERTIONS", "YAML_CPP_STATIC_DEFINE" }
 
     -- Core files
     files
@@ -24,11 +24,14 @@ project "Coco.Core"
 
     includedirs
     {
-        "%{IncludeDir.Coco}"
+        "%{IncludeDir.Coco}",
+        "%{IncludeDir.yaml_cpp}"
     }
 
     links
-    {}
+    {
+        "yaml"
+    }
     
     -- Build configs
     filter { "configurations:Debug" }

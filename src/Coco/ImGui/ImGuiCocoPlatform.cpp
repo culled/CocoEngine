@@ -1,7 +1,6 @@
 #include "ImGuiCocoPlatform.h"
 
 #include <Coco/Rendering/Shader.h>
-#include <Coco/Rendering/Mesh.h>
 #include <Coco/Rendering/Material.h>
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
@@ -13,6 +12,9 @@
 #include <Coco/Windowing/Window.h>
 
 #include <Coco/Core/Engine.h>
+
+#include "ImGuiRenderViewProvider.h"
+#include "ImGuiSceneDataProvider.h"
 
 #include <imgui.h>
 
@@ -51,18 +53,10 @@ namespace Coco::ImGuiCoco
     }
 
     std::unordered_map<uint64, CocoViewportData> ImGuiCocoPlatform::_sViewports;
-    const GlobalShaderUniformLayout ImGuiCocoPlatform::_sGlobalUniformLayout = GlobalShaderUniformLayout(
-        {
-            ShaderUniform("ProjectionMatrix", ShaderUniformType::Mat4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity)
-        },
-        {}
-    );
 
     ImGuiCocoPlatform::ImGuiCocoPlatform(bool enableViewports, bool clearAttachments) :
         _renderPass(CreateSharedRef<ImGuiRenderPass>()),
-        _currentlyRenderingViewport(nullptr),
-        _shouldUpdateDisplays(true), 
-        _viewportMeshes()
+        _shouldUpdateDisplays(true)
     {
         _sViewports = std::unordered_map<uint64, CocoViewportData>();
 
@@ -101,133 +95,6 @@ namespace Coco::ImGuiCoco
 
         _renderPipeline.reset();
         _renderPass.reset();
-        _viewportMeshes.clear();
-    }
-
-    void ImGuiCocoPlatform::SetupRenderView(
-        RenderView& renderView,
-        const Rendering::CompiledRenderPipeline& pipeline,
-        uint64 rendererID,
-        const SizeInt& backbufferSize,
-        std::span<Ref<Rendering::Image>> backbuffers)
-    {
-        using namespace Coco::Rendering;
-
-        Assert(_currentlyRenderingViewport != nullptr)
-
-        std::vector<RenderTarget> rts;
-
-        for (size_t i = 0; i < backbuffers.size(); i++)
-            rts.emplace_back(backbuffers[i], Vector4::Zero);
-
-        ImDrawData* drawData = _currentlyRenderingViewport->DrawData;
-
-        RectInt viewport(Vector2Int::Zero, SizeInt(static_cast<uint32>(drawData->DisplaySize.x), static_cast<uint32>(drawData->DisplaySize.y)));
-
-        Matrix4x4 projection = RenderService::Get()->GetPlatform().CreateOrthographicProjection(
-            viewport.GetLeft(),
-            viewport.GetRight(),
-            viewport.GetTop(),
-            viewport.GetBottom(),
-            -1.0, 1.0);
-
-        renderView.Setup(viewport, viewport, Matrix4x4::Identity, projection, Vector3::Zero, ViewFrustum(), MSAASamples::One, rts);
-
-        renderView.SetGlobalUniformLayout(_sGlobalUniformLayout);
-    }
-
-    void ImGuiCocoPlatform::GatherSceneData(RenderView& renderView)
-    {
-        using namespace Coco::Rendering;
-
-        Assert(_currentlyRenderingViewport != nullptr)
-
-        ImDrawData* drawData = _currentlyRenderingViewport->DrawData;
-
-        VertexDataFormat format(VertexAttrFlags::Color | VertexAttrFlags::UV0);
-        SharedRef<Mesh> mesh = GetOrCreateViewportMesh(_currentlyRenderingViewport);
-
-        if (drawData->TotalVtxCount > 0)
-        {
-            mesh->ClearSubmeshes();
-
-            std::vector<VertexData> vertices(drawData->TotalVtxCount);
-            std::vector<uint32> indices;
-            uint64 vertexOffset = 0;
-
-            Vector3 offset(drawData->DisplayPos.x, drawData->DisplayPos.y, 0.0);
-
-            for (int n = 0; n < drawData->CmdListsCount; n++)
-            {
-                const ImDrawList* drawList = drawData->CmdLists[n];
-
-                for (int v = 0; v < drawList->VtxBuffer.Size; v++)
-                {
-                    ImDrawVert* imVert = drawList->VtxBuffer.Data + v;
-                    VertexData& vert = vertices.at(v + vertexOffset);
-
-                    vert.Position = Vector3(imVert->pos.x, imVert->pos.y, 0.0) - offset;
-
-                    ImVec4 imGuiColor = ::ImGui::ColorConvertU32ToFloat4(imVert->col);
-                    Color c(imGuiColor.x, imGuiColor.y, imGuiColor.z, imGuiColor.w);
-                    c.ConvertToLinear();
-                    vert.Color = Vector4(c.R, c.G, c.B, c.A);
-
-                    vert.UV0 = Vector2(imVert->uv.x, imVert->uv.y);
-                }
-
-                indices.resize(drawList->IdxBuffer.Size);
-                for (int i = 0; i < drawList->IdxBuffer.Size; i++)
-                {
-                    indices.at(i) = *(drawList->IdxBuffer.Data + i) + static_cast<uint32>(vertexOffset);
-                }
-
-                vertexOffset += drawList->VtxBuffer.Size;
-                mesh->SetIndices(indices, n);
-            }
-
-            mesh->SetVertices(format, vertices);
-            mesh->Apply();
-
-            renderView.AddMesh(*mesh);
-
-            uint64 indexOffset = 0;
-
-            for (int n = 0; n < drawData->CmdListsCount; n++)
-            {
-                const ImDrawList* drawList = drawData->CmdLists[n];
-
-                for (int cmdI = 0; cmdI < drawList->CmdBuffer.Size; cmdI++)
-                {
-                    const ImDrawCmd& cmd = drawList->CmdBuffer[cmdI];
-
-                    RectInt scissorRect(
-                        Vector2Int(
-                            Math::Max(static_cast<int>(cmd.ClipRect.x - drawData->DisplayPos.x), 0), 
-                            Math::Max(static_cast<int>(cmd.ClipRect.y - drawData->DisplayPos.y), 0)),
-                        Vector2Int(
-                            static_cast<int>(cmd.ClipRect.z - drawData->DisplayPos.x), 
-                            static_cast<int>(cmd.ClipRect.w - drawData->DisplayPos.y))
-                    );
-
-                    Texture* tex = reinterpret_cast<Texture*>(cmd.GetTexID());
-                    renderView.AddRenderObject(
-                        _currentlyRenderingViewport->ID,
-                        *mesh,
-                        cmd.IdxOffset + indexOffset,
-                        cmd.ElemCount,
-                        Matrix4x4::Identity,
-                        mesh->GetBounds(),
-                        ImGuiRenderPass::_sVisibilityGroup,
-                        nullptr,
-                        &scissorRect,
-                        ShaderUniformData::ToTextureSampler(tex->GetImage(), tex->GetImageSampler())
-                    );
-                }
-
-                indexOffset += drawList->IdxBuffer.Size;
-            }
-        }
     }
 
     bool ImGuiCocoPlatform::NewFrame(const TickInfo& tickInfo)
@@ -235,8 +102,7 @@ namespace Coco::ImGuiCoco
 		using namespace Coco::Windowing;
 
 		WindowService* windowing = WindowService::Get();
-		if (!windowing)
-			throw std::exception("No active WindowService found");
+        CocoAssert(windowing, "WindowService singleton was null")
 
 		Ref<Window> mainWindow = windowing->GetMainWindow();
 		if (!mainWindow.IsValid())
@@ -276,15 +142,14 @@ namespace Coco::ImGuiCoco
             return;
 
         RenderService* rendering = RenderService::Get();
-        if (!rendering)
-            throw std::exception("No active RenderService found");
+        CocoAssert(rendering, "RenderService singleton was null")
 
-        _currentlyRenderingViewport = viewport;
+        UniqueRef<ImGuiRenderViewProvider> viewProvider = CreateUniqueRef<ImGuiRenderViewProvider>(viewport);
+        UniqueRef<ImGuiSceneDataProvider> sceneProvider = CreateUniqueRef<ImGuiSceneDataProvider>(viewport);
 
-        std::array<SceneDataProvider*, 1> sceneProviders = { this };
-        rendering->Render(window->GetPresenter(), *_renderPipeline, *this, sceneProviders);
+        std::array<SceneDataProvider*, 1> sceneProviders = { sceneProvider.get() };
 
-        _currentlyRenderingViewport = nullptr;
+        rendering->Render(viewport->ID, window->GetPresenter(), *_renderPipeline, *viewProvider, sceneProviders);
     }
 
     void ImGuiCocoPlatform::RebuildFontTexture()
@@ -297,18 +162,19 @@ namespace Coco::ImGuiCoco
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
         _texture = Engine::Get()->GetResourceLibrary().Create<Texture>(
-            "ImGui",
-            ImageDescription(
+            ResourceID("ImGuiCocoPlatform::FontTexture"),
+            ImageDescription::Create2D(
                 static_cast<uint32>(width), static_cast<uint32>(height),
                 ImagePixelFormat::RGBA8, ImageColorSpace::sRGB,
-                ImageUsageFlags::Sampled | ImageUsageFlags::TransferDestination,
+                ImageUsageFlags::Sampled,
                 false
             ),
             ImageSamplerDescription::LinearClamp);
 
         _texture->SetPixels(0, pixels, static_cast<uint64>(width) * height * GetPixelFormatChannelCount(ImagePixelFormat::RGBA8));
 
-        io.Fonts->SetTexID(_texture.get());
+        uint64 textureID = _texture->GetID();
+        io.Fonts->SetTexID((void*)textureID);
     }
 
     void ImGuiCocoPlatform::PlatformCreateWindow(ImGuiViewport* viewport)
@@ -316,8 +182,7 @@ namespace Coco::ImGuiCoco
         using namespace Coco::Windowing;
 
         WindowService* windowing = WindowService::Get();
-        if (!windowing)
-            throw std::exception("No active WindowService found");
+        CocoAssert(windowing, "WindowService singleton was null")
 
         WindowCreateParams createParams("ImGui Window", SizeInt(static_cast<uint32>(viewport->Size.x), static_cast<uint32>(viewport->Size.y)));
         createParams.InitialPosition = Vector2Int(static_cast<int32>(viewport->Pos.x), static_cast<int32>(viewport->Pos.y));
@@ -356,11 +221,9 @@ namespace Coco::ImGuiCoco
 
                 window->Close();
 
+                ImGuiSceneDataProvider::DestroyViewportMesh(viewport);
+
                 viewport->PlatformHandle = nullptr;
-
-                ImGuiCocoPlatform* platform = ImGuiCocoPlatform::Get();
-
-                platform->RemoveViewportMesh(viewport);
             }
         }
 
@@ -533,9 +396,10 @@ namespace Coco::ImGuiCoco
 
         // Create the pipeline
         _renderPipeline = resources.Create<Rendering::RenderPipeline>(
-            "ImGui Pipeline", 
-            clearAttachments ? AttachmentOptionFlags::Clear : AttachmentOptionFlags::Preserve);
-        std::array<uint8, 1> bindings = { 0 };
+            ResourceID("ImGuiCocoPlatform::RenderPipeline"), 
+            clearAttachments ? AttachmentOptionsFlags::Clear : AttachmentOptionsFlags::None);
+
+        std::array<uint32, 1> bindings = { 0 };
         _renderPipeline->AddRenderPass(_renderPass, bindings);
     }
 
@@ -544,8 +408,7 @@ namespace Coco::ImGuiCoco
         using namespace Coco::Windowing;
 
         WindowService* windowing = WindowService::Get();
-        if (!windowing)
-            throw std::exception("No active WindowService found");
+        CocoAssert(windowing, "WindowService singleton was null")
 
         ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
 
@@ -567,31 +430,5 @@ namespace Coco::ImGuiCoco
         }
 
         _shouldUpdateDisplays = false;
-    }
-
-    uint64 ImGuiCocoPlatform::GetViewportKey(ImGuiViewport* viewport)
-    {
-        const std::hash<ImGuiViewport*> hasher;
-        return hasher(viewport);
-    }
-
-    SharedRef<Mesh> ImGuiCocoPlatform::GetOrCreateViewportMesh(ImGuiViewport* viewport)
-    {
-        uint64 key = GetViewportKey(viewport);
-
-        if (!_viewportMeshes.contains(key))
-        {
-            _viewportMeshes.try_emplace(key, Engine::Get()->GetResourceLibrary().Create<Mesh>("ImGui", false, true));
-        }
-
-        return _viewportMeshes.at(key);
-    }
-
-    void ImGuiCocoPlatform::RemoveViewportMesh(ImGuiViewport* viewport)
-    {
-        uint64 key = GetViewportKey(viewport);
-
-        if (_viewportMeshes.contains(key))
-            _viewportMeshes.erase(key);
     }
 }

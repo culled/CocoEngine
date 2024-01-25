@@ -86,9 +86,8 @@ namespace Coco
 		template<typename RefType>
 		friend class ManagedRef;
 
-	private:
-		UniqueRef<ValueType> _instance;
-		SharedRef<bool> _state;
+		template<typename ToType, typename FromType>
+		friend ManagedRef<ToType> StaticManagedRefCast(ManagedRef<FromType>&& ref);
 
 	public:
 		ManagedRef() :
@@ -101,7 +100,7 @@ namespace Coco
 			_state(CreateSharedRef<bool>(true))
 		{}
 
-		template<typename OtherType>
+		template<typename OtherType, std::enable_if_t<std::is_base_of<ValueType, OtherType>::value || std::is_base_of<OtherType, ValueType>::value, bool> = true>
 		ManagedRef(ManagedRef<OtherType>&& other) :
 			_instance(std::move(other._instance)),
 			_state(std::move(other._state))
@@ -120,10 +119,11 @@ namespace Coco
 		template<typename OtherType>
 		ManagedRef& operator=(const ManagedRef<OtherType>&) = delete;
 
-		template<typename OtherType>
+		template<typename OtherType, std::enable_if_t<std::is_base_of<ValueType, OtherType>::value || std::is_base_of<OtherType, ValueType>::value, bool> = true>
 		ManagedRef& operator=(ManagedRef<OtherType>&& other)
 		{
-			static_assert(std::is_base_of<ValueType, OtherType>::value || std::is_base_of<OtherType, ValueType>::value, "Cannot convert reference types");
+			static_assert(std::is_base_of<ValueType, OtherType>::value || std::is_base_of<OtherType, ValueType>::value, 
+				"Cannot convert reference types");
 
 			_instance.swap(other._instance);
 			_state.swap(other._state);
@@ -160,6 +160,10 @@ namespace Coco
 		/// @brief Gets the number of references to the instance (including this one)
 		/// @return The number of references
 		uint64 GetUseCount() const { return _state ? _state.use_count() : 0; }
+
+	private:
+		UniqueRef<ValueType> _instance;
+		SharedRef<bool> _state;
 	};
 
 	/// @brief Creates a ManagedRef
@@ -181,15 +185,11 @@ namespace Coco
 		template<typename OtherType>
 		friend class Ref;
 
-	private:
-		ValueType* _ptr;
-		SharedRef<bool> _state;
+		template<typename ToType, typename FromType>
+		friend Ref<ToType> StaticRefCast(const Ref<FromType>& ref);
 
-	private:
-		Ref(ValueType* ptr, SharedRef<bool> state) :
-			_ptr(ptr),
-			_state(state)
-		{}
+		template<typename ToType, typename FromType>
+		friend Ref<ToType> DynamicRefCast(const Ref<FromType>& ref);
 
 	public:
 		Ref() : 
@@ -200,23 +200,19 @@ namespace Coco
 			Ref(ptr, CreateSharedRef<bool>(ptr != nullptr))
 		{}
 
-		template<typename RefType>
+		template<typename RefType, std::enable_if_t<std::is_same<RefType, ValueType>::value || std::is_base_of<ValueType, RefType>::value, bool> = true>
 		Ref(const ManagedRef<RefType>& ref) :
 			Ref(static_cast<ValueType*>(ref.Get()), ref._state)
 		{
-			static_assert(std::is_same<RefType, ValueType>::value ||
-				std::is_base_of<ValueType, RefType>::value ||
-				std::is_base_of<RefType, ValueType>::value,
+			static_assert(std::is_same<RefType, ValueType>::value || std::is_base_of<ValueType, RefType>::value,
 				"Cannot convert reference types");
 		}
 
-		template<typename RefType>
+		template<typename RefType, std::enable_if_t<std::is_same<RefType, ValueType>::value || std::is_base_of<ValueType, RefType>::value, bool> = true>
 		Ref(Ref<RefType>&& ref) :
 			Ref(static_cast<ValueType*>(ref._ptr), ref._state)
 		{
-			static_assert(std::is_same<RefType, ValueType>::value ||
-				std::is_base_of<ValueType, RefType>::value ||
-				std::is_base_of<RefType, ValueType>::value,
+			static_assert(std::is_same<RefType, ValueType>::value || std::is_base_of<ValueType, RefType>::value,
 				"Cannot convert reference types");
 		}
 
@@ -225,12 +221,10 @@ namespace Coco
 			Invalidate();
 		}
 
-		template<typename RefType>
+		template<typename RefType, std::enable_if_t<std::is_same<RefType, ValueType>::value || std::is_base_of<ValueType, RefType>::value, bool> = true>
 		Ref& operator=(const ManagedRef<RefType>& ref)
 		{
-			static_assert(std::is_same<RefType, ValueType>::value || 
-				std::is_base_of<ValueType, RefType>::value || 
-				std::is_base_of<RefType, ValueType>::value, 
+			static_assert(std::is_same<RefType, ValueType>::value || std::is_base_of<ValueType, RefType>::value,
 				"Cannot convert reference types");
 
 			_ptr = static_cast<ValueType*>(ref.Get());
@@ -245,15 +239,12 @@ namespace Coco
 		ValueType& operator*() { return *_ptr; }
 		const ValueType& operator*() const { return *_ptr; }
 
-
-		template<typename RefType>
+		template<typename RefType, std::enable_if_t<std::is_same<RefType, ValueType>::value || std::is_base_of<RefType, ValueType>::value, bool> = true>
 		operator Ref<RefType>() const
 		{
-			static_assert(std::is_same<RefType, ValueType>::value ||
-				std::is_base_of<ValueType, RefType>::value ||
-				std::is_base_of<RefType, ValueType>::value,
+			static_assert(std::is_same<RefType, ValueType>::value || std::is_base_of<RefType, ValueType>::value,
 				"Cannot convert reference types");
-
+		
 			return Ref<RefType>(static_cast<RefType*>(_ptr), _state);
 		}
 
@@ -291,5 +282,44 @@ namespace Coco
 		/// @brief Gets the number of references to the instance (including this one)
 		/// @return The number of references
 		uint64 GetUseCount() const { return _state ? _state.use_count() : 0; }
+
+	private:
+		ValueType* _ptr;
+		SharedRef<bool> _state;
+
+	private:
+		Ref(ValueType* ptr, SharedRef<bool> state) :
+			_ptr(ptr),
+			_state(state)
+		{}
 	};
+
+	/// @brief Statically downcasts a reference
+	/// @tparam ToType The type to cast to
+	/// @tparam FromType The type to cast from
+	/// @param ref The reference to cast
+	/// @return The casted reference
+	template<typename ToType, typename FromType>
+	Ref<ToType> StaticRefCast(const Ref<FromType>& ref)
+	{
+		return Ref<ToType>(static_cast<ToType*>(ref._ptr), ref._state);
+	}
+
+	/// @brief Dynamically downcasts a reference
+	/// @tparam ToType The type to cast to
+	/// @tparam FromType The type to cast from
+	/// @param ref The reference to cast
+	/// @return The casted reference
+	template<typename ToType, typename FromType>
+	Ref<ToType> DynamicRefCast(const Ref<FromType>& ref)
+	{
+		ToType* toPtr = dynamic_cast<ToType*>(ref._ptr);
+
+		if (toPtr)
+		{
+			return Ref<ToType>(toPtr, ref._state);
+		}
+
+		return Ref<ToType>();
+	}
 }

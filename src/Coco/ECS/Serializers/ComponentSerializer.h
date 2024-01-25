@@ -2,24 +2,31 @@
 
 #include <Coco/Core/Defines.h>
 #include "../Entity.h"
-
-namespace YAML
-{
-	class Emitter;
-	class Node;
-}
+#include <yaml-cpp/yaml.h>
+#include <Coco/Core/Types/YAMLConverters.h>
 
 namespace Coco::ECS
 {
-	struct ComponentSerializer
+	class BaseComponentSerializer
 	{
-		virtual ~ComponentSerializer() = default;
-		void Serialize(YAML::Emitter& emitter, const Entity& entity);
-		bool Deserialize(const YAML::Node& baseNode, Entity& entity);
+	public:
+		virtual ~BaseComponentSerializer() = default;
 
-	protected:
-		virtual const char* GetSectionName() const = 0;
-		virtual void SerializeImpl(YAML::Emitter& emitter, const Entity& entity) = 0;
-		virtual void DeserializeImpl(const YAML::Node& baseNode, Entity& entity) = 0;
+		virtual bool ShouldUseForEntity(const Entity& entity) const = 0;
+		virtual void Serialize(YAML::Emitter& emitter, const Entity& entity) = 0;
+		virtual bool Deserialize(const YAML::Node& baseNode, Entity& entity) = 0;
+	};
+
+	template<typename ComponentType>
+	class ComponentSerializer :
+		public BaseComponentSerializer
+	{
+	public:
+		virtual ~ComponentSerializer() = default;
+
+		bool ShouldUseForEntity(const Entity& entity) const override
+		{
+			return entity.HasComponent<ComponentType>();
+		}
 	};
 }

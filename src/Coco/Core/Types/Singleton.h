@@ -7,8 +7,14 @@ namespace Coco
 	template<typename ClassType>
 	class Singleton
 	{
-	private:
-		static ClassType* _sInstance;
+	public:
+		/// @brief Gets the singleton instance
+		/// @return The singleton instance
+		static ClassType* Get() { return _sInstance; }
+
+		/// @brief Gets the singleton instance
+		/// @return The singleton instance
+		static const ClassType* cGet() { return _sInstance; }
 
 	protected:
 		Singleton()
@@ -21,14 +27,8 @@ namespace Coco
 			_sInstance = nullptr;
 		}
 
-	public:
-		/// @brief Gets the singleton instance
-		/// @return The singleton instance
-		static ClassType* Get() { return _sInstance; }
-
-		/// @brief Gets the singleton instance
-		/// @return The singleton instance
-		static const ClassType* cGet() { return _sInstance; }
+	private:
+		static ClassType* _sInstance;
 	};
 
 	template<typename ClassType>

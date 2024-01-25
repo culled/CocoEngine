@@ -7,13 +7,10 @@ namespace Coco
     class UnpackedEngineFileSystem :
         public EngineFileSystem
     {
-    private:
-        FilePath _contentBasePath;
-
     public:
         UnpackedEngineFileSystem(const FilePath& contentBasePath);
 
-        File OpenFile(const FilePath& contentPath, FileOpenFlags openFlags) final;
+        File OpenFile(const FilePath& contentPath, FileOpenFlags openFlags, bool createIfNonexistent) final;
         bool FileExists(const FilePath& contentPath) const final;
         FilePath ConvertToFullPath(const FilePath& contentPath) const final;
         FilePath ConvertToShortPath(const FilePath& contentPath) const final;
@@ -23,5 +20,8 @@ namespace Coco
         /// @brief Gets the path to the content directory
         /// @return The content directory path
         const FilePath& GetContentBasePath() const { return _contentBasePath; }
+
+    private:
+        FilePath _contentBasePath;
     };
 }

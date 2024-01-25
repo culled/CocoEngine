@@ -14,19 +14,6 @@ namespace Coco::Platforms::Win32
         friend class Win32EnginePlatform;
         friend class Win32WindowExtensions;
 
-    private:
-        HWND _handle;
-        string _title;
-        bool _canResize;
-        bool _isFullscreen;
-        bool _focusOnShow;
-        WindowStyleFlags _styleFlags;
-        bool _cursorVisible;
-        CursorConfineMode _cursorConfineMode;
-        bool _cursorConfined;
-        RECT _cursorConfineRect;
-        WINDOWPLACEMENT _restorePlacement;
-
     public:
         Win32Window(const WindowCreateParams& createParams);
         ~Win32Window();
@@ -68,7 +55,20 @@ namespace Coco::Platforms::Win32
         HWND GetHandle() const { return _handle; }
 
     protected:
-        SharedRef<Rendering::GraphicsPresenterSurface> CreateSurface() final;
+        UniqueRef<Rendering::PresenterSurface> CreateSurface() final;
+
+    private:
+        HWND _handle;
+        string _title;
+        bool _canResize;
+        bool _isFullscreen;
+        bool _focusOnShow;
+        WindowStyleFlags _styleFlags;
+        bool _cursorVisible;
+        CursorConfineMode _cursorConfineMode;
+        bool _cursorConfined;
+        RECT _cursorConfineRect;
+        WINDOWPLACEMENT _restorePlacement;
 
     private:
         /// @brief Gets window flags for the given options

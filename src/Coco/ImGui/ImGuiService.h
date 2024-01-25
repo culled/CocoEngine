@@ -25,12 +25,6 @@ namespace Coco::ImGuiCoco
         /// @brief A handler for a query that determines if ImGui wants to capture the keyboard (i.e. keyboard events should be ignored)
         QueryHandler<bool> HasKeyboardCapture;
 
-    private:
-        ManagedRef<TickListener> _newFrameTickListener;
-        ManagedRef<TickListener> _drawTickListener;
-        ManagedRef<ImGuiInputLayer> _inputLayer;
-        UniqueRef<ImGuiCocoPlatform> _platform;
-
     public:
         ImGuiService(bool enableViewports, bool clearAttachments);
         ~ImGuiService();
@@ -42,6 +36,12 @@ namespace Coco::ImGuiCoco
         /// @brief Gets the ImGui platform
         /// @return The platform
         const ImGuiCocoPlatform& GetPlatform() const { return *_platform; }
+
+    private:
+        ManagedRef<TickListener> _newFrameTickListener;
+        ManagedRef<TickListener> _drawTickListener;
+        ManagedRef<ImGuiInputLayer> _inputLayer;
+        UniqueRef<ImGuiCocoPlatform> _platform;
 
     private:
         /// @brief Handles the new frame tick

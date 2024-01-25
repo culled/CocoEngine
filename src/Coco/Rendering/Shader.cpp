@@ -1,27 +1,13 @@
 #include "Renderpch.h"
 #include "Shader.h"
 
-#include <Coco/Core/Math/Math.h>
+#include "RenderService.h"
+#include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering
 {
-	std::hash<string> _sStringHasher;
-
 	Shader::Shader(const ResourceID& id, const string& name) :
-		Shader(id, name, {}, GraphicsPipelineState(), {}, VertexDataFormat(), GlobalShaderUniformLayout(), ShaderUniformLayout(), ShaderUniformLayout())
-	{}
-
-	Shader::Shader(const ResourceID& id, const string& name, const SharedRef<Shader>& shader) :
-		Shader(
-			id, 
-			name, 
-			shader->_stages, 
-			shader->_pipelineState, 
-			shader->_attachmentBlendStates, 
-			shader->_vertexFormat, 
-			shader->_globalUniforms, 
-			shader->_instanceUniforms, 
-			shader->_drawUniforms)
+		Shader(id, name, {}, GraphicsPipelineState(), {}, VertexDataFormat(), ShaderUniformLayout::Empty, ShaderUniformLayout::Empty, ShaderUniformLayout::Empty)
 	{}
 
 	Shader::Shader(
@@ -29,12 +15,13 @@ namespace Coco::Rendering
 		const string& name,
 		const std::vector<ShaderStage>& stages,
 		const GraphicsPipelineState& pipelineState,
-		const std::vector<BlendState>& attachmentBlendStates,
+		const std::vector<AttachmentBlendState>& attachmentBlendStates,
 		const VertexDataFormat& vertexFormat,
-		const GlobalShaderUniformLayout& globalUniforms,
+		const ShaderUniformLayout& globalUniforms,
 		const ShaderUniformLayout& instanceUniforms,
 		const ShaderUniformLayout& drawUniforms) :
-		RendererResource(id, name),
+		Resource(id),
+		_name(name),
 		_stages(stages),
 		_pipelineState(pipelineState),
 		_attachmentBlendStates(attachmentBlendStates),
@@ -42,57 +29,24 @@ namespace Coco::Rendering
 		_globalUniforms(globalUniforms),
 		_instanceUniforms(instanceUniforms),
 		_drawUniforms(drawUniforms)
-	{}
-
-	void Shader::SetStages(std::span<const ShaderStage> stages)
 	{
-		_stages = std::vector<ShaderStage>(stages.begin(), stages.end());
+		EnsureLayoutDataCalculated();
 	}
 
-	void Shader::SetPipelineState(const GraphicsPipelineState& pipelineState)
+	void Shader::EnsureLayoutDataCalculated()
 	{
-		_pipelineState = pipelineState;
+		RenderService* rendering = RenderService::Get();
+		CocoAssert(rendering, "RenderService singleton was null")
 
-		IncrementVersion();
-	}
+		GraphicsDevice& device = rendering->GetDevice();
 
-	void Shader::SetAttachmentBlendStates(std::span<const BlendState> blendStates)
-	{
-		_attachmentBlendStates = std::vector<BlendState>(blendStates.begin(), blendStates.end());
+		if (_globalUniforms.NeedsDataCalculation())
+			_globalUniforms.CalculateDataUniforms(device);
 
-		IncrementVersion();
-	}
+		if (_instanceUniforms.NeedsDataCalculation())
+			_instanceUniforms.CalculateDataUniforms(device);
 
-	void Shader::SetVertexDataFormat(const VertexDataFormat& format)
-	{
-		_vertexFormat = format;
-
-		IncrementVersion();
-	}
-
-	void Shader::SetGlobalUniformLayout(const GlobalShaderUniformLayout& layout)
-	{
-		_globalUniforms = layout;
-
-		IncrementVersion();
-	}
-
-	void Shader::SetInstanceUniformLayout(const ShaderUniformLayout& layout)
-	{
-		_instanceUniforms = layout;
-
-		IncrementVersion();
-	}
-
-	void Shader::SetDrawUniformLayout(const ShaderUniformLayout& layout)
-	{
-		_drawUniforms = layout;
-
-		IncrementVersion();
-	}
-
-	void Shader::IncrementVersion()
-	{
-		SetVersion(GetVersion() + 1);
+		if (_drawUniforms.NeedsDataCalculation())
+			_drawUniforms.CalculateDataUniforms(device);
 	}
 }

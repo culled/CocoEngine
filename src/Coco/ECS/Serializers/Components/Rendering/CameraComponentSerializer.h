@@ -1,15 +1,15 @@
 #pragma once
 #include "../../ComponentSerializer.h"
+#include "../../../Components/Rendering/CameraComponent.h"
 
 namespace Coco::ECS
 {
     class CameraComponentSerializer :
-        public ComponentSerializer
+        public ComponentSerializer<CameraComponent>
     {
-    protected:
+    public:
         // Inherited via ComponentSerializer
-        const char* GetSectionName() const override { return "CameraComponent"; }
-        void SerializeImpl(YAML::Emitter& emitter, const Entity& entity) override;
-        void DeserializeImpl(const YAML::Node& baseNode, Entity& entity) override;
+        void Serialize(YAML::Emitter& emitter, const Entity& entity) override;
+        bool Deserialize(const YAML::Node& baseNode, Entity& entity) override;
     };
 }

@@ -4,19 +4,38 @@
 #include "BinaryStream.h"
 #include "TextStream.h"
 #include "FileTypes.h"
+#include "FilePath.h"
+#include "../Types/CoreExceptions.h"
 
 namespace Coco
 {
+	/// @brief An exception for errors related to opening files
+	class FileOpenException :
+		public Exception
+	{
+	public:
+		FileOpenException(const string& message);
+	};
+
+	/// @brief An exception for errors related to creating files
+	class FileCreateException :
+		public Exception
+	{
+	public:
+		FileCreateException(const string& message);
+	};
+
+	/// @brief An exception for errors related to file operations
+	class FileOperationException :
+		public Exception
+	{
+	public:
+		FileOperationException(const string& message);
+	};
+
 	/// @brief A file that can read and write data
 	class File : public InputTextStream, public OutputTextStream, public InputBinaryStream, public OutputBinaryStream
 	{
-	private:
-		FilePath _filePath;
-		std::fstream _fileStream;
-		uint64 _size;
-		uint64 _position;
-		FileOpenFlags _openFlags;
-
 	public:
 		File(const FilePath& filePath, FileOpenFlags openFlags);
 
@@ -74,6 +93,13 @@ namespace Coco
 
 		/// @brief Closes this file
 		void Close();
+
+	private:
+		FilePath _filePath;
+		std::fstream _fileStream;
+		uint64 _size;
+		uint64 _position;
+		FileOpenFlags _openFlags;
 
 	private:
 		/// @brief Synchronises this file's state with the underlying file state

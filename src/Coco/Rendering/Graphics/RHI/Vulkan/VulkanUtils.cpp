@@ -1,26 +1,9 @@
 #include "Renderpch.h"
 #include "VulkanUtils.h"
 
-#include <Coco/Core/Types/Version.h>
-
 namespace Coco::Rendering::Vulkan
 {
-	GraphicsDeviceType ToGraphicsDeviceType(VkPhysicalDeviceType deviceType)
-	{
-		switch (deviceType)
-		{
-		case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-			return GraphicsDeviceType::Discrete;
-		case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-			return GraphicsDeviceType::Integrated;
-		case VK_PHYSICAL_DEVICE_TYPE_CPU:
-			return GraphicsDeviceType::CPU;
-		default:
-			return GraphicsDeviceType::Other;
-		}
-	}
-
-	Version ToVersion(uint32_t version)
+    Version ToVersion(uint32_t version)
     {
         return Version(VK_API_VERSION_MAJOR(version), VK_API_VERSION_MINOR(version), VK_API_VERSION_PATCH(version));
     }
@@ -30,22 +13,85 @@ namespace Coco::Rendering::Vulkan
         return VK_MAKE_VERSION(version.Major, version.Minor, version.Patch);
     }
 
-	VkFormat ToVkFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace)
+    GraphicsDeviceType ToGraphicsDeviceType(VkPhysicalDeviceType deviceType)
+    {
+        switch (deviceType)
+        {
+        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+            return GraphicsDeviceType::Discrete;
+        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+            return GraphicsDeviceType::Integrated;
+        case VK_PHYSICAL_DEVICE_TYPE_CPU:
+            return GraphicsDeviceType::CPU;
+        default:
+            return GraphicsDeviceType::Other;
+        }
+    }
+
+	VkSampleCountFlagBits ToVkSampleCountFlagBits(MSAASamples samples)
 	{
-		switch (pixelFormat)
+		switch (samples)
 		{
-		case ImagePixelFormat::RGBA8:
-			return colorSpace == ImageColorSpace::sRGB ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
-		case ImagePixelFormat::R32_Int:
-			return VK_FORMAT_R32_SINT;
-		case ImagePixelFormat::Depth32_Stencil8:
-			return VK_FORMAT_D32_SFLOAT_S8_UINT;
+		case MSAASamples::Two:
+			return VK_SAMPLE_COUNT_2_BIT;
+		case MSAASamples::Four:
+			return VK_SAMPLE_COUNT_4_BIT;
+		case MSAASamples::Eight:
+			return VK_SAMPLE_COUNT_8_BIT;
+		case MSAASamples::Sixteen:
+			return VK_SAMPLE_COUNT_16_BIT;
+		case MSAASamples::One:
 		default:
-			return VK_FORMAT_UNDEFINED;
+			return VK_SAMPLE_COUNT_1_BIT;
 		}
 	}
 
-	ImagePixelFormat GetPixelFormat(VkFormat format)
+	MSAASamples ToMSAASamples(VkSampleCountFlags samples)
+	{
+		if (samples & VK_SAMPLE_COUNT_16_BIT)
+			return MSAASamples::Sixteen;
+
+		if (samples & VK_SAMPLE_COUNT_8_BIT)
+			return MSAASamples::Eight;
+
+		if (samples & VK_SAMPLE_COUNT_4_BIT)
+			return MSAASamples::Four;
+
+		if (samples & VK_SAMPLE_COUNT_2_BIT)
+			return MSAASamples::Two;
+
+		return MSAASamples::One;
+	}
+
+	VkPresentModeKHR ToVkPresentMode(VSyncMode vSyncMode)
+	{
+		switch (vSyncMode)
+		{
+		case VSyncMode::Immediate:
+			return VK_PRESENT_MODE_IMMEDIATE_KHR;
+		case VSyncMode::Mailbox:
+			return VK_PRESENT_MODE_MAILBOX_KHR;
+		case VSyncMode::EveryVBlank:
+		default:
+			return VK_PRESENT_MODE_FIFO_KHR;
+		}
+	}
+
+	VSyncMode ToVSyncMode(VkPresentModeKHR presentMode)
+	{
+		switch (presentMode)
+		{
+		case VK_PRESENT_MODE_IMMEDIATE_KHR:
+			return VSyncMode::Immediate;
+		case VK_PRESENT_MODE_MAILBOX_KHR:
+			return VSyncMode::Mailbox;
+		case VK_PRESENT_MODE_FIFO_KHR:
+		default:
+			return VSyncMode::EveryVBlank;
+		}
+	}
+
+	ImagePixelFormat ToImagePixelFormat(VkFormat format)
 	{
 		switch (format)
 		{
@@ -61,7 +107,7 @@ namespace Coco::Rendering::Vulkan
 		}
 	}
 
-	ImageColorSpace GetColorSpace(VkFormat format)
+	ImageColorSpace ToImageColorSpace(VkFormat format)
 	{
 		switch (format)
 		{
@@ -86,6 +132,55 @@ namespace Coco::Rendering::Vulkan
 			return ImageColorSpace::Linear;
 		default:
 			return ImageColorSpace::Unknown;
+		}
+	}
+
+	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags)
+	{
+		VkBufferUsageFlags flags = 0;
+
+		if ((usageFlags & BufferUsageFlags::TransferSource) == BufferUsageFlags::TransferSource)
+			flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+		if ((usageFlags & BufferUsageFlags::TransferDestination) == BufferUsageFlags::TransferDestination)
+			flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+		if ((usageFlags & BufferUsageFlags::UniformTexel) == BufferUsageFlags::UniformTexel)
+			flags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::StorageTexel) == BufferUsageFlags::StorageTexel)
+			flags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::Uniform) == BufferUsageFlags::Uniform)
+			flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::Storage) == BufferUsageFlags::Storage)
+			flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::Index) == BufferUsageFlags::Index)
+			flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::Vertex) == BufferUsageFlags::Vertex)
+			flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+
+		if ((usageFlags & BufferUsageFlags::Indirect) == BufferUsageFlags::Indirect)
+			flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+
+		return flags;
+	}
+
+	VkFormat ToVkFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace)
+	{
+		switch (pixelFormat)
+		{
+		case ImagePixelFormat::RGBA8:
+			return colorSpace == ImageColorSpace::sRGB ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+		case ImagePixelFormat::R32_Int:
+			return VK_FORMAT_R32_SINT;
+		case ImagePixelFormat::Depth32_Stencil8:
+			return VK_FORMAT_D32_SFLOAT_S8_UINT;
+		default:
+			return VK_FORMAT_UNDEFINED;
 		}
 	}
 
@@ -134,31 +229,68 @@ namespace Coco::Rendering::Vulkan
 		return flags;
 	}
 
-	VkPresentModeKHR ToVkPresentMode(VSyncMode vSyncMode)
+	VkClearValue ToVkClearValue(const Vector4& clearValue, ImagePixelFormat pixelFormat)
 	{
-		switch (vSyncMode)
+		VkClearValue value{};
+
+		if (IsDepthFormat(pixelFormat) || IsStencilFormat(pixelFormat))
 		{
-		case VSyncMode::Immediate:
-			return VK_PRESENT_MODE_IMMEDIATE_KHR;
-		case VSyncMode::EveryVBlank:
+			value.depthStencil.depth = static_cast<float>(clearValue.X);
+			value.depthStencil.stencil = static_cast<uint32>(clearValue.Y);
+		}
+		else
+		{
+			switch (pixelFormat)
+			{
+			case ImagePixelFormat::RGBA8:
+			{
+				value.color.float32[0] = static_cast<float>(clearValue.X);
+				value.color.float32[1] = static_cast<float>(clearValue.Y);
+				value.color.float32[2] = static_cast<float>(clearValue.Z);
+				value.color.float32[3] = static_cast<float>(clearValue.W);
+				break;
+			}
+			case ImagePixelFormat::R32_Int:
+			{
+				value.color.int32[0] = static_cast<int32>(clearValue.X);
+				value.color.int32[1] = static_cast<int32>(clearValue.Y);
+				value.color.int32[2] = static_cast<int32>(clearValue.Z);
+				value.color.int32[3] = static_cast<int32>(clearValue.W);
+				break;
+			}
+			default:
+				break;
+			}
+		}
+
+		return value;
+	}
+
+	VkImageViewType ToVkImageViewType(ImageDimensionType dimensionType)
+	{
+		switch (dimensionType)
+		{
+		case ImageDimensionType::CubeMap:
+			return VK_IMAGE_VIEW_TYPE_CUBE;
+		case ImageDimensionType::CubeMapArray:
+			return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+		case ImageDimensionType::ThreeDimensional:
+			return VK_IMAGE_VIEW_TYPE_3D;
+		case ImageDimensionType::ThreeDimensionalArray:
+			return VK_IMAGE_VIEW_TYPE_3D;
+		case ImageDimensionType::TwoDimensional:
+			return VK_IMAGE_VIEW_TYPE_2D;
+		case ImageDimensionType::TwoDimensionalArray:
+			return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+		case ImageDimensionType::OneDimensionalArray:
+			return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+		case ImageDimensionType::OneDimensional:
 		default:
-			return VK_PRESENT_MODE_FIFO_KHR;
+			return VK_IMAGE_VIEW_TYPE_1D;
 		}
 	}
 
-	VSyncMode ToVSyncMode(VkPresentModeKHR presentMode)
-	{
-		switch (presentMode)
-		{
-		case VK_PRESENT_MODE_IMMEDIATE_KHR:
-			return VSyncMode::Immediate;
-		case VK_PRESENT_MODE_FIFO_KHR:
-		default:
-			return VSyncMode::EveryVBlank;
-		}
-	}
-
-	VkImageLayout ToAttachmentLayout(ImagePixelFormat pixelFormat)
+	VkImageLayout ToVkImageLayout(ImagePixelFormat pixelFormat)
 	{
 		if (IsDepthFormat(pixelFormat) || IsStencilFormat(pixelFormat))
 		{
@@ -175,75 +307,6 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	}
-
-	VkSampleCountFlagBits ToVkSampleCountFlagBits(MSAASamples samples)
-	{
-		switch (samples)
-		{
-		case MSAASamples::Two:
-			return VK_SAMPLE_COUNT_2_BIT;
-		case MSAASamples::Four:
-			return VK_SAMPLE_COUNT_4_BIT;
-		case MSAASamples::Eight:
-			return VK_SAMPLE_COUNT_8_BIT;
-		case MSAASamples::Sixteen:
-			return VK_SAMPLE_COUNT_16_BIT;
-		case MSAASamples::One:
-		default:
-			return VK_SAMPLE_COUNT_1_BIT;
-		}
-	}
-
-	MSAASamples ToMSAASamples(VkSampleCountFlags samples)
-	{
-		if (samples & VK_SAMPLE_COUNT_16_BIT)
-			return MSAASamples::Sixteen;
-
-		if (samples & VK_SAMPLE_COUNT_8_BIT)
-			return MSAASamples::Eight;
-
-		if (samples & VK_SAMPLE_COUNT_4_BIT)
-			return MSAASamples::Four;
-
-		if (samples & VK_SAMPLE_COUNT_2_BIT)
-			return MSAASamples::Two;
-
-		return MSAASamples::One;
-	}
-
-	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags)
-	{
-		VkBufferUsageFlags flags = 0;
-
-		if ((usageFlags & BufferUsageFlags::TransferSource) == BufferUsageFlags::TransferSource)
-			flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-		if ((usageFlags & BufferUsageFlags::TransferDestination) == BufferUsageFlags::TransferDestination)
-			flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-		if ((usageFlags & BufferUsageFlags::UniformTexel) == BufferUsageFlags::UniformTexel)
-			flags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
-
-		if ((usageFlags & BufferUsageFlags::StorageTexel) == BufferUsageFlags::StorageTexel)
-			flags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
-
-		if ((usageFlags & BufferUsageFlags::Uniform) == BufferUsageFlags::Uniform)
-			flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-
-		if ((usageFlags & BufferUsageFlags::Storage) == BufferUsageFlags::Storage)
-			flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-
-		if ((usageFlags & BufferUsageFlags::Index) == BufferUsageFlags::Index)
-			flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-
-		if ((usageFlags & BufferUsageFlags::Vertex) == BufferUsageFlags::Vertex)
-			flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-
-		if ((usageFlags & BufferUsageFlags::Indirect) == BufferUsageFlags::Indirect)
-			flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-
-		return flags;
 	}
 
 	VkShaderStageFlags ToVkShaderStageFlags(ShaderStageFlags stageFlags)
@@ -399,6 +462,7 @@ namespace Coco::Rendering::Vulkan
 			return VK_BLEND_OP_ADD;
 		}
 	}
+
 	VkFormat ToVkFormat(BufferDataType type)
 	{
 		switch (type)
@@ -481,39 +545,6 @@ namespace Coco::Rendering::Vulkan
 		case MipMapFilterMode::Nearest:
 		default:
 			return VK_SAMPLER_MIPMAP_MODE_NEAREST;
-		}
-	}
-
-	void SetClearValue(const Vector4& clearValue, ImagePixelFormat pixelFormat, VkClearValue& outClearValue)
-	{
-		if (IsDepthFormat(pixelFormat) || IsStencilFormat(pixelFormat))
-		{
-			outClearValue.depthStencil.depth = static_cast<float>(clearValue.X);
-			outClearValue.depthStencil.stencil = static_cast<uint32>(Math::Round(clearValue.Y));
-		}
-		else
-		{
-			switch (pixelFormat)
-			{
-			case ImagePixelFormat::RGBA8:
-			{
-				outClearValue.color.float32[0] = static_cast<float>(clearValue.X);
-				outClearValue.color.float32[1] = static_cast<float>(clearValue.Y);
-				outClearValue.color.float32[2] = static_cast<float>(clearValue.Z);
-				outClearValue.color.float32[3] = static_cast<float>(clearValue.W);
-				break;
-			}
-			case ImagePixelFormat::R32_Int:
-			{
-				outClearValue.color.int32[0] = static_cast<int32>(clearValue.X);
-				outClearValue.color.int32[1] = static_cast<int32>(clearValue.Y);
-				outClearValue.color.int32[2] = static_cast<int32>(clearValue.Z);
-				outClearValue.color.int32[3] = static_cast<int32>(clearValue.W);
-				break;
-			}
-			default:
-				break;
-			}
 		}
 	}
 }

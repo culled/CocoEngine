@@ -1,66 +1,56 @@
 #pragma once
-
 #include "../../GraphicsPlatform.h"
-#include "../../GraphicsPlatformTypes.h"
+#include <Coco/Core/Types/String.h>
+#include "VulkanGraphicsPlatformFactory.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
 {
-	/// @brief Vulkan implementation of a GraphicsPlatform
-	class VulkanGraphicsPlatform : 
-		public GraphicsPlatform
-	{
-	public:
-		static const char* sVulkanRHIName;
+    class VulkanGraphicsPlatform :
+        public GraphicsPlatform
+    {
+    public:
+        static const string Name;
 
-	private:
-		static const char* _sDebugValidationLayerName;
+    public:
+        VulkanGraphicsPlatform(const VulkanGraphicsPlatformCreateParams& createParams);
+        ~VulkanGraphicsPlatform();
 
-		Version _apiVersion;
-		VkInstance _vulkanInstance;
-		VkDebugUtilsMessengerEXT _debugMessenger;
-		bool _usingValidationLayers;
-		bool _supportsPresentation;
+        // Inherited via GraphicsPlatform
+        const string& GetName() const override { return Name; }
+        Version GetAPIVersion() const override { return _apiVersion; }
+        Matrix4x4 CreateOrthographicProjection(double left, double right, double bottom, double top, double nearClip, double farClip) override;
+        Matrix4x4 CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) override;
+        Matrix4x4 CreatePerspectiveProjection(double verticalFOVRadians, double aspectRatio, double nearClip, double farClip) override;
 
-	public:
-		VulkanGraphicsPlatform(const GraphicsPlatformCreateParams& createParams, uint32 apiVersion, bool useValidationLayers);
-		~VulkanGraphicsPlatform();
+        /// @brief Gets the Vulkan instance
+        /// @return The Vulkan instance
+        VkInstance GetVulkanInstance() const { return _instance; }
 
-		const char* GetName() const final { return sVulkanRHIName; }
-		Version GetAPIVersion() const final { return _apiVersion; }
-		UniqueRef<GraphicsDevice> CreateDevice(const GraphicsDeviceCreateParams& createParams) final;
-		Matrix4x4 CreateOrthographicProjection(double left, double right, double bottom, double top, double nearClip, double farClip) final;
-		Matrix4x4 CreateOrthographicProjection(double size, double aspectRatio, double nearClip, double farClip) final;
-		Matrix4x4 CreatePerspectiveProjection(double verticalFOVRadians, double aspectRatio, double nearClip, double farClip) final;
+        /// @brief Gets the Vulkan allocation callbacks
+        /// @return The Vulkan allocation callbacks
+        const VkAllocationCallbacks* GetAllocationCallbacks() const { return nullptr; }
 
-		/// @brief Gets the Vulkan instance
-		/// @return The Vulkan instance
-		VkInstance GetVulkanInstance() const { return _vulkanInstance; }
+    protected:
+        // Inherited via GraphicsPlatform
+        UniqueRef<GraphicsDevice> CreateDevice() const override;
 
-		/// @brief Gets the Vulkan platform allocation callbacks
-		/// @return The platform allocation callbacks
-		VkAllocationCallbacks* GetAllocationCallbacks() { return nullptr; } // TODO: allocation callbacks
+    private:
+        VulkanGraphicsDeviceCreateParams _deviceCreateParams;
+        Version _apiVersion;
 
-	private:
-		/// @brief Checks if validation layers are supported
-		/// @return True if validation layers are supported
-		static bool CheckValidationLayerSupport();
+        VkInstance _instance;
+        VkDebugUtilsMessengerEXT _debugMessenger;
+        bool _usingValidationLayers;
 
-		/// @brief Gets a struct for debugging Vulkan operations
-		/// @return Create info for a debugger
-		VkDebugUtilsMessengerCreateInfoEXT GetDebugCreateInfo();
+    private:
+        static VkDebugUtilsMessengerCreateInfoEXT GetDebugCreateInfo();
+        static bool CheckValidationLayerSupport();
+        static uint32 PickAPIVersion(const Version& version);
 
-		/// @brief Tries to create a debug messenger to log validation messages
-		/// @return True if the messenger was created
-		bool CreateDebugMessenger();
-
-		/// @brief Destroys the current debug messenger
-		void DestroyDebugMessenger();
-
-		/// @brief Creates the Vulkan instance
-		/// @param createParams Platform creation parameters
-		/// @param apiVersion The version of the Vulkan api to use
-		void CreateVulkanInstance(const GraphicsPlatformCreateParams& createParams, uint32 apiVersion);
-	};
+        void CreateVulkanInstance(const VulkanGraphicsPlatformCreateParams& createParams);
+        void DestroyVulkanInstance();
+        bool CreateDebugMessenger();
+        void DestroyDebugMessenger();
+    };
 }
-

@@ -4,7 +4,7 @@
 
 namespace Coco::Rendering
 {
-	const BlendState BlendState::Opaque = BlendState(
+	const AttachmentBlendState AttachmentBlendState::Opaque = AttachmentBlendState(
 		BlendFactorMode::One, 
 		BlendFactorMode::Zero, 
 		BlendOperation::None, 
@@ -12,7 +12,7 @@ namespace Coco::Rendering
 		BlendFactorMode::One, 
 		BlendOperation::None);
 
-	const BlendState BlendState::AlphaBlending = BlendState(
+	const AttachmentBlendState AttachmentBlendState::AlphaBlending = AttachmentBlendState(
 		BlendFactorMode::SourceAlpha,
 		BlendFactorMode::OneMinusSourceAlpha,
 		BlendOperation::Add,
@@ -20,7 +20,7 @@ namespace Coco::Rendering
 		BlendFactorMode::OneMinusSourceAlpha,
 		BlendOperation::Add);
 
-	BlendState::BlendState(
+	AttachmentBlendState::AttachmentBlendState(
 		BlendFactorMode colorSrcFactor, 
 		BlendFactorMode colorDstFactor, 
 		BlendOperation colorOp, 
@@ -35,7 +35,7 @@ namespace Coco::Rendering
 		AlphaBlendOperation(alphaOp)
 	{}
 
-	bool BlendState::operator==(const BlendState& other) const
+	bool AttachmentBlendState::operator==(const AttachmentBlendState& other) const
 	{
 		return ColorSourceFactor == other.ColorSourceFactor &&
 			ColorDestinationFactor == other.ColorDestinationFactor &&
@@ -45,7 +45,7 @@ namespace Coco::Rendering
 			AlphaBlendOperation == other.AlphaBlendOperation;
 	}
 
-	uint64 BlendState::GetHash() const
+	uint64 AttachmentBlendState::GetHash() const
 	{
 		return Math::CombineHashes(
 			static_cast<uint64>(ColorSourceFactor),

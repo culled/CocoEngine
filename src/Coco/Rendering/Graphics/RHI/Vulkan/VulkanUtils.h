@@ -1,23 +1,17 @@
 #pragma once
-
 #include <Coco/Core/Types/Version.h>
 #include <Coco/Core/Types/Vector.h>
 #include "../../GraphicsDeviceTypes.h"
 #include "../../GraphicsPipelineTypes.h"
-#include "../../BufferTypes.h"
+#include "../../PresenterTypes.h"
 #include "../../ImageTypes.h"
 #include "../../ImageSamplerTypes.h"
-#include "../../ShaderTypes.h"
-#include "../../GraphicsPresenterTypes.h"
+#include "../../BufferTypes.h"
+#include "../../../ShaderTypes.h"
 #include "VulkanIncludes.h"
 
 namespace Coco::Rendering::Vulkan
 {
-	/// @brief Converts a VkPhysicalDeviceType to a GraphicsDeviceType
-	/// @param deviceType The device type
-	/// @return The converted device type
-	GraphicsDeviceType ToGraphicsDeviceType(VkPhysicalDeviceType deviceType);
-
 	/// @brief Converts a version provided by Vulkan to a Version struct
 	/// @param version The Vulkan version
 	/// @return The converted version
@@ -28,26 +22,56 @@ namespace Coco::Rendering::Vulkan
 	/// @return The converted Vulkan version
 	uint32_t ToVkVersion(const Version& version);
 
-	/// @brief Converts an ImagePixelFormat and ImageColorSpace to a VkFormat
-	/// @param pixelFormat The pixel format
-	/// @param colorSpace The color space
-	/// @return The format
-	VkFormat ToVkFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace);
+	/// @brief Converts a VkPhysicalDeviceType to a GraphicsDeviceType
+	/// @param deviceType The device type
+	/// @return The converted device type
+	GraphicsDeviceType ToGraphicsDeviceType(VkPhysicalDeviceType deviceType);
+
+	/// @brief Converts MSAASamples to VkSampleCountFlagBits
+	/// @param samples The msaa samples
+	/// @return The VkSampleCountFlagBits
+	VkSampleCountFlagBits ToVkSampleCountFlagBits(MSAASamples samples);
+
+	/// @brief Converts VkSampleCountFlags to MSAASamples
+	/// @param samples The samples
+	/// @return The msaa samples
+	MSAASamples ToMSAASamples(VkSampleCountFlags samples);
+
+	/// @brief Converts a VSyncMode to a VkPresentModeKHR
+	/// @param vsyncMode The v-sync mode
+	/// @return The converted present mode
+	VkPresentModeKHR ToVkPresentMode(VSyncMode vsyncMode);
+
+	/// @brief Converts a VkPresentModeKHR to a VSyncMode
+	/// @param presentMode The present mode
+	/// @return The v-sync mode
+	VSyncMode ToVSyncMode(VkPresentModeKHR presentMode);
 
 	/// @brief Gets the pixel format of a VkFormat
 	/// @param format The format
 	/// @return The pixel format
-	ImagePixelFormat GetPixelFormat(VkFormat format);
+	ImagePixelFormat ToImagePixelFormat(VkFormat format);
 
 	/// @brief Gets the color space of a VkFormat
 	/// @param format The format
 	/// @return The color space
-	ImageColorSpace GetColorSpace(VkFormat format);
+	ImageColorSpace ToImageColorSpace(VkFormat format);
 
 	/// @brief Converts a VkColorSpaceKHR to an ImageColorSpace
 	/// @param colorSpace The color space 
 	/// @return The converted color space
 	ImageColorSpace ToImageColorSpace(VkColorSpaceKHR colorSpace);
+
+	/// @brief Converts BufferUsageFlags to VkBufferUsageFlags
+	/// @param usageFlags The usage flags
+	/// @return The VkBufferUsageFlags
+	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags);
+
+	/// @brief Converts an ImagePixelFormat and ImageColorSpace to a VkFormat
+	/// @param pixelFormat The pixel format
+	/// @param colorSpace The color space
+	/// @return The format
+	VkFormat ToVkFormat(ImagePixelFormat pixelFormat, ImageColorSpace colorSpace);
 
 	/// @brief Converts an ImageDimensionType to a VkImageType
 	/// @param type The image dimension type
@@ -60,35 +84,11 @@ namespace Coco::Rendering::Vulkan
 	/// @return The image usage flags
 	VkImageUsageFlags ToVkImageUsageFlags(ImageUsageFlags usageFlags, ImagePixelFormat pixelFormat);
 
-	/// @brief Converts a VSyncMode to a VkPresentModeKHR
-	/// @param vsyncMode The v-sync mode
-	/// @return The converted present mode
-	VkPresentModeKHR ToVkPresentMode(VSyncMode vsyncMode);
+	VkClearValue ToVkClearValue(const Vector4& clearValue, ImagePixelFormat pixelFormat);
 
-	/// @brief Converts a VkPresentModeKHR to a VSyncMode
-	/// @param presentMode The present mode
-	/// @return The v-sync mode
-	VSyncMode ToVSyncMode(VkPresentModeKHR presentMode);
+	VkImageViewType ToVkImageViewType(ImageDimensionType dimensionType);
 
-	/// @brief Converts a ImagePixelFormat to a VkImageLayout
-	/// @param pixelFormat The pixel format
-	/// @return The image layout
-	VkImageLayout ToAttachmentLayout(ImagePixelFormat pixelFormat);
-
-	/// @brief Converts MSAASamples to VkSampleCountFlagBits
-	/// @param samples The msaa samples
-	/// @return The VkSampleCountFlagBits
-	VkSampleCountFlagBits ToVkSampleCountFlagBits(MSAASamples samples);
-
-	/// @brief Converts VkSampleCountFlags to MSAASamples
-	/// @param samples The samples
-	/// @return The msaa samples
-	MSAASamples ToMSAASamples(VkSampleCountFlags samples);
-
-	/// @brief Converts BufferUsageFlags to VkBufferUsageFlags
-	/// @param usageFlags The usage flags
-	/// @return The VkBufferUsageFlags
-	VkBufferUsageFlags ToVkBufferUsageFlags(BufferUsageFlags usageFlags);
+	VkImageLayout ToVkImageLayout(ImagePixelFormat pixelFormat);
 
 	/// @brief Converts ShaderStageFlags to VkShaderStageFlags
 	/// @param stageFlags The shader stage flags
@@ -154,10 +154,5 @@ namespace Coco::Rendering::Vulkan
 	/// @param mode The filter mode
 	/// @return The VkSamplerMipmapMode
 	VkSamplerMipmapMode ToVkSamplerMipmapMode(MipMapFilterMode mode);
-
-	/// @brief Sets the clear value base on the pixel format
-	/// @param clearValue The clear value
-	/// @param pixelFormat The pixel format
-	/// @param outClearValue Will be set to the clear value
-	void SetClearValue(const Vector4& clearValue, ImagePixelFormat pixelFormat, VkClearValue& outClearValue);
 }
+

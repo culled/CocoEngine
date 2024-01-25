@@ -4,8 +4,6 @@
 #include <Coco/Core/Types/Refs.h>
 #include "../Scripting/NativeScript.h"
 
-#include <Coco/Core/Engine.h>
-
 namespace Coco::ECS
 {
 	/// @brief A component that a NativeScript can be attached to
@@ -16,6 +14,7 @@ namespace Coco::ECS
 
 	private:
 		UniqueRef<NativeScript> _scriptInstance;
+		std::function<UniqueRef<NativeScript>()> _createScriptFunc;
 		bool _scriptStarted;
 
 	public:
@@ -29,20 +28,15 @@ namespace Coco::ECS
 		{
 			static_assert(std::is_base_of<NativeScript, ScriptType>::value, "Script must be derived from NativeScript");
 
-			if (_scriptInstance)
-			{
-				DestroyAttachedScript();
-			}
+			_createScriptFunc = []() { return CreateUniqueRef<ScriptType>(); };
 
-			_scriptInstance = CreateUniqueRef<ScriptType>();
-			_scriptInstance->_entity = GetOwner();
-
-			CocoTrace("Created {} for NativeScriptComponent", typeid(ScriptType).name())
-
-			_scriptInstance->OnCreate();
+			if (GetOwner().GetScene()->GetSimulateMode() == SceneSimulateMode::Running)
+				CreateAttachedScript();
 		}
 
 	private:
+		void CreateAttachedScript();
+
 		/// @brief Destroys the attached script
 		void DestroyAttachedScript();
 	};

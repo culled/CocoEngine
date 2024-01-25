@@ -1,6 +1,6 @@
 #include "ECSpch.h"
 #include "CameraComponent.h"
-#include "CameraSystem.h"
+#include "../../Systems/Rendering/CameraSystem.h"
 
 #include <Coco/Rendering/RenderService.h>
 
@@ -160,16 +160,17 @@ namespace Coco::ECS
 		uint64 rendererID, 
 		std::span<Ref<Image>> framebuffers, 
 		RenderPipeline& pipeline, 
-		std::optional<GlobalShaderUniformLayout> layoutOverride)
+		std::optional<ShaderUniformLayout> layoutOverride)
 	{
 		CameraSystem::Render(rendererID, *this, framebuffers, pipeline, layoutOverride);
 	}
 
 	void CameraComponent::Render(
-		Ref<GraphicsPresenter> presenter, 
+		uint64 rendererID,
+		Ref<Presenter> presenter, 
 		RenderPipeline& pipeline, 
-		std::optional<GlobalShaderUniformLayout> layoutOverride)
+		std::optional<ShaderUniformLayout> layoutOverride)
 	{
-		CameraSystem::Render(*this, presenter, pipeline, layoutOverride);
+		CameraSystem::Render(rendererID, *this, presenter, pipeline, layoutOverride);
 	}
 }

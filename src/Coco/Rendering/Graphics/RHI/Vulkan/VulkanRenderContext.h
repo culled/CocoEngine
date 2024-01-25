@@ -1,163 +1,126 @@
 #pragma once
-
-#include <Coco/Core/Defines.h>
+#include <Coco/Core/Types/Refs.h>
 #include "../../RenderContext.h"
-#include "../../GraphicsDeviceResource.h"
-#include "VulkanGraphicsSemaphore.h"
-#include "VulkanGraphicsFence.h"
 #include "VulkanIncludes.h"
+#include "../../ShaderUniformTypes.h"
+
+namespace Coco::Rendering
+{
+    struct CompiledRenderPipeline;
+    class RenderView;
+    class ShaderUniformLayout;
+}
 
 namespace Coco::Rendering::Vulkan
-{
+{ 
     class VulkanGraphicsDevice;
-    class VulkanGraphicsDeviceCache;
-    class VulkanFramebuffer;
-    class VulkanRenderPass;
-    class VulkanPipeline;
-    class VulkanRenderContextCache;
     class VulkanCommandBuffer;
-    struct VulkanDescriptorSetLayout;
-    class VulkanShaderUniformData;
+    class VulkanGraphicsFence;
+    class VulkanPipeline;
+    class VulkanRenderPass;
+    class VulkanRenderFrame;
+    class VulkanDescriptorSetLayout;
     class VulkanShader;
-    class VulkanImage;
+    struct CachedVulkanUniformData;
+    class VulkanGraphicsSemaphore;
 
-    /// @brief The bound global state
-    struct BoundGlobalState
+    struct VulkanGlobalState
     {
-        /// @brief The name of the shader to bind
-        string ShaderName;
+        SharedRef<Shader> BoundShader;
+        VulkanShader& BoundVulkanShader;
+        VulkanPipeline& BoundPipeline;
+        VkDescriptorSet GlobalSet;
+        VkDescriptorSet GlobalShaderSet;
 
-        /// @brief The bound pipeline, if any
-        VulkanPipeline* Pipeline;
-
-        /// @brief The bound shader global descriptor set, if any
-        VkDescriptorSet DescriptorSet;
-
-        BoundGlobalState(const string& shaderName);
+        VulkanGlobalState(SharedRef<Shader> shader, VulkanShader& vulkanShader, VulkanPipeline& pipeline);
     };
 
-    /// @brief The bound instance state
-    struct BoundInstanceState
+    struct VulkanInstanceState
     {
-        /// @brief The ID of the instance bound
         uint64 InstanceID;
 
-        /// @brief The bound descriptor set, if any
-        VkDescriptorSet DescriptorSet;
+        VkDescriptorSet InstanceSet;
 
-        BoundInstanceState(uint64 instanceID);
+        VulkanInstanceState(uint64 instanceID);
     };
 
-    /// @brief Holds Vulkan data that a VulkanRenderContext uses during actual rendering
-    struct VulkanContextRenderOperation
+    struct VulkanRenderContextOperation
     {
-        /// @brief Types of state changes
-        enum class StateChangeType
-        {
-            None,
-            Shader,
-            Instance,
-            DrawUniform
-        };
-
-        /// @brief The framebuffer being rendered to
-        VulkanFramebuffer& Framebuffer;
-
-        /// @brief The render pass being used
+        const CompiledRenderPipeline& Pipeline;
+        RenderView& View;
+        VulkanCommandBuffer& CommandBuffer;
+        uint32 CurrentPassIndex;
+        VkDescriptorSet GlobalSet;
         VulkanRenderPass& RenderPass;
+        VulkanRenderFrame& RenderFrame;
 
-        /// @brief The current viewport rectangle
-        RectInt ViewportRect;
-
-        /// @brief The current scissor rectangle
-        RectInt ScissorRect;
-
-        /// @brief Unique state changes since the last draw call
-        std::set<StateChangeType> StateChanges;
-
-        /// @brief The currently bound global state
-        std::optional<BoundGlobalState> GlobalState;
-
-        /// @brief The currently bound instance state
-        std::optional<BoundInstanceState> InstanceState;
-
-        VulkanContextRenderOperation(VulkanFramebuffer& framebuffer, VulkanRenderPass& renderPass);
+        VulkanRenderContextOperation(
+            const CompiledRenderPipeline& pipeline, 
+            RenderView& view, 
+            VulkanCommandBuffer& commandBuffer,
+            VulkanRenderPass& renderPass,
+            VulkanRenderFrame& renderFrame);
     };
 
-    /// @brief Vulkan implementation of a RenderContext
-    class VulkanRenderContext : 
-        public RenderContext, 
-        public GraphicsDeviceResource<VulkanGraphicsDevice>
+    class VulkanRenderContext :
+        public RenderContext
     {
-    private:
-        ManagedRef<VulkanGraphicsSemaphore> _renderStartSemaphore;
-        ManagedRef<VulkanGraphicsSemaphore> _renderCompletedSemaphore;
-        ManagedRef<VulkanGraphicsFence> _renderCompletedFence;
-        UniqueRef<VulkanCommandBuffer> _commandBuffer;
-        VulkanGraphicsDeviceCache& _deviceCache;
-
-        std::pair<const VulkanDescriptorSetLayout*, VkDescriptorSet> _globalDescriptorSet;
-
-        std::vector<Ref<VulkanGraphicsSemaphore>> _waitOnSemaphores;
-        std::vector<Ref<VulkanGraphicsSemaphore>> _renderCompletedSignalSemaphores;
-        std::optional<VulkanContextRenderOperation> _vulkanRenderOperation;
-
     public:
-        VulkanRenderContext(const GraphicsDeviceResourceID& id);
+        VulkanRenderContext(const GraphicsResourceID& id, VulkanGraphicsDevice& device);
         ~VulkanRenderContext();
 
-        void WaitForRenderingToComplete() final;
-        bool CheckForRenderingComplete() final;
+        // Inherited via RenderContext
+        void SetViewportRect(const RectInt& viewportRect) override;
+        void SetScissorRect(const RectInt& scissorRect) override;
+        void SetShader(const SharedRef<Shader>& shader) override;
+        void Draw(const SharedRef<Mesh>& mesh, const Submesh& submesh) override;
+        void DrawIndexed(const SharedRef<Mesh>& mesh, uint64 indexOffset, uint64 indexCount) override;
 
-        Ref<GraphicsSemaphore> GetRenderStartSemaphore() final { return _renderStartSemaphore; }
-        Ref<GraphicsSemaphore> GetRenderCompletedSemaphore() final { return _renderCompletedSemaphore; }
-        Ref<GraphicsFence> GetRenderCompletedFence() final { return _renderCompletedFence; }
+        void WaitForRenderToComplete();
+        bool IsIdle() const;
 
-        void AddWaitOnSemaphore(Ref<GraphicsSemaphore> semaphore) final;
-        uint64 GetWaitOnSemaphoreCount() const final { return _waitOnSemaphores.size(); }
-        void AddRenderCompletedSignalSemaphore(Ref<GraphicsSemaphore> semaphore) final;
+        void SetGlobalUniforms(std::span<const ShaderUniformValue> uniforms) override;
+        void SetGlobalShaderUniforms(std::span<const ShaderUniformValue> uniforms) override;
+        void SetMaterial(const SharedRef<Material>& material) override;
+        void SetInstanceUniforms(uint64 instanceID, std::span<const ShaderUniformValue> uniforms) override;
+        void SetDrawUniforms(std::span<const ShaderUniformValue> uniforms) override;
 
-        void SetViewportRect(const RectInt& viewportRect) final;
-        void SetScissorRect(const RectInt& scissorRect) final;
-        void SetShader(const string& shaderName) final;
-        void SetMaterial(const MaterialData& material) final;
-        void ClearInstanceProperties() final;
-
-        void DrawIndexed(const MeshData& mesh, uint64 firstIndexOffset, uint64 indexCount) final;
-
-        void SetGlobalBufferData(ShaderUniformData::UniformKey key, uint64 offset, const void* data, uint64 dataSize) final;
-        void SetShaderGlobalBufferData(ShaderUniformData::UniformKey key, uint64 offset, const void* data, uint64 dataSize) final;
-
-    protected:
-        bool BeginImpl() final;
-        bool BeginNextPassImpl() final;
-        void EndImpl() final;
-        void ResetImpl() final;
-        void UniformChanged(UniformScope scope, ShaderUniformData::UniformKey key) final;
+        void Begin(const CompiledRenderPipeline& pipeline, RenderView& renderView, VulkanRenderFrame& renderFrame);
+        void BeginNextPass();
+        void End(std::span<std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>> waitSemaphores, std::span<Ref<VulkanGraphicsSemaphore>> signalSemaphores);
+        void Reset();
 
     private:
-        /// @brief Adds image transitions before the render pass begins
-        void AddPreRenderPassImageTransitions();
+        static const uint64 _globalDataID;
 
-        /// @brief Adds image transitions after the render pass ends
-        void AddPostRenderPassImageTransitions();
+        VulkanGraphicsDevice& _device;
+        UniqueRef<VulkanCommandBuffer> _commandBuffer;
+        ManagedRef<VulkanGraphicsFence> _renderCompletedFence;
 
-        /// @brief Adds post-render pass transitions for an image
-        /// @param currentLayout The current layout of the image after rendering
-        /// @param image The image
-        void AddPostRenderPassImageTransitions(VkImageLayout currentLayout, VulkanImage& image);
+        std::optional<VulkanRenderContextOperation> _renderOperation;
+        std::optional<VulkanGlobalState> _globalState;
+        std::optional<VulkanInstanceState> _instanceState;
 
-        /// @brief Flushes pending state changes to complete setup for a drawing operation
-        /// @return True if the state was setup successfully
+        std::vector<ShaderUniformValue> _drawUniforms;
+
+    private:
+        void CreateCommandBuffer();
+        void FreeCommandBuffer();
+
+        void AddPreRenderPassAttachmentTransitions();
+        void AddPostRenderPassAttachmentTransitions();
+
+        VkDescriptorSet GetOrCreateDescriptorSet(uint64 dataID, UniformScope scope, VulkanDescriptorSetLayout& descriptorSetLayout);
+        void BindDescriptorSet(VkDescriptorSet set, uint32 offset);
+
         bool FlushStateChanges();
+        void FlushPushConstants(const ShaderUniformLayout& drawLayout);
 
-        /// @brief Gets the shader for the currently bound global state
-        /// @return The bound shader
-        VulkanShader& GetBoundShader();
-
-        /// @brief Gets the uniform data for a shader
-        /// @param shader The shader
-        /// @return The uniform data for the shader
-        VulkanShaderUniformData& GetUniformDataForShader(const VulkanShader& shader);
+        void SetUniforms(uint64 dataID, uint64 dataVersion, UniformScope scope, std::span<const ShaderUniformValue> uniforms);
+        void WriteDescriptorSetData(VkDescriptorSet set, const VulkanDescriptorSetLayout& descriptorSetLayout, const CachedVulkanUniformData& cachedData);
+        void WriteDescriptorSetTextures(
+            VkDescriptorSet set,
+            const VulkanDescriptorSetLayout& descriptorSetLayout,
+            const std::unordered_map<string, WeakSharedRef<Texture>>& textures);
     };
 }

@@ -6,6 +6,7 @@
 #include "MainLoop/MainLoop.h"
 #include "Services/ServiceManager.h"
 #include "IO/EngineFileSystem.h"
+#include "Resources/AssetManager.h"
 #include "Resources/ResourceLibrary.h"
 
 namespace Coco
@@ -22,16 +23,6 @@ namespace Coco
 
 		/// @brief The default content path
 		static const char* sDefaultContentPath;
-
-	private:
-		UniqueRef<Log> _log;
-		UniqueRef<EnginePlatform> _platform;
-		UniqueRef<MainLoop> _mainLoop;
-		UniqueRef<ServiceManager> _serviceManager;
-		UniqueRef<EngineFileSystem> _fileSystem;
-		UniqueRef<ResourceLibrary> _resourceLibrary;
-		UniqueRef<Application> _app;
-		int _exitCode;
 
 	public:
 		Engine(const EnginePlatformFactory& platformFactory);
@@ -105,9 +96,32 @@ namespace Coco
 		/// @return The resource library
 		const ResourceLibrary& GetResourceLibrary() const { return *_resourceLibrary; }
 
-		/// @brief Causes a crash and rethrows the captured exception.
-		/// NOTE: only works in the catch clause of a try-catch block
-		void CrashWithException();
+		/// @brief Gets the engine' asset manager
+		/// @return The asset manager
+		AssetManager& GetAssetManager() { return *_assetManager; }
+
+		/// @brief Gets the engine' asset manager
+		/// @return The asset manager
+		const AssetManager& GetAssetManager() const { return *_assetManager; }
+
+		/// @brief Causes a crash that displays the given error message
+		/// @param message The message to show
+		void Crash(const string& message);
+
+		/// @brief Causes a crash that displays the given exception
+		/// @param ex The exception to display a message from
+		void Crash(const std::exception& ex);
+
+	private:
+		UniqueRef<Log> _log;
+		UniqueRef<EnginePlatform> _platform;
+		UniqueRef<MainLoop> _mainLoop;
+		UniqueRef<ServiceManager> _serviceManager;
+		UniqueRef<EngineFileSystem> _fileSystem;
+		UniqueRef<ResourceLibrary> _resourceLibrary;
+		UniqueRef<AssetManager> _assetManager;
+		UniqueRef<Application> _app;
+		int _exitCode;
 
 	private:
 		/// @brief Performs setup based on process arguments
@@ -135,3 +149,31 @@ namespace Coco
 
 #define CocoError(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Error, Message, __VA_ARGS__);
 #define CocoCritical(Message, ...) ::Coco::Engine::Get()->GetLog().FormatWrite(Coco::LogMessageSeverity::Critical, Message, __VA_ARGS__);
+
+#ifdef COCO_ASSERTIONS
+#define CocoAssert(Expression, FailMessage) { \
+	if(Expression)	\
+	{}				\
+	else			\
+	{				\
+		std::source_location loc = std::source_location::current(); \
+		::Coco::string message = ::Coco::FormatString("Assertion Failed in {} - {}:{}: {}", \
+			loc.file_name(), loc.function_name(), loc.line(), FailMessage); \
+		::Coco::Engine::Get()->Crash(message); \
+	} \
+}
+#define CocoAssertResult(Expression, FailMessage) { \
+	if(Expression)	\
+	{}				\
+	else			\
+	{				\
+		std::source_location loc = std::source_location::current(); \
+		::Coco::string message = ::Coco::FormatString("Assertion Failed in {} - {}:{}: {}", \
+			loc.file_name(), loc.function_name(), loc.line(), FailMessage); \
+		::Coco::Engine::Get()->Crash(message); \
+	} \
+}
+#else
+#define CocoAssert(Expression, FailMessage)
+#define CocoAssertResult(Expression, FailMessage) Expression
+#endif

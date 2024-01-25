@@ -3,203 +3,138 @@
 
 #include "Entity.h"
 #include "Components/EntityInfoComponent.h"
-#include "Components/TransformSystem.h"
-#include "Components/NativeScriptSystem.h"
+#include "Systems/SceneSystemFactory.h"
+#include "Systems/SceneSystem.h"
 
 #include <Coco/Core/Engine.h>
 
 namespace Coco::ECS
 {
-	const int Scene::sTickPriority = -5;
-	const int Scene::sLateTickPriority = 1000;
+	const int Scene::TickPriority = 1000;
 
-	Scene::Scene(const ResourceID& id, const string& name) :
-		Resource(id, name),
-		_tickListener(CreateManagedRef<TickListener>(this, &Scene::HandleTick, sTickPriority)),
-		_lateTickListener(CreateManagedRef<TickListener>(this, &Scene::HandleLateTick, sLateTickPriority)),
-		_registry(),
-		_queuedDestroyEntities(),
-		_systemsNeedSorting(false)
+	Scene::Scene(const ResourceID& id) :
+		Resource(id),
+		TickSystem<SceneTickListener, const TickInfo&>(&Scene::CompareTickListeners, &Scene::PerformTick, &Scene::HandleTickError),
+		_tickListener(CreateManagedRef<TickListener>(this, &Scene::HandleTick, TickPriority)),
+		_simulateMode(SceneSimulateMode::Stopped),
+		_systems(SceneSystemFactory::CreateSystems(*this))
 	{
-		MainLoop::Get()->AddListener(_tickListener);
-		MainLoop::Get()->AddListener(_lateTickListener);
+		MainLoop::Get()->AddTickListener(_tickListener);
 	}
 
 	Scene::~Scene()
 	{
+		DestroyAllEntities(true);
+		MainLoop::Get()->RemoveTickListener(_tickListener);
 		_systems.clear();
-		Clear();
-		MainLoop::Get()->RemoveListener(_tickListener);
-		MainLoop::Get()->RemoveListener(_lateTickListener);
 	}
 
-	SharedRef<Scene> Scene::CreateWithDefaultSystems(const string& name)
+	Entity Scene::CreateEntity(const string& name, const Entity& parent)
 	{
-		SharedRef<Scene> scene = Engine::Get()->GetResourceLibrary().Create<Scene>(name);
-		scene->UseDefaultSystems();
-
-		return scene;
+		return ECSService::Get()->CreateEntity(name, parent, GetSelfRef<Scene>());
 	}
 
-	Entity Scene::CreateEntity(const string& name)
+	std::vector<Entity> Scene::GetEntities(bool onlyRootEntities)
 	{
-		return CreateEntity(name, _registry.view<entt::entity>().size(), Entity::Null);
+		return ECSService::Get()->GetSceneEntities(*this, onlyRootEntities);
 	}
 
-	bool Scene::TryGetEntity(const EntityID& id, Entity& outEntity)
+	void Scene::QueueDestroyEntity(Entity& entity)
 	{
-		auto view = _registry.view<EntityInfoComponent>();
-
-		for (auto e : view)
-		{
-			EntityInfoComponent& info = _registry.get<EntityInfoComponent>(e);
-			if (info.GetEntityID() == id)
-			{
-				outEntity = Entity(e, GetSelfRef<Scene>());
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	void Scene::ReparentEntity(const EntityID& entityID, const EntityID& parentID)
-	{
-		if (entityID == InvalidEntityID)
-			return;
-
-		if (parentID == InvalidEntityID)
-		{
-			_entityParentMap.erase(entityID);
-		}
-		else
-		{
-			_entityParentMap[entityID] = parentID;
-		}
-
-		Entity e;
-		Assert(TryGetEntity(entityID, e))
-		OnEntityParentChanged.Invoke(e);
-	}
-
-	std::vector<Entity> Scene::GetRootEntities()
-	{
-		auto view = _registry.view<EntityInfoComponent>();
-
-		std::vector<Entity> rootEntities;
-
-		for (auto e : view)
-		{
-			const EntityInfoComponent& info = _registry.get<EntityInfoComponent>(e);
-
-			if (_entityParentMap.contains(info.GetEntityID()))
-				continue;
-
-			rootEntities.push_back(Entity(e, GetSelfRef<Scene>()));
-		}
-
-		return rootEntities;
+		ECSService::Get()->QueueDestroyEntity(entity);
 	}
 
 	void Scene::DestroyEntity(Entity& entity)
 	{
-		_queuedDestroyEntities.push_back(entity);
+		ECSService::Get()->DestroyEntity(entity);
 	}
 
-	void Scene::DestroyEntityImmediate(Entity& entity)
+	void Scene::SetSimulateMode(SceneSimulateMode mode)
 	{
-		if (!entity.IsValid())
-		{
-			CocoError("Failed to destroy entity: entity was not valid")
+		if (mode == _simulateMode)
 			return;
-		}
 
-		if (entity._scene.lock().get() != this)
+		_simulateMode = mode;
+
+		if (_simulateMode == SceneSimulateMode::Running)
 		{
-			CocoError("Failed to destroy entity: entity was created in a different scene")
-			return;
+			StartSimulation();
 		}
-
-		// Recursively destroy all children
-		std::vector<Entity> children = entity.GetChildren();
-
-		for (Entity& child : children)
-			DestroyEntityImmediate(child);
-
-		// Remove this entity from the parent-child map, if it is contained there
-		EntityID id = entity.GetID();
-		_entityParentMap.erase(id);
-
-		// Actaully destroy the entity
-		_registry.destroy(entity._handle);
-		entity = Entity::Null;
-	}
-
-	void Scene::EachEntity(std::function<void(Entity&)> callback)
-	{
-		for (entt::entity e : _registry.view<entt::entity>())
+		else
 		{
-			// Invalid entities get read in the view, so only give out valid ones
-			if (!_registry.valid(e))
-				continue;
-
-			Entity entity(e, GetSelfRef<Scene>());
-			callback(entity);
+			StopSimulation();
 		}
 	}
 
-	void Scene::UseDefaultSystems()
+	bool Scene::CompareTickListeners(const Ref<SceneTickListener>& a, const Ref<SceneTickListener>& b)
 	{
-		UseSystem<TransformSystem>();
-		UseSystem<NativeScriptSystem>();
+		if (!a.IsValid())
+			return false;
+
+		if (!b.IsValid())
+			return true;
+
+		return a->Priority < b->Priority;
 	}
 
-	void Scene::SortSystems()
+	void Scene::PerformTick(Ref<SceneTickListener>& listener, const TickInfo& tickInfo)
 	{
-		std::sort(_systems.begin(), _systems.end(), [](const UniqueRef<SceneSystem>& a, const UniqueRef<SceneSystem>& b)
-			{
-				return a->GetPriority() < b->GetPriority();
-			});
-
-		_systemsNeedSorting = false;
+		listener->Tick(tickInfo);
 	}
 
-	Entity Scene::CreateEntity(const string& name, const EntityID& id, const Entity& parent)
+	bool Scene::HandleTickError(const std::exception& ex)
 	{
-		Entity e(_registry.create(), GetSelfRef<Scene>());
-		e.AddComponent<EntityInfoComponent>(name, id);
+		CocoError("Error during scene tick: {}", ex.what())
 
-		if (parent != Entity::Null)
-			e.SetParent(parent);
-
-		return e;
+		return true;
 	}
 
 	void Scene::HandleTick(const TickInfo& tickInfo)
 	{
-		if (_systemsNeedSorting)
-			SortSystems();
+		if (_simulateMode != SceneSimulateMode::Running)
+			return;
 
-		for (auto& s : _systems)
-			s->Tick();
+		TickAllListeners(tickInfo);
 	}
 
-	void Scene::HandleLateTick(const TickInfo& tickInfo)
+	void Scene::DestroyAllEntities(bool destroyImmediately)
 	{
-		for (Entity& e : _queuedDestroyEntities)
-			DestroyEntityImmediate(e);
+		ECSService* ecs = ECSService::Get();
+		if (!ecs)
+			return;
 
-		_queuedDestroyEntities.clear();
-	}
+		std::vector<Entity> entities = ecs->GetSceneEntities(*this, true);
 
-	void Scene::Clear()
-	{
-		_entityParentMap.clear();
-		_queuedDestroyEntities.clear();
-		
-		for (const auto& e : _registry.view<entt::entity>())
+		for (auto& e : entities)
 		{
-			_registry.destroy(e);
+			if (destroyImmediately)
+			{
+				ecs->DestroyEntity(e);
+			}
+			else
+			{
+				ecs->QueueDestroyEntity(e);
+			}
 		}
+	}
+
+	void Scene::EntitiesAdded(std::span<Entity> rootEntities)
+	{
+		for (const auto& s : _systems)
+			s->EntitiesAdded(rootEntities);
+	}
+
+	void Scene::StartSimulation()
+	{
+		// Systems are sorted in ascending order of priority
+		for (auto& s : _systems)
+			s->SimulationStarted();
+	}
+
+	void Scene::StopSimulation()
+	{	
+		// End the simulation in reverse order of the simulation start
+		for (auto it = _systems.rbegin(); it != _systems.rend(); ++it)
+			(*it)->SimulationEnded();
 	}
 }

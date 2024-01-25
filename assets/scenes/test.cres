@@ -1,0 +1,41 @@
+resourceID: ECSScene::Scene
+resourceType: Scene
+entities:
+  Camera:
+    components:
+      EntityInfoComponent:
+        {}
+      Transform3DComponent:
+        localPosition: [0, 0, 1]
+        localRotation: [1, 0, 0, 0]
+        localScale: [1, 1, 1]
+        inheritParentTransform: true
+        transformReparentMode: 1
+      CameraComponent:
+        priority: 0
+        clearColor: [0.10000000000000001, 0.20000000000000001, 0.29999999999999999, 1, false]
+        msaaSamples: 0
+        projectionType: 0
+        perspectiveFOV: 1.5707963267948966
+        perspectiveClipping: [0.10000000000000001, 100]
+        orthoSize: 1
+        orthoClipping: [-1, 1]
+    childEntities:
+      {}
+  Box:
+    components:
+      EntityInfoComponent:
+        {}
+      Transform3DComponent:
+        localPosition: [0, 0, 0]
+        localRotation: [1, 0, 0, 0]
+        localScale: [1, 1, 1]
+        inheritParentTransform: true
+        transformReparentMode: 1
+      MeshRendererComponent:
+        visibility: 4
+        mesh: ~ECSScene::BoxMesh
+        materials:
+          0: ~ECSScene::BoxMaterial
+    childEntities:
+      {}  # .

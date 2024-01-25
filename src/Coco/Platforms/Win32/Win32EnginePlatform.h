@@ -1,6 +1,7 @@
 #pragma once
 #include <Coco/Core/Platform/EnginePlatform.h>
 #include <Coco/Core/Types/Refs.h>
+#include <Coco/Core/Types/CoreExceptions.h>
 
 #ifdef COCO_SERVICE_RENDERING
 #include <Coco/Rendering/RenderingPlatform.h>
@@ -16,6 +17,13 @@
 
 namespace Coco::Platforms::Win32
 {
+	class Win32PlatformOperationException :
+		public Exception
+	{
+	public:
+		Win32PlatformOperationException(const string& message);
+	};
+
     /// @brief Win32 implementation of an EnginePlatform
     class Win32EnginePlatform : public EnginePlatform
 #ifdef COCO_SERVICE_RENDERING
@@ -25,17 +33,11 @@ namespace Coco::Platforms::Win32
 		, public Windowing::WindowingPlatform
 #endif
     {
-	private:
-		HINSTANCE _hInstance;
-		std::vector<string> _processArguments;
-		uint64 _clockFrequency;
-		double _secondsPerCycle;
-		double _startTime;
-		bool _consoleOpen;
-
 	public:
 		Win32EnginePlatform(HINSTANCE hInstance);
 		~Win32EnginePlatform();
+
+		static string GetWin32ErrorMessage(DWORD error);
 
 		double GetSeconds() const final;
 		double GetRunningTime() const final { return GetSeconds() - _startTime; }
@@ -56,6 +58,14 @@ namespace Coco::Platforms::Win32
 		/// @brief Gets the HINSTANCE
 		/// @return The HINSTANCE
 		HINSTANCE GetHInstance() { return _hInstance; }
+
+	private:
+		HINSTANCE _hInstance;
+		std::vector<string> _processArguments;
+		uint64 _clockFrequency;
+		double _secondsPerCycle;
+		double _startTime;
+		bool _consoleOpen;
 
 	private:
 		/// @brief Callback to process window messages from Windows
@@ -80,7 +90,7 @@ namespace Coco::Platforms::Win32
 		/// @param renderingExtensions The extension provider
 		void SetRenderingExtensions(SharedRef<Win32RenderingExtensions> renderingExtensions);
 
-		void GetPlatformRenderingExtensions(const char* renderRHIName, bool includePresentationExtensions, std::vector<const char*>& outExtensions) const final;
+		void GetPlatformRenderingExtensions(const string& renderRHIName, bool includePresentationExtensions, std::vector<string>& outExtensions) const final;
 #endif
 
 #ifdef COCO_SERVICE_WINDOWING
@@ -96,7 +106,7 @@ namespace Coco::Platforms::Win32
 		/// @param renderRHIName The name of the render RHI being used
 		/// @param window The window to create the surface for
 		/// @return A surface for the window
-		SharedRef<Rendering::GraphicsPresenterSurface> CreateSurfaceForWindow(const char* renderRHIName, const Win32Window& window) const;
+		UniqueRef<Rendering::PresenterSurface> CreateSurfaceForWindow(const string& renderRHIName, const Win32Window& window) const;
 
 		bool SupportsMultipleWindows() const final { return true; }
 		ManagedRef<Windowing::Window> CreatePlatformWindow(const Windowing::WindowCreateParams& createParams) final;

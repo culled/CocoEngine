@@ -3,6 +3,7 @@
 
 #include "WindowService.h"
 #include <Coco/Core/Engine.h>
+#include <Coco/Rendering/Graphics/Presenter.h>
 #include <Coco/Rendering/RenderService.h>
 
 namespace Coco::Windowing
@@ -10,17 +11,17 @@ namespace Coco::Windowing
 	const WindowID Window::InvalidID = Math::MaxValue<WindowID>();
 	const uint16 Window::DefaultDPI = 96;
 
-	std::atomic<WindowID> Window::_id;
-
 	Window::Window(const WindowCreateParams& createParams) :
 		ID(_id++),
 		_parentID(createParams.ParentWindow),
 		_presenter()
 	{
-		if (!Rendering::RenderService::Get())
-			throw std::exception("No RenderService is active");
+		using namespace Coco::Rendering;
 
-		_presenter = Rendering::RenderService::Get()->GetDevice().CreatePresenter();
+		RenderService* rendering = RenderService::Get();
+		CocoAssert(rendering, "Windowing depends on the RenderService")
+
+		_presenter = rendering->GetDevice().CreatePresenter();
 	}
 
 	Window::~Window()
@@ -34,7 +35,12 @@ namespace Coco::Windowing
 
 		if (_presenter.IsValid())
 		{
-			Rendering::RenderService::Get()->GetDevice().TryReleasePresenter(_presenter);
+			using namespace Coco::Rendering;
+
+			RenderService* rendering = RenderService::Get();
+			CocoAssert(rendering, "Windowing depends on the RenderService")
+
+			rendering->GetDevice().TryReleaseResource(_presenter->ID);
 		}
 	}
 
@@ -42,18 +48,14 @@ namespace Coco::Windowing
 	{
 		bool cancel = false;
 
-		try
-		{
-			OnClosing.Invoke(cancel);
-		}
-		catch (const std::exception& ex)
-		{
-			CocoError("Error while invoking Window::OnClosing event: {}", ex.what())
-		}
+		OnClosing.Invoke(cancel);
 
 		if (!cancel)
 		{
-			Windowing::WindowService::Get()->WindowClosed(*this);
+			WindowService* windowing = WindowService::Get();
+			CocoAssert(windowing, "WindowService singleton was null")
+
+			windowing->WindowClosed(*this);
 		}
 	}
 
@@ -74,19 +76,15 @@ namespace Coco::Windowing
 
 	Ref<Window> Window::GetParentWindow() const
 	{
-		return WindowService::Get()->GetWindow(_parentID);
+		WindowService* windowing = WindowService::Get();
+		CocoAssert(windowing, "WindowService singleton was null")
+
+		return windowing->GetWindow(_parentID);
 	}
 
 	void Window::HandleResized()
 	{
-		try
-		{
-			OnResized.Invoke(GetClientAreaSize());
-		}
-		catch(const std::exception& ex)
-		{
-			CocoError("Error while invoking Window::OnResized event: {}", ex.what())
-		}
+		OnResized.Invoke(GetClientAreaSize());
 
 		// Lazy initialize surface until we're visible
 		EnsurePresenterSurface();
@@ -96,12 +94,13 @@ namespace Coco::Windowing
 
 	void Window::EnsurePresenterSurface()
 	{
-		if (_presenter->SurfaceInitialized())
+		if (_presenter->HasSurface())
 			return;
 
-		SharedRef<Rendering::GraphicsPresenterSurface> surface = CreateSurface();
-		_presenter->InitializeSurface(*surface);
+		_presenter->SetSurface(CreateSurface());
 
 		_presenter->SetFramebufferSize(GetClientAreaSize());
 	}
+
+	std::atomic<WindowID> Window::_id;
 }

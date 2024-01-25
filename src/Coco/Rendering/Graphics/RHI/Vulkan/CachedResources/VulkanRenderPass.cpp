@@ -1,29 +1,20 @@
 #include "Renderpch.h"
 #include "VulkanRenderPass.h"
-#include "../../../../Pipeline/CompiledRenderPipeline.h"
 #include "../VulkanGraphicsDevice.h"
+#include "../../../../Pipeline/CompiledRenderPipeline.h"
 #include "../VulkanUtils.h"
 
+#include <Coco/Core/Math/Math.h>
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanSubpassInfo::VulkanSubpassInfo() :
-		ColorAttachments{},
-		ColorAttachmentReferences{},
-		DepthStencilAttachment{},
-		DepthStencilAttachmentReference{},
-		ResolveAttachmentReferences{},
-		PreserveAttachments{},
-		SubpassDescription{}
-	{}
-
-	VulkanRenderPass::VulkanRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples) :
-		CachedVulkanResource(MakeKey(pipeline, samples)),
-		_version(0),
+	VulkanRenderPass::VulkanRenderPass(uint64 id, VulkanGraphicsDevice& device) :
+		CachedVulkanResource(id),
+		_device(device),
+		_pipelineVersion(0),
 		_renderPass(nullptr),
-		_subpassInfos{},
-		_samples(GetAdjustedSamples(samples))
+		_sampleCount(MSAASamples::One)
 	{}
 
 	VulkanRenderPass::~VulkanRenderPass()
@@ -31,227 +22,233 @@ namespace Coco::Rendering::Vulkan
 		DestroyRenderPass();
 	}
 
-	GraphicsDeviceResourceID VulkanRenderPass::MakeKey(const CompiledRenderPipeline& pipeline, MSAASamples samples)
+	uint64 VulkanRenderPass::MakeKey(const CompiledRenderPipeline& pipeline, MSAASamples samples)
 	{
-		return Math::CombineHashes(pipeline.PipelineID, static_cast<uint64>(samples));
+		return Math::CombineHashes(static_cast<uint64>(samples), pipeline.PipelineID);
 	}
 
-	const VulkanSubpassInfo& VulkanRenderPass::GetSubpassInfo(uint64 index) const
+	bool VulkanRenderPass::NeedsUpdate(const CompiledRenderPipeline& pipeline, MSAASamples samples)
 	{
-		Assert(index < _subpassInfos.size())
-
-		return _subpassInfos.at(index);
+		return _renderPass == nullptr || samples != _sampleCount || pipeline.PipelineVersion != _pipelineVersion;
 	}
 
-	bool VulkanRenderPass::NeedsUpdate(const CompiledRenderPipeline& pipeline, MSAASamples samples) const
-	{
-		return _renderPass == nullptr || pipeline.Version != _version || _samples != GetAdjustedSamples(samples);
-	}
-
-	void VulkanRenderPass::Update(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices)
+	void VulkanRenderPass::Update(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint32> resolveAttachmentIndices)
 	{
 		DestroyRenderPass();
 		CreateRenderPass(pipeline, samples, resolveAttachmentIndices);
-
-		_version = pipeline.Version;
 	}
 
-	MSAASamples VulkanRenderPass::GetAdjustedSamples(MSAASamples samples) const
+	MSAASamples VulkanRenderPass::GetAdjustedSampleCount(MSAASamples samples) const
 	{
-		const GraphicsDeviceFeatures& features = _device.GetFeatures();
-		return static_cast<MSAASamples>(Math::Min(samples, features.MaximumMSAASamples));
+		return static_cast<MSAASamples>(
+			Math::Min(
+				static_cast<int>(_device.GetFeatures().MaximumMSAASamples),
+				static_cast<int>(samples)
+			)
+		);
 	}
 
-	void VulkanRenderPass::CreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices)
+	void VulkanRenderPass::CreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint32> resolveAttachmentIndices)
 	{
-		_subpassInfos.resize(pipeline.RenderPasses.size());
-		_samples = GetAdjustedSamples(samples);
+		std::vector<VkAttachmentDescription> attachmentDescriptions(pipeline.Attachments.size());
+		_sampleCount = GetAdjustedSampleCount(samples);
+		_pipelineVersion = pipeline.PipelineVersion;
 
-		Assert(pipeline.RenderPasses.size() != 0)
-
-		std::vector<VkAttachmentDescription> attachments;
-
-		// Create attachment descriptions for all primary attachments
+		// Create attachment descriptions for all pipeline attachments
 		for (uint64 i = 0; i < pipeline.Attachments.size(); i++)
 		{
-			const CompiledPipelineAttachment& attachment = pipeline.Attachments.at(i);
-			VkImageLayout layout = ToAttachmentLayout(attachment.PixelFormat);
+			const RenderPassAttachment& attachment = pipeline.Attachments.at(i);
+			VkAttachmentDescription& attachmentDescription = attachmentDescriptions.at(i);
 
-			VkAttachmentDescription description{};
-			description.samples = ToVkSampleCountFlagBits(_samples);
-			description.format = ToVkFormat(attachment.PixelFormat, attachment.ColorSpace);
+			VkImageLayout layout = ToVkImageLayout(attachment.PixelFormat);
+			attachmentDescription.samples = ToVkSampleCountFlagBits(_sampleCount);
+			attachmentDescription.format = ToVkFormat(attachment.PixelFormat, attachment.ColorSpace);
 
-			bool clear = (attachment.Options & AttachmentOptionFlags::Clear) == AttachmentOptionFlags::Clear;
-			bool preserve = (attachment.Options & AttachmentOptionFlags::Preserve) == AttachmentOptionFlags::Preserve;
+			bool clear = (attachment.OptionsFlags & AttachmentOptionsFlags::Clear) == AttachmentOptionsFlags::Clear;
+			bool preserve = (attachment.OptionsFlags & AttachmentOptionsFlags::Preserve) == AttachmentOptionsFlags::Preserve;
 
-			description.loadOp = clear ?
+			attachmentDescription.loadOp = clear ?
 				VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
 
-			description.storeOp = preserve ?
-				VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			// Always store because a subsequent pipeline could use this attachment
+			attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
-			description.stencilLoadOp = clear ?
-				VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+			attachmentDescription.stencilLoadOp = attachmentDescription.loadOp;
+			attachmentDescription.stencilStoreOp = attachmentDescription.storeOp;
 
-			description.stencilStoreOp = preserve ?
-				VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachmentDescription.initialLayout = (preserve || !clear) ?
+				layout : VK_IMAGE_LAYOUT_UNDEFINED;
 
-			description.initialLayout = clear ?
-				VK_IMAGE_LAYOUT_UNDEFINED : layout;
-
-			description.finalLayout = layout;
-
-			attachments.push_back(description);
+			attachmentDescription.finalLayout = layout;
 		}
 
 		// Add attachment refs for any resolve attachments
-		std::transform(resolveAttachmentIndices.begin(), resolveAttachmentIndices.end(),
-			std::back_inserter(attachments),
-			[pipeline, attachments](const uint8& i)
-			{
-				const CompiledPipelineAttachment& attachment = pipeline.Attachments.at(i);
-				VkAttachmentDescription description = attachments.at(i);
-				description.samples = VK_SAMPLE_COUNT_1_BIT;
-
-				return description;
-			}
-		);
-
-		std::vector<VkSubpassDescription> subpasses(pipeline.RenderPasses.size());
-
-		// Create subpasses for all pipeline renderpasses
-		for (size_t i = 0; i < pipeline.RenderPasses.size(); i++)
+		for (const uint32& i : resolveAttachmentIndices)
 		{
-			VulkanSubpassInfo& subpass = _subpassInfos.at(i);
+			const VkAttachmentDescription& originalDescription = attachmentDescriptions.at(i);
+			VkAttachmentDescription& attachmentDescription = attachmentDescriptions.emplace_back(originalDescription);
+			attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+		}
+
+		std::vector<VulkanSubPassInfo> subpasses(pipeline.RenderPasses.size());
+
+		for (uint32 i = 0; i < pipeline.RenderPasses.size(); i++)
+		{
+			VulkanSubPassInfo& subpassInfo = subpasses.at(i);
 
 			// Start assuming no attachments are used
-			for (uint32 ii = 0; ii < attachments.size(); ii++)
+			for (uint32 ii = 0; ii < attachmentDescriptions.size(); ii++)
 			{
-				subpass.PreserveAttachments.emplace_back(ii);
+				subpassInfo.PreserveAttachmentIndices.emplace_back(ii);
 			}
 
-			const RenderPassBinding& binding = pipeline.RenderPasses.at(i);
+			const RenderPassPipelineBinding& binding = pipeline.RenderPasses.at(i);
 
 			// Go through each of the pass's attachment mappings
-			for (const auto& bindingPair : binding.PipelineToPassIndexMapping)
+			for (const auto& bindingPair : binding.PipelineToPassAttachmentMapping)
 			{
-				const uint8 pipelineAttachmentIndex = bindingPair.first;
-				const uint8 passAttachmentIndex = bindingPair.second;
-				const CompiledPipelineAttachment& pipelineAttachment = pipeline.Attachments.at(pipelineAttachmentIndex);
+				const uint32 pipelineAttachmentIndex = bindingPair.first;
+				const uint32 passAttachmentIndex = bindingPair.second;
+				const RenderPassAttachment& pipelineAttachment = pipeline.Attachments.at(pipelineAttachmentIndex);
+
+				// Remove the attachment from the preserved list since it is used
+				std::erase(subpassInfo.PreserveAttachmentIndices, pipelineAttachmentIndex);
 
 				VkAttachmentReference attachmentRef{};
 				attachmentRef.attachment = pipelineAttachmentIndex;
+				attachmentRef.layout = ToVkImageLayout(pipelineAttachment.PixelFormat);
 
-				attachmentRef.layout = ToAttachmentLayout(pipelineAttachment.PixelFormat);
-
-				if (attachmentRef.layout != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && !subpass.DepthStencilAttachmentReference.has_value())
+				if (attachmentRef.layout != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && !subpassInfo.DepthStencilAttachmentReference.has_value())
 				{
 					// Only 1 depth/stencil attachment
-					subpass.DepthStencilAttachmentReference = attachmentRef;
-					subpass.DepthStencilAttachment = pipelineAttachment;
+					subpassInfo.DepthStencilAttachmentReference = attachmentRef;
 				}
 				else
 				{
-					subpass.ColorAttachmentReferences.push_back(attachmentRef);
-					subpass.ColorAttachments.push_back(pipelineAttachment);
+					subpassInfo.ColorAttachmentReferences.push_back(attachmentRef);
 				}
 
-				// Remove the attachment since it is used
-				const auto it = std::find(subpass.PreserveAttachments.cbegin(), subpass.PreserveAttachments.cend(), pipelineAttachmentIndex);
-				if (it != subpass.PreserveAttachments.cend())
-					subpass.PreserveAttachments.erase(it);
-
 				// Create an unused resolve attachment reference
-				VkAttachmentReference resolveAttachmentRef{};
+				VkAttachmentReference& resolveAttachmentRef = subpassInfo.ResolveAttachmentReferences.emplace_back();
 				resolveAttachmentRef.attachment = VK_ATTACHMENT_UNUSED;
 				resolveAttachmentRef.layout = attachmentRef.layout;
 
-				// Add a resolve attachment for this attachment if needed
-				for (uint8 rI = 0; rI < resolveAttachmentIndices.size(); rI++)
+				auto it = std::find(resolveAttachmentIndices.begin(), resolveAttachmentIndices.end(), pipelineAttachmentIndex);
+				if (it != resolveAttachmentIndices.end())
 				{
-					if (resolveAttachmentIndices[rI] != pipelineAttachmentIndex)
-						continue;
-
-					uint32 resolveAttachmentIndex = static_cast<uint32>(pipeline.Attachments.size() + rI);
+					uint32 resolveAttachmentIndex = static_cast<uint32>(pipeline.Attachments.size() + std::distance(resolveAttachmentIndices.begin(), it));
 					resolveAttachmentRef.attachment = resolveAttachmentIndex;
 
-					// Remove the attachment since it is used
-					const auto it2 = std::find(subpass.PreserveAttachments.cbegin(), subpass.PreserveAttachments.cend(), resolveAttachmentIndex);
-					if (it2 != subpass.PreserveAttachments.cend())
-						subpass.PreserveAttachments.erase(it2);
+					// Remove the attachment from the preserved list since it is used
+					std::erase(subpassInfo.PreserveAttachmentIndices, resolveAttachmentIndex);
 				}
-
-				subpass.ResolveAttachmentReferences.push_back(resolveAttachmentRef);
 			}
 
-			VkSubpassDescription subpassDescription{};
-			subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			VkSubpassDescription& subpassDesc = subpassInfo.Description;
+			subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
-			subpassDescription.colorAttachmentCount = static_cast<uint32_t>(subpass.ColorAttachmentReferences.size());
-			subpassDescription.pColorAttachments = subpass.ColorAttachmentReferences.size() > 0 ? 
-				subpass.ColorAttachmentReferences.data() : VK_NULL_HANDLE;
+			subpassDesc.colorAttachmentCount = static_cast<uint32>(subpassInfo.ColorAttachmentReferences.size());
+			subpassDesc.pColorAttachments = subpassInfo.ColorAttachmentReferences.data();
 
-			subpassDescription.pDepthStencilAttachment = subpass.DepthStencilAttachmentReference.has_value() ?
-				&subpass.DepthStencilAttachmentReference.value() : VK_NULL_HANDLE;
+			subpassDesc.pDepthStencilAttachment = subpassInfo.DepthStencilAttachmentReference.has_value() ?
+				&subpassInfo.DepthStencilAttachmentReference.value() : VK_NULL_HANDLE;
 
-			subpassDescription.preserveAttachmentCount = static_cast<uint32_t>(subpass.PreserveAttachments.size());
-			subpassDescription.pPreserveAttachments = subpass.PreserveAttachments.data();
+			subpassDesc.pResolveAttachments = subpassInfo.ResolveAttachmentReferences.data();
 
-			subpassDescription.pResolveAttachments = subpass.ResolveAttachmentReferences.data();
+			subpassDesc.inputAttachmentCount = 0; // TODO: input attachments
 
-			subpassDescription.inputAttachmentCount = 0; // TODO: input attachments
-
-			subpass.SubpassDescription = subpassDescription;
-			subpasses.at(i) = subpassDescription;
+			subpassDesc.preserveAttachmentCount = static_cast<uint32>(subpassInfo.PreserveAttachmentIndices.size());
+			subpassDesc.pPreserveAttachments = subpassInfo.PreserveAttachmentIndices.data();
 		}
 
-		std::vector<VkSubpassDependency> subpassDependencies(pipeline.RenderPasses.size() + 1);
+		std::vector<VkSubpassDependency> subpassDependencies;
+		subpassDependencies.reserve(pipeline.RenderPasses.size() + 1);
 
-		// Wait until the previous pipeline operation has completed before performing the vertex stage
-		VkSubpassDependency& initialDependency = subpassDependencies.front();
+		// Add initial dependencies to ensure the automatic transitions happen after image clearing has been written
+		VkSubpassDependency& initialDependency = subpassDependencies.emplace_back();
+		// Store op is always performed in late tests for depth/stencil attachments, color output for color attachments
 		initialDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		initialDependency.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		initialDependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+		// Load op is always performed in early tests for depth/stencil attachments, color output for color attachments
 		initialDependency.dstSubpass = 0;
-		initialDependency.srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-		initialDependency.dstStageMask = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-		initialDependency.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT;
-		initialDependency.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		initialDependency.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		initialDependency.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | 
+			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | 
+			VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+
 		initialDependency.dependencyFlags = 0;
 
-		for (uint64 i = 0; i < subpasses.size() - 1; i++)
+		if (subpasses.size() > 0)
 		{
-			// Wait until the previous subpass has written to the color attachments before performing the vertex stage on the next pass
-			VkSubpassDependency& dependency = subpassDependencies.at(i + 1);
-			dependency.srcSubpass = static_cast<uint32_t>(i);
-			dependency.dstSubpass = static_cast<uint32_t>(i + 1);
-			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			dependency.dstStageMask = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-			dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			dependency.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			dependency.dependencyFlags = 0;
+			for (uint64 i = 0; i < subpasses.size() - 1; i++)
+			{
+				// Wait until the previous subpass has written to the color attachments before performing the vertex stage on the next pass
+				VkSubpassDependency& dependency = subpassDependencies.emplace_back();
+				dependency.srcSubpass = static_cast<uint32_t>(i);
+				dependency.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+				dependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+				dependency.dstSubpass = static_cast<uint32_t>(i + 1);
+				dependency.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+				dependency.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+					VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+
+				dependency.dependencyFlags = 0;
+			}
+
+			// Wait until the last subpass finishes writing color attachments before ending the pipeline operation
+			VkSubpassDependency& finalDependency = subpassDependencies.emplace_back();
+			finalDependency.srcSubpass = static_cast<uint32_t>(subpasses.size() - 1);
+			finalDependency.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			finalDependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+			finalDependency.dstSubpass = VK_SUBPASS_EXTERNAL;
+			//finalDependency.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			//finalDependency.dstAccessMask = 0;
+			finalDependency.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			finalDependency.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+				VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+
+			finalDependency.dependencyFlags = 0;
+		}
+		else
+		{
+			initialDependency.dstSubpass = VK_SUBPASS_EXTERNAL;
+			initialDependency.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			initialDependency.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+				VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
 		}
 
-		// Wait until the last subpass finishes writing color attachments before ending the pipeline operation
-		VkSubpassDependency& finalDependency = subpassDependencies.back();
-		finalDependency.srcSubpass = static_cast<uint32_t>(subpasses.size() - 1);
-		finalDependency.dstSubpass = VK_SUBPASS_EXTERNAL;
-		finalDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		finalDependency.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		finalDependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		finalDependency.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		finalDependency.dependencyFlags = 0;
+		VkRenderPassCreateInfo createInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+		createInfo.attachmentCount = static_cast<uint32_t>(attachmentDescriptions.size());
+		createInfo.pAttachments = attachmentDescriptions.data();
 
-		VkRenderPassCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		createInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-		createInfo.pAttachments = attachments.data();
-		createInfo.subpassCount = static_cast<uint32_t>(subpasses.size());
-		createInfo.pSubpasses = subpasses.data();
+		std::vector<VkSubpassDescription> subpassDescriptions;
+		std::transform(subpasses.begin(), subpasses.end(),
+			std::back_inserter(subpassDescriptions),
+			[](const VulkanSubPassInfo& info)
+			{
+				return info.Description;
+			});
+
+		createInfo.subpassCount = static_cast<uint32_t>(subpassDescriptions.size());
+		createInfo.pSubpasses = subpassDescriptions.data();
+
 		createInfo.dependencyCount = static_cast<uint32_t>(subpassDependencies.size());
 		createInfo.pDependencies = subpassDependencies.data();
 
 		AssertVkSuccess(vkCreateRenderPass(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_renderPass));
 
-		CocoTrace("Created VulkanRenderPass")
+		CocoTrace("Created VulkanRenderPass {} data for pipeline {}", ID, pipeline.PipelineID.ToString())
 	}
 
 	void VulkanRenderPass::DestroyRenderPass()
@@ -263,9 +260,9 @@ namespace Coco::Rendering::Vulkan
 
 		vkDestroyRenderPass(_device.GetDevice(), _renderPass, _device.GetAllocationCallbacks());
 		_renderPass = nullptr;
+		_sampleCount = MSAASamples::One;
+		_pipelineVersion = 0;
 
-		_subpassInfos.clear();
-
-		CocoTrace("Destroyed VulkanRenderPass")
+		CocoTrace("Destroyed VulkanRenderPass {} data", ID)
 	}
 }

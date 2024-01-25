@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Entity.h"
-#include "../SceneSystem.h"
+#include "../SceneSystem/SceneSystem.h"
 #include "../Components/NativeScriptComponent.h"
 
 namespace Coco::ECS
@@ -11,13 +11,17 @@ namespace Coco::ECS
 		public SceneSystem
 	{
 	public:
-		static const int sPriority;
+		static const int sSetupPriority;
+		static const int sTickPriority;
 
 	public:
 		NativeScriptSystem(SharedRef<Scene> scene);
 
 		// Inherited via SceneSystem
-		int GetPriority() const override { return sPriority; }
-		void Tick() override;
+		int GetSetupPriority() const override { return sSetupPriority; }
+		void SimulationStarted() override;
+		void SimulationEnded() override;
+
+		void SimulationTick(const TickInfo& tickInfo);
 	};
 }

@@ -2,50 +2,59 @@
 
 #include "ImGuiCocoPlatform.h"
 #include "ImGuiService.h"
+#include "ImGuiSceneDataProvider.h"
 #include <Coco/Rendering/Texture.h>
+#include <Coco/Rendering/Mesh.h>
 #include <Coco/Core/Engine.h>
 #include <imgui.h>
 
 namespace Coco::ImGuiCoco
 {
-    const string ImGuiRenderPass::sPassName = "imgui";
-    const uint64 ImGuiRenderPass::_sVisibilityGroup = static_cast<uint64>(1) << 62;
-    const string ImGuiRenderPass::_sShaderName = "ImGui";
-    SharedRef<Shader> ImGuiRenderPass::_sShader = nullptr;
+    const string ImGuiRenderPass::Name = "imgui";
 
-    ImGuiRenderPass::ImGuiRenderPass() :
-        _attachments({ AttachmentFormat(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB) })
+    const uint64 ImGuiRenderPass::VisibilityGroup = static_cast<uint64>(1) << 62;
+
+    const std::array<RenderPassAttachment, 1> ImGuiRenderPass::_attachments = {
+        RenderPassAttachment(ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, AttachmentUsageFlags::Color)
+    };
+
+    const string ImGuiRenderPass::_shaderName = "ImGui";
+
+    SharedRef<Shader> ImGuiRenderPass::_shader = nullptr;
+
+    ImGuiRenderPass::ImGuiRenderPass()
     {
-        if (!_sShader)
+        if (!_shader)
             CreateShader();
-    }
-
-    void ImGuiRenderPass::Prepare(RenderContext& context, const RenderView& renderView)
-    {
-        context.SetValue(UniformScope::Global, ShaderUniformData::MakeKey("ProjectionMatrix"), renderView.GetProjectionMatrix());
     }
 
     void ImGuiRenderPass::Execute(RenderContext& context, const RenderView& renderView)
     {
         std::vector<uint64> objectIndices = renderView.GetRenderObjectIndices();
-        renderView.FilterWithAllVisibilityGroups(objectIndices, _sVisibilityGroup);
+        renderView.FilterWithAllVisibilityGroups(objectIndices, VisibilityGroup);
 
-        context.SetShader(_sShaderName);
+        context.SetShader(_shader);
 
         for (uint64 i : objectIndices)
         {
-            const ObjectData& obj = renderView.GetRenderObject(i);
+            const RenderObjectData& obj = renderView.GetRenderObject(i);
 
-            if (obj.ExtraData.has_value())
+            if (!obj.ExtraData.has_value())
+                continue;
+
+            if (const ImGuiExtraData* extraData = std::any_cast<const ImGuiExtraData>(&obj.ExtraData))
             {
-                ShaderUniformData::TextureSampler sampler = std::any_cast<ShaderUniformData::TextureSampler>(obj.ExtraData);
-
-                context.SetTextureSampler(UniformScope::Draw, ShaderUniformData::MakeKey("Texture"), sampler.first, sampler.second);
+                std::array<ShaderUniformValue, 1> uniforms = { ShaderUniformValue("Texture", extraData->OverrideTexture.lock()) };
+                context.SetDrawUniforms(uniforms);
+                context.SetScissorRect(extraData->ScissorRect);
+            }
+            else
+            {
+                CocoError("Extra object data was not a ImGuiExtraData object")
+                continue;
             }
 
-            const MeshData& mesh = renderView.GetMeshData(obj.MeshID);
-            context.SetScissorRect(obj.ScissorRect);
-            context.DrawIndexed(mesh, obj.IndexOffset, obj.IndexCount);
+            context.Draw(obj.Mesh, obj.Submesh);
         }
     }
 
@@ -58,25 +67,25 @@ namespace Coco::ImGuiCoco
         pipelineState.DepthTestingMode = DepthTestingMode::Never;
         pipelineState.EnableDepthWrite = false;
 
-        Engine::Get()->GetResourceLibrary().Create<Shader>(
-            _sShaderName,
-            std::vector<ShaderStage>({
+        _shader = Engine::Get()->GetResourceLibrary().Create<Shader>(
+            ResourceID("ImGuiRenderPass::Shader"),
+            _shaderName,
+            std::initializer_list<ShaderStage>({
                 ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/ImGui.vert.glsl"),
                 ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/ImGui.frag.glsl")
                 }),
             pipelineState,
-            std::vector<BlendState>({
-                BlendState::AlphaBlending
+            std::initializer_list<AttachmentBlendState>({
+                AttachmentBlendState::AlphaBlending
                 }),
             VertexDataFormat(VertexAttrFlags::Color | VertexAttrFlags::UV0),
-            GlobalShaderUniformLayout(),
-            ShaderUniformLayout(),
+            ShaderUniformLayout::Empty,
+            ShaderUniformLayout::Empty,
             ShaderUniformLayout(
                 {
-                    ShaderUniform("Texture", ShaderUniformType::Texture, ShaderStageFlags::Fragment, DefaultTextureType::White)
+                    ShaderUniform("Texture", ShaderStageFlags::Fragment, DefaultTextureType::White)
                 }
             )
-
         );
     }
 }

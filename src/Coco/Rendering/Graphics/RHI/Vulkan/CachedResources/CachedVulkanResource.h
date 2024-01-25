@@ -1,28 +1,28 @@
 #pragma once
-#include "../../../GraphicsDeviceResource.h"
+#include "../../../GraphicsResource.h"
 
 namespace Coco::Rendering::Vulkan
 {
-    class VulkanGraphicsDevice;
+	class CachedVulkanResource
+	{
+	public:
+		const uint64 ID;
 
-    /// @brief A cached Vulkan resource
-    class CachedVulkanResource :
-        public GraphicsDeviceResource<VulkanGraphicsDevice>
-    {
-    protected:
-        double _lastUseTime;
+	public:
+		virtual ~CachedVulkanResource() = default;
 
-        CachedVulkanResource(const GraphicsDeviceResourceID& id);
+		/// @brief Marks this resource as used
+		virtual void Use();
 
-    public:
-        virtual ~CachedVulkanResource() = default;
+		/// @brief Determines if this resource is stale and can be purged
+		/// @param staleThreshold The amount of time without use that a resource becomes stale
+		/// @return True if this pass can be purged
+		virtual bool IsStale(double staleThreshold) const;
 
-        /// @brief Marks this resource as used
-        void Use();
+	protected:
+		double _lastUseTime;
 
-        /// @brief Determines if this resource is stale and can be purged
-        /// @param staleThreshold The amount of time without use that a resource becomes stale
-        /// @return True if this pass can be purged
-        bool IsStale(double staleThreshold) const;
-    };
+	protected:
+		CachedVulkanResource(const uint64& id);
+	};
 }

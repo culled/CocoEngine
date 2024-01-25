@@ -26,12 +26,12 @@ struct PointLight {
     vec4 color;
 };
 
-layout(set = 0, binding = 1) uniform LightBlock {
-    int directionalLightCount;
-    DirectionalLight directionalLights[2];
-    int pointLightCount;
-    PointLight pointLights[10];
-} lightBO;
+//layout(set = 0, binding = 1) uniform LightBlock {
+//    int directionalLightCount;
+//    DirectionalLight directionalLights[2];
+//    int pointLightCount;
+//    PointLight pointLights[10];
+//} lightBO;
 
 layout(set = 2, binding = 0) uniform shaderUniformObject {
     vec4 baseColor;
@@ -62,17 +62,17 @@ void main() {
 
     vec3 bentWorldNormal = normalize(mix(worldNormal, TBN * tangentSpaceNormal, 1.0));
 
-    for(int i = 0; i < lightBO.directionalLightCount; i++)
-    {
-        vec4 dirLight = calculateDirectionalLight(lightBO.directionalLights[i], 32.0, bentWorldNormal, viewDirection);
-        light += vec4(dirLight.rgb, 1.0) * dirLight.a;
-    }
+    //for(int i = 0; i < lightBO.directionalLightCount; i++)
+    //{
+    //    vec4 dirLight = calculateDirectionalLight(lightBO.directionalLights[i], 32.0, bentWorldNormal, viewDirection);
+    //    light += vec4(dirLight.rgb, 1.0) * dirLight.a;
+    //}
 
-    for(int i = 0; i < lightBO.pointLightCount; i++)
-    {
-        vec4 pointLight = calculatePointLight(lightBO.pointLights[i], 32.0, bentWorldNormal, inVaryings.worldPosition, viewDirection);
-        light += vec4(pointLight.rgb, 1.0) * pointLight.a;
-    }
+    //for(int i = 0; i < lightBO.pointLightCount; i++)
+    //{
+    //    vec4 pointLight = calculatePointLight(lightBO.pointLights[i], 32.0, bentWorldNormal, inVaryings.worldPosition, viewDirection);
+    //    light += vec4(pointLight.rgb, 1.0) * pointLight.a;
+    //}
 
     outColor = albedo * vec4(light.xyz, 1.0);
 }

@@ -13,23 +13,23 @@ namespace Coco
 		/// @brief The version of the application
 		Version Version;
 
-		/// @brief The minimum message severity for a log message to be logged
+		/// @brief The minimum message severity for a log message to be logged (info by default)
 		LogMessageSeverity LogSeverity;
 
-		ApplicationCreateParameters(const string& name, const Coco::Version& version);
+		/// @brief If true, sinks associated with the engine's log will be used for the application logger (true by default)
+		bool CopyEngineLogSinks;
+
+		ApplicationCreateParameters(
+			const string& name, 
+			const Coco::Version& version, 
+			LogMessageSeverity logSeverity = LogMessageSeverity::Info, 
+			bool copyEngineLogSinks = true);
 	};
 
 	/// @brief Base class for an application run by the Engine
 	class Application
 	{
 		friend class Engine;
-
-	protected:
-		ApplicationCreateParameters _createParams;
-		UniqueRef<Log> _log;
-
-	protected:
-		Application(const ApplicationCreateParameters& createParams);
 
 	public:
 		virtual ~Application();
@@ -55,6 +55,12 @@ namespace Coco
 		void Quit(int exitCode = 0);
 
 	protected:
+		ApplicationCreateParameters _createParams;
+		UniqueRef<Log> _log;
+
+	protected:
+		Application(const ApplicationCreateParameters& createParams);
+
 		/// @brief Called after the engine has completed initialization and right before the main loop starts
 		virtual void Start() {}
 	};

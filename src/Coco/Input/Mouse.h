@@ -94,13 +94,6 @@ namespace Coco::Input
 		/// @brief Invoked when the mouse is scrolled
 		Event<const Vector2Int&> OnScrolled;
 
-	private:
-		std::vector<MouseStateChange> _preProcessStateChanges;
-		MouseState _currentState;
-		MouseState _previousState;
-
-		bool _isFirstState;
-
 	public:
 		Mouse();
 		~Mouse() = default;
@@ -159,6 +152,13 @@ namespace Coco::Input
 		/// @brief Gets the amount the scroll wheel has moved since last tick
 		/// @return The scroll wheel delta
 		Vector2Int GetScrollWheelDelta() const { return _currentState.ScrollDelta; }
+
+	private:
+		std::vector<MouseStateChange> _preProcessStateChanges;
+		MouseState _currentState;
+		MouseState _previousState;
+
+		bool _isFirstState;
 
 	private:
 		/// @brief Gets all state changes since the last tick

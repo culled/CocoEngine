@@ -1,57 +1,31 @@
 #pragma once
 
-#include "../Renderpch.h"
-#include "RenderPassBinding.h"
-#include "../Graphics/AttachmentFormat.h"
-#include "RenderPipelineTypes.h"
+#include <Coco/Core/Resources/Resource.h>
+#include "../Graphics/RenderPassAttachment.h"
+#include "RenderPassPipelineBinding.h"
 
 namespace Coco::Rendering
 {
-	/// @brief An attachment for a CompiledRenderPipeline
-	struct CompiledPipelineAttachment
-	{
-		static const CompiledPipelineAttachment Empty;
-
-		/// @brief The pixel format for this attachment
-		ImagePixelFormat PixelFormat;
-
-		/// @brief The color space for this attachment
-		ImageColorSpace ColorSpace;
-
-		/// @brief The options for this attachment
-		AttachmentOptionFlags Options;
-
-		CompiledPipelineAttachment();
-		CompiledPipelineAttachment(const AttachmentFormat& attachment, AttachmentOptionFlags options);
-
-		bool operator==(const CompiledPipelineAttachment& other) const;
-
-		/// @brief Determines if the given AttachmentFormat is compatible with this attachment
-		/// @param format The attachment format
-		/// @return True if an image made for the given attachment can be used with this attachment
-		bool IsCompatible(const AttachmentFormat& format) const;
-
-		/// @brief Determines if an image made with the given description can be used with this attachment
-		/// @param description The image description
-		/// @return True if an image with the given description can be used with this attachment
-		bool IsCompatible(const ImageDescription& description) const;
-	};
-
-	/// @brief A compiled RenderPipeline
+	/// @brief A compiled representation of a RenderPipeline
 	struct CompiledRenderPipeline
 	{
 		/// @brief The id of the pipeline that compiled this
-		uint64 PipelineID;
+		ResourceID PipelineID;
 
 		/// @brief The version of the pipeline
-		uint64 Version;
+		ResourceVersion PipelineVersion;
 
 		/// @brief RenderPasses in this pipeline
-		std::vector<RenderPassBinding> RenderPasses;
+		std::vector<RenderPassPipelineBinding> RenderPasses;
 
 		/// @brief The attachments in this pipeline
-		std::vector<CompiledPipelineAttachment> Attachments;
+		std::vector<RenderPassAttachment> Attachments;
 
-		CompiledRenderPipeline(uint64 pipelineID);
+		CompiledRenderPipeline(const ResourceID& pipelineID, const ResourceVersion& pipelineVersion);
+
+		/// @brief Gets the attachments for a RenderPass at the given index in this pipeline
+		/// @param passIndex The index of the RenderPass in this pipeline
+		/// @return The attachment
+		std::span<const RenderPassAttachment> GetPassAttachments(uint32 passIndex) const;
 	};
 }

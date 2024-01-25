@@ -1,13 +1,11 @@
 #include "CPWinpch.h"
 #include "Win32Window.h"
 #include "Win32EnginePlatform.h"
+#include <Coco/Core/Types/CoreExceptions.h>
 #include <Coco/Core/Engine.h>
 
-#pragma push_macro("GetFreeSpace")
-#undef GetFreeSpace
 #include <Coco/Rendering/RenderService.h>
-#include <Coco/Rendering/Graphics/GraphicsPresenter.h>
-#pragma pop_macro("GetFreeSpace")
+#include <Coco/Rendering/Graphics/Presenter.h>
 
 #pragma push_macro("CreateWindow")
 #undef CreateWindow
@@ -16,12 +14,6 @@
 
 #ifdef COCO_SERVICE_INPUT
 #include <Coco/Input/InputService.h>
-#endif
-
-#ifdef _DEBUG
-#define CheckWindowHandle() if(!_handle) { throw std::exception("Win32 window handle is null!"); }
-#else
-#define CheckWindowHandle()
 #endif
 
 namespace Coco::Platforms::Win32
@@ -39,6 +31,12 @@ namespace Coco::Platforms::Win32
 		_handle(nullptr),
 		_restorePlacement{sizeof(WINDOWPLACEMENT)}
 	{
+		HINSTANCE hInstance = NULL;
+		Win32EnginePlatform* win32Platform = dynamic_cast<Win32EnginePlatform*>(&Engine::Get()->GetPlatform());
+
+		Assert(win32Platform)
+		hInstance = win32Platform->GetHInstance();
+
 		DWORD windowFlags = 0;
 		DWORD windowFlagsEx = 0;
 		GetWindowFlags(_canResize, _isFullscreen, _styleFlags, windowFlags, windowFlagsEx);
@@ -114,16 +112,6 @@ namespace Coco::Platforms::Win32
 		const char* title = createParameters.Title;
 #endif
 
-		HINSTANCE hInstance = NULL;
-		if (Win32EnginePlatform* win32Platform = dynamic_cast<Win32EnginePlatform*>(&Engine::Get()->GetPlatform()))
-		{
-			hInstance = win32Platform->GetHInstance();
-		}
-		else
-		{
-			throw std::exception("Engine platform is not a Win32EnginePlatform");
-		}
-
 		_handle = CreateWindowEx(
 			windowFlagsEx,
 			Win32EnginePlatform::sWindowClassName,
@@ -141,8 +129,7 @@ namespace Coco::Platforms::Win32
 
 		if (!_handle)
 		{
-			string err = FormatString("Failed to create Win32Window (code {})", GetLastError());
-			throw std::exception(err.c_str());
+			throw Win32PlatformOperationException(FormatString("Failed to create Win32Window (code {})", GetLastError()));
 		}
 
 		// Create the presenter surface
@@ -164,7 +151,7 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::Show()
 	{
-		CheckWindowHandle()
+		Assert(_handle)
 
 		::ShowWindow(_handle, _focusOnShow ? SW_SHOW : SW_SHOWNOACTIVATE);
 		UpdateFullscreenState(IsFullscreen());
@@ -172,6 +159,8 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::SetTitle(const char* title)
 	{
+		Assert(_handle)
+
 #ifdef UNICODE
 		std::wstring titleWStr = StringToWideString(title);
 		const wchar_t* titleStr = titleWStr.c_str();
@@ -193,7 +182,7 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::SetPosition(const Vector2Int& position, bool clientAreaPosition, bool relativeToParent)
 	{
-		CheckWindowHandle()
+		Assert(_handle)
 
 		Vector2Int pos = position;
 
@@ -225,13 +214,13 @@ namespace Coco::Platforms::Win32
 			SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_NOACTIVATE
 		))
 		{
-			CocoError("Failed to set window position (code {})", ::GetLastError())
+			CocoError("Failed to set window position: {}", Win32EnginePlatform::GetWin32ErrorMessage(::GetLastError()))
 		}
 	}
 
 	Vector2Int Win32Window::GetPosition(bool clientAreaPosition, bool relativeToParent) const
 	{
-		CheckWindowHandle()
+		Assert(_handle)
 
 		RECT rect{};
 		::GetWindowRect(_handle, &rect);
@@ -262,7 +251,7 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::SetClientAreaSize(const SizeInt& size)
 	{
-		CheckWindowHandle()
+		Assert(_handle)
 
 		DWORD windowFlags = ::GetWindowLong(_handle, GWL_STYLE);
 		DWORD windowFlagsEx = ::GetWindowLong(_handle, GWL_EXSTYLE);
@@ -274,7 +263,7 @@ namespace Coco::Platforms::Win32
 
 	SizeInt Win32Window::GetClientAreaSize() const
 	{
-		CheckWindowHandle()
+		Assert(_handle)
 
 		RECT rect{};
 		::GetClientRect(_handle, &rect);
@@ -284,6 +273,8 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::SetSize(const SizeInt& windowSize)
 	{
+		Assert(_handle)
+
 		if (!::SetWindowPos(
 			_handle,
 			NULL,
@@ -292,12 +283,14 @@ namespace Coco::Platforms::Win32
 			SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_NOACTIVATE)
 			)
 		{
-			CocoError("Failed to set window size (code {})", ::GetLastError())
+			CocoError("Failed to set window size: {}", Win32EnginePlatform::GetWin32ErrorMessage(::GetLastError()))
 		}
 	}
 
 	SizeInt Win32Window::GetSize() const
 	{
+		Assert(_handle)
+
 		SizeInt clientSize = GetClientAreaSize();
 
 		DWORD windowFlags = ::GetWindowLong(_handle, GWL_STYLE);
@@ -309,7 +302,7 @@ namespace Coco::Platforms::Win32
 	uint16 Win32Window::GetDPI() const
 	{
 #ifdef COCO_HIGHDPI_SUPPORT
-		CheckWindowHandle()
+		Assert(_handle)
 
 		UINT dpi = ::GetDpiForWindow(_handle);
 
@@ -321,14 +314,12 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::SetState(WindowState state)
 	{
-		CheckWindowHandle()
-
 		UpdateState(state);
 	}
 
 	WindowState Win32Window::GetState() const
 	{
-		CheckWindowHandle()
+		Assert(_handle)
 
 		DWORD windowStyle = ::GetWindowLong(_handle, GWL_STYLE);
 
@@ -342,21 +333,21 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::Focus()
 	{
-		CheckWindowHandle()
+		Assert(_handle)
 
 		::SetActiveWindow(_handle);
 	}
 
 	bool Win32Window::HasFocus() const
 	{
-		CheckWindowHandle()
+		Assert(_handle)
 
 		return ::GetActiveWindow() == _handle;
 	}
 
 	bool Win32Window::IsVisible() const
 	{
-		CheckWindowHandle()
+		Assert(_handle)
 
 		SizeInt size = GetClientAreaSize();
 
@@ -367,8 +358,6 @@ namespace Coco::Platforms::Win32
 	{
 		if (_cursorVisible == isVisible)
 			return;
-
-		CheckWindowHandle()
 
 		::ShowCursor(isVisible);
 		_cursorVisible = isVisible;
@@ -383,16 +372,18 @@ namespace Coco::Platforms::Win32
 		UpdateCursorConfineState(HasFocus());
 	}
 
-	SharedRef<Rendering::GraphicsPresenterSurface> Win32Window::CreateSurface()
+	UniqueRef<Rendering::PresenterSurface> Win32Window::CreateSurface()
 	{
-		CheckWindowHandle()
+		using namespace Coco::Rendering;
 
-		if (!Rendering::RenderService::Get())
-			throw std::exception("No RenderService is active");
+		Assert(_handle)
+
+		const RenderService* rendering = RenderService::cGet();
+		CocoAssert(rendering, "RenderService singleton was null")
 
 		Win32EnginePlatform& platform = static_cast<Win32EnginePlatform&>(Engine::Get()->GetPlatform());
 
-		return platform.CreateSurfaceForWindow(Rendering::RenderService::cGet()->GetPlatform().GetName(), *this);
+		return platform.CreateSurfaceForWindow(rendering->GetPlatform().GetName(), *this);
 	}
 
 	void Win32Window::GetWindowFlags(bool canResize, bool isFullscreen, WindowStyleFlags styleFlags, DWORD& outStyle, DWORD& outExStyle)
@@ -437,6 +428,8 @@ namespace Coco::Platforms::Win32
 
 	Vector2Int Win32Window::GetRelativePosition(const Vector2Int& position, HWND relativeTo)
 	{
+		Assert(relativeTo)
+
 		POINT p{position.X == CW_USEDEFAULT ? 0 : position.X, position.Y == CW_USEDEFAULT ? 0 : position.Y };
 		::MapWindowPoints(HWND_DESKTOP, relativeTo, &p, 1);
 		return Vector2Int(p.x, p.y);
@@ -444,143 +437,116 @@ namespace Coco::Platforms::Win32
 
 	bool Win32Window::ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
-		try
+		switch (message)
 		{
-			switch (message)
-			{
-			case WM_CLOSE:
-				Close();
-				return true;
-			case WM_SIZE:
-			{
-				// This can be called before CreateWindow returns, and we won't have a handle yet, so ignore for now
-				if (!_handle)
-					return false;
+		case WM_CLOSE:
+			Close();
+			return true;
+		case WM_SIZE:
+		{
+			// This can be called before CreateWindow returns, and we won't have a handle yet, so ignore for now
+			if (!_handle)
+				return false;
 
-				LPRECT rect = reinterpret_cast<LPRECT>(lParam);
+			LPRECT rect = reinterpret_cast<LPRECT>(lParam);
 
-				const WORD width = LOWORD(lParam);
-				const WORD height = HIWORD(lParam);
-				SizeInt size = GetClientAreaSize();
+			const WORD width = LOWORD(lParam);
+			const WORD height = HIWORD(lParam);
+			SizeInt size = GetClientAreaSize();
 
-				// Update if coming out of minimized state
-				if (size.Width == 0 && size.Height == 0 && width > 0 && height > 0)
-					UpdateFullscreenState(IsFullscreen());
+			// Update if coming out of minimized state
+			if (size.Width == 0 && size.Height == 0 && width > 0 && height > 0)
+				UpdateFullscreenState(IsFullscreen());
 
-				UpdateCursorConfineState(HasFocus());
+			UpdateCursorConfineState(HasFocus());
 
-				HandleResized();
-				return true;
-			}
+			HandleResized();
+			return true;
+		}
 #ifdef COCO_HIGHDPI_SUPPORT
-			case WM_DPICHANGED:
-			{
-				const UINT newDpiY = HIWORD(wParam);
-				const UINT newDpiX = LOWORD(wParam);
+		case WM_DPICHANGED:
+		{
+			const UINT newDpiY = HIWORD(wParam);
+			const UINT newDpiX = LOWORD(wParam);
 
-				LPRECT suggestedRect = reinterpret_cast<LPRECT>(lParam);
-				SetWindowPos(_handle, NULL,
-					suggestedRect->left, suggestedRect->top,
-					suggestedRect->right - suggestedRect->left, suggestedRect->bottom - suggestedRect->top,
-					SWP_NOZORDER | SWP_NOACTIVATE);
+			LPRECT suggestedRect = reinterpret_cast<LPRECT>(lParam);
+			SetWindowPos(_handle, NULL,
+				suggestedRect->left, suggestedRect->top,
+				suggestedRect->right - suggestedRect->left, suggestedRect->bottom - suggestedRect->top,
+				SWP_NOZORDER | SWP_NOACTIVATE);
 
-				UpdateCursorConfineState(HasFocus());
+			UpdateCursorConfineState(HasFocus());
 
-				try
-				{
-					OnDPIChanged.Invoke(GetDPI());
-				}
-				catch (const std::exception& ex)
-				{
-					CocoError("Error invoking Win32Window::OnDPIChanged: {}", ex.what())
-				}
-				return true;
-			}
+			OnDPIChanged.Invoke(GetDPI());
+
+			return true;
+		}
 #endif
-			case WM_MOVE:
-			{
-				// This can be called by the CreateWindow function before we have a handle, so ignore for now
-				if (!_handle)
-					return false;
+		case WM_MOVE:
+		{
+			// This can be called by the CreateWindow function before we have a handle, so ignore for now
+			if (!_handle)
+				return false;
 
-				const int16 x = LOWORD(lParam);
-				const int16 y = HIWORD(lParam);
+			const int16 x = LOWORD(lParam);
+			const int16 y = HIWORD(lParam);
 
-				try
-				{
-					OnPositionChanged.Invoke(Vector2Int(x, y));
-				}
-				catch (const std::exception& ex)
-				{
-					CocoError("Error invoking Win32Window::OnPositionChanged: {}", ex.what())
-				}
+			OnPositionChanged.Invoke(Vector2Int(x, y));
 
-				UpdateCursorConfineState(HasFocus());
+			UpdateCursorConfineState(HasFocus());
 
-				return true;
-			}
-			case WM_SETFOCUS:
-			case WM_KILLFOCUS:
-			{
-				bool focused = message == WM_SETFOCUS;
+			return true;
+		}
+		case WM_SETFOCUS:
+		case WM_KILLFOCUS:
+		{
+			bool focused = message == WM_SETFOCUS;
 
-				UpdateCursorConfineState(focused);
+			UpdateCursorConfineState(focused);
 
-				try
-				{
-					OnFocusChanged.Invoke(focused);
-				}
-				catch (const std::exception& ex)
-				{
-					CocoError("Error invoking Win32Window::OnFocusChanged: {}", ex.what())
-				}
+			OnFocusChanged.Invoke(focused);
 
-				// Release the mouse if we captured it
-				if (!focused && ::GetCapture() == _handle)
-					::ReleaseCapture();
+			// Release the mouse if we captured it
+			if (!focused && ::GetCapture() == _handle)
+				::ReleaseCapture();
 
 #ifdef COCO_SERVICE_INPUT
-				if (!focused)
-				{
-					// If the next window is not one of our managed ones, make sure input gets reset
-					HWND windowHandle = (HWND)wParam;
-					LONG_PTR userPtr = GetWindowLongPtr(windowHandle, GWLP_USERDATA);
-					Input::InputService* input = Input::InputService::Get();
+			if (!focused)
+			{
+				// If the next window is not one of our managed ones, make sure input gets reset
+				HWND windowHandle = (HWND)wParam;
+				LONG_PTR userPtr = GetWindowLongPtr(windowHandle, GWLP_USERDATA);
+				Input::InputService* input = Input::InputService::Get();
 
-					if (!userPtr && input)
-					{
-						input->LostFocus();
-					}
+				if (!userPtr && input)
+				{
+					input->LostFocus();
 				}
+			}
 #endif
-				return true;
-			}
-			case WM_LBUTTONDOWN:
-			case WM_MBUTTONDOWN:
-			case WM_RBUTTONDOWN:
-			case WM_XBUTTONDOWN:
-			case WM_MOUSEMOVE:
-			case WM_NCMOUSEMOVE:
-			case WM_INPUT:
-			case WM_KEYDOWN:
-			case WM_SYSKEYDOWN:
-			case WM_KEYUP:
-			case WM_SYSKEYUP:
-			case WM_MOUSEWHEEL:
-			case WM_LBUTTONUP:
-			case WM_MBUTTONUP:
-			case WM_RBUTTONUP:
-			case WM_XBUTTONUP:
-			case WM_ACTIVATEAPP:
-			case WM_CHAR:
-				return HandleInputMessage(message, wParam, lParam);		
-			default:
-				break;
-			}
+			return true;
 		}
-		catch (...)
-		{
-			Engine::Get()->CrashWithException();
+		case WM_LBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+		case WM_XBUTTONDOWN:
+		case WM_MOUSEMOVE:
+		case WM_NCMOUSEMOVE:
+		case WM_INPUT:
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+		case WM_MOUSEWHEEL:
+		case WM_LBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_RBUTTONUP:
+		case WM_XBUTTONUP:
+		case WM_ACTIVATEAPP:
+		case WM_CHAR:
+			return HandleInputMessage(message, wParam, lParam);		
+		default:
+			break;
 		}
 
 		return false;
@@ -588,6 +554,8 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::UpdateState(WindowState state)
 	{
+		Assert(_handle)
+
 		switch (state)
 		{
 		case WindowState::Minimized:
@@ -614,6 +582,8 @@ namespace Coco::Platforms::Win32
 
 	void Win32Window::UpdateFullscreenState(bool fullscreen)
 	{
+		Assert(_handle)
+
 		// https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
 
 		// Restore the window frame if we're not fullscreen anymore
@@ -663,7 +633,7 @@ namespace Coco::Platforms::Win32
 			return;
 		}
 
-		CheckWindowHandle()
+		Assert(_handle)
 
 		// Get the client rectangle screen coordinates
 		RECT clientRect{};
@@ -674,7 +644,7 @@ namespace Coco::Platforms::Win32
 		POINT cursorPos{};
 		if (!::GetCursorPos(&cursorPos))
 		{
-			CocoError("Failed to get cursor position - code {}", ::GetLastError())
+			CocoError("Failed to get cursor position: {}", Win32EnginePlatform::GetWin32ErrorMessage(::GetLastError()))
 			return;
 		}
 
@@ -721,7 +691,7 @@ namespace Coco::Platforms::Win32
 		POINT cursorPos{};
 		if (!::GetCursorPos(&cursorPos))
 		{
-			CocoError("Failed to get cursor position - code {}", ::GetLastError())
+			CocoError("Failed to get cursor position: {}", Win32EnginePlatform::GetWin32ErrorMessage(::GetLastError()))
 			return;
 		}
 
@@ -738,6 +708,8 @@ namespace Coco::Platforms::Win32
 
 	bool Win32Window::HandleInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	{
+		Assert(_handle)
+
 #ifdef COCO_SERVICE_INPUT
 		using namespace Coco::Input;
 

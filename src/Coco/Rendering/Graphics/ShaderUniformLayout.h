@@ -1,84 +1,53 @@
 #pragma once
 
+#include "../Renderpch.h"
+#include <Coco/Core/Defines.h>
+#include "../ShaderTypes.h"
 #include "ShaderUniformTypes.h"
-#include "ShaderUniformData.h"
 
 namespace Coco::Rendering
 {
-	class GraphicsDevice;
-	struct ShaderUniformData;
-
 	/// @brief Represents a layout of shader uniforms
-	struct ShaderUniformLayout
+	class ShaderUniformLayout
 	{
-		/// @brief A hash for an empty layout
-		static const uint64 EmptyHash;
+	public:
+		/// @brief An empty layout
+		static const ShaderUniformLayout Empty;
 
-		/// @brief The hash of this layout's content (auto-calculated after calling CalculateHash())
-		uint64 Hash;
-
-		/// @brief The uniforms
-		std::vector<ShaderUniform> Uniforms;
-
+	public:
 		ShaderUniformLayout();
-		ShaderUniformLayout(const std::vector<ShaderUniform>& uniforms);
+		ShaderUniformLayout(const std::initializer_list<ShaderUniform>& uniforms);
+		ShaderUniformLayout(std::span<const ShaderUniform> uniforms);
 
-		virtual ~ShaderUniformLayout() = default;
+		bool operator==(const ShaderUniformLayout& other) const { return _hash == other._hash; }
 
-		bool operator==(const ShaderUniformLayout& other) const;
+		uint64 GetHash() const { return _hash; }
 
-		/// @brief Gets the default value for a uniform
-		/// @param uniform The uniform
-		/// @return The default value for the uniform
-		static ShaderUniformUnion GetDefaultDataUniformValue(const ShaderUniform& uniform);
-
-		/// @brief Calculates this layout's hash from its currently set values
-		virtual void CalculateHash();
-		
-		/// @brief Gets the binding points for data or texture uniforms
-		/// @param dataUniforms If true, the binding points for the data uniforms will be returned
-		/// @param textureUniforms If true, the binding points for the data uniforms will be returned
-		/// @return The binding points for data or texture uniforms
+		/// @brief Gets the binding points for data and/or texture uniforms
+		/// @param dataUniforms If true, the binding points for the data uniforms will be included
+		/// @param textureUniforms If true, the binding points for the texture uniforms will be included
+		/// @return The binding points for the uniforms
 		ShaderStageFlags GetUniformBindStages(bool dataUniforms, bool textureUniforms) const;
 
-		/// @brief Gets the size of the data uniforms
-		/// @param device The device to calculate the size for
-		/// @return The size of the uniform data
-		uint64 GetUniformDataSize(const GraphicsDevice& device) const;
+		bool NeedsDataCalculation() const;
 
-		/// @brief Gets buffer-friendly uniform data
-		/// @param device The device to calculate the data for
-		/// @param data The uniform data
-		/// @param outBufferData Will be filled with the buffer-friendly data
-		void GetBufferFriendlyData(const GraphicsDevice& device, const ShaderUniformData& data, std::vector<uint8>& outBufferData) const;
+		void CalculateDataUniforms(const GraphicsDevice& device);
+		uint64 GetTotalDataSize() const { return _totalSize; }
+		
+		bool HasUniformsOfType(bool dataUniforms, bool textureUniforms) const;
 
-		/// @brief Determines if this layout has data uniforms
-		/// @return True if this layout has data uniforms
-		bool HasDataUniforms() const;
+		std::vector<const ShaderUniform*> GetUniforms(bool includeDataUniforms, bool includeTextureUniforms) const;
+		std::vector<ShaderUniformValue> GetDefaultValues() const;
 
-		/// @brief Determines if this layout has texture uniforms
-		/// @return True if this layout has texture uniforms
-		bool HasTextureUniforms() const;
-	};
+		std::vector<uint8> GetBufferData(std::span<const ShaderUniformValue> uniformValues) const;
+		std::unordered_map<string, SharedRef<Texture>> GetTextures(std::span<const ShaderUniformValue> uniformValues) const;
 
-	/// @brief Represents a global layout of shader uniforms
-	struct GlobalShaderUniformLayout :
-		public ShaderUniformLayout
-	{
-		/// @brief The global buffer uniforms
-		std::vector<ShaderBufferUniform> BufferUniforms;
+	private:
+		uint64 _hash;
+		std::unordered_map<string, ShaderUniform> _uniforms;
+		uint64 _totalSize;
 
-		GlobalShaderUniformLayout();
-		GlobalShaderUniformLayout(
-			const std::vector<ShaderUniform>& uniforms,
-			const std::vector<ShaderBufferUniform>& bufferUniforms);
-
-		bool operator==(const GlobalShaderUniformLayout& other) const;
-
-		void CalculateHash() final;
-
-		/// @brief Gets the binding points for buffer uniforms
-		/// @return The binding points for buffer uniforms
-		ShaderStageFlags GetBufferUniformBindStages() const;
+	private:
+		std::vector<ShaderUniform*> GetDataUniforms();
 	};
 }

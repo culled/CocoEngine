@@ -1,64 +1,62 @@
 #pragma once
-#include "../../../Renderpch.h"
+
+#include "Pools/VulkanRenderContextPool.h"
+#include <Coco/Core/MainLoop/TickListener.h>
 #include "CachedResources/VulkanRenderPass.h"
+#include "CachedResources/VulkanDescriptorSetLayout.h"
+#include "CachedResources/VulkanShader.h"
 #include "CachedResources/VulkanPipeline.h"
-#include "CachedResources/VulkanRenderContextCache.h"
+#include "CachedResources/VulkanFramebuffer.h"
+#include "Pools/VulkanRenderFramePool.h"
+#include "VulkanMeshCache.h"
 
 namespace Coco::Rendering::Vulkan
 {
 	class VulkanGraphicsDevice;
 
-	/// @brief A cache for a VulkanGraphicsDevice
 	class VulkanGraphicsDeviceCache
 	{
 	public:
-		/// @brief The period between purges in seconds
-		static const double sPurgePeriod;
-
-		/// @brief The time since a resource's use that it should be considered stale
-		static const double sPurgeThreshold;
-
-	private:
-		VulkanGraphicsDevice& _device;
-		double _lastPurgeTime;
-
-		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderPass> _renderPasses;
-		std::unordered_map<GraphicsDeviceResourceID, VulkanPipeline> _pipelines;
-		std::unordered_map<GraphicsDeviceResourceID, VulkanRenderContextCache> _contextCaches;
+		static const double ResourcePurgePeriod;
+		static const double StaleResourceThreshold;
+		static const int ResourcePurgeTickPriority;
 
 	public:
 		VulkanGraphicsDeviceCache(VulkanGraphicsDevice& device);
 		~VulkanGraphicsDeviceCache();
 
-		/// @brief Gets/creates a VulkanRenderPass
-		/// @param pipeline The pipeline to use
-		/// @param samples The number of MSAA samples
-		/// @param resolveAttachmentIndices Indices of attachments in the pipeline that need to be resolved
-		/// @return A render pass
-		VulkanRenderPass& GetOrCreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices);
+		VulkanRenderContextPool& GetRenderContextPool() { return *_renderContextPool; }
+		VulkanRenderFramePool& GetRenderFramePool() { return *_renderFramePool; }
+		VulkanMeshCache& GetMeshCache() { return *_meshCache; }
 
-		/// @brief Gets/creates a VulkanPipeline
-		/// @param renderPass The render pass
-		/// @param subpassIndex The index of the render pass within the pipeline
-		/// @param shader The shader
-		/// @param globalDescriptorSetLayout The descriptor set layout for the global uniforms, if any
-		/// @return The pipeline
-		VulkanPipeline& GetOrCreatePipeline(
-			const VulkanRenderPass& renderPass,
-			uint32 subpassIndex,
+		VulkanRenderPass& GetOrCreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint32> resolveAttachmentIndices);
+		VulkanDescriptorSetLayout& GetOrCreateDescriptorSetLayout(const ShaderUniformLayout& layout, bool includeDataUniforms);
+		void UseDescriptorSetLayout(uint64 setID);
+
+		VulkanShader& GetOrCreateShader(const SharedRef<Shader>& shader);
+
+		VulkanPipeline& GetOrCreatePipeline(const VulkanRenderPass& renderPass,
 			const VulkanShader& shader,
-			const VulkanDescriptorSetLayout* globalDescriptorSetLayout);
+			uint32 subpassIndex,
+			const VulkanDescriptorSetLayout& globalLayout);
 
-		/// @brief Gets/creates a cache for a RenderContext
-		/// @param id The ID of the context 
-		/// @return The cache
-		VulkanRenderContextCache& GetOrCreateContextCache(const GraphicsDeviceResourceID& id);
+		VulkanFramebuffer& GetOrCreateFramebuffer(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages);
 
-		/// @brief Resets this cache for a new frame
-		void ResetForNextFrame();
+	private:
+		VulkanGraphicsDevice& _device;
+		ManagedRef<TickListener> _purgeTickListener;
 
-		/// @brief Purges all stale resources
+		UniqueRef<VulkanRenderContextPool> _renderContextPool;
+		UniqueRef<VulkanRenderFramePool> _renderFramePool;
+		UniqueRef<VulkanMeshCache> _meshCache;
+		std::unordered_map<uint64, VulkanRenderPass> _renderPasses;
+		std::unordered_map<uint64, VulkanDescriptorSetLayout> _descriptorSetLayouts;
+		std::unordered_map<uint64, VulkanShader> _shaders;
+		std::unordered_map<uint64, VulkanPipeline> _pipelines;
+		std::unordered_map<uint64, VulkanFramebuffer> _framebuffers;
+
+	private:
 		void PurgeStaleResources();
+		void HandlePurgeTickListener(const TickInfo& tickInfo);
 	};
 }
-

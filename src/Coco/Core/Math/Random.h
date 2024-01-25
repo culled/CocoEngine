@@ -12,11 +12,6 @@ namespace Coco
 		/// @brief The global random object
 		static Random Global;
 
-	private:
-		bool _isSeeded = false;
-		uint32 _seed = 0;
-		std::default_random_engine _generator;
-
 	public:
 		Random();
 		Random(uint32 seed);
@@ -44,6 +39,11 @@ namespace Coco
 		/// @brief Gets the current seed used by the psuedorandom number generator
 		/// @return The current seed
 		uint32 GetSeed();
+
+	private:
+		bool _isSeeded = false;
+		uint32 _seed = 0;
+		std::default_random_engine _generator;
 
 	private:
 		/// @brief Ensures the psuedorandom number generator has been seeded, either manually or by the clock

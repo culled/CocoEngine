@@ -1,101 +1,71 @@
 #pragma once
+
 #include "CachedVulkanResource.h"
+#include <Coco/Core/Types/Refs.h>
 #include "../../../../Shader.h"
-#include "../../../RenderViewTypes.h"
-#include "../VulkanDescriptorSetLayout.h"
+
 #include "../VulkanIncludes.h"
+#include <spirv_cross/spirv_common.hpp>
+#include <shaderc/shaderc.hpp>
 
 namespace Coco::Rendering::Vulkan
 {
-	class VulkanGraphicsDevice;
+    class VulkanGraphicsDevice;
 
-	/// @brief A Vulkan subshader stage
-	struct VulkanShaderStage : public ShaderStage
-	{
-		/// @brief The Vulkan shader module
-		VkShaderModule ShaderModule;
+    /// @brief A Vulkan subshader stage
+    struct VulkanShaderStage : public ShaderStage
+    {
+        /// @brief The Vulkan shader module
+        VkShaderModule ShaderModule;
 
-		/// @brief The create info for the Vulkan shader module
-		VkShaderModuleCreateInfo ShaderModuleCreateInfo;
+        VulkanShaderStage(const ShaderStage& stage);
+    };
 
-		VulkanShaderStage(const ShaderStage& stage);
-	};
+    class VulkanShader :
+        public CachedVulkanResource
+    {
+    public:
+        static const string CacheDirectory;
 
-	/// @brief A Vulkan shader
-	class VulkanShader : 
-		public CachedVulkanResource
-	{
-	private:
-		uint64 _version;
-		SharedRef<Shader> _shader;
-		std::vector<VulkanShaderStage> _stages;
-		std::unordered_map<UniformScope, VulkanDescriptorSetLayout> _layouts;
+    public:
+        VulkanShader(uint64 id, VulkanGraphicsDevice& device, const SharedRef<Shader>& shader);
+        ~VulkanShader();
 
-	public:
-		VulkanShader(const SharedRef<Shader>& shader);
-		~VulkanShader();
+        static uint64 MakeKey(const Shader& shader);
 
-		static GraphicsDeviceResourceID MakeKey(const SharedRef<Shader>& shader);
+        // Inherited via CachedVulkanResource
+        void Use() override;
+        bool IsStale(double staleThreshold) const override;
 
-		/// @brief Gets the base shader that this shader is based on
-		/// @return The shader that this shader is based on
-		SharedRef<Shader> GetBaseShader() const { return _shader; }
+        SharedRef<Shader> GetBaseShader() const { return _shader.expired() ? nullptr : _shader.lock(); }
 
-		/// @brief Gets this shader's version
-		/// @return The version
-		uint64 GetVersion() const { return _version; }
+        /// @brief Determines if this shader has a descriptor set layout for the given scope
+        /// @param scope The uniform scope
+        /// @return True if this shader has a layout for the given scope
+        bool HasScope(UniformScope scope) const;
 
-		/// @brief Gets all descriptor set layouts for this shader
-		/// @return This shader's descriptor set layouts
-		const std::unordered_map<UniformScope, VulkanDescriptorSetLayout>& GetDescriptorSetLayouts() const { return _layouts; }
+        const ShaderUniformLayout& GetUniformLayout(UniformScope scope) const;
 
-		/// @brief Gets a descriptor set layout for the given scope
-		/// @param scope The uniform scope
-		/// @return The descriptor set layout
-		const VulkanDescriptorSetLayout& GetDescriptorSetLayout(UniformScope scope) const;
+        /// @brief Gets the push constant ranges for the draw uniforms
+        /// @return The push constant ranges
+        std::span<const VkPushConstantRange> GetPushConstantRanges() const { return _pushConstantRanges; }
+        std::span<const VulkanShaderStage> GetStages() const { return _stages; }
+        uint64 GetVersion() const { return _version; }
 
-		/// @brief Determines if this shader has a descriptor set layout for the given scope
-		/// @param scope The uniform scope
-		/// @return True if this shader has a layout for the given scope
-		bool HasScope(UniformScope scope) const;
+    private:
+        VulkanGraphicsDevice& _device;
+        WeakSharedRef<Shader> _shader;
+        ResourceVersion _version;
+        std::vector<VulkanShaderStage> _stages;
+        std::vector<VkPushConstantRange> _pushConstantRanges;
 
-		/// @brief Gets the push constant ranges for the draw uniforms
-		/// @return The push constant ranges
-		std::vector<VkPushConstantRange> GetPushConstantRanges() const;
+    private:
+        static shaderc_shader_kind ShaderStageToShaderC(ShaderStageType stage);
+        static std::vector<uint32> CompileOrGetShaderStageBinary(ShaderStage& stage);
 
-		/// @brief Gets the stages of this shader
-		/// @return The shader stages
-		std::span<const VulkanShaderStage> GetStages() const { return _stages; }
+        void CreateShaderModules();
+        void DestroyShaderModules();
 
-		/// @brief Determines if this shader needs to be updated
-		/// @return True if this shader should be updated
-		bool NeedsUpdate() const;
-
-		/// @brief Updates this shader from the given shader data
-		void Update();
-
-	private:
-		/// @brief Creates all shader objects
-		void CreateShaderObjects();
-
-		/// @brief Destroys all shader objects
-		void DestroyShaderObjects();
-
-		/// @brief Creates a shader stage
-		/// @param stage The stage
-		void CreateStage(const ShaderStage& stage);
-
-		/// @brief Destroys a shader stage
-		/// @param stage The stage
-		void DestroyShaderStage(const VulkanShaderStage& stage);
-
-		/// @brief Creates a descriptor set layout
-		/// @param layout The uniform layout
-		/// @param scope The scope of the layout
-		void CreateLayout(const ShaderUniformLayout& layout, UniformScope scope);
-
-		/// @brief Destroys the descriptor set layout for a uniform scope
-		/// @param scope The uniform scope
-		void DestroyLayout(UniformScope scope);
-	};
+        void CalculatePushConstantRanges();
+    };
 }

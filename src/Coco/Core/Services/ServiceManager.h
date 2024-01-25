@@ -10,10 +10,6 @@ namespace Coco
 	/// @brief Manages EngineServices for the Engine
 	class ServiceManager : public Singleton<ServiceManager>
 	{
-	private:
-		std::unordered_map<std::type_index, UniqueRef<EngineService>> _services;
-		std::vector<std::type_index> _serviceRegisterOrder;
-
 	public:
 		~ServiceManager();
 
@@ -65,5 +61,9 @@ namespace Coco
 		{
 			return static_cast<ServiceType&>(GetService(typeid(ServiceType)));
 		}
+
+	private:
+		std::unordered_map<std::type_index, UniqueRef<EngineService>> _services;
+		std::vector<std::type_index> _serviceRegisterOrder;
 	};
 }

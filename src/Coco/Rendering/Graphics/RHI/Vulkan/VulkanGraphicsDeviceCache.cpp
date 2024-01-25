@@ -1,167 +1,188 @@
 #include "Renderpch.h"
 #include "VulkanGraphicsDeviceCache.h"
 
-#include "VulkanGraphicsDevice.h"
-
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	const double VulkanGraphicsDeviceCache::sPurgePeriod = 5.0;
-	const double VulkanGraphicsDeviceCache::sPurgeThreshold = 4.0;
+	const double VulkanGraphicsDeviceCache::ResourcePurgePeriod = 1.0;
+	const double VulkanGraphicsDeviceCache::StaleResourceThreshold = 1.5;
+	const int VulkanGraphicsDeviceCache::ResourcePurgeTickPriority = -200000;
 
 	VulkanGraphicsDeviceCache::VulkanGraphicsDeviceCache(VulkanGraphicsDevice& device) :
 		_device(device),
-		_lastPurgeTime(0.0)
+		_purgeTickListener(CreateManagedRef<TickListener>(this, &VulkanGraphicsDeviceCache::HandlePurgeTickListener, ResourcePurgeTickPriority)),
+		_renderContextPool(CreateUniqueRef<VulkanRenderContextPool>(device)),
+		_renderFramePool(CreateUniqueRef<VulkanRenderFramePool>(device)),
+		_meshCache(CreateUniqueRef<VulkanMeshCache>(device, false)),
+		_renderPasses(),
+		_descriptorSetLayouts(),
+		_shaders(),
+		_pipelines(),
+		_framebuffers()
 	{
-		VulkanPipeline::CreateEmptyLayout(_device);
+		_purgeTickListener->SetTickPeriod(ResourcePurgePeriod);
+		MainLoop::Get()->AddTickListener(_purgeTickListener);
 	}
 
 	VulkanGraphicsDeviceCache::~VulkanGraphicsDeviceCache()
 	{
-		_contextCaches.clear();
 		_renderPasses.clear();
+		_descriptorSetLayouts.clear();
+		_shaders.clear();
 		_pipelines.clear();
+		_framebuffers.clear();
+		_meshCache.reset();
+		_renderFramePool.reset();
+		_renderContextPool.reset();
 
-		VulkanPipeline::DestroyEmptyLayout(_device);
+		MainLoop::Get()->RemoveTickListener(_purgeTickListener);
 	}
 
-	VulkanRenderPass& VulkanGraphicsDeviceCache::GetOrCreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint8> resolveAttachmentIndices)
+	VulkanRenderPass& VulkanGraphicsDeviceCache::GetOrCreateRenderPass(const CompiledRenderPipeline& pipeline, MSAASamples samples, std::span<const uint32> resolveAttachmentIndices)
 	{
-		GraphicsDeviceResourceID key = VulkanRenderPass::MakeKey(pipeline, samples);
+		uint64 key = VulkanRenderPass::MakeKey(pipeline, samples);
+		VulkanRenderPass& renderPass = _renderPasses.try_emplace(key, key, _device).first->second;
 
-		auto it = _renderPasses.find(key);
+		if (renderPass.NeedsUpdate(pipeline, samples))
+			renderPass.Update(pipeline, samples, resolveAttachmentIndices);
 
-		if (it == _renderPasses.end())
-		{
-			it = _renderPasses.try_emplace(key, pipeline, samples).first;
-		}
+		renderPass.Use();
 
-		VulkanRenderPass& resource = it->second;
+		return renderPass;
+	}
 
-		if (resource.NeedsUpdate(pipeline, samples))
-			resource.Update(pipeline, samples, resolveAttachmentIndices);
+	VulkanDescriptorSetLayout& VulkanGraphicsDeviceCache::GetOrCreateDescriptorSetLayout(const ShaderUniformLayout& layout, bool includeDataUniforms)
+	{
+		uint64 key = VulkanDescriptorSetLayout::MakeKey(layout, includeDataUniforms);
 
-		resource.Use();
+		VulkanDescriptorSetLayout& setLayout = _descriptorSetLayouts.try_emplace(key, _device, layout, includeDataUniforms).first->second;
 
-		return resource;
+		setLayout.Use();
+
+		return setLayout;
+	}
+
+	void VulkanGraphicsDeviceCache::UseDescriptorSetLayout(uint64 setID)
+	{
+		auto it = _descriptorSetLayouts.find(setID);
+
+		if (it == _descriptorSetLayouts.end())
+			return;
+
+		it->second.Use();
+	}
+
+	VulkanShader& VulkanGraphicsDeviceCache::GetOrCreateShader(const SharedRef<Shader>& shader)
+	{
+		CocoAssert(shader, "Shader was invalid")
+
+		uint64 key = VulkanShader::MakeKey(*shader);
+
+		VulkanShader& vulkanShader = _shaders.try_emplace(key, key, _device, shader).first->second;
+
+		vulkanShader.Use();
+
+		return vulkanShader;
 	}
 
 	VulkanPipeline& VulkanGraphicsDeviceCache::GetOrCreatePipeline(
 		const VulkanRenderPass& renderPass, 
+		const VulkanShader& shader, 
 		uint32 subpassIndex, 
-		const VulkanShader& shader,
-		const VulkanDescriptorSetLayout* globalDescriptorSetLayout)
+		const VulkanDescriptorSetLayout& globalLayout)
 	{
-		GraphicsDeviceResourceID key = VulkanPipeline::MakeKey(renderPass, shader, subpassIndex, globalDescriptorSetLayout);
+		uint64 key = VulkanPipeline::MakeKey(renderPass, shader, subpassIndex, globalLayout);
 
-		auto it = _pipelines.find(key);
+		VulkanPipeline& pipeline = _pipelines.try_emplace(key, key, _device).first->second;
 
-		if (it == _pipelines.end())
-		{
-			it = _pipelines.try_emplace(key, renderPass, shader, subpassIndex, globalDescriptorSetLayout).first;
-		}
+		if (pipeline.NeedsUpdate(renderPass, shader))
+			pipeline.Update(renderPass, shader, subpassIndex, globalLayout);
 
-		VulkanPipeline& resource = it->second;
+		pipeline.Use();
 
-		if (resource.NeedsUpdate(renderPass, shader))
-			resource.Update(renderPass, shader, subpassIndex, globalDescriptorSetLayout);
-
-		resource.Use();
-
-		return resource;
+		return pipeline;
 	}
 
-	VulkanRenderContextCache& VulkanGraphicsDeviceCache::GetOrCreateContextCache(const GraphicsDeviceResourceID& id)
+	VulkanFramebuffer& VulkanGraphicsDeviceCache::GetOrCreateFramebuffer(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
 	{
-		auto it = _contextCaches.find(id);
+		uint64 key = VulkanFramebuffer::MakeKey(renderPass, attachmentImages);
+		VulkanFramebuffer& framebuffer = _framebuffers.try_emplace(key, key, _device).first->second;
 
-		if (it == _contextCaches.end())
-		{
-			it = _contextCaches.try_emplace(id, id).first;
-		}
+		if (framebuffer.NeedsUpdate(attachmentImages))
+			framebuffer.Update(renderPass, attachmentImages);
 
-		VulkanRenderContextCache& resource = it->second;
-
-		resource.Use();
-
-		return resource;
-	}
-
-	void VulkanGraphicsDeviceCache::ResetForNextFrame()
-	{
-		if (MainLoop::cGet()->GetCurrentTick().UnscaledTime - _lastPurgeTime > sPurgePeriod)
-			PurgeStaleResources();
-
-		for (auto it = _contextCaches.begin(); it != _contextCaches.end(); it++)
-			it->second.ResetForNextFrame();
+		framebuffer.Use();
+		return framebuffer;
 	}
 
 	void VulkanGraphicsDeviceCache::PurgeStaleResources()
 	{
-		uint64 renderPassesPurged = 0;
-
-		{
-			auto it = _renderPasses.begin();
-
-			while (it != _renderPasses.end())
+		uint64 renderPassesPurged = std::erase_if(_renderPasses,
+			[](const auto& kvp)
 			{
-				if (it->second.IsStale(sPurgeThreshold))
-				{
-					it = _renderPasses.erase(it);
-					renderPassesPurged++;
-				}
-				else
-				{
-					it++;
-				}
-			}
+				return kvp.second.IsStale(StaleResourceThreshold);
+			});
+
+		if (renderPassesPurged > 0)
+		{
+			CocoTrace("Purged {} VulkanRenderPasses", renderPassesPurged)
 		}
 
-		uint64 pipelinesPurged = 0;
-
-		{
-			auto it = _pipelines.begin();
-
-			while (it != _pipelines.end())
+		uint64 setLayoutsPurged = std::erase_if(_descriptorSetLayouts,
+			[](const auto& kvp)
 			{
-				if (it->second.IsStale(sPurgeThreshold))
-				{
-					it = _pipelines.erase(it);
-					pipelinesPurged++;
-				}
-				else
-				{
-					it++;
-				}
-			}
+				return kvp.second.IsStale(StaleResourceThreshold);
+			});
+
+		if (setLayoutsPurged > 0)
+		{
+			CocoTrace("Purged {} VulkanDescriptorSetLayouts", setLayoutsPurged)
 		}
 
-		uint64 cachesPurged = 0;
-		{
-			auto it = _contextCaches.begin();
-
-			while (it != _contextCaches.end())
+		uint64 shadersPurged = std::erase_if(_shaders,
+			[](const auto& kvp)
 			{
-				if (it->second.IsStale(sPurgeThreshold))
-				{
-					it = _contextCaches.erase(it);
-					pipelinesPurged++;
-				}
-				else
-				{
-					it->second.PurgeStaleResources();
-					it++;
-				}
-			}
-		}
+				return kvp.second.IsStale(StaleResourceThreshold);
+			});
 
-		if (renderPassesPurged > 0 || pipelinesPurged > 0 || cachesPurged > 0)
+		if (shadersPurged > 0)
 		{
-			CocoTrace("Purged {} VulkanRenderPasses, {} VulkanPipelines, and {} VulkanRenderContextCaches", 
-				renderPassesPurged, pipelinesPurged, cachesPurged)
+			CocoTrace("Purged {} VulkanShaders", shadersPurged)
 		}
 
-		_lastPurgeTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
+		uint64 pipelinesPurged = std::erase_if(_pipelines,
+			[](const auto& kvp)
+			{
+				return kvp.second.IsStale(StaleResourceThreshold);
+			});
+
+		if (pipelinesPurged > 0)
+		{
+			CocoTrace("Purged {} VulkanPipelines", pipelinesPurged)
+		}
+
+		uint64 framebuffersPurged = std::erase_if(_framebuffers,
+			[](const auto& kvp)
+			{
+				return kvp.second.IsStale(StaleResourceThreshold);
+			});
+
+		if (framebuffersPurged > 0)
+		{
+			CocoTrace("Purged {} VulkanFramebuffers", framebuffersPurged)
+		}
+
+		uint64 meshesPurged = _meshCache->PurgeUnusedMeshDatas();
+
+		if (meshesPurged > 0)
+		{
+			CocoTrace("Purged {} cached mesh datas", meshesPurged)
+		}
+	}
+
+	void VulkanGraphicsDeviceCache::HandlePurgeTickListener(const TickInfo& tickInfo)
+	{
+		PurgeStaleResources();
 	}
 }

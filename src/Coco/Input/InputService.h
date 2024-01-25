@@ -21,15 +21,6 @@ namespace Coco::Input
 		/// @brief Priority for the tick handling late input processing
 		static constexpr int PostProcessTickPriority = 1000;
 
-	private:
-		UniqueRef<Keyboard> _keyboard;
-		UniqueRef<Mouse> _mouse;
-		ManagedRef<TickListener> _processTickHandler;
-		ManagedRef<TickListener> _postTickHandler;
-		std::vector<Ref<InputLayer>> _inputLayers;
-		ManagedRef<UnhandledInputLayer> _unhandledInputLayer;
-		bool _inputLayersNeedSorting;
-
 	public:
 		InputService();
 		~InputService();
@@ -64,6 +55,15 @@ namespace Coco::Input
 
 		/// @brief Causes all input devices to reset their state. Mainly should be called if the application looses focus
 		void LostFocus();
+
+	private:
+		UniqueRef<Keyboard> _keyboard;
+		UniqueRef<Mouse> _mouse;
+		ManagedRef<TickListener> _processTickHandler;
+		ManagedRef<TickListener> _postTickHandler;
+		std::vector<Ref<InputLayer>> _inputLayers;
+		ManagedRef<UnhandledInputLayer> _unhandledInputLayer;
+		bool _inputLayersNeedSorting;
 
 	private:
 		/// @brief Tick for updating the current state of the peripherals

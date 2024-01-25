@@ -7,8 +7,8 @@ project "Coco.Platforms.Win32"
     pchheader "CPWinpch.h"
     pchsource "CPWinpch.cpp"
 
-    OutputBin = "%{OutputDir.bin}%{prj.name}"
-    OutputObj = "%{OutputDir.obj}%{prj.name}"
+    OutputBin = "%{OutputDir.bin}Coco/Platforms/%{prj.name}"
+    OutputObj = "%{OutputDir.obj}Coco/Platforms/%{prj.name}"
 
     targetdir(OutputBin)
     objdir(OutputObj)

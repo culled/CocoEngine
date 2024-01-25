@@ -12,7 +12,7 @@ namespace Coco::Rendering
 {
     class Image;
     class RenderPipeline;
-    class GraphicsPresenter;
+    class Presenter;
 }
 
 namespace Coco::ECS
@@ -30,23 +30,11 @@ namespace Coco::ECS
     {
         friend class CameraComponentSerializer;
 
-    private:
-        Color _clearColor;
-        CameraProjectionType _projectionType;
-
-        double _perspectiveNearClip;
-        double _perspectiveFarClip;
-        double _perspectiveFOV;
-
-        double _orthoNearClip;
-        double _orthoFarClip;
-        double _orthoSize;
-
-        Rendering::MSAASamples _sampleCount;
-        int _priority;
-
     public:
         CameraComponent(const Entity& owner);
+
+        // Inherited via EntityComponent
+        const char* GetComponentTypename() const override { return "CameraComponent"; }
 
         /// @brief Sets this camera to use a perspective projection
         /// @param verticalFOVRadians The vertical field of view, in radians
@@ -131,15 +119,32 @@ namespace Coco::ECS
             uint64 rendererID,
             std::span<Ref<Rendering::Image>> framebuffers,
             Rendering::RenderPipeline& pipeline,
-            std::optional<Rendering::GlobalShaderUniformLayout> layoutOverride = std::optional<Rendering::GlobalShaderUniformLayout>());
+            std::optional<Rendering::ShaderUniformLayout> layoutOverride = std::optional<Rendering::ShaderUniformLayout>());
 
         /// @brief Renders from this camera's perspective
+        /// @param rendererID The ID of the renderer
         /// @param presenter The presenter to render to
         /// @param pipeline The RenderPipeline to use
         /// @param layoutOverride The layout override for the global uniforms
         void Render(
-            Ref<Rendering::GraphicsPresenter> presenter,
+            uint64 rendererID,
+            Ref<Rendering::Presenter> presenter,
             Rendering::RenderPipeline& pipeline,
-            std::optional<Rendering::GlobalShaderUniformLayout> layoutOverride = std::optional<Rendering::GlobalShaderUniformLayout>());
+            std::optional<Rendering::ShaderUniformLayout> layoutOverride = std::optional<Rendering::ShaderUniformLayout>());
+
+    private:
+        Color _clearColor;
+        CameraProjectionType _projectionType;
+
+        double _perspectiveNearClip;
+        double _perspectiveFarClip;
+        double _perspectiveFOV;
+
+        double _orthoNearClip;
+        double _orthoFarClip;
+        double _orthoSize;
+
+        Rendering::MSAASamples _sampleCount;
+        int _priority;
     };
 }

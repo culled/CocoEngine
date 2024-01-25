@@ -14,9 +14,9 @@ namespace Coco::Input
 		_inputLayersNeedSorting(false),
 		_unhandledInputLayer(CreateManagedRef<UnhandledInputLayer>())
 	{
-		MainLoop* loop = MainLoop::Get();
-		loop->AddListener(_processTickHandler);
-		loop->AddListener(_postTickHandler);
+		MainLoop& loop = *MainLoop::Get();
+		loop.AddTickListener(_processTickHandler);
+		loop.AddTickListener(_postTickHandler);
 
 		_inputLayers.push_back(_unhandledInputLayer);
 
@@ -27,9 +27,9 @@ namespace Coco::Input
 	{
 		_unhandledInputLayer.Invalidate();
 
-		MainLoop* loop = MainLoop::Get();
-		loop->RemoveListener(_processTickHandler);
-		loop->RemoveListener(_postTickHandler);
+		MainLoop& loop = *MainLoop::Get();
+		loop.RemoveTickListener(_processTickHandler);
+		loop.RemoveTickListener(_postTickHandler);
 
 		_mouse.reset();
 		_keyboard.reset();
@@ -82,7 +82,7 @@ namespace Coco::Input
 				}
 				catch (const std::exception& ex)
 				{
-					CocoError("Error handling mouse state changes : {}", ex.what())
+					CocoError("Error handling mouse state changes: {}", ex.what())
 				}
 			}
 		}
@@ -98,7 +98,7 @@ namespace Coco::Input
 				}
 				catch (const std::exception& ex)
 				{
-					CocoError("Error handling keyboard state changes : {}", ex.what())
+					CocoError("Error handling keyboard state changes: {}", ex.what())
 				}
 			}
 		}

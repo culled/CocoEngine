@@ -204,7 +204,7 @@ namespace Coco
 		}
 
 		Assert(false)
-			return Matrix4x4::Identity;
+		return Matrix4x4::Identity;
 	}
 
 	Transform3D::Transform3D() : 

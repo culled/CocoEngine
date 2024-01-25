@@ -52,11 +52,6 @@ namespace Coco::Input
 		/// @brief Invoked when a unicode character is input
 		Event<int> OnUnicodeCharacterEntered;
 
-	private:
-		std::vector<KeyboardStateChange> _preProcessStateChanges;
-		KeyboardState _currentState;
-		KeyboardState _previousState;
-
 	public:
 		Keyboard();
 		~Keyboard() = default;
@@ -91,6 +86,11 @@ namespace Coco::Input
 		/// @brief Gets the unicode characters that were entered within the last tick
 		/// @return The unicode characters
 		std::span<const int> GetUnicodeCharactersEntered() const { return _currentState.UnicodeKeyPoints; }
+
+	private:
+		std::vector<KeyboardStateChange> _preProcessStateChanges;
+		KeyboardState _currentState;
+		KeyboardState _previousState;
 
 	private:
 		/// @brief Gets all state changes since the last tick

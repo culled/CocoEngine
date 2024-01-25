@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../../Renderpch.h"
 #include <Coco/Core/Types/Refs.h>
 #include "VulkanIncludes.h"
 
@@ -9,61 +8,30 @@ namespace Coco::Rendering::Vulkan
 	class VulkanGraphicsSemaphore;
 	class VulkanGraphicsFence;
 
-	/// @brief A buffer that rendering commands can be written to
 	class VulkanCommandBuffer
 	{
-		friend class VulkanCommandBufferPool;
-
-	public:
-		/// @brief States of a command buffer
-		enum class State
-		{
-			Ready,
-			Recording,
-			RecordingEnded,
-			Submitted
-		};
-
-	private:
-		State _currentState;
-		VkCommandBuffer _commandBuffer;
-		VkQueue _queue;
-
 	public:
 		VulkanCommandBuffer(VkCommandBuffer buffer, VkQueue queue);
-		~VulkanCommandBuffer() = default;
 
 		/// @brief Begins recording to this command buffer
 		/// @param isSingleUse If true, this buffer will only be submitted once
 		/// @param isSimultaneousUse If true, this buffer can be submitted to multiple queues
 		void Begin(bool isSingleUse, bool isSimultaneousUse);
-
-		/// @brief Ends recording to this command buffer
 		void End();
-
-		/// @brief Submits this command buffer
-		/// @param waitSemaphores Semaphores to wait on before performing this buffer's work
-		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
-		/// @param signalFence A fence to signal once this buffer's work has been completed
 		void Submit(
-			std::vector<Ref<VulkanGraphicsSemaphore>>* waitSemaphores = nullptr,
-			std::vector<Ref<VulkanGraphicsSemaphore>>* signalSemaphores = nullptr,
-			Ref<VulkanGraphicsFence> signalFence = nullptr);
-
-		/// @brief Ends and submits this buffer
-		/// @param waitSemaphores Semaphores to wait on before performing this buffer's work
-		/// @param signalSemaphores Semaphores to signal once this buffer's work has been completed
-		/// @param signalFence A fence to signal once this buffer's work has been completed
+			std::span<std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>> waitSemaphores = std::span<std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>>(),
+			std::span<Ref<VulkanGraphicsSemaphore>> signalSemaphores = std::span<Ref<VulkanGraphicsSemaphore>>(),
+			Ref<VulkanGraphicsFence> signalFence = Ref<VulkanGraphicsFence>());
 		void EndAndSubmit(
-			std::vector<Ref<VulkanGraphicsSemaphore>>* waitSemaphores = nullptr,
-			std::vector<Ref<VulkanGraphicsSemaphore>>* signalSemaphores = nullptr,
-			Ref<VulkanGraphicsFence> signalFence = nullptr);
-
-		/// @brief Resets this command buffer
+			std::span<std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>> waitSemaphores = std::span<std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>>(),
+			std::span<Ref<VulkanGraphicsSemaphore>> signalSemaphores = std::span<Ref<VulkanGraphicsSemaphore>>(),
+			Ref<VulkanGraphicsFence> signalFence = Ref<VulkanGraphicsFence>());
 		void Reset();
 
-		/// @brief Gets the Vulkan command buffer
-		/// @return The Vulkan command buffer
 		VkCommandBuffer GetCmdBuffer() const { return _commandBuffer; }
+
+	private:
+		VkCommandBuffer _commandBuffer;
+		VkQueue _queue;
 	};
 }

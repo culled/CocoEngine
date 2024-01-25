@@ -11,9 +11,14 @@ namespace Coco
 		CocoTrace("Initialized UnpackedEngineFileSystem with content path at \"{}\"", contentBasePath.ToString())
 	}
 
-	File UnpackedEngineFileSystem::OpenFile(const FilePath& contentPath, FileOpenFlags openFlags)
+	File UnpackedEngineFileSystem::OpenFile(const FilePath& contentPath, FileOpenFlags openFlags, bool createIfNonexistent)
 	{
-		return File(ConvertToFullPath(contentPath), openFlags);
+		FilePath path = ConvertToFullPath(contentPath);
+
+		if (!FileExists(path) && createIfNonexistent)
+			return CreateFile(path, openFlags);
+
+		return File(ConvertToFullPath(path), openFlags);
 	}
 
 	bool UnpackedEngineFileSystem::FileExists(const FilePath& contentPath) const

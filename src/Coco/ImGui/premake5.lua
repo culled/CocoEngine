@@ -4,8 +4,8 @@ project "Coco.ImGui"
     cppdialect "C++20"
     staticruntime "off"
 
-    OutputBin = "%{OutputDir.bin}%{prj.name}"
-    OutputObj = "%{OutputDir.obj}%{prj.name}"
+    OutputBin = "%{OutputDir.bin}Coco/%{prj.name}"
+    OutputObj = "%{OutputDir.obj}Coco/%{prj.name}"
 
     targetdir(OutputBin)
     objdir(OutputObj)

@@ -3,16 +3,16 @@
 #include "VulkanRenderPass.h"
 #include "../VulkanGraphicsDevice.h"
 #include "../VulkanImage.h"
-
+#include <Coco/Core/Math/Math.h>
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanFramebuffer::VulkanFramebuffer(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages) :
-		CachedVulkanResource(MakeKey(renderPass, attachmentImages)),
-		_size(SizeInt::Zero),
-		_version(0),
-		_framebuffer(nullptr)
+	VulkanFramebuffer::VulkanFramebuffer(uint64 id, VulkanGraphicsDevice& device) :
+		CachedVulkanResource(id),
+		_device(device),
+		_framebuffer(nullptr),
+		_size(SizeInt::Zero)
 	{}
 
 	VulkanFramebuffer::~VulkanFramebuffer()
@@ -20,37 +20,41 @@ namespace Coco::Rendering::Vulkan
 		DestroyFramebuffer();
 	}
 
-	GraphicsDeviceResourceID VulkanFramebuffer::MakeKey(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
+	uint64 VulkanFramebuffer::MakeKey(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
 	{
-		uint64 imageHash = 0;
-		for (size_t i = 0; i < attachmentImages.size(); i++)
-			imageHash = Math::CombineHashes(imageHash, attachmentImages[i]->ID);
+		uint64 imageHash = std::accumulate(attachmentImages.begin(), attachmentImages.end(),
+			static_cast<uint64>(0),
+			[](uint64 hash, const VulkanImage* image)
+			{
+				return Math::CombineHashes(hash, image->ID);
+			});
 
-		return Math::CombineHashes(renderPass.ID, imageHash);
+		return Math::CombineHashes(imageHash, renderPass.ID);
 	}
 
-	bool VulkanFramebuffer::NeedsUpdate(const VulkanRenderPass& renderPass, const SizeInt& size) const
+	bool VulkanFramebuffer::NeedsUpdate(std::span<const VulkanImage*> attachmentImages) const
 	{
-		return _framebuffer == nullptr ||
-			_version != renderPass.GetVersion() ||
-			size != _size;
+		const ImageDescription& desc = attachmentImages.front()->GetDescription();
+		SizeInt imageSize(static_cast<int>(desc.Width), static_cast<int>(desc.Height));
+
+		return _framebuffer == nullptr || _size != imageSize;
 	}
 
-	void VulkanFramebuffer::Update(const VulkanRenderPass& renderPass, const SizeInt& size, std::span<const VulkanImage*> attachmentImages)
+	void VulkanFramebuffer::Update(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
 	{
 		DestroyFramebuffer();
-		CreateFramebuffer(size, renderPass, attachmentImages);
-
-		_version = renderPass.GetVersion();
+		CreateFramebuffer(renderPass, attachmentImages);
 	}
 
-	void VulkanFramebuffer::CreateFramebuffer(const SizeInt& size, const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
+	void VulkanFramebuffer::CreateFramebuffer(const VulkanRenderPass& renderPass, std::span<const VulkanImage*> attachmentImages)
 	{
-		VkFramebufferCreateInfo framebufferInfo{};
-		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		const ImageDescription& desc = attachmentImages.front()->GetDescription();
+		_size = SizeInt(static_cast<int>(desc.Width), static_cast<int>(desc.Height));
+
+		VkFramebufferCreateInfo framebufferInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		framebufferInfo.renderPass = renderPass.GetRenderPass();
-		framebufferInfo.width = static_cast<uint32_t>(size.Width);
-		framebufferInfo.height = static_cast<uint32_t>(size.Height);
+		framebufferInfo.width = desc.Width;
+		framebufferInfo.height = desc.Height;
 		framebufferInfo.layers = 1;
 
 		std::vector<VkImageView> imageViews;
@@ -66,9 +70,7 @@ namespace Coco::Rendering::Vulkan
 
 		AssertVkSuccess(vkCreateFramebuffer(_device.GetDevice(), &framebufferInfo, _device.GetAllocationCallbacks(), &_framebuffer));
 
-		_size = size;
-
-		CocoTrace("Created VulkanFramebuffer")
+		CocoTrace("Created VulkanFramebuffer {} data with size {}", ID, _size.ToString())
 	}
 
 	void VulkanFramebuffer::DestroyFramebuffer()
@@ -76,10 +78,11 @@ namespace Coco::Rendering::Vulkan
 		if (!_framebuffer)
 			return;
 
-		_device.WaitForIdle();
+		_device.GetQueue(VulkanQueueType::Graphics)->WaitForIdle();
 		vkDestroyFramebuffer(_device.GetDevice(), _framebuffer, _device.GetAllocationCallbacks());
 		_framebuffer = nullptr;
+		_size = SizeInt::Zero;
 
-		CocoTrace("Destroyed VulkanFramebuffer")
+		CocoTrace("Destroyed VulkanFramebuffer {} data", ID)
 	}
 }

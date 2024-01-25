@@ -1,8 +1,23 @@
 #include "Corepch.h"
 #include "File.h"
 
+#include "../Engine.h"
+
 namespace Coco
 {
+	FileOpenException::FileOpenException(const string& message) :
+		Exception(message)
+	{}
+
+	FileCreateException::FileCreateException(const string& message) :
+		Exception(message)
+	{}
+
+
+	FileOperationException::FileOperationException(const string& message) :
+		Exception(message)
+	{}
+
 	File::File(const FilePath& filePath, FileOpenFlags openFlags) :
 		_filePath(filePath),
 		_openFlags(openFlags),
@@ -22,17 +37,14 @@ namespace Coco
 			mode |= std::ios::binary;
 
 		if (mode == 0)
-			throw std::exception("Invalid open mode");
+			throw FileOpenException("Invalid open mode. Please specify at least one FileOpenFlag");
 
 		mode |= std::ios::ate;
 
 		_fileStream = std::fstream(filePath._filePath, mode);
 
 		if (!_fileStream.is_open())
-		{
-			string err = FormatString("Unable to open file at \"{}\": {}", filePath.ToString(), _fileStream.rdstate());
-			throw std::exception(err.c_str());
-		}
+			throw FileOpenException(FormatString("Unable to open file at \"{}\": {}", filePath.ToString(), IOStateToString(_fileStream.rdstate())));
 
 		_size = _fileStream.tellg();
 		_fileStream.seekg(0, std::ios::beg);
@@ -47,7 +59,7 @@ namespace Coco
 	File File::Create(const FilePath& filePath, FileOpenFlags openFlags)
 	{
 		if (File::Exists(filePath))
-			throw std::exception("File already exists");
+			throw FileCreateException(FormatString("File at \"{}\" already exists", filePath.ToString()));
 
 		return File(filePath, openFlags | FileOpenFlags::Write);
 	}
@@ -77,6 +89,8 @@ namespace Coco
 
 	void File::Seek(uint64 position, bool relative)
 	{
+		CheckFlags(FileOpenFlags::None);
+
 		_fileStream.seekg(position, relative ? std::ios_base::cur : std::ios_base::beg);
 
 		SyncState();
@@ -115,7 +129,7 @@ namespace Coco
 		_fileStream.clear();
 		Seek(p, false);
 
-		Assert(GetPosition() == p)
+		CocoAssert(GetPosition() == p, "Failed to reset position after seek")
 	}
 
 	string File::ReadText(uint64 maxLength)
@@ -204,6 +218,9 @@ namespace Coco
 
 	void File::Close()
 	{
+		if (!_fileStream.is_open())
+			return;
+
 		_fileStream.close();
 	}
 
@@ -215,13 +232,19 @@ namespace Coco
 	void File::CheckFlags(FileOpenFlags flags)
 	{
 		if (!IsOpen())
-			throw std::exception("File was not opened");
+			throw FileOperationException("File is not open");
+
+		CocoAssert(_fileStream, "File stream handle is null")
 
 		if ((_openFlags & flags) != flags)
 		{
-			string err = FormatString("File was not opened in the mode for the given operation: File flags = {}, required flags = {}", 
-				static_cast<int>(_openFlags), static_cast<int>(flags));
-			throw std::exception(err.c_str());
+			throw FileOperationException(
+				FormatString(
+					"File was not opened in the mode for the given operation: File flags = {}, required flags = {}",
+					FileOpenFlagsToString(_openFlags),
+					FileOpenFlagsToString(flags)
+				)
+			);
 		}
 	}
 }

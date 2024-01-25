@@ -15,11 +15,8 @@ namespace Coco::Windowing
 	{
 		friend Window;
 
-	private:
-		std::vector<ManagedRef<Window>> _windows;
-
 	public:
-		WindowService(bool dpiAware);
+		WindowService(bool dpiAware = true);
 		~WindowService();
 
 		/// @brief Creates a window
@@ -54,5 +51,8 @@ namespace Coco::Windowing
 		/// @brief Called when a window is closed
 		/// @param window The window that closed
 		void WindowClosed(Window& window);
+
+	private:
+		std::vector<ManagedRef<Window>> _windows;
 	};
 }

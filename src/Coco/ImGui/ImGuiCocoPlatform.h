@@ -5,7 +5,6 @@
 #include <Coco/Core/MainLoop/TickInfo.h>
 #include <Coco/Core/Events/Event.h>
 
-#include <Coco/Rendering/Providers/RenderViewProvider.h>
 #include <Coco/Rendering/Providers/SceneDataProvider.h>
 
 #include <Coco/Windowing/DisplayInfo.h>
@@ -22,9 +21,7 @@ namespace Coco::Rendering
 	class Material;
 	class Shader;
 	class Texture;
-	class Mesh;
 	class RenderPipeline;
-	struct GlobalShaderUniformLayout;
 }
 
 namespace Coco::Windowing
@@ -63,37 +60,13 @@ namespace Coco::ImGuiCoco
 
 	/// @brief The platform that integrates ImGui with the Engine
 	class ImGuiCocoPlatform :
-		public Singleton<ImGuiCocoPlatform>,
-		public RenderViewProvider,
-		public SceneDataProvider
+		public Singleton<ImGuiCocoPlatform>
 	{
 		friend CocoViewportData;
-
-	private:
-		static std::unordered_map<uint64, CocoViewportData> _sViewports;
-		static const GlobalShaderUniformLayout _sGlobalUniformLayout;
-
-		std::vector<Windowing::DisplayInfo> _displays;
-		bool _shouldUpdateDisplays;
-		SharedRef<Texture> _texture;
-		SharedRef<Shader> _shader;
-		std::unordered_map<uint64, SharedRef<Mesh>> _viewportMeshes;
-		SharedRef<ImGuiRenderPass> _renderPass;
-		SharedRef<Rendering::RenderPipeline> _renderPipeline;
-		ImGuiViewport* _currentlyRenderingViewport;
 
 	public:
 		ImGuiCocoPlatform(bool enableViewports, bool clearAttachments);
 		~ImGuiCocoPlatform();
-
-		void SetupRenderView(
-			RenderView& renderView,
-			const CompiledRenderPipeline& pipeline,
-			uint64 rendererID,
-			const SizeInt& backbufferSize,
-			std::span<Ref<Image>> backbuffers) final;
-
-		void GatherSceneData(RenderView& renderView) final;
 
 		/// @brief Sets up the platform for a new frame
 		/// @param tickInfo The info for the current tick
@@ -110,6 +83,16 @@ namespace Coco::ImGuiCoco
 
 		/// @brief Rebuilds the internal font texture. Call this if a font in ImGui has changed
 		void RebuildFontTexture();
+
+	private:
+		static std::unordered_map<uint64, CocoViewportData> _sViewports;
+
+		std::vector<Windowing::DisplayInfo> _displays;
+		bool _shouldUpdateDisplays;
+		SharedRef<Texture> _texture;
+		SharedRef<Shader> _shader;
+		SharedRef<ImGuiRenderPass> _renderPass;
+		SharedRef<Rendering::RenderPipeline> _renderPipeline;
 
 	private:
 		/// @brief ImGui callback for creating a window
@@ -187,19 +170,5 @@ namespace Coco::ImGuiCoco
 
 		/// @brief Updates the ImGui displays
 		void UpdateDisplays();
-
-		/// @brief Gets a key for a given viewport
-		/// @param viewport The viewport
-		/// @return The unique key for the viewport
-		uint64 GetViewportKey(ImGuiViewport* viewport);
-
-		/// @brief Gets or creates a mesh for a viewport
-		/// @param viewport The viewport
-		/// @return The mesh for the viewport
-		SharedRef<Mesh> GetOrCreateViewportMesh(ImGuiViewport* viewport);
-
-		/// @brief Removes a mesh for the given viewport
-		/// @param viewport The viewport
-		void RemoveViewportMesh(ImGuiViewport* viewport);
 	};
 }

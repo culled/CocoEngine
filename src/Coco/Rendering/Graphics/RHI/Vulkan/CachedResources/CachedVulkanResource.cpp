@@ -1,23 +1,22 @@
 #include "Renderpch.h"
 #include "CachedVulkanResource.h"
-#include "../VulkanGraphicsDevice.h"
 
 #include <Coco/Core/MainLoop/MainLoop.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	CachedVulkanResource::CachedVulkanResource(const GraphicsDeviceResourceID& id) : 
-		GraphicsDeviceResource<VulkanGraphicsDevice>(id),
-		_lastUseTime(0.0)
-	{}
-
 	void CachedVulkanResource::Use()
 	{
-		_lastUseTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
+		_lastUseTime = MainLoop::Get()->GetCurrentTick().Time;
 	}
 
 	bool CachedVulkanResource::IsStale(double staleThreshold) const
 	{
-		return MainLoop::cGet()->GetCurrentTick().UnscaledTime - _lastUseTime > staleThreshold;
+		return MainLoop::Get()->GetCurrentTick().Time - _lastUseTime > staleThreshold;
 	}
+
+	CachedVulkanResource::CachedVulkanResource(const uint64& id) :
+		ID(id),
+		_lastUseTime(MainLoop::Get()->GetCurrentTick().Time)
+	{}
 }

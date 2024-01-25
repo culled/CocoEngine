@@ -1,184 +1,85 @@
 #include "Corepch.h"
 #include "ResourceLibrary.h"
-
+#include "ResourceSerializer.h"
 #include "../Engine.h"
 
 namespace Coco
 {
-	ResourceIDGenerator::ResourceIDGenerator() :
-		Counter{}
+	ResourceLibrary::ResourceLibrary() :
+		_resources()
 	{}
-
-	ResourceID ResourceIDGenerator::operator()()
-	{
-		return Counter++;
-	}
 
 	ResourceLibrary::~ResourceLibrary()
 	{
-		CocoTrace("Freeing {} resource(s)", _resources.size())
-
 		_resources.clear();
 	}
 
-	bool ResourceLibrary::GetOrLoad(const FilePath& contentPath, bool forceReload, SharedRef<Resource>& outResource)
+	bool ResourceLibrary::Add(SharedRef<Resource> resource)
 	{
-		bool resourceLoaded = false;
+		auto result = _resources.try_emplace(resource->_id, resource);
+		return result.second;
+	}
 
-		auto it = FindResource(contentPath);
-		if (it != _resources.end())
+	bool ResourceLibrary::Has(const ResourceID& id) const
+	{
+		return _resources.contains(id);
+	}
+
+	SharedRef<Resource> ResourceLibrary::Get(const ResourceID& id) const
+	{
+		if (!Has(id))
 		{
-			outResource = it->second;
-			resourceLoaded = true;
+			CocoError("Resource \"{}\" does not exist", id.ToString())
+			return nullptr;
 		}
 
-		if (!forceReload && resourceLoaded)
-			return true;
+		return _resources.at(id);
+	}
 
-		EngineFileSystem& efs = Engine::Get()->GetFileSystem();
-		if (!efs.FileExists(contentPath))
-		{
-			CocoError("File at \"{}\" does not exist", contentPath.ToString())
+	bool ResourceLibrary::TryGet(const ResourceID& id, SharedRef<Resource>& outResource) const
+	{
+		if (!Has(id))
 			return false;
-		}
 
-		ResourceSerializer* serializer = GetSerializerForFileType(contentPath);
-
-		if (!serializer)
-		{
-			CocoError("No serializers support deserializing the file at \"{}\"", contentPath.ToString())
-			return false;
-		}
-
-		File f = efs.OpenFile(contentPath, FileOpenFlags::Read | FileOpenFlags::Text);
-		string data = f.ReadTextToEnd();
-		f.Close();
-
-		ResourceID id = _idGenerator();
-		if (!resourceLoaded)
-		{
-			outResource = serializer->CreateAndDeserialize(id, contentPath.GetFileName(false), data);
-			_resources.try_emplace(id, outResource).first;
-		}
-		else
-		{
-			serializer->Deserialize(data, outResource);
-		}
-
-		// Loading into an existing resource makes it the same as the one on disk
-		outResource->MarkSaved(efs.ConvertToShortPath(contentPath));
-
-		CocoInfo("Loaded \"{}\"", contentPath.ToString())
-
+		outResource = Get(id);
 		return true;
 	}
 
-	bool ResourceLibrary::Save(const FilePath& contentPath, SharedRef<Resource> resource, bool overwrite)
+	uint64 ResourceLibrary::Count() const
 	{
-		EngineFileSystem& efs = Engine::Get()->GetFileSystem();
-
-		if (!overwrite && efs.FileExists(contentPath))
-		{
-			CocoError("Cannot overwrite existing file at \"{}\"", contentPath.ToString())
-			return false;
-		}
-
-		ResourceSerializer* serializer = GetSerializerForFileType(contentPath);
-
-		if (!serializer)
-		{
-			CocoError("No serializers support serializing the file at \"{}\"", contentPath.ToString())
-			return false;
-		}
-
-		try
-		{
-			string data = serializer->Serialize(resource);
-
-			File f = efs.OpenFile(contentPath, FileOpenFlags::Write | FileOpenFlags::Text);
-			f.Write(data);
-			f.Close();
-
-			resource->MarkSaved(efs.ConvertToShortPath(contentPath));
-
-			return true;
-		}
-		catch (const std::exception& ex)
-		{
-			CocoError("Error saving \"{}\": {}", contentPath.ToString(), ex.what())
-			return false;
-		}
+		return _resources.size();
 	}
 
-	bool ResourceLibrary::SaveAll(bool overwrite)
+	bool ResourceLibrary::Remove(const ResourceID& id)
 	{
-		for (auto& kvp : _resources)
-		{
-			SharedRef<Resource> resource = kvp.second;
-
-			const FilePath& fp = resource->GetContentPath();
-			if (fp.IsEmpty() || !resource->NeedsSaving())
-				continue;
-
-			if (!Save(fp, resource, overwrite))
-				return false;
-		}
-
-		return true;
+		return _resources.erase(id) > 0;
 	}
 
-	bool ResourceLibrary::TryFindByPath(const FilePath& contentPath, SharedRef<Resource>& outResource) const
+	uint64 ResourceLibrary::RemoveUnusedResources()
 	{
-		EngineFileSystem* efs = &Engine::Get()->GetFileSystem();
+		std::vector<SharedRef<Resource>> removeResources;
 
-		ResourceMap::const_iterator it = std::find_if(_resources.begin(), _resources.end(),
-			[efs, contentPath](const auto& kvp)
+		auto it = _resources.begin();
+
+		while (it != _resources.end())
+		{
+			if (it->second.use_count() <= 1)
 			{
-				const SharedRef<Resource>& r = kvp.second;
-				return efs->AreSameFile(r->_contentPath, contentPath);
+				// Defer the actual destruction until after we've found all orphaned resources
+				removeResources.push_back(it->second);
+				it = _resources.erase(it);
 			}
-		);
-
-		if (it == _resources.end())
-			return false;
-
-		outResource = it->second;
-		return true;
-	}
-
-	ResourceSerializer* ResourceLibrary::GetSerializerForResourceType(const std::type_index& type)
-	{
-		auto it = std::find_if(_serializers.begin(), _serializers.end(), [type](const UniqueRef<ResourceSerializer>& serializer)
+			else
 			{
-				return serializer->SupportsResourceType(type);
-			});
+				++it;
+			}
+		}
 
-		if (it == _serializers.end())
-			return nullptr;
+		uint64 removedResources = removeResources.size();
 
-		return it->get();
-	}
+		// Actually destroy all orphaned resources
+		removeResources.clear();
 
-	ResourceSerializer* ResourceLibrary::GetSerializerForFileType(const FilePath& contentPath)
-	{
-		string extension = contentPath.GetExtension();
-
-		auto it = std::find_if(_serializers.begin(), _serializers.end(), [extension](const UniqueRef<ResourceSerializer>& serializer)
-			{
-				return serializer->SupportsFileExtension(extension);
-			});
-
-		if (it == _serializers.end())
-			return nullptr;
-
-		return it->get();
-	}
-
-	ResourceLibrary::ResourceMap::iterator ResourceLibrary::FindResource(const FilePath& contentPath)
-	{
-		return std::find_if(_resources.begin(), _resources.end(), [contentPath](const auto& kvp)
-			{
-				return kvp.second->_contentPath == contentPath;
-			});
+		return removedResources;
 	}
 }

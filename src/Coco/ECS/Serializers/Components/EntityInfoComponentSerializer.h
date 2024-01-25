@@ -1,15 +1,15 @@
 #pragma once
 #include "../ComponentSerializer.h"
+#include "../../Components/EntityInfoComponent.h"
 
 namespace Coco::ECS
 {
     class EntityInfoComponentSerializer :
-        public ComponentSerializer
+        public ComponentSerializer<EntityInfoComponent>
     {
-    protected:
+    public:
         // Inherited via ComponentSerializer
-        const char* GetSectionName() const override { return "EntityInfoComponent"; }
-        void SerializeImpl(YAML::Emitter& emitter, const Entity& entity) override;
-        void DeserializeImpl(const YAML::Node& baseNode, Entity& entity) override;
+        void Serialize(YAML::Emitter& emitter, const Entity& entity) override;
+        bool Deserialize(const YAML::Node& baseNode, Entity& entity) override;
     };
 }

@@ -15,23 +15,21 @@ namespace Coco::ImGuiCoco
         friend class ImGuiCocoPlatform;
 
     public:
-        static const string sPassName;
-
-    private:
-        static const uint64 _sVisibilityGroup;
-        static const string _sShaderName;
-        static SharedRef<Shader> _sShader;
-
-        std::vector<AttachmentFormat> _attachments;
+        static const string Name;
+        static const uint64 VisibilityGroup;
 
     public:
         ImGuiRenderPass();
 
         // Inherited via RenderPass
-        const char* GetName() const final { return sPassName.c_str(); }
-        std::span<const AttachmentFormat> GetInputAttachments() const final { return _attachments; }
-        void Prepare(RenderContext& context, const RenderView& renderView) override;
+        const string& GetName() const final { return Name; }
+        std::span<const RenderPassAttachment> GetAttachments() const final { return _attachments; }
         void Execute(RenderContext& context, const RenderView& renderView) override;
+
+    private:
+        static const string _shaderName;
+        static const std::array<RenderPassAttachment, 1> _attachments;
+        static SharedRef<Shader> _shader;
 
     private:
         /// @brief Creates the ImGui shader

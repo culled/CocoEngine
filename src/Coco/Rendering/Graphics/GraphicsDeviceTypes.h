@@ -1,5 +1,7 @@
 #pragma once
-
+#include <Coco/Core/Defines.h>
+#include <Coco/Core/Types/String.h>
+#include <Coco/Core/Types/Version.h>
 #include "GraphicsPipelineTypes.h"
 
 namespace Coco::Rendering
@@ -7,20 +9,28 @@ namespace Coco::Rendering
 	/// @brief Types of graphics devices
 	enum class GraphicsDeviceType
 	{
+		/// @brief A discrete GPU
 		Discrete,
+
+		/// @brief An integrated GPU
 		Integrated,
+
+		/// @brief The CPU
 		CPU,
+
+		/// @brief A different type of GPU
 		Other
 	};
 
 	/// @brief Features for a GraphicsDevice
 	struct GraphicsDeviceFeatures
 	{
+		string Name;
+		GraphicsDeviceType Type;
+		Version DriverVersion;
+
 		/// @brief The maximum amount of msaa samples this device supports
 		MSAASamples MaximumMSAASamples;
-
-		/// @brief If true, this device support host visible local memory
-		bool SupportsHostVisibleLocalMemory;
 
 		/// @brief The maximum width of an image
 		uint32 MaxImageWidth;
@@ -35,42 +45,12 @@ namespace Coco::Rendering
 		uint32 MinimumBufferAlignment;
 
 		/// @brief The maximum anisotropic filtering level
-		uint8 MaxAnisotropicLevel;
+		uint32 MaxAnisotropicLevel;
 
 		/// @brief If true, this device supports drawing polygons in wireframe
 		bool SupportsWireframe;
 
 		GraphicsDeviceFeatures();
 	};
-	
-	/// @brief Creation parameters for a GraphicsDevice
-	struct GraphicsDeviceCreateParams
-	{
-		/// @brief The ideal type of rendering device to pick
-		GraphicsDeviceType PreferredDeviceType;
-
-		/// @brief If true, the device will be able to present images
-		bool SupportsPresentation;
-
-		/// @brief If true, the device will be required to support graphics operations
-		bool RequireGraphicsCapability;
-
-		/// @brief If true, the device will be required to support compute operations
-		bool RequireComputeCapability;
-
-		/// @brief If true, the device will be required to support memory transfer operations
-		bool RequireTransferCapability;
-
-		/// @brief If true, the anisotropic sampling will be enabled on the device if it supports it
-		bool EnableAnisotropicSampling;
-
-		/// @brief If true, depth clamping will be enabled on the device if it supports it
-		bool EnableDepthClamping;
-
-		/// @brief If true, wireframe drawing will be enabled
-		bool EnableWireframeDrawing;
-
-		GraphicsDeviceCreateParams();
-	};
-
 }
+

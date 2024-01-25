@@ -1,223 +1,112 @@
 #include "Renderpch.h"
 #include "RenderView.h"
-#include "../Mesh.h"
-#include "../Material.h"
-#include "ShaderUniformLayout.h"
+#include "RenderFrame.h"
 #include "../RenderService.h"
-
-#include <Coco/Core/Engine.h>
+#include "../Mesh.h"
 
 namespace Coco::Rendering
 {
-	const GlobalShaderUniformLayout RenderView::DefaultGlobalUniformLayout = GlobalShaderUniformLayout(
+	const ShaderUniformLayout RenderView::DefaultGlobalUniformLayout = ShaderUniformLayout(
 		{
-			ShaderUniform("ProjectionMatrix", ShaderUniformType::Mat4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity),
-			ShaderUniform("ViewMatrix", ShaderUniformType::Mat4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity)
-		},
-		{}
+			ShaderUniform("ProjectionMatrix", ShaderUniformType::Matrix4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity),
+			ShaderUniform("ViewMatrix", ShaderUniformType::Matrix4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity)
+		}
 	);
 
-	RenderView::RenderView() :
+	RenderView::RenderView(RenderFrame& renderFrame) :
+		_renderFrame(renderFrame),
+		_globalUniformLayout(DefaultGlobalUniformLayout),
+		_globalUniformValues(),
 		_viewportRect(),
-		_scissorRect(),
 		_viewMat(),
 		_projectionMat(),
-		_viewPosition(),
-		_globalUniformLayout(DefaultGlobalUniformLayout),
 		_frustum(),
-		_samples(),
+		_samples(MSAASamples::One),
 		_renderTargets(),
-		_meshDatas(),
-		_materialDatas(),
-		_objectDatas(),
-		_directionalLightDatas(),
-		_pointLightDatas()
+		_meshes(),
+		_renderObjects()
 	{}
 
 	void RenderView::Setup(
+		std::span<RenderTarget> renderTargets, 
 		const RectInt& viewportRect, 
-		const RectInt& scissorRect, 
 		const Matrix4x4& viewMatrix, 
-		const Matrix4x4& projectionMatrix,
-		const Vector3& viewPosition,
-		const ViewFrustum& frustum,
+		const Matrix4x4& projectionMatrix, 
+		const ViewFrustum& frustum, 
 		MSAASamples samples, 
-		const std::vector<RenderTarget>&renderTargets)
+		std::optional<ShaderUniformLayout> globalUniformLayout)
 	{
 		_viewportRect = viewportRect;
-		_scissorRect = scissorRect;
 		_viewMat = viewMatrix;
 		_projectionMat = projectionMatrix;
-		_viewPosition = viewPosition;
 		_frustum = frustum;
 		_samples = samples;
-		_renderTargets = renderTargets;
-	}
+		_renderTargets = std::vector<RenderTarget>(renderTargets.begin(), renderTargets.end());
 
-	void RenderView::Reset()
-	{
-		_renderTargets.clear();
-		_globalUniformLayout = DefaultGlobalUniformLayout;
-		_meshDatas.clear();
-		_materialDatas.clear();
-		_objectDatas.clear();
-		_directionalLightDatas.clear();
-		_pointLightDatas.clear();
-	}
-
-	RenderTarget& RenderView::GetRenderTarget(size_t index)
-	{
-		Assert(index < _renderTargets.size())
-
-		return _renderTargets.at(index);
-	}
-
-	void RenderView::SetGlobalUniformLayout(const GlobalShaderUniformLayout& layout)
-	{
-		_globalUniformLayout = layout;
-	}
-
-	uint64 RenderView::AddMesh(const Mesh& mesh)
-	{
-		uint64 meshID = mesh.GetID();
-
-		if (!_meshDatas.contains(meshID))
+		if (globalUniformLayout.has_value())
 		{
-			_meshDatas.try_emplace(meshID, 
-				meshID, 
-				mesh.GetVersion(), 
-				mesh.GetVertexFormat(),
-				mesh.GetVertexBuffer(), 
-				mesh.GetVertexCount(), 
-				mesh.GetIndexBuffer(),
-				mesh.GetBounds());
+			_globalUniformLayout = globalUniformLayout.value();
+		}
+		else
+		{
+			_globalUniformLayout = DefaultGlobalUniformLayout;
+			_globalUniformValues.emplace_back("ProjectionMatrix", projectionMatrix);
+			_globalUniformValues.emplace_back("ViewMatrix", viewMatrix);
 		}
 
-		return meshID;
-	}
-
-	const MeshData& RenderView::GetMeshData(uint64 key) const
-	{
-		Assert(_meshDatas.contains(key))
-
-		return _meshDatas.at(key);
-	}
-
-	uint64 RenderView::AddMaterial(const MaterialDataProvider& materialData)
-	{
-		uint64 id = materialData.GetMaterialID();
-
-		if (!_materialDatas.contains(id))
+		if (_globalUniformLayout.NeedsDataCalculation())
 		{
-			_materialDatas.try_emplace(id, id, materialData.GetUniformData());
+			RenderService* rendering = RenderService::Get();
+			_globalUniformLayout.CalculateDataUniforms(rendering->GetDevice());
 		}
-
-		return id;
 	}
 
-	const MaterialData& RenderView::GetMaterialData(uint64 key) const
+	void RenderView::SetGlobalUniformValues(std::span<const ShaderUniformValue> uniforms)
 	{
-		Assert(_materialDatas.contains(key))
-
-		return _materialDatas.at(key);
+		_globalUniformValues = std::vector<ShaderUniformValue>(uniforms.begin(), uniforms.end());
 	}
 
-	uint64 RenderView::AddRenderObject(
+	RenderObjectData& RenderView::AddRenderObject(
 		uint64 objectID,
-		const Mesh& mesh, 
-		uint32 submeshID, 
-		const Matrix4x4& modelMatrix,
-		uint64 visibilityGroups,
-		const MaterialDataProvider* material,
-		const BoundingBox* boundsOverride,
-		const RectInt* scissorRect,
-		std::any extraData)
+		uint64 visibilityGroups, 
+		SharedRef<Mesh> mesh,
+		const Submesh& submesh,
+		SharedRef<Material> material,
+		const Matrix4x4& modelMatrix)
 	{
-		SubMesh submesh;
-		Assert(mesh.TryGetSubmesh(submeshID, submesh))
-		return AddRenderObject(
+		BoundingBox bounds;
+
+		if (mesh)
+		{
+			StageMeshData(mesh);
+			bounds = mesh->GetLocalBounds().Transformed(modelMatrix);
+		}
+
+		return _renderObjects.emplace_back(
 			objectID,
+			visibilityGroups,
 			mesh,
-			submesh.Offset, submesh.Count,
-			modelMatrix,
-			boundsOverride ? *boundsOverride : submesh.Bounds.Transformed(modelMatrix),
-			visibilityGroups,
+			submesh,
 			material,
-			scissorRect,
-			extraData);
-	}
-
-	uint64 RenderView::AddRenderObject(
-		uint64 objectID,
-		const Mesh& mesh, 
-		uint64 indexOffset, 
-		uint64 indexCount, 
-		const Matrix4x4& modelMatrix,
-		const BoundingBox& bounds,
-		uint64 visibilityGroups,
-		const MaterialDataProvider* material, 
-		const RectInt* scissorRect,
-		std::any extraData)
-	{
-		uint64 meshID = AddMesh(mesh);
-		uint64 materialID = material ? AddMaterial(*material) : InvalidID;
-
-		uint64 renderID = _objectDatas.size();
-		_objectDatas.emplace_back(
-			renderID,
-			objectID,
 			modelMatrix,
-			meshID,
-			indexOffset,
-			indexCount,
-			materialID,
-			visibilityGroups,
-			scissorRect ? *scissorRect : _scissorRect,
 			bounds,
-			extraData);
-
-		return renderID;
+			nullptr
+		);
 	}
 
-	const ObjectData& RenderView::GetRenderObject(uint64 index) const
+	const RenderObjectData& RenderView::GetRenderObject(uint64 index) const
 	{
-		Assert(index < _objectDatas.size())
-
-		return _objectDatas.at(index);
-	}
-
-	void RenderView::AddDirectionalLight(const Vector3& direction, const Color& color, double intensity)
-	{
-		Color c = color.AsLinear();
-		c.A = intensity;
-		_directionalLightDatas.emplace_back(direction, c);
-	}
-
-	void RenderView::AddPointLight(const Vector3& position, const Color& color, double intensity)
-	{
-		Color c = color.AsLinear();
-		c.A = intensity;
-		_pointLightDatas.emplace_back(position, c);
+		return _renderObjects.at(index);
 	}
 
 	std::vector<uint64> RenderView::GetRenderObjectIndices() const
 	{
-		std::vector<uint64> indices(_objectDatas.size());
+		std::vector<uint64> indices;
 
-		for (uint64 i = 0; i < indices.size(); i++)
-			indices.at(i) = i;
+		for (uint64 i = 0; i < _renderObjects.size(); i++)
+			indices.emplace_back(i);
 
 		return indices;
-	}
-
-	std::vector<ObjectData> RenderView::GetRenderObjects(std::span<const uint64> objectIndices) const
-	{
-		std::vector<ObjectData> objects;
-
-		for (uint64 i = 0; i < objectIndices.size(); i++)
-			objects.emplace_back(GetRenderObject(objectIndices[i]));
-
-		return objects;
 	}
 
 	void RenderView::FilterOutsideFrustum(std::vector<uint64>& objectIndices) const
@@ -227,72 +116,49 @@ namespace Coco::Rendering
 
 	void RenderView::FilterOutsideFrustum(std::vector<uint64>& objectIndices, const ViewFrustum& frustum) const
 	{
-		auto it = objectIndices.begin();
-
-		while (it != objectIndices.end())
-		{
-			const ObjectData& obj = GetRenderObject(*it);
-
-			if (frustum.IsInside(obj.Bounds))
+		std::erase_if(objectIndices,
+			[&, frustum](const uint64& index)
 			{
-				it++;
-			}
-			else
-			{
-				it = objectIndices.erase(it);
-			}
-		}
+				const RenderObjectData& obj = GetRenderObject(index);
+
+				return !frustum.IsInside(obj.Bounds);
+			});
 	}
 
 	void RenderView::FilterWithAnyVisibilityGroups(std::vector<uint64>& objectIndices, uint64 visibilityGroups) const
 	{
-		auto it = objectIndices.begin();
-
-		while (it != objectIndices.end())
-		{
-			const ObjectData& obj = GetRenderObject(*it);
-
-			if ((obj.VisibilityGroups & visibilityGroups) != 0)
+		std::erase_if(objectIndices,
+			[&, visibilityGroups](const uint64& index)
 			{
-				it++;
-			}
-			else
-			{
-				it = objectIndices.erase(it);
-			}
-		}
+				const RenderObjectData& obj = GetRenderObject(index);
+
+				return (obj.VisibilityGroups & visibilityGroups) == 0;
+			});
 	}
 
 	void RenderView::FilterWithAllVisibilityGroups(std::vector<uint64>& objectIndices, uint64 visibilityGroups) const
 	{
-		auto it = objectIndices.begin();
-
-		while (it != objectIndices.end())
-		{
-			const ObjectData& obj = GetRenderObject(*it);
-
-			if ((obj.VisibilityGroups & visibilityGroups) == visibilityGroups)
+		std::erase_if(objectIndices,
+			[&, visibilityGroups](const uint64& index)
 			{
-				it++;
-			}
-			else
-			{
-				it = objectIndices.erase(it);
-			}
-		}
+				const RenderObjectData& obj = GetRenderObject(index);
+
+				return (obj.VisibilityGroups & visibilityGroups) != visibilityGroups;
+			});
 	}
 
 	void RenderView::SortByDistance(std::vector<uint64>& objectIndices, RenderObjectSortMode sortMode) const
 	{
-		SortByDistance(objectIndices, _viewPosition, sortMode);
+		Vector3 viewPosition = _viewMat.Inverted().GetTranslation();
+		SortByDistance(objectIndices, viewPosition, sortMode);
 	}
 
 	void RenderView::SortByDistance(std::vector<uint64>& objectIndices, const Vector3& position, RenderObjectSortMode sortMode) const
 	{
 		std::sort(objectIndices.begin(), objectIndices.end(), [&, position, sortMode](const uint64& a, const uint64& b)
 			{
-				const ObjectData& objA = GetRenderObject(a);
-				const ObjectData& objB = GetRenderObject(b);
+				const RenderObjectData& objA = GetRenderObject(a);
+				const RenderObjectData& objB = GetRenderObject(b);
 
 				double distA = Vector3::DistanceBetween(position, objA.Bounds.GetCenter());
 				double distB = Vector3::DistanceBetween(position, objB.Bounds.GetCenter());
@@ -307,5 +173,19 @@ namespace Coco::Rendering
 					return true;
 				}
 			});
+	}
+
+	void RenderView::StageMeshData(const SharedRef<Mesh>& mesh)
+	{
+		if (!mesh)
+			return;
+
+		const ResourceID& meshID = mesh->GetID();
+		auto result = _meshes.try_emplace(meshID, mesh);
+
+		if (!result.second || !mesh->NeedsUpload())
+			return;
+
+		_renderFrame.UploadMesh(mesh);
 	}
 }

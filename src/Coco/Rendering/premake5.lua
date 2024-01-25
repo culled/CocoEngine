@@ -7,8 +7,8 @@ project "Coco.Rendering"
     pchheader "Renderpch.h"
     pchsource "Renderpch.cpp"
 
-    OutputBin = "%{OutputDir.bin}%{prj.name}"
-    OutputObj = "%{OutputDir.obj}%{prj.name}"
+    OutputBin = "%{OutputDir.bin}Coco/%{prj.name}"
+    OutputObj = "%{OutputDir.obj}Coco/%{prj.name}"
 
     targetdir(OutputBin)
     objdir(OutputObj)
@@ -31,7 +31,7 @@ project "Coco.Rendering"
     links
     {
         "Coco.Core",
-        "yaml-cpp"
+        "yaml"
     }
 
     if (RenderRHI["Vulkan"] == true) then
@@ -39,7 +39,8 @@ project "Coco.Rendering"
 
         includedirs
         {
-            "%{IncludeDir.vulkan}"
+            "%{IncludeDir.vulkan}",
+            "%{IncludeDir.vma}",
         }
 
         libdirs

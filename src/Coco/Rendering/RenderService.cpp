@@ -1,73 +1,62 @@
 #include "Renderpch.h"
 #include "RenderService.h"
+#include "Pipeline/RenderPipeline.h"
+#include "Graphics/RenderFrame.h"
+#include "Graphics/Image.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "Pipeline/RenderPipeline.h"
-#include "Gizmos/GizmoRender.h"
-#include "Graphics/RenderView.h"
 
+#include <Coco/Core/Resources/ResourceSerializerFactory.h>
+#include "Serializers/MaterialSerializer.h"
 #include "Serializers/ShaderSerializer.h"
 #include "Serializers/TextureSerializer.h"
-#include "Serializers/MaterialSerializer.h"
 #include "Serializers/MeshSerializer.h"
 
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering
 {
-	const string RenderService::sErrorShaderName = "error";
+	const string RenderService::ErrorShaderName = "error";
 
-	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory, bool includeGizmoRendering) :
-		_earlyTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleEarlyTick, sEarlyTickPriority)),
-		_lateTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleLateTick, sLateTickPriority)),
-		_gizmoRender(nullptr),
-		_renderGizmos(false),
-		_attachmentCache(),
-		_currentFrameTasks(0),
+	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory) :
+		_attachmentCache(nullptr),
+		_earlyTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleEarlyTick, EarlyTickPriority)),
+		_lateTickListener(CreateManagedRef<TickListener>(this, &RenderService::HandleLateTick, LateTickPriority)),
+		_framesInFlight(),
 		_maxFramesInFlight(1),
-		_renderViewPool(),
 		_platform(platformFactory.Create())
 	{
-		_device = _platform->CreateDevice(platformFactory.GetPlatformCreateParameters().DeviceCreateParameters);
-
-		_contextPool = CreateUniqueRef<RenderContextPool>(*_device, 20);
-
-		if (includeGizmoRendering)
-		{
-			_gizmoRender = CreateUniqueRef<GizmoRender>();
-			_renderGizmos = true;
-		}
+		_device = _platform->CreateDevice();
 
 		CreateDefaultDiffuseTexture();
 		CreateDefaultNormalTexture();
 		CreateDefaultCheckerTexture();
 		CreateErrorShader();
 
-		//MainLoop::Get()->AddListener(_earlyTickListener);
-		MainLoop::Get()->AddListener(_lateTickListener);
+		_attachmentCache = CreateUniqueRef<AttachmentCache>();
+
+		MainLoop::Get()->AddTickListener(_earlyTickListener);
+		MainLoop::Get()->AddTickListener(_lateTickListener);
 
 		// Add resource serializers
-		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
-		resources.CreateSerializer<ShaderSerializer>();
-		resources.CreateSerializer<TextureSerializer>();
-		resources.CreateSerializer<MaterialSerializer>();
-		resources.CreateSerializer<MeshSerializer>();
+		// TODO: this will be replaced with the auto-registering serializers
+		RegisterResourceSerializers();
 
 		CocoTrace("RenderService initialized")
 	}
 
 	RenderService::~RenderService()
 	{
-		//MainLoop::Get()->RemoveListener(_earlyTickListener);
-		MainLoop::Get()->RemoveListener(_lateTickListener);
+		MainLoop::Get()->RemoveTickListener(_earlyTickListener);
+		MainLoop::Get()->RemoveTickListener(_lateTickListener);
+		_framesInFlight.clear();
 
 		_defaultDiffuseTexture.reset();
 		_defaultNormalTexture.reset();
 		_defaultCheckerTexture.reset();
 		_errorShader.reset();
 
-		_contextPool.reset();
-		_gizmoRender.reset();
+		//_gizmoRender.reset();
 		_device.reset();
 		_platform.reset();
 
@@ -75,73 +64,33 @@ namespace Coco::Rendering
 	}
 
 	bool RenderService::Render(
-		Ref<GraphicsPresenter> presenter,
+		uint64 rendererID,
+		Ref<Presenter> presenter, 
 		RenderPipeline& pipeline, 
-		RenderViewProvider& renderViewProvider, 
+		RenderViewDataProvider& renderViewDataProvider, 
 		std::span<SceneDataProvider*> sceneDataProviders)
 	{
-		if (!presenter.IsValid())
-		{
-			CocoError("Presenter was invalid")
-			return false;
-		}
-
-		if (pipeline.GetRenderPassCount() == 0)
+		const CompiledRenderPipeline* compiledPipeline = nullptr;
+		if(!TryCompilePipeline(pipeline, compiledPipeline))
 			return false;
 
-		if (!pipeline.Compile())
-		{
-			CocoError("RenderPipeline failed to compile")
-			return false;
-		}
-
-		Ref<Image> backbuffer;
-
-		if (!_currentFrameTasks.HasPresenter(presenter))
-		{
-			// Get the context used for rendering from the presenter
-			Stopwatch syncStopwatch(true);
-			Ref<RenderContext> context = _contextPool->Get(false);
-			if (!presenter->PrepareForRender(context->GetRenderStartSemaphore(), backbuffer))
-			{
-				CocoError("Failed to prepare presenter for rendering")
-				return false;
-			}
-
-			context->AddWaitOnSemaphore(context->GetRenderStartSemaphore());
-
-			_currentFrameTasks.AddPresenter(presenter, context, syncStopwatch.Stop());
-		}
-		else
-		{
-			backbuffer = presenter->GetPreparedBackbuffer();
-		}
-
-		const CompiledRenderPipeline& compiledPipeline = pipeline.GetCompiledPipeline();
-		std::array<Ref<Image>, 1> backbuffers{ backbuffer };
-		SharedRef<RenderView> renderView = GetRenderView(presenter->GetID(), backbuffers, presenter->GetFramebufferSize(), compiledPipeline, renderViewProvider, sceneDataProviders);
-
-		return _currentFrameTasks.QueueTask(presenter, renderView, compiledPipeline);
+		SharedRef<RenderFrame> currentFrame = EnsureRenderFrame();
+		return currentFrame->Render(rendererID, presenter, *compiledPipeline, renderViewDataProvider, sceneDataProviders);
 	}
 
 	bool RenderService::Render(
-		uint64 rendererID,
+		uint64 rendererID, 
 		std::span<Ref<Image>> framebuffers, 
-		RenderPipeline& pipeline,
-		RenderViewProvider& renderViewProvider, 
+		RenderPipeline& pipeline, 
+		RenderViewDataProvider& renderViewDataProvider, 
 		std::span<SceneDataProvider*> sceneDataProviders)
 	{
-		if (framebuffers.size() == 0)
-		{
-			CocoError("No framebuffers were given. Please provide at least 1 framebuffer to render with")
-			return false;
-		}
-
-		if (pipeline.GetRenderPassCount() == 0)
+		const CompiledRenderPipeline* compiledPipeline = nullptr;
+		if (!TryCompilePipeline(pipeline, compiledPipeline))
 			return false;
 
 		SizeInt framebufferSize;
-
+		
 		for (size_t i = 0; i < framebuffers.size(); i++)
 		{
 			if (!framebuffers[i].IsValid())
@@ -149,9 +98,9 @@ namespace Coco::Rendering
 				CocoError("Framebuffer {} was invalid")
 				return false;
 			}
-
-			const ImageDescription desc = framebuffers[i]->GetDescription();
-
+		
+			const ImageDescription& desc = framebuffers[i]->GetDescription();
+		
 			if (i == 0)
 			{
 				framebufferSize = SizeInt(desc.Width, desc.Height);
@@ -163,21 +112,8 @@ namespace Coco::Rendering
 			}
 		}
 
-		if (!pipeline.Compile())
-		{
-			CocoError("RenderPipeline failed to compile")
-			return false;
-		}
-
-		const CompiledRenderPipeline& compiledPipeline = pipeline.GetCompiledPipeline();
-		SharedRef<RenderView> renderView = GetRenderView(rendererID, framebuffers, framebufferSize, compiledPipeline, renderViewProvider, sceneDataProviders);
-
-		return _currentFrameTasks.QueueTask(rendererID, renderView, compiledPipeline);
-	}
-
-	void RenderService::SetGizmoRendering(bool renderGizmos)
-	{
-		_renderGizmos = renderGizmos;
+		SharedRef<RenderFrame> currentFrame = EnsureRenderFrame();
+		return currentFrame->Render(rendererID, framebuffers, framebufferSize, *compiledPipeline, renderViewDataProvider, sceneDataProviders);
 	}
 
 	void RenderService::SetMaxFramesInFlight(uint32 framesInFlight)
@@ -186,31 +122,12 @@ namespace Coco::Rendering
 		OnMaxFramesInFlightChanged.Invoke(_maxFramesInFlight);
 	}
 
-	SharedRef<RenderView> RenderService::GetRenderView(
-		uint64 rendererID,
-		std::span<Ref<Image>> framebuffers, 
-		const SizeInt& framebufferSize,
-		const CompiledRenderPipeline& compiledPipeline,
-		RenderViewProvider& renderViewProvider, 
-		std::span<SceneDataProvider*> sceneDataProviders)
+	void RenderService::RegisterResourceSerializers()
 	{
-		SharedRef<RenderView> renderView = _renderViewPool.Get();
-		renderView->Reset();
-		renderViewProvider.SetupRenderView(*renderView, compiledPipeline, rendererID, framebufferSize, framebuffers);
-
-		// Get the scene data
-		for (SceneDataProvider* provider : sceneDataProviders)
-		{
-			if (!provider)
-				continue;
-
-			provider->GatherSceneData(*renderView);
-		}
-
-		if (_gizmoRender && _renderGizmos)
-			_gizmoRender->GatherSceneData(*renderView);
-
-		return renderView;
+		ResourceSerializerFactory::Register<MaterialSerializer>("Material");
+		ResourceSerializerFactory::Register<ShaderSerializer>("Shader");
+		ResourceSerializerFactory::Register<TextureSerializer>("Texture");
+		ResourceSerializerFactory::Register<MeshSerializer>("Mesh");
 	}
 
 	void RenderService::CreateDefaultDiffuseTexture()
@@ -219,8 +136,8 @@ namespace Coco::Rendering
 		constexpr uint8 channels = 4;
 
 		_defaultDiffuseTexture = Engine::Get()->GetResourceLibrary().Create<Texture>(
-			"Default Diffuse Texture",
-			ImageDescription(size, size, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled, false),
+			ResourceID("RenderService::DefaultDiffuseTexture"),
+			ImageDescription::Create2D(size, size, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled, false),
 			ImageSamplerDescription::LinearRepeat
 		);
 
@@ -242,8 +159,8 @@ namespace Coco::Rendering
 		constexpr uint8 channels = 4;
 
 		_defaultNormalTexture = Engine::Get()->GetResourceLibrary().Create<Texture>(
-			"Default Normal Texture",
-			ImageDescription(size, size, ImagePixelFormat::RGBA8, ImageColorSpace::Linear, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled, false),
+			ResourceID("RenderService::DefaultNormalTexture"),
+			ImageDescription::Create2D(size, size, ImagePixelFormat::RGBA8, ImageColorSpace::Linear, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled, false),
 			ImageSamplerDescription::LinearRepeat
 		);
 
@@ -268,8 +185,8 @@ namespace Coco::Rendering
 		constexpr uint8 channels = 4;
 
 		_defaultCheckerTexture = Engine::Get()->GetResourceLibrary().Create<Texture>(
-			"Default Checker Texture",
-			ImageDescription(size, size, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled, false),
+			ResourceID("RenderService::DefaultCheckerTexture"),
+			ImageDescription::Create2D(size, size, ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageUsageFlags::TransferDestination | ImageUsageFlags::Sampled, false),
 			ImageSamplerDescription::NearestRepeat
 		);
 
@@ -284,16 +201,6 @@ namespace Coco::Rendering
 				pixelData[baseIndex + 1] = (y % 2) ? 255 : 0;
 				pixelData[baseIndex + 2] = ((x + y) % 2) ? 255 : 0;
 				pixelData[baseIndex + 3] = 255;
-				//pixelData[baseIndex + 0] = 255;
-				//pixelData[baseIndex + 1] = 255;
-				//pixelData[baseIndex + 2] = 255;
-				//pixelData[baseIndex + 3] = 255;
-				//
-				//if (((x % 2) && (y % 2)) || !(y % 2))
-				//{
-				//	pixelData[baseIndex + 1] = 0; // Green = 0
-				//	pixelData[baseIndex + 2] = 0; // Red = 0
-				//}
 			}
 		}
 
@@ -302,24 +209,42 @@ namespace Coco::Rendering
 		CocoTrace("Created default checker texture");
 	}
 
+	bool RenderService::TryCompilePipeline(RenderPipeline& pipeline, const CompiledRenderPipeline*& outCompiledPipeline)
+	{
+		if (pipeline.GetRenderPassBindings().size() == 0)
+			return false;
+
+		try
+		{
+			outCompiledPipeline = &pipeline.GetOrCompile();
+			return true;
+		}
+		catch (const RenderPipelineCompileException& ex)
+		{
+			CocoError("RenderPipeline \"{}\" failed to compile: {}", pipeline.GetID().ToString(), ex.what())
+			return false;
+		}
+	}
+
 	void RenderService::CreateErrorShader()
 	{
 		_errorShader = Engine::Get()->GetResourceLibrary().Create<Shader>(
-			sErrorShaderName,
-			std::vector<ShaderStage>({
+			ResourceID("RenderService::ErrorShader"),
+			ErrorShaderName,
+			std::initializer_list<ShaderStage>({
 				ShaderStage("main", ShaderStageType::Vertex, "shaders/built-in/Error.vert.glsl"),
 				ShaderStage("main", ShaderStageType::Fragment, "shaders/built-in/Error.frag.glsl")
-			}),
+				}),
 			GraphicsPipelineState(),
-			std::vector<BlendState>({
-				BlendState::Opaque
-			}),
+			std::initializer_list<AttachmentBlendState>({
+				AttachmentBlendState::Opaque
+				}),
 			VertexDataFormat(),
-			GlobalShaderUniformLayout(),
-			ShaderUniformLayout(),
+			ShaderUniformLayout::Empty,
+			ShaderUniformLayout::Empty,
 			ShaderUniformLayout(
 				{
-					ShaderUniform("ModelMatrix", ShaderUniformType::Mat4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity)
+					ShaderUniform("ModelMatrix", ShaderUniformType::Matrix4x4, ShaderStageFlags::Vertex, Matrix4x4::Identity)
 				}
 			)
 		);
@@ -327,29 +252,28 @@ namespace Coco::Rendering
 
 	void RenderService::HandleEarlyTick(const TickInfo& tickInfo)
 	{
-		//Stopwatch waitForRenderSyncStopwatch(true);
-		//
-		//for (auto it = _renderTasks.begin(); it != _renderTasks.end(); it++)
-		//{
-		//	std::vector<RenderServiceRenderTask>& tasks = it->second;
-		//
-		//	if (tasks.size() == 0)
-		//		continue;
-		//
-		//	RenderServiceRenderTask& lastTask = tasks.back();
-		//	if (lastTask.Context.IsValid())
-		//		lastTask.Context->WaitForRenderingToComplete();
-		//}
-		//
-		//_stats.RenderSyncWait = waitForRenderSyncStopwatch.Stop();
+		_attachmentCache->PurgeUnusedAttachments();
 	}
 
 	void RenderService::HandleLateTick(const TickInfo& tickInfo)
 	{
-		_currentFrameTasks.Execute(*_contextPool);
-		_lastFrameStats = _currentFrameTasks.GetStats();
+ 		_device->EndRenderFrame();
+	}
 
-		_device->ResetForNewFrame();
-		_currentFrameTasks = FrameRenderTasks(tickInfo.TickNumber + 1);
+	SharedRef<RenderFrame> RenderService::EnsureRenderFrame()
+	{
+		SharedRef<RenderFrame> current = _device->GetCurrentRenderFrame();
+		if (current)
+			return current;
+
+		if (_framesInFlight.size() >= _maxFramesInFlight)
+		{
+			auto it = _framesInFlight.begin();
+			SharedRef<RenderFrame> renderFrame = *it;
+			renderFrame->WaitForRenderToComplete();
+			_framesInFlight.erase(it);
+		}
+
+		return _framesInFlight.emplace_back(_device->StartNewRenderFrame());
 	}
 }

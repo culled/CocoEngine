@@ -15,10 +15,14 @@ namespace Coco
 		_platform(platformFactory.Create()),
 		_log(CreateUniqueRef<Log>("Coco", LogMessageSeverity::Info))
 	{
+		Assert(_platform)
+		Assert(_log)
+
 		SetupFromProcessArguments();
 
 		_mainLoop = CreateUniqueRef<MainLoop>();
 		_resourceLibrary = CreateUniqueRef<ResourceLibrary>();
+		_assetManager = CreateUniqueRef<AssetManager>();
 		_serviceManager = CreateUniqueRef<ServiceManager>();
 
 		try
@@ -27,18 +31,23 @@ namespace Coco
 		}
 		catch (const std::exception& ex)
 		{
-			SetExitCode(-1);
-			LogCritical(_log, "Error creating application: {}", ex.what())
-			_platform->ShowMessageBox("Error Creating Application", ex.what(), true);
-			DebuggerBreak
+			Crash(FormatString("Error creating application: {}", ex.what()));
+		}
+		catch (...)
+		{
+			Crash("Unknown error creating application");
 		}
 
-		LogTrace(_log, "Engine initialized")
+		if (_exitCode != -1)
+		{
+			LogTrace(_log, "Engine initialized")
+		}
 	}
 
 	Engine::~Engine()
 	{
 		_app.reset();
+		_assetManager.reset();
 		_serviceManager.reset();
 		_resourceLibrary.reset();
 		_mainLoop.reset();
@@ -63,13 +72,17 @@ namespace Coco
 		{
 			_app->Start();
 			_mainLoop->Run();
-			return _exitCode;
+		}
+		catch (const std::exception& ex)
+		{
+			Crash(ex);
 		}
 		catch (...)
 		{
-			CrashWithException();
-			return -1;
+			Crash("Unknown runtime error");
 		}
+
+		return _exitCode;
 	}
 
 	void Engine::SetExitCode(int code)
@@ -77,27 +90,38 @@ namespace Coco
 		_exitCode = code;
 	}
 
-	void Engine::CrashWithException()
+	void Engine::Crash(const string& error)
 	{
-		try
-		{
-			throw;
-		}
-		catch (const std::exception& ex)
-		{
-			LogCritical(_log, "Uncaught runtime exception: {}", ex.what())
-			_platform->ShowMessageBox("Uncaught Runtime Exception", ex.what(), true);
-			DebuggerBreak
-		}
+		LogCritical(_log, "Critical Runtime Error: {}", error)
+		_platform->ShowMessageBox("Critical Runtime Error", error.c_str(), true);
+		DebuggerBreak
+
+		SetExitCode(-1);
+		_mainLoop->Stop();
+
+		// *Pulls out the knife*
+		abort();
+	}
+
+	void Engine::Crash(const std::exception& ex)
+	{
+		Crash(ex.what());
 	}
 
 	void Engine::SetupFromProcessArguments()
 	{
 		if (_platform->HasProcessArgument(sShowConsoleArgument))
 		{
-			_platform->ShowConsoleWindow(true);
+			try
+			{
+				_platform->ShowConsoleWindow(true);
 
-			_log->AddSink(CreateSharedRef<ConsoleLogSink>());
+				_log->AddSink(CreateSharedRef<ConsoleLogSink>());
+			}
+			catch (const std::exception& ex)
+			{
+				CocoError("Failed to create console log: {}", ex.what())
+			}
 		}
 
 		FilePath contentPath;
@@ -111,6 +135,8 @@ namespace Coco
 			contentPath = FilePath::CombineToPath(FilePath::GetCurrentWorkingDirectoryPath(), sDefaultContentPath);
 		}
 
+		// TODO: temporary! We should figure out which file system to use based on the environment we're running in
 		_fileSystem = CreateUniqueRef<UnpackedEngineFileSystem>(contentPath);
+		CocoAssert(_fileSystem, "File system could not be created")
 	}
 }

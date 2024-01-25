@@ -4,23 +4,22 @@
 #include "Components/EntityInfoComponent.h"
 
 #include <Coco/Core/Engine.h>
+#include "entt.h"
 
 namespace Coco::ECS
 {
 	const Entity Entity::Null = Entity();
 
-	Entity::Entity(entt::entity handle, SharedRef<Scene> scene) :
-		_handle(handle),
-		_scene(scene)
-	{}
-
 	Entity::Entity() :
-		Entity(entt::null, nullptr)
+		_handle(entt::null)
 	{}
 
-	Entity::Entity(const Entity & other) :
-		_handle(other._handle),
-		_scene(other._scene)
+	Entity::Entity(const Entity& other) :
+		_handle(other._handle)
+	{}
+
+	Entity::Entity(entt::entity handle) :
+		_handle(handle)
 	{}
 
 	bool Entity::operator==(const Entity& other) const
@@ -29,122 +28,46 @@ namespace Coco::ECS
 			return false;
 
 		// Same handle, so check if both are null handles
-		if (_handle == entt::null)
-			return true;
-
-		// Can't be the same if one's scene has expired
-		if (_scene.expired() != other._scene.expired())
-			return false;
-
-		if (_scene.expired() && other._scene.expired())
-			return true;
-
-		return _scene.lock() == other._scene.lock();
+		return _handle == entt::null;
 	}
 
 	bool Entity::IsValid() const
 	{
-		if (_scene.expired())
-			return false;
-
-		SharedRef<Scene> s = _scene.lock();
-		return s->_registry.valid(_handle);
+		return ECSService::Get()->IsEntityValid(*this);
 	}
 
-	const EntityID& Entity::GetID() const
+	void Entity::SetParent(const Entity& parent)
 	{
-		return GetComponent<EntityInfoComponent>().GetEntityID();
+		ECSService::Get()->SetEntityParent(*this, parent);
 	}
 
-	SharedRef<Scene> Entity::GetScene() const
+	void Entity::ClearParent()
 	{
-		return _scene.expired() ? nullptr : _scene.lock();
+		ECSService::Get()->ClearEntityParent(*this);
+	}
+
+	std::vector<Entity> Entity::GetChildren() const
+	{
+		return ECSService::Get()->GetEntityChildren(*this);
+	}
+
+	Entity Entity::GetParent() const
+	{
+		return ECSService::Get()->GetEntityParent(*this);
+	}
+
+	bool Entity::IsOrphaned() const
+	{
+		return ECSService::Get()->IsEntityOrphaned(*this);
+	}
+
+	bool Entity::IsDecendentOf(const Entity& ancestor) const
+	{
+		return ECSService::Get()->IsEntityDescendentOf(*this, ancestor);
 	}
 
 	bool Entity::IsActiveInHierarchy() const
 	{
 		return GetComponent<EntityInfoComponent>().IsActiveInHierarchy();
-	}
-
-	void Entity::SetParent(const Entity& parent)
-	{
-		Assert(IsValid())
-		Assert(parent.IsValid())
-
-		SharedRef<Scene> scene = _scene.lock();
-		Assert(parent._scene.lock() == scene)
-
-		if (parent.IsDescendentOf(*this))
-		{
-			CocoError("Cannot parent entity as it would make a circular hierarchy")
-			return;
-		}
-
-		scene->ReparentEntity(GetID(), parent.GetID());
-	}
-
-	bool Entity::HasParent() const
-	{
-		Assert(IsValid())
-
-		SharedRef<Scene> scene = _scene.lock();
-		return scene->_entityParentMap.contains(GetID());
-	}
-
-	void Entity::ClearParent()
-	{
-		Assert(IsValid())
-
-		SharedRef<Scene> scene = _scene.lock();
-		scene->ReparentEntity(GetID(), InvalidEntityID);
-	}
-
-	bool Entity::IsDescendentOf(const Entity& ancestor) const
-	{
-		Assert(IsValid())
-		Assert(ancestor.IsValid())
-
-		if (ancestor == *this)
-			return true;
-
-		if (!HasParent())
-			return false;
-
-		return GetParent().IsDescendentOf(ancestor);
-	}
-
-	Entity Entity::GetParent() const
-	{
-		Assert(IsValid())
-
-		SharedRef<Scene> scene = _scene.lock();
-		auto it = scene->_entityParentMap.find(GetID());
-		
-		if (it == scene->_entityParentMap.end())
-			return Entity::Null;
-
-		Entity parent;
-		Assert(scene->TryGetEntity(it->second, parent))
-		return parent;
-	}
-
-	std::vector<Entity> Entity::GetChildren() const
-	{
-		Assert(IsValid())
-
-		std::vector<Entity> children;
-		SharedRef<Scene> scene = _scene.lock();
-		EntityID id = GetID();
-
-		for (const auto& kvp : scene->_entityParentMap)
-		{
-			if (kvp.second != id)
-				continue;
-
-			Entity& child = children.emplace_back();
-			Assert(scene->TryGetEntity(kvp.first, child))
-		}
-
-		return children;
 	}
 }

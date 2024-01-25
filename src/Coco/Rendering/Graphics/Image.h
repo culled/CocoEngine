@@ -1,20 +1,20 @@
 #pragma once
 
-#include "../Renderpch.h"
+#include "GraphicsResource.h"
 #include "ImageTypes.h"
-#include <Coco/Core/Types/Vector.h>
 
 namespace Coco::Rendering
 {
-	/// @brief A raw image for a GraphicsDevice
-	class Image
+	/// @brief An image that holds pixel data
+	class Image :
+		public GraphicsResource
 	{
 	public:
 		virtual ~Image() = default;
 
 		/// @brief Gets this image's description
-		/// @return This image's description
-		virtual ImageDescription GetDescription() const = 0;
+		/// @return The ImageDescription
+		virtual const ImageDescription& GetDescription() const = 0;
 
 		/// @brief Gets the size of this image's data, in bytes
 		/// @return The size of this image's data
@@ -36,22 +36,7 @@ namespace Coco::Rendering
 			SetPixels(offset, data.data(), data.size() * sizeof(DataType));
 		}
 
-		/// @brief Gets the value of a pixel at the given position
-		/// @param pixelCoords The coordinates of the pixel
-		/// @param outData The destination for the pixel data copy. This should match the expected pixel data type
-		/// @param dataSize The size of the outData structure
-		virtual void ReadPixel(const Vector2Int& pixelCoords, void* outData, size_t dataSize) = 0;
-
-		/// @brief Gets the value of a pixel at the given position 
-		/// @tparam DataType The type of pixel data
-		/// @param pixelCoords The coordinates of the pixel
-		/// @return The pixel value
-		template<typename DataType>
-		DataType ReadPixel(const Vector2Int& pixelCoords)
-		{
-			DataType r{};
-			ReadPixel(pixelCoords, &r, sizeof(DataType));
-			return r;
-		}
+	protected:
+		Image(const GraphicsResourceID& id);
 	};
 }

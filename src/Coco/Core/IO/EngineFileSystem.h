@@ -13,8 +13,9 @@ namespace Coco
 		/// @brief Opens a file at the given content path
 		/// @param contentPath The content path
 		/// @param openFlags The flags to open the file with
+		/// @param createIfNonexistent If true, the file will be created if it doesn't exist
 		/// @return The opened file
-		virtual File OpenFile(const FilePath& contentPath, FileOpenFlags openFlags) = 0;
+		virtual File OpenFile(const FilePath& contentPath, FileOpenFlags openFlags, bool createIfNonexistent = false) = 0;
 
 		/// @brief Checks if a file exists in this file system
 		/// @param contentPath The content path

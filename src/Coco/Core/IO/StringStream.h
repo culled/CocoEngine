@@ -7,10 +7,6 @@ namespace Coco
 	/// @brief A stream that can read from and write to a string
 	class StringStream : public InputTextStream, public OutputTextStream
 	{
-	private:
-		std::stringstream _stream;
-		uint64 _position;
-
 	public:
 		StringStream(const string& str);
 
@@ -25,6 +21,10 @@ namespace Coco
 		void Flush() final;
 
 		string ToString();
+
+	private:
+		std::stringstream _stream;
+		uint64 _position;
 
 	private:
 		/// @brief Synchronises this streams's state with the underlying state

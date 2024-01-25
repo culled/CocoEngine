@@ -18,7 +18,7 @@ namespace Coco::Rendering
 		Float2,
 		Float3,
 		Float4,
-		Mat4x4,
+		Matrix4x4,
 		Int,
 		Int2,
 		Int3,
@@ -44,22 +44,27 @@ namespace Coco::Rendering
 	/// @brief Types of buffer usage
 	enum class BufferUsageFlags
 	{
-		None				= 0,
-		TransferSource		= 1 << 0,
+		None = 0,
+		TransferSource = 1 << 0,
 		TransferDestination = 1 << 1,
-		Uniform				= 1 << 2,
-		UniformTexel		= 1 << 3,
-		Storage				= 1 << 4,
-		StorageTexel		= 1 << 5,
-		Index				= 1 << 6,
-		Vertex				= 1 << 7,
-		Indirect			= 1 << 8,
-		HostVisible			= 1 << 9,
+		Uniform = 1 << 2,
+		UniformTexel = 1 << 3,
+		Storage = 1 << 4,
+		StorageTexel = 1 << 5,
+		Index = 1 << 6,
+		Vertex = 1 << 7,
+		Indirect = 1 << 8,
+		HostVisible = 1 << 9,
 	};
 
-	constexpr BufferUsageFlags operator|(BufferUsageFlags a, BufferUsageFlags b) { return static_cast<BufferUsageFlags>(static_cast<int>(a) | static_cast<int>(b)); }
-	constexpr BufferUsageFlags operator&(BufferUsageFlags a, BufferUsageFlags b) { return static_cast<BufferUsageFlags>(static_cast<int>(a) & static_cast<int>(b)); }
+	DefineFlagOperators(BufferUsageFlags)
 
-	constexpr void operator|=(BufferUsageFlags& a, BufferUsageFlags b) { a = a | b; }
-	constexpr void operator&=(BufferUsageFlags& a, BufferUsageFlags b) { a = a & b; }
+	/// @brief Pads out an offset to align with a given alignment
+	/// @param originalOffset The original offset
+	/// @param alignment The desired alignment
+	/// @return An adjusted offset that respects the given alignment
+	constexpr uint64 GetOffsetForAlignment(uint64 originalOffset, uint64 alignment)
+	{
+		return alignment > 0 ? (originalOffset + alignment - 1) & ~(alignment - 1) : alignment;
+	}
 }

@@ -4,34 +4,18 @@
 
 namespace Coco
 {
-	const ResourceID Resource::InvalidID = Math::MaxValue<ResourceID>();
-
-	Resource::Resource(const ResourceID& id, const string& name) :
+	Resource::Resource(const ResourceID& id) :
 		_id(id),
-		_name(name),
-		_version(0),
-		_contentPath(),
-		_savedVersion(0)
+		_version(0)
 	{}
-
-	void Resource::SetName(const string& name)
-	{
-		_name = name;
-	}
-
-	bool Resource::NeedsSaving() const
-	{
-		return _contentPath.IsEmpty() || _version != _savedVersion;
-	}
 
 	void Resource::SetVersion(const ResourceVersion& version)
 	{
 		_version = version;
 	}
 
-	void Resource::MarkSaved(const FilePath& contentPath)
+	void Resource::IncrementVersion()
 	{
-		_contentPath = contentPath;
-		_savedVersion = _version;
+		_version++;
 	}
 }

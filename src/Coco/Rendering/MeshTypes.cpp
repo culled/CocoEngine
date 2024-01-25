@@ -1,6 +1,5 @@
 #include "Renderpch.h"
 #include "MeshTypes.h"
-#include "Graphics/BufferTypes.h"
 
 namespace Coco::Rendering
 {
@@ -11,11 +10,6 @@ namespace Coco::Rendering
 	VertexDataFormat::VertexDataFormat(VertexAttrFlags additionalAttributes) :
 		AdditionalAttributes(additionalAttributes)
 	{}
-
-	bool VertexDataFormat::operator==(const VertexDataFormat & other) const
-	{
-		return AdditionalAttributes == other.AdditionalAttributes;
-	}
 
 	uint64 VertexDataFormat::GetDataSize(uint64 vertexCount) const
 	{
@@ -65,7 +59,7 @@ namespace Coco::Rendering
 		}
 	}
 
-	const uint16 VertexData::MaxVertexSize = 
+	const uint16 VertexData::MaxVertexSize =
 		GetBufferDataTypeSize(BufferDataType::Float3) + // Position
 		GetBufferDataTypeSize(BufferDataType::Float3) + // Normal
 		GetBufferDataTypeSize(BufferDataType::Float4) + // Color
@@ -84,15 +78,26 @@ namespace Coco::Rendering
 		UV0(Vector2::Zero)
 	{}
 
-	std::vector<uint8> GetVertexData(const VertexDataFormat& format, std::span<VertexData> data)
+	Submesh::Submesh() :
+		Submesh(0, 0)
+	{}
+
+	Submesh::Submesh(uint64 indexOffset, uint64 indexCount) :
+		IndexOffset(indexOffset),
+		IndexCount(indexCount)
+	{}
+
+	std::vector<uint8> GetVertexBufferData(const VertexDataFormat& format, std::span<const VertexData> vertices)
 	{
-		std::vector<uint8> vertexData(format.GetDataSize(data.size()));
+		std::vector<uint8> vertexData(format.GetDataSize(vertices.size()));
 
 		std::vector<float> temp(VertexData::MaxVertexSize);
 		uint64 index = 0;
-		for (size_t i = 0; i < data.size(); i++)
+
+		// Store vertex positions first
+		for (size_t i = 0; i < vertices.size(); i++)
 		{
-			const VertexData& vertex = data[i];
+			const VertexData& vertex = vertices[i];
 
 			temp[0] = static_cast<float>(vertex.Position.X);
 			temp[1] = static_cast<float>(vertex.Position.Y);
@@ -103,12 +108,13 @@ namespace Coco::Rendering
 			index += size;
 		}
 
+		// Now interleave the additional vertex data
 		if (format.AdditionalAttributes != VertexAttrFlags::None)
 		{
-			for (size_t i = 0; i < data.size(); i++)
+			for (size_t i = 0; i < vertices.size(); i++)
 			{
 				uint16 p = 0;
-				const VertexData& vertex = data[i];
+				const VertexData& vertex = vertices[i];
 
 				if ((format.AdditionalAttributes & VertexAttrFlags::Normal) == VertexAttrFlags::Normal)
 				{
@@ -149,5 +155,39 @@ namespace Coco::Rendering
 		}
 
 		return vertexData;
+	}
+
+	BoundingBox CalculateBounds(std::span<const VertexData> vertices)
+	{
+		std::vector<uint32> indices;
+		indices.reserve(vertices.size());
+
+		for (uint32 i = 0; i < vertices.size(); ++i)
+			indices.push_back(i);
+
+		return CalculateBounds(vertices, indices);
+	}
+
+	BoundingBox CalculateBounds(std::span<const VertexData> vertices, std::span<const uint32> indices)
+	{
+		BoundingBox bounds;
+
+		bool first = true;
+		for (const uint32& i : indices)
+		{
+			const VertexData& v = vertices[i];
+
+			if (first)
+			{
+				bounds = BoundingBox(v.Position, v.Position);
+				first = false;
+			}
+			else
+			{
+				bounds.Expand(v.Position);
+			}
+		}
+
+		return bounds;
 	}
 }

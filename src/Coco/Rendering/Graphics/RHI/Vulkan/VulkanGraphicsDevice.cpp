@@ -1,324 +1,30 @@
 #include "Renderpch.h"
 #include "VulkanGraphicsDevice.h"
-#include "VulkanGraphicsPresenter.h"
+#include "VulkanGraphicsPlatform.h"
+#include "VulkanGraphicsPlatformFactory.h"
+#include "VulkanPresenter.h"
 #include "VulkanBuffer.h"
 #include "VulkanImage.h"
 #include "VulkanImageSampler.h"
 #include "VulkanRenderContext.h"
-#include "../../GraphicsDeviceResource.h"
 
-#include <Coco/Core/Core.h>
 #include <Coco/Core/Engine.h>
 #include "VulkanUtils.h"
 
 namespace Coco::Rendering::Vulkan
 {
-	VulkanGraphicsDeviceFeatures::VulkanGraphicsDeviceFeatures() :
-		MaxPushConstantSize(0)
+	VkPhysicalDeviceQueueFamilyInfo::VkPhysicalDeviceQueueFamilyInfo() :
+		GraphicsQueueFamily(),
+		TransferQueueFamily(),
+		ComputeQueueFamily()
 	{}
 
-	PhysicalDeviceRanking::PhysicalDeviceRanking(VkPhysicalDevice device, int score) :
-		Device(device), Score(score)
-	{}
-
-	PhysicalDeviceQueueFamilyInfo::PhysicalDeviceQueueFamilyInfo() :
-		GraphicsQueueFamily{},
-		TransferQueueFamily{},
-		ComputeQueueFamily{}
-	{}
-
-	DeviceQueue::DeviceQueue(VulkanGraphicsDevice& device, Type type, uint8 familyIndex, VkQueue queue) :
-		QueueType(type),
-		FamilyIndex(familyIndex),
-		Queue(queue),
-		Pool(device, queue, familyIndex)
-	{}
-
-	const double VulkanGraphicsDevice::sPurgePeriod = 5.0;
-
-	VulkanGraphicsDevice::VulkanGraphicsDevice(VkInstance instance, const GraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice) :
-		_instance(instance),
-		_physicalDevice(physicalDevice),
-		_device(nullptr),
-		_features{},
-		_vulkanFeatures{},
-		_graphicsQueue(nullptr),
-		_transferQueue(nullptr),
-		_computeQueue(nullptr),
-		_presentQueue(nullptr),
-		_shaderCache(CreateUniqueRef<VulkanShaderCache>()),
-		_resources{},
-		_lastPurgeTime(0.0)
+	VkPhysicalDeviceQueueFamilyInfo VkPhysicalDeviceQueueFamilyInfo::GetInfo(VkPhysicalDevice physicalDevice)
 	{
-		GetPhysicalDeviceProperties();
-		CreateLogicalDevice(createParams);
-
-		_cache = CreateUniqueRef<VulkanGraphicsDeviceCache>(*this);
-
-		CocoInfo("Using Vulkan on {} - Driver version {}, API version {}",
-			_name,
-			_driverVersion.ToString(),
-			_apiVersion.ToString()
-		)
-
-		CocoTrace("Created VulkanGraphicsDevice")
-	}
-
-	VulkanGraphicsDevice::~VulkanGraphicsDevice()
-	{
-		WaitForIdle();
-
-		_cache.reset();
-		_shaderCache.reset();
-
-		_graphicsQueue.reset();
-		_transferQueue.reset();
-		_computeQueue.reset();
-		_presentQueue = nullptr;
-
-		CocoTrace("Destroying {} graphics resources", _resources.GetCount())
-		_resources.Clear();
-
-		if (_device)
-		{
-			vkDestroyDevice(_device, GetAllocationCallbacks());
-			_device = nullptr;
-		}
-
-		_physicalDevice = nullptr;
-
-		CocoTrace("Destroyed VulkanGraphicsDevice")
-	}
-
-	UniqueRef<VulkanGraphicsDevice> VulkanGraphicsDevice::Create(VkInstance instance, const GraphicsDeviceCreateParams& createParams)
-	{
-		VkPhysicalDevice device = PickPhysicalDevice(instance, createParams);
-
-		if (!device)
-		{
-			CocoCritical("Could not find a graphics device that satisfies the given creating requirements")
-				return nullptr;
-		}
-
-		return CreateUniqueRef<VulkanGraphicsDevice>(instance, createParams, device);
-	}
-
-	void VulkanGraphicsDevice::WaitForIdle() const
-	{
-		vkDeviceWaitIdle(_device);
-	}
-
-	uint8 VulkanGraphicsDevice::GetDataTypeAlignment(BufferDataType type) const
-	{
-		switch (type)
-		{
-		case BufferDataType::Float:
-			return BufferFloatSize;
-		case BufferDataType::Float2:
-			return BufferFloatSize * 2;
-		case BufferDataType::Float3:
-		case BufferDataType::Float4:
-			return BufferFloatSize * 4;
-		case BufferDataType::Int:
-			return BufferIntSize;
-		case BufferDataType::Int2:
-			return BufferIntSize * 2;
-		case BufferDataType::Int3:
-		case BufferDataType::Int4:
-			return BufferIntSize * 4;
-		case BufferDataType::Mat4x4:
-			return BufferFloatSize * 16;
-		default:
-			return 0;
-		}
-	}
-
-	void VulkanGraphicsDevice::AlignOffset(BufferDataType type, uint64& offset) const
-	{
-		offset = GetOffsetForAlignment(offset, GetDataTypeAlignment(type));
-	}
-
-	Ref<GraphicsPresenter> VulkanGraphicsDevice::CreatePresenter()
-	{
-		return _resources.Create<VulkanGraphicsPresenter>();
-	}
-
-	void VulkanGraphicsDevice::TryReleasePresenter(Ref<GraphicsPresenter>& presenter)
-	{
-		if (!presenter.IsValid())
-			return;
-
-		const VulkanGraphicsPresenter& vulkanPresenter = static_cast<const VulkanGraphicsPresenter&>(*presenter);
-		_resources.RemoveIfSingleOutsideUser(vulkanPresenter.ID);
-	}
-
-	Ref<Buffer> VulkanGraphicsDevice::CreateBuffer(uint64 size, BufferUsageFlags usageFlags, bool bind)
-	{
-		return _resources.Create<VulkanBuffer>(size, usageFlags, bind);
-	}
-
-	void VulkanGraphicsDevice::TryReleaseBuffer(Ref<Buffer>& buffer)
-	{
-		if (!buffer.IsValid())
-			return;
-
-		const VulkanBuffer& vulkanBuffer = static_cast<const VulkanBuffer&>(*buffer);
-		_resources.RemoveIfSingleOutsideUser(vulkanBuffer.ID);
-	}
-
-	Ref<Image> VulkanGraphicsDevice::CreateImage(const ImageDescription& description)
-	{
-		return _resources.Create<VulkanImage>(description);
-	}
-
-	void VulkanGraphicsDevice::TryReleaseImage(Ref<Image>& image)
-	{
-		if (!image.IsValid())
-			return;
-
-		const VulkanImage& vulkanImage = static_cast<const VulkanImage&>(*image);
-		_resources.RemoveIfSingleOutsideUser(vulkanImage.ID);
-	}
-
-	Ref<ImageSampler> VulkanGraphicsDevice::CreateImageSampler(const ImageSamplerDescription& description)
-	{
-		return _resources.Create<VulkanImageSampler>(description);
-	}
-
-	void VulkanGraphicsDevice::TryReleaseImageSampler(Ref<ImageSampler>& imageSampler)
-	{
-		if (!imageSampler.IsValid())
-			return;
-
-		const VulkanImageSampler& vulkanImageSampler = static_cast<const VulkanImageSampler&>(*imageSampler);
-		_resources.RemoveIfSingleOutsideUser(vulkanImageSampler.ID);
-	}
-
-	Ref<RenderContext> VulkanGraphicsDevice::CreateRenderContext()
-	{
-		return _resources.Create<VulkanRenderContext>();
-	}
-
-	void VulkanGraphicsDevice::TryReleaseRenderContext(Ref<RenderContext>& context)
-	{
-		if (!context.IsValid())
-			return;
-
-		const VulkanRenderContext& vulkanContext = static_cast<const VulkanRenderContext&>(*context);
-		_resources.RemoveIfSingleOutsideUser(vulkanContext.ID);
-	}
-
-	void VulkanGraphicsDevice::ResetForNewFrame()
-	{
-		_cache->ResetForNextFrame();
-		_shaderCache->ResetForNextFrame();
-
-		if (MainLoop::cGet()->GetCurrentTick().UnscaledTime - _lastPurgeTime > sPurgePeriod)
-			PurgeUnusedResources();
-	}
-
-	void VulkanGraphicsDevice::PurgeUnusedResources()
-	{
-		_resources.PurgeUnused();
-		_lastPurgeTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
-
-		//uint64 purgeCount = _resources.PurgeUnused();
-
-		//if (purgeCount)
-		//{
-		//	CocoTrace("Purged {} graphics resources", purgeCount)
-		//}
-	}
-
-	DeviceQueue* VulkanGraphicsDevice::GetQueue(DeviceQueue::Type queueType)
-	{
-		switch (queueType)
-		{
-		case DeviceQueue::Type::Graphics:
-			return _graphicsQueue.get();
-		case DeviceQueue::Type::Transfer:
-			return _transferQueue.get();
-		case DeviceQueue::Type::Compute:
-			return _computeQueue.get();
-		default:
-			return nullptr;
-		}
-	}
-
-	const DeviceQueue* VulkanGraphicsDevice::GetQueue(DeviceQueue::Type queueType) const
-	{
-		switch (queueType)
-		{
-		case DeviceQueue::Type::Graphics:
-			return _graphicsQueue.get();
-		case DeviceQueue::Type::Transfer:
-			return _transferQueue.get();
-		case DeviceQueue::Type::Compute:
-			return _computeQueue.get();
-		default:
-			return nullptr;
-		}
-	}
-
-	DeviceQueue* VulkanGraphicsDevice::GetOrCreatePresentQueue(VkSurfaceKHR surface)
-	{
-		if (_presentQueue)
-			return _presentQueue;
-
-		if (CheckQueuePresentSupport(surface, _graphicsQueue.get()))
-			_presentQueue = _graphicsQueue.get();
-		else if (CheckQueuePresentSupport(surface, _transferQueue.get()))
-			_presentQueue = _transferQueue.get();
-		else if (CheckQueuePresentSupport(surface, _computeQueue.get()))
-			_presentQueue = _computeQueue.get();
-
-		return _presentQueue;
-	}
-
-	bool VulkanGraphicsDevice::FindMemoryIndex(uint32 type, VkMemoryPropertyFlags memoryProperties, uint32& outIndex) const
-	{
-		VkPhysicalDeviceMemoryProperties deviceMemoryProperties{};
-		vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &deviceMemoryProperties);
-
-		for (uint32 i = 0; i < deviceMemoryProperties.memoryTypeCount; i++)
-		{
-			if (type & (1 << i) && (deviceMemoryProperties.memoryTypes[i].propertyFlags & memoryProperties) == memoryProperties)
-			{
-				outIndex = i;
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	void VulkanGraphicsDevice::WaitForQueueIdle(DeviceQueue::Type queueType) const
-	{
-		const DeviceQueue* queue = GetQueue(queueType);
-		VkResult result = VK_ERROR_UNKNOWN;
-
-		if (queue)
-		{
-			result = vkQueueWaitIdle(queue->Queue);
-		}
-
-		if (result != VK_SUCCESS)
-			WaitForIdle();
-	}
-
-	void VulkanGraphicsDevice::TryReleaseResource(const uint64& id)
-	{
-		_resources.RemoveIfSingleOutsideUser(id);
-	}
-
-	PhysicalDeviceQueueFamilyInfo VulkanGraphicsDevice::GetQueueFamilyInfo(VkPhysicalDevice device)
-	{
-		PhysicalDeviceQueueFamilyInfo info{};
-
 		uint32 queueFamilyCount;
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 		std::vector <VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilyProperties.data());
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilyProperties.data());
 
 		int graphicsIndex = -1;
 		int transferIndex = -1;
@@ -333,6 +39,7 @@ namespace Coco::Rendering::Vulkan
 			{
 				if (graphicsIndex == -1)
 					graphicsIndex = i;
+
 				transferScore++;
 			}
 
@@ -357,25 +64,277 @@ namespace Coco::Rendering::Vulkan
 			}
 		}
 
+		VkPhysicalDeviceQueueFamilyInfo info{};
+
 		if (graphicsIndex != -1)
-			info.GraphicsQueueFamily = graphicsIndex;
+			info.GraphicsQueueFamily = static_cast<uint32>(graphicsIndex);
 
 		if (transferIndex != -1)
-			info.TransferQueueFamily = transferIndex;
+			info.TransferQueueFamily = static_cast<uint32>(transferIndex);
 
 		if (computeIndex != -1)
-			info.ComputeQueueFamily = computeIndex;
+			info.ComputeQueueFamily = static_cast<uint32>(computeIndex);
 
 		return info;
 	}
 
-	int VulkanGraphicsDevice::CalculateDeviceScore(const VkPhysicalDevice& device, const GraphicsDeviceCreateParams& createParams)
-	{
-		int score = 0;
-		bool isMissingCriticalRequirement = false;
+	VulkanGraphicsDeviceFeatures::VulkanGraphicsDeviceFeatures() :
+		GraphicsDeviceFeatures(),
+		MaxPushConstantSize(0)
+	{}
 
+	std::atomic_uint64_t VulkanGraphicsDevice::_sNextResourceID = 0;
+	const double VulkanGraphicsDevice::ResourcePurgePeriod = 1.0;
+	const double VulkanGraphicsDevice::StaleResourceThreshold = 1.5;
+	const int VulkanGraphicsDevice::ResourcePurgeTickPriority = -200000;
+
+	VulkanGraphicsDevice::VulkanGraphicsDevice(const VulkanGraphicsPlatform& platform, const VulkanGraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice) :
+		_platform(platform),
+		_physicalDevice(physicalDevice),
+		_features(GetDeviceFeatures(physicalDevice)),
+		_purgeTickListener(CreateManagedRef<TickListener>(this, &VulkanGraphicsDevice::HandlePurgeTickListener, ResourcePurgeTickPriority)),
+		_graphicsQueue(nullptr),
+		_transferQueue(nullptr),
+		_computeQueue(nullptr),
+		_presentQueue(nullptr)
+	{
+		_purgeTickListener->SetTickPeriod(ResourcePurgePeriod);
+		MainLoop::Get()->AddTickListener(_purgeTickListener);
+
+		CreateDevice(createParams);
+
+		_cache = CreateUniqueRef<VulkanGraphicsDeviceCache>(*this);
+
+		CocoInfo("Using Vulkan on {} - Driver version {}, API version {}",
+			_features.Name,
+			_features.DriverVersion.ToString(),
+			platform.GetAPIVersion().ToString()
+		)
+
+		CocoTrace("Created VulkanGraphicsDevice")
+	}
+
+	VulkanGraphicsDevice::~VulkanGraphicsDevice()
+	{
+		WaitForIdle();
+
+		MainLoop::Get()->RemoveTickListener(_purgeTickListener);
+
+		_cache.reset();
+
+		if (_resources.size() > 0)
+		{
+			CocoTrace("Destroying {} GraphicsResource(s)", _resources.size())
+			_resources.clear();
+		}
+
+		_presentQueue = nullptr;
+		_graphicsQueue.reset();
+		_transferQueue.reset();
+		_computeQueue.reset();
+
+		DestroyDevice();
+
+		CocoTrace("Destroyed VulkanGraphicsDevice")
+	}
+
+	uint32 VulkanGraphicsDevice::GetDataTypeAlignment(BufferDataType type) const
+	{
+		switch (type)
+		{
+		case BufferDataType::Float:
+			return BufferFloatSize;
+		case BufferDataType::Float2:
+			return BufferFloatSize * 2;
+		case BufferDataType::Float3:
+		case BufferDataType::Float4:
+			return BufferFloatSize * 4;
+		case BufferDataType::Int:
+			return BufferIntSize;
+		case BufferDataType::Int2:
+			return BufferIntSize * 2;
+		case BufferDataType::Int3:
+		case BufferDataType::Int4:
+			return BufferIntSize * 4;
+		case BufferDataType::Matrix4x4:
+			return BufferFloatSize * 16;
+		default:
+			return 0;
+		}
+	}
+
+	Ref<Presenter> VulkanGraphicsDevice::CreatePresenter()
+	{
+		return CreateResource<VulkanPresenter>();
+	}
+
+	Ref<Buffer> VulkanGraphicsDevice::CreateBuffer(uint64 size, BufferUsageFlags usageFlags)
+	{
+		return CreateResource<VulkanBuffer>(size, usageFlags);
+	}
+
+	Ref<Image> VulkanGraphicsDevice::CreateImage(const ImageDescription& description)
+	{
+		return CreateResource<VulkanImage>(description);
+	}
+
+	Ref<ImageSampler> VulkanGraphicsDevice::CreateImageSampler(const ImageSamplerDescription& description)
+	{
+		return CreateResource<VulkanImageSampler>(description);
+	}
+
+	bool VulkanGraphicsDevice::TryReleaseResource(const GraphicsResourceID& resourceID)
+	{
+		auto it = _resources.find(resourceID);
+
+		if (it == _resources.end())
+			return false;
+
+		if (it->second.GetUseCount() > 2)
+			return false;
+
+		ManagedRef<GraphicsResource> resource = std::move(it->second);
+		_resources.erase(resourceID);
+		resource.Invalidate();
+		return true;
+	}
+
+	void VulkanGraphicsDevice::WaitForIdle()
+	{
+		AssertVkSuccess(vkDeviceWaitIdle(_device))
+	}
+
+	bool VulkanGraphicsDevice::PickPhysicalDevice(VkInstance instance, const VulkanGraphicsDeviceCreateParams& createParams, VkPhysicalDevice& outDevice)
+	{
+		using DeviceScorePair = std::pair<VkPhysicalDevice, int>;
+
+		uint32_t deviceCount;
+		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+		std::vector<VkPhysicalDevice> devices(deviceCount);
+		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+		if (deviceCount == 0)
+			return false;
+
+		std::vector<DeviceScorePair> deviceScores;
+
+		std::transform(devices.begin(), devices.end(),
+			std::back_inserter(deviceScores),
+			[createParams](const VkPhysicalDevice& device)
+			{
+				return std::make_pair(device, CalculateDeviceScore(device, createParams));
+			}
+		);
+
+		std::sort(deviceScores.begin(), deviceScores.end(),
+			[](const DeviceScorePair& a, const DeviceScorePair& b)
+			{
+				return a.second > b.second;
+			});
+
+		const DeviceScorePair& firstRank = deviceScores.front();
+
+		if (firstRank.second == -1)
+			return false;
+
+		outDevice = firstRank.first;
+		return true;
+	}
+
+	VkInstance VulkanGraphicsDevice::GetVulkanInstance() const
+	{
+		return _platform.GetVulkanInstance();
+	}
+
+	const VkAllocationCallbacks* VulkanGraphicsDevice::GetAllocationCallbacks() const
+	{
+		return _platform.GetAllocationCallbacks();
+	}
+
+	VulkanQueue* VulkanGraphicsDevice::GetQueue(VulkanQueueType queueType)
+	{
+		switch (queueType)
+		{
+		case VulkanQueueType::Graphics:
+			return _graphicsQueue.get();
+		case VulkanQueueType::Transfer:
+			return _transferQueue.get();
+		case VulkanQueueType::Compute:
+			return _computeQueue.get();
+		case VulkanQueueType::Present:
+			return _presentQueue;
+		default:
+			return nullptr;
+		}
+	}
+
+	VulkanQueue* VulkanGraphicsDevice::GetOrCreatePresentQueue(VkSurfaceKHR surface)
+	{
+		if (_presentQueue)
+			return _presentQueue;
+
+		if (CheckPresentQueueSupport(surface, _graphicsQueue.get()))
+			_presentQueue = _graphicsQueue.get();
+		else if (CheckPresentQueueSupport(surface, _transferQueue.get()))
+			_presentQueue = _transferQueue.get();
+		else if (CheckPresentQueueSupport(surface, _computeQueue.get()))
+			_presentQueue = _computeQueue.get();
+
+		return _presentQueue;
+	}
+
+	Ref<VulkanRenderContext> VulkanGraphicsDevice::CreateRenderContext()
+	{
+		return CreateResource<VulkanRenderContext>();
+	}
+
+	SharedRef<RenderFrame> VulkanGraphicsDevice::StartNewRenderFrame()
+	{
+		_currentRenderFrame = _cache->GetRenderFramePool().Get();
+		return _currentRenderFrame;
+	}
+
+	void VulkanGraphicsDevice::EndRenderFrame()
+	{
+		if (!_currentRenderFrame)
+			return;
+
+		_currentRenderFrame->SubmitRenderTasks();
+		_currentRenderFrame.reset();
+	}
+
+	VulkanGraphicsDeviceFeatures VulkanGraphicsDevice::GetDeviceFeatures(VkPhysicalDevice physicalDevice)
+	{
+		// Get basic device info
+		VkPhysicalDeviceProperties deviceProperties{};
+		vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+		VulkanGraphicsDeviceFeatures features{};
+
+		features.Name = string(&deviceProperties.deviceName[0]);
+		features.Type = ToGraphicsDeviceType(deviceProperties.deviceType);
+		features.DriverVersion = ToVersion(deviceProperties.driverVersion);
+
+		VkSampleCountFlags maxSamples = deviceProperties.limits.framebufferColorSampleCounts & deviceProperties.limits.framebufferDepthSampleCounts;
+		features.MaximumMSAASamples = ToMSAASamples(maxSamples);
+
+		features.MaxImageWidth = deviceProperties.limits.maxImageDimension1D;
+		features.MaxImageHeight = deviceProperties.limits.maxImageDimension2D;
+		features.MaxImageDepth = deviceProperties.limits.maxImageDimension3D;
+		features.MinimumBufferAlignment = static_cast<uint32>(deviceProperties.limits.minUniformBufferOffsetAlignment);
+		features.MaxAnisotropicLevel = static_cast<uint32>(deviceProperties.limits.maxSamplerAnisotropy);
+		features.MaxPushConstantSize = deviceProperties.limits.maxPushConstantsSize;
+
+		return features;
+	}
+
+	int VulkanGraphicsDevice::CalculateDeviceScore(const VkPhysicalDevice& device, const VulkanGraphicsDeviceCreateParams& createParams)
+	{
 		VkPhysicalDeviceProperties deviceProperties;
 		vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+		int score = 0;
+		bool isMissingCriticalRequirement = false;
 
 		// Check device type
 		if (ToGraphicsDeviceType(deviceProperties.deviceType) == createParams.PreferredDeviceType)
@@ -398,12 +357,12 @@ namespace Coco::Rendering::Vulkan
 		}
 
 		// Check device queues
-		const PhysicalDeviceQueueFamilyInfo queueFamilies = GetQueueFamilyInfo(device);
+		VkPhysicalDeviceQueueFamilyInfo queueFamilies = VkPhysicalDeviceQueueFamilyInfo::GetInfo(device);
 
 		// Check for a graphics queue
 		if (queueFamilies.GraphicsQueueFamily.has_value())
 			score++;
-		else if (createParams.RequireGraphicsCapability)
+		else
 			isMissingCriticalRequirement = true;
 
 		// Check for a transfer queue
@@ -426,7 +385,7 @@ namespace Coco::Rendering::Vulkan
 
 		std::vector<string> requiredExtensions;
 
-		if (createParams.SupportsPresentation)
+		if (createParams.PresentationSupport)
 			requiredExtensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
 		for (const string& requiredExtension : requiredExtensions)
@@ -446,38 +405,16 @@ namespace Coco::Rendering::Vulkan
 		return isMissingCriticalRequirement ? -1 : score;
 	}
 
-	VkPhysicalDevice VulkanGraphicsDevice::PickPhysicalDevice(const VkInstance& instance, const GraphicsDeviceCreateParams& createParams)
+	GraphicsResourceID VulkanGraphicsDevice::GetNewResourceID()
 	{
-		uint32_t deviceCount;
-		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-
-		std::vector<PhysicalDeviceRanking> deviceRankings;
-		deviceRankings.reserve(devices.size());
-
-		std::transform(devices.begin(), devices.end(),
-			std::back_inserter(deviceRankings),
-			[createParams](const VkPhysicalDevice& device) { return PhysicalDeviceRanking(device, CalculateDeviceScore(device, createParams)); }
-		);
-
-		std::sort(deviceRankings.begin(), deviceRankings.end(), [](const PhysicalDeviceRanking& a, const PhysicalDeviceRanking& b) {
-			return a.Score > b.Score;
-			});
-
-		const PhysicalDeviceRanking& firstRank = deviceRankings[0];
-
-		if (firstRank.Score == -1)
-			throw std::exception("No suitable graphics device found");
-
-		return firstRank.Device;
+		return _sNextResourceID++;
 	}
 
-	void VulkanGraphicsDevice::CreateLogicalDevice(const GraphicsDeviceCreateParams& createParams)
+	void VulkanGraphicsDevice::CreateDevice(const VulkanGraphicsDeviceCreateParams& createParams)
 	{
 		// Create unique queues
-		PhysicalDeviceQueueFamilyInfo queueFamilies = GetQueueFamilyInfo(_physicalDevice);
-		std::set<int> uniqueQueueFamilies;
+		VkPhysicalDeviceQueueFamilyInfo queueFamilies = VkPhysicalDeviceQueueFamilyInfo::GetInfo(_physicalDevice);
+		std::set<uint32> uniqueQueueFamilies;
 
 		if (queueFamilies.GraphicsQueueFamily.has_value())
 			uniqueQueueFamilies.insert(queueFamilies.GraphicsQueueFamily.value());
@@ -492,18 +429,18 @@ namespace Coco::Rendering::Vulkan
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 
-		for (const int& queueFamily : uniqueQueueFamilies)
+		for (const uint32& queueFamily : uniqueQueueFamilies)
 		{
-			VkDeviceQueueCreateInfo& createInfo = queueCreateInfos.emplace_back();
-			createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			VkDeviceQueueCreateInfo& createInfo = queueCreateInfos.emplace_back(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
 			createInfo.queueCount = 1; // TODO: multiple queues?
-			createInfo.queueFamilyIndex = static_cast<uint32_t>(queueFamily);
+			createInfo.queueFamilyIndex = queueFamily;
 			createInfo.pQueuePriorities = &queuePriorities;
 		}
 
+		// Fill out device extensions
 		std::vector<const char*> extensions;
 
-		if (createParams.SupportsPresentation)
+		if (createParams.PresentationSupport)
 			extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
@@ -516,8 +453,7 @@ namespace Coco::Rendering::Vulkan
 		_features.SupportsWireframe = createParams.EnableWireframeDrawing;
 
 		// Create the logical device
-		VkDeviceCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 		createInfo.pEnabledFeatures = &deviceFeatures;
@@ -527,76 +463,79 @@ namespace Coco::Rendering::Vulkan
 
 		AssertVkSuccess(vkCreateDevice(_physicalDevice, &createInfo, GetAllocationCallbacks(), &_device))
 
+		VmaAllocatorCreateInfo allocatorCreateInfo{};
+		allocatorCreateInfo.vulkanApiVersion = ToVkVersion(_platform.GetAPIVersion());
+		allocatorCreateInfo.physicalDevice = _physicalDevice;
+		allocatorCreateInfo.device = _device;
+		allocatorCreateInfo.instance = _platform.GetVulkanInstance();
+
+		AssertVkSuccess(vmaCreateAllocator(&allocatorCreateInfo, &_allocator))
+
 		// Obtain queues from the device
-		for (const int& queueFamily : uniqueQueueFamilies)
+		for (const uint32& queueFamily : uniqueQueueFamilies)
 		{
-			uint8 familyIndex = static_cast<uint8>(queueFamily);
-
 			VkQueue queue;
-			vkGetDeviceQueue(_device, familyIndex, 0, &queue);
-
+			vkGetDeviceQueue(_device, queueFamily, 0, &queue);
+		
 			if (queueFamilies.GraphicsQueueFamily.has_value() && queueFamilies.GraphicsQueueFamily.value() == queueFamily)
 			{
-				_graphicsQueue = CreateUniqueRef<DeviceQueue>(*this, DeviceQueue::Type::Graphics, familyIndex, queue);
+				_graphicsQueue = CreateUniqueRef<VulkanQueue>(*this, queueFamily, queue, VulkanQueueType::Graphics);
 			}
-
+		
 			if (queueFamilies.TransferQueueFamily.has_value() && queueFamilies.TransferQueueFamily.value() == queueFamily)
 			{
-				_transferQueue = CreateUniqueRef<DeviceQueue>(*this, DeviceQueue::Type::Transfer, familyIndex, queue);
+				_transferQueue = CreateUniqueRef<VulkanQueue>(*this, queueFamily, queue, VulkanQueueType::Transfer);
 			}
-
+		
 			if (queueFamilies.ComputeQueueFamily.has_value() && queueFamilies.ComputeQueueFamily.value() == queueFamily)
 			{
-				_computeQueue = CreateUniqueRef<DeviceQueue>(*this, DeviceQueue::Type::Compute, familyIndex, queue);
+				_computeQueue = CreateUniqueRef<VulkanQueue>(*this, queueFamily, queue, VulkanQueueType::Compute);
 			}
 		}
 	}
 
-	void VulkanGraphicsDevice::GetPhysicalDeviceProperties()
+	void VulkanGraphicsDevice::DestroyDevice()
 	{
-		// Get basic device info
-		VkPhysicalDeviceProperties deviceProperties{};
-		vkGetPhysicalDeviceProperties(_physicalDevice, &deviceProperties);
-
-		_name = string(&deviceProperties.deviceName[0]);
-		_deviceType = ToGraphicsDeviceType(deviceProperties.deviceType);
-		_driverVersion = ToVersion(deviceProperties.driverVersion);
-		_apiVersion = ToVersion(deviceProperties.apiVersion);
-
-		VkSampleCountFlags maxSamples = deviceProperties.limits.framebufferColorSampleCounts & deviceProperties.limits.framebufferDepthSampleCounts;
-		_features.MaximumMSAASamples = ToMSAASamples(maxSamples);
-
-		_features.MaxImageWidth = deviceProperties.limits.maxImageDimension1D;
-		_features.MaxImageHeight = deviceProperties.limits.maxImageDimension2D;
-		_features.MaxImageDepth = deviceProperties.limits.maxImageDimension3D;
-		_features.MinimumBufferAlignment = static_cast<uint32>(deviceProperties.limits.minUniformBufferOffsetAlignment);
-		_features.MaxAnisotropicLevel = static_cast<uint8>(deviceProperties.limits.maxSamplerAnisotropy);
-
-		_vulkanFeatures.MaxPushConstantSize = deviceProperties.limits.maxPushConstantsSize;
-
-		// Get the memory features of the physical device
-		VkPhysicalDeviceMemoryProperties memoryProperties{};
-		vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &memoryProperties);
-
-		for (uint32 i = 0; i < memoryProperties.memoryTypeCount; i++)
+		if (_allocator)
 		{
-			if ((memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0 &&
-				(memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
-			{
-				_features.SupportsHostVisibleLocalMemory = true;
-				break;
-			}
+			vmaDestroyAllocator(_allocator);
+			_allocator = nullptr;
+		}
+
+		if (_device)
+		{
+			vkDestroyDevice(_device, GetAllocationCallbacks());
+			_device = nullptr;
 		}
 	}
 
-	bool VulkanGraphicsDevice::CheckQueuePresentSupport(VkSurfaceKHR surface, const DeviceQueue* queue)
+	bool VulkanGraphicsDevice::CheckPresentQueueSupport(VkSurfaceKHR surface, const VulkanQueue* queue)
 	{
 		if (!queue)
 			return false;
 
 		VkBool32 supported = VK_FALSE;
-		vkGetPhysicalDeviceSurfaceSupportKHR(_physicalDevice, queue->FamilyIndex, surface, &supported);
+		AssertVkSuccess(vkGetPhysicalDeviceSurfaceSupportKHR(_physicalDevice, queue->GetFamilyIndex(), surface, &supported))
 
 		return supported == VK_TRUE;
+	}
+
+	void VulkanGraphicsDevice::HandlePurgeTickListener(const TickInfo& tickInfo)
+	{
+		PurgeStaleResources();
+	}
+
+	void VulkanGraphicsDevice::PurgeStaleResources()
+	{
+		uint64 resourcesPurged = std::erase_if(_resources,
+			[](const auto& kvp)
+			{
+				return kvp.second.GetUseCount() == 1;
+			});
+
+		if (resourcesPurged > 0)
+		{
+			CocoTrace("Purged {} unused graphics resources", resourcesPurged)
+		}
 	}
 }

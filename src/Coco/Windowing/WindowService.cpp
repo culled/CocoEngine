@@ -9,18 +9,15 @@ namespace Coco::Windowing
 	WindowService::WindowService(bool dpiAware) :
 		_windows{}
 	{
-		if (WindowingPlatform* windowPlatform = dynamic_cast<WindowingPlatform*>(&Engine::Get()->GetPlatform()))
-		{
+		WindowingPlatform* windowingPlatform = dynamic_cast<WindowingPlatform*>(&Engine::Get()->GetPlatform());
+		CocoAssert(windowingPlatform, "Platform does not support windowing")
+
+		
 #ifdef COCO_HIGHDPI_SUPPORT
-			windowPlatform->SetDPIAwareMode(dpiAware);
+		windowingPlatform->SetDPIAwareMode(dpiAware);
 #else
-			CocoTrace("Engine was not built with high-dpi support. Skipping setting dpi awareness")
+		CocoTrace("Engine was not built with high-dpi support. Skipping setting dpi awareness")
 #endif
-		}
-		else
-		{
-			throw std::exception("Platform does not support windowing");
-		}
 
 		CocoTrace("WindowService initialized")
 	}
@@ -34,21 +31,18 @@ namespace Coco::Windowing
 
 	Ref<Window> WindowService::CreateWindow(const WindowCreateParams& createParams)
 	{
-		if (WindowingPlatform* windowPlatform = dynamic_cast<WindowingPlatform*>(&Engine::Get()->GetPlatform()))
+		WindowingPlatform* windowingPlatform = dynamic_cast<WindowingPlatform*>(&Engine::Get()->GetPlatform());
+		CocoAssert(windowingPlatform, "Platform does not support windowing")
+
+		if (_windows.size() > 0 && !windowingPlatform->SupportsMultipleWindows())
 		{
-			if (_windows.size() > 0 && !windowPlatform->SupportsMultipleWindows())
-			{
-				CocoError("Platform does not support multiple windows")
-				return Ref<Window>();
-			}
-
-			auto& window = _windows.emplace_back(windowPlatform->CreatePlatformWindow(createParams));
-
-			return window;
+			CocoError("Platform does not support multiple windows")
+			return Ref<Window>();
 		}
 
-		CocoError("Platform does not support creating windows")
-		return Ref<Window>();
+		auto& window = _windows.emplace_back(windowingPlatform->CreatePlatformWindow(createParams));
+
+		return window;
 	}
 
 	Ref<Window> WindowService::GetMainWindow() const
@@ -93,15 +87,10 @@ namespace Coco::Windowing
 
 	std::vector<DisplayInfo> WindowService::GetDisplays() const
 	{
-		if (const WindowingPlatform* windowPlatform = dynamic_cast<const WindowingPlatform*>(&Engine::cGet()->GetPlatform()))
-		{
-			return windowPlatform->GetDisplays();
-		}
-		else
-		{
-			CocoError("Platform does not support enumerating displays")
-			return std::vector<DisplayInfo>();
-		}
+		WindowingPlatform* windowingPlatform = dynamic_cast<WindowingPlatform*>(&Engine::Get()->GetPlatform());
+		Assert(windowingPlatform)
+
+		return windowingPlatform->GetDisplays();
 	}
 
 	std::vector<Ref<Window>> WindowService::GetVisibleWindows() const

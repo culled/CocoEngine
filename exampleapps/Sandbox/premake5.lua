@@ -9,7 +9,7 @@ project "Sandbox"
     targetdir "%{OutputDir.bin}%{prj.name}"
     objdir "%{OutputDir.obj}%{prj.name}"
 
-    TargetDir = "%{OutputDir.bin}%{prj.name}\\"
+    TargetDir = "build\\bin\\" .. OutputFolder .. "\\%{prj.name}"
 
     files
     {
@@ -21,35 +21,25 @@ project "Sandbox"
     {
         "%{IncludeDir.Coco}",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.entt}"
+        --"%{IncludeDir.entt}"
     }
 
-    links
+    links 
     {
         "Coco.Core",
         "Coco.Input",
         "Coco.Rendering",
         "Coco.Windowing",
         "Coco.ImGui",
-        "Coco.ECS",
-        "Coco.Platforms.Win32"
+        --"Coco.ECS",
+        "Coco.Platforms.Win32",
     }
 
-    if (RenderRHI["Vulkan"] == true) then
-        libdirs
-        {
-            "%{LibraryDir.vulkan}"
-        }
-
-        links
-        {
-            "vulkan-1.lib"
-        }
-    end
-
-    filter { "system:windows", "options:renderRHI-vulkan or options:renderRHIs-all" }
+    filter { "system:windows" }
         postbuildcommands {
-            "xcopy %{AssetsDir} %{TargetDir}assets\\ /S /Y /I"
+            "pushd %{wks.location}",
+            "xcopy assets\\ %{TargetDir}\\assets\\ /S /Y /I",
+            "popd"
         }
 
     filter { "configurations:Debug" }
@@ -60,31 +50,12 @@ project "Sandbox"
             "COCO_LOG_WARNING",
         }
 
-        if (RenderRHI["Vulkan"] == true) then
-            links
-            {
-                "shaderc_sharedd.lib",
-                "spirv-cross-cored.lib",
-                "spirv-cross-glsld.lib",
-                "SPIRV-Toolsd.lib"
-            }
-        end
-
         debugargs { "--show-console", "--content-path=%{wks.location}assets" }
-        debugdir "%{TargetDir}"
+        debugdir "%{OutputDir.bin}%{prj.name}"
 
         runtime "Debug"
         symbols "on"
         
     filter { "configurations:Release" }
-        if (RenderRHI["Vulkan"] == true) then
-            links
-            {
-                "shaderc_shared.lib",
-                "spirv-cross-core.lib",
-                "spirv-cross-glsl.lib"
-            }
-        end
-
         runtime "Release"
         optimize "on"

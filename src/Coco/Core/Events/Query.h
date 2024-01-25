@@ -16,11 +16,7 @@ namespace Coco
 	{
 	public:
 		using HandlerType = QueryHandler<ValueType, ArgTypes...>;
-
 		friend class HandlerType;
-
-	private:
-		std::vector<HandlerType*> _handlers;
 
 	public:
 		Query() = default;
@@ -66,6 +62,9 @@ namespace Coco
 		size_t GetHandlerCount() const { return _handlers.size(); }
 
 	private:
+		std::vector<HandlerType*> _handlers;
+
+	private:
 		/// @brief Adds a handler to this query
 		/// @param handler The handler
 		void AddHandler(HandlerType& handler)
@@ -94,12 +93,7 @@ namespace Coco
 		using QueryType = Query<ValueType, ArgTypes...>;
 		friend class QueryType;
 
-	public:
 		using CallbackFunction = std::function<bool(ValueType&, ArgTypes...)>;
-
-	private:
-		QueryType* _query;
-		CallbackFunction _callback;
 
 	public:
 		QueryHandler() :
@@ -169,6 +163,10 @@ namespace Coco
 		/// @brief Gets if this handler is connected to a query
 		/// @return True if this handler is connected to a query
 		bool IsConnected() const { return _query != nullptr; }
+
+	private:
+		QueryType* _query;
+		CallbackFunction _callback;
 
 	private:
 		/// @brief Invokes the callback function
