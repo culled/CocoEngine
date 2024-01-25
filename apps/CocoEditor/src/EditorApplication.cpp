@@ -18,6 +18,7 @@
 // TODO: move these to a separate class?
 #include "UI/Components/EntityInfoComponentUI.h"
 #include "UI/Components/Transform3DComponentUI.h"
+#include "UI/Components/Rendering/CameraComponentUI.h"
 
 // TEMPORARY
 //#include "Rendering/PickingRenderPass.h"
@@ -147,6 +148,7 @@ namespace Coco
 	{
 		InspectorPanel::Register<EntityInfoComponent>("Entity Info Component", EntityInfoComponentUI::DrawInspectorUI, false);
 		InspectorPanel::Register<Transform3DComponent>("Transform 3D Component", Transform3DComponentUI::DrawInspectorUI);
+		InspectorPanel::Register<CameraComponent>("Camera Component", CameraComponentUI::DrawInspectorUI);
 	}
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)
