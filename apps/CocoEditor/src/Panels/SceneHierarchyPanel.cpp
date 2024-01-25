@@ -79,7 +79,7 @@ namespace Coco
 
 		bool dimColor = !entity.IsActiveInHierarchy();
 		if (dimColor)
-			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(128, 128, 128, 255));
+			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(190, 190, 190, 255));
 
 		uint64 id = entity;
 		bool expanded = ImGui::TreeNodeEx((void*)id, flags, "%s", entity.GetName().c_str());
