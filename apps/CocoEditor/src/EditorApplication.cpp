@@ -24,6 +24,8 @@
 //#include "Rendering/PickingRenderPass.h"
 #include <Coco/Rendering/Pipeline/RenderPasses/BasicShaderRenderPass.h>
 #include <Coco/Rendering/BuiltIn/BuiltInShaderRenderPass.h>
+#include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
+#include <Coco/Rendering/MeshUtilities.h>
 // TEMPORARY
 
 #include <imgui.h>
@@ -136,6 +138,32 @@ namespace Coco
 		ResourceLibrary& resourceLibrary = Engine::Get()->GetResourceLibrary();
 
 		_mainScene = resourceLibrary.Create<Scene>(ResourceID("Scene"));
+
+		// TEMPORARY
+		Entity box = _mainScene->CreateEntity("Box");
+		box.AddComponent<Transform3DComponent>();
+
+		std::vector<VertexData> vertices;
+		std::vector<uint32> indices;
+		MeshUtilities::CreateBox(Vector3::One * 0.5, Vector3::Zero, vertices, indices);
+
+		SharedRef<Mesh> boxMesh = resourceLibrary.Create<Mesh>(ResourceID("ECSScene::BoxMesh"));
+		boxMesh->SetVertices(VertexDataFormat(VertexAttrFlags::UV0), vertices);
+		boxMesh->SetIndices(indices);
+
+		SharedRef<Texture> tex = resourceLibrary.Create<Texture>(
+			ResourceID("ECSScene::Texture"),
+			"textures/LargeBlocks.png", ImageColorSpace::sRGB,
+			ImageUsageFlags::Sampled,
+			ImageSamplerDescription::LinearRepeat);
+
+		SharedRef<Material> mat = resourceLibrary.Create<Material>(ResourceID("ECSScene::BoxMaterial"));
+		mat->SetValue("ColorTexture", tex);
+		//mat->SetValue("TintColor", Color::Red);
+
+		std::unordered_map<uint32, SharedRef<Material>> materials = { {0, mat} };
+		box.AddComponent<MeshRendererComponent>(boxMesh, materials, BuiltInShaderRenderPass::UnlitVisibilityGroup);
+		// TEMPORARY
 	}
 
 	void EditorApplication::CreatePanels()

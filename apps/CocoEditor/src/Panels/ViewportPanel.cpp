@@ -6,11 +6,17 @@
 #include <Coco/ECS/Systems/Rendering/CameraSystem.h>
 #include <Coco/ECS/Providers/Rendering/SceneRenderDataProvider.h>
 #include <Coco/Rendering/RenderService.h>
+#include <Coco/Input/InputService.h>
+#include <Coco/Windowing/Window.h>
+
+#include "../Components/ViewportCameraControllerComponent.h"
 
 #include <imgui.h>
 
 using namespace Coco::Rendering;
 using namespace Coco::ECS;
+using namespace Coco::Input;
+using namespace Coco::Windowing;
 
 namespace Coco
 {
@@ -18,7 +24,8 @@ namespace Coco
 		_selectionContext(selectionContext),
 		_scene(scene),
 		_framebuffer(nullptr),
-		_isOpen(false)
+		_isOpen(false),
+		_isNavigating(false)
 	{
 		SetupViewportEntity();
 	}
@@ -42,6 +49,7 @@ namespace Coco
 			_isOpen = true;
 
 			UpdateProperties();
+			UpdateViewportCamera();
 			UpdateFramebuffers();
 
 			DrawFramebuffer();
@@ -76,11 +84,14 @@ namespace Coco
 	{
 		_viewportEntity = ECSService::Get()->CreateEntity("Viewport", Entity::Null, nullptr);
 
-		_viewportEntity.AddComponent<Transform3DComponent>();
+		Transform3DComponent& transform = _viewportEntity.AddComponent<Transform3DComponent>();
+		transform.SetPositionAndRotation(Vector3(-2.0, 1.5, 2.0), Quaternion(Vector3(Math::DegToRad(-30), Math::DegToRad(-45), 0)), TransformSpace::Global);
 
 		CameraComponent& camera = _viewportEntity.AddComponent<CameraComponent>();
 		camera.SetClearColor(Color(0.1, 0.1, 0.1, 1.0));
 		camera.SetPerspectiveFOV(Math::DegToRad(80.0));
+
+		_viewportEntity.AddComponent<ViewportCameraControllerComponent>();
 	}
 
 	void ViewportPanel::UpdateProperties()
@@ -95,6 +106,36 @@ namespace Coco
 			Vector2Int(static_cast<int>(pos.x), static_cast<int>(pos.y)),
 			Vector2Int(static_cast<int>(pos.x + size.x), static_cast<int>(pos.y + size.y))
 		);
+	}
+
+	void ViewportPanel::UpdateViewportCamera()
+	{
+		InputService& input = *InputService::Get();
+
+		Mouse& mouse = input.GetMouse();
+
+		Window* viewportWindow = reinterpret_cast<Window*>(ImGui::GetWindowViewport()->PlatformHandle);
+
+		bool shouldNavigate = (mouse.IsButtonPressed(MouseButton::Right) || mouse.IsButtonPressed(MouseButton::Middle)) && ImGui::IsWindowHovered();
+
+		if (shouldNavigate)
+		{
+			if (!_isNavigating)
+			{
+				viewportWindow->SetCursorConfineMode(CursorConfineMode::LockedInPlace);
+				viewportWindow->SetCursorVisibility(false);
+				_isNavigating = true;
+			}
+
+			ViewportCameraControllerComponent& controller = _viewportEntity.GetComponent<ViewportCameraControllerComponent>();
+			controller.Navigate();
+		}
+		else if(_isNavigating)
+		{
+			viewportWindow->SetCursorConfineMode(CursorConfineMode::None);
+			viewportWindow->SetCursorVisibility(true);
+			_isNavigating = false;
+		}
 	}
 
 	void ViewportPanel::UpdateFramebuffers()

@@ -27,10 +27,12 @@ namespace Coco
 
 		RectInt _viewportRect;
 		bool _isOpen;
+		bool _isNavigating;
 
 	private:
 		void SetupViewportEntity();
 		void UpdateProperties();
+		void UpdateViewportCamera();
 		void UpdateFramebuffers();
 
 		void DrawFramebuffer();

@@ -11,6 +11,7 @@
 #include "../../../RenderService.h"
 #include "../../../Mesh.h"
 #include "../../../Material.h"
+#include <Coco/Core/Math/Random.h>
 
 #include <Coco/Core/Engine.h>
 
@@ -610,7 +611,10 @@ namespace Coco::Rendering::Vulkan
 		if (drawLayout != ShaderUniformLayout::Empty)
 		{
 			VulkanDescriptorSetLayout& drawSetLayout = _device.GetCache().GetOrCreateDescriptorSetLayout(drawLayout, false);
-			VkDescriptorSet drawSet = GetOrCreateDescriptorSet(_renderStats.DrawCalls, UniformScope::Draw, drawSetLayout);
+
+			// TODO: ensure the risk of collisions between draw data IDs is small
+			uint64 dataID = static_cast<uint64>(Random::Global.RandomValue() * Math::MaxValue<uint64>());
+			VkDescriptorSet drawSet = GetOrCreateDescriptorSet(dataID, UniformScope::Draw, drawSetLayout);
 			BindDescriptorSet(drawSet, 3);
 			FlushPushConstants(drawLayout);
 		}
