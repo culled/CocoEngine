@@ -351,6 +351,7 @@ namespace Coco
 		_selection.ClearSelectedEntity();
 		_mainScene = newScene;
 		_sceneHierarchyPanel->SetScene(_mainScene);
+		_viewportPanel->SetScene(_mainScene);
 	}
 }
 

@@ -35,7 +35,7 @@ namespace Coco
 		ECSService::Get()->QueueDestroyEntity(_viewportEntity);
 	}
 
-	void ViewportPanel::ChangeScene(SharedRef<Scene> scene)
+	void ViewportPanel::SetScene(SharedRef<Scene> scene)
 	{
 		_scene = scene;
 	}

@@ -15,7 +15,7 @@ namespace Coco
 		ViewportPanel(SharedRef<ECS::Scene> scene, SelectionContext& selectionContext);
 		~ViewportPanel();
 
-		void ChangeScene(SharedRef<ECS::Scene> scene);
+		void SetScene(SharedRef<ECS::Scene> scene);
 		void Draw(const TickInfo& tickInfo);
 		void RenderFramebuffer(Rendering::RenderPipeline& pipeline);
 
