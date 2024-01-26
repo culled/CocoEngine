@@ -96,6 +96,7 @@ namespace Coco::Rendering::Vulkan
         VulkanGraphicsDevice& _device;
         UniqueRef<VulkanCommandBuffer> _commandBuffer;
         ManagedRef<VulkanGraphicsFence> _renderCompletedFence;
+        RenderContextStats _renderStats;
 
         std::optional<VulkanRenderContextOperation> _renderOperation;
         std::optional<VulkanGlobalState> _globalState;

@@ -11,6 +11,7 @@
 #include "EditorInputLayer.h"
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/InspectorPanel.h"
+#include "Panels/ViewportPanel.h"
 
 // TEMPORARY
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
@@ -50,6 +51,7 @@ namespace Coco
 
         UniqueRef<SceneHierarchyPanel> _sceneHierarchyPanel;
         UniqueRef<InspectorPanel> _inspectorPanel;
+        UniqueRef<ViewportPanel> _viewportPanel;
 
         // TEMPORARY
         SharedRef<Rendering::RenderPipeline> _renderPipeline;
@@ -67,7 +69,7 @@ namespace Coco
         void HandleUpdateTick(const TickInfo& tickInfo);
         void HandleRenderTick(const TickInfo& tickInfo);
 
-        void DrawUI();
+        void DrawUI(const TickInfo& tickInfo);
 
         void ShowFileMenu();
         void ShowViewMenu();

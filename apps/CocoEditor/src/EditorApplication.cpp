@@ -115,7 +115,7 @@ namespace Coco
 	{
 		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
 
-		_renderPipeline = resources.Create<RenderPipeline>(ResourceID("Editor::RenderPipeline"));
+		_renderPipeline = resources.Create<RenderPipeline>(ResourceID("Editor::RenderPipeline"), AttachmentOptionsFlags::Clear);
 
 		std::array<uint32, 2> bindings = { 0, 1 };
 		_renderPipeline->AddRenderPass(CreateSharedRef<BuiltInShaderRenderPass>(true), bindings);
@@ -142,6 +142,7 @@ namespace Coco
 	{
 		_sceneHierarchyPanel = CreateUniqueRef<SceneHierarchyPanel>(_mainScene, _selection);
 		_inspectorPanel = CreateUniqueRef<InspectorPanel>(_selection);
+		_viewportPanel = CreateUniqueRef<ViewportPanel>(_mainScene, _selection);
 	}
 
 	void EditorApplication::RegisterComponentUI()
@@ -153,16 +154,18 @@ namespace Coco
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)
 	{
-		DrawUI();
+		DrawUI(tickInfo);
 	}
 
 	void EditorApplication::HandleRenderTick(const TickInfo& tickInfo)
 	{
 		if (!_mainWindow->IsVisible())
 			return;
+
+		_viewportPanel->RenderFramebuffer(*_renderPipeline);
 	}
 
-	void EditorApplication::DrawUI()
+	void EditorApplication::DrawUI(const TickInfo& tickInfo)
 	{
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -211,6 +214,7 @@ namespace Coco
 
 		_sceneHierarchyPanel->Draw();
 		_inspectorPanel->Draw();
+		_viewportPanel->Draw(tickInfo);
 
 		ImGui::End();
 	}

@@ -51,7 +51,8 @@ namespace Coco::Rendering::Vulkan
 		_renderOperation(),
 		_renderCompletedFence(CreateManagedRef<VulkanGraphicsFence>(id, device, true)),
 		_globalState(),
-		_drawUniforms()
+		_drawUniforms(),
+		_renderStats{}
 	{
 		CreateCommandBuffer();
 
@@ -197,6 +198,10 @@ namespace Coco::Rendering::Vulkan
 			static_cast<uint32>(indexOffset),
 			0,
 			0);
+
+		_renderStats.DrawCalls++;
+		_renderStats.TrianglesDrawn += indexCount / 3;
+		_renderStats.VerticesDrawn += cachedMesh->VertexCount;
 	}
 
 	void VulkanRenderContext::WaitForRenderToComplete()
@@ -360,6 +365,8 @@ namespace Coco::Rendering::Vulkan
 		_renderOperation.reset();
 
 		_commandBuffer->Reset();
+
+		_renderStats = RenderContextStats();
 	}
 
 	void VulkanRenderContext::CreateCommandBuffer()
@@ -603,7 +610,7 @@ namespace Coco::Rendering::Vulkan
 		if (drawLayout != ShaderUniformLayout::Empty)
 		{
 			VulkanDescriptorSetLayout& drawSetLayout = _device.GetCache().GetOrCreateDescriptorSetLayout(drawLayout, false);
-			VkDescriptorSet drawSet = GetOrCreateDescriptorSet(0, UniformScope::Draw, drawSetLayout);
+			VkDescriptorSet drawSet = GetOrCreateDescriptorSet(_renderStats.DrawCalls, UniformScope::Draw, drawSetLayout);
 			BindDescriptorSet(drawSet, 3);
 			FlushPushConstants(drawLayout);
 		}

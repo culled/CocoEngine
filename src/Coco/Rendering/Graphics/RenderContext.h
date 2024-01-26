@@ -12,6 +12,13 @@ namespace Coco::Rendering
 	class Material;
 	struct Submesh;
 
+	struct RenderContextStats
+	{
+		uint64 DrawCalls;
+		uint64 TrianglesDrawn;
+		uint64 VerticesDrawn;
+	};
+
 	class RenderContext :
 		public GraphicsResource
 	{
