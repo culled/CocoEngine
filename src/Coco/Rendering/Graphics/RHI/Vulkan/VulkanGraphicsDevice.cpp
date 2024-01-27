@@ -86,7 +86,7 @@ namespace Coco::Rendering::Vulkan
 	std::atomic_uint64_t VulkanGraphicsDevice::_sNextResourceID = 0;
 	const double VulkanGraphicsDevice::ResourcePurgePeriod = 1.0;
 	const double VulkanGraphicsDevice::StaleResourceThreshold = 1.5;
-	const int VulkanGraphicsDevice::ResourcePurgeTickPriority = -200000;
+	const int VulkanGraphicsDevice::ResourcePurgeTickPriority = -20000;
 
 	VulkanGraphicsDevice::VulkanGraphicsDevice(const VulkanGraphicsPlatform& platform, const VulkanGraphicsDeviceCreateParams& createParams, VkPhysicalDevice physicalDevice) :
 		_platform(platform),
@@ -98,7 +98,7 @@ namespace Coco::Rendering::Vulkan
 		_computeQueue(nullptr),
 		_presentQueue(nullptr)
 	{
-		_purgeTickListener->SetTickPeriod(ResourcePurgePeriod);
+		_purgeTickListener->SetTickPeriod(ResourcePurgePeriod, false);
 		MainLoop::Get()->AddTickListener(_purgeTickListener);
 
 		CreateDevice(createParams);

@@ -15,9 +15,9 @@ namespace Coco::ImGuiCoco
     struct ImGuiExtraData
     {
         RectInt ScissorRect;
-        WeakSharedRef<Rendering::Texture> OverrideTexture;
+        ResourceID OverrideTextureID;
 
-        ImGuiExtraData(const RectInt& scissorRect, SharedRef<Rendering::Texture> overrideTexture);
+        ImGuiExtraData(const RectInt& scissorRect, const ResourceID& overrideTextureID);
     };
 
     class ImGuiSceneDataProvider :

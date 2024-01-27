@@ -10,6 +10,7 @@ namespace Coco
 		Priority(priority),
 		_enabled(true),
 		_tickPeriod(0.0),
+		_useTimescale(false),
 		_timeSinceLastTick(0.0)
 	{}
 
@@ -18,9 +19,10 @@ namespace Coco
 		_enabled = enabled;
 	}
 
-	void TickListener::SetTickPeriod(double period)
+	void TickListener::SetTickPeriod(double period, bool useTimescale)
 	{
 		_tickPeriod = period;
+		_useTimescale = useTimescale;
 	}
 
 	void TickListener::SetCallback(CallbackFunction callback)
@@ -33,7 +35,7 @@ namespace Coco
 		if (!_enabled)
 			return;
 
-		_timeSinceLastTick += tickInfo.DeltaTime;
+		_timeSinceLastTick += _useTimescale ? tickInfo.DeltaTime : tickInfo.UnscaledDeltaTime;
 
 		if (_timeSinceLastTick >= _tickPeriod)
 		{

@@ -21,7 +21,7 @@ namespace Coco::Rendering::Vulkan
 		_pipelines(),
 		_framebuffers()
 	{
-		_purgeTickListener->SetTickPeriod(ResourcePurgePeriod);
+		_purgeTickListener->SetTickPeriod(ResourcePurgePeriod, false);
 		MainLoop::Get()->AddTickListener(_purgeTickListener);
 	}
 

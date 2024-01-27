@@ -13,9 +13,9 @@ using namespace Coco::Rendering;
 
 namespace Coco::ImGuiCoco
 {
-    ImGuiExtraData::ImGuiExtraData(const RectInt& scissorRect, SharedRef<Texture> overrideTexture) :
+    ImGuiExtraData::ImGuiExtraData(const RectInt& scissorRect, const ResourceID& overrideTextureID) :
         ScissorRect(scissorRect),
-        OverrideTexture(overrideTexture)
+        OverrideTextureID(overrideTextureID)
     {}
 
 	ImGuiSceneDataProvider::ImGuiSceneDataProvider(ImGuiViewport* viewport) :
@@ -115,15 +115,6 @@ namespace Coco::ImGuiCoco
                         static_cast<int>(cmd.ClipRect.w - drawData->DisplayPos.y))
                 );
 
-                uint64 textureID = reinterpret_cast<uint64>(cmd.GetTexID());
-                SharedRef<Texture> tex;
-
-                if (!resources.TryGetAs(ResourceID(textureID), tex))
-                {
-                    CocoError("Texture resource for ImGui draw was null")
-                    tex = RenderService::Get()->GetDefaultCheckerTexture();
-                }
-
                 uint32 subMeshID = cmdI + lastSubMeshIDOffset;
                 const Submesh* sm = nullptr;
                 mesh->TryGetSubmesh(subMeshID, sm);
@@ -136,7 +127,7 @@ namespace Coco::ImGuiCoco
                     nullptr,
                     Matrix4x4::Identity);
 
-                obj.ExtraData = ImGuiExtraData(scissorRect, tex);
+                obj.ExtraData = ImGuiExtraData(scissorRect, reinterpret_cast<uint64>(cmd.GetTexID()));
             }
 
             lastSubMeshIDOffset += drawList->CmdBuffer.Size;

@@ -29,12 +29,12 @@ namespace Coco::Rendering
 
 	void CachedAttachments::Use()
 	{
-		LastUseTime = MainLoop::Get()->GetCurrentTick().Time;
+		LastUseTime = MainLoop::Get()->GetCurrentTick().UnscaledTime;
 	}
 
 	bool CachedAttachments::ShouldPurge(double staleThreshold) const
 	{
-		return MainLoop::Get()->GetCurrentTick().Time - LastUseTime > staleThreshold;
+		return MainLoop::Get()->GetCurrentTick().UnscaledTime - LastUseTime > staleThreshold;
 	}
 
 	void CachedAttachments::TryPurgeImage(uint32 imageIndex)
@@ -62,13 +62,13 @@ namespace Coco::Rendering
 
 	const double AttachmentCache::ResourcePurgePeriod = 1.0;
 	const double AttachmentCache::StaleResourceThreshold = 1.5;
-	const int AttachmentCache::ResourcePurgeTickPriority = -200000;
+	const int AttachmentCache::ResourcePurgeTickPriority = -20000;
 
 	AttachmentCache::AttachmentCache() :
 		_purgeTickListener(CreateManagedRef<TickListener>(this, &AttachmentCache::HandlePurgeTick, ResourcePurgeTickPriority)),
 		_cache()
 	{
-		_purgeTickListener->SetTickPeriod(ResourcePurgePeriod);
+		_purgeTickListener->SetTickPeriod(ResourcePurgePeriod, false);
 		MainLoop::Get()->AddTickListener(_purgeTickListener);
 	}
 

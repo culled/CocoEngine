@@ -33,7 +33,7 @@ SandboxApp::SandboxApp() :
 	MainLoop& loop = *MainLoop::Get();
 	loop.AddTickListener(_tickListener);
 	loop.AddTickListener(_renderTickListener);
-	loop.SetTargetTicksPerSecond(144);
+	//loop.SetTargetTicksPerSecond(144);
 
 	InitializeServices();
 	InitializeResources();

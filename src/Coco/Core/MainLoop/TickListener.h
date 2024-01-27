@@ -37,7 +37,8 @@ namespace Coco
 
 		/// @brief Sets the minimum period between ticks that this listener will dispatch
 		/// @param period The minimum period between ticks
-		void SetTickPeriod(double period);
+		/// @param useTimescale If true, the main loop's timescale will be taken into account for the tick period
+		void SetTickPeriod(double period, bool useTimescale);
 
 		/// @brief Gets the tick period of this listener
 		/// @return The tick period
@@ -60,6 +61,7 @@ namespace Coco
 	private:
 		bool _enabled;
 		double _tickPeriod;
+		bool _useTimescale;
 		double _timeSinceLastTick;
 		CallbackFunction _callback;
 

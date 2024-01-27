@@ -25,6 +25,7 @@ namespace Coco::Rendering
 
 	public:
 		RenderView(RenderFrame& renderFrame);
+		~RenderView();
 
 		void Setup(
 			std::span<RenderTarget> renderTargets,

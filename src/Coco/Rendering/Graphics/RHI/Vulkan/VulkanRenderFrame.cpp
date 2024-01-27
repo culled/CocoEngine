@@ -59,7 +59,7 @@ namespace Coco::Rendering::Vulkan
 		for (auto& fence : _renderFences)
 		{
 			if(!fence->IsSignaled())
-				fence->WaitForSignal(Math::MaxValue<uint64>());
+				fence->WaitForSignal(UINT64_MAX);
 		}
 	}
 

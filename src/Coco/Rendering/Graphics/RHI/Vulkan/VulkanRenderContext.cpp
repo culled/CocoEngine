@@ -212,7 +212,7 @@ namespace Coco::Rendering::Vulkan
 	void VulkanRenderContext::WaitForRenderToComplete()
 	{
 		if(!IsIdle())
-			_renderCompletedFence->WaitForSignal(Math::MaxValue<uint64>());
+			_renderCompletedFence->WaitForSignal(UINT64_MAX);
 	}
 
 	bool VulkanRenderContext::IsIdle() const
@@ -347,7 +347,9 @@ namespace Coco::Rendering::Vulkan
 		vkCmdNextSubpass(_renderOperation->CommandBuffer.GetCmdBuffer(), VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
 	}
 
-	void VulkanRenderContext::End(std::span<std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>> waitSemaphores, std::span<Ref<VulkanGraphicsSemaphore>> signalSemaphores)
+	void VulkanRenderContext::End(
+		std::span<std::pair<Ref<VulkanGraphicsSemaphore>, VkPipelineStageFlags>> waitSemaphores, 
+		std::span<Ref<VulkanGraphicsSemaphore>> signalSemaphores)
 	{
 		CocoAssert(_renderOperation.has_value(), "RenderContext was not rendering")
 
@@ -356,7 +358,11 @@ namespace Coco::Rendering::Vulkan
 		AddPostRenderPassAttachmentTransitions();
 
 		_commandBuffer->EndAndSubmit(waitSemaphores, signalSemaphores, _renderCompletedFence);
+
 		_renderOperation.reset();
+		_globalState.reset();
+		_instanceState.reset();
+		_drawUniforms.clear();
 	}
 
 	void VulkanRenderContext::Reset()
@@ -459,6 +465,10 @@ namespace Coco::Rendering::Vulkan
 		for (size_t i = 0; i < attachmentFormats.size(); i++)
 		{
 			const RenderPassAttachment& attachment = attachmentFormats.at(i);
+
+			// Cleared images will be transitioned from VK_IMAGE_LAYOUT_UNDEFINED, so no need to transition it
+			if ((attachment.OptionsFlags & AttachmentOptionsFlags::Clear) == AttachmentOptionsFlags::Clear)
+				continue;
 	
 			const RenderTarget& rt = rts[i];
 			VkImageLayout layout = ToVkImageLayout(attachment.PixelFormat);

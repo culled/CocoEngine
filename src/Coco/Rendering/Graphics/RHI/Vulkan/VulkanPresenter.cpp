@@ -116,7 +116,7 @@ namespace Coco::Rendering::Vulkan
         VkResult result = vkAcquireNextImageKHR(
             _device.GetDevice(),
             _swapchain,
-            Math::MaxValue<uint64_t>(),
+            UINT64_MAX,
             imageAcquiredSemaphore->GetSemaphore(),
             VK_NULL_HANDLE,
             &imageIndex);

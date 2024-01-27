@@ -34,6 +34,8 @@ namespace Coco::Rendering
 		RenderTarget();
 		RenderTarget(Ref<Image> mainImage, const Vector4& clearValue);
 
+		~RenderTarget();
+
 		/// @brief Sets clear values for all render targets using the clear color if it is a color target and the depth/stencil value otherwise
 		/// @param renderTargets The render targets
 		/// @param clearColor The color for clearing color targets

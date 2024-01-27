@@ -15,6 +15,12 @@ namespace Coco::Rendering
 		ClearValue(clearValue)
 	{}
 
+	RenderTarget::~RenderTarget()
+	{
+		MainImage.Invalidate();
+		ResolveImage.Invalidate();
+	}
+
 	void RenderTarget::SetClearValues(std::span<RenderTarget> renderTargets, const Color& clearColor, double clearDepth, uint8 clearStencil)
 	{
 		for (RenderTarget& rt : renderTargets)

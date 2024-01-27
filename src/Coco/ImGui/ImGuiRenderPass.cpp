@@ -5,8 +5,10 @@
 #include "ImGuiSceneDataProvider.h"
 #include <Coco/Rendering/Texture.h>
 #include <Coco/Rendering/Mesh.h>
+#include <Coco/Rendering/RenderService.h>
 #include <Coco/Core/Engine.h>
-#include <imgui.h>
+
+//#include <imgui.h>
 
 namespace Coco::ImGuiCoco
 {
@@ -30,6 +32,8 @@ namespace Coco::ImGuiCoco
 
     void ImGuiRenderPass::Execute(RenderContext& context, const RenderView& renderView)
     {
+        ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
+
         std::vector<uint64> objectIndices = renderView.GetRenderObjectIndices();
         renderView.FilterWithAllVisibilityGroups(objectIndices, VisibilityGroup);
 
@@ -44,7 +48,15 @@ namespace Coco::ImGuiCoco
 
             if (const ImGuiExtraData* extraData = std::any_cast<const ImGuiExtraData>(&obj.ExtraData))
             {
-                std::array<ShaderUniformValue, 1> uniforms = { ShaderUniformValue("Texture", extraData->OverrideTexture.lock()) };
+                SharedRef<Texture> tex;
+
+                if (!resources.TryGetAs(extraData->OverrideTextureID, tex))
+                {
+                    CocoError("Texture resource for ImGui draw was null")
+                    tex = RenderService::Get()->GetDefaultCheckerTexture();
+                }
+
+                std::array<ShaderUniformValue, 1> uniforms = { ShaderUniformValue("Texture", tex) };
                 context.SetDrawUniforms(uniforms);
                 context.SetScissorRect(extraData->ScissorRect);
             }

@@ -27,6 +27,14 @@ namespace Coco::Rendering
 		_renderObjects()
 	{}
 
+	RenderView::~RenderView()
+	{
+		_globalUniformValues.clear();
+		_renderTargets.clear();
+		_meshes.clear();
+		_renderObjects.clear();
+	}
+
 	void RenderView::Setup(
 		std::span<RenderTarget> renderTargets, 
 		const RectInt& viewportRect, 
