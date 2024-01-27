@@ -104,11 +104,22 @@ namespace Coco::Rendering::Vulkan
 	{
 		double time = MainLoop::Get()->GetCurrentTick().UnscaledTime;
 
-		uint64 purged = std::erase_if(_pools,
-			[time, staleThreshold](AllocatedVulkanDescriptorPool& pool)
+		uint64 purged = 0;
+		auto it = _pools.begin();
+		while (it != _pools.end())
+		{
+			AllocatedVulkanDescriptorPool& pool = *it;
+
+			if (time - pool.LastAllocateTime > staleThreshold)
 			{
-				return time - pool.LastAllocateTime > staleThreshold;
-			});
+				DestroyDescriptorPool(it);
+				purged++;
+			}
+			else
+			{
+				++it;
+			}
+		}
 
 		if (purged > 0)
 		{
@@ -159,6 +170,10 @@ namespace Coco::Rendering::Vulkan
 
 	void VulkanDescriptorSetPool::DestroyDescriptorPools()
 	{
+		_device.WaitForIdle();
+
+		FreeSets();
+
 		auto it = _pools.begin();
 		while (it != _pools.end())
 			DestroyDescriptorPool(it);

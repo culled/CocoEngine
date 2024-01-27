@@ -182,8 +182,6 @@ namespace Coco::Rendering::Vulkan
 
 		outImageAcquiredSemaphore = GetSemaphore();
 
-		_device.WaitForIdle();
-
 		if (!presenter->AcquireImage(outImageAcquiredSemaphore, outImage))
 		{
 			return false;

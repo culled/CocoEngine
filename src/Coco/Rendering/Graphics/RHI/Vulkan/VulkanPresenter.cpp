@@ -308,8 +308,7 @@ namespace Coco::Rendering::Vulkan
         VkExtent2D extent = PickBackbufferExtent(_framebufferSize, swapchainSupport);
 
         // TODO: configure backbuffer count based on desired vsync mode
-        //uint32 framebufferCount = RenderService::cGet()->GetMaxFramesInFlight() + 2;
-        uint32 framebufferCount = RenderService::cGet()->GetMaxFramesInFlight() + 1;
+        uint32 framebufferCount = RenderService::cGet()->GetMaxFramesInFlight() + swapchainSupport.SurfaceCapabilities.minImageCount;
         uint32 imageCount = PickBackbufferCount(framebufferCount, swapchainSupport);
 
         VkSwapchainKHR oldSwapchain = _swapchain;

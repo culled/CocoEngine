@@ -68,6 +68,7 @@ namespace Coco::Rendering::Vulkan
 		WaitForRenderToComplete();
 
 		_renderCompletedFence.Invalidate();
+		_descriptorPools.clear();
 
 		FreeCommandBuffer();
 
