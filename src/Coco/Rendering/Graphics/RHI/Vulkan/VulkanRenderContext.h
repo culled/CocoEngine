@@ -23,6 +23,7 @@ namespace Coco::Rendering::Vulkan
     class VulkanShader;
     struct CachedVulkanUniformData;
     class VulkanGraphicsSemaphore;
+    class VulkanDescriptorSetPool;
 
     struct VulkanGlobalState
     {
@@ -91,12 +92,14 @@ namespace Coco::Rendering::Vulkan
         void Reset();
 
     private:
+        static const double _stalePoolThreshold;
         static const uint64 _globalDataID;
 
         VulkanGraphicsDevice& _device;
         UniqueRef<VulkanCommandBuffer> _commandBuffer;
         ManagedRef<VulkanGraphicsFence> _renderCompletedFence;
         RenderContextStats _renderStats;
+        std::unordered_map<GraphicsResourceID, VulkanDescriptorSetPool> _descriptorPools;
 
         std::optional<VulkanRenderContextOperation> _renderOperation;
         std::optional<VulkanGlobalState> _globalState;

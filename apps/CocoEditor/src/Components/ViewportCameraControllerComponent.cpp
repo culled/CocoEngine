@@ -16,7 +16,7 @@ namespace Coco
 		EntityComponent(entity),
 		_lookSensitivity(0.5f),
 		_moveSpeed(2.0),
-		_panSpeed(2.0),
+		_panSpeed(1.5),
 		_invertPan{false}
 	{}
 

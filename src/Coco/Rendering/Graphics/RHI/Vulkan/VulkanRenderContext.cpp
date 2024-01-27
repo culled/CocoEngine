@@ -11,6 +11,8 @@
 #include "../../../RenderService.h"
 #include "../../../Mesh.h"
 #include "../../../Material.h"
+#include "Pools/VulkanDescriptorSetPool.h"
+
 #include <Coco/Core/Math/Random.h>
 
 #include <Coco/Core/Engine.h>
@@ -44,6 +46,7 @@ namespace Coco::Rendering::Vulkan
 		GlobalSet(nullptr)
 	{}
 
+	const double VulkanRenderContext::_stalePoolThreshold = 2.0;
 	const uint64 VulkanRenderContext::_globalDataID = 0;
 
 	VulkanRenderContext::VulkanRenderContext(const GraphicsResourceID& id, VulkanGraphicsDevice& device) :
@@ -368,6 +371,21 @@ namespace Coco::Rendering::Vulkan
 		_commandBuffer->Reset();
 
 		_renderStats = RenderContextStats();
+
+		// Free descriptor sets and unused pools
+		for (auto& poolKvp : _descriptorPools)
+		{
+			VulkanDescriptorSetPool& pool = poolKvp.second;
+			pool.FreeSets();
+			pool.PurgeUnusedPools(_stalePoolThreshold);
+		}
+
+		// Remove pool sets if they're unused
+		std::erase_if(_descriptorPools,
+			[](const auto& kvp)
+			{
+				return kvp.second.GetPoolCount() == 0;
+			});
 	}
 
 	void VulkanRenderContext::CreateCommandBuffer()
@@ -541,7 +559,7 @@ namespace Coco::Rendering::Vulkan
 		uint64 setKey = Math::CombineHashes(static_cast<int>(scope), dataID);
 
 		// If the set is already allocated, just use that
-		VulkanDescriptorSetPool& pool = descriptorSetLayout.GetDescriptorPool();
+		VulkanDescriptorSetPool& pool = _descriptorPools.try_emplace(descriptorSetLayout.ID, _device, descriptorSetLayout).first->second;
 		VkDescriptorSet set = nullptr;
 		if (pool.TryGetAllocatedSet(setKey, set))
 			return set;

@@ -75,7 +75,7 @@ namespace Coco::Rendering::Vulkan
 
 			if (poolResult == VK_SUCCESS)
 			{
-				poolIt->LastAllocateTime = MainLoop::cGet()->GetCurrentTick().Time;
+				poolIt->LastAllocateTime = MainLoop::cGet()->GetCurrentTick().UnscaledTime;
 				break;
 			}
 
@@ -98,6 +98,24 @@ namespace Coco::Rendering::Vulkan
 
 		_allocatedSets.try_emplace(setKey, set);
 		return set;
+	}
+
+	uint64 VulkanDescriptorSetPool::PurgeUnusedPools(double staleThreshold)
+	{
+		double time = MainLoop::Get()->GetCurrentTick().UnscaledTime;
+
+		uint64 purged = std::erase_if(_pools,
+			[time, staleThreshold](AllocatedVulkanDescriptorPool& pool)
+			{
+				return time - pool.LastAllocateTime > staleThreshold;
+			});
+
+		if (purged > 0)
+		{
+			CocoTrace("Purged {} VulkanDescriptorPools", purged)
+		}
+
+		return purged;
 	}
 
 	void VulkanDescriptorSetPool::FreeSets()

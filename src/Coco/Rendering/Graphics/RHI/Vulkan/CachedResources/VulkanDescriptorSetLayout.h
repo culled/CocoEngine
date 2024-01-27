@@ -3,7 +3,6 @@
 
 #include "../../../ShaderUniformLayout.h"
 #include "../VulkanIncludes.h"
-#include "../Pools/VulkanDescriptorSetPool.h"
 
 namespace Coco::Rendering::Vulkan
 {
@@ -26,14 +25,11 @@ namespace Coco::Rendering::Vulkan
         VkDescriptorSetLayout GetLayout() const { return _layout; }
         std::span<const VkDescriptorSetLayoutBinding> GetBindings() const { return _layoutBindings; }
 
-        VulkanDescriptorSetPool& GetDescriptorPool() { return *_descriptorSetPool; }
-
     private:
         VulkanGraphicsDevice& _device;
         ShaderUniformLayout _uniformLayout;
         bool _includesDataUniforms;
         VkDescriptorSetLayout _layout;
         std::vector<VkDescriptorSetLayoutBinding> _layoutBindings;
-        UniqueRef<VulkanDescriptorSetPool> _descriptorSetPool;
     };
 }

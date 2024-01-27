@@ -29,6 +29,9 @@ namespace Coco::Rendering::Vulkan
 		bool TryGetAllocatedSet(uint64 setKey, VkDescriptorSet& outSet) const;
 		VkDescriptorSet AllocateDescriptorSet(uint64 setKey);
 
+		uint64 GetPoolCount() const { return _pools.size(); }
+		uint64 PurgeUnusedPools(double staleThreshold);
+
 		void FreeSets();
 
 	private:

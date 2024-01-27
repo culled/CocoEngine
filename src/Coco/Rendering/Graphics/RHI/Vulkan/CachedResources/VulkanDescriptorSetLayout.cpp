@@ -51,8 +51,6 @@ namespace Coco::Rendering::Vulkan
 
 		AssertVkSuccess(vkCreateDescriptorSetLayout(_device.GetDevice(), &createInfo, _device.GetAllocationCallbacks(), &_layout))
 
-		_descriptorSetPool = CreateUniqueRef<VulkanDescriptorSetPool>(_device, *this);
-
 		CocoTrace("Created VulkanDescriptorSetLayout {} for layout {} - include data uniforms: {}", ID, layout.GetHash(), _includesDataUniforms)
 	}
 
