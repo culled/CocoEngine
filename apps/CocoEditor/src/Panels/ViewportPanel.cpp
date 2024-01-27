@@ -12,6 +12,7 @@
 #include "../Components/ViewportCameraControllerComponent.h"
 
 #include <imgui.h>
+#include <ImGuizmo.h>
 
 using namespace Coco::Rendering;
 using namespace Coco::ECS;
@@ -20,6 +21,8 @@ using namespace Coco::Windowing;
 
 namespace Coco
 {
+	std::vector<ViewportPanel::Viewport2DDrawFunction> ViewportPanel::_render2DHooks;
+
 	ViewportPanel::ViewportPanel(SharedRef<Scene> scene, SelectionContext& selectionContext) :
 		_selectionContext(selectionContext),
 		_scene(scene),
@@ -40,6 +43,15 @@ namespace Coco
 		_scene = scene;
 	}
 
+	void ViewportPanel::GetViewportCameraProjection(Matrix4x4& outViewMatrix, Matrix4x4& outProjectionMatrix) const
+	{
+		const Transform3DComponent& transform = _viewportEntity.GetComponent<Transform3DComponent>();
+		outViewMatrix = transform.GetTransformMatrix(TransformSpace::Global, TransformSpace::Self);
+
+		const CameraComponent& camera = _viewportEntity.GetComponent<CameraComponent>();
+		outProjectionMatrix = camera.GetProjectionMatrix(_viewportRect.GetAspectRatio());
+	}
+
 	void ViewportPanel::Draw(const TickInfo& tickInfo)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -53,6 +65,8 @@ namespace Coco
 			UpdateFramebuffers();
 
 			DrawFramebuffer();
+
+			Draw2DHooks();
 		}
 		else
 		{
@@ -78,6 +92,11 @@ namespace Coco
 
 		// TODO: if multiple viewports, this renderID will need to change
 		RenderService::Get()->Render(strHasher("Viewport"), framebuffers, pipeline, renderViewProvider, sceneProviders);
+	}
+
+	void ViewportPanel::Add2DRenderHook(Viewport2DDrawFunction drawFunction)
+	{
+		_render2DHooks.emplace_back(drawFunction);
 	}
 
 	void ViewportPanel::SetupViewportEntity()
@@ -106,6 +125,12 @@ namespace Coco
 			Vector2Int(static_cast<int>(pos.x), static_cast<int>(pos.y)),
 			Vector2Int(static_cast<int>(pos.x + size.x), static_cast<int>(pos.y + size.y))
 		);
+
+		CameraComponent& camera = _viewportEntity.GetComponent<CameraComponent>();
+
+		ImGuizmo::SetOrthographic(camera.GetProjectionType() == CameraProjectionType::Orthographic);
+		ImGuizmo::SetDrawlist();
+		ImGuizmo::SetRect(pos.x, size.y + pos.y, size.x, -size.y);
 	}
 
 	void ViewportPanel::UpdateViewportCamera()
@@ -162,6 +187,16 @@ namespace Coco
 		{
 			_framebuffer->Resize(size.Width, size.Height);
 		}
+	}
+
+	void ViewportPanel::Draw2DHooks()
+	{
+		for (const auto& drawFunc : _render2DHooks)
+		{
+			drawFunc(*this);
+		}
+
+		_isMouseHovingOverGizmo = ImGuizmo::IsOver();
 	}
 
 	void ViewportPanel::DrawFramebuffer()

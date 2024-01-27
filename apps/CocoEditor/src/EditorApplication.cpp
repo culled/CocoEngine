@@ -180,6 +180,8 @@ namespace Coco
 		InspectorPanel::Register<EntityInfoComponent>("Entity Info Component", EntityInfoComponentUI::DrawInspectorUI, false);
 		InspectorPanel::Register<Transform3DComponent>("Transform 3D Component", Transform3DComponentUI::DrawInspectorUI);
 		InspectorPanel::Register<CameraComponent>("Camera Component", CameraComponentUI::DrawInspectorUI);
+		
+		ViewportPanel::Add2DRenderHook(Transform3DComponentUI::DrawViewport2D);
 	}
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)
