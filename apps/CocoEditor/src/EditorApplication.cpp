@@ -187,6 +187,8 @@ namespace Coco
 		ViewportPanel::Add2DRenderHook(Transform3DComponentUI::DrawViewport2D);
 		ViewportPanel::Add2DRenderHook(CameraComponentUI::DrawViewport2D);
 
+		ViewportPanel::Add3DRenderHook(CameraComponentUI::DrawViewport3D);
+
 		ViewportPanel::AddMenuHook("", Transform3DComponentUI::DrawViewportMenu);
 		ViewportPanel::AddMenuHook("Snap Settings", Transform3DComponentUI::DrawViewportSnapSettingsMenu);
 		ViewportPanel::AddMenuHook("View", ViewportCameraControllerComponentUI::DrawViewportMenu);

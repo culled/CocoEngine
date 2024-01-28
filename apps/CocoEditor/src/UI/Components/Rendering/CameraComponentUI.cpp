@@ -12,7 +12,8 @@ namespace Coco
 {
 	ViewportCameraComponentSettings::ViewportCameraComponentSettings(uint64 viewportID) :
 		CameraPreviewScale(0.1f),
-		CameraPreviewTexture(nullptr)
+		CameraPreviewTexture(nullptr),
+		FullscreenPreviewEntity(Entity::Null)
 	{}
 
 	std::unordered_map<uint64, ViewportCameraComponentSettings> CameraComponentUI::_settings;
@@ -83,15 +84,22 @@ namespace Coco
 
 	bool CameraComponentUI::DrawViewport2D(ViewportPanel& viewport)
 	{
-		SelectionContext& selection = viewport.GetSelectionContext();
-		if(!selection.HasSelectedEntity())
-			return false;
-
-		CameraComponent* camera = nullptr;
-		if (!selection.GetSelectedEntity().TryGetComponent<CameraComponent>(camera))
-			return false;
-
 		ViewportCameraComponentSettings& settings = _settings.try_emplace(viewport.GetID(), viewport.GetID()).first->second;
+
+		SelectionContext& selection = viewport.GetSelectionContext();
+		if (!selection.HasSelectedEntity())
+		{
+			settings.FullscreenPreviewEntity = Entity::Null;
+			return false;
+		}
+
+		Entity cameraEntity = selection.GetSelectedEntity();
+		CameraComponent* camera = nullptr;
+		if (!cameraEntity.TryGetComponent<CameraComponent>(camera))
+		{
+			settings.FullscreenPreviewEntity = Entity::Null;
+			return false;
+		}
 
 		const RectInt viewportRect = viewport.GetViewportRect();
 		SizeInt previewSize = viewportRect.GetSize();
@@ -106,6 +114,7 @@ namespace Coco
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
 
 		bool hovered = false;
+		bool isFullscreen = settings.FullscreenPreviewEntity == cameraEntity;
 
 		// HACK: until the child window can auto-calculate its size based on its content, we force its size for now
 		if (ImGui::BeginChild("Camera Preview",
@@ -125,7 +134,13 @@ namespace Coco
 			uint64 textureID = settings.CameraPreviewTexture->GetID();
 			ImGui::Image(reinterpret_cast<ImTextureID>(textureID), size);
 
-			//ImGui::Checkbox("Fullscreen", &_previewCameraFullscreen);
+			if (ImGui::Checkbox("Fullscreen", &isFullscreen))
+			{
+				if (isFullscreen)
+					settings.FullscreenPreviewEntity = cameraEntity;
+				else
+					settings.FullscreenPreviewEntity = Entity::Null;
+			}
 
 			hovered = ImGui::IsAnyItemHovered();
 		}
@@ -134,6 +149,19 @@ namespace Coco
 		ImGui::PopStyleVar();
 
 		return hovered;
+	}
+
+	void CameraComponentUI::DrawViewport3D(ViewportPanel& viewport)
+	{
+		auto it = _settings.find(viewport.GetID());
+
+		if (it == _settings.end())
+			return;
+
+		Entity cameraEntity = it->second.FullscreenPreviewEntity;
+
+		if (cameraEntity != Entity::Null)
+			viewport.SetOverrideCamera(cameraEntity);
 	}
 
 	void CameraComponentUI::EnsureCameraPreviewTexture(uint64 viewportID, ViewportCameraComponentSettings& settings, const SizeInt& previewSize)

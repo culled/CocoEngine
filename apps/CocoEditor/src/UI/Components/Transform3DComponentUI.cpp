@@ -72,7 +72,7 @@ namespace Coco
 	bool Transform3DComponentUI::DrawViewport2D(ViewportPanel& viewport)
 	{
 		SelectionContext& selection = viewport.GetSelectionContext();
-		if (!selection.HasSelectedEntity())
+		if (!selection.HasSelectedEntity() || viewport.GetOverrideCamera() != Entity::Null)
 			return false;
 
 		Entity& selectedEntity = selection.GetSelectedEntity();

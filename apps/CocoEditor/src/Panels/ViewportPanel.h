@@ -17,6 +17,7 @@ namespace Coco
 	public:
 		using ViewportMenuDrawFunction = std::function<void(ViewportPanel& viewport)>;
 		using Viewport2DDrawFunction = std::function<bool(ViewportPanel& viewport)>;
+		using Viewport3DDrawFunction = std::function<void(ViewportPanel& viewport)>;
 
 	public:
 		ViewportPanel(SharedRef<ECS::Scene> scene, SelectionContext& selectionContext, SharedRef<Rendering::RenderPipeline> pipeline);
@@ -39,10 +40,15 @@ namespace Coco
 
 		static void AddMenuHook(const string& path, ViewportMenuDrawFunction drawFunction);
 		static void Add2DRenderHook(Viewport2DDrawFunction drawFunction);
+		static void Add3DRenderHook(Viewport3DDrawFunction drawFunction);
+
+		void SetOverrideCamera(ECS::Entity& overrideCamera);
+		ECS::Entity GetOverrideCamera() { return _overrideCameraEntity; }
 
 	private:
 		static std::unordered_map<string, std::vector<ViewportMenuDrawFunction>> _menuHooks;
 		static std::vector<Viewport2DDrawFunction> _render2DHooks;
+		static std::vector<Viewport3DDrawFunction> _render3DHooks;
 
 		uint64 _id;
 		SelectionContext& _selectionContext;
@@ -50,6 +56,7 @@ namespace Coco
 		SharedRef<ECS::Scene> _scene;
 		SharedRef<Rendering::Texture> _framebuffer;
 		ECS::Entity _viewportEntity;
+		ECS::Entity _overrideCameraEntity;
 
 		RectInt _viewportRect;
 		bool _isOpen;
@@ -64,6 +71,7 @@ namespace Coco
 
 		void DrawMenu();
 		void Draw2DHooks();
+		void Draw3DHooks();
 
 		void DrawFramebuffer();
 	};

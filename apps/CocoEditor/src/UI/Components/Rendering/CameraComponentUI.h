@@ -14,6 +14,7 @@ namespace Coco
 	{
 		float CameraPreviewScale;
 		SharedRef<Rendering::Texture> CameraPreviewTexture;
+		ECS::Entity FullscreenPreviewEntity;
 
 		ViewportCameraComponentSettings(uint64 viewportID);
 	};
@@ -23,6 +24,7 @@ namespace Coco
 	public:
 		static void DrawInspectorUI(ECS::CameraComponent& camera);
 		static bool DrawViewport2D(ViewportPanel& viewport);
+		static void DrawViewport3D(ViewportPanel& viewport);
 
 	private:
 		static std::unordered_map<uint64, ViewportCameraComponentSettings> _settings;

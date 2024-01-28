@@ -23,6 +23,7 @@ namespace Coco
 {
 	std::unordered_map<string, std::vector<ViewportPanel::ViewportMenuDrawFunction>> ViewportPanel::_menuHooks;
 	std::vector<ViewportPanel::Viewport2DDrawFunction> ViewportPanel::_render2DHooks;
+	std::vector<ViewportPanel::Viewport3DDrawFunction> ViewportPanel::_render3DHooks;
 
 	ViewportPanel::ViewportPanel(SharedRef<Scene> scene, SelectionContext& selectionContext, SharedRef<Rendering::RenderPipeline> pipeline) :
 		_selectionContext(selectionContext),
@@ -30,7 +31,8 @@ namespace Coco
 		_framebuffer(nullptr),
 		_isOpen(false),
 		_isNavigating(false),
-		_pipeline(pipeline)
+		_pipeline(pipeline),
+		_overrideCameraEntity(Entity::Null)
 	{
 		// TODO: multiple IDs
 		std::hash<string> strHasher;
@@ -51,11 +53,24 @@ namespace Coco
 
 	void ViewportPanel::GetViewportCameraProjection(Matrix4x4& outViewMatrix, Matrix4x4& outProjectionMatrix) const
 	{
-		const Transform3DComponent& transform = _viewportEntity.GetComponent<Transform3DComponent>();
-		outViewMatrix = transform.GetTransformMatrix(TransformSpace::Global, TransformSpace::Self);
+		const Transform3DComponent* transform = nullptr;
+		const CameraComponent* camera = nullptr;
 
-		const CameraComponent& camera = _viewportEntity.GetComponent<CameraComponent>();
-		outProjectionMatrix = camera.GetProjectionMatrix(_viewportRect.GetAspectRatio());
+		if (_overrideCameraEntity != Entity::Null)
+		{
+			_overrideCameraEntity.TryGetComponent<Transform3DComponent>(transform);
+			_overrideCameraEntity.TryGetComponent<CameraComponent>(camera);
+		}
+
+		if (!transform)
+			transform = &_viewportEntity.GetComponent<Transform3DComponent>();
+
+		outViewMatrix = transform->GetTransformMatrix(TransformSpace::Global, TransformSpace::Self);
+
+		if(!camera)
+			camera = &_viewportEntity.GetComponent<CameraComponent>();
+
+		outProjectionMatrix = camera->GetProjectionMatrix(_viewportRect.GetAspectRatio());
 	}
 
 	void ViewportPanel::Draw(const TickInfo& tickInfo)
@@ -88,7 +103,12 @@ namespace Coco
 		if (!_isOpen)
 			return;
 
-		CameraRenderViewDataProvider renderViewProvider(_viewportEntity, std::optional<ShaderUniformLayout>());
+		_overrideCameraEntity = Entity::Null;
+
+		Draw3DHooks();
+
+		Entity cameraEntity = _overrideCameraEntity != Entity::Null ? _overrideCameraEntity : _viewportEntity;
+		CameraRenderViewDataProvider renderViewProvider(cameraEntity, std::optional<ShaderUniformLayout>());
 		SceneRender3DDataProvider sceneProvider(_scene);
 
 		std::array<SceneDataProvider*, 1> sceneProviders = { &sceneProvider };
@@ -105,6 +125,17 @@ namespace Coco
 	void ViewportPanel::Add2DRenderHook(Viewport2DDrawFunction drawFunction)
 	{
 		_render2DHooks.emplace_back(drawFunction);
+	}
+
+	void ViewportPanel::Add3DRenderHook(Viewport3DDrawFunction drawFunction)
+	{
+		_render3DHooks.emplace_back(drawFunction);
+	}
+
+	void ViewportPanel::SetOverrideCamera(ECS::Entity& overrideCamera)
+	{
+		CocoAssert(overrideCamera.HasComponent<CameraComponent>(), "Override camera entity did not have a camera component")
+		_overrideCameraEntity = overrideCamera;
 	}
 
 	void ViewportPanel::SetupViewportEntity()
@@ -239,6 +270,14 @@ namespace Coco
 			{
 				_isMouseHovingOverGizmo = true;
 			}
+		}
+	}
+
+	void ViewportPanel::Draw3DHooks()
+	{
+		for (const auto& drawFunc : _render3DHooks)
+		{
+			drawFunc(*this);
 		}
 	}
 

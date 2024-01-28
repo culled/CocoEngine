@@ -4,7 +4,6 @@
 #include <Coco/Input/InputService.h>
 #include <Coco/Rendering/RenderService.h>
 #include <Coco/Rendering/Graphics/RHI/Vulkan/VulkanGraphicsPlatformFactory.h>
-//#include <Coco/Rendering/BuiltIn/BuiltInPipeline.h>
 #include <Coco/Rendering/BuiltIn/BuiltInShaderRenderPass.h>
 
 #include <Coco/Windowing/WindowService.h>
@@ -12,7 +11,6 @@
 #include <Coco/ImGui/ImGuiService.h>
 
 #include <Coco/ECS/ECSService.h>
-//#include <Coco/ECS/Components/Rendering/CameraComponent.h>
 #include <Coco/ECS/Systems/Rendering/CameraSystem.h>
 
 #include "Rendering/TestRenderPass.h"
