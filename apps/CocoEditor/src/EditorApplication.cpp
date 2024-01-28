@@ -19,6 +19,7 @@
 #include "UI/Components/EntityInfoComponentUI.h"
 #include "UI/Components/Transform3DComponentUI.h"
 #include "UI/Components/Rendering/CameraComponentUI.h"
+#include "UI/Components/ViewportCameraControllerComponentUI.h"
 
 // TEMPORARY
 //#include "Rendering/PickingRenderPass.h"
@@ -52,7 +53,7 @@ namespace Coco
 		_updateTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleUpdateTick, 0)),
 		_renderTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleRenderTick, 99))
 	{
-		//Engine::Get()->GetLog().SetMinimumSeverity(LogMessageSeverity::Trace);
+		Engine::Get()->GetLog().SetMinimumSeverity(LogMessageSeverity::Trace);
 
 		SetupServices();
 		CreateMainWindow();
@@ -92,6 +93,8 @@ namespace Coco
 		InputService& input = services.CreateService<InputService>();
 
 		Vulkan::VulkanGraphicsPlatformCreateParams platformParams(*this, true);
+		platformParams.UseValidationLayers = true;
+
 		Vulkan::VulkanGraphicsPlatformFactory vulkanFactory(platformParams);
 		services.CreateService<RenderService>(vulkanFactory);
 
@@ -172,7 +175,7 @@ namespace Coco
 	{
 		_sceneHierarchyPanel = CreateUniqueRef<SceneHierarchyPanel>(_mainScene, _selection);
 		_inspectorPanel = CreateUniqueRef<InspectorPanel>(_selection);
-		_viewportPanel = CreateUniqueRef<ViewportPanel>(_mainScene, _selection);
+		_viewportPanel = CreateUniqueRef<ViewportPanel>(_mainScene, _selection, _renderPipeline);
 	}
 
 	void EditorApplication::RegisterComponentUI()
@@ -182,6 +185,11 @@ namespace Coco
 		InspectorPanel::Register<CameraComponent>("Camera Component", CameraComponentUI::DrawInspectorUI);
 		
 		ViewportPanel::Add2DRenderHook(Transform3DComponentUI::DrawViewport2D);
+		ViewportPanel::Add2DRenderHook(CameraComponentUI::DrawViewport2D);
+
+		ViewportPanel::AddMenuHook("", Transform3DComponentUI::DrawViewportMenu);
+		ViewportPanel::AddMenuHook("Snap Settings", Transform3DComponentUI::DrawViewportSnapSettingsMenu);
+		ViewportPanel::AddMenuHook("View", ViewportCameraControllerComponentUI::DrawViewportMenu);
 	}
 
 	void EditorApplication::HandleUpdateTick(const TickInfo& tickInfo)
@@ -194,7 +202,7 @@ namespace Coco
 		if (!_mainWindow->IsVisible())
 			return;
 
-		_viewportPanel->RenderFramebuffer(*_renderPipeline);
+		_viewportPanel->RenderFramebuffer();
 	}
 
 	void EditorApplication::DrawUI(const TickInfo& tickInfo)

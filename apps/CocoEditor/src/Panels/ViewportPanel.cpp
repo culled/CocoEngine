@@ -21,15 +21,21 @@ using namespace Coco::Windowing;
 
 namespace Coco
 {
+	std::unordered_map<string, std::vector<ViewportPanel::ViewportMenuDrawFunction>> ViewportPanel::_menuHooks;
 	std::vector<ViewportPanel::Viewport2DDrawFunction> ViewportPanel::_render2DHooks;
 
-	ViewportPanel::ViewportPanel(SharedRef<Scene> scene, SelectionContext& selectionContext) :
+	ViewportPanel::ViewportPanel(SharedRef<Scene> scene, SelectionContext& selectionContext, SharedRef<Rendering::RenderPipeline> pipeline) :
 		_selectionContext(selectionContext),
 		_scene(scene),
 		_framebuffer(nullptr),
 		_isOpen(false),
-		_isNavigating(false)
+		_isNavigating(false),
+		_pipeline(pipeline)
 	{
+		// TODO: multiple IDs
+		std::hash<string> strHasher;
+		_id = strHasher("Viewport");
+
 		SetupViewportEntity();
 	}
 
@@ -64,8 +70,8 @@ namespace Coco
 			UpdateViewportCamera();
 			UpdateFramebuffers();
 
+			DrawMenu();
 			DrawFramebuffer();
-
 			Draw2DHooks();
 		}
 		else
@@ -77,7 +83,7 @@ namespace Coco
 		ImGui::PopStyleVar();
 	}
 
-	void ViewportPanel::RenderFramebuffer(Rendering::RenderPipeline& pipeline)
+	void ViewportPanel::RenderFramebuffer()
 	{
 		if (!_isOpen)
 			return;
@@ -88,10 +94,12 @@ namespace Coco
 		std::array<SceneDataProvider*, 1> sceneProviders = { &sceneProvider };
 		std::array<Ref<Image>, 1> framebuffers = { _framebuffer->GetImage() };
 
-		std::hash<string> strHasher;
+		RenderService::Get()->Render(_id, framebuffers, *_pipeline, renderViewProvider, sceneProviders);
+	}
 
-		// TODO: if multiple viewports, this renderID will need to change
-		RenderService::Get()->Render(strHasher("Viewport"), framebuffers, pipeline, renderViewProvider, sceneProviders);
+	void ViewportPanel::AddMenuHook(const string& path, ViewportMenuDrawFunction drawFunction)
+	{
+		_menuHooks[path].emplace_back(drawFunction);
 	}
 
 	void ViewportPanel::Add2DRenderHook(Viewport2DDrawFunction drawFunction)
@@ -166,6 +174,8 @@ namespace Coco
 	void ViewportPanel::UpdateFramebuffers()
 	{
 		SizeInt size = _viewportRect.GetSize();
+		size.Width = Math::Max(size.Width, 2);
+		size.Height = Math::Max(size.Height, 2);
 
 		if (!_framebuffer)
 		{
@@ -189,14 +199,47 @@ namespace Coco
 		}
 	}
 
+	void ViewportPanel::DrawMenu()
+	{
+		if (ImGui::BeginMenuBar())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.f, 10.f));
+
+			for (const auto& menuKvp : _menuHooks)
+			{
+				bool hasMenu = !menuKvp.first.empty();
+
+				if (!hasMenu || ImGui::BeginMenu(menuKvp.first.c_str()))
+				{
+
+					for (const auto& drawFunc : menuKvp.second)
+					{
+						drawFunc(*this);
+					}
+
+					if (hasMenu)
+					{
+						ImGui::EndMenu();
+					}
+				}
+			}
+
+			ImGui::PopStyleVar();
+			ImGui::EndMenuBar();
+		}
+	}
+
 	void ViewportPanel::Draw2DHooks()
 	{
+		_isMouseHovingOverGizmo = false;
+
 		for (const auto& drawFunc : _render2DHooks)
 		{
-			drawFunc(*this);
+			if (drawFunc(*this))
+			{
+				_isMouseHovingOverGizmo = true;
+			}
 		}
-
-		_isMouseHovingOverGizmo = ImGuizmo::IsOver();
 	}
 
 	void ViewportPanel::DrawFramebuffer()

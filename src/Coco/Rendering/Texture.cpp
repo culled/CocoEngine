@@ -84,6 +84,11 @@ namespace Coco::Rendering
 		_imageDescription.Width = width;
 		_imageDescription.Height = height;
 
+		if (width == 1 || height == 1)
+			_imageDescription.DimensionType = ImageDimensionType::OneDimensional;
+		else
+			_imageDescription.DimensionType = ImageDimensionType::TwoDimensional;
+
 		RenderService* rendering = RenderService::Get();
 		GraphicsDevice& device = rendering->GetDevice();
 

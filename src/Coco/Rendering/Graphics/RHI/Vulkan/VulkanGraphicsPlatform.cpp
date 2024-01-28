@@ -16,7 +16,8 @@ namespace Coco::Rendering::Vulkan
 
 	VulkanGraphicsPlatform::VulkanGraphicsPlatform(const VulkanGraphicsPlatformCreateParams& createParams) :
 		_usingValidationLayers(false),
-		_deviceCreateParams(createParams.DeviceCreateParams)
+		_deviceCreateParams(createParams.DeviceCreateParams),
+		_debugMessenger(nullptr)
 	{
 		if (!createParams.PresentationSupport)
 		{

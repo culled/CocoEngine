@@ -10,6 +10,17 @@ using namespace Coco::ECS;
 
 namespace Coco
 {
+	ViewportTransformSettings::ViewportTransformSettings() :
+		SnapIncrementMove(1.f),
+		SnapIncrementRotate(45.f),
+		SnapIncrementScale(1.f),
+		EnableSnap(false),
+		CurrentOperation(ImGuizmo::OPERATION::TRANSLATE),
+		CurrentMode(ImGuizmo::MODE::LOCAL)
+	{}
+
+	std::unordered_map<uint64, ViewportTransformSettings> Transform3DComponentUI::_settings;
+
 	void Transform3DComponentUI::DrawInspectorUI(Transform3DComponent& transform)
 	{
 		uint64 id = transform.GetOwner();
@@ -58,17 +69,17 @@ namespace Coco
 		}
 	}
 
-	void Transform3DComponentUI::DrawViewport2D(ViewportPanel& viewport)
+	bool Transform3DComponentUI::DrawViewport2D(ViewportPanel& viewport)
 	{
 		SelectionContext& selection = viewport.GetSelectionContext();
 		if (!selection.HasSelectedEntity())
-			return;
+			return false;
 
 		Entity& selectedEntity = selection.GetSelectedEntity();
 
 		Transform3DComponent* transform = nullptr;
 		if (!selectedEntity.TryGetComponent<Transform3DComponent>(transform))
-			return;
+			return false;
 
 		ImGuizmo::SetID(static_cast<int>(selectedEntity));
 
@@ -79,11 +90,23 @@ namespace Coco
 		std::array<float, Matrix4x4::CellCount> viewMat = view.AsFloatArray();
 		std::array<float, Matrix4x4::CellCount> modelMat = transform->GetTransformMatrix(TransformSpace::Self, TransformSpace::Global).AsFloatArray();
 
-		// TODO: save these settings per viewport?
+		ViewportTransformSettings& settings = _settings[viewport.GetID()];
 		float snapIncrement = 0.f;
-		bool enableSnap = false;
-		ImGuizmo::OPERATION currentOperation = ImGuizmo::OPERATION::TRANSLATE;
-		ImGuizmo::MODE currentMode = ImGuizmo::MODE::LOCAL;
+
+		switch (settings.CurrentOperation)
+		{
+		case ImGuizmo::OPERATION::TRANSLATE:
+			snapIncrement = settings.SnapIncrementMove;
+			break;
+		case ImGuizmo::OPERATION::ROTATE:
+			snapIncrement = settings.SnapIncrementRotate;
+			break;
+		case ImGuizmo::OPERATION::SCALE:
+			snapIncrement = settings.SnapIncrementScale;
+			break;
+		default:
+			break;
+		}
 
 		std::array<float, 3> snapValues = {
 				snapIncrement,
@@ -94,11 +117,11 @@ namespace Coco
 		if (ImGuizmo::Manipulate(
 			viewMat.data(),
 			projectionMat.data(),
-			currentOperation,
-			currentMode,
+			settings.CurrentOperation,
+			settings.CurrentMode,
 			modelMat.data(),
 			nullptr,
-			enableSnap ? snapValues.data() : nullptr))
+			settings.EnableSnap ? snapValues.data() : nullptr))
 		{
 			Matrix4x4 transformed(modelMat);
 
@@ -108,5 +131,42 @@ namespace Coco
 
 			transform->SetTransform(&p, &r, &s, TransformSpace::Global);
 		}
+
+		return ImGuizmo::IsOver();
+	}
+
+	void Transform3DComponentUI::DrawViewportMenu(ViewportPanel& viewport)
+	{
+		ViewportTransformSettings& settings = _settings[viewport.GetID()];
+
+		int operationV = static_cast<int>(settings.CurrentOperation);
+
+		ImGui::RadioButton("Translate", &operationV, static_cast<int>(ImGuizmo::OPERATION::TRANSLATE));
+		ImGui::RadioButton("Rotate", &operationV, static_cast<int>(ImGuizmo::OPERATION::ROTATE));
+		ImGui::RadioButton("Scale", &operationV, static_cast<int>(ImGuizmo::OPERATION::SCALE));
+
+		settings.CurrentOperation = static_cast<ImGuizmo::OPERATION>(operationV);
+
+		ImGui::Separator();
+
+		int modeV = static_cast<int>(settings.CurrentMode);
+
+		ImGui::RadioButton("Global", &modeV, static_cast<int>(ImGuizmo::MODE::WORLD));
+		ImGui::RadioButton("Local", &modeV, static_cast<int>(ImGuizmo::MODE::LOCAL));
+
+		settings.CurrentMode = static_cast<ImGuizmo::MODE>(modeV);
+
+		ImGui::Separator();
+
+		ImGui::Checkbox("Snap", &settings.EnableSnap);
+	}
+
+	void Transform3DComponentUI::DrawViewportSnapSettingsMenu(ViewportPanel& viewport)
+	{
+		ViewportTransformSettings& settings = _settings[viewport.GetID()];
+
+		ImGui::DragFloat("Move Increment", &settings.SnapIncrementMove, 0.1f, 0.001f);
+		ImGui::DragFloat("Rotation Increment", &settings.SnapIncrementRotate, 1.f, 0.001f, 180.f);
+		ImGui::DragFloat("Scale Increment", &settings.SnapIncrementScale, 0.1f, 0.001f);
 	}
 }

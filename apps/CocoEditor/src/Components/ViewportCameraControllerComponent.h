@@ -6,6 +6,8 @@ namespace Coco
     class ViewportCameraControllerComponent :
         public ECS::EntityComponent
     {
+        friend class ViewportCameraControllerComponentUI;
+
     public:
         static const float MinMoveSpeed;
         static const float MaxMoveSpeed;
