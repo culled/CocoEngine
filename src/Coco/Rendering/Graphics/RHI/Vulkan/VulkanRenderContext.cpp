@@ -54,6 +54,7 @@ namespace Coco::Rendering::Vulkan
 		_device(device),
 		_renderOperation(),
 		_renderCompletedFence(CreateManagedRef<VulkanGraphicsFence>(id, device, true)),
+		_uniformCache(CreateUniqueRef<VulkanUniformCache>(device)),
 		_globalState(),
 		_drawUniforms(),
 		_renderStats{}
@@ -69,6 +70,7 @@ namespace Coco::Rendering::Vulkan
 
 		_renderCompletedFence.Invalidate();
 		_descriptorPools.clear();
+		_uniformCache.reset();
 
 		FreeCommandBuffer();
 
@@ -248,11 +250,9 @@ namespace Coco::Rendering::Vulkan
 
 		_instanceState.emplace(dataID);
 
-		VulkanUniformCache& uniformCache = _renderOperation->RenderFrame.GetUniformCache();
-
 		uint64 instanceVersion = material->GetVersion();
 
-		if (uniformCache.DataNeedsUpdate(dataID, UniformScope::Instance, instanceVersion))
+		if (_uniformCache->DataNeedsUpdate(dataID, UniformScope::Instance, instanceVersion))
 		{
 			SetUniforms(dataID, instanceVersion, UniformScope::Instance, material->GetUniformValues());
 		}
@@ -393,6 +393,8 @@ namespace Coco::Rendering::Vulkan
 			{
 				return kvp.second.GetPoolCount() == 0;
 			});
+
+		_uniformCache->PurgeUnusedUniformData(VulkanGraphicsDevice::StaleResourceThreshold);
 	}
 
 	void VulkanRenderContext::CreateCommandBuffer()
@@ -582,7 +584,7 @@ namespace Coco::Rendering::Vulkan
 		if (scope != UniformScope::Draw)
 		{
 			// Write descriptors using the cached data
-			const CachedVulkanUniformData& cachedData = _renderOperation->RenderFrame.GetUniformCache().CreateOrGetData(dataID, scope, layout);
+			const CachedVulkanUniformData& cachedData = _uniformCache->CreateOrGetData(dataID, scope, layout);
 			WriteDescriptorSetData(set, descriptorSetLayout, cachedData);
 			WriteDescriptorSetTextures(set, descriptorSetLayout, cachedData.Textures);
 		}
@@ -712,7 +714,7 @@ namespace Coco::Rendering::Vulkan
 
 		CocoAssert(layout, "Shader uniform layout was null")
 
-		_renderOperation->RenderFrame.GetUniformCache().CreateOrUpdateData(dataID, dataVersion, scope, *layout, uniforms);
+		_uniformCache->CreateOrUpdateData(dataID, dataVersion, scope, *layout, uniforms);
 	}
 
 	void VulkanRenderContext::WriteDescriptorSetData(VkDescriptorSet set, const VulkanDescriptorSetLayout& descriptorSetLayout, const CachedVulkanUniformData& cachedData)

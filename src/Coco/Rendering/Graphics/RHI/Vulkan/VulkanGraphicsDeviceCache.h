@@ -17,11 +17,6 @@ namespace Coco::Rendering::Vulkan
 	class VulkanGraphicsDeviceCache
 	{
 	public:
-		static const double ResourcePurgePeriod;
-		static const double StaleResourceThreshold;
-		static const int ResourcePurgeTickPriority;
-
-	public:
 		VulkanGraphicsDeviceCache(VulkanGraphicsDevice& device);
 		~VulkanGraphicsDeviceCache();
 

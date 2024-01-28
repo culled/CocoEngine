@@ -1,17 +1,14 @@
 #include "Renderpch.h"
 #include "VulkanGraphicsDeviceCache.h"
+#include "VulkanGraphicsDevice.h"
 
 #include <Coco/Core/Engine.h>
 
 namespace Coco::Rendering::Vulkan
 {
-	const double VulkanGraphicsDeviceCache::ResourcePurgePeriod = 1.0;
-	const double VulkanGraphicsDeviceCache::StaleResourceThreshold = 1.5;
-	const int VulkanGraphicsDeviceCache::ResourcePurgeTickPriority = -200000;
-
 	VulkanGraphicsDeviceCache::VulkanGraphicsDeviceCache(VulkanGraphicsDevice& device) :
 		_device(device),
-		_purgeTickListener(CreateManagedRef<TickListener>(this, &VulkanGraphicsDeviceCache::HandlePurgeTickListener, ResourcePurgeTickPriority)),
+		_purgeTickListener(CreateManagedRef<TickListener>(this, &VulkanGraphicsDeviceCache::HandlePurgeTickListener, VulkanGraphicsDevice::ResourcePurgeTickPriority)),
 		_renderContextPool(CreateUniqueRef<VulkanRenderContextPool>(device)),
 		_renderFramePool(CreateUniqueRef<VulkanRenderFramePool>(device)),
 		_meshCache(CreateUniqueRef<VulkanMeshCache>(device, false)),
@@ -21,7 +18,7 @@ namespace Coco::Rendering::Vulkan
 		_pipelines(),
 		_framebuffers()
 	{
-		_purgeTickListener->SetTickPeriod(ResourcePurgePeriod, false);
+		_purgeTickListener->SetTickPeriod(VulkanGraphicsDevice::ResourcePurgePeriod, false);
 		MainLoop::Get()->AddTickListener(_purgeTickListener);
 	}
 
@@ -121,7 +118,7 @@ namespace Coco::Rendering::Vulkan
 		uint64 renderPassesPurged = std::erase_if(_renderPasses,
 			[](const auto& kvp)
 			{
-				return kvp.second.IsStale(StaleResourceThreshold);
+				return kvp.second.IsStale(VulkanGraphicsDevice::StaleResourceThreshold);
 			});
 
 		if (renderPassesPurged > 0)
@@ -132,7 +129,7 @@ namespace Coco::Rendering::Vulkan
 		uint64 setLayoutsPurged = std::erase_if(_descriptorSetLayouts,
 			[](const auto& kvp)
 			{
-				return kvp.second.IsStale(StaleResourceThreshold);
+				return kvp.second.IsStale(VulkanGraphicsDevice::StaleResourceThreshold);
 			});
 
 		if (setLayoutsPurged > 0)
@@ -143,7 +140,7 @@ namespace Coco::Rendering::Vulkan
 		uint64 shadersPurged = std::erase_if(_shaders,
 			[](const auto& kvp)
 			{
-				return kvp.second.IsStale(StaleResourceThreshold);
+				return kvp.second.IsStale(VulkanGraphicsDevice::StaleResourceThreshold);
 			});
 
 		if (shadersPurged > 0)
@@ -154,7 +151,7 @@ namespace Coco::Rendering::Vulkan
 		uint64 pipelinesPurged = std::erase_if(_pipelines,
 			[](const auto& kvp)
 			{
-				return kvp.second.IsStale(StaleResourceThreshold);
+				return kvp.second.IsStale(VulkanGraphicsDevice::StaleResourceThreshold);
 			});
 
 		if (pipelinesPurged > 0)
@@ -165,7 +162,7 @@ namespace Coco::Rendering::Vulkan
 		uint64 framebuffersPurged = std::erase_if(_framebuffers,
 			[](const auto& kvp)
 			{
-				return kvp.second.IsStale(StaleResourceThreshold);
+				return kvp.second.IsStale(VulkanGraphicsDevice::StaleResourceThreshold);
 			});
 
 		if (framebuffersPurged > 0)

@@ -53,7 +53,7 @@ namespace Coco
 		_updateTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleUpdateTick, 0)),
 		_renderTickListener(CreateManagedRef<TickListener>(this, &EditorApplication::HandleRenderTick, 99))
 	{
-		Engine::Get()->GetLog().SetMinimumSeverity(LogMessageSeverity::Trace);
+		//Engine::Get()->GetLog().SetMinimumSeverity(LogMessageSeverity::Trace);
 
 		SetupServices();
 		CreateMainWindow();

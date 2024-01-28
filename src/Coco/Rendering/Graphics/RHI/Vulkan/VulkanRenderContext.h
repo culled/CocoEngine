@@ -3,6 +3,7 @@
 #include "../../RenderContext.h"
 #include "VulkanIncludes.h"
 #include "../../ShaderUniformTypes.h"
+#include "VulkanUniformCache.h"
 
 namespace Coco::Rendering
 {
@@ -100,6 +101,7 @@ namespace Coco::Rendering::Vulkan
         ManagedRef<VulkanGraphicsFence> _renderCompletedFence;
         RenderContextStats _renderStats;
         std::unordered_map<GraphicsResourceID, VulkanDescriptorSetPool> _descriptorPools;
+        UniqueRef<VulkanUniformCache> _uniformCache;
 
         std::optional<VulkanRenderContextOperation> _renderOperation;
         std::optional<VulkanGlobalState> _globalState;

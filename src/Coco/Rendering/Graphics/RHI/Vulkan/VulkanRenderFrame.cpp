@@ -27,7 +27,6 @@ namespace Coco::Rendering::Vulkan
 		_device(device),
 		_graphicsQueue(device.GetQueue(VulkanQueueType::Graphics)),
 		_meshCache(CreateUniqueRef<VulkanMeshCache>(device, true)),
-		_uniformCache(CreateUniqueRef<VulkanUniformCache>(device)),
 		_lastPresenterRenderIndices(),
 		_unusedRenderSemaphores(),
 		_renderSemaphores(),
@@ -47,7 +46,6 @@ namespace Coco::Rendering::Vulkan
 		_graphicsQueue->GetCommandPool()->Free(*_presentCommandBuffer);
 		_presentCommandBuffer.reset();
 
-		_uniformCache.reset();
 		_meshCache.reset();
 	}
 
@@ -158,10 +156,6 @@ namespace Coco::Rendering::Vulkan
 
 		_presentCommandBuffer->Reset();
 		_meshCache->Clear();
-
-		// TODO: make this configurable
-		const double _staleThreshold = 2.0;
-		_uniformCache->PurgeUnusedUniformData(_staleThreshold);
 	}
 
 	void VulkanRenderFrame::SubmitRenderTasks()

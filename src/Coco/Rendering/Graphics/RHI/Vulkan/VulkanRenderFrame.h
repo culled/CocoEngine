@@ -1,7 +1,6 @@
 #pragma once
 #include "../../RenderFrame.h"
 #include "VulkanMeshCache.h"
-#include "VulkanUniformCache.h"
 #include "VulkanRenderContext.h"
 #include "VulkanCommandBuffer.h"
 
@@ -55,8 +54,6 @@ namespace Coco::Rendering::Vulkan
         void UploadMesh(const SharedRef<Mesh>& mesh) override;
         bool TryGetCachedMesh(const Mesh& mesh, const CachedVulkanMesh*& outCachedMesh) const;
 
-        VulkanUniformCache& GetUniformCache() { return *_uniformCache; }
-
         void Reset();
 
         void SubmitRenderTasks();
@@ -66,7 +63,6 @@ namespace Coco::Rendering::Vulkan
         VulkanQueue* _graphicsQueue;
 
         UniqueRef<VulkanMeshCache> _meshCache;
-        UniqueRef<VulkanUniformCache> _uniformCache;
 
         std::vector<ManagedRef<VulkanGraphicsSemaphore>> _unusedRenderSemaphores;
         std::vector<ManagedRef<VulkanGraphicsSemaphore>> _renderSemaphores;
