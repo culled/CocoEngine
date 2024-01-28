@@ -60,6 +60,7 @@ namespace Coco::Rendering::Vulkan
     void VulkanPipeline::CreatePipeline(const VulkanRenderPass& renderPass, const VulkanShader& shader, uint32 subpassIndex, const VulkanDescriptorSetLayout& globalLayout)
     {
         _version = MakeVersion(renderPass, shader);
+        _subpassIndex = subpassIndex;
 
         std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
         descriptorSetLayouts.reserve(4);

@@ -36,12 +36,16 @@ namespace Coco::Rendering
 		/// @brief Gets the name of the error shader
 		static const string ErrorShaderName;
 
+		static std::array<string, 64> VisiblityGroupTexts;
+
 		/// @brief Invoked once the maximum frames in flight is changed
 		Event<uint32> OnMaxFramesInFlightChanged;
 
 	public:
 		RenderService(const GraphicsPlatformFactory& platformFactory);
 		~RenderService();
+
+		static string GetVisibilityFlagText(uint64 flags, int maxFlags);
 
 		/// @brief Gets the graphics platform
 		/// @return The graphics platform

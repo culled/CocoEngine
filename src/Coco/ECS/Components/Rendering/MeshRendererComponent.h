@@ -43,6 +43,7 @@ namespace Coco::ECS
         /// @brief Gets the materials used for rendering and their corresponding submesh slots
         /// @return The map of submesh slots and materials
         const std::unordered_map<uint32, SharedRef<Rendering::Material>>& GetMaterials() const { return _materials; }
+        std::unordered_map<uint32, SharedRef<Rendering::Material>>& GetMaterials() { return _materials; }
 
         /// @brief Sets the visibility groups of this renderer
         /// @param visibilityGroups The visibility groups

@@ -175,8 +175,13 @@ namespace Coco::Rendering::Vulkan
 		const CachedVulkanMesh* cachedMesh = nullptr;
 		if (!_renderOperation->RenderFrame.TryGetCachedMesh(*mesh, cachedMesh))
 		{
-			CocoError("Failed to get data for mesh. Skipping...")
-			return;
+			_renderOperation->RenderFrame.UploadMesh(mesh);
+
+			if (!_renderOperation->RenderFrame.TryGetCachedMesh(*mesh, cachedMesh))
+			{
+				CocoError("Failed to get data for mesh. Skipping...")
+				return;
+			}
 		}
 
 		if (!FlushStateChanges())
@@ -345,6 +350,7 @@ namespace Coco::Rendering::Vulkan
 		_drawUniforms.clear();
 
 		vkCmdNextSubpass(_renderOperation->CommandBuffer.GetCmdBuffer(), VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
+		_renderOperation->CurrentPassIndex++;
 	}
 
 	void VulkanRenderContext::End(

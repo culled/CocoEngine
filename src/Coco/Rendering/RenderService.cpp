@@ -17,6 +17,7 @@
 namespace Coco::Rendering
 {
 	const string RenderService::ErrorShaderName = "error";
+	std::array<string, 64> RenderService::VisiblityGroupTexts = { "Group" };
 
 	RenderService::RenderService(const GraphicsPlatformFactory& platformFactory) :
 		_attachmentCache(nullptr),
@@ -26,6 +27,11 @@ namespace Coco::Rendering
 		_maxFramesInFlight(1),
 		_platform(platformFactory.Create())
 	{
+		for (int i = 0; i < VisiblityGroupTexts.size(); i++)
+		{
+			VisiblityGroupTexts.at(i) = FormatString("Group {}", i);
+		}
+
 		_device = _platform->CreateDevice();
 
 		CreateDefaultDiffuseTexture();
@@ -63,6 +69,37 @@ namespace Coco::Rendering
 		_platform.reset();
 
 		CocoTrace("RenderService shutdown")
+	}
+
+	string RenderService::GetVisibilityFlagText(uint64 flags, int maxFlags)
+	{
+		string v;
+		int added = 0;
+
+		for (int i = 0; i < VisiblityGroupTexts.size(); i++)
+		{
+			if ((flags & static_cast<uint64>(1) << i) != 0)
+			{
+				if (added < maxFlags)
+				{
+					if (added > 0)
+						v += ", ";
+
+					v += VisiblityGroupTexts.at(i);
+				}
+				else
+				{
+					v += "...";
+				}
+
+				added++;
+			}
+		}
+
+		if (added == 0)
+			v = "None";
+
+		return v;
 	}
 
 	bool RenderService::Render(

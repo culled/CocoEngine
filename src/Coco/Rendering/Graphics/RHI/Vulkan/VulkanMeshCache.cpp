@@ -258,7 +258,7 @@ namespace Coco::Rendering::Vulkan
 			cachedMesh->Buffer = _meshBuffer;
 
 			// Copy from the original buffer
-			sourceMesh.Buffer->CopyTo(cachedMesh->AllocBlock->Offset, *_meshBuffer, sourceMesh.AllocBlock->Offset, sourceMesh.AllocBlock->Size);
+			sourceMesh.Buffer->CopyTo(sourceMesh.AllocBlock->Offset, *_meshBuffer, cachedMesh->AllocBlock->Offset, cachedMesh->AllocBlock->Size);
 		}
 		catch (const Exception& ex)
 		{

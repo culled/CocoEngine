@@ -19,11 +19,13 @@
 #include "UI/Components/EntityInfoComponentUI.h"
 #include "UI/Components/Transform3DComponentUI.h"
 #include "UI/Components/Rendering/CameraComponentUI.h"
+#include "UI/Components/Rendering/MeshRendererComponentUI.h"
 #include "UI/Components/ViewportCameraControllerComponentUI.h"
 
 // TEMPORARY
 //#include "Rendering/PickingRenderPass.h"
 #include <Coco/Rendering/Pipeline/RenderPasses/BasicShaderRenderPass.h>
+#include <Coco/Rendering/Gizmos/GizmoRenderPass.h>
 #include <Coco/Rendering/BuiltIn/BuiltInShaderRenderPass.h>
 #include <Coco/ECS/Components/Rendering/MeshRendererComponent.h>
 #include <Coco/Rendering/MeshUtilities.h>
@@ -126,6 +128,7 @@ namespace Coco
 
 		std::array<uint32, 2> bindings = { 0, 1 };
 		_renderPipeline->AddRenderPass(CreateSharedRef<BuiltInShaderRenderPass>(true), bindings);
+		_renderPipeline->AddRenderPass(CreateSharedRef<GizmoRenderPass>(), bindings);
 
 		File f = Engine::Get()->GetFileSystem().OpenFile("ui/fonts/Roboto/Roboto-Regular.ttf", FileOpenFlags::Read);
 		_fontData = f.ReadToEnd();
@@ -183,11 +186,13 @@ namespace Coco
 		InspectorPanel::Register<EntityInfoComponent>("Entity Info Component", EntityInfoComponentUI::DrawInspectorUI, false);
 		InspectorPanel::Register<Transform3DComponent>("Transform 3D Component", Transform3DComponentUI::DrawInspectorUI);
 		InspectorPanel::Register<CameraComponent>("Camera Component", CameraComponentUI::DrawInspectorUI);
+		InspectorPanel::Register<MeshRendererComponent>("Mesh Renderer Component", MeshRendererComponentUI::DrawInspectorUI);
 		
 		ViewportPanel::Add2DRenderHook(Transform3DComponentUI::DrawViewport2D);
 		ViewportPanel::Add2DRenderHook(CameraComponentUI::DrawViewport2D);
 
 		ViewportPanel::Add3DRenderHook(CameraComponentUI::DrawViewport3D);
+		ViewportPanel::Add3DRenderHook(MeshRendererComponentUI::DrawViewport3D);
 
 		ViewportPanel::AddMenuHook("", Transform3DComponentUI::DrawViewportMenu);
 		ViewportPanel::AddMenuHook("Snap Settings", Transform3DComponentUI::DrawViewportSnapSettingsMenu);

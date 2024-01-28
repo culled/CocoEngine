@@ -1,9 +1,11 @@
 #include "CameraComponentUI.h"
 #include "../../../Panels/ViewportPanel.h"
+#include <Coco/ECS/Components/Transform3DComponent.h>
+#include <Coco/Rendering/Gizmos/Gizmos.h>
+#include <Coco/Core/Engine.h>
 
 #include <imgui.h>
 
-#include <Coco/Core/Engine.h>
 
 using namespace Coco::ECS;
 using namespace Coco::Rendering;
@@ -158,10 +160,28 @@ namespace Coco
 		if (it == _settings.end())
 			return;
 
-		Entity cameraEntity = it->second.FullscreenPreviewEntity;
+		Entity fullscreenCameraEntity = it->second.FullscreenPreviewEntity;
 
-		if (cameraEntity != Entity::Null)
-			viewport.SetOverrideCamera(cameraEntity);
+		if (fullscreenCameraEntity != Entity::Null)
+			viewport.SetOverrideCamera(fullscreenCameraEntity);
+
+		SelectionContext& selectionContext = viewport.GetSelectionContext();
+		if (selectionContext.HasSelectedEntity() && selectionContext.GetSelectedEntity().HasComponent<CameraComponent>())
+		{
+			Entity cameraEntity = selectionContext.GetSelectedEntity();
+			const CameraComponent& camera = cameraEntity.GetComponent<CameraComponent>();
+
+			Vector3 position = Vector3::Zero;
+			Quaternion rotation = Quaternion::Identity;
+			const Transform3DComponent* transform = nullptr;
+			if (cameraEntity.TryGetComponent<Transform3DComponent>(transform))
+			{
+				position = transform->GetPosition(TransformSpace::Global);
+				rotation = transform->GetRotation(TransformSpace::Global);
+			}
+
+			Gizmos::DrawFrustum(camera.GetViewFrustum(viewport.GetViewportRect().GetAspectRatio(), position, rotation), Color::White);
+		}
 	}
 
 	void CameraComponentUI::EnsureCameraPreviewTexture(uint64 viewportID, ViewportCameraComponentSettings& settings, const SizeInt& previewSize)
