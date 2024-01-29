@@ -6,6 +6,17 @@
 
 namespace Coco
 {
+	YAML::Node LoadAssetYAML(const FilePath& filePath)
+	{
+		// Read-in the file as text
+		File file = Engine::Get()->GetFileSystem().OpenFile(filePath, FileOpenFlags::Read | FileOpenFlags::Text);
+
+		string text = file.ReadTextToEnd();
+		file.Close();
+
+		return YAML::Load(text);
+	}
+
 	const string AssetManager::TextAssetExtension = ".cres";
 
 	SharedRef<Resource> AssetManager::GetOrLoad(const FilePath& filePath)
@@ -85,15 +96,52 @@ namespace Coco
 		return FilePath();
 	}
 
+	string AssetManager::GetAssetResourceType(const FilePath& assetPath)
+	{
+		ResourceLibrary& resources = Engine::Get()->GetResourceLibrary();
+
+		// Try to find the ID of the resource associated with the file path
+		auto it = _resourcePathMap.find(assetPath);
+		SharedRef<Resource> resource;
+
+		if (it != _resourcePathMap.end())
+		{
+			const ResourceID& id = it->second;
+
+			// If the resource has already been loaded, just return that
+			if (resources.TryGet(id, resource))
+				return resource->GetTypename();
+		}
+
+		// The resource has not been loaded, so we should load it
+		string extension = assetPath.GetExtension();
+		bool isTextAsset = extension == TextAssetExtension;
+
+		bool loaded = false;
+
+		if (isTextAsset)
+		{
+			YAML::Node baseNode = LoadAssetYAML(assetPath);
+
+			if (!baseNode["resourceType"])
+			{
+				CocoError("Resource format is incorrect")
+				return string();
+			}
+
+			return baseNode["resourceType"].as<string>();
+		}
+		else
+		{
+			// TODO: load binary asset
+			throw NotImplementedException("Only text assets can be loaded currently");
+			return string();
+		}
+	}
+
 	bool AssetManager::LoadTextAsset(const FilePath& filePath, SharedRef<Resource>& outResource)
 	{
-		// Read-in the file as text
-		File file = Engine::Get()->GetFileSystem().OpenFile(filePath, FileOpenFlags::Read | FileOpenFlags::Text);
-
-		string text = file.ReadTextToEnd();
-		file.Close();
-
-		YAML::Node baseNode = YAML::Load(text);
+		YAML::Node baseNode = LoadAssetYAML(filePath);
 
 		if (!baseNode["resourceID"] || !baseNode["resourceType"])
 		{

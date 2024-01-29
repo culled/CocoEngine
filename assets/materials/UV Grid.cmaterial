@@ -1,7 +1,0 @@
-parameters:
-  ColorTexture:
-    type: 11
-    value: textures\UV_Grid.ctexture
-  TintColor:
-    type: 4
-    value: [1, 1, 1, 1, false]  # Fix

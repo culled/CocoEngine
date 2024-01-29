@@ -6,6 +6,7 @@
 #include <Coco/Rendering/RenderService.h>
 
 #include "../../UIUtilities.h"
+#include "../../MaterialUI.h"
 
 #include <imgui.h>
 
@@ -64,12 +65,12 @@ namespace Coco
 			{
 				if (ImGui::CollapsingHeader("Properties"))
 				{
-					//MaterialUI::Draw(*materialResource);
+					MaterialUI::Draw(*materialResource);
 					//DrawAddParameterSection(*materialResource);
 					//DrawRemoveParameterSection(*materialResource);
 
 					//SharedRef<Shader> shader;
-					//if (UIUtils::DrawResourcePicker(".cshader", "Add Parameters From Shader", shader))
+					//if (UIUtils::DrawResourcePicker("Shader", "Add Parameters From Shader", shader))
 					//{
 					//	materialResource->AddParametersFromShader(*shader);
 					//}

@@ -19,6 +19,11 @@ namespace Coco::Rendering
 		return FindValue(name)->Type;
 	}
 
+	void Material::MarkDirty()
+	{
+		IncrementVersion();
+	}
+
 	std::vector<ShaderUniformValue>::iterator Material::FindValue(const string& name)
 	{
 		return std::find_if(_parameters.begin(), _parameters.end(),

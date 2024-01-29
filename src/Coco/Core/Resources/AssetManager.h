@@ -27,6 +27,8 @@ namespace Coco
 		bool Save(const SharedRef<Resource>& resource, const FilePath& filePath);
 		FilePath GetResourceFilePath(const ResourceID& id) const;
 
+		string GetAssetResourceType(const FilePath& assetPath);
+
 	private:
 		std::unordered_map<FilePath, ResourceID> _resourcePathMap;
 

@@ -1,6 +1,0 @@
-resourceID: SceneProvider3D::Material
-resourceType: Material
-parameters:
-  TestTexture:
-    type: 11
-    value: textures\test.cres  # .

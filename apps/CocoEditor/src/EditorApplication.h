@@ -12,6 +12,7 @@
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/InspectorPanel.h"
 #include "Panels/ViewportPanel.h"
+#include "Panels/ContentBrowserPanel.h"
 
 // TEMPORARY
 #include <Coco/Rendering/Pipeline/RenderPipeline.h>
@@ -52,6 +53,7 @@ namespace Coco
         UniqueRef<SceneHierarchyPanel> _sceneHierarchyPanel;
         UniqueRef<InspectorPanel> _inspectorPanel;
         UniqueRef<ViewportPanel> _viewportPanel;
+        UniqueRef<ContentBrowserPanel> _contentPanel;
 
         // TEMPORARY
         SharedRef<Rendering::RenderPipeline> _renderPipeline;

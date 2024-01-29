@@ -1,6 +1,6 @@
-resourceID: SceneProvider3D::Texture
+resourceID: C:\Users\coast\Projects\c++\CocoEngine\assets\textures\UV_Grid.png
 resourceType: Texture
-imageFilePath: textures\LargeBlocks.png
+imageFilePath: C:\Users\coast\Projects\c++\CocoEngine\assets\textures\UV_Grid.png
 imageDescription:
   width: 1024
   height: 1024

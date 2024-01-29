@@ -1,0 +1,24 @@
+resourceID: C:\Users\coast\Projects\c++\CocoEngine\assets\textures\UI Test.png
+resourceType: Texture
+imageFilePath: C:\Users\coast\Projects\c++\CocoEngine\assets\textures\UI Test.png
+imageDescription:
+  width: 48
+  height: 48
+  depth: 1
+  layers: 1
+  pixelFormat: 0
+  colorSpace: 0
+  mipmapCount: 6
+  usageFlags: 7
+  sampleCount: 0
+samplerDescription:
+  minimizeFilter: 1
+  magnifyFilter: 1
+  repeatU: 0
+  repeatV: 0
+  repeatW: 0
+  mipmapFilter: 1
+  maxAnisotropy: 0
+  minLod: 0
+  maxLod: 6
+  lodBias: 0  # .

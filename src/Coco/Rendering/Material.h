@@ -38,7 +38,7 @@ namespace Coco::Rendering
 				_parameters.emplace_back(name, value);
 			}
 
-			IncrementVersion();
+			MarkDirty();
 		}
 
 		/// @brief Gets a value
@@ -63,7 +63,10 @@ namespace Coco::Rendering
 
 		ShaderUniformType GetValueType(const string& name) const;
 
-		const std::span<const ShaderUniformValue> GetUniformValues() const { return _parameters; }
+		std::span<const ShaderUniformValue> GetUniformValues() const { return _parameters; }
+		std::span<ShaderUniformValue> GetUniformValues() { return _parameters; }
+
+		void MarkDirty();
 
 	private:
 		std::vector<ShaderUniformValue> _parameters;

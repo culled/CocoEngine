@@ -166,17 +166,28 @@ namespace Coco::Rendering
 
 		// Check if there is any transparency in the image
 		bool hasTransparency = false;
+		double averageMagnitude = 0.0;
 
-		if (actualChannelCount > 3)
+		for (uint64_t i = 0; i < byteSize; i += channelsToLoad)
 		{
-			for (uint64_t i = 0; i < byteSize; i += channelsToLoad)
+			if (actualChannelCount > 3 && rawImageData[i + 3] < 255)
 			{
-				if (rawImageData[i + 3] < 255)
-				{
-					hasTransparency = true;
-					break;
-				}
+				hasTransparency = true;
 			}
+
+			double x = (rawImageData[i] - 127.0) / 128.0;
+			double y = (rawImageData[i + 1] - 127.0) / 128.0;
+			Vector3 rgb(x, y, rawImageData[i + 2] / 255.0);
+			averageMagnitude += rgb.GetLength();
+		}
+
+		// If this value is very close to 1.0, then the texture is likely to be a normal map
+		averageMagnitude /= static_cast<double>(width) * height;
+
+		if (Math::Approximately(averageMagnitude, 1.0, 0.02))
+		{
+			// TODO: add more automatic normalmap detection, like compression
+			_imageDescription.ColorSpace = ImageColorSpace::Linear;
 		}
 
 		// Create a new image description with the given usage flags

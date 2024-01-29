@@ -179,6 +179,7 @@ namespace Coco
 		_sceneHierarchyPanel = CreateUniqueRef<SceneHierarchyPanel>(_mainScene, _selection);
 		_inspectorPanel = CreateUniqueRef<InspectorPanel>(_selection);
 		_viewportPanel = CreateUniqueRef<ViewportPanel>(_mainScene, _selection, _renderPipeline);
+		_contentPanel = CreateUniqueRef<ContentBrowserPanel>();
 	}
 
 	void EditorApplication::RegisterComponentUI()
@@ -262,6 +263,7 @@ namespace Coco
 		_sceneHierarchyPanel->Draw();
 		_inspectorPanel->Draw();
 		_viewportPanel->Draw(tickInfo);
+		_contentPanel->Draw();
 
 		ImGui::End();
 	}
