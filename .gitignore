@@ -1,6 +1,14 @@
 # Project files and folders
 .idea
 
+# CMake build files
+CMakeCache.txt
+CMakeFiles/
+Makefile
+_deps/
+build/
+cmake_install.cmake
+
 # Build files and folders
 cmake-build-debug/
 cmake-build-release/
