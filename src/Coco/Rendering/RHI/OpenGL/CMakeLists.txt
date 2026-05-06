@@ -1,0 +1,26 @@
+target_sources(Rendering PRIVATE
+        RHI/OpenGL/OpenGLGraphicsPlatform.cpp
+        RHI/OpenGL/OpenGLGraphicsPlatform.h
+        RHI/OpenGL/Resources/OpenGLGraphicsSurface.cpp
+        RHI/OpenGL/Resources/OpenGLGraphicsSurface.h
+        RHI/OpenGL/Resources/OpenGLRenderContext.cpp
+        RHI/OpenGL/Resources/OpenGLRenderContext.h
+        RHI/OpenGL/OpenGLRenderFrame.cpp
+        RHI/OpenGL/OpenGLRenderFrame.h
+        RHI/OpenGL/Resources/OpenGLImage.cpp
+        RHI/OpenGL/Resources/OpenGLImage.h
+        RHI/OpenGL/OpenGLUtils.cpp
+        RHI/OpenGL/OpenGLUtils.h
+        RHI/OpenGL/Resources/OpenGLShaderProgram.cpp
+        RHI/OpenGL/Resources/OpenGLShaderProgram.h
+        RHI/OpenGL/OpenGLMeshStorage.cpp
+        RHI/OpenGL/OpenGLMeshStorage.h
+        RHI/OpenGL/Resources/OpenGLBuffer.cpp
+        RHI/OpenGL/Resources/OpenGLBuffer.h
+        RHI/OpenGL/OpenGLShaderProgramCompiler.cpp
+        RHI/OpenGL/OpenGLShaderProgramCompiler.h
+        RHI/OpenGL/OpenGLUniformStorage.cpp
+        RHI/OpenGL/OpenGLUniformStorage.h
+        RHI/OpenGL/OpenGLShaderBufferInterface.cpp
+        RHI/OpenGL/OpenGLShaderBufferInterface.h
+)

@@ -1,0 +1,66 @@
+//
+// Created by cullen on 2/28/26.
+//
+
+#ifndef COCOENGINE_X11WINDOW_H
+#define COCOENGINE_X11WINDOW_H
+#include <Coco/Windowing/Window.h>
+#include <Coco/Core/Types/String.h>
+#include "X11Types.h"
+
+namespace Coco
+{
+    class RenderService;
+    class X11WindowSystem;
+
+    class X11Window : public Window
+    {
+        friend class X11WindowSystem;
+
+    public:
+        X11Window(X11WindowSystem* windowSystem, uint32 id, bool mainWindow, const WindowCreateParams& createParams);
+        ~X11Window() override;
+
+        void Show() override;
+        bool IsVisible() const override { return _isVisible; }
+        void SetTitle(const char* title) override;
+        String GetTitle() const override;
+        void SetSize(const Sizei& newSize) override;
+        Sizei GetSize() const override { return _size; }
+        void SetPosition(const Vector2i& newPos, bool relativeToParent) override;
+        Vector2i GetPosition(bool relativeToParent) const override;
+        void SetState(WindowState newState) override;
+        WindowState GetState() const override { return _currentState;}
+        void SetFullscreen(bool fullscreen) override;
+        bool IsFullscreen() const override { return _isFullscreen; }
+        void Focus() override;
+        bool IsFocused() const override;
+
+        X11::Display* GetDisplay() const;
+        X11::Window GetNativeWindow() const { return _x11Window; }
+
+    protected:
+        void Close() override;
+
+    private:
+        static const int _eventMask;
+
+        X11WindowSystem* _windowSystem;
+        RenderService* _renderService;
+        X11::Window _x11Window;
+        bool _isMapped;
+        bool _isVisible;
+        WindowState _currentState;
+        bool _isFullscreen;
+        Sizei _size;
+
+    private:
+        String GetErrorText(int code) const;
+        void ProcessEvent(const X11::XEvent& event);
+        void UpdateState();
+        void SetMaximizedState(bool maximized);
+        void SetFullscreenState(bool fullscreen);
+    };
+} // Coco
+
+#endif //COCOENGINE_X11WINDOW_H

@@ -1,0 +1,12 @@
+# Project files and folders
+.idea
+
+# Build files and folders
+cmake-build-debug/
+cmake-build-release/
+
+# ImGui files
+*imgui.ini
+
+# Third-party assets
+Assets/Textures/World of Solaria Demo Pack/
