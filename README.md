@@ -3,7 +3,7 @@ A modular, flexible C++ game engine built to run on multiple platforms.
 
 The engine is composed of a core that uses `EngineServices` to implement functionality, such as rendering, physics, an entity-component system, and more, as well as an `Application` class that client applications derive from. The core creates an instance of the application and runs a process loop that dispatches ticks to listeners, and can be run headless without any other services.
 
-The engine is designed to be relatively unopinionated in its functionality, which means that it is very flexible but it also requires you to define your own structure for developing games and applications using it. Right now, it is more akin to a framework as opposed to a full-fledged editor and suite like Godot, Unreal Engine, or Unity.
+The engine is designed to be relatively unopinionated in its functionality, which means that it is very flexible, but it also requires you to define your own structure for developing games and applications using it. Right now, it is more akin to a framework as opposed to a full-fledged editor and suite like Godot, Unreal Engine, or Unity.
 
 This project is a hobby of mine and the engine is still under heavy development. Many features are being implemented as I need them and as I learn more. The engine should be considered as a **"minimum viable product"** right now. It definitely needs a lot of work in terms of optimization and resiliency, and I will address that as I find the time and energy to. Comments and documentation will also be added once I feel like certain APIs have stabilized. I'm mostly doing this as a learning experience because I love building systems that work together, and this project has taught me so much.
 
@@ -26,7 +26,7 @@ A memory manager tracks the usage of different parts of the engine. All dynamic 
 A `ResourceManager` is used to hold and access shared resources, such as meshes, textures, and more within the engine. Resources can also be saved and loaded from disk.
 
 #### Static Runtime Typing
-Systems can opt-in to static runtime typing scheme that enables typing and polymorphic information to be derived about them. Through a few simple macro lines, types are automatically registered to the system at startup.
+Systems can opt in to static runtime typing scheme that enables typing and polymorphic information to be derived about them. Through a few simple macro lines, types are automatically registered to the system at startup.
 
 #### Event System
 An event system is provided that allows subscribers to listen to events and execute functions when those events are invoked. Events can also "handled", which prevents them from dispatching to other listeners.
@@ -87,13 +87,14 @@ In order to create an application using the engine, you must create a C++ projec
 The engine uses CMake 4.1+ as the build system, which should automatically fetch dependencies upon project setup.
 
 #### Manual build steps:
-1. Open the "CocoEngine" root folder in a terminal
-2. Configure the project: ```cmake .```
-3. Build the project: ```cmake --build .```
+1. Clone the repository: ```git clone https://github.com/culled/CocoEngine```
+2. Navigate into the cloned project: ```cd CocoEngine```
+3. Configure the project: ```cmake .```
+4. Build the project: ```cmake --build .```
 
 Right now, the entire project is statically built and linked. You can also include/exclude the compiling of different services by modifying the CMake options. By default, the project includes a "Sandbox" application that can be used to experiment with and develop the engine. If you want to create your own application, you can create your own C++ project and include it as a CMake target in the root `CMakeLists.txt` file.
 
-You will need to either copy the "Assets" directory to the same directory as your compiled executable file, or set the working directory of your project to be the root of the project. This is because the engine currently searches for the "Assets" directory relative to the directory of the current process for loading shaders and other assets it uses.
+You will need to either copy the "Assets" directory to the same directory as your compiled executable file, or set the working directory of your project to be the root of the project. This is because the engine currently searches for the "Assets" directory relative to the directory of the current process for loading shaders and other assets it uses. The built-in applications have a post-build command that automatically copies the assets to the executable directory.
 
 I'm still relatively new to CMake, and I'm sure the build process needs to be updated to be more resilient and flexible, but it works for what I need right now. I currently use JetBrains CLion as my primary IDE, which should automatically set up the project correctly once you open it.
 
@@ -105,6 +106,7 @@ Example applications for the engine can be found in the "Apps" directory.
 ## Third Party Dependencies
 - [Slang](https://github.com/shader-slang/slang)
 - [VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
+- [volk](https://github.com/zeux/volk)
 - [Vulkan](https://www.vulkan.org/)
 - [glad](https://glad.dav1d.de/)
 - [stb](https://github.com/nothings/stb)
