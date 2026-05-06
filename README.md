@@ -84,7 +84,14 @@ Provides physics that allows objects to react to gravity and collision forces.
 In order to create an application using the engine, you must create a C++ project and statically link the engine to it. Then, you must make a class that derives from the `Application` class. An instance of this class will automatically be created when the engine starts. You must also create an entrypoint script that sets up the engine's platform and creates the engine. An example entrypoint can be found in `main.cpp` of the "Sandbox" project in the "Apps" directory.
 
 # Project Setup and Building
-The engine uses CMake as the build system, which should automatically fetch dependencies upon project setup. Right now, the entire project is statically built and linked. You can also include/exclude the compiling of different services by modifying the CMake options. By default, the project includes a "Sandbox" application that can be used to experiment with and develop the engine. If you want to create your own application, you can create your own C++ project and include it as a CMake target in the root `CMakeLists.txt` file.
+The engine uses CMake 4.1+ as the build system, which should automatically fetch dependencies upon project setup.
+
+#### Manual build steps:
+1. Open the "CocoEngine" root folder in a terminal
+2. Configure the project: ```cmake .```
+3. Build the project: ```cmake --build .```
+
+Right now, the entire project is statically built and linked. You can also include/exclude the compiling of different services by modifying the CMake options. By default, the project includes a "Sandbox" application that can be used to experiment with and develop the engine. If you want to create your own application, you can create your own C++ project and include it as a CMake target in the root `CMakeLists.txt` file.
 
 You will need to either copy the "Assets" directory to the same directory as your compiled executable file, or set the working directory of your project to be the root of the project. This is because the engine currently searches for the "Assets" directory relative to the directory of the current process for loading shaders and other assets it uses.
 
