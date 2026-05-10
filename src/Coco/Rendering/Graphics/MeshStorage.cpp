@@ -13,7 +13,7 @@ namespace Coco
         BufferOffset(0),
         ChannelOffsets({0, 0, 0, 0, 0}),
         VertexDataSize(mesh.GetVertexDataSize()),
-        IndexDataOffset(Math::GetAlignmentOffset(VertexDataSize, alignof(uint32))),
+        IndexDataOffset(Math::AlignedAddress(VertexDataSize, alignof(uint32))),
         IndexCount(mesh.GetIndexCount()),
         TotalDataSize(IndexDataOffset + IndexCount * sizeof(uint32))
     {}
@@ -23,7 +23,7 @@ namespace Coco
         BufferOffset(0),
         ChannelOffsets({0, 0, 0, 0, 0}),
         VertexDataSize(vertexDataSize),
-        IndexDataOffset(Math::GetAlignmentOffset(VertexDataSize, alignof(uint32))),
+        IndexDataOffset(Math::AlignedAddress(VertexDataSize, alignof(uint32))),
         IndexCount(indexCount),
         TotalDataSize(IndexDataOffset + IndexCount * sizeof(uint32))
         {}

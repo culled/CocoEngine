@@ -22,9 +22,9 @@ namespace Coco
     public:
         VulkanUniformStorage(VulkanGraphicsPlatform* platform, uint64 pageSize);
 
-        VulkanShaderBufferInterface* Allocate(uint64 id, Ref<VulkanShaderProgram> shaderProgram, const char* blockName, VkCommandBuffer commandBuffer);
+        VulkanShaderBufferInterface* BindOrAllocate(const char* blockName, uint64 instanceID, Ref<VulkanShaderProgram> shaderProgram, VkCommandBuffer commandBuffer);
         void BindDrawTextures(Span<const SharedPtr<Texture>> textures, Ref<VulkanShaderProgram> shaderProgram, VkCommandBuffer commandBuffer);
-        void Bind(uint64 id, VkCommandBuffer commandBuffer);
+        void Bind(const char* blockName, uint64 instanceID, VulkanShaderProgram& shaderProgram, VkCommandBuffer commandBuffer);
         bool Has(uint64 id) const;
         void Clear();
 
@@ -33,6 +33,8 @@ namespace Coco
         PagedLinearBuffer<VulkanBuffer> _pagedBuffers;
         Map<uint64, VulkanShaderBufferInterface> _interfaces;
         Map<uint64, VulkanDescriptorSetPool> _descriptorSetPools;
+
+        static uint64 GetInterfaceID(const char* blockName, uint64 instanceID, VulkanShaderProgram& shaderProgram);
     };
 }
 

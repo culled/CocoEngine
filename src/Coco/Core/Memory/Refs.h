@@ -72,13 +72,6 @@ namespace Coco
 			Ref(other._controlPtr)
 		{}
 
-		/*template<typename OtherType, std::enable_if_t<std::is_base_of<ValueType, OtherType>::value, bool> = true>
-		Ref(Ref<OtherType>&& other) noexcept :
-			_controlPtr(nullptr)
-		{
-			std::swap(_controlPtr, other._controlPtr);
-		}*/
-
 		~Ref() noexcept
 		{
 			RemoveUse();
@@ -90,43 +83,12 @@ namespace Coco
 			return *this;
 		}
 
-		/*Ref& operator=(Ref&& rhs) noexcept
-		{
-			swap(*this, rhs);
-			return *this;
-		}*/
-
-		/*template<typename OtherType, std::enable_if_t<std::is_base_of<ValueType, OtherType>::value, bool> = true>
-		Ref& operator=(const Ref<OtherType>& rhs) noexcept
-		{
-			RemoveUse();
-
-			_controlPtr = rhs._controlPtr;
-
-			AddUse();
-
-			return *this;
-		}*/
-
-		/*template<typename OtherType, std::enable_if_t<std::is_base_of<ValueType, OtherType>::value, bool> = true>
-		Ref& operator=(Ref<OtherType>&& rhs) noexcept
-		{
-			std::swap(_controlPtr, rhs._controlPtr);
-
-			return *this;
-		}*/
-
 		friend void swap(Ref& a, Ref& b) noexcept
 		{
 			using std::swap;
 
 			swap(a._controlPtr, b._controlPtr);
 		}
-
-		//bool operator==(const Ref& other) const noexcept { return _controlPtr == other._controlPtr; }
-
-		//template<typename OtherType>
-		//bool operator==(const Ref<OtherType>& other) const noexcept { return _controlPtr == other._controlPtr; }
 
 		operator bool() const noexcept { return _controlPtr && _controlPtr->Ptr; }
 
@@ -171,7 +133,6 @@ namespace Coco
 	private:
 		RefControlBlock* _controlPtr;
 
-	private:
 		Ref(RefControlBlock* controlPtr) noexcept :
 			_controlPtr(controlPtr)
 		{
@@ -212,7 +173,7 @@ namespace Coco
 		return a._controlPtr == b._controlPtr;
 	}
 
-	/// @brief Manages the lifetime of an object, but allows non-owning Refs to the object
+	/// @brief Manages the lifetime of an object, but allows non-owning Refs to point to the object
 	/// @tparam ValueType The object type
 	template<typename ValueType>
 	class ManagedRef
@@ -261,9 +222,6 @@ namespace Coco
 			swap(*this, rhs);
 			return *this;
 		}
-
-		//template<typename OtherType>
-		//ManagedRef& operator=(const ManagedRef<OtherType>&) = delete;
 
 		template<typename OtherType, std::enable_if_t<std::is_base_of<ValueType, OtherType>::value, bool> = true>
 		ManagedRef& operator=(ManagedRef<OtherType>&& rhs) noexcept
@@ -322,7 +280,6 @@ namespace Coco
 	private:
 		RefControlBlock* _controlPtr;
 
-	private:
 		/// @brief Creates a control block for an object
 		/// @param ptr A pointer to the object
 		/// @param allocator The allocator to use

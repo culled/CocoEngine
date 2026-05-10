@@ -196,6 +196,9 @@ namespace Coco
 		bool operator==(const AttachmentBlendState& rhs) const noexcept;
 	};
 
+	/// @brief Computes a hash value for an AttachmentBlendState
+	/// @param blendState The AttachmentBlendState
+	/// @return The computed hash
 	uint64 ToHash(const AttachmentBlendState& blendState);
 
 	/// @brief A state for the graphics pipeline
@@ -222,6 +225,7 @@ namespace Coco
 		/// @brief If true, depth values will be written to the depth buffer
 		bool EnableDepthWrite;
 
+		/// @brief The blend state of the attachments
 		AttachmentBlendState BlendState;
 
 		GraphicsPipelineState() noexcept;

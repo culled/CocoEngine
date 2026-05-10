@@ -29,12 +29,14 @@ namespace Coco
 
         _renderTickListener.ListenTo(*engine->GetMainLoop());
         //_renderer2D = CreateDefaultUnique<Renderer2D>();
+        _gizmos = CreateDefaultUnique<Gizmos>(this);
 
         COCO_ENGINE_LOG_VERBOSE("Created RenderService");
     }
 
     RenderService::~RenderService()
     {
+        _gizmos.reset();
         //_renderer2D.reset();
         _defaultCheckerTexture.reset();
 

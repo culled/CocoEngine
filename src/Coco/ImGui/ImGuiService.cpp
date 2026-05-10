@@ -17,6 +17,8 @@
 #include "ImGuiInputLayer.h"
 #include <imgui.h>
 
+#include "Coco/Rendering/RenderPasses/SimpleRenderPass.h"
+
 namespace Coco
 {
     ImGuiViewportData::ImGuiViewportData(Ref<Window> viewportWindow) :
@@ -25,7 +27,7 @@ namespace Coco
         SuppressPositionChangedEvent(false),
         SizeChangedHandler(this, &ImGuiViewportData::OnSizeChanged),
         SuppressSizeChangedEvent(false),
-        CloseRequestedHandler(this, &ImGuiViewportData::OnClosing),
+        CloseRequestedHandler(this, &ImGuiViewportData::OnCloseRequested),
         SuppressCloseRequestedEvent(false)
     {
         viewportWindow->OnPositionChanged.Connect(PositionChangedHandler);
@@ -61,7 +63,7 @@ namespace Coco
         return false;
     }
 
-    bool ImGuiViewportData::OnClosing(bool& cancel)
+    bool ImGuiViewportData::OnCloseRequested(bool& cancel)
     {
         ImGuiIO& io = ImGui::GetIO();
         if ((io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != ImGuiConfigFlags_ViewportsEnable || SuppressCloseRequestedEvent)
@@ -160,62 +162,25 @@ namespace Coco
                 );
 
                 // Get the draw texture
-                objData.TextureID = static_cast<uint64>(cmd.GetTexID());
+                objData.DrawTexture = scene.GetTexture(cmd.GetTexID());
 
                 const auto& submesh = submeshes[n];
                 indexOffset = submesh.IndexOffset + cmd.IdxOffset;
                 vertexOffset = submesh.VertexOffset + cmd.VtxOffset;
 
                 uint64 drawID = Math::CombineHashes(static_cast<uint64>(cmdI), static_cast<uint64>(n), meshID);
-                scene.StoreData(drawID, false, objData);
+                scene.StoreData(drawID, true, objData);
                 scene.AddObject(drawID, 0, meshID, indexOffset, cmd.ElemCount, static_cast<int32>(vertexOffset));
             }
         }
 
-        graph.CreateRenderPass<ImGuiRenderPassData>("ImGui",
-            [&](RenderGraphBuilder& builder, ImGuiRenderPassData& passData)
-            {
-                passData.ImGuiShader = imGuiService->GetImGuiShader();
-                passData.ColorOutput = builder.WriteRenderTarget(0);
-
-                // The vertex positions are relative to the screen, so they will need to be adjusted based on the position of the viewport
-                // Flip the top and bottom positions because imgui outputs with y=0 at the top of the viewport, and Coco expects y=0 to be at the bottom
-                passData.Projection = scene.CreateOrthographicProjection(
-                    drawData->DisplayPos.x, drawData->DisplayPos.x + drawData->DisplaySize.x,
-                    drawData->DisplayPos.y + drawData->DisplaySize.y, drawData->DisplayPos.y, -1.0f, 1.0f
-                );
-            },
-            [](const ImGuiRenderPassData& passData, const RenderScene& scene, RenderContext& ctx)
-            {
-                GraphicsPipelineState pipelineState;
-                pipelineState.CullingMode = CullMode::None;
-                pipelineState.BlendState = AttachmentBlendState::AlphaBlending;
-                pipelineState.EnableDepthWrite = false;
-                pipelineState.DepthTestMode = DepthTestingMode::Never;
-
-                ctx.SetShader(*passData.ImGuiShader, pipelineState);
-
-                ShaderCursor globalCursor;
-                if (ctx.CreateAndBindGlobalBuffer("imguiCameraData", globalCursor))
-                {
-                    globalCursor.Field("Projection").Write(passData.Projection);
-                }
-
-                for (const auto& obj : scene.GetRenderObjectView())
-                {
-                    if (scene.HasData<ImGuiObjectData>(obj.ID, false))
-                    {
-                        const ImGuiObjectData* objData = scene.GetData<ImGuiObjectData>(obj.ID, false);
-
-                        ctx.SetScissor(objData->ScissorRect);
-
-                        SharedPtr<Texture> drawTexture = scene.GetTexture(objData->TextureID);
-                        ctx.SetDrawData(nullptr, 0, Span<const SharedPtr<Texture>>({drawTexture}));
-
-                        ctx.DrawObject(obj);
-                    }
-                }
-            });
+        // The vertex positions are relative to the screen, so they will need to be adjusted based on the position of the viewport
+        // Flip the top and bottom positions because imgui outputs with y=0 at the top of the viewport, and Coco expects y=0 to be at the bottom
+        Matrix4x4 projection = scene.CreateOrthographicProjection(
+            drawData->DisplayPos.x, drawData->DisplayPos.x + drawData->DisplaySize.x,
+            drawData->DisplayPos.y + drawData->DisplaySize.y, drawData->DisplayPos.y, -1.0f, 1.0f
+        );
+        graph.CreateRenderPassObject<ImGuiRenderPass>("ImGui", projection);
     }
 
     uint64 ImGuiService::_fontTextureResourceID = std::numeric_limits<uint64>::max();
@@ -224,18 +189,17 @@ namespace Coco
         EngineService(engine),
         _windowService(engine->GetService<WindowService>()),
         _viewports(),
-        _shader(),
         _fontTexture(),
         _inputLayer(CreateDefaultShared<ImGuiInputLayer>()),
-        _newFrameTickListener(this, &ImGuiService::NewFrame, NewFrameOrder),
-        _endFrameTickListener(this, &ImGuiService::EndFrame, EndFrameOrder),
+        _newFrameTickListener(this, &ImGuiService::NewFrame, NewFrameTickOrder),
+        _endFrameTickListener(this, &ImGuiService::EndFrame, EndFrameTickOrder),
         _shouldUpdateDisplays(true),
         _viewportRenderListener(this, &ImGuiService::OnRender, ImGuiRenderOrder)
     {
         if (!_windowService)
             throw Exception("No active WindowService found");
 
-        RenderService* rendering = engine->GetService<RenderService>();
+        RenderService* rendering = engine->TryGetService<RenderService>();
         if (!rendering)
             throw Exception("No active RenderService found");
 
@@ -284,7 +248,6 @@ namespace Coco
         _endFrameTickListener.ListenTo(*engine->GetMainLoop());
         _viewportRenderListener.Listen();
 
-        CreateResources();
         SetupInput();
         UpdateDisplays();
         RebuildFontTexture();
@@ -437,11 +400,6 @@ namespace Coco
 
         ImGuiViewportData* viewportData = static_cast<ImGuiViewportData*>(viewport->PlatformUserData);
         viewportData->ViewportWindow->SetTitle(title);
-    }
-
-    void ImGuiService::CreateResources()
-    {
-        _shader = _engine->GetResourceManager()->CreateResource<Shader>("ImGui Shader", "Shaders/BuiltIn/ImGui.slang");
     }
 
     void ImGuiService::SetupInput()

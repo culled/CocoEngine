@@ -10,7 +10,7 @@ namespace Coco
 {
     class MemoryManager;
 
-    /// @brief Base class for objects that define memory allocation strategies
+    /// @brief Base class for classes that define memory allocation strategies
     class Allocator
     {
     public:
@@ -38,7 +38,6 @@ namespace Coco
     protected:
         Allocator(uint8 group) noexcept;
 
-    protected:
         uint8 _group;
     };
 } // Coco

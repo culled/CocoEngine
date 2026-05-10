@@ -9,10 +9,16 @@
 
 namespace Coco
 {
+    /// @brief Represents a version with a major, minor, and patch number
     struct Version
     {
+        /// @brief The major number
         uint32 Major;
+
+        /// @brief The minor number
         uint32 Minor;
+
+        /// @brief The patch number
         uint32 Patch;
     };
 

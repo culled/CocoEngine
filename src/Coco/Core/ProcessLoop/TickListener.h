@@ -19,7 +19,6 @@ namespace Coco
     public:
         using CallbackFunc = std::function<void(const TickInfo&)>;
 
-    public:
         TickListener(CallbackFunc callbackFunction, int order, bool enabled = true);
 
         template<typename InstanceType>
@@ -75,7 +74,6 @@ namespace Coco
         /// @brief Gets the enabled state
         /// @return The enabled state
         bool IsEnabled() const noexcept { return _isEnabled; }
-
 
         /// @brief Gets the order in the listener stack that this listener will be notified by.
         /// TickListeners are notified in ascending order

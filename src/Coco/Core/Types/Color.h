@@ -47,6 +47,7 @@ namespace Coco
 		/// @brief A fully-transparent white color (1.0, 1.0, 1.0, 0.0)
 		static const Color ClearWhite;
 
+		/// @brief The raw color values, stored in R, G, B, A order
 		float Raw[4];
 
 		/// @brief True if this color represents a gamma value and should be converted to linear space before rendering
@@ -59,16 +60,36 @@ namespace Coco
 		Color(float r, float g, float b, float a = 1.0, bool isGamma = true) noexcept;
 		Color(const Vector4& color, bool isGamma);
 
+		/// @brief The red value
+		/// @return The red value
 		constexpr float& R() { return Raw[0]; }
+
+		/// @brief The red value
+		/// @return The red value
 		constexpr const float& R() const { return Raw[0]; }
 
+		/// @brief The green value
+		/// @return The green value
 		constexpr float& G() { return Raw[1]; }
+
+		/// @brief The green value
+		/// @return The green value
 		constexpr const float& G() const { return Raw[1]; }
 
+		/// @brief The blue value
+		/// @return The blue value
 		constexpr float& B() { return Raw[2]; }
+
+		/// @brief The blue value
+		/// @return The blue value
 		constexpr const float& B() const { return Raw[2]; }
 
+		/// @brief The alpha value
+		/// @return The alpha value
 		constexpr float& A() { return Raw[3]; }
+
+		/// @brief The alpha value
+		/// @return The alpha value
 		constexpr const float& A() const { return Raw[3]; }
 
 		/// @brief Performs a gamma to linear conversion for this color and returns the converted color
@@ -94,6 +115,9 @@ namespace Coco
 		/// @param gamma The gamma value
 		void ConvertToGamma(float gamma = DefaultGamma) noexcept;
 
+		/// @brief Converts this color's RGBA values into a Vector4
+		/// @param gammaCorrected If true, the returned color will be gamma-corrected
+		/// @return This color as a Vector4
 		Vector4 AsVector4(bool gammaCorrected) const noexcept;
 	};
 } // Coco

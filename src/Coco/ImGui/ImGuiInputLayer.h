@@ -11,12 +11,13 @@
 
 namespace Coco
 {
+    /// @brief An input layer for ImGui
     class ImGuiInputLayer : public InputLayer
     {
     public:
+        /// @brief The input order
         static constexpr int Order = -100;
 
-    public:
         int GetOrder() const override { return Order; }
         bool HandleInputEvent(const InputEvent& event) override;
 

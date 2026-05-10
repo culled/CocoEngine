@@ -18,7 +18,6 @@ namespace Coco
         /// @brief The maximum message length, in characters
         static constexpr int MaxMessageLength = 1023;
 
-    public:
         Logger(LogMessageSeverity minSeverity);
 
         /// @brief Creates a sink and adds it to this log's list of sinks

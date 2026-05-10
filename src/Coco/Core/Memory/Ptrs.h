@@ -18,7 +18,10 @@ namespace Coco
     template<typename ValueType>
     struct UniquePtrDeleter
     {
+        /// @brief The allocator used to create the instance
         Allocator* Alloc;
+
+        /// @brief The size of the instance
         uint64 PtrSize;
 
         UniquePtrDeleter() :

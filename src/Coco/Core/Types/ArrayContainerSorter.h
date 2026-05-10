@@ -12,6 +12,8 @@ namespace Coco
     template<typename>
     class ArrayContainer;
 
+    /// @brief Base class for a class that can sort elements of an array
+    /// @tparam ValueType The type of array element
     template <typename ValueType>
     class ArrayContainerSorter
     {
@@ -19,9 +21,10 @@ namespace Coco
         using CompareFunc = std::function<bool(const ValueType&, const ValueType&)>;
         using Container = ArrayContainer<ValueType>;
 
-    public:
         virtual ~ArrayContainerSorter() noexcept = default;
 
+        /// @brief Sorts the given array
+        /// @param container The array to sort
         virtual void Sort(Container& container) = 0;
 
     protected:
@@ -29,7 +32,6 @@ namespace Coco
             _comparator(comparator)
         {}
 
-    protected:
         CompareFunc _comparator;
     };
 } // Coco

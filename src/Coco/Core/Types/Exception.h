@@ -10,6 +10,7 @@
 
 namespace Coco
 {
+    /// @brief Base class for all exceptions
     class Exception :
         public std::exception
     {
@@ -23,6 +24,7 @@ namespace Coco
         String _message;
     };
 
+    /// @brief An exception that is thrown when a value is outside an expected range
     class OutOfRangeException :
         public Exception
     {

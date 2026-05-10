@@ -23,6 +23,7 @@
 
 namespace Coco
 {
+    /// @brief The implementation of EnginePlatform for Linux platforms
     class LinuxEnginePlatform :
         public EnginePlatform
 #ifdef COCO_SERVICE_RENDERING
@@ -52,9 +53,6 @@ namespace Coco
         Engine* CreateEngine() override;
         void Shutdown() override;
 
-    protected:
-        //void Initialize() override;
-
     private:
         MemoryManager _memoryManager;
         UniquePtr<Engine> _engine;
@@ -68,6 +66,7 @@ namespace Coco
 
 #ifdef COCO_SERVICE_WINDOWING
     public:
+        /// @brief The tick order for processing events from the operating system
         static constexpr int ProcessEventsTickOrder = -10000;
 
         uint16 GetDisplayCount() const override;
@@ -82,6 +81,8 @@ namespace Coco
         UniquePtr<LinuxWindowSystem> _windowSystem;
 
     private:
+        /// @brief Tick handler for processing operating system events
+        /// @param tickInfo The tick info
         void ProcessEventsTick(const TickInfo& tickInfo);
 #endif
 

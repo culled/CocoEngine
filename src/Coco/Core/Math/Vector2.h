@@ -9,16 +9,30 @@
 
 namespace Coco
 {
+    /// @brief Base class for a two-dimensional vector
+    /// @tparam ValueType The value types
     template<typename ValueType>
     struct BaseVector2
     {
+        /// @brief A zero vector (0, 0)
         static const BaseVector2 Zero;
+
+        /// @brief A unit vector pointing to the right (1, 0)
         static const BaseVector2 Right;
+
+        /// @brief A unit vector pointing to the left (-1, 0)
         static const BaseVector2 Left;
+
+        /// @brief A unit vector pointing upwards (0, 1)
         static const BaseVector2 Up;
+
+        /// @brief A unit vector pointing downwards (0, -1)
         static const BaseVector2 Down;
+
+        /// @brief A vector with one in each axis (1, 1)
         static const BaseVector2 One;
 
+        /// @brief The raw vector values, stored in X, Y order
         ValueType Raw[2];
 
         BaseVector2() :
@@ -62,28 +76,47 @@ namespace Coco
             return BaseVector2(-X(), -Y());
         }
 
+        /// @brief The X Value
+        /// @return The X value
         constexpr ValueType& X() { return Raw[0]; }
+
+        /// @brief The X Value
+        /// @return The X value
         constexpr const ValueType& X() const { return Raw[0]; }
 
+        /// @brief The Y Value
+        /// @return The Y value
         constexpr ValueType& Y() { return Raw[1]; }
+
+        /// @brief The Y Value
+        /// @return The Y value
         constexpr const ValueType& Y() const { return Raw[1]; }
 
+        /// @brief Calculates the dot product of this vector and the given vector. The dot product will be 1 if the vectors point in the same direction, -1 if they point in opposite directions, and 0 if they are perpendicular
+        /// @param other The other vector
+        /// @return The dot product
         ValueType Dot(const BaseVector2& other) const
         {
             return (X() * other.X()) + (Y() * other.Y());
         }
 
+        /// @brief Calculates the length of this vector
+        /// @tparam ReturnType The return type
+        /// @return The length of this vector
         template<typename ReturnType = float>
         ReturnType Length() const
         {
             return static_cast<ReturnType>(sqrt(LengthSquared()));
         }
 
+        /// @brief Calculates the squared length of this vector. The normal length calculation involves a square root operation, so this is faster if you don't need the exact length of this vector
+        /// @return The squared length of this vector
         ValueType LengthSquared() const
         {
             return X() * X() + Y() * Y();
         }
 
+        /// @brief Normalizes this vector to unit length
         void Normalize()
         {
             ValueType length = Length();
@@ -95,6 +128,8 @@ namespace Coco
             Y() *= invLength;
         }
 
+        /// @brief Returns the normalized, unit length version of this vector
+        /// @return The normalized, unit length vector
         BaseVector2 Normalized() const
         {
             BaseVector2 v(*this);
@@ -145,9 +180,15 @@ namespace Coco
         return !(a == b);
     }
 
+    /// @brief A two-dimensional vector backed by floats
     using Vector2 = BaseVector2<float>;
+
+    /// @brief A two-dimensional vector backed by ints
     using Vector2i = BaseVector2<int>;
 
+    /// @brief Computes the hash value of a Vector2i
+    /// @param vector The vector
+    /// @return The hashed value of the vector
     uint64 ToHash(const Vector2i& vector) noexcept;
 } // Coco
 

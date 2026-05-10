@@ -29,6 +29,7 @@ namespace Coco
         /// @brief The scroll delta since the last tick
         Vector2i ScrollDelta;
 
+        /// @brief The raw move delta since the last tick
         Vector2i RawMoveDelta;
 
         MouseState() noexcept;
@@ -36,6 +37,7 @@ namespace Coco
 
     class InputService;
 
+    /// @brief A mouse input device
     class Mouse
     {
         friend class InputService;
@@ -56,6 +58,8 @@ namespace Coco
         /// @param scrollDelta The scroll delta
         void AddScrollEvent(const Vector2i& scrollDelta);
 
+        /// @brief Adds a raw move event for the Mouse
+        /// @param moveDelta The raw move delta
         void AddRawMoveEvent(const Vector2i& moveDelta);
 
         /// @brief Determines if the given Mouse button was pressed in the last tick
@@ -85,6 +89,8 @@ namespace Coco
         /// @return The scroll delta since the last tick
         const Vector2i& GetScrollDelta() const { return _currentState.ScrollDelta; }
 
+        /// @brief Gets the raw move delta since the last tick
+        /// @return The raw move delta since the last tick
         const Vector2i& GetRawMoveDelta() const { return _currentState.RawMoveDelta; }
 
     private:
@@ -92,7 +98,6 @@ namespace Coco
         MouseState _currentState;
         MouseState _previousState;
 
-    private:
         /// @brief Saves the previous input state
         void SavePreviousState();
 

@@ -19,7 +19,7 @@ namespace Coco
     {
         if (auto engine = Engine::Get())
         {
-            if (auto ecs = engine->GetService<ECSService>())
+            if (auto ecs = engine->TryGetService<ECSService>())
             {
                 return ecs->GetEntity(OwnerID);
             }

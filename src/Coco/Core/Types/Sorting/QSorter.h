@@ -20,13 +20,12 @@ namespace Coco
         using CompareFunc = ArrayContainerSorter<ValueType>::CompareFunc;
         using Container = ArrayContainerSorter<ValueType>::Container;
 
-    public:
         QSorter(const CompareFunc& comparator, float pivotFactor = 1.0) :
             ArrayContainerSorter<ValueType>(comparator),
             _pivotFactor(pivotFactor)
         {}
 
-        void Sort(Container& container)
+        void Sort(Container& container) override
         {
             if (container.IsEmpty())
                 return;
@@ -37,7 +36,6 @@ namespace Coco
     private:
         float _pivotFactor;
 
-    private:
         /// @brief Partitioning for quick sorting
         /// @param container The container
         /// @param low The low index

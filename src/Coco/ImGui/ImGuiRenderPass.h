@@ -11,19 +11,43 @@
 
 namespace Coco
 {
+    class RenderGraphBuilder;
+    class Texture;
     class Shader;
+    class RenderContext;
 
+    /// @brief Data for rendering an ImGui object
     struct ImGuiObjectData
     {
+        /// @brief The scissor rectangle to use
         Recti ScissorRect;
-        uint64 TextureID;
+
+        /// @brief The draw texture
+        SharedPtr<Texture> DrawTexture;
     };
 
-    struct ImGuiRenderPassData
+    /// @brief A render pass for rendering ImGui
+    class ImGuiRenderPass
     {
-        SharedPtr<Shader> ImGuiShader;
-        RenderGraphResourceRef ColorOutput;
-        Matrix4x4 Projection;
+    public:
+        ImGuiRenderPass(const Matrix4x4& projection);
+
+        /// @brief Runs when the render pass is created
+        /// @param builder The render graph builder
+        void Setup(RenderGraphBuilder& builder);
+
+        /// @brief Called when executing the render pass
+        /// @param sceneData The scene data
+        /// @param ctx The render context
+        void Render(const RenderScene& sceneData, RenderContext& ctx) const;
+
+    private:
+        static uint64 _shaderResourceID;
+
+        Matrix4x4 _projection;
+
+        /// @brief Ensures the draw shader resource is created
+        static void EnsureDrawShader();
     };
 } // Coco
 

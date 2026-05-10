@@ -12,6 +12,8 @@ namespace Coco
     template<typename ... Args>
     class Event;
 
+    /// @brief Listens to an Event and invokes a callback function when the Event is fired
+    /// @tparam Args Event arguments
     template<typename ... Args>
     class EventListener
     {
@@ -20,7 +22,6 @@ namespace Coco
     public:
         using CallbackFunc = std::function<bool(Args...)>;
 
-    public:
         EventListener(const CallbackFunc& callbackFunc) :
             _callbackFunc(callbackFunc),
             _connectedEvent(nullptr)
@@ -48,6 +49,8 @@ namespace Coco
         Event<Args...>* _connectedEvent;
     };
 
+    /// @brief An event that can notify listeners when it is invoked
+    /// @tparam Args Event arguments
     template<typename ... Args>
     class Event
     {
@@ -72,15 +75,21 @@ namespace Coco
             catch (...) {}
         }
 
+        /// @brief Subscribes a listener to this event. It will be notified when this event fires
+        /// @param listener The listener
         void Connect(EventListener<Args...>& listener)
         {
+            if (listener._connectedEvent)
+                listener._connectedEvent->Disconnect(listener);
+
             _listeners.Append(&listener);
             listener._connectedEvent = this;
         }
 
+        /// @brief Unsubscribes a listener from this event. It will no longer be notified when this event fires
+        /// @param listener The listener
         void Disconnect(EventListener<Args...>& listener)
         {
-            //int64 index = _listeners.Find([listener = &listener](const EventListener<Args...>* other) { return other == listener; });
             int64 index = _listeners.Find(&listener);
             if (index == -1)
                 return;
@@ -92,6 +101,9 @@ namespace Coco
                 --_currentIndex;
         }
 
+        /// @brief Fires this event with the given arguments, notifying all listeners
+        /// @param args The event arguments
+        /// @return True if a listener blocked the propagation of this event
         bool Invoke(Args&&... args)
         {
             for (_currentIndex = 0; _currentIndex < static_cast<int64>(_listeners.GetCount()); ++_currentIndex)

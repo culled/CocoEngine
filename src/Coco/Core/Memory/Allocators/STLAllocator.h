@@ -9,7 +9,6 @@
 
 namespace Coco
 {
-
     /// @brief A wrapper that enables the use of an Allocator with an STL type
     /// @tparam ValueType The type of object being allocated
     template<typename ValueType>

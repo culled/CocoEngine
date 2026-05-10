@@ -17,7 +17,7 @@ namespace Coco
     Entity::Entity(ECSService* ecs, const UUID& id) :
         _ecs(ecs),
         _id(id),
-        _componentStorage(ecs->GetComponentStorage())
+        _componentStorage(&ecs->GetComponentStorage())
     {}
 
     bool Entity::IsValid() const

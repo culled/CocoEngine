@@ -8,6 +8,9 @@
 
 namespace Coco
 {
+    /// @brief A lightweight wrapper for a contiguous array of elements
+    /// @tparam ValueType The array element type
+    /// @tparam Extent The number of elements
     template<typename ValueType, std::size_t Extent = std::dynamic_extent>
     using Span = std::span<ValueType, Extent>;
 }

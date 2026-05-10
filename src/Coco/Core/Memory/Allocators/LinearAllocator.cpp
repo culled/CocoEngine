@@ -51,7 +51,7 @@ namespace Coco
     void* LinearAllocator::Allocate(uint64 size)
     {
         // Find an address in memory that satisfies the alignment
-        uint64 newOffset = Math::GetAlignmentOffset(reinterpret_cast<uint64>(_currentPtr), alignof(max_align_t));
+        uint64 newOffset = Math::AlignedAddress(reinterpret_cast<uint64>(_currentPtr), alignof(max_align_t));
         uint64 newSize = (newOffset - reinterpret_cast<uint64>(_data)) + size;
         if (newSize > _size)
             return nullptr;

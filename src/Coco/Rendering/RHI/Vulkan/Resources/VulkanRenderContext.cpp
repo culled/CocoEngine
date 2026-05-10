@@ -174,15 +174,14 @@ namespace Coco
         COCO_ASSERT(_currentRenderOperation, "Context wasn't rendering");
         COCO_ASSERT(_currentRenderOperation->BoundShaderInfo, "No shader has been bound");
 
-        uint64 id = ToHash(name);
         VulkanUniformStorage& uniformStorage = _currentRenderOperation->Frame->GetUniformStorage();
-        if (uniformStorage.Has(id))
+        if (auto interface = uniformStorage.BindOrAllocate(name, 0, _currentRenderOperation->BoundShaderInfo->BoundShader, _currentRenderOperation->CommandBuffer))
         {
-            uniformStorage.Bind(id, _currentRenderOperation->CommandBuffer);
-            return false;
+            outCursor.BindToInterface(*interface);
+            return true;
         }
 
-        return AllocateAndBindUniformBlock(name, id, outCursor);
+        return false;
     }
 
     void VulkanRenderContext::BindGlobalBuffer(const char* name)
@@ -190,8 +189,7 @@ namespace Coco
         COCO_ASSERT(_currentRenderOperation, "Context wasn't rendering");
         COCO_ASSERT(_currentRenderOperation->BoundShaderInfo, "No shader has been bound");
 
-        uint64 id = ToHash(name);
-        _currentRenderOperation->Frame->GetUniformStorage().Bind(id, _currentRenderOperation->CommandBuffer);
+        _currentRenderOperation->Frame->GetUniformStorage().Bind(name, 0, *_currentRenderOperation->BoundShaderInfo->BoundShader, _currentRenderOperation->CommandBuffer);
     }
 
     bool VulkanRenderContext::CreateAndBindInstanceBuffer(uint64 instanceID, const char* name, ShaderCursor& outCursor)
@@ -199,15 +197,14 @@ namespace Coco
         COCO_ASSERT(_currentRenderOperation, "Context wasn't rendering");
         COCO_ASSERT(_currentRenderOperation->BoundShaderInfo, "No shader has been bound");
 
-        uint64 id = Math::CombineHashes(instanceID, ToHash(name));
         VulkanUniformStorage& uniformStorage = _currentRenderOperation->Frame->GetUniformStorage();
-        if (uniformStorage.Has(id))
+        if (auto interface = uniformStorage.BindOrAllocate(name, instanceID, _currentRenderOperation->BoundShaderInfo->BoundShader, _currentRenderOperation->CommandBuffer))
         {
-            uniformStorage.Bind(id, _currentRenderOperation->CommandBuffer);
-            return false;
+            outCursor.BindToInterface(*interface);
+            return true;
         }
 
-        return AllocateAndBindUniformBlock(name, id, outCursor);
+        return false;
     }
 
     void VulkanRenderContext::BindInstanceBuffer(uint64 instanceID, const char* name)
@@ -215,8 +212,7 @@ namespace Coco
         COCO_ASSERT(_currentRenderOperation, "Context wasn't rendering");
         COCO_ASSERT(_currentRenderOperation->BoundShaderInfo, "No shader has been bound");
 
-        uint64 id = Math::CombineHashes(instanceID, ToHash(name));
-        _currentRenderOperation->Frame->GetUniformStorage().Bind(id, _currentRenderOperation->CommandBuffer);
+        _currentRenderOperation->Frame->GetUniformStorage().Bind(name, instanceID, *_currentRenderOperation->BoundShaderInfo->BoundShader, _currentRenderOperation->CommandBuffer);
     }
 
     void VulkanRenderContext::SetDrawData(const void* data, uint64 dataSize, Span<const SharedPtr<Texture>> textures)
@@ -347,15 +343,5 @@ namespace Coco
 
         VulkanQueue* graphicsQueue = _platform->GetQueue(VulkanQueue::Type::Graphics);
         vkQueueSubmit2(graphicsQueue->GetQueue(), 1, &submitInfo, _renderCompletedFence->GetFence());
-    }
-
-    bool VulkanRenderContext::AllocateAndBindUniformBlock(const char* name, uint64 id, ShaderCursor& outCursor) {
-        VulkanShaderBufferInterface* interface = _currentRenderOperation->Frame->GetUniformStorage().Allocate(id, _currentRenderOperation->BoundShaderInfo->BoundShader, name, _currentRenderOperation->CommandBuffer);
-        if (!interface)
-            return false;
-
-        interface->Bind(_currentRenderOperation->CommandBuffer);
-        outCursor.BindToInterface(*interface);
-        return true;
     }
 } // Coco

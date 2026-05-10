@@ -15,7 +15,7 @@ namespace Coco
         Resource(engine, id),
         _program()
     {
-        RenderService* rendering = engine->GetService<RenderService>();
+        RenderService* rendering = engine->TryGetService<RenderService>();
         COCO_ASSERT(rendering, "No active RenderService found");
 
         GraphicsPlatform* platform = rendering->GetGraphicsPlatform();
@@ -28,7 +28,7 @@ namespace Coco
     {
         if (_program)
         {
-            if (RenderService* rendering = _engine->GetService<RenderService>())
+            if (RenderService* rendering = _engine->TryGetService<RenderService>())
             {
                 if (GraphicsPlatform* platform = rendering->GetGraphicsPlatform())
                     platform->InvalidateResource(_program->GetID());

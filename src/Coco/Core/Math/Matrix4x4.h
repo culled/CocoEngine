@@ -12,18 +12,28 @@
 
 #include <cstring>
 
+#include "Coco/Core/Asserts.h"
+
 namespace Coco
 {
+    /// @brief Base class for a row-major matrix with four rows and four columns
+    /// @tparam ValueType The value type
     template<typename ValueType>
     struct BaseMatrix4x4
     {
         union
         {
+            /// @brief The values accessible in a multi-dimensional array
             ValueType Values[4][4];
+
+            /// @brief The values accessible by row
             BaseVector4<ValueType> Row[4];
+
+            /// @brief The values accessible as a single array. Values are stored row-major, so the values in each row will be adjacent to each other
             ValueType Raw[16];
         };
 
+        /// @brief The identity matrix
         static const BaseMatrix4x4 Identity;
 
         BaseMatrix4x4() :
@@ -46,6 +56,9 @@ namespace Coco
             memcpy(Raw, values.data(), sizeof(ValueType) * 16);
         }
 
+        /// @brief Creates a translation matrix from the given vector3
+        /// @param translation The translation value
+        /// @return The translation matrix
         static BaseMatrix4x4 CreateTranslation(const BaseVector3<ValueType>& translation)
         {
             BaseMatrix4x4 r = Identity;
@@ -55,6 +68,9 @@ namespace Coco
             return r;
         }
 
+        /// @brief Creates a rotation matrix from the given quaternion
+        /// @param rotation The rotation value
+        /// @return The rotation matrix
         static BaseMatrix4x4 CreateRotation(const BaseQuaternion<ValueType>& rotation)
         {
             BaseMatrix4x4 mat;
@@ -91,11 +107,17 @@ namespace Coco
             return mat;
         }
 
+        /// @brief Creates a rotation matrix from the given euler angles. Rotation is applied in Z, Y, X order
+        /// @param eulerAngles The euler angles, in radians
+        /// @return The rotation matrix
         static BaseMatrix4x4 CreateRotation(const BaseVector3<ValueType>& eulerAngles)
         {
             return CreateRotationX(eulerAngles.X()) * CreateRotationY(eulerAngles.Y()) * CreateRotationZ(eulerAngles.Z());
         }
 
+        /// @brief Creates a rotation matrix along the X axis
+        /// @param angleRadians The rotation around the X axis, in radians
+        /// @return The rotation matrix
         static BaseMatrix4x4 CreateRotationX(const ValueType& angleRadians)
         {
             BaseMatrix4x4 mat = Identity;
@@ -112,6 +134,9 @@ namespace Coco
             return mat;
         }
 
+        /// @brief Creates a rotation matrix along the Y axis
+        /// @param angleRadians The rotation around the Y axis, in radians
+        /// @return The rotation matrix
         static BaseMatrix4x4 CreateRotationY(const ValueType& angleRadians)
         {
             BaseMatrix4x4 mat = Identity;
@@ -128,6 +153,9 @@ namespace Coco
             return mat;
         }
 
+        /// @brief Creates a rotation matrix along the Z axis
+        /// @param angleRadians The rotation around the Z axis, in radians
+        /// @return The rotation matrix
         static BaseMatrix4x4 CreateRotationZ(const ValueType& angleRadians)
         {
             BaseMatrix4x4 mat = Identity;
@@ -144,6 +172,9 @@ namespace Coco
             return mat;
         }
 
+        /// @brief Creates a scale matrix
+        /// @param scale The scalar value along each axis
+        /// @return The scale matrix
         static BaseMatrix4x4 CreateScale(const BaseVector3<ValueType>& scale)
         {
             BaseMatrix4x4 s;
@@ -154,6 +185,11 @@ namespace Coco
             return s;
         }
 
+        /// @brief Creates a view matrix that looks from the eye position to the target position
+        /// @param eye The eye position
+        /// @param target The target position
+        /// @param up The up direction
+        /// @return The look at matrix
         static BaseMatrix4x4 CreateLookAt(const BaseVector3<ValueType>& eye, const BaseVector3<ValueType>& target, const BaseVector3<ValueType>& up)
         {
             BaseVector3<ValueType> zAxis = (eye - target).Normalized();
@@ -181,6 +217,11 @@ namespace Coco
             return v;
         }
 
+        /// @brief Creates a view matrix
+        /// @param position The view position
+        /// @param forward The look direction
+        /// @param up The up direction
+        /// @return The view matrix
         static BaseMatrix4x4 CreateView(const BaseVector3<ValueType>& position, const BaseVector3<ValueType>& forward, const BaseVector3<ValueType>& up)
         {
             BaseVector3<ValueType> right = forward.Cross(up);
@@ -207,6 +248,10 @@ namespace Coco
             return v.Inverse();
         }
 
+        /// @brief Creates a view matrix. An identity rotation will result in the view looking in the forward direction
+        /// @param position The view position
+        /// @param rotation The view rotation
+        /// @return The view matrix
         static BaseMatrix4x4 CreateView(const BaseVector3<ValueType>& position, const BaseQuaternion<ValueType>& rotation)
         {
             BaseVector3<ValueType> fwd = rotation * BaseVector3<ValueType>::Forward;
@@ -214,6 +259,11 @@ namespace Coco
             return CreateView(position, fwd, up);
         }
 
+        /// @brief Creates a transform matrix that represents a position, rotation, and scale
+        /// @param position The position
+        /// @param rotation The rotation
+        /// @param scale The scale
+        /// @return The transform matrix
         static BaseMatrix4x4 CreateTransform(const BaseVector3<ValueType>& position, const BaseQuaternion<ValueType>& rotation, const BaseVector3<ValueType>& scale)
         {
             BaseMatrix4x4 t = CreateRotation(rotation) * CreateScale(scale);
@@ -223,68 +273,169 @@ namespace Coco
             return t;
         }
 
+        /// @brief Returns the row 1, column 1 value
+        /// @return The row 1, column 1 value
         constexpr ValueType& M11() { return Values[0][0]; }
+
+        /// @brief Returns the row 1, column 1 value
+        /// @return The row 1, column 1 value
         constexpr const ValueType& M11() const { return Values[0][0]; }
 
+        /// @brief Returns the row 1, column 2 value
+        /// @return The row 1, column 2 value
         constexpr ValueType& M12() { return Values[0][1]; }
+
+        /// @brief Returns the row 1, column 2 value
+        /// @return The row 1, column 2 value
         constexpr const ValueType& M12() const { return Values[0][1]; }
 
+        /// @brief Returns the row 1, column 3 value
+        /// @return The row 1, column 3 value
         constexpr ValueType& M13() { return Values[0][2]; }
+
+        /// @brief Returns the row 1, column 3 value
+        /// @return The row 1, column 3 value
         constexpr const ValueType& M13() const { return Values[0][2]; }
 
+        /// @brief Returns the row 1, column 4 value
+        /// @return The row 1, column 4 value
         constexpr ValueType& M14() { return Values[0][3]; }
+
+        /// @brief Returns the row 1, column 4 value
+        /// @return The row 1, column 4 value
         constexpr const ValueType& M14() const { return Values[0][3]; }
 
+        /// @brief Returns the row 2, column 1 value
+        /// @return The row 2, column 1 value
         constexpr ValueType& M21() { return Values[1][0]; }
+
+        /// @brief Returns the row 2, column 1 value
+        /// @return The row 2, column 1 value
         constexpr const ValueType& M21() const { return Values[1][0]; }
 
+        /// @brief Returns the row 2, column 2 value
+        /// @return The row 2, column 2 value
         constexpr ValueType& M22() { return Values[1][1]; }
+
+        /// @brief Returns the row 2, column 2 value
+        /// @return The row 2, column 2 value
         constexpr const ValueType& M22() const { return Values[1][1]; }
 
+        /// @brief Returns the row 2, column 3 value
+        /// @return The row 2, column 3 value
         constexpr ValueType& M23() { return Values[1][2]; }
+
+        /// @brief Returns the row 2, column 3 value
+        /// @return The row 2, column 3 value
         constexpr const ValueType& M23() const { return Values[1][2]; }
 
+        /// @brief Returns the row 2, column 4 value
+        /// @return The row 2, column 4 value
         constexpr ValueType& M24() { return Values[1][3]; }
+
+        /// @brief Returns the row 2, column 4 value
+        /// @return The row 2, column 4 value
         constexpr const ValueType& M24() const { return Values[1][3]; }
 
+        /// @brief Returns the row 3, column 1 value
+        /// @return The row 3, column 1 value
         constexpr ValueType& M31() { return Values[2][0]; }
+
+        /// @brief Returns the row 3, column 1 value
+        /// @return The row 3, column 1 value
         constexpr const ValueType& M31() const { return Values[2][0]; }
 
+        /// @brief Returns the row 3, column 2 value
+        /// @return The row 3, column 2 value
         constexpr ValueType& M32() { return Values[2][1]; }
+
+        /// @brief Returns the row 3, column 2 value
+        /// @return The row 3, column 2 value
         constexpr const ValueType& M32() const { return Values[2][1]; }
 
+        /// @brief Returns the row 3, column 3 value
+        /// @return The row 3, column 3 value
         constexpr ValueType& M33() { return Values[2][2]; }
+
+        /// @brief Returns the row 3, column 3 value
+        /// @return The row 3, column 3 value
         constexpr const ValueType& M33() const { return Values[2][2]; }
 
+        /// @brief Returns the row 3, column 4 value
+        /// @return The row 3, column 4 value
         constexpr ValueType& M34() { return Values[2][3]; }
+
+        /// @brief Returns the row 3, column 4 value
+        /// @return The row 3, column 4 value
         constexpr const ValueType& M34() const { return Values[2][3]; }
 
+        /// @brief Returns the row 4, column 1 value
+        /// @return The row 4, column 1 value
         constexpr ValueType& M41() { return Values[3][0]; }
+
+        /// @brief Returns the row 4, column 1 value
+        /// @return The row 4, column 1 value
         constexpr const ValueType& M41() const { return Values[3][0]; }
 
+        /// @brief Returns the row 4, column 2 value
+        /// @return The row 4, column 2 value
         constexpr ValueType& M42() { return Values[3][1]; }
+
+        /// @brief Returns the row 4, column 2 value
+        /// @return The row 4, column 2 value
         constexpr const ValueType& M42() const { return Values[3][1]; }
 
+        /// @brief Returns the row 4, column 3 value
+        /// @return The row 4, column 3 value
         constexpr ValueType& M43() { return Values[3][2]; }
+
+        /// @brief Returns the row 4, column 3 value
+        /// @return The row 4, column 3 value
         constexpr const ValueType& M43() const { return Values[3][2]; }
 
+        /// @brief Returns the row 4, column 4 value
+        /// @return The row 4, column 4 value
         constexpr ValueType& M44() { return Values[3][3]; }
+
+        /// @brief Returns the row 4, column 4 value
+        /// @return The row 4, column 4 value
         constexpr const ValueType& M44() const { return Values[3][3]; }
 
+        /// @brief Returns the nth column of this matrix
+        /// @param index The column index [0, 3]
+        /// @return The column
         constexpr BaseVector4<ValueType> Column(uint8 index) const
         {
+            COCO_ASSERT(index < 4, "Invalid column index");
+
             return BaseVector4<ValueType>(Values[0][index], Values[1][index], Values[2][index], Values[3][index]);
         }
 
-        BaseVector3<ValueType> GetRight() const { return BaseVector3<ValueType>(M11(), M21(), M31()); }
-        BaseVector3<ValueType> GetUp() const { return BaseVector3<ValueType>(M12(), M22(), M32()); }
-        BaseVector3<ValueType> GetForward() const { return BaseVector3<ValueType>(M13(), M23(), M33()); }
+        /// @brief Gets the X axis vector of this matrix (M11, M21, M31)
+        /// @return The X axis direction
+        BaseVector3<ValueType> GetXAxis() const { return BaseVector3<ValueType>(M11(), M21(), M31()); }
+
+        /// @brief Gets the Y axis vector of this matrix (M12, M22, M32)
+        /// @return The Y axis direction
+        BaseVector3<ValueType> GetYAxis() const { return BaseVector3<ValueType>(M12(), M22(), M32()); }
+
+        /// @brief Gets the Z axis vector of this matrix (M13, M23, M33)
+        /// @return The Z axis direction
+        BaseVector3<ValueType> GetZAxis() const { return BaseVector3<ValueType>(M13(), M23(), M33()); }
+
+        /// @brief Gets the translation value of this matrix (M14, M24, M34)
+        /// @return The translation value
         BaseVector3<ValueType> GetTranslation() const {  return BaseVector3<ValueType>(M14(), M24(), M34()); }
+
+        /// @brief Gets the scale value of each axis
+        /// @return The scale value
         BaseVector3<ValueType> GetScale() const
         {
-            return BaseVector3<ValueType>(GetRight().GetLength(), GetUp().GetLength(), GetForward().GetLength());
+            return BaseVector3<ValueType>(GetXAxis().GetLength(), GetYAxis().GetLength(), GetZAxis().GetLength());
         }
 
+        /// @brief Converts the rotation of this matrix into a quaternion
+        /// @return The rotation value
         BaseQuaternion<ValueType> GetRotation() const
         {
             ValueType tr = M11() + M22() + M33();
@@ -327,6 +478,8 @@ namespace Coco
             return q;
         }
 
+        /// @brief Transposes this matrix, which swaps the columns and the rows
+        /// @return The transposed matrix
         BaseMatrix4x4 Transposed() const
         {
             BaseMatrix4x4 r;
@@ -349,6 +502,8 @@ namespace Coco
             return r;
         }
 
+        /// @brief Calculates the inverse of this matrix. When this matrix is multiplied with its inverse, it produces an identity matrix
+        /// @return The inverse matrix
         BaseMatrix4x4 Inverse() const
         {
             ValueType t11 = M23() * M34() * M42() - M24() * M33() * M42() + M24() * M32() * M43() - M22() * M34() * M43() - M23() * M32() * M44() + M22() * M33() * M44();
@@ -407,6 +562,7 @@ namespace Coco
         return r;
     }
 
+    /// @brief A row-major matrix with 4 rows and 4 columns, backed by floating point values
     using Matrix4x4 = BaseMatrix4x4<float>;
 }
 #endif //COCOENGINE_MATRIX4X4_H

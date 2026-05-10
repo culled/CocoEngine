@@ -10,6 +10,7 @@
 
 namespace Coco
 {
+    /// @brief Information for a display monitor
     struct DisplayInfo
     {
         /// @brief The name of the display

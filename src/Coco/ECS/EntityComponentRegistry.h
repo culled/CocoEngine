@@ -10,6 +10,7 @@
 
 namespace Coco
 {
+    /// @brief Base class for a registry of a single component type
     class BaseEntityComponentRegistry
     {
         template<typename FirstComponent, typename ... AdditionalComponents>
@@ -18,12 +19,28 @@ namespace Coco
     public:
         virtual ~BaseEntityComponentRegistry() = default;
 
+        /// @brief Determines if a component in this registry is attached to the given entity
+        /// @param entityID The ID of the entity
+        /// @return True if a component exists for the entity
         virtual bool Has(const UUID& entityID) const = 0;
+
+        /// @brief Gets a component in this registry that is attached to the given entity
+        /// @param entityID The ID of the entity
+        /// @return The component attached to the entity
         virtual EntityComponent* Get(const UUID& entityID) = 0;
+
+        /// @brief Gets a component in this registry that is attached to the given entity
+        /// @param entityID The ID of the entity
+        /// @return The component attached to the entity
         virtual const EntityComponent* Get(const UUID& entityID) const = 0;
+
+        /// @brief Removes a component from this registry that is attached to the given entity
+        /// @param entityID The ID of the entity
         virtual void Remove(const UUID& entityID) = 0;
     };
 
+    /// @brief A registry for a component that can be attached to entities
+    /// @tparam ComponentType The component type
     template<typename ComponentType>
     class EntityComponentRegistry : public BaseEntityComponentRegistry
     {
@@ -36,6 +53,11 @@ namespace Coco
         const EntityComponent* Get(const UUID& entityID) const override { return _components.TryGetValue(entityID); }
         void Remove(const UUID& entityID) override { _components.Remove(entityID); }
 
+        /// @brief Creates a component in this registry for a given entity
+        /// @tparam Args The constructor arguments
+        /// @param entityID The ID of the entity
+        /// @param args The arguments to pass to the component's constructor
+        /// @return The component
         template<typename ... Args>
         ComponentType* Create(const UUID& entityID, Args&& ... args)
         {

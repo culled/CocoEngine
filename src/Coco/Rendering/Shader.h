@@ -13,6 +13,7 @@ namespace Coco
 {
     class GraphicsPlatform;
 
+    /// @brief Defines operations for rendering
     class Shader : public Resource
     {
         DECLARE_RTTI_TYPE(Shader);
@@ -21,6 +22,8 @@ namespace Coco
         Shader(Engine* engine, uint64 id, const FilePath& shaderPath);
         ~Shader();
 
+        /// @brief Gets the rendering platform-specific shader program
+        /// @return The rendering platform-specific shader program
         Ref<ShaderProgram> GetProgram() { return _program; }
 
     private:

@@ -15,6 +15,9 @@
 
 namespace Coco
 {
+    /// @brief Base class for a dynamic-length string of characters
+    /// @tparam CharType The character type
+    /// @tparam StackCapacity The maximum capacity until memory needs to be dynamically allocated
     template<typename CharType, int StackCapacity = 24>
     class BaseString :
         public StringContainer<CharType>
@@ -102,6 +105,8 @@ namespace Coco
         const CharType* Data() const noexcept override { return _capacity > StackCapacity ? _data : &_stackData[0]; }
         uint64 GetCapacity() const noexcept override { return _capacity - 1; }
 
+        /// @brief Ensures this string has the memory to hold the given number of characters
+        /// @param capacity The minimum capacity to reserve
         void Reserve(uint64 capacity)
         {
             BaseString::EnsureCapacity(capacity + 1, true);
@@ -191,12 +196,26 @@ namespace Coco
         return ret;
     }
 
+    /// @brief A dynamic-length string of characters
     using String = BaseString<char>;
+
+    /// @brief A dynamic-length string of wide characters
     using WString = BaseString<wchar_t>;
 
+    /// @brief Dynamically formats a string with the given values in sprintf format
+    /// @param format The format string
+    /// @param ... The values that will be inserted into the format string
+    /// @return The formatted string
     String FormatString(const char* format, ...);
 
+    /// @brief Computes a hash value for a string
+    /// @param str The string
+    /// @return The hashed value
     uint64 ToHash(const String& str) noexcept;
+
+    /// @brief Computes a hash value for a string
+    /// @param str The string
+    /// @return The hashed value
     uint64 ToHash(const char* str) noexcept;
 
     bool operator==(const String& a, const String& b) noexcept;

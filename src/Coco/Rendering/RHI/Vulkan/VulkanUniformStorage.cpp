@@ -22,8 +22,57 @@ namespace Coco
         _interfaces()
     {}
 
-    VulkanShaderBufferInterface* VulkanUniformStorage::Allocate(uint64 id, Ref<VulkanShaderProgram> shaderProgram,
-        const char* blockName, VkCommandBuffer commandBuffer)
+    VulkanShaderBufferInterface* VulkanUniformStorage::BindOrAllocate(const char* blockName, uint64 instanceID,
+        Ref<VulkanShaderProgram> shaderProgram, VkCommandBuffer commandBuffer)
+    {
+        uint64 interfaceID = GetInterfaceID(blockName, instanceID, *shaderProgram);
+
+        if (auto existing = _interfaces.TryGetValue(interfaceID))
+        {
+            existing->Bind(commandBuffer);
+            return nullptr;
+        }
+
+        const VulkanPipelineLayout* pipelineLayout = shaderProgram->GetPipelineLayout();
+        auto descriptorSetLayouts = shaderProgram->GetDescriptorSetLayouts();
+
+        auto programLayout = shaderProgram->GetProgramLayout();
+        auto globalTypeLayout = programLayout->getGlobalParamsTypeLayout();
+        int64 blockIndex = globalTypeLayout->findFieldIndexByName(blockName);
+        if (blockIndex == -1)
+        {
+            COCO_ENGINE_LOG_ERROR("Invalid uniform block \"%s\"", blockName);
+            return nullptr;
+        }
+
+        VulkanDescriptorSetInfo setInfo;
+        setInfo.DescriptorSetIndex = pipelineLayout->GlobalDescriptorSetIndexOffset + blockIndex;
+        auto& descriptorSetLayout = descriptorSetLayouts[setInfo.DescriptorSetIndex];
+        COCO_ASSERT(!descriptorSetLayout.LayoutBindings.IsEmpty(), "Uniform block contained no bindings");
+
+        slang::TypeLayoutReflection* blockLayout = nullptr;
+
+        auto field = globalTypeLayout->getFieldByIndex(blockIndex);
+        blockLayout = field->getTypeLayout()->getElementTypeLayout();
+
+        // TODO: use existing uniform buffer data
+        uint64 dataSize = blockLayout->getSize();
+        if (dataSize > 0)
+            _pagedBuffers.Allocate(dataSize, setInfo.UniformBuffer, setInfo.BufferOffset);
+
+        auto pool = _descriptorSetPools.TryGetValue(shaderProgram->GetID());
+        if (!pool)
+            pool = &_descriptorSetPools.Emplace(shaderProgram->GetID(), _platform, shaderProgram);
+
+        setInfo.DescriptorSet = pool->AllocateDescriptorSet(setInfo.DescriptorSetIndex);
+
+        auto& interface = _interfaces.Emplace(interfaceID, _platform, blockLayout, setInfo, pipelineLayout, commandBuffer);
+        interface.Bind(commandBuffer);
+        return &interface;
+    }
+
+    /*VulkanShaderBufferInterface* VulkanUniformStorage::Allocate(uint64 id, Ref<VulkanShaderProgram> shaderProgram,
+                                                                const char* blockName, VkCommandBuffer commandBuffer)
     {
         if (_interfaces.Contains(id))
             return &_interfaces.Get(id);
@@ -62,7 +111,7 @@ namespace Coco
 
         auto& interface = _interfaces.Emplace(id, _platform, blockLayout, setInfo, pipelineLayout, commandBuffer);
         return &interface;
-    }
+    }*/
 
     void VulkanUniformStorage::BindDrawTextures(Span<const SharedPtr<Texture>> textures,
                                                 Ref<VulkanShaderProgram> shaderProgram, VkCommandBuffer commandBuffer)
@@ -131,9 +180,11 @@ namespace Coco
             0, nullptr);
     }
 
-    void VulkanUniformStorage::Bind(uint64 id, VkCommandBuffer commandBuffer)
+    void VulkanUniformStorage::Bind(const char* blockName, uint64 instanceID, VulkanShaderProgram& shaderProgram, VkCommandBuffer commandBuffer)
     {
-        if (auto interface = _interfaces.TryGetValue(id))
+        uint64 interfaceID = GetInterfaceID(blockName, instanceID, shaderProgram);
+
+        if (auto interface = _interfaces.TryGetValue(interfaceID))
         {
             interface->Bind(commandBuffer);
         }
@@ -159,5 +210,11 @@ namespace Coco
 
             //}
         }
+    }
+
+    uint64 VulkanUniformStorage::GetInterfaceID(const char* blockName, uint64 instanceID,
+        VulkanShaderProgram& shaderProgram)
+    {
+        return Math::CombineHashes(shaderProgram.GetID(), instanceID, ToHash(blockName));
     }
 }

@@ -25,19 +25,24 @@ namespace Coco
     {
         if (auto engine = Engine::Get())
         {
-            if (auto rendering = engine->GetService<RenderService>())
+            if (auto rendering = engine->TryGetService<RenderService>())
             {
-                rendering->AddRenderListener(*this);
-                _isListening = true;
+                Listen(*rendering);
             }
         }
+    }
+
+    void RenderListener::Listen(RenderService& renderService)
+    {
+        renderService.AddRenderListener(*this);
+        _isListening = true;
     }
 
     void RenderListener::StopListening()
     {
         if (auto engine = Engine::Get())
         {
-            if (auto rendering = engine->GetService<RenderService>())
+            if (auto rendering = engine->TryGetService<RenderService>())
             {
                 rendering->RemoveRenderListener(*this);
                 _isListening = false;

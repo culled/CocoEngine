@@ -163,6 +163,9 @@ namespace Coco
         Unknown,
     };
 
+    /// @brief Gets the string representation of a KeyboardKey
+    /// @param key The keyboard key
+    /// @return The string representation
     const char* ToString(KeyboardKey key);
 
     /// @brief Flags for Keyboard modifier keys
@@ -181,6 +184,7 @@ namespace Coco
     struct KeyboardKeyInputEvent :
         public ButtonInputEvent
     {
+        /// @brief The event type
         static constexpr uint64 Type = 10;
 
         /// @brief The keyboard key
@@ -191,7 +195,6 @@ namespace Coco
 
         KeyboardKeyInputEvent(KeyboardKey key, bool isPressed, KeyboardModifierKeyFlags modifierKeyFlags) noexcept;
 
-        // Inherited via ButtonInputEvent
         uint64 GetType() const noexcept override { return Type; }
     };
 
@@ -199,6 +202,7 @@ namespace Coco
     struct KeyboardUnicodeInputEvent :
         public InputEvent
     {
+        /// @brief The event type
         static constexpr uint64 Type = 11;
 
         /// @brief The unicode character point that was entered
@@ -206,7 +210,6 @@ namespace Coco
 
         KeyboardUnicodeInputEvent(uint32 unicodePoint) noexcept;
 
-        // Inherited via InputEvent
         uint64 GetType() const noexcept override { return Type; }
     };
 }

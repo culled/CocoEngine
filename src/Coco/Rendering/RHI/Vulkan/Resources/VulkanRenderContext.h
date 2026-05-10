@@ -71,9 +71,6 @@ namespace Coco
         VulkanGraphicsPlatform* _platform;
         ManagedRef<VulkanGraphicsFence> _renderCompletedFence;
         Optional<VulkanRenderOperation> _currentRenderOperation;
-
-    private:
-        bool AllocateAndBindUniformBlock(const char* name, uint64 id, ShaderCursor& outCursor);
     };
 } // Coco
 

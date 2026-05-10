@@ -8,6 +8,7 @@
 
 namespace Coco
 {
+    /// @brief An allocator that allocates memory onto a stack on a first-in, last-out basis. Only the most recent allocation can be freed at a time
     class StackAllocator : public Allocator
     {
     public:
@@ -17,7 +18,13 @@ namespace Coco
         void* Allocate(uint64 size) override;
         void Free(void* memory, uint64 size) noexcept override;
 
-        uint64 GetMaximumUsage() const { return _maxUsage; }
+        /// @brief Gets the maximum number of bytes that have been allocated
+        /// @return The maximum amount of bytes that have been used by this allocator
+        uint64 GetMaximumUsage() const noexcept { return _maxUsage; }
+
+        /// @brief Gets the number of bytes currently used
+        /// @return The number of bytes used
+        uint64 GetUsage() const noexcept { return _currentOffset; }
 
     private:
         /// @brief Information for a stack allocation

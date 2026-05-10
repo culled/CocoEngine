@@ -12,6 +12,7 @@ namespace Coco
 {
     class RenderScene;
 
+    /// @brief A view over RenderObjects in a RenderScene
     class RenderObjectView
     {
     public:

@@ -8,6 +8,8 @@
 
 namespace Coco
 {
+    /// @brief A container that can be used to show if a value exists or not
+    /// @tparam ValueType The value type
     template<typename ValueType>
     using Optional = std::optional<ValueType>;
 }

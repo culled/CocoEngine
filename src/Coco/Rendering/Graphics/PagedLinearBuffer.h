@@ -56,7 +56,7 @@ namespace Coco
                 {
                     outBuffer = buffer.TargetBuffer;
                     uint64 bufferSize = buffer.TargetBuffer->GetSize();
-                    outBufferOffset = Math::GetAlignmentOffset(bufferSize - buffer.RemainingBytes, _alignment);
+                    outBufferOffset = Math::AlignedAddress(bufferSize - buffer.RemainingBytes, _alignment);
                     buffer.RemainingBytes = bufferSize - (outBufferOffset + size);
                     buffer.LastAllocationFrameNumber = frameNumber;
                     return;

@@ -141,14 +141,12 @@ namespace Coco
             if (!_ecs)
                 return;
 
-            //StackArray<ClassRTTI*, sizeof...(AdditionalComponents) + 1> componentTypes = { &FirstComponent::GetClassRTTI(), &AdditionalComponents::GetClassRTTI()... };
-
             const ClassRTTI* componentTypes[] = { &FirstComponent::GetClassRTTI(), &AdditionalComponents::GetClassRTTI()... };
 
-            auto componentStorage = _ecs->GetComponentStorage();
+            auto& componentStorage = _ecs->GetComponentStorage();
             for (const ClassRTTI* type : componentTypes)
             {
-                for (auto& pair : componentStorage->_registries)
+                for (auto& pair : componentStorage._registries)
                 {
                     if (pair.first.Is(*type))
                     {
@@ -157,25 +155,6 @@ namespace Coco
                     }
                 }
             }
-            /*for (auto& type : componentTypes)
-            {
-                if (auto exactTypeRegistry = componentStorage->_registries.TryGetValue(type))
-                {
-                    _componentRegistries.Append(exactTypeRegistry.get());
-                    continue;
-                }
-
-                for (auto& pair : componentStorage->_registries)
-                {
-                    if (type.Is(pair.first))
-                    {
-                        _componentRegistries.Append(pair.second.get());
-                        continue;
-                    }
-                }
-
-                _componentRegistries.Append(nullptr);
-            }*/
         }
 
         Iterator begin() { return Iterator(*this, false); }

@@ -72,6 +72,7 @@ void SandboxApplication::CreateServices()
     rendererCreateParams.EnableDebugging = true;
     #endif
     rendering->CreatePlatform<VulkanGraphicsPlatform>(rendererCreateParams);
+    rendering->GetGizmos()->SetEnabled(true);
 
     WindowService* windowing = _engine->CreateService<WindowService>();
     WindowCreateParams windowCreateParams("Sandbox", Sizei(640, 480));
@@ -85,25 +86,6 @@ void SandboxApplication::CreateServices()
 
 void SandboxApplication::CreateResources()
 {
-    /*_mesh = _engine->GetResourceManager()->CreateResource<Mesh>("TestMesh");
-    Array<Vector3> positions;
-    Array<Vector2> uvs;
-    Array<uint32> indices;
-
-    MeshUtils::CreateXYGrid(Vector2::One, Vector3::Zero, positions, indices, nullptr, &uvs);
-    Submesh planeSubmesh(0, indices.GetCount());
-
-    MeshUtils::CreateXYEllipse(Vector2(0.5f, 0.5f), Vector3::Zero, 8, positions, indices, nullptr, &uvs);
-    Submesh ellipseSubmesh(planeSubmesh.IndexCount, indices.GetCount() - planeSubmesh.IndexCount);
-
-    _mesh->SetPositions(positions);
-    _mesh->SetUVs(uvs);
-    _mesh->SetIndices(indices);
-    _mesh->SetSubmeshes(Span<const Submesh>({planeSubmesh, ellipseSubmesh}));*/
-    //MeshUtils::CreateXYGrid(Vector2::One, Vector3::Zero, *_mesh, VertexChannelFlags::UV0, 0, false);
-    //MeshUtils::CreateCube(Vector3::One, Vector3::Zero, *_mesh, VertexChannelFlags::UV0);
-    //MeshUtils::CreateZYEllipse(Vector2(0.5f, 0.25f), Vector3::Zero, 12, *_mesh, VertexChannelFlags::UV0, true);
-
     _shader = _engine->GetResourceManager()->CreateResource<Shader>("HelloTriangleShader", "Shaders/BuiltIn/Sprite.slang");
 
     _spriteTexture = _engine->GetResourceManager()->CreateResource<Texture>("Texture", "Textures/Cat_Anim.png", ImagePixelFormat::RGBA8, ImageColorSpace::sRGB, ImageSamplerDescription::NearestClamp, false);
@@ -130,12 +112,11 @@ void SandboxApplication::CreateScene()
     _cameraEntity = _scene->CreateEntity("Camera");
     _cameraEntity.CreateComponent<Transform2DComponent>();
     CameraComponent* camera = _cameraEntity.CreateComponent<CameraComponent>();
-    //camera->SetPerspectiveProjection(Math::DegToRad(90.0f), 0.1f, 100.0f);
     camera->SetOrthographicProjection(5.0f, 0.0f, 100.0f);
     camera->ClearColor = Color(0.2f, 0.1f, 0.8f);
 
     _tilemapEntity = _scene->CreateEntity("Tilemap");
-    _tilemapEntity.CreateComponent<Transform2DComponent>(Vector2(0.0f, 0.0f), 0.0f, Vector2::One * 0.25f);
+    _tilemapEntity.CreateComponent<Transform2DComponent>(Vector2(0.5f, 0.5f), 0.0f, Vector2::One * 0.25f);
     _tilemapEntity.CreateComponent<TileMapRendererComponent>(_tileMap);
 
     _spriteEntity = _scene->CreateEntity("Sprite");
@@ -180,13 +161,6 @@ void SandboxApplication::OnTick(const TickInfo& tickInfo)
     ImGui::End();
 
     InputService* input = _engine->GetService<InputService>();
-
-    /*Mouse* mouse = input->GetMouse();
-    constexpr bool useRawInput = true;
-    Vector2i lookDelta = input->SupportsRawInput() && useRawInput ? mouse->GetRawMoveDelta() : mouse->GetMoveDelta();
-    _lookAngles.X() -= lookDelta.X() * 0.01f;
-    _lookAngles.Y() = Math::Clamp(_lookAngles.Y() - lookDelta.Y() * 0.01f, Math::DegToRad(-90.0f), Math::DegToRad(90.0f));*/
-
     Keyboard* keyboard = input->GetKeyboard();
     Vector2 moveDir;
 
@@ -208,6 +182,15 @@ void SandboxApplication::OnTick(const TickInfo& tickInfo)
     auto et = _spriteEntity.GetComponent<Transform2DComponent>();
     et->LocalRotation += static_cast<float>(tickInfo.DeltaTime.GetSeconds());
     et->RecalculateGlobalTransform();
+
+    RenderService* rendering = _engine->GetService<RenderService>();
+    auto gizmos = rendering->GetGizmos();
+    gizmos->DrawRay3D(Vector3::Zero, Vector3::Up, Color::Green);
+    gizmos->DrawRay3D(Vector3::Zero, Vector3::Right, Color::Red);
+    gizmos->DrawBox3D(Vector3(-2.0f, 0.0f, 0.0f), Quaternion::Identity, Vector3::One, Color::Yellow);
+    gizmos->DrawCircle3D(Vector3(-1.0f, 0.0f, 0.0f), Quaternion::Identity, 0.5f, Color::Magenta);
+    gizmos->DrawSphere3D(Vector3(-1.0f, 1.5f, 0.0f), 0.75f, Color::Cyan);
+    gizmos->DrawCone3D(Vector3(-2.0f, 0.5f, 0.0f), Quaternion::Identity, 0.5f, 0.25f, Color::Black);
 }
 
 struct GlobalSceneData
@@ -250,7 +233,7 @@ void SandboxApplication::RenderSceneCallback(uint64 targetID, RenderGraph& graph
     globalData.Projection = scene.GetProjectionMatrix();
     scene.StoreData(0, false, globalData);
 
-    auto clearPass = graph.CreateRenderPassObject<ClearRenderPass>("Clear", 0, Color::Blue);
+    auto clearPass = graph.CreateRenderPassObject<ClearRenderPass>("Clear", 0, cam->ClearColor);
 
     DrawTilemap(clearPass.GetOutputResource(), graph, scene);
     DrawSprites(clearPass.GetOutputResource(), graph, scene);

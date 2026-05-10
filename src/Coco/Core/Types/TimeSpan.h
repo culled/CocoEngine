@@ -11,6 +11,7 @@
 
 namespace Coco
 {
+    /// @brief Represents a length of time with microsecond precision
     struct TimeSpan
     {
         /// @brief The number of microseconds in a millisecond

@@ -22,6 +22,9 @@ namespace Coco
         Maximized
     };
 
+    /// @brief Gets the string representation of a WindowState
+    /// @param state The window state
+    /// @return The string representation
     const char* ToString(WindowState state);
 
     /// @brief Modes for a confining a cursor to a Window
@@ -30,7 +33,7 @@ namespace Coco
         /// @brief The cursor is not confined
         None = 0,
 
-        /// @brief The cursor cannot move outside of the Window's client area
+        /// @brief The cursor cannot move outside the Window's client area
         ClientArea,
 
         /// @brief The cursor is locked to the Window's center

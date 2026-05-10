@@ -17,6 +17,7 @@
 
 namespace Coco
 {
+    /// @brief A group of shader uniforms
     struct ShaderUniformGroup
     {
         Span<const ShaderUniformValue> Uniforms;
@@ -24,12 +25,17 @@ namespace Coco
         ShaderUniformGroup(Span<const ShaderUniformValue> uniforms);
     };
 
+    /// @brief Data storage for a RenderScene
     class RenderSceneStorage
     {
     public:
         RenderSceneStorage(Allocator* allocator, uint64 rawDataPageSize, uint64 uniformPageSize);
         ~RenderSceneStorage();
 
+        /// @brief Stores arbitrary render data. The same ID can be used for different data types
+        /// @tparam DataType The type of data
+        /// @param id The ID of the data
+        /// @param data The data
         template<typename DataType>
         void Store(uint64 id, const DataType& data)
         {
@@ -61,6 +67,10 @@ namespace Coco
             _dataMap.Emplace(key, memory);
         }
 
+        /// @brief Determines if render data with the given ID and type exists
+        /// @tparam DataType The type of data
+        /// @param id The ID of the data
+        /// @return True if the data exists
         template<typename DataType>
         bool Has(uint64 id) const
         {
@@ -68,6 +78,10 @@ namespace Coco
             return _dataMap.Contains(key);
         }
 
+        /// @brief Gets arbitrary render data previously stored
+        /// @tparam DataType The type of data
+        /// @param id The ID of the data
+        /// @return The data
         template<typename DataType>
         const DataType* Get(uint64 id) const
         {
@@ -75,10 +89,22 @@ namespace Coco
             return static_cast<const DataType*>(_dataMap.Get(key));
         }
 
+        /// @brief Stores a group of shader uniforms with a given ID. This ID is separate from the ID of data stored using Store()
+        /// @param id The ID of the data
+        /// @param uniforms The uniforms
         void StoreUniforms(uint64 id, Span<const ShaderUniformValue> uniforms);
+
+        /// @brief Determines if a group of shader uniforms with the given ID exist
+        /// @param id The ID of the data
+        /// @return True if shader uniforms with the given ID exist
         bool HasUniforms(uint64 id) const;
+
+        /// @brief Gets a group of shader uniforms previously stored
+        /// @param id The ID of the data
+        /// @return The group of shader uniforms
         Span<const ShaderUniformValue> GetUniforms(uint64 id) const;
 
+        /// @brief Clears all stored data
         void Clear();
 
     private:
@@ -89,7 +115,10 @@ namespace Coco
         PagedArray<ShaderUniformValue> _shaderUniformValues;
         Map<uint64, ShaderUniformGroup> _shaderUniformGroups;
 
-    private:
+        /// @brief Creates a key unique to a combination of data type and ID
+        /// @tparam DataType The type of data
+        /// @param id The ID of the data
+        /// @return The data key
         template<typename DataType>
         static uint64 GetKey(uint64 id)
         {

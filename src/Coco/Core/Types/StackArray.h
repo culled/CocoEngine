@@ -10,6 +10,9 @@
 
 namespace Coco
 {
+    /// @brief A dynamic array that allocates its capacity on the stack
+    /// @tparam ValueType The array element type
+    /// @tparam Capacity The maximum capacity of the array
     template <typename ValueType, int Capacity>
     class StackArray :
         public ArrayContainer<ValueType>

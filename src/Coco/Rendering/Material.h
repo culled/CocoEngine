@@ -21,7 +21,6 @@ namespace Coco
     public:
         static constexpr const char* MaterialBlockName = "materialData";
 
-    public:
         Material(Engine* engine, uint64 id, SharedPtr<Shader> shader);
         ~Material();
 
@@ -49,7 +48,6 @@ namespace Coco
         Array<ShaderUniformValue> _uniformValues;
         SharedPtr<Shader> _shader;
 
-    private:
         void CreateUniformValues();
         ShaderUniformValue* TryGetUniformValue(const char* name);
     };

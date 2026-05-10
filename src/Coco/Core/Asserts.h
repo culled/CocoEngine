@@ -8,6 +8,12 @@
 
 namespace Coco
 {
+    /// @brief Logs an assertion failure
+    /// @param expression The expression that failed the assertion
+    /// @param file The source file that the expression is located in
+    /// @param line The line number of the expression
+    /// @param message The assertion message
+    /// @param ... Arguments for formatting the assertion message
     void ReportAssertionFailure(const char* expression, const char* file, int32 line, const char* message, ...) noexcept;
 }
 

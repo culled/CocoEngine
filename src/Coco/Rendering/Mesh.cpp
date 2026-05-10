@@ -32,7 +32,7 @@ namespace Coco
     {
         if (!_isDynamic)
         {
-            if (RenderService* rendering = _engine->GetService<RenderService>())
+            if (RenderService* rendering = _engine->TryGetService<RenderService>())
             {
                 if (GraphicsPlatform* platform = rendering->GetGraphicsPlatform())
                     platform->GetMeshStorage()->RemoveMesh(GetID());
@@ -81,8 +81,13 @@ namespace Coco
         MarkDirty();
     }
 
-    void Mesh::AppendVertices(Span<const Vector3> positions, Span<const Vector3>* normals,
-        Span<const Vector4>* tangents, Span<const Vector4>* colors, Span<const Vector2>* uvs)
+    void Mesh::AppendVertices(
+        Span<const Vector3> positions,
+        Optional<Span<const Vector3>> normals,
+        Optional<Span<const Vector4>> tangents,
+        Optional<Span<const Vector4>> colors,
+        Optional<Span<const Vector2>> uvs
+    )
     {
         _positions.AppendRange(positions);
 
@@ -262,7 +267,7 @@ namespace Coco
     uint64 Mesh::GetTotalDataSize() const
     {
         uint64 vertexDataSize = GetVertexDataSize();
-        uint64 indexOffset = Math::GetAlignmentOffset(vertexDataSize, alignof(uint32));
+        uint64 indexOffset = Math::AlignedAddress(vertexDataSize, alignof(uint32));
         return indexOffset + GetIndexDataSize();
     }
 

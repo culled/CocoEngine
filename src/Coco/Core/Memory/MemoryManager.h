@@ -16,20 +16,11 @@ namespace Coco
     class MemoryManager
     {
     public:
-        /// @brief Information for an allocation group
-        struct AllocationGroupInfo
-        {
-            /// @brief The number of bytes allocated for this group
-            uint64 BytesAllocated;
-
-            /// @brief The number of allocations made within this group
-            uint64 AllocationCount;
-        };
-
-    public:
         MemoryManager(EnginePlatform& platform) noexcept;
         ~MemoryManager() noexcept;
 
+        /// @brief Gets the static memory manager singleton
+        /// @return The memory manager singleton
         static MemoryManager* Get() noexcept { return _singleton; }
 
         /// @brief Records an allocation for a group
@@ -51,6 +42,16 @@ namespace Coco
         uint64 GetTotalUsage() const noexcept;
 
     private:
+        /// @brief Information for an allocation group
+        struct AllocationGroupInfo
+        {
+            /// @brief The number of bytes allocated for this group
+            uint64 BytesAllocated;
+
+            /// @brief The number of allocations made within this group
+            uint64 AllocationCount;
+        };
+
         static MemoryManager* _singleton;
 
         EnginePlatform* _platform;

@@ -12,6 +12,7 @@ namespace Coco
 {
     struct TimeSpan;
 
+    /// @brief Represents an absolute point in time, with millisecond precision
     struct DateTime
     {
         /// @brief The number of milliseconds in a second

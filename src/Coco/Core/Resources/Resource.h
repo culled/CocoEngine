@@ -13,23 +13,25 @@ namespace Coco
 {
     class Engine;
 
+    /// @brief Base class for all resources used by the Engine. Resources can be saved and loaded from disk by the ResourceManager
     class Resource : public RTTIObject
     {
         DECLARE_RTTI_TYPE(Resource)
 
     public:
+        /// @brief An invalid resource ID
         static constexpr uint64 InvalidID = std::numeric_limits<uint64>::max();
 
-    public:
         virtual ~Resource() = default;
 
+        /// @brief Gets this resource's ID
+        /// @return This resource's ID
         uint64 GetID() const { return _id; }
 
     protected:
         Engine* _engine;
         uint64 _id;
 
-    protected:
         Resource(Engine* engine, uint64 id);
     };
 } // Coco

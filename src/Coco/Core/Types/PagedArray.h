@@ -9,6 +9,8 @@
 
 namespace Coco
 {
+    /// @brief A set of arrays allocated in pages
+    /// @tparam ValueType The array element type
     template<typename ValueType>
     class PagedArray
     {
@@ -24,6 +26,9 @@ namespace Coco
             _pages.Clear();
         }
 
+        /// @brief Adds the given values to the paged array. NOTE: the number of elements must be no greater than the page size
+        /// @param values The values to insert into the array
+        /// @return The inserted values
         Span<ValueType> Allocate(Span<const ValueType> values)
         {
             for (auto& page : _pages)
@@ -41,6 +46,9 @@ namespace Coco
             return Span<ValueType>(ptr, values.size());
         }
 
+        /// @brief Allocates a number of elements into this array. NOTE: the number of elements must be no greater than the page size
+        /// @param count The number of elements to add
+        /// @return The inserted values
         Span<ValueType> Allocate(uint64 count)
         {
             for (auto& page : _pages)
@@ -60,6 +68,9 @@ namespace Coco
             return Span<ValueType>(ptr, count);
         }
 
+        /// @brief Adds the given values to the paged array. NOTE: the number of elements must be no greater than the page size
+        /// @param values The values to add
+        /// @return The emplaced values
         Span<ValueType> Emplace(Span<const ValueType> values)
         {
             auto result = Allocate(values.size());
@@ -69,11 +80,13 @@ namespace Coco
             return result;
         }
 
+        /// @brief Clears all values in the array
         void Clear() noexcept
         {
             for (auto& page : _pages)
                 page.Clear();
         }
+
     private:
         Allocator* _allocator;
         uint64 _pageSize;

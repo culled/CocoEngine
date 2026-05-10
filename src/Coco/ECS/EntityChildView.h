@@ -11,6 +11,7 @@ namespace Coco
 {
     class ECSService;
 
+    /// @brief A view over the children of an Entity
     class EntityChildView
     {
     public:
@@ -23,7 +24,6 @@ namespace Coco
             using difference_type = std::ptrdiff_t;
             using iterator_category = std::forward_iterator_tag;
 
-        public:
             Iterator(EntityChildView& view, bool end);
             Iterator(const Iterator& other);
 
@@ -51,11 +51,10 @@ namespace Coco
             Entity _currentChild;
             uint64 _childIndex;
 
-        private:
+            /// @brief Updates the current child entity
             void UpdateCurrentChild();
         };
 
-    public:
         EntityChildView(Entity& entity);
 
         Iterator begin() { return Iterator(*this, false); }

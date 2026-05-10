@@ -17,7 +17,7 @@ namespace Coco
         _image(),
         _sampler()
     {
-        RenderService* rendering = engine->GetService<RenderService>();
+        RenderService* rendering = engine->TryGetService<RenderService>();
         COCO_ASSERT(rendering, "No active RenderService found");
 
         GraphicsPlatform* platform = rendering->GetGraphicsPlatform();
@@ -33,7 +33,7 @@ namespace Coco
 		_image(),
 		_sampler()
     {
-    	RenderService* rendering = engine->GetService<RenderService>();
+    	RenderService* rendering = engine->TryGetService<RenderService>();
     	COCO_ASSERT(rendering, "No active RenderService found");
 
     	GraphicsPlatform* platform = rendering->GetGraphicsPlatform();
@@ -45,7 +45,7 @@ namespace Coco
 
     Texture::~Texture()
     {
-        if (RenderService* rendering = _engine->GetService<RenderService>())
+        if (RenderService* rendering = _engine->TryGetService<RenderService>())
         {
             if (GraphicsPlatform* platform = rendering->GetGraphicsPlatform())
             {
@@ -66,7 +66,7 @@ namespace Coco
     	newDescription.Width = newWidth;
     	newDescription.Height = newHeight;
 
-    	RenderService* rendering = _engine->GetService<RenderService>();
+    	RenderService* rendering = _engine->TryGetService<RenderService>();
     	COCO_ASSERT(rendering, "RenderService hasn't been created");
 
     	GraphicsPlatform* graphicsPlatform = rendering->GetGraphicsPlatform();
@@ -87,7 +87,7 @@ namespace Coco
     Ref<Image> Texture::CreateImageFromFile(const FilePath& imagePath, ImagePixelFormat pixelFormat,
                                             ImageColorSpace colorSpace, bool generateMipMaps)
     {
-	    RenderService* rendering = _engine->GetService<RenderService>();
+	    RenderService* rendering = _engine->TryGetService<RenderService>();
 		COCO_ASSERT(rendering, "RenderService hasn't been created");
 
     	GraphicsPlatform* graphicsPlatform = rendering->GetGraphicsPlatform();

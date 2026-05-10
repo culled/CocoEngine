@@ -93,7 +93,6 @@ namespace Coco
         int64 _currentTickListenerIndex;
         bool _tickListenersNeedSorting;
 
-    private:
         /// @brief Blocks until the next tick should fire to match the target tick rate
         void WaitForTargetTickRate();
 

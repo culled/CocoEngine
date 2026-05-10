@@ -82,10 +82,10 @@ namespace Coco
         _inputLayersNeedSorting = true;
     }
 
-    void InputService::RemoveInputLayer(const InputLayer& layer)
+    void InputService::RemoveInputLayer(const InputLayer& inputLayer)
     {
         int64 index = _inputLayers.Find(
-            [layerToRemove = &layer](const SharedPtr<InputLayer>& otherLayer)
+            [layerToRemove = &inputLayer](const SharedPtr<InputLayer>& otherLayer)
             {
                 return otherLayer.get() == layerToRemove;
             });
@@ -97,11 +97,6 @@ namespace Coco
 
         if (_currentLayerIndex >= index)
             --_currentLayerIndex;
-    }
-
-    bool InputService::SupportsRawInput() const
-    {
-        return _inputPlatform->SupportsRawInput();
     }
 
     void InputService::HandleSavePreviousStateTick(const TickInfo& tickInfo)

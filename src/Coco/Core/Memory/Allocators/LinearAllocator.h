@@ -8,6 +8,7 @@
 
 namespace Coco
 {
+    /// @brief An allocator that quickly allocates memory linearly and can only be freed by resetting it, which quickly frees all memory at once
     class LinearAllocator : public Allocator
     {
     public:
@@ -17,6 +18,7 @@ namespace Coco
         void* Allocate(uint64 size) override;
         void Free(void* memory, uint64 size) noexcept override;
 
+        /// @brief Frees all allocated memory
         void Reset() noexcept;
 
         /// @brief Gets the number of bytes currently used
@@ -35,6 +37,8 @@ namespace Coco
         /// @return The block size, in bytes
         uint64 GetSize() const noexcept { return _size; }
 
+        /// @brief Gets the remaining number of bytes that haven't been allocated
+        /// @return The number of unallocated bytes
         uint64 GetRemainingSpace() const noexcept { return _size - GetUsage(); }
 
     private:

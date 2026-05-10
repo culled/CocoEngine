@@ -14,6 +14,7 @@
 
 namespace Coco
 {
+    /// @brief A class that can be used to read and write files to disk
     class File
     {
     public:
@@ -141,7 +142,6 @@ namespace Coco
         uint64 _size;
         uint64 _position;
 
-    private:
         /// @brief Checks if the file had been opened with the required flags
         /// @param requiredFlags The required operation flags
         void CheckOperation(FileOpenFlags requiredFlags) const;

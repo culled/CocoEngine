@@ -59,12 +59,22 @@ namespace Coco
             return Combine(combined, others...);
         }
 
+        /// @brief Combines parts into a path
+        /// @tparam Args The argument types
+        /// @param base The base path fragment
+        /// @param others The remaining path fragments
+        /// @return The combined file path
         template<typename ... Args>
         static FilePath Combine(const char* base, Args&& ... others)
         {
             return Combine(FilePath(base), others...);
         }
 
+        /// @brief Combines parts into a path
+        /// @tparam Args The argument types
+        /// @param base The base path fragment
+        /// @param others The remaining path fragments
+        /// @return The combined file path
         template<typename ... Args>
         static FilePath Combine(const String& base, Args&& ... others)
         {
@@ -89,9 +99,16 @@ namespace Coco
 
         friend void swap(FilePath& a, FilePath& b) noexcept;
 
+        /// @brief Gets this path as a null-terminated string
+        /// @return This path as a null-terminated string
         const char* CStr() const { return _path.CStr(); }
+
+        /// @brief Gets the number of characters in this path
+        /// @return The length of this path
         uint64 GetLength() const { return _path.GetLength(); }
 
+        /// @brief Gets this path as a String
+        /// @return This path as a String
         String AsString() const { return _path; }
 
         /// @brief Gets the path of the parent directory
@@ -127,7 +144,6 @@ namespace Coco
     private:
         String _path;
 
-    private:
         /// @brief Resolved for the final template parameter of the Combine function
         /// @param base The path
         /// @return The path

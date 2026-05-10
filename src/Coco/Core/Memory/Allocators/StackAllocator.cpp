@@ -50,7 +50,7 @@ namespace Coco
     void* StackAllocator::Allocate(uint64 size)
     {
         uint64 maxAlignment = alignof(StackAllocationHeader);
-        uint64 padding = Math::GetAlignmentOffset(_currentOffset, maxAlignment) - _currentOffset;
+        uint64 padding = Math::AlignedAddress(_currentOffset, maxAlignment) - _currentOffset;
         auto headerPtr = reinterpret_cast<StackAllocationHeader*>(static_cast<uint8*>(_data) + padding + _currentOffset);
 
         uint64 allocationSize = padding + sizeof(StackAllocationHeader) + size;

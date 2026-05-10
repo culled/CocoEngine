@@ -18,7 +18,7 @@ namespace Coco
         if (!_windowingPlatform)
             throw Exception("Platform does not support windowing");
 
-        DisplaysChanged();
+        UpdateDisplays();
 
         COCO_ENGINE_LOG_VERBOSE("Created WindowService");
     }
@@ -33,7 +33,7 @@ namespace Coco
         COCO_ENGINE_LOG_VERBOSE("Destroyed WindowService");
     }
 
-    void WindowService::DisplaysChanged()
+    void WindowService::UpdateDisplays()
     {
         _displays.Clear();
         _displays.Resize(_windowingPlatform->GetDisplayCount());

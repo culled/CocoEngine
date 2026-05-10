@@ -12,7 +12,7 @@
 
 namespace Coco
 {
-    /// @brief Base class for arrays
+    /// @brief Base class for variable-sized arrays
     /// @tparam ValueType The value type
     template<typename ValueType>
     class ArrayContainer
@@ -30,7 +30,6 @@ namespace Coco
             using difference_type = std::ptrdiff_t;
             using iterator_category = std::bidirectional_iterator_tag;
 
-        public:
             Iterator(ArrayContainer& array, uint64 index) :
                 _array(&array),
                 _index(index)
@@ -138,7 +137,6 @@ namespace Coco
             using difference_type = std::ptrdiff_t;
             using iterator_category = std::bidirectional_iterator_tag;
 
-        public:
             ConstIterator(const ArrayContainer& array, uint64 index) :
                 _array(&array),
                 _index(index)
@@ -224,7 +222,6 @@ namespace Coco
             uint64 _index;
         };
 
-    public:
         ArrayContainer() noexcept :
             _count(0)
         {}
@@ -277,6 +274,9 @@ namespace Coco
             return *ptr;
         }
 
+        /// @brief Adds a number of values to the end of this array
+        /// @param values The values
+        /// @return A pointer to the first value in this array
         ValueType* AppendRange(Span<const ValueType> values)
         {
             EnsureCapacity(_count + values.size(), true);
@@ -380,17 +380,9 @@ namespace Coco
             if (index >= _count)
                 return;
 
-            //ValueType* ptr = Data() + index;
-
             if (keepOrder)
             {
-                // Move all items up one position starting after the removed index
-                /*for (uint64 i = index + 1; i < _count; i++)
-                {
-                    ValueType* source = Data() + i;
-                    ptr = Data() + (i - 1);
-                    *ptr = std::move(*source);
-                }*/
+                // Move all items up one position starting after the removed index. This will move the item to be removed to the end
                 for (uint64 i = index; i < _count - 1; i++)
                 {
                     ValueType* a = Data() + i;
@@ -400,10 +392,7 @@ namespace Coco
             }
             else if (index < _count - 1)
             {
-                // Move the last item to the one that was removed
-                /*ValueType* source = Data() + (_count - 1);
-                if (source != ptr)
-                    *ptr = std::move(*source);*/
+                // Swap the last item with the one that was removed
                 ValueType* a = Data() + index;
                 ValueType* b = Data() + (_count - 1);
                 swap(*a, *b);
@@ -430,6 +419,10 @@ namespace Coco
             return true;
         }
 
+        /// @brief Attempts to remove the given value from this array if it satisfies the given predicate function
+        /// @param predicate A function that returns true for the item to remove
+        /// @param keepOrder If true, the order of the array will be maintained at the expense of shifting all elements after the removed element
+        /// @return True if the value was found and removed
         bool RemoveIf(std::function<bool(const ValueType&)> predicate, bool keepOrder = true)
         {
             COCO_ASSERT(predicate, "Predicate was null");
@@ -505,6 +498,9 @@ namespace Coco
             EnsureCapacity(newCapacity, false);
         }
 
+        /// @brief Resizes this array so the number of elements matches the given size
+        /// @param count The new size for this array
+        /// @param insertItem If the array needs to grow, all new items will be copy-constructed from this item
         void Resize(uint64 count, const ValueType& insertItem = ValueType())
         {
             if (_count > count)
@@ -522,16 +518,24 @@ namespace Coco
             _count = count;
         }
 
+        /// @brief Determines if this array contains the given value
+        /// @param value The value
+        /// @return True if this array contains the given value
         bool Contains(const ValueType& value) const
         {
             return Find(value) != -1;
         }
 
+        /// @brief Determines if this array contains the given value
+        /// @param predicate A function that returns true for the given item
+        /// @return True if this array contains the given value
         bool Contains(std::function<bool(const ValueType&)> predicate) const
         {
             return Find(predicate) != -1;
         }
 
+        /// @brief Sets the values of this array
+        /// @param values The values
         void Set(Span<const ValueType> values)
         {
             DestructData();
@@ -541,6 +545,9 @@ namespace Coco
             _count = values.size();
         }
 
+        /// @brief Determines if all elements in this array satisfy a given predicate function
+        /// @param predicate A function to test each element with
+        /// @return True if all elements returned true in the predicate function
         bool All(std::function<bool(const ValueType&)> predicate)
         {
             COCO_ASSERT(predicate, "Predicate was null");

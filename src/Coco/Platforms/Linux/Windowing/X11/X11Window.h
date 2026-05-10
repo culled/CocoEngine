@@ -13,6 +13,7 @@ namespace Coco
     class RenderService;
     class X11WindowSystem;
 
+    /// @brief An implementation of a Window for X11
     class X11Window : public Window
     {
         friend class X11WindowSystem;
@@ -36,7 +37,12 @@ namespace Coco
         void Focus() override;
         bool IsFocused() const override;
 
+        /// @brief Gets the main X11 display (not to be confused with a display monitor)
+        /// @return The main X11 display
         X11::Display* GetDisplay() const;
+
+        /// @brief Gets the native window handle
+        /// @return The native window handle
         X11::Window GetNativeWindow() const { return _x11Window; }
 
     protected:
@@ -54,11 +60,24 @@ namespace Coco
         bool _isFullscreen;
         Sizei _size;
 
-    private:
+        /// @brief Gets the string representation of an error code
+        /// @param code The error code
+        /// @return The string representation of the error code
         String GetErrorText(int code) const;
+
+        /// @brief Processes an event from the X11 server meant for this window
+        /// @param event The event
         void ProcessEvent(const X11::XEvent& event);
+
+        /// @brief Updates the current state from the X11 window state
         void UpdateState();
+
+        /// @brief Sets the maximized state of this window
+        /// @param maximized If true, this window will be maximized
         void SetMaximizedState(bool maximized);
+
+        /// @brief Sets the fullscreen state of this window
+        /// @param fullscreen If true, this window will be fullscreen
         void SetFullscreenState(bool fullscreen);
     };
 } // Coco

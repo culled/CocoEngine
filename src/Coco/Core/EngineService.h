@@ -9,18 +9,23 @@ namespace Coco
 {
     class Engine;
 
+    /// @brief Base class for a service for the Engine
     class EngineService
     {
     public:
         virtual ~EngineService() = default;
 
+        /// @brief Gets the engine instance
+        /// @return The engine
         Engine* GetEngine() { return _engine; }
+
+        /// @brief Gets the engine instance
+        /// @return The engine
         const Engine* GetEngine() const { return _engine; }
 
     protected:
         Engine* _engine;
 
-    protected:
         EngineService(Engine* engine);
     };
 } // Coco

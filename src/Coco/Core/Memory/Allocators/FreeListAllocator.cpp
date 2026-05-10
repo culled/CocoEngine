@@ -50,7 +50,7 @@ namespace Coco
             {
                 // Figure out the size needed when taking into account alignment of the data
                 uint64 dataAddress = reinterpret_cast<uint64>(current) + sizeof(FreeListBlock);
-                uint64 dataPadding = Math::GetAlignmentOffset(dataAddress, 8) - dataAddress;
+                uint64 dataPadding = Math::AlignedAddress(dataAddress, 8) - dataAddress;
                 uint64 totalSize = size + dataPadding;
 
                 if (current->Size >= totalSize)
@@ -62,7 +62,7 @@ namespace Coco
 
                     // Figure out where we would split this block
                     uint64 nextBlockAddress = dataAddress + totalSize;
-                    uint64 nextBlockPadding = Math::GetAlignmentOffset(nextBlockAddress, alignof(FreeListBlock)) - nextBlockAddress;
+                    uint64 nextBlockPadding = Math::AlignedAddress(nextBlockAddress, alignof(FreeListBlock)) - nextBlockAddress;
 
                     // Split the block if we have the space to
                     if (blockRemainingSize >= nextBlockPadding + sizeof(FreeListBlock) + 8)

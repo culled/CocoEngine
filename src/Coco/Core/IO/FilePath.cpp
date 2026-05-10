@@ -106,7 +106,7 @@ namespace Coco
 
     bool FilePath::IsRelative() const noexcept
     {
-        return !(_path.StartsWith('/') || _path.Find(':') != -1);
+        return !(_path.StartsWith('/') || _path.IndexOf(':') != -1);
     }
 
     bool FilePath::IsDirectory() const noexcept

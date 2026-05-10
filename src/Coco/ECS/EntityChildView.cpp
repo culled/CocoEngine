@@ -98,6 +98,6 @@ namespace Coco
         _entityData(nullptr)
     {
         if (_ecs)
-            _entityData = _ecs->GetEntityStorage()->TryGet(entity._id);
+            _entityData = _ecs->GetEntityStorage().TryGet(entity._id);
     }
 } // Coco

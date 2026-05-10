@@ -11,18 +11,36 @@
 
 namespace Coco
 {
+    /// @brief Base class for a three-dimensional vector
+    /// @tparam ValueType The value types
     template<typename ValueType>
     struct BaseVector3
     {
+        /// @brief A zero vector (0, 0, 0)
         static const BaseVector3 Zero;
+
+        /// @brief A unit vector pointing to the right (1, 0, 0)
         static const BaseVector3 Right;
+
+        /// @brief A unit vector pointing to the left (-1, 0, 0)
         static const BaseVector3 Left;
+
+        /// @brief A unit vector pointing upwards (0, 1, 0)
         static const BaseVector3 Up;
+
+        /// @brief A unit vector pointing downwards (0, -1, 0)
         static const BaseVector3 Down;
+
+        /// @brief A unit vector pointing backwards (0, 0, 1)
         static const BaseVector3 Backward;
+
+        /// @brief A unit vector pointing forwards (0, 0, -1)
         static const BaseVector3 Forward;
+
+        /// @brief A vector with one in each axis (1, 1, 1)
         static const BaseVector3 One;
 
+        /// @brief The raw vector values, stored in X, Y, Z order
         ValueType Raw[3];
 
         BaseVector3() :
@@ -74,20 +92,41 @@ namespace Coco
             return BaseVector3(-X(), -Y(), -Z());
         }
 
+        /// @brief The X Value
+        /// @return The X value
         constexpr ValueType& X() { return Raw[0]; }
+
+        /// @brief The X Value
+        /// @return The X value
         constexpr const ValueType& X() const { return Raw[0]; }
 
+        /// @brief The Y Value
+        /// @return The Y value
         constexpr ValueType& Y() { return Raw[1]; }
+
+        /// @brief The Y Value
+        /// @return The Y value
         constexpr const ValueType& Y() const { return Raw[1]; }
 
+        /// @brief The Z Value
+        /// @return The Z value
         constexpr ValueType& Z() { return Raw[2]; }
+
+        /// @brief The Z Value
+        /// @return The Z value
         constexpr const ValueType& Z() const { return Raw[2]; }
 
+        /// @brief Calculates the dot product of this vector and the given vector. The dot product will be 1 if the vectors point in the same direction, -1 if they point in opposite directions, and 0 if they are perpendicular
+        /// @param other The other vector
+        /// @return The dot product
         ValueType Dot(const BaseVector3& other) const
         {
             return (X() * other.X()) + (Y() * other.Y()) + (Z() * other.Z());
         }
 
+        /// @brief Computes a vector that is perpendicular to this and the given vector
+        /// @param other The other vector
+        /// @return A vector perpendicular to this and the other vector
         BaseVector3 Cross(const BaseVector3& other) const
         {
             return BaseVector3(
@@ -97,17 +136,23 @@ namespace Coco
             );
         }
 
+        /// @brief Calculates the length of this vector
+        /// @tparam ReturnType The return type
+        /// @return The length of this vector
         template<typename ReturnType = float>
         ReturnType GetLength() const
         {
             return static_cast<ReturnType>(Math::Sqrt(GetLengthSquared()));
         }
 
+        /// @brief Calculates the squared length of this vector. The normal length calculation involves a square root operation, so this is faster if you don't need the exact length of this vector
+        /// @return The squared length of this vector
         ValueType GetLengthSquared() const
         {
             return X() * X() + Y() * Y() + Z() * Z();
         }
 
+        /// @brief Normalizes this vector to unit length
         void Normalize()
         {
             ValueType length = GetLength();
@@ -120,6 +165,8 @@ namespace Coco
             Z() *= invLength;
         }
 
+        /// @brief Returns the normalized, unit length version of this vector
+        /// @return The normalized, unit length vector
         BaseVector3 Normalized() const
         {
             BaseVector3 v(*this);
@@ -127,6 +174,8 @@ namespace Coco
             return v;
         }
 
+        /// @brief Creates a vector that points perpendicular to this vector
+        /// @return The orthogonal vector
         BaseVector3 Orthogonal() const
         {
             ValueType x = Math::Abs(X());
@@ -137,6 +186,8 @@ namespace Coco
             return Cross(other);
         }
 
+        /// @brief Creates a two-dimensional vector from this vector's X and Y values
+        /// @return The two-dimensional vector
         BaseVector2<ValueType> XY() const { return BaseVector2<ValueType>(X(), Y()); }
     };
 
@@ -184,8 +235,27 @@ namespace Coco
         return !(a == b);
     }
 
+    /// @brief A three-dimensional vector backed by floats
     using Vector3 = BaseVector3<float>;
+
+    /// @brief A three-dimensional vector backed by ints
     using Vector3i = BaseVector3<int>;
+
+    /// @brief Computes the hash value of a Vector3i
+    /// @param vector The vector
+    /// @return The hashed value of the vector
+    uint64 ToHash(const Vector3i& vector) noexcept;
 } // Coco
 
+namespace std
+{
+    template<>
+    struct hash<Coco::Vector3i>
+    {
+        size_t operator()(const Coco::Vector3i& vector) const noexcept
+        {
+            return Coco::ToHash(vector);
+        }
+    };
+}
 #endif //COCOENGINE_VECTOR3_H

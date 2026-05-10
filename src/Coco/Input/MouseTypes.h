@@ -20,12 +20,16 @@ namespace Coco
         Unknown
     };
 
+    /// @brief Gets the string representation for a MouseButton
+    /// @param button The mouse button
+    /// @return The string representation
     const char* ToString(MouseButton button);
 
     /// @brief Data for an event fired when a mouse button is pressed/released
     struct MouseButtonInputEvent :
         public ButtonInputEvent
     {
+        /// @brief The event type
         static constexpr uint64 Type = 1;
 
         /// @brief The mouse button
@@ -33,7 +37,6 @@ namespace Coco
 
         MouseButtonInputEvent(MouseButton button, bool isPressed) noexcept;
 
-        // Inherited via ButtonInputEvent
         uint64 GetType() const noexcept override { return Type; }
     };
 
@@ -41,6 +44,7 @@ namespace Coco
     struct MouseMoveInputEvent :
         public InputEvent
     {
+        /// @brief The event type
         static constexpr uint64 Type = 2;
 
         /// @brief The new position of the mouse
@@ -58,6 +62,7 @@ namespace Coco
     struct MouseScrollInputEvent :
         public InputEvent
     {
+        /// @brief The event type
         static constexpr uint64 Type = 3;
 
         /// @brief The movement of the mouse wheel since the last frame
@@ -72,6 +77,7 @@ namespace Coco
     struct MouseRawMoveInputEvent :
         public InputEvent
     {
+        /// @brief The event type
         static constexpr uint64 Type = 4;
 
         /// @brief The movement of the mouse since the last frame

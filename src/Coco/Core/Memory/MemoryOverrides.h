@@ -44,6 +44,10 @@ namespace Coco
         new (ptr) ClassType(std::forward<Args>(args)...);
     }
 
+    /// @brief Calls the class move constructor for an object
+    /// @tparam ClassType The type of class
+    /// @param ptr A pointer to the class being constructed
+    /// @param other The class being moved
     template<typename ClassType>
     void Construct(ClassType* ptr, ClassType&& other)
     {
@@ -64,6 +68,11 @@ namespace Coco
             new(ptr + i) ClassType(values[i]);
     }
 
+    /// @brief Calls the class copy-constructor for an array of objects.
+    /// @tparam ClassType The type of class
+    /// @param ptr A pointer to the first class. NOTE: ensure the number of objects is greater than or equal to the count
+    /// @param value The value to pass to each constructed class
+    /// @param count The size of the array
     template<typename ClassType>
     void ConstructArray(ClassType* ptr, const ClassType& value, uint64 count)
     {

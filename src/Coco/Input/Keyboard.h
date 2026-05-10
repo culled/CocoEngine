@@ -28,6 +28,7 @@ namespace Coco
 
     class InputService;
 
+    /// @brief A keyboard input device
     class Keyboard
     {
         friend class InputService;
@@ -81,7 +82,6 @@ namespace Coco
         KeyboardState _currentState;
         KeyboardState _previousState;
 
-    private:
         /// @brief Saves the previous input state
         void SavePreviousState();
 

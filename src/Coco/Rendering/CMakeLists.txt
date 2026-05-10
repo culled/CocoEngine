@@ -100,6 +100,8 @@ add_library(Rendering STATIC
         RenderPasses/SimpleRenderPass.h
         RenderPasses/ClearRenderPass.cpp
         RenderPasses/ClearRenderPass.h
+        Gizmos/GizmosRenderPass.cpp
+        Gizmos/GizmosRenderPass.h
 )
 
 target_link_libraries(Rendering PUBLIC

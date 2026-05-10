@@ -53,4 +53,9 @@ namespace Coco
 
     template<>
     const Vector3 Vector3::One = Vector3(1.f, 1.f, 1.f);
+
+    uint64 ToHash(const Vector3i& vector) noexcept
+    {
+        return Math::CombineHashes(static_cast<uint64>(vector.X()), static_cast<uint64>(vector.Y()), static_cast<uint64>(vector.Z()));
+    }
 } // Coco
