@@ -7,6 +7,7 @@
 #include "GizmosRenderPass.h"
 
 #include "Coco/Core/Engine.h"
+#include "Coco/Rendering/RenderService.h"
 
 namespace Coco
 {
@@ -24,23 +25,22 @@ namespace Coco
         _sphereSubmesh(0),
         _coneSubmesh(0),
         _drawCalls(nullptr, 100),
-        _isEnabled(false),
-        _renderListener(this, &Gizmos::OnRender, RenderOrder)
+        _clearTickListener(this, &Gizmos::OnClearTick, ClearTickOrder)
     {
         CreateResources();
-        _renderListener.Listen(*renderService);
+        _clearTickListener.ListenTo(*renderService->GetEngine()->GetMainLoop());
     }
 
     Gizmos::~Gizmos()
     {
-        _renderListener.StopListening();
+        _clearTickListener.StopListening();
         _drawCalls.Clear(true);
         Engine::Get()->GetResourceManager()->RemoveResource(_mesh->GetID());
     }
 
-    void Gizmos::SetEnabled(bool enable)
+    void Gizmos::Clear()
     {
-        _isEnabled = enable;
+        _drawCalls.Clear();
     }
 
     void Gizmos::DrawLine3D(const Vector3& start, const Vector3& end, const Color& color)
@@ -78,6 +78,24 @@ namespace Coco
     {
         Matrix4x4 t = Matrix4x4::CreateTransform(origin, rotation, Vector3(radius, height, radius));
         _drawCalls.EmplaceBack(_coneSubmesh, color.AsVector4(false), t);
+    }
+
+    void Gizmos::Render(RenderGraph& graph, RenderScene& scene)
+    {
+        uint64 id = typeid(Gizmos).hash_code();
+
+        for (uint64 i = 0; i < _drawCalls.GetCount(); i++)
+        {
+            uint64 objID = Math::CombineHashes(id, i);
+
+            const auto& dc = _drawCalls[i];
+            GizmoObjectData obj{dc.Transform, dc.DrawColor};
+            scene.StoreData(objID, true, obj);
+
+            scene.AddObject(objID, 0, *_mesh, dc.SubmeshID);
+        }
+
+        graph.CreateRenderPassObject<GizmosRenderPass>("Gizmos");
     }
 
     void Gizmos::CreateLineMesh(ArrayContainer<Vector3>& outVerts, ArrayContainer<uint32>& outIndices)
@@ -258,27 +276,8 @@ namespace Coco
         _mesh->SetSubmeshes(submeshes);
     }
 
-    void Gizmos::OnRender(uint64 targetID, RenderGraph& graph, RenderScene& scene)
+    void Gizmos::OnClearTick(const TickInfo& tickInfo)
     {
-        if (_isEnabled)
-        {
-            // TODO: gizmo data for each final render target
-            uint64 id = typeid(Gizmos).hash_code();
-
-            for (uint64 i = 0; i < _drawCalls.GetCount(); i++)
-            {
-                uint64 objID = Math::CombineHashes(id, i);
-
-                const auto& dc = _drawCalls[i];
-                GizmoObjectData obj{dc.Transform, dc.DrawColor};
-                scene.StoreData(objID, true, obj);
-
-                scene.AddObject(objID, 0, *_mesh, dc.SubmeshID);
-            }
-
-            graph.CreateRenderPassObject<GizmosRenderPass>("Gizmos");
-        }
-
-        _drawCalls.Clear();
+        Clear();
     }
 } // Coco

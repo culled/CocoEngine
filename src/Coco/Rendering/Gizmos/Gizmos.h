@@ -5,6 +5,7 @@
 #ifndef COCOENGINE_GIZMOS_H
 #define COCOENGINE_GIZMOS_H
 #include "Coco/Core/Math/Matrix4x4.h"
+#include "Coco/Core/ProcessLoop/TickListener.h"
 #include "Coco/Core/Types/Color.h"
 #include "Coco/Rendering/RenderListener.h"
 
@@ -32,15 +33,14 @@ namespace Coco
     class Gizmos
     {
     public:
-        /// @brief The order when the gizmos will be rendered to the screen
-        static constexpr int RenderOrder = 90;
+        /// @brief The tick order when the gizmos will be cleared each frame
+        static constexpr int ClearTickOrder = -6000;
 
         Gizmos(RenderService* renderService);
         ~Gizmos();
 
-        /// @brief Enables/disables the drawing of gizmos
-        /// @param enable If true, gizmos will be drawn
-        void SetEnabled(bool enable);
+        /// @brief Clears all gizmo draw calls
+        void Clear();
 
         /// @brief Draws a line between two points
         /// @param start The starting position of the line
@@ -82,6 +82,11 @@ namespace Coco
         /// @param color The color of the cone
         void DrawCone3D(const Vector3& origin, const Quaternion& rotation, float height, float radius, const Color& color);
 
+        /// @brief Renders all current gizmo drawcalls
+        /// @param graph The render graph
+        /// @param scene The render scene
+        void Render(RenderGraph& graph, RenderScene& scene);
+
     private:
         SharedPtr<Mesh> _mesh;
         uint8 _lineSubmesh;
@@ -90,8 +95,7 @@ namespace Coco
         uint8 _sphereSubmesh;
         uint8 _coneSubmesh;
         Array<GizmoDrawCall> _drawCalls;
-        bool _isEnabled;
-        RenderListener _renderListener;
+        TickListener _clearTickListener;
 
         /// @brief Creates the line mesh data
         /// @param outVerts Will be filled with vertex positions
@@ -122,11 +126,9 @@ namespace Coco
         /// @brief Creates the gizmo resources
         void CreateResources();
 
-        /// @brief Callback for rendering a surface
-        /// @param targetID The surface being rendered
-        /// @param graph The render graph
-        /// @param scene The render scene
-        void OnRender(uint64 targetID, RenderGraph& graph, RenderScene& scene);
+        /// @brief Tick handler for the clear callback
+        /// @param tickInfo The tick info
+        void OnClearTick(const TickInfo& tickInfo);
     };
 } // Coco
 

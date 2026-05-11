@@ -72,7 +72,6 @@ void SandboxApplication::CreateServices()
     rendererCreateParams.EnableDebugging = true;
     #endif
     rendering->CreatePlatform<VulkanGraphicsPlatform>(rendererCreateParams);
-    rendering->GetGizmos()->SetEnabled(true);
 
     WindowService* windowing = _engine->CreateService<WindowService>();
     WindowCreateParams windowCreateParams("Sandbox", Sizei(640, 480));
@@ -237,6 +236,8 @@ void SandboxApplication::RenderSceneCallback(uint64 targetID, RenderGraph& graph
 
     DrawTilemap(clearPass.GetOutputResource(), graph, scene);
     DrawSprites(clearPass.GetOutputResource(), graph, scene);
+
+    _engine->GetService<RenderService>()->GetGizmos()->Render(graph, scene);
 }
 
 void SandboxApplication::DrawTilemap(RenderGraphResourceRef colorRef, RenderGraph& graph, RenderScene& scene)
