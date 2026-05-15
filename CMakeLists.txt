@@ -74,5 +74,8 @@ if(COCO_ENABLE_APPS)
 
     add_subdirectory(Apps/Sandbox ${COCO_APPS_BUILD_DIR}/Sandbox)
 
-    #add_subdirectory(Apps/TopDownGame ${COCO_APPS_BUILD_DIR}/TopDownGame)
+    # A local test game. Uses assets that can't be distributed publicly
+    if(EXISTS ${CMAKE_SOURCE_DIR}/Apps/TopDownGame/)
+        add_subdirectory(Apps/TopDownGame ${COCO_APPS_BUILD_DIR}/TopDownGame)
+    endif ()
 endif()
