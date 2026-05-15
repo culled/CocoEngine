@@ -5,6 +5,7 @@
 #ifndef COCOENGINE_TRANSFORM2DCOMPONENT_H
 #define COCOENGINE_TRANSFORM2DCOMPONENT_H
 #include "Coco/Core/Math/Matrix4x4.h"
+#include "Coco/Core/Math/Rect.h"
 #include "Coco/Core/Math/Vector2.h"
 #include "Coco/ECS/EntityComponent.h"
 
@@ -72,6 +73,9 @@ namespace Coco
         /// @param position The position
         /// @return The position in this object's space
         Vector2 InverseTransformPosition(const Vector2& position) const;
+
+        Rect TransformRect(const Rect& rect) const;
+        Rect InverseTransformRect(const Rect& rect) const;
     };
 } // Coco
 

@@ -103,4 +103,18 @@ namespace Coco
     {
         return (GlobalTransform.Inverse() * Vector4(position, 0.0f, 1.0f)).XY();
     }
+
+    Rect Transform2DComponent::TransformRect(const Rect& rect) const
+    {
+        Vector2 sizeVec(rect.Size.Width, rect.Size.Height);
+        Vector2 transformedSize = TransformVector(sizeVec);
+        return {TransformPosition(rect.Offset), Size(transformedSize.X(), transformedSize.Y())};
+    }
+
+    Rect Transform2DComponent::InverseTransformRect(const Rect& rect) const
+    {
+        Vector2 sizeVec(rect.Size.Width, rect.Size.Height);
+        Vector2 transformedSize = InverseTransformVector(sizeVec);
+        return {InverseTransformPosition(rect.Offset), Size(transformedSize.X(), transformedSize.Y())};
+    }
 } // Coco

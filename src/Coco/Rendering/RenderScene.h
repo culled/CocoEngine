@@ -36,6 +36,10 @@ namespace Coco
         /// @return The ID
         uint64 GetID() const { return _id; }
 
+        /// @brief Gets the resolution of the primary output
+        /// @return The resolution of the primary output
+        const Sizei& GetFrameSize() const { return _frameSize; }
+
         /// @brief Creates an orthographic projection matrix
         /// @param size The vertical size
         /// @param nearClip The distance of the near clip plane
@@ -204,27 +208,30 @@ namespace Coco
         /// @brief Adds a RenderObject for this scene
         /// @param id The object ID
         /// @param layer The object's layer
+        /// @param order An ordering value for sorting RenderObjects
         /// @param mesh The mesh to render the object with
         /// @param submeshIndex The index of the submesh to render the object with
-        void AddObject(uint64 id, uint64 layer, Mesh& mesh, uint32 submeshIndex = 0);
+        void AddObject(uint64 id, uint64 layer, float order, Mesh& mesh, uint32 submeshIndex = 0);
 
         /// @brief Adds a RenderObject for this scene
         /// @param id The object ID
         /// @param layer The object's layer
+        /// @param order An ordering value for sorting RenderObjects
         /// @param mesh The mesh to render the object with
         /// @param indexOffset The offset in the vertex buffer of the first index to render
         /// @param indexCount The number of indices to render
         /// @param vertexOffset An offset to apply to each vertex index
-        void AddObject(uint64 id, uint64 layer, Mesh& mesh, uint32 indexOffset, uint32 indexCount, int32 vertexOffset = 0);
+        void AddObject(uint64 id, uint64 layer, float order, Mesh& mesh, uint32 indexOffset, uint32 indexCount, int32 vertexOffset = 0);
 
         /// @brief Adds a RenderObject for this scene
         /// @param id The object ID
         /// @param layer The object's layer
+        /// @param order An ordering value for sorting RenderObjects
         /// @param meshID The ID of the mesh
         /// @param indexOffset The offset in the vertex buffer of the first index to render
         /// @param indexCount The number of indices to render
         /// @param vertexOffset An offset to apply to each vertex index
-        void AddObject(uint64 id, uint64 layer, uint64 meshID, uint32 indexOffset, uint32 indexCount, int32 vertexOffset = 0);
+        void AddObject(uint64 id, uint64 layer, float order, uint64 meshID, uint32 indexOffset, uint32 indexCount, int32 vertexOffset = 0);
 
         /// @brief Gets a view to iterate over this scene's RenderObjects
         /// @return A view over this scene's RenderObjects

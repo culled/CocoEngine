@@ -28,17 +28,17 @@
 #include <imgui.h>
 
 #include "Coco/ECS/Rendering/Components/TileMapRendererComponent.h"
+#include "Coco/ECS/Rendering/Renderers/SpriteComponentRenderer.h"
+#include "Coco/ECS/Rendering/Renderers/TileMapComponentRenderer.h"
 #include "Coco/Rendering/RenderPasses/ClearRenderPass.h"
 #include "Coco/Rendering/RenderPasses/SimpleRenderPass.h"
 
 
 SandboxApplication::SandboxApplication(Engine* engine) :
     Application(engine, "Sandbox"),
-    _tickListener(this, &SandboxApplication::OnTick, 0),
     _renderListener(this, &SandboxApplication::RenderSceneCallback, 0)
 {
     //engine->GetMainLoop()->SetTargetTickRate(60);
-    _tickListener.ListenTo(*engine->GetMainLoop());
 
     CreateServices();
     CreateResources();
@@ -107,6 +107,7 @@ void SandboxApplication::CreateResources()
 void SandboxApplication::CreateScene()
 {
     _scene = _engine->GetResourceManager()->CreateResource<Scene>("Scene");
+    _engine->GetService<ECSService>()->AddRootScene(_scene);
 
     _cameraEntity = _scene->CreateEntity("Camera");
     _cameraEntity.CreateComponent<Transform2DComponent>();
@@ -137,7 +138,7 @@ void SandboxApplication::CreateScene()
     spriteAnimComponent->SetCurrentAnimation("run");
 }
 
-void SandboxApplication::OnTick(const TickInfo& tickInfo)
+void SandboxApplication::Tick(const TickInfo& tickInfo)
 {
     if (!_window)
         return;
@@ -204,23 +205,6 @@ struct GlobalSceneData
     }
 };
 
-struct SpriteObjectData
-{
-    Matrix4x4 Model;
-    Vector4 Slice;
-    Vector4 TintColor;
-    SharedPtr<Texture> SpriteTexture;
-
-    void SetDrawData(RenderContext& ctx) const
-    {
-        uint8 data[sizeof(Matrix4x4) + sizeof(Vector4) * 2];
-        memcpy(data, &Model, sizeof(Matrix4x4));
-        memcpy(data + sizeof(Matrix4x4), &Slice, sizeof(Vector4));
-        memcpy(data + sizeof(Matrix4x4) + sizeof(Vector4), &TintColor, sizeof(Vector4));
-        ctx.SetDrawData(data, sizeof(data), Span<const SharedPtr<Texture>>({SpriteTexture}));
-    }
-};
-
 void SandboxApplication::RenderSceneCallback(uint64 targetID, RenderGraph& graph, RenderScene& scene)
 {
     Transform2DComponent* camTransform = _cameraEntity.GetComponent<Transform2DComponent>();
@@ -242,103 +226,27 @@ void SandboxApplication::RenderSceneCallback(uint64 targetID, RenderGraph& graph
 
 void SandboxApplication::DrawTilemap(RenderGraphResourceRef colorRef, RenderGraph& graph, RenderScene& scene)
 {
-    Transform2DComponent* camTransform = _cameraEntity.GetComponent<Transform2DComponent>();
-    CameraComponent* cam = _cameraEntity.GetComponent<CameraComponent>();
-
-    Transform2DComponent* mapTransform = _tilemapEntity.GetComponent<Transform2DComponent>();
-
-    // By default, the map's tiles are 1x1 unit
-
-    // Calculate the lower left-hand point of the camera viewport
-    float aspect = graph.GetAttachmentSize().GetAspectRatio<float>();
-    Vector2 startingPos(camTransform->LocalPosition.X() - cam->OrthographicCamera.Size * 0.5f * aspect, camTransform->LocalPosition.Y() - cam->OrthographicCamera.Size * 0.5f);
-
-    // Transform the camera position into the tilemap's space
-    Vector2 localStartingPos = mapTransform->InverseTransformPosition(startingPos);
-    Vector2i startingCell(static_cast<int>(Math::Floor(localStartingPos.X())), static_cast<int>(Math::Floor(localStartingPos.Y())));
-    Vector2i cellCount(
-        static_cast<int>(Math::Ceil((cam->OrthographicCamera.Size / mapTransform->LocalScale.X()) * aspect)) + 1,
-        static_cast<int>(Math::Ceil(cam->OrthographicCamera.Size / mapTransform->LocalScale.Y())) + 1
-    );
-
-    TileMapRendererComponent* mapRenderer = _tilemapEntity.GetComponent<TileMapRendererComponent>();
-    auto spriteMesh = SpriteRendererComponent::GetOrCreateSpriteMesh();
-
-    for (int x = 0; x < cellCount.X(); x++)
-    {
-        for (int y = 0; y < cellCount.Y(); y++)
-        {
-            Vector2i cellCoord(x + startingCell.X(), y + startingCell.Y());
-            auto cellData = mapRenderer->Map->GetCell(cellCoord);
-            if (!cellData)
-                continue;
-
-            SpriteObjectData spriteData;
-            spriteData.Model = mapTransform->GlobalTransform;
-            spriteData.Model.M14() += (static_cast<float>(cellCoord.X()) + 0.5f) * mapTransform->LocalScale.X();
-            spriteData.Model.M24() += (static_cast<float>(cellCoord.Y()) + 0.5f) * mapTransform->LocalScale.Y();
-
-            spriteData.TintColor = Color::White.AsVector4(false);
-            spriteData.Slice = mapRenderer->Map->GetAtlas()->GetCellSlice(cellData->TileID);
-            spriteData.SpriteTexture = mapRenderer->Map->GetAtlas()->GetTexture();
-
-            uint64 objectID = Math::CombineHashes(ToHash(_tilemapEntity), static_cast<uint64>(cellCoord.X()), static_cast<uint64>(cellCoord.Y()));
-            scene.StoreData(objectID, true, spriteData);
-            scene.AddObject(objectID, 0, *spriteMesh, 0);
-        }
-    }
+    TileMapComponentRenderer::Render(_tilemapEntity, _cameraEntity, scene);
 
     GraphicsPipelineState pipelineState;
     pipelineState.CullingMode = CullMode::None;
     pipelineState.BlendState = AttachmentBlendState::AlphaBlending;
     pipelineState.EnableDepthWrite = false;
 
-    auto pass1 = graph.CreateRenderPassObject<SimpleRenderPass<GlobalSceneData, SpriteObjectData>>("Simple", colorRef, _shader, pipelineState);
+    graph.CreateRenderPassObject<SimpleRenderPass<GlobalSceneData, TileMapComponentRenderer::TilemapObjectData>>("Tilemap", colorRef, _shader, pipelineState);
 }
 
 void SandboxApplication::DrawSprites(RenderGraphResourceRef colorRef, RenderGraph& graph, RenderScene& scene)
 {
-    StackArray<std::pair<uint64, int>, 64> sortedObjects;
-    auto spriteMesh = SpriteRendererComponent::GetOrCreateSpriteMesh();
-    //const auto& eyePosition = scene.GetCameraPosition();
-    const auto& currentTick = _engine->GetMainLoop()->GetCurrentTick();
-    for (auto& entity : _scene->CreateComponentView<Transform2DComponent, SpriteRendererComponent, SpritesheetAnimationComponent>(true))
+    for (auto& entity : _scene->CreateComponentView<SpriteRendererComponent, Transform2DComponent>(true))
     {
-        Transform2DComponent* transformComponent = entity.GetComponent<Transform2DComponent>();
-        SpriteRendererComponent* spriteComponent = entity.GetComponent<SpriteRendererComponent>();
-        SpritesheetAnimationComponent* animationComponent = entity.GetComponent<SpritesheetAnimationComponent>();
-
-        animationComponent->Update(currentTick);
-        spriteComponent->AtlasCellIndex = animationComponent->GetCurrentAnimationFrame();
-
-        SpriteObjectData spriteData;
-        spriteData.Model = transformComponent->GlobalTransform;
-        spriteData.TintColor = spriteComponent->TintColor.AsVector4(false);
-        spriteData.Slice = spriteComponent->GetCurrentAtlasCellSlice();
-        spriteData.SpriteTexture = spriteComponent->SpriteTexture;
-
-        uint64 objectID = ToHash(spriteComponent->OwnerID);
-        scene.StoreData(objectID, true, spriteData);
-
-        //float depth = (eyePosition - transformComponent->GetGlobalPosition()).GetLengthSquared();
-        sortedObjects.EmplaceBack(objectID, transformComponent->ZIndex);
-        //scene.AddObject(objectID, 0, *spriteMesh, 0);
+        SpriteComponentRenderer::Render2D(entity, scene);
     }
-
-    QSorter<std::pair<uint64, int>> objectSorter(
-        [](const auto& a, const auto& b)
-    {
-        return a.second > b.second;
-    });
-    objectSorter.Sort(sortedObjects);
-
-    for (const auto& obj : sortedObjects)
-        scene.AddObject(obj.first, 0, *spriteMesh, 0);
 
     GraphicsPipelineState pipelineState;
     pipelineState.CullingMode = CullMode::None;
     pipelineState.BlendState = AttachmentBlendState::AlphaBlending;
     pipelineState.EnableDepthWrite = false;
 
-    auto pass1 = graph.CreateRenderPassObject<SimpleRenderPass<GlobalSceneData, SpriteObjectData>>("Sprites", colorRef, _shader, pipelineState);
+    graph.CreateRenderPassObject<SimpleRenderPass<GlobalSceneData, SpriteComponentRenderer::SpriteObjectData>>("Sprites", colorRef, _shader, pipelineState);
 }

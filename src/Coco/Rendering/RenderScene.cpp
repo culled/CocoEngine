@@ -133,31 +133,31 @@ namespace Coco
         _frame->EnsureDynamicMeshData(id, positions, indices, normals, colors, tangents, uvs);
     }
 
-    void RenderScene::AddObject(uint64 id, uint64 layer, Mesh& mesh, uint32 submeshIndex)
+    void RenderScene::AddObject(uint64 id, uint64 layer, float order, Mesh& mesh, uint32 submeshIndex)
     {
         _frame->EnsureMeshData(mesh);
 
         auto submeshes = mesh.GetSubmeshes();
         Submesh drawSubmesh = submeshIndex < submeshes.size() ? submeshes[submeshIndex] : submeshes[0];
 
-        _frame->_renderObjects.EmplaceBack(id, layer, mesh.GetID(), drawSubmesh);
+        _frame->_renderObjects.EmplaceBack(id, layer, mesh.GetID(), drawSubmesh, order);
         _renderObjectCount++;
     }
 
-    void RenderScene::AddObject(uint64 id, uint64 layer, Mesh& mesh, uint32 indexOffset, uint32 indexCount,
+    void RenderScene::AddObject(uint64 id, uint64 layer, float order, Mesh& mesh, uint32 indexOffset, uint32 indexCount,
         int32 vertexOffset)
     {
         _frame->EnsureMeshData(mesh);
 
-        AddObject(id, layer, mesh.GetID(), indexOffset, indexCount, vertexOffset);
+        AddObject(id, layer, order, mesh.GetID(), indexOffset, indexCount, vertexOffset);
     }
 
-    void RenderScene::AddObject(uint64 id, uint64 layer, uint64 meshID, uint32 indexOffset, uint32 indexCount,
+    void RenderScene::AddObject(uint64 id, uint64 layer, float order, uint64 meshID, uint32 indexOffset, uint32 indexCount,
         int32 vertexOffset)
     {
         Submesh submesh(indexOffset, indexCount, vertexOffset);
 
-        _frame->_renderObjects.EmplaceBack(id, layer, meshID, submesh);
+        _frame->_renderObjects.EmplaceBack(id, layer, meshID, submesh, order);
         _renderObjectCount++;
     }
 

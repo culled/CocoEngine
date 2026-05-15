@@ -5,10 +5,11 @@
 
 namespace Coco
 {
-    RenderObject::RenderObject(uint64 id, uint64 layer, uint64 meshID, const Submesh& drawSubmesh) :
+    RenderObject::RenderObject(uint64 id, uint64 layer, uint64 meshID, const Submesh& drawSubmesh, float order) :
         ID(id),
         Layer(layer),
         MeshID(meshID),
-        DrawSubmesh(drawSubmesh)
+        DrawSubmesh(drawSubmesh),
+        Order(order)
     {}
 }

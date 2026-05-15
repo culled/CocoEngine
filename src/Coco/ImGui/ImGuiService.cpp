@@ -170,7 +170,7 @@ namespace Coco
 
                 uint64 drawID = Math::CombineHashes(static_cast<uint64>(cmdI), static_cast<uint64>(n), meshID);
                 scene.StoreData(drawID, true, objData);
-                scene.AddObject(drawID, 0, meshID, indexOffset, cmd.ElemCount, static_cast<int32>(vertexOffset));
+                scene.AddObject(drawID, 0, static_cast<float>(n), meshID, indexOffset, cmd.ElemCount, static_cast<int32>(vertexOffset));
             }
         }
 

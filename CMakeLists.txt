@@ -71,5 +71,8 @@ endif()
 # Include apps
 if(COCO_ENABLE_APPS)
     set(COCO_APPS_BUILD_DIR ${CMAKE_BINARY_DIR}/build/Apps)
+
     add_subdirectory(Apps/Sandbox ${COCO_APPS_BUILD_DIR}/Sandbox)
+
+    add_subdirectory(Apps/TopDownGame ${COCO_APPS_BUILD_DIR}/TopDownGame)
 endif()

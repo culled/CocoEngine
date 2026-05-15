@@ -36,8 +36,10 @@ public:
     void Start() override;
     Version GetVersion() const override { return Version(0, 1, 0); }
 
+protected:
+    void Tick(const TickInfo& tickInfo) override;
+
 private:
-    TickListener _tickListener;
     RenderListener _renderListener;
     Ref<Window> _window;
     SharedPtr<Shader> _shader;
@@ -54,7 +56,6 @@ private:
     void CreateServices();
     void CreateResources();
     void CreateScene();
-    void OnTick(const TickInfo& tickInfo);
     void RenderSceneCallback(uint64 targetID, RenderGraph& graph, RenderScene& scene);
     void DrawTilemap(RenderGraphResourceRef colorRef, RenderGraph& graph, RenderScene& scene);
     void DrawSprites(RenderGraphResourceRef colorRef, RenderGraph& graph, RenderScene& scene);

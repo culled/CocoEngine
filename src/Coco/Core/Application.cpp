@@ -14,6 +14,9 @@ namespace Coco
 
     Application::Application(Engine* engine, const char* name) :
         _engine(engine),
-        _name(name)
-    {}
+        _name(name),
+        _tickListener(this, &Application::Tick, 0)
+    {
+        _tickListener.ListenTo(*_engine->GetMainLoop());
+    }
 } // Coco

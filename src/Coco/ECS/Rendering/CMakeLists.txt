@@ -9,6 +9,12 @@ target_sources(ECS PRIVATE
         Components/SpritesheetAnimationComponent.cpp
         Components/TileMapRendererComponent.h
         Components/TileMapRendererComponent.cpp
+        Renderers/SpriteComponentRenderer.h
+        Renderers/SpriteComponentRenderer.cpp
+        Renderers/TileMapComponentRenderer.h
+        Renderers/TileMapComponentRenderer.cpp
+        Systems/SpritesheetAnimationComponentSystem.h
+        Systems/SpritesheetAnimationComponentSystem.cpp
 )
 
 target_link_libraries(ECS PUBLIC

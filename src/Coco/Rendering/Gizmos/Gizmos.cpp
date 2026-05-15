@@ -92,7 +92,7 @@ namespace Coco
             GizmoObjectData obj{dc.Transform, dc.DrawColor};
             scene.StoreData(objID, true, obj);
 
-            scene.AddObject(objID, 0, *_mesh, dc.SubmeshID);
+            scene.AddObject(objID, 0, 0.0f, *_mesh, dc.SubmeshID);
         }
 
         graph.CreateRenderPassObject<GizmosRenderPass>("Gizmos");

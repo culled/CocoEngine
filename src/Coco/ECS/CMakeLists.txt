@@ -19,6 +19,10 @@ add_library(ECS STATIC
         EntityComponentView.h
         Components/Transform2DComponent.cpp
         Components/Transform2DComponent.h
+        Components/NativeScriptComponent.cpp
+        Components/NativeScriptComponent.h
+        Systems/NativeComponentSystem.cpp
+        Systems/NativeComponentSystem.h
 )
 
 target_link_libraries(ECS PUBLIC

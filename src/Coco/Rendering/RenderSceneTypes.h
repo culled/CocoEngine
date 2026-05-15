@@ -25,7 +25,10 @@ namespace Coco
         /// @brief The submesh of this object
         Submesh DrawSubmesh;
 
-        RenderObject(uint64 id, uint64 layer, uint64 meshID, const Submesh& drawSubmesh);
+        /// @brief An ordering value for sorting render objects
+        float Order;
+
+        RenderObject(uint64 id, uint64 layer, uint64 meshID, const Submesh& drawSubmesh, float order);
     };
 }
 #endif //COCOENGINE_RENDERSCENETYPES_H

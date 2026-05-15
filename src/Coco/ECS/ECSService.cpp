@@ -6,17 +6,30 @@
 
 #include "Scene.h"
 #include "Coco/Core/Engine.h"
+#include "Coco/Core/Types/Sorting/QSorter.h"
+
+#include "Systems/NativeComponentSystem.h"
+
+#ifdef COCO_SERVICE_RENDERING
+#include "Rendering/Systems/SpritesheetAnimationComponentSystem.h"
+#endif
 
 namespace Coco
 {
-    ECSService::ECSService(Engine* engine) :
+    ECSService::ECSService(Engine* engine, bool registerDefaultSystems) :
         EngineService(engine),
         _components(),
         _entities(&_components),
         _destroyEntityQueue(),
-        _destroyEntitiesTickListener(this, &ECSService::DestroyEntityTick, DestroyEntitiesTickOrder)
+        _destroyEntitiesTickListener(this, &ECSService::DestroyEntityTick, DestroyEntitiesTickOrder),
+        _sceneTickCallbacksNeedSorting(false),
+        _rootSceneTickListener(this, &ECSService::RootScenesTick, RootSceneTickOrder)
     {
         _destroyEntitiesTickListener.ListenTo(*_engine->GetMainLoop());
+        _rootSceneTickListener.ListenTo(*_engine->GetMainLoop());
+
+        if (registerDefaultSystems)
+            RegisterDefaultSystems();
 
         COCO_ENGINE_LOG_VERBOSE("Created ECSService");
     }
@@ -140,6 +153,39 @@ namespace Coco
         _destroyEntityQueue.Append(entityID);
     }
 
+    void ECSService::RegisterSceneTickCallback(const SceneTickCallbackFunc& sceneTickCallback, int order)
+    {
+        _sceneTickCallbacks.EmplaceBack(order, sceneTickCallback);
+        _sceneTickCallbacksNeedSorting = true;
+    }
+
+    void ECSService::TickScene(Scene& scene, const TickInfo& tickInfo)
+    {
+        if (_sceneTickCallbacksNeedSorting)
+            SortSceneTickCallbacks();
+
+        for (const auto& callback : _sceneTickCallbacks)
+            callback.second(scene, tickInfo);
+    }
+
+    void ECSService::AddRootScene(SharedPtr<Scene> scene)
+    {
+        if (_rootScenes.Contains(scene))
+            return;
+
+        _rootScenes.Append(scene);
+    }
+
+    void ECSService::RemoveRootScene(const Scene& scene)
+    {
+        _rootScenes.RemoveIf([scene](const auto& other){return other.get() == &scene;});
+    }
+
+    void ECSService::EnableTickingRootScenes(bool enabled)
+    {
+        _rootSceneTickListener.SetEnabled(enabled);
+    }
+
     void ECSService::DestroyEntityTick(const TickInfo& tickInfo)
     {
         while (!_destroyEntityQueue.IsEmpty())
@@ -150,5 +196,27 @@ namespace Coco
 
             _destroyEntityQueue.RemoveAt(0, false);
         }
+    }
+
+    void ECSService::RootScenesTick(const TickInfo& tickInfo)
+    {
+        for (auto& scene : _rootScenes)
+            TickScene(*scene, tickInfo);
+    }
+
+    void ECSService::SortSceneTickCallbacks()
+    {
+        QSorter<std::pair<int, SceneTickCallbackFunc>> sorter([](const auto& a, const auto& b) { return a.first < b.first; });
+        sorter.Sort(_sceneTickCallbacks);
+        _sceneTickCallbacksNeedSorting = false;
+    }
+
+    void ECSService::RegisterDefaultSystems()
+    {
+        RegisterSceneTickCallback(&NativeComponentSystem::Tick, NativeComponentSystem::TickOrder);
+
+        #ifdef COCO_SERVICE_RENDERING
+        RegisterSceneTickCallback(&SpritesheetAnimationComponentSystem::Tick, SpritesheetAnimationComponentSystem::TickOrder);
+        #endif
     }
 } // Coco

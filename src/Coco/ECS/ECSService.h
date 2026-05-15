@@ -18,10 +18,15 @@ namespace Coco
     class ECSService : public EngineService
     {
     public:
+        using SceneTickCallbackFunc = std::function<void(Scene& scene, const TickInfo&)>;
+
         /// @brief The tick order for safely destroying entities
         static constexpr int DestroyEntitiesTickOrder = 8000;
 
-        ECSService(Engine* engine);
+        /// @brief The tick order for safely destroying entities
+        static constexpr int RootSceneTickOrder = -50;
+
+        ECSService(Engine* engine, bool registerDefaultSystems = true);
         ~ECSService();
 
         /// @brief Creates an entity
@@ -115,15 +120,51 @@ namespace Coco
         /// @return The storage for entity components
         const EntityComponentStorage& GetComponentStorage() const { return _components; }
 
+        /// @brief Registers a scene tick function callback
+        /// @param sceneTickCallback The function that will be called during the scene tick
+        /// @param order The tick order for the function. Callbacks are called in ascending order
+        void RegisterSceneTickCallback(const SceneTickCallbackFunc& sceneTickCallback, int order);
+
+        /// @brief Ticks the given scene. This is automatically called for root scenes when automatically ticking is enabled
+        /// @param scene The scene being ticked
+        /// @param tickInfo The tick info
+        void TickScene(Scene& scene, const TickInfo& tickInfo);
+
+        /// @brief Adds the given scene as a root scene. Root scenes are ticked and have other callbacks registered
+        /// @param scene The scene to add
+        void AddRootScene(SharedPtr<Scene> scene);
+
+        /// @brief Removes the given scene from the list of root scenes
+        /// @param scene The scene to remove
+        void RemoveRootScene(const Scene& scene);
+
+        /// @brief Enables or disables automatic ticking of all root scenes
+        /// @param enabled If true, all root scenes will automatically be ticked
+        void EnableTickingRootScenes(bool enabled);
+
     private:
         EntityComponentStorage _components;
         EntityStorage _entities;
         Array<UUID> _destroyEntityQueue;
         TickListener _destroyEntitiesTickListener;
+        Array<std::pair<int, SceneTickCallbackFunc>> _sceneTickCallbacks;
+        bool _sceneTickCallbacksNeedSorting;
+        Array<SharedPtr<Scene>> _rootScenes;
+        TickListener _rootSceneTickListener;
 
         /// @brief A tick handler for safely destroying entities
         /// @param tickInfo The tick info
         void DestroyEntityTick(const TickInfo& tickInfo);
+
+        /// @brief A tick handler for ticking root scenes
+        /// @param tickInfo The tick info
+        void RootScenesTick(const TickInfo& tickInfo);
+
+        /// @brief Sorts the scene tick callbacks
+        void SortSceneTickCallbacks();
+
+        /// @brief Registers all default systems
+        void RegisterDefaultSystems();
     };
 } // Coco
 
