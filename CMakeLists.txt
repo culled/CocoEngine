@@ -74,5 +74,5 @@ if(COCO_ENABLE_APPS)
 
     add_subdirectory(Apps/Sandbox ${COCO_APPS_BUILD_DIR}/Sandbox)
 
-    add_subdirectory(Apps/TopDownGame ${COCO_APPS_BUILD_DIR}/TopDownGame)
+    #add_subdirectory(Apps/TopDownGame ${COCO_APPS_BUILD_DIR}/TopDownGame)
 endif()
